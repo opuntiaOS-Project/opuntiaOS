@@ -37,10 +37,11 @@ load_kernel:
 begin_pm:
     mov ebx, MSG_PROT_MODE
     call print_string_pm
+    call KERNEL_OFFSET
     jmp $
 
 MSG_REAL_MODE:
-    db 'Starting in real mode', 0
+    db 'Starting real mode', 0
 MSG_PROT_MODE:
     db 'Switched to prot mode', 0
 MSG_KERNEL_LOAD:
