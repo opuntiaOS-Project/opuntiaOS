@@ -16,5 +16,6 @@
 typedef char bool;
 typedef unsigned int u_int;
 
+void scroll(unsigned char lines);
 bool col_in_field(int col);
 bool row_in_field(int row);
