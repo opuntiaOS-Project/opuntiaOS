@@ -1,11 +1,13 @@
+[bits 16]
 switch_to_pm:
     cli ; turn off interuptions
     lgdt [gdt_descriptor]
-    mov ax, cr0
-    or ax, 0x1
-    mov cr0, ax
+    mov eax, cr0
+    or eax, 0x1
+    mov cr0, eax
     call CODE_SEG:init_pm
 
+[bits 32]
 init_pm:
     mov ax, DATA_SEG
     mov ds, ax
@@ -17,4 +19,4 @@ init_pm:
     mov ebp, 0x90000 ; stack's init
     mov esp, ebp
     
-    call BEGIN_PM
+    call begin_pm
