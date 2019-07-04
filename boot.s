@@ -1,5 +1,7 @@
 [org 0x7c00]
 
+KERNEL_OFFSET equ 0x1000
+
 mov [BOOT_DISK], dl ; saving boot disk
 
 mov bp, 0x8000 ; stack init in 16bits
@@ -7,6 +9,7 @@ mov sp, bp
 
 mov bx, MSG_REAL_MODE
 call print_string
+call load_kernel
 call switch_to_pm
 
 jmp $
@@ -18,6 +21,18 @@ jmp $
 %include "utils32/print.s"
 %include "utils32/gdt.s"
 
+
+[bits 16]
+load_kernel:
+    mov bx, MSG_KERNEL_LOAD
+    call print_string
+
+    mov bx, KERNEL_OFFSET
+    mov dh, 1 ; sectors count to read
+    mov dl, [BOOT_DISK]
+    call disk_load
+    ret
+
 [bits 32]
 begin_pm:
     mov ebx, MSG_PROT_MODE
@@ -28,6 +43,8 @@ MSG_REAL_MODE:
     db 'Starting in real mode', 0
 MSG_PROT_MODE:
     db 'Switched to prot mode', 0
+MSG_KERNEL_LOAD:
+    db ' Loading kernel from drive', 0
 
 BOOT_DISK: db 0
 
