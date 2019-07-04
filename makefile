@@ -27,6 +27,3 @@ run: products/os-image.bin
 
 clean:
 	rm -rf *.bin *.o *.dis
-	cd products/
-	rm -rf *
-	cd ..
