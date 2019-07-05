@@ -9,7 +9,7 @@ void main() {
     mem[3] = 0xf0;
     
     clean_screen();
-    //for (int i = 0; i < 80 * 25; i++) {
-        //print_char((char)('0' + (i/80)%10), WHITE_ON_BLACK, -1, -1);
-    //}
+    for (int i = 0; i < 80 * 10; i++) {
+        print_char((char)('0' + (i/80)%10), WHITE_ON_BLACK, -1, -1);
+    }
 }

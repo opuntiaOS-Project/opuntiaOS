@@ -6,26 +6,15 @@
 
 void print_char(char symbol, unsigned char color, int col, int row) {
     char* mem = VIDEO_MEMORY;
-    // unsigned short offset_types[2] = {get_cursor_offet(), get_offset(col, row)};
-    // unsigned short offset;
-    // offset = offset_types[(col_in_field(col) && row_in_field(row))]; 
-    // mem[offset * 2 + 1] = symbol;
-    // mem[offset * 2 + 2] = color;
+    unsigned short offset_types[2] = {get_cursor_offet(), get_offset(col, row)};
     unsigned short offset;
-    if (col_in_field(col) && row_in_field(row)) {
-        offset = get_offset(col, row);
-        mem[2 * offset + 1] = symbol;
-        mem[2 * offset + 2] = color;
-    } else {
-        offset = get_cursor_offet();
-        mem[offset * 2 + 1] = symbol;
-        mem[offset * 2 + 2] = color;
-    }
-
+    offset = offset_types[(col_in_field(col) && row_in_field(row))]; 
+    mem[offset * 2] = symbol;
+    mem[offset * 2 + 1] = color;
     if (offset == MAX_COLS * MAX_ROWS) {
         scroll(1); // scrool for one line;
     } else {
-        set_cursor_offset(offset);
+        set_cursor_offset(offset+1);
     }
 }
 
@@ -88,12 +77,12 @@ int get_cursor_offet() {
     offset <<= 8;
     port_byte_out(REG_SCREEN_CTRL, 15);
     offset += port_byte_in(REG_SCREEN_DATA);
-    return offset + 1;
+    return offset;
 }
 
 // helpers
 
-int get_offset(int col, int row) { return row * MAX_COLS + col + 1; }
+int get_offset(int col, int row) { return row * MAX_COLS + col; }
 bool col_in_field(int col) { return (0 <= col && col <= MAX_COLS); }
 bool row_in_field(int row) { return (0 <= row && row <= MAX_ROWS); }
 
