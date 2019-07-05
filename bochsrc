@@ -1,0 +1,2 @@
+floppya: 1_44=products/os-image.bin, status=inserted
+boot: floppy
