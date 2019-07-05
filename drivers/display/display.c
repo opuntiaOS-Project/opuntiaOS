@@ -8,8 +8,12 @@ void print_char(char symbol, unsigned char color, int col, int row) {
     char* mem = VIDEO_MEMORY;
     unsigned short offset_types[2] = {get_cursor_offet(), get_offset(col, row)};
     unsigned short offset = offset_types[(col_in_field(col) && row_in_field(row))]; 
-    mem[offset * 2] = symbol;
-    mem[offset * 2 + 1] = color;
+    if (symbol == '\n') {
+        offset += MAX_COLS - (offset % MAX_COLS) - 1; // -1 to make it works (offset + 1 further)
+    } else {
+        mem[offset * 2] = symbol;
+        mem[offset * 2 + 1] = color;
+    }
     if (offset + 1 >= MAX_COLS * MAX_ROWS) {
         scroll(1); // scroll for 1 line
     } else {
