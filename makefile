@@ -7,7 +7,7 @@ all: run
 products/kernel.bin: products/kernel_entry.o products/kernel.o
 	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
-products/kernel_entry.o: kernel_entry.s
+products/kernel_entry.o: boot/kernel_entry.s
 	nasm $< -f elf -o $@
 
 products/kernel.o: kernel/kernel.c
@@ -16,7 +16,7 @@ products/kernel.o: kernel/kernel.c
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
 
-products/boot.bin: boot.s
+products/boot.bin: boot/boot.s
 	nasm $< -f bin -o $@
 
 products/os-image.bin: products/boot.bin products/kernel.bin
