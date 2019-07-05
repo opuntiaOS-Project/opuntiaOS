@@ -8,7 +8,7 @@ void main() {
     mem[2] = 'C';
     mem[3] = 0xf0;
     
-    //clean_screen();
+    clean_screen();
     //for (int i = 0; i < 80 * 25; i++) {
         //print_char((char)('0' + (i/80)%10), WHITE_ON_BLACK, -1, -1);
     //}

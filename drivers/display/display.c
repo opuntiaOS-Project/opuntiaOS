@@ -39,12 +39,9 @@ void printString(const char* bo[], unsigned char color, int col, int row) {
 
 void clean_screen() {
     char* mem = VIDEO_MEMORY;
-    for (int i = 0; i < MAX_COLS; i++){
-        for (int j = 0; j < MAX_ROWS; j++){
-            int offset = get_offset(i, j);
-            mem[2 * offset + 1] = ' ';
-            mem[2 * offset + 2] =  BLACK_ON_WHITE;
-        }
+    for (int i = 0; i < MAX_COLS * MAX_ROWS; i+=2) {
+        mem[i] = ' ';
+        mem[i+1] = WHITE_ON_BLACK;
     }
     set_cursor_offset(0, 0);
 }
