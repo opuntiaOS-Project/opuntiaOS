@@ -44,7 +44,6 @@ void clean_screen() {
 
 void scroll (unsigned char lines) {
     char* mem = VIDEO_MEMORY;
-    *mem = 'C';
     unsigned int mem_offset = lines * MAX_COLS;
     unsigned int bytes_2_del = 2*(MAX_COLS*MAX_ROWS-mem_offset);
     char* src = (mem + mem_offset*2);
