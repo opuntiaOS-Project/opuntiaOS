@@ -14,12 +14,12 @@ call switch_to_pm
 
 jmp $
 
-%include "utils16/print.s"
-%include "utils16/disk_load.s"
-%include "utils16/switch_to_pm.s"
+%include "boot/utils16/print.s"
+%include "boot/utils16/disk_load.s"
+%include "boot/utils16/switch_to_pm.s"
 
-%include "utils32/print.s"
-%include "utils32/gdt.s"
+%include "boot/utils32/print.s"
+%include "boot/utils32/gdt.s"
 
 
 [bits 16]
