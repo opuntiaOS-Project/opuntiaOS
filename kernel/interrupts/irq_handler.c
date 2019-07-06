@@ -1,4 +1,4 @@
-#include "../drivers/port/port.h"
+#include "irq_handler.h"
 
 void irq0_handler() {
     port_byte_out(0x20, 0x20); //EOI
