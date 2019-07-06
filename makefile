@@ -3,12 +3,14 @@
 # $^ = all dependencies
 
 C_SOURCES = $(wildcard kernel/*.c drivers/*/*.c)
+S_SOURCES = $(wildcard kernel/*.s)
 HEADERS = $(wildcard kernel/*.h, drivers/*/*.h)
-OBJ = ${C_SOURCES:.c=.o} 
+C_OBJ = ${C_SOURCES:.c=.o} 
+S_OBJ = ${S_SOURCES:.s=.o} 
 
 all: run
 
-products/kernel.bin: products/kernel_entry.o ${OBJ}
+products/kernel.bin: products/kernel_entry.o ${C_OBJ} ${S_OBJ}
 	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
 products/kernel_entry.o: boot/kernel_entry.s
@@ -19,6 +21,9 @@ products/kernel_entry.o: boot/kernel_entry.s
 
 %.o: %.c ${HEADERS}
 	i386-elf-gcc -ffreestanding -c $< -o $@
+
+%.o: %.s
+	nasm $< -f elf -o $@
 
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
