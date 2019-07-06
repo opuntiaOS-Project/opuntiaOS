@@ -1,4 +1,4 @@
-#include "../drivers/display/display.c"
+#include "../drivers/display/display.h"
 
 void main() {
     clean_screen();

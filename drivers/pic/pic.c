@@ -1,4 +1,4 @@
-#include "../port/port.c"
+#include "../port/port.h"
 
 #define MASTER_PIC_CMD  0x0020
 #define MASTER_PIC_DATA 0x0021
