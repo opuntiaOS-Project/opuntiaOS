@@ -28,7 +28,7 @@ load_kernel:
     call print_string
 
     mov bx, KERNEL_OFFSET
-    mov dh, 15 ; sectors count to read
+    mov dh, 20 ; sectors count to read
     mov dl, [BOOT_DISK]
     call disk_load
     ret

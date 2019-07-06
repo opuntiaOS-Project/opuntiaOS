@@ -1,10 +1,13 @@
 #include "irq_handler.h"
+#include "../../drivers/display/display.h"
+
 
 void irq0_handler() {
     port_byte_out(0x20, 0x20); //EOI
 }
  
 void irq1_handler() {
+    print_char('k', WHITE_ON_BLACK, -1, -1);
 	port_byte_out(0x20, 0x20); //EOI
 }
  

@@ -40,5 +40,6 @@ run: products/os-image.bin
 clean:
 	rm -rf products/*.bin products/*.o debug/*.dis
 	rm -rf kernel/*.bin kernel/*.o kernel/*.dis
+	rm -rf kernel/*/*.bin kernel/*/*.o kernel/*/*.dis
 	rm -rf drivers/*/*.bin drivers/*/*.o drivers/*/*.dis
 	rm -rf *.bin *.o *.dis
