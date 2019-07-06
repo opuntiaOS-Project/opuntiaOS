@@ -17,3 +17,7 @@ unsigned short port_word_in(unsigned short port) {
 void port_word_out(unsigned short port, unsigned short data) {
     __asm__("out %%ax, %%dx" : : "a"(data), "d"(port));
 }
+
+void io_wait() {
+    __asm__("out %%al, $0x80" : : "a"(0)); // writing to "unused" port
+}
