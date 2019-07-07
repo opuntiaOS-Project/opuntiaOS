@@ -1,4 +1,6 @@
 #include "idt.h"
+#include "../../../drivers/port/port.h"
+#include "../../../drivers/pic/pic.h"
 
 void idt_setup() {
 	idt_element_setup(0, (u_int32)isr0);

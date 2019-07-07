@@ -1,6 +1,3 @@
-#include "../../../drivers/port/port.h"
-#include "../../../drivers/pic/pic.h"
-#include "../../../drivers/display/display.h"
 #include "idt_common_data.h"
 
 struct IDT_Entry {

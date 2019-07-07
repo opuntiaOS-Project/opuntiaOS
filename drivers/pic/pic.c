@@ -1,4 +1,5 @@
 #include "pic.h"
+#include "../port/port.h"
 
 void pic_remap(unsigned int offset1, unsigned int offset2){
     unsigned char m1, m2;
