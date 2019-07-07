@@ -2,7 +2,7 @@
 # $< = first dependency
 # $^ = all dependencies
 
-C_SOURCES = $(wildcard kernel/*.c kernel/*/*.c drivers/*/*.c)
+C_SOURCES = $(wildcard kernel/*.c kernel/*/*.c kernel/*/*/*.c drivers/*/*.c)
 S_SOURCES = $(wildcard kernel/*/*.s)
 HEADERS = $(wildcard kernel/*.h, drivers/*/*.h)
 C_OBJ = ${C_SOURCES:.c=.o} 

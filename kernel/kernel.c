@@ -1,17 +1,14 @@
 #include "../drivers/display/display.h"
-//#include "interrupts/idt.h"
-//#include "interrupts/timer/timer.h"
-#include "interrupts/timer/timer.c"
+#include "interrupts/timer/timer.h"
 
 void main() {
 
     idt_setup();
-    __asm__ __volatile__("int $10");
-
-    //init_timer(100);
+    asm volatile("sti");
+    init_timer(100);
 
     //clean_screen();
-    //__asm__ __volatile__("int $0");
+    __asm__ __volatile__("int $0");
     // for (int i = 0; i < 80 * 25; i++) {
     //     print_char((char)('0' + (i/80)%10), WHITE_ON_BLACK, -1, -1);
     // }
