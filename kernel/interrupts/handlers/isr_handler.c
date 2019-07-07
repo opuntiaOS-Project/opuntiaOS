@@ -1,5 +1,5 @@
 #include "isr_handler.h"
-#include "../../drivers/display/display.h"
+#include "../../../drivers/display/display.h"
 
 #define ERR_COLOR BLACK_ON_WHITE
 

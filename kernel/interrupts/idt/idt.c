@@ -1,5 +1,4 @@
 #include "idt.h"
-#include "../../drivers/display/display.h"
 
 void idt_setup() {
 	idt_element_setup(0, (u_int32)isr0);
@@ -35,7 +34,7 @@ void idt_setup() {
     idt_element_setup(30, (u_int32)isr30);
     idt_element_setup(31, (u_int32)isr31);
 
-	pic_remap(32, 40);
+	pic_remap(IRQ_MASTER_OFFSET, IRQ_SLAVE_OFFSET);
 
 	idt_element_setup(32, (u_int32)irq0);
     idt_element_setup(33, (u_int32)irq1);
@@ -54,8 +53,23 @@ void idt_setup() {
     idt_element_setup(46, (u_int32)irq14);
     idt_element_setup(47, (u_int32)irq15);
 
+    init_irq_handlers();
+
 	idt_load();
 
+}
+
+void setup_irq_handler(u_int8 interrupt_no, void (*handler)()) {
+    handlers[interrupt_no] = handler;
+}
+
+void init_irq_handlers() {
+    for (int i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++){
+        handlers[i] = irq_handler_null;
+    }
+    for (int i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++){
+        handlers[i] = irq_handler_null;
+    }
 }
 
 void idt_load() {
@@ -64,7 +78,7 @@ void idt_load() {
 	__asm__("lidt (%0)" : : "r"(&idt_register));
 }
 
-void idt_element_setup(int n, u_int32 handler_addr) {
+void idt_element_setup(u_int8 n, u_int32 handler_addr) {
 	idt[n].offset_lower = handler_addr & 0xffff;
 	idt[n].segment = CODE_SEG;
 	idt[n].zero = 0;

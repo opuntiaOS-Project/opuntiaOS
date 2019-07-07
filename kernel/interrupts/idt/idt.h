@@ -1,9 +1,7 @@
-#include "../../drivers/port/port.h"
-#include "../../drivers/pic/pic.h"
-#include "../utils/types.h"
-
-#define CODE_SEG 0x08
-#define IDT_ENTRIES 256
+#include "../../../drivers/port/port.h"
+#include "../../../drivers/pic/pic.h"
+#include "../../../drivers/display/display.h"
+#include "idt_common_data.h"
 
 struct IDT_Entry {
     u_int16 offset_lower;
@@ -18,8 +16,13 @@ struct IDT_Register {
     u_int32 base;
 } __attribute__((packed)) idt_register;
 
-void idt_element_setup(int n, u_int32 handler_addr);
+
+void idt_element_setup(u_int8 n, u_int32 handler_addr);
 void idt_load();
+
+void setup_irq_handler(u_int8 interrupt_no, void (*handler)());
+void init_irq_handlers();
+
 
 /* ISRs reserved for CPU exceptions */
 extern void isr0();
@@ -71,6 +74,7 @@ extern void irq12();
 extern void irq13();
 extern void irq14();
 extern void irq15();
+extern void irq_handler_null();
 
 #define IRQ0 32
 #define IRQ1 33
