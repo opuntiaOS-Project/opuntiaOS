@@ -3,6 +3,7 @@
 
 
 void irq0_handler() {
+    print_char('k', WHITE_ON_BLACK, -1, -1);
     port_byte_out(0x20, 0x20); //EOI
 }
  
