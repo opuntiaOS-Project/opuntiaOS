@@ -1,4 +1,5 @@
 #include "timer.h"
+#include "../idt/idt.h"
 
 void timer_handler() {
     print_string("Catch\n", 0xfa, -1, -1);

@@ -1,4 +1,7 @@
+#pragma include_once
+
 #include "../drivers/display/display.h"
+#include "interrupts/idt/idt.h"
 #include "interrupts/timer/timer.h"
 
 void main() {
