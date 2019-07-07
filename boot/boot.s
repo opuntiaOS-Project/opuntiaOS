@@ -14,12 +14,12 @@ call switch_to_pm
 
 jmp $
 
-%include "utils16/print.s"
-%include "utils16/disk_load.s"
-%include "utils16/switch_to_pm.s"
+%include "boot/utils16/print.s"
+%include "boot/utils16/disk_load.s"
+%include "boot/utils16/switch_to_pm.s"
 
-%include "utils32/print.s"
-%include "utils32/gdt.s"
+%include "boot/utils32/print.s"
+%include "boot/utils32/gdt.s"
 
 
 [bits 16]
@@ -28,7 +28,7 @@ load_kernel:
     call print_string
 
     mov bx, KERNEL_OFFSET
-    mov dh, 4 ; sectors count to read
+    mov dh, 20 ; sectors count to read
     mov dl, [BOOT_DISK]
     call disk_load
     ret

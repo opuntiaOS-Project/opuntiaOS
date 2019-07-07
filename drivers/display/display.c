@@ -1,6 +1,6 @@
 #include "display.h"
-#include "../port/port.c"
-#include "../../kernel/utils.c"
+#include "../port/port.h"
+#include "../../kernel/utils/utils.h"
 
 // prints
 
