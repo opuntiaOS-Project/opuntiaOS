@@ -1,9 +1,0 @@
-#define KEY_ESC 0x1
-#define KEY_ESC 0x2
-#define KEY_ESC 0x3
-#define KEY_ESC 0x4
-#define KEY_ESC 0x5
-#define KEY_ESC 0x6
-#define KEY_ESC 0x7
-#define KEY_ESC 0x8
-#define KEY_ESC 0x9
