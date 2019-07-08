@@ -17,5 +17,5 @@ void irq_handler_slave(u_int8 interrupt_no) {
 }
 
 void irq_handler_null() {
-    print_char('E', WHITE_ON_BLACK, -1, -1);
+    //print_char('E', WHITE_ON_BLACK, -1, -1);
 }

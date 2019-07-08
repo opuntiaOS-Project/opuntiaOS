@@ -14,7 +14,7 @@ products/kernel.bin: products/kernel_entry.o ${C_OBJ} ${S_OBJ}
 	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
 products/kernel_entry.o: boot/kernel_entry.s
-	nasm $< -f elf -o $@
+	/usr/local/bin/nasm $< -f elf -o $@
 
 #products/kernel.o: kernel/kernel.c
 #	i386-elf-gcc -ffreestanding -c $< -o $@
@@ -23,13 +23,13 @@ products/kernel_entry.o: boot/kernel_entry.s
 	i386-elf-gcc -ffreestanding -c $< -o $@
 
 %.o: %.s
-	nasm $< -f elf -o $@
+	/usr/local/bin/nasm $< -f elf -o $@
 
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
 
 products/boot.bin: boot/boot.s
-	nasm $< -f bin -o $@
+	/usr/local/bin/nasm $< -f bin -o $@
 
 products/os-image.bin: products/boot.bin products/kernel.bin
 	cat $^ > $@
