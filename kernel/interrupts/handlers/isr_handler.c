@@ -1,7 +1,7 @@
-#include "isr_handler.h"
-#include "../../../drivers/display/display.h"
+#include <isr_handler.h>
+#include <display.h>
 
-#define ERR_COLOR BLACK_ON_WHITE
+#define ERR_COLOR RED_ON_BLACK
 
 void isr0_handler() {
     print_string("Division By Zero", ERR_COLOR, -1, -1);

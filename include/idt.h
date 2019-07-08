@@ -1,4 +1,4 @@
-#include "idt_common_data.h"
+#include <idt_common_data.h>
 
 struct IDT_Entry {
     u_int16 offset_lower;

@@ -1,4 +1,4 @@
-#include "irq_handler.h"
+#include <irq_handler.h>
 
 void irq_handler_redirect(u_int8 interrupt_no) {
     void (*func)(void) = handlers[interrupt_no];

@@ -1,6 +1,4 @@
-#include "../idt/idt_common_data.h";
-#include "../../../drivers/port/port.h"
-#include "../../../drivers/display/display.h"
+#include <idt_common_data.h>
 
 void irq_handler_master(u_int8 interrupt_no);
 void irq_handler_slave(u_int8 interrupt_no);

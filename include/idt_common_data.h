@@ -1,4 +1,4 @@
-#include "../../utils/types.h"
+#include <types.h>
 
 #define CODE_SEG 0x08
 #define IDT_ENTRIES 256
