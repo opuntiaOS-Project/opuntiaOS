@@ -20,6 +20,9 @@ typedef unsigned int u_int;
 
 void print_char(char symbol, unsigned char color, int col, int row);
 void print_string(const char* string, unsigned char color, int col, int row);
+void print_hex(int hex, unsigned char color, int col, int row);
+void printf(const char* string);
+void printh(int hex);
 void clean_screen();
 void scroll(unsigned char lines);
 bool col_in_field(int col);

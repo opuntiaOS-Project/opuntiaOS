@@ -1,5 +1,6 @@
 #include <display.h>
 #include <port.h>
+#include <utils.h>
 
 // prints
 
@@ -27,6 +28,22 @@ void print_string(const char* string, unsigned char color, int col, int row) {
         col = row = -1;
     }
 }
+
+void print_hex(int hex, unsigned char color, int col, int row) {
+    char *sc_ascii;
+    htos(hex, sc_ascii);
+    print_string(sc_ascii, color, col, row);
+}
+
+void printf(const char* string) {
+    print_string(string, BLACK_ON_WHITE, -1, -1);
+}
+
+void printh(int hex) {
+    print_hex(hex, BLACK_ON_WHITE, -1, -1);
+}
+
+
 
 // clean screen
 

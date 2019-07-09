@@ -2,9 +2,10 @@
 #include <keyboard.h>
 #include <idt.h>
 #include <timer.h>
+#include <pci.h>
 
 void init_drivers() {
-    init_timer();
+    //init_timer();
     init_keyboard();
 }
 
@@ -14,6 +15,8 @@ void main() {
     asm volatile("sti");
 
     init_drivers();
+
+    find_devices();
 
 
     // clean_screen();
