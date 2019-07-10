@@ -15,8 +15,7 @@ void main() {
     asm volatile("sti");
 
     init_drivers();
-
-    find_devices();
+    find_pci_devices();
 
 
     // clean_screen();

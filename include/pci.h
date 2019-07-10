@@ -21,6 +21,6 @@ typedef struct {
 u_int32 pci_read(u_int16 bus, u_int16 device, u_int16 function, u_int32 offset);
 void pci_write(u_int8 bus, u_int8 device, u_int8 function, u_int8 offset, u_int32 data);
 char has_device_functions(u_int8 bus, u_int8 device);
-void find_devices();
+void find_pci_devices();
 pcidd_t get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function);
 

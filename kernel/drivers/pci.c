@@ -32,8 +32,8 @@ char has_device_functions(u_int8 bus, u_int8 device) {
     return pci_read(bus, device, 0, 0x0e) & (1<<7);
 }
 
-void find_devices() {
-    printf("Pci scaing\n\n");
+void find_pci_devices() {
+    printf("Pci scanning\n");
     u_int8 bus, device, function;
     for (bus = 0; bus < 8; bus++){
         for (device = 0; device < 32; device++){
@@ -56,9 +56,10 @@ void find_devices() {
                 printf(" = VENDOR ");
                 printh((dev.vendor_id & 0xFF00) >> 8);
                 printh(dev.vendor_id & 0xFF);
-                printf(", DEVICE ");
-                printh((dev.device_id & 0xFF00) >> 8);
-                printh(dev.device_id & 0xFF);
+                printf(", CLASS ");
+                printh(dev.class_id);
+                printf(", SLASS ");
+                printh(dev.subclass_id);
                 printf("\n");
             }
         }
