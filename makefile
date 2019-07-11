@@ -14,7 +14,7 @@ products/kernel.bin: products/kernel_entry.o ${C_OBJ} ${S_OBJ}
 	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
 products/kernel_entry.o: kernel/boot/kernel_entry.s
-	nasm $< -f elf -o $@
+	/usr/local/bin/nasm $< -f elf -o $@
 
 #products/kernel.o: kernel/kernel.c
 #	i386-elf-gcc -ffreestanding -c $< -o $@
@@ -23,16 +23,32 @@ products/kernel_entry.o: kernel/boot/kernel_entry.s
 	i386-elf-gcc -ffreestanding -c $< -o $@ -I./include
 
 %.o: %.s
-	nasm $< -f elf -o $@
+	/usr/local/bin/nasm $< -f elf -o $@
 
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
 
 products/boot.bin: kernel/boot/boot.s
-	nasm $< -f bin -o $@
+	/usr/local/bin/nasm $< -f bin -o $@
 
 products/os-image.bin: products/boot.bin products/kernel.bin
 	cat $^ > $@
+
+mykernel.iso: products/os-image.bin
+	mkdir iso
+	mkdir iso/boot
+	mkdir iso/boot/grub
+	cp products/os-image.bin iso/boot/mykernel.bin
+	echo 'set timeout=0'                      > iso/boot/grub/grub.cfg
+	echo 'set default=0'                     >> iso/boot/grub/grub.cfg
+	echo ''                                  >> iso/boot/grub/grub.cfg
+	echo 'menuentry "My Operating System" {' >> iso/boot/grub/grub.cfg
+	echo '  multiboot /boot/mykernel.bin'    >> iso/boot/grub/grub.cfg
+	echo '  boot'                            >> iso/boot/grub/grub.cfg
+	echo '}'                                 >> iso/boot/grub/grub.cfg
+	i386-elf-grub-mkrescue --output=mykernel.iso iso
+	rm -rf iso
+
 
 run: products/os-image.bin
 	qemu/programs/qemu-system-i386 -fda $<
