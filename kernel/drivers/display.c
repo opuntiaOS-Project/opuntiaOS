@@ -42,15 +42,15 @@ void print_dec(int dec, unsigned char color, int col, int row) {
 }
 
 void printf(const char* string) {
-    print_string(string, BLACK_ON_WHITE, -1, -1);
+    print_string(string, WHITE_ON_BLACK, -1, -1);
 }
 
 void printh(int hex) {
-    print_hex(hex, BLACK_ON_WHITE, -1, -1);
+    print_hex(hex, WHITE_ON_BLACK, -1, -1);
 }
 
 void printd(int dec) {
-    print_dec(dec, BLACK_ON_WHITE, -1, -1);
+    print_dec(dec, WHITE_ON_BLACK, -1, -1);
 }
 
 

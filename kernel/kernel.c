@@ -10,15 +10,13 @@ void init_drivers() {
 }
 
 void main() {
-
+    clean_screen();
     idt_setup();
     asm volatile("sti");
 
     init_drivers();
     find_pci_devices();
 
-
-    // clean_screen();
     __asm__ __volatile__("int $0");
     // for (int i = 0; i < 80 * 25; i++) {
     //     print_char((char)('0' + (i/80)%10), WHITE_ON_BLACK, -1, -1);
