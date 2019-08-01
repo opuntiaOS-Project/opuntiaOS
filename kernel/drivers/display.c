@@ -35,12 +35,22 @@ void print_hex(int hex, unsigned char color, int col, int row) {
     print_string(sc_ascii, color, col, row);
 }
 
+void print_dec(int dec, unsigned char color, int col, int row) {
+    char *sc_ascii;
+    dtos(dec, sc_ascii);
+    print_string(sc_ascii, color, col, row);
+}
+
 void printf(const char* string) {
     print_string(string, BLACK_ON_WHITE, -1, -1);
 }
 
 void printh(int hex) {
     print_hex(hex, BLACK_ON_WHITE, -1, -1);
+}
+
+void printd(int dec) {
+    print_dec(dec, BLACK_ON_WHITE, -1, -1);
 }
 
 

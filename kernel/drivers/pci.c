@@ -43,19 +43,17 @@ void find_pci_devices() {
                 if (dev.vendor_id == 0x0000 || dev.vendor_id == 0xffff) {
                     break;
                 }
-                //if (dev.class_id == 0x00) continue;
                 printf("PCI BUS ");
-                printh(bus & 0xFF);
+                printh(bus);
                 
                 printf(", DEVICE ");
-                printh(device & 0xFF);
+                printh(device);
 
                 printf(", FUNCTION ");
-                printh(function & 0xFF);
+                printh(function);
                 
                 printf(" = VENDOR ");
-                printh((dev.vendor_id & 0xFF00) >> 8);
-                printh(dev.vendor_id & 0xFF);
+                printh(dev.vendor_id);
                 printf(", CLASS ");
                 printh(dev.class_id);
                 printf(", SLASS ");

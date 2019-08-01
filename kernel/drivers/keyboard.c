@@ -2,8 +2,6 @@
 #include <display.h>
 #include <idt.h>
 
-
-
 void keyboard_handler() {
     u_int8 scancode = port_byte_in(0x60);
     print_letter(scancode);

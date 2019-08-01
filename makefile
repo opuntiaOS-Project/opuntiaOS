@@ -35,7 +35,22 @@ products/os-image.bin: products/boot.bin products/kernel.bin
 	cat $^ > $@
 
 run: products/os-image.bin
-	qemu/programs/qemu-system-i386 -fda $<
+	qemu-system-x86_64 -fda $<
+
+mykernel.iso: products/os-image.bin
+	mkdir iso
+	mkdir iso/boot
+	mkdir iso/boot/grub
+	cp products/os-image.bin iso/boot/mykernel.bin
+	echo 'set timeout=0'                      > iso/boot/grub/grub.cfg
+	echo 'set default=0'                     >> iso/boot/grub/grub.cfg
+	echo ''                                  >> iso/boot/grub/grub.cfg
+	echo 'menuentry "My Operating System" {' >> iso/boot/grub/grub.cfg
+	echo '  multiboot /boot/mykernel.bin'    >> iso/boot/grub/grub.cfg
+	echo '  boot'                            >> iso/boot/grub/grub.cfg
+	echo '}'                                 >> iso/boot/grub/grub.cfg
+	i386-elf-grub-mkrescue --output=mykernel.iso iso
+	rm -rf iso
 
 clean:
 	rm -rf products/*.bin products/*.o debug/*.dis

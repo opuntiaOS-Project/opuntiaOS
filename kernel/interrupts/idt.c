@@ -61,7 +61,7 @@ void idt_setup() {
 
 }
 
-void setup_irq_handler(u_int8 interrupt_no, void (*handler)()) {
+void setup_irq_handler(u_int8 interrupt_no, void (*handler)(regs_t regs)) {
     handlers[interrupt_no] = handler;
 }
 

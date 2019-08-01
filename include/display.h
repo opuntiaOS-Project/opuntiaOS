@@ -23,6 +23,8 @@ void print_string(const char* string, unsigned char color, int col, int row);
 void print_hex(int hex, unsigned char color, int col, int row);
 void printf(const char* string);
 void printh(int hex);
+void print_dec(int dec, unsigned char color, int col, int row);
+void printd(int dec);
 void clean_screen();
 void scroll(unsigned char lines);
 bool col_in_field(int col);

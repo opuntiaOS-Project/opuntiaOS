@@ -13,12 +13,12 @@ struct IDT_Register {
     u_int32 base;
 } __attribute__((packed)) idt_register;
 
-
 void idt_element_setup(u_int8 n, u_int32 handler_addr);
 void idt_load();
 
 void setup_irq_handler(u_int8 interrupt_no, void (*handler)());
 void init_irq_handlers();
+
 
 
 /* ISRs reserved for CPU exceptions */
