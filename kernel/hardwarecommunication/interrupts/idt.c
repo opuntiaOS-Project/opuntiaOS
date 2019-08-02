@@ -66,10 +66,11 @@ void setup_irq_handler(u_int8 interrupt_no, void (*handler)(regs_t regs)) {
 }
 
 void init_irq_handlers() {
-    for (int i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++){
+    int i;
+    for (i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++){
         handlers[i] = irq_handler_null;
     }
-    for (int i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++){
+    for (i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++){
         handlers[i] = irq_handler_null;
     }
 }

@@ -9,10 +9,10 @@
 
 typedef struct {
     // TODO add segments support
-    u_int8 int_no;
-    u_int32 edi, esi, ebp, esp, ebx, edx, ecx, eax;
-    u_int32 eip, cs, eflags, useresp, ss;
+    uint8_t int_no;
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    uint32_t eip, cs, eflags, useresp, ss;
 } regs_t;
 
-u_int32* handlers[IDT_ENTRIES];
+uint32_t* handlers[IDT_ENTRIES];
 

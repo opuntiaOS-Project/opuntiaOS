@@ -1,13 +1,10 @@
 #include <display.h>
-#include <keyboard.h>
+#include <driverManager.h>
 #include <idt.h>
 #include <timer.h>
 #include <pci.h>
 
-void init_drivers() {
-    //init_timer();
-    init_keyboard();
-}
+
 
 void main() {
     clean_screen();
