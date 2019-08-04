@@ -108,6 +108,9 @@ bar_t get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id) {
         result.address = (uint32_t)(bar_val & ~0x3);
         result.prefetchable = 0;
     }
-
 }
+
+driver_t* get_driver(pcidd_t dev) {
+    return 0;
+} 
 

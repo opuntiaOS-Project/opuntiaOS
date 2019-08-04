@@ -1,4 +1,8 @@
+#ifndef __oneOS__HARDWARECOMMUNICATION__PCI_H
+#define __oneOS__HARDWARECOMMUNICATION__PCI_H
+
 #include <types.h>
+#include <driverManager.h>
 
 typedef struct {
 
@@ -36,3 +40,6 @@ char has_device_functions(u_int8 bus, u_int8 device);
 void find_pci_devices();
 pcidd_t get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function);
 bar_t get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id);
+driver_t* get_driver(pcidd_t dev);
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef __oneOS__INTERRUPTS__ISRHANDLER_H
+#define __oneOS__INTERRUPTS__ISRHANDLER_H
+
 void isr0_handler();
 void isr1_handler();
 void isr2_handler();
@@ -30,3 +33,5 @@ void isr28_handler();
 void isr29_handler();
 void isr30_handler();
 void isr31_handler();
+
+#endif

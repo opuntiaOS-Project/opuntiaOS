@@ -1,3 +1,6 @@
+#ifndef __oneOS__DRIVERS__DRIVERMANAGER_H
+#define __oneOS__DRIVERS__DRIVERMANAGER_H
+
 #include <types.h>
 
 #define MAX_DRIVERS 256
@@ -17,3 +20,5 @@ bool start_driver(uint8_t id);
 void stop_driver(uint8_t id);
 bool start_all_drivers();
 void stop_all_drivers();
+
+#endif

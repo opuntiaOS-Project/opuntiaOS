@@ -4,8 +4,6 @@
 #include <timer.h>
 #include <pci.h>
 
-
-
 void main() {
     clean_screen();
     {   // interrupts setup

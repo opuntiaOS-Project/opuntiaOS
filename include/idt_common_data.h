@@ -1,3 +1,6 @@
+#ifndef __oneOS__INTERRUPTS__IDTCOMMONDATA_H
+#define __oneOS__INTERRUPTS__IDTCOMMONDATA_H
+
 #include <types.h>
 
 #define CODE_SEG 0x08
@@ -16,3 +19,4 @@ typedef struct {
 
 uint32_t* handlers[IDT_ENTRIES];
 
+#endif

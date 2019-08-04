@@ -1,3 +1,6 @@
+#ifndef __oneOS__INTERRUPTS__IDT_H
+#define __oneOS__INTERRUPTS__IDT_H
+
 #include <idt_common_data.h>
 
 struct IDT_Entry {
@@ -89,3 +92,5 @@ extern void irq_handler_null();
 #define IRQ13 45
 #define IRQ14 46
 #define IRQ15 47
+
+#endif

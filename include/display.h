@@ -1,3 +1,6 @@
+#ifndef __oneOS__DRIVERS__DISAPLAY_H
+#define __oneOS__DRIVERS__DISAPLAY_H
+
 #include <types.h>
 
 #define VIDEO_MEMORY 0xb8000
@@ -29,3 +32,5 @@ void clean_screen();
 void scroll(unsigned char lines);
 bool col_in_field(int col);
 bool row_in_field(int row);
+
+#endif

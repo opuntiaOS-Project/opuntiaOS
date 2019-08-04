@@ -1,3 +1,6 @@
+#ifndef __oneOS__TYPES_H
+#define __oneOS__TYPES_H
+
 typedef unsigned long  u_int64;
 typedef unsigned int   u_int32;
 typedef unsigned short u_int16;
@@ -19,3 +22,5 @@ typedef char           bool;
 
 #define TRUE  1
 #define FALSE 0
+
+#endif
