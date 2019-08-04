@@ -40,9 +40,16 @@ void find_pci_devices() {
             u_int8 functions_count = has_device_functions(bus, device)==0 ? 8 : 1;
             for (function = 0; function < functions_count; function++) {
                 pcidd_t dev = get_device_desriptor(bus, device, function);
-                if (dev.vendor_id == 0x0000 || dev.vendor_id == 0xffff) {
-                    break;
+                if (dev.vendor_id == 0x0000 || dev.vendor_id == 0xffff)
+                    continue;
+
+                for (uint8_t bar_id = 0; bar_id < 6; bar_id++) {
+                    bar_t bar = get_bar(bus, device, function, bar_id);
+                    if (bar.address && (bar.type == INPUT_OUTPUT)) {
+                        dev.port_base = (uint32_t)bar.address;
+                    }
                 }
+
                 printf("PCI BUS ");
                 printh(bus);
                 
@@ -82,5 +89,25 @@ pcidd_t get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function) {
     new_device.interrupt = pci_read(bus, device, function, 0x3c);
 
     return new_device;
+}
+
+bar_t get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id) {
+    bar_t result;
+
+    uint32_t header_type = pci_read(bus, device, function, 0x0e) & 0x7f;
+    uint8_t max_bars = 6 - (header_type * 4);
+    if (bar_id >= max_bars)
+        return result;
+
+    uint32_t bar_val = pci_read(bus, device, function, 0x10 + 4 * bar_id);
+    result.type = (bar_val & 0x1) ? INPUT_OUTPUT : MEMORY_MAPPED;
+
+    if (result.type == MEMORY_MAPPED) {
+
+    } else {
+        result.address = (uint32_t)(bar_val & ~0x3);
+        result.prefetchable = 0;
+    }
+
 }
 

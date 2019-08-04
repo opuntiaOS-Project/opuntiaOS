@@ -1,3 +1,4 @@
+#include <driverManager.h>
 #include <keyboard.h>
 #include <display.h>
 #include <idt.h>
@@ -7,8 +8,18 @@ void keyboard_handler() {
     print_letter(scancode);
 }
 
-void init_keyboard() { // all drivers start with main
+void register_keyboard_driver() { // all drivers start with main
+    register_driver(start_keyboard, stop_keyboard);
+}
+
+bool start_keyboard() {
+    printf("Started keyboard driver\n");
     setup_irq_handler(IRQ1, keyboard_handler);
+    return TRUE;
+}
+
+void stop_keyboard() {
+    printf("Stopped keyboard driver\n");
 }
 
 void print(char *l){
