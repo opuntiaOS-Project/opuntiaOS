@@ -61,6 +61,8 @@ void find_pci_devices() {
                 
                 printf(" = VENDOR ");
                 printh(dev.vendor_id);
+                printf(" = device_id ");
+                printh(dev.device_id);
                 printf(", CLASS ");
                 printh(dev.class_id);
                 printf(", SLASS ");
