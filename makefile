@@ -3,24 +3,26 @@
 # $^ = all dependencies
 
 C_SOURCES = $(wildcard kernel/*.c kernel/*/*.c kernel/*/*/*.c kernel/*/*/*/*.c)
+CPP_SOURCES = $(wildcard kernel/*.cpp kernel/*/*.cpp kernel/*/*/*.cpp kernel/*/*/*/*.cpp)
 S_SOURCES = $(wildcard kernel/hardwarecommunication/interrupts/*.s )
-HEADERS = $(wildcard kernel/*.h, drivers/*/*.h)
+HEADERS = $(wildcard include/*.h)
 C_OBJ = ${C_SOURCES:.c=.o} 
+CPP_OBJ = ${CPP_SOURCES:.cpp=.o} 
 S_OBJ = ${S_SOURCES:.s=.o} 
 
 all: run
 
-products/kernel.bin: products/kernel_entry.o ${C_OBJ} ${S_OBJ}
+products/kernel.bin: products/kernel_entry.o ${C_OBJ} ${S_OBJ} ${CPP_OBJ}
 	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
 products/kernel_entry.o: kernel/boot/kernel_entry.s
 	/usr/local/bin/nasm $< -f elf -o $@
-
-products/kernel.o: kernel/kernel.c
-	i386-elf-gcc -ffreestanding -c $< -o $@
-
+	
 %.o: %.c ${HEADERS}
 	i386-elf-gcc -ffreestanding -c $< -o $@ -I./include
+
+%.o: %.cpp ${HEADERS}
+	i386-elf-g++ -ffreestanding -c $< -o $@ -I./include
 
 %.o: %.s
 	/usr/local/bin/nasm $< -f elf -o $@

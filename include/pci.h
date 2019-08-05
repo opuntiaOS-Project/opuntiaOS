@@ -28,7 +28,7 @@ typedef enum {
 } BarType;
 
 typedef struct {
-    bool prefetchable;
+    char prefetchable;
     uint8_t* address;
     BarType type;
 } bar_t;

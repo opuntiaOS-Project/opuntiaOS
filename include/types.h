@@ -18,8 +18,6 @@ typedef int            int32_t;
 typedef short          int16_t;
 typedef char           int8_t;
 
-typedef char           bool;
-
 #define TRUE  1
 #define FALSE 0
 

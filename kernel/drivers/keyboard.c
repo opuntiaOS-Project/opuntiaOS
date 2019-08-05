@@ -12,7 +12,7 @@ void register_keyboard_driver() { // all drivers start with main
     register_driver(start_keyboard, stop_keyboard);
 }
 
-bool start_keyboard() {
+char start_keyboard() {
     printf("Started keyboard driver\n");
     setup_irq_handler(IRQ1, keyboard_handler);
     return TRUE;

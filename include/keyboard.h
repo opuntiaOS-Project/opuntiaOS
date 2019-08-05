@@ -3,7 +3,7 @@
 
 void register_keyboard_driver();
 void keyboard_handler();
-bool start_keyboard();
+char start_keyboard();
 void stop_keyboard();
 
 #endif

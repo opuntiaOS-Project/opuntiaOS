@@ -104,5 +104,5 @@ int get_cursor_offet() {
 // helpers
 
 int get_offset(int col, int row) { return row * MAX_COLS + col; }
-bool col_in_field(int col) { return (0 <= col && col <= MAX_COLS); }
-bool row_in_field(int row) { return (0 <= row && row <= MAX_ROWS); }
+char col_in_field(int col) { return (0 <= col && col <= MAX_COLS); }
+char row_in_field(int row) { return (0 <= row && row <= MAX_ROWS); }

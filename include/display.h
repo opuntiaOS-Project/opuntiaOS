@@ -18,7 +18,6 @@
 #define TRUE 1
 #define FALSE 0
 
-typedef char bool;
 typedef unsigned int u_int;
 
 void print_char(char symbol, unsigned char color, int col, int row);
@@ -30,7 +29,7 @@ void print_dec(int dec, unsigned char color, int col, int row);
 void printd(int dec);
 void clean_screen();
 void scroll(unsigned char lines);
-bool col_in_field(int col);
-bool row_in_field(int row);
+char col_in_field(int col);
+char row_in_field(int row);
 
 #endif
