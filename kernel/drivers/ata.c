@@ -34,7 +34,7 @@ void indentify_ata_device(ata_t *ata) {
     status = port_8bit_in(ata->command_port);
     if (status == 0x00) {
         printf("Err2");
-        //return;
+        return;
     }
     
     while(((status & 0x80) == 0x80)
