@@ -37,7 +37,7 @@ products/os-image.bin: products/boot.bin products/kernel.bin
 	cat $^ > $@
 
 run: products/os-image.bin
-	qemu-system-x86_64 -fda $< -device piix4-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
+	qemu-system-x86_64 -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
 
 clean:
 	rm -rf products/*.bin products/*.o debug/*.dis
