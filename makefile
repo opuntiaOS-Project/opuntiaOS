@@ -49,4 +49,4 @@ clean:
 	rm -rf *.bin *.o *.dis
 
 one.img:
-	qemu-img create -f raw one.img 1G
+	qemu-img create -f raw one.img 1M
