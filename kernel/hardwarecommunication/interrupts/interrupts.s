@@ -47,6 +47,7 @@ global irq12
 global irq13
 global irq14
 global irq15
+global irq_null
 
 extern isr0_handler
 extern isr1_handler
@@ -83,22 +84,7 @@ extern isr31_handler
 ; IRQs
 extern irq_handler_master
 extern irq_handler_slave
-extern irq0_handler
-extern irq1_handler
-extern irq2_handler
-extern irq3_handler
-extern irq4_handler
-extern irq5_handler
-extern irq6_handler
-extern irq7_handler
-extern irq8_handler
-extern irq9_handler
-extern irq10_handler
-extern irq11_handler
-extern irq12_handler
-extern irq13_handler
-extern irq14_handler
-extern irq15_handler
+extern irq_handler_null
 
 
 isr0: 
@@ -512,6 +498,16 @@ irq15:
     pusha
     push byte 47
     call irq_handler_slave
+    add esp, 4 ; delete byte
+    popa
+    sti
+    iret
+
+irq_null:
+    cli
+    pusha
+    push byte 0
+    call irq_handler_null
     add esp, 4 ; delete byte
     popa
     sti

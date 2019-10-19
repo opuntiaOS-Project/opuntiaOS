@@ -73,3 +73,122 @@ void indentify_ata_device(ata_t *ata) {
     }
     printf("\n");
 }
+
+void ata_write(ata_t *dev, char *data, int size) {
+    
+    uint8_t dev_config = 0xA0;
+    // lba support
+    dev_config |= (1 << 6);
+    if (!dev->is_master) { 
+        dev_config |= (1 << 4);
+    }
+    
+    port_8bit_out(dev->device_port, dev_config);
+    port_8bit_out(dev->sector_count_port, 1);
+    port_8bit_out(dev->lba_lo_port, 1);
+    port_8bit_out(dev->lba_mid_port, 0);
+    port_8bit_out(dev->lba_hi_port, 0);
+    port_8bit_out(dev->error_port, 0);
+    port_8bit_out(dev->command_port, 0x31);
+
+    // waiting for processing
+    // while BSY is on and no Errors
+    uint8_t status = port_8bit_in(dev->command_port);
+    while((status >> 7) & 1 == 1 && (status >> 0) & 1 != 1) {
+        status = port_8bit_in(dev->command_port);
+        printd(status);
+        printf("\n");
+    }
+
+    // check if drive isn't ready to transer DRQ
+    if ((status >> 0) & 1 == 1) {
+        printf("Error");
+        return;
+    }
+
+
+    for (int i = 0; i < size; i+=2) {
+        uint16_t db = (data[i] << 8) + data[i+1];
+        port_16bit_out(dev->data_port, db);
+        char *text = "  \0";
+        text[0] = (db >> 8) & 0xFF;
+        text[1] = db & 0xFF;
+        printf(text);
+    }
+
+    for (int i = size / 2; i < 256; i++) {
+        port_16bit_out(dev->data_port, 0);
+    }
+
+}
+
+void ata_read(ata_t *dev) {
+    uint8_t dev_config = 0xA0;
+    // lba support
+    dev_config |= (1 << 6);
+    if (!dev->is_master) { 
+        dev_config |= (1 << 4);
+    }
+    
+    port_8bit_out(dev->device_port, dev_config);
+    port_8bit_out(dev->sector_count_port, 1);
+    port_8bit_out(dev->lba_lo_port, 1);
+    port_8bit_out(dev->lba_mid_port, 0);
+    port_8bit_out(dev->lba_hi_port, 0);
+    port_8bit_out(dev->error_port, 0);
+    port_8bit_out(dev->command_port, 0x21);
+
+    // waiting for processing
+    // while BSY is on and no Errors
+    uint8_t status = port_8bit_in(dev->command_port);
+    while(((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
+        status = port_8bit_in(dev->command_port);
+        printd(status);
+        printf("\n");
+    }
+
+    // check if drive isn't ready to transer DRQ
+    if (((status >> 0) & 1) == 1) {
+        printf("Error");
+        return;
+    }
+
+    if (((status >> 3) & 1) == 0) {
+        printf("No DRQ");
+        return;
+    }
+
+    for (int i = 0; i < 256; i++) {
+        uint16_t data = port_16bit_in(dev->data_port);
+        char *text = "  ";
+        text[0] = (data >> 8) & 0xFF;
+        text[1] = data & 0xFF;
+        printf(text);
+    }
+
+    // printf("WAS HERE");
+}
+
+void ata_flush(ata_t *dev) {
+    uint8_t dev_config = 0xA0;
+    // lba support
+    dev_config |= (1 << 6);
+    if (!dev->is_master) { 
+        dev_config |= (1 << 4);
+    }
+    port_8bit_out(dev->device_port, dev_config);
+    port_8bit_out(dev->command_port, 0xE7);
+
+    uint8_t status = port_8bit_in(dev->command_port);
+    if (status == 0x00) {
+        return;
+    }
+    
+    while(((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
+        status = port_8bit_in(dev->command_port);
+    }
+        
+    if (status & 0x01) {
+        return;
+    }
+}

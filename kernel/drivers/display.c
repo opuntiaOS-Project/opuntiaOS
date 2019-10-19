@@ -53,8 +53,6 @@ void printd(int dec) {
     print_dec(dec, WHITE_ON_BLACK, -1, -1);
 }
 
-
-
 // clean screen
 
 void clean_screen() {

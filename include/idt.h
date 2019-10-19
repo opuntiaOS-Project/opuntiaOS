@@ -74,6 +74,7 @@ extern void irq12();
 extern void irq13();
 extern void irq14();
 extern void irq15();
+extern void irq_null();
 extern void irq_handler_null();
 
 #define IRQ0 32

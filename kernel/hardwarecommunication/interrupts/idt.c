@@ -54,6 +54,10 @@ void idt_setup() {
     idt_element_setup(45, (u_int32)irq13);
     idt_element_setup(46, (u_int32)irq14);
     idt_element_setup(47, (u_int32)irq15);
+    for (int i = 48; i < 255; i++) {
+        idt_element_setup(i, (u_int32)irq_null);
+    }
+    
 
     init_irq_handlers();
 
