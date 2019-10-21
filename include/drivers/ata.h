@@ -2,8 +2,8 @@
 #define __oneOS__DRIVERS__ATA_H
 
 #include <types.h>
-#include <port.h>
-#include <display.h>
+#include <x86/port.h>
+#include <drivers/display.h>
 
 typedef struct {                 // LBA28 | LBA48
     uint32_t data_port;          // 16bit | 16 bits

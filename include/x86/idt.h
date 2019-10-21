@@ -1,7 +1,23 @@
 #ifndef __oneOS__INTERRUPTS__IDT_H
 #define __oneOS__INTERRUPTS__IDT_H
 
-#include <idt_common_data.h>
+#include <types.h>
+#include <x86/port.h>
+#include <x86/pic.h>
+
+#define CODE_SEG 0x08
+#define DATA_SEG 0x10
+#define IDT_ENTRIES 256
+
+#define IRQ_MASTER_OFFSET 32
+#define IRQ_SLAVE_OFFSET 40
+
+typedef struct {
+    // TODO add segments support
+    uint8_t int_no;
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    uint32_t eip, cs, eflags, useresp, ss;
+} regs_t;
 
 struct IDT_Entry {
     u_int16 offset_lower;
@@ -16,13 +32,13 @@ struct IDT_Register {
     u_int32 base;
 } __attribute__((packed)) idt_register;
 
+uint32_t* handlers[IDT_ENTRIES];
+
 void idt_element_setup(u_int8 n, u_int32 handler_addr);
 void idt_setup();
 
 void setup_irq_handler(u_int8 interrupt_no, void (*handler)());
 void init_irq_handlers();
-
-
 
 /* ISRs reserved for CPU exceptions */
 extern void isr0();
@@ -75,7 +91,7 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 extern void irq_null();
-extern void irq_handler_null();
+extern void irq_empty_handler();
 
 #define IRQ0 32
 #define IRQ1 33

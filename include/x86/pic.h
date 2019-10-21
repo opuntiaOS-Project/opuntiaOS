@@ -1,6 +1,8 @@
 #ifndef __oneOS__HARDWARECOMMUNICATION__PIC_H
 #define __oneOS__HARDWARECOMMUNICATION__PIC_H
 
+#include <x86/port.h>
+
 #define MASTER_PIC_CMD  0x0020
 #define MASTER_PIC_DATA 0x0021
 #define SLAVE_PIC_CMD   0x00A0

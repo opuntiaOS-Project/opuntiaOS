@@ -2,7 +2,10 @@
 #define __oneOS__HARDWARECOMMUNICATION__PCI_H
 
 #include <types.h>
-#include <driverManager.h>
+#include <x86/port.h>
+#include <drivers/driverManager.h>
+#include <drivers/display.h>
+
 
 typedef struct {
 

@@ -2,6 +2,7 @@
 #define __oneOS__DRIVERS__DRIVERMANAGER_H
 
 #include <types.h>
+#include <drivers/keyboard.h>
 
 #define MAX_DRIVERS 256
 

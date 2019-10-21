@@ -1,7 +1,9 @@
 #ifndef __oneOS__DRIVERS__DISAPLAY_H
 #define __oneOS__DRIVERS__DISAPLAY_H
 
+#include <x86/port.h>
 #include <types.h>
+#include <utils.h>
 
 #define VIDEO_MEMORY 0xb8000
 #define VIDEO_ADDRESS 0xb8000
