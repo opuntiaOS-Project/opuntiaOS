@@ -1,6 +1,0 @@
-floppya: 1_44=products/os-image.bin, status=inserted
-boot: floppy
-
-pci: enabled=1, chipset=i440fx, slot1=ata0-master
-ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
-ata0-master: type=disk, path=one.img, mode=flat, cylinders=2, heads=16, spt=63
