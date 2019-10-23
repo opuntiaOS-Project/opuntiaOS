@@ -32,7 +32,7 @@ products/os-image.bin: products/boot.bin products/kernel.bin
 	cat $^ > $@
 
 run: products/os-image.bin
-	./qemu/programs/qemu-system-i386 -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
+	./qemu/programs/qemu-system-i386 -m 512M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
 
 debug: products/os-image.bin
 	./qemu/programs/qemu-system-i386 -serial file:serial.log -d int -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0

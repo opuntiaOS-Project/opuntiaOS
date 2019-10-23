@@ -7,7 +7,7 @@ void memcpy(char* src, char* dest, unsigned int nbytes) {
     }
 }
 
-void htos(int hex, char str[]) {
+void htos(uint32_t hex, char str[]) {
     int i = 0;
     if (hex == 0) {
         str[0] = '0';
@@ -26,7 +26,7 @@ void htos(int hex, char str[]) {
     reverse(str);
 }
 
-void dtos(int dec, char str[]) {
+void dtos(uint32_t dec, char str[]) {
     int i = 0;
     if (dec == 0) {
         str[0] = '0';

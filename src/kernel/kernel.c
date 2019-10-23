@@ -8,14 +8,32 @@
 
 #include <qemulog.h>
 
-void main() {
+#define MEMORY_MAP_REGION 0xA00
+
+typedef struct {
+    uint32_t startLo;
+    uint32_t startHi;
+    uint32_t sizeLo;
+    uint32_t sizeHi;
+    uint32_t type;
+    uint32_t acpi_3_0;
+} memory_map_t;
+
+void main(uint16_t *memory_map_size) {
     log("Qemu debug in work\n");
     clean_screen();
+    memory_map_t *memory_map = (memory_map_t *)MEMORY_MAP_REGION;
+    for (int i = 0; i < *memory_map_size; i++) {
+        printh(memory_map[i].startLo); printf(" ");
+        printd(memory_map[i].sizeLo); printf(" ");
+        printh(memory_map[i].type); printf(" ");
+        printf("\n");
+    }
     idt_setup();
     asm volatile("sti");
     register_drivers();
     start_all_drivers();
-    find_pci_devices();
+    // find_pci_devices();
     
     ata_t ata0m;
     init_ata(&ata0m, 0x1F0, 1);
@@ -24,30 +42,6 @@ void main() {
     ata_flush(&ata0m);
     ata_read(&ata0m);
 
-    // test.s program
-    char *ram = 0x100000;
-    ram[0] = 0x66;
-    ram[1] = 0xb8;
-    ram[2] = 0x03;
-    ram[3] = 0x00;
-    ram[4] = 0x00;
-    ram[5] = 0x00;
-    ram[6] = 0x66;
-    ram[7] = 0xbb;
-    ram[8] = 0x06;
-    ram[9] = 0x00;
-    ram[10] = 0x00;
-    ram[11] = 0x00;
-    ram[12] = 0xcd;
-    ram[13] = 0x00;
-    ram[14] = 0xeb;
-    ram[15] = 0xfe;
-    
-    asm volatile("mov $0x100000, %eax");
-    asm volatile("mov %eax, %ebp");
-    asm volatile("jmp %eax");
-    
-    
     asm volatile("int $0"); // test interrupts
     while (1) {}
 }

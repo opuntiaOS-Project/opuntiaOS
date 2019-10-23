@@ -1,6 +1,7 @@
 [org 0x7c00]
 
 KERNEL_OFFSET equ 0x1000
+MEMORY_MAP_REGION equ 0xA00
 
 mov [BOOT_DISK], dl ; saving boot disk
 
@@ -9,12 +10,19 @@ mov sp, bp
 
 mov bx, MSG_REAL_MODE
 call print_string
+
+mov eax, 0
+mov es, ax
+mov di, MEMORY_MAP_REGION
+call bios_get_memory_map
+
 call load_kernel
 call switch_to_pm
 
 jmp $
 
 %include "src/boot/utils16/print.s"
+%include "src/boot/utils16/smm.s"
 %include "src/boot/utils16/disk_load.s"
 %include "src/boot/utils16/switch_to_pm.s"
 
@@ -37,6 +45,7 @@ load_kernel:
 begin_pm:
     mov ebx, MSG_PROT_MODE
     call print_string_pm
+    push dword memory_map_size
     call KERNEL_OFFSET
     jmp $
 
