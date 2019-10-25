@@ -36,7 +36,7 @@ products/stage3_entry.o: src/boot/x86/stage3_entry.s
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
 
-products/boot.bin: src/boot/x86/boot.s
+products/boot.bin: src/boot/x86/stage1/boot.s
 	/usr/local/bin/nasm $< -f bin -o $@
 
 products/os-image.bin: products/boot.bin products/stage2.bin
