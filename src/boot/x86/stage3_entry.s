@@ -1,5 +1,5 @@
 [bits 32]
-[extern main]
+[extern stage3]
 push dword [esp+4]
-call main
+call stage3
 jmp $

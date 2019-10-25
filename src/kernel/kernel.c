@@ -19,18 +19,28 @@ typedef struct {
     uint32_t acpi_3_0;
 } memory_map_t;
 
-void main(uint16_t *memory_map_size) {
-    log("Qemu debug in work\n");
+typedef struct {
+    uint16_t memory_map_size;
+    uint16_t kernel_size;
+} mem_desc_t;
+
+void stage3(mem_desc_t *mem_desc) {
+    asm volatile("cli");
+    log("Stage 3 started\n");
     clean_screen();
+    idt_setup();
+    asm volatile("sti");
+    // init_timer();
+
+    printf("Kernel size: "); printd(mem_desc->kernel_size); 
+    printf(" KB\nMemory map:\n");
     memory_map_t *memory_map = (memory_map_t *)MEMORY_MAP_REGION;
-    for (int i = 0; i < *memory_map_size; i++) {
+    for (int i = 0; i < mem_desc->memory_map_size; i++) {
         printh(memory_map[i].startLo); printf(" ");
         printd(memory_map[i].sizeLo); printf(" ");
         printh(memory_map[i].type); printf(" ");
         printf("\n");
     }
-    idt_setup();
-    asm volatile("sti");
     register_drivers();
     start_all_drivers();
     // find_pci_devices();
@@ -43,5 +53,6 @@ void main(uint16_t *memory_map_size) {
     ata_read(&ata0m);
 
     asm volatile("int $0"); // test interrupts
+    
     while (1) {}
 }
