@@ -8,15 +8,15 @@ C_SOURCES2 = $(wildcard src/boot/x86/stage2/*.c src/boot/x86/stage2/*/*.c src/bo
 S_SOURCES2 = $(wildcard src/boot/x86/stage2/*.s src/boot/x86/stage2/*/*.s src/boot/x86/stage2/*/*/*.s src/boot/x86/stage2/*/*/*/*.s)
 
 HEADERS = $(wildcard include/*.h)
-C_OBJ = ${C_SOURCES:.c=.o} 
-S_OBJ = ${S_SOURCES:.s=.o} 
-C_OBJ2 = ${C_SOURCES2:.c=.o} 
-S_OBJ2 = ${S_SOURCES2:.s=.o} 
+C_OBJ = ${C_SOURCES:.c=.o}
+S_OBJ = ${S_SOURCES:.s=.o}
+C_OBJ2 = ${C_SOURCES2:.c=.o}
+S_OBJ2 = ${S_SOURCES2:.s=.o}
 
 all: run
 
 products/kernel.bin: products/stage3_entry.o ${C_OBJ} ${S_OBJ}
-	i386-elf-ld -o $@ -Ttext 0x100000 $^ --oformat binary
+	i386-elf-ld -o $@ -Ttext 0x100000 $^ --oformat elf32-i386
 
 products/stage2.bin: products/stage2_entry.o ${C_OBJ2} ${S_OBJ2}
 	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
@@ -44,7 +44,7 @@ products/os-image.bin: products/boot.bin products/stage2.bin
 
 run: products/os-image.bin
 	make drive
-	./qemu/programs/qemu-system-i386 -m 512M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
+	./qemu/programs/qemu-system-i386 -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
 
 debug: products/os-image.bin
 	make drive
