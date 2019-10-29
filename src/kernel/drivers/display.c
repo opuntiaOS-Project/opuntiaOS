@@ -28,15 +28,43 @@ void print_string(const char* string, unsigned char color, int col, int row) {
 }
 
 void print_hex(uint32_t hex, unsigned char color, int col, int row) {
-    char *sc_ascii;
-    htos(hex, sc_ascii);
-    print_string(sc_ascii, color, col, row);
+    uint32_t pk = (uint32_t)0x10000000;
+    bool was_not_zero = 0;
+    while (pk > 0) {
+        uint32_t pp = hex / pk;
+        if (was_not_zero || pp > 0) {
+            if (pp >= 10) {
+                print_char(pp - 10 + 'A', color, col, row);
+            } else {
+                print_char(pp + '0', color, col, row);
+            }
+            was_not_zero = 1;
+        }
+        hex -= pp * pk;
+        pk /= 16;
+    }
+    if (was_not_zero) {
+        print_char('h', color, col, row);
+    } else {
+        print_char('0', color, col, row);
+    }
 }
 
 void print_dec(uint32_t dec, unsigned char color, int col, int row) {
-    char *sc_ascii;
-    dtos(dec, sc_ascii);
-    print_string(sc_ascii, color, col, row);
+    uint32_t pk = 1000000000;
+    bool was_not_zero = 0;
+    while (pk > 0) {
+        uint32_t pp = dec / pk;
+        if (was_not_zero || pp > 0) {
+            print_char(pp + '0', color, col, row);
+            was_not_zero = 1;
+        }
+        dec -= pp * pk;
+        pk /= 10;
+    }
+    if (!was_not_zero) {
+        print_char('0', color, col, row);
+    }
 }
 
 void printf(const char* string) {
