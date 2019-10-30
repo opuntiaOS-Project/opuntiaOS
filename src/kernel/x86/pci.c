@@ -25,7 +25,6 @@ void pci_write(u_int8 bus, u_int8 device, u_int8 function, u_int8 offset, u_int3
     port_dword_out(0xCFC, data);
 }
 
-
 char has_device_functions(u_int8 bus, u_int8 device) {
     return pci_read(bus, device, 0, 0x0e) & (1<<7);
 }
@@ -65,7 +64,7 @@ void find_pci_devices() {
                 printh(dev.class_id);
                 printf(", SLASS ");
                 printh(dev.subclass_id);
-                printf("\n");
+                // printf("\n");
             }
         }
     }

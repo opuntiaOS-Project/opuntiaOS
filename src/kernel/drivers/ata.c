@@ -143,8 +143,6 @@ void ata_read(ata_t *dev) {
     uint8_t status = port_8bit_in(dev->command_port);
     while(((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
         status = port_8bit_in(dev->command_port);
-        printd(status);
-        printf("\n");
     }
 
     // check if drive isn't ready to transer DRQ
