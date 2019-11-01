@@ -16,7 +16,7 @@ S_OBJ2 = ${S_SOURCES2:.s=.o}
 all: run
 
 products/kernel.bin: products/stage3_entry.o ${C_OBJ} ${S_OBJ}
-	i386-elf-ld -o $@ -Ttext 0x100000 $^ --oformat elf32-i386
+	i386-elf-ld -Ttext 0xc0000000 -o $@ $^ --oformat elf32-i386
 
 products/stage2.bin: products/stage2_entry.o ${C_OBJ2} ${S_OBJ2}
 	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary

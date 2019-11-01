@@ -6,6 +6,7 @@
 #include <drivers/display.h>
 #include <drivers/timer.h>
 #include <mem/pmm.h>
+#include <mem/vmm/vmm.h>
 
 #include <qemulog.h>
 
@@ -27,8 +28,9 @@ typedef struct {
 
 void stage3(mem_desc_t *mem_desc) {
     asm volatile("cli");
-    log("Stage 3 started\n");
+    log("aStage 3 started\n");
     clean_screen();
+    printf("HERE");
     idt_setup();
     asm volatile("sti");
     // init_timer();
@@ -61,27 +63,53 @@ void stage3(mem_desc_t *mem_desc) {
     pmm_deinit_region(0x0, 0x100000); // kernel stack deinit
     pmm_deinit_region(0x100000, mem_desc->kernel_size * 1024); // kernel deinit
 
-    // pmm_free_block(0x0);
-
-    void* kek1 = pmm_alloc_block();
-    printf("1st pointer: ");
+    if (vmm_init()) {
+        printf("\n\nVM Remapped\n\n");
+    }
+    
+    uint8_t* kek1 = pmm_alloc_block();
+    vmm_map_page(kek1, 0x50000000);
     printh(kek1);
-    printf("\n");
-    pmm_free_block(kek1);
-    printf("Deleting pointer 1\n");
-    void* kek2 = pmm_alloc_block();
-    void* kek3 = pmm_alloc_block();
-
-    printf("2nd pointer: ");
-    printh(kek2);
-    printf("\n");
-    printf("3rd pointer: ");
-    printh(kek3);
-    printf("\n");
-
-    // register_drivers();
-    // start_all_drivers();
-    // find_pci_devices();
+    uint8_t* kekt = 0x50000000;
+    kekt[0] = 0;
+    kekt[1] = 1;
+    printd(kekt[1]);
+    //
+    // // testing PMM
+    //
+    // // printf("1st pointer: ");
+    // // printh(kek1);
+    // // printf("\n");
+    // // pmm_free_block(kek1);
+    // printf("Deleting pointer 1\n");
+    // void* kek2 = pmm_alloc_block();
+    // void* kekBig = pmm_alloc_blocks(5);
+    // void* kek3 = pmm_alloc_block();
+    //
+    // printf("2nd pointer: ");
+    // printh(kek2);
+    // printf("\n");
+    // printf("Big pointer: ");
+    // printh(kekBig);
+    // printf("\n");
+    // printf("3rd pointer: ");
+    // printh(kek3);
+    // printf("\n");
+    //
+    // pmm_free_blocks(kekBig, 5);
+    // void* kek4 = pmm_alloc_blocks(3);
+    // void* kek5 = pmm_alloc_blocks(4);
+    //
+    // printf("4th pointer: ");
+    // printh(kek4);
+    // printf("\n");
+    // printf("5th pointer: ");
+    // printh(kek5);
+    // printf("\n");
+    //
+    register_drivers();
+    start_all_drivers();
+    find_pci_devices();
 
     ata_t ata0m;
     init_ata(&ata0m, 0x1F0, 1);

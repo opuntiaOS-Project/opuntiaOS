@@ -19,7 +19,7 @@ void isr_standart_handler(uint8_t int_no) {
 		"Bad TSS",
 		"Segment not present",
 		"Stack fault",
-		"General protection fault",
+		"", // General protection fault
 		"Page fault",
 		"Unknown interrupt",
 		"Coprocessor fault",
