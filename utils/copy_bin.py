@@ -83,10 +83,8 @@ for i in range(e_shnum + 1):
     if name == '.eh_frame':
         text_size += sh_size
     if name == '.data':
-        # pass
         data_size += sh_size
     if name == '.bss':
-        # pass
         bss_size += sh_size
     print(name, sh_type, sh_size, sh_entsize)
     e_shoff_now += e_shentsize

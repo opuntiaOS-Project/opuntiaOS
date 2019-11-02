@@ -1,3 +1,6 @@
+#ifndef __oneOS__MEM__VMM__VMM_H
+#define __oneOS__MEM__VMM__VMM_H
+
 #include <types.h>
 #include <mem/pmm.h>
 #include <mem/vmm/pte.h>
@@ -23,3 +26,5 @@ pde_t* vmm_pdirectory_lookup(pdirectory_t *t_pdir, uint32_t t_addr);
 pdirectory_t* vmm_get_current_pdir();
 bool vmm_switch_pdir(pdirectory_t *t_pdir);
 void vmm_enable_paging(bool enable);
+
+#endif // __oneOS__MEM__VMM__VMM_H

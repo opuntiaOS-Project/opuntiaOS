@@ -6,7 +6,7 @@
 #include <drivers/display.h>
 #include <drivers/timer.h>
 #include <mem/pmm.h>
-#include <mem/vmm/vmm.h>
+#include <mem/malloc.h>
 
 #include <qemulog.h>
 
@@ -66,14 +66,19 @@ void stage3(mem_desc_t *mem_desc) {
     if (vmm_init()) {
         printf("\n\nVM Remapped\n\n");
     }
-    
-    uint8_t* kek1 = pmm_alloc_block();
-    vmm_map_page(kek1, 0x50000000);
+
+    // heap area right after kernel space
+    // temp solution will change
+    kmalloc_init(0xc0000000 + 0x400000);
+
+    uint32_t* kek1 = (uint32_t*)kmalloc(sizeof(uint32_t));
+    uint32_t* kek2 = (uint32_t*)kmalloc(sizeof(uint32_t));
     printh(kek1);
-    uint8_t* kekt = 0x50000000;
-    kekt[0] = 0;
-    kekt[1] = 1;
-    printd(kekt[1]);
+    printh(kek2);
+    *kek1 = 1;
+    *kek2 = 2;
+    printd(*kek1);
+    printd(*kek2);
     //
     // // testing PMM
     //
@@ -116,7 +121,14 @@ void stage3(mem_desc_t *mem_desc) {
     indentify_ata_device(&ata0m);
     ata_write(&ata0m, "test", 4);
     ata_flush(&ata0m);
-    ata_read(&ata0m);
+    char* read_buffer = (char*)kmalloc(512);
+    ata_read(&ata0m, read_buffer);
+
+    for (int i = 0; i < 512; i++) {
+        char *text = " \0";
+        text[0] = read_buffer[i];
+        printf(text);
+    }
 
     asm volatile("int $0"); // test interrupts
 

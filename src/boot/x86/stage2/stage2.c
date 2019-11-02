@@ -6,22 +6,22 @@ typedef struct {
     uint16_t kernel_size;
 } mem_desc_t;
 
-#define VMM_PTE_COUNT (1024)
-#define VMM_PDE_COUNT (1024)
-#define VMM_PAGE_SIZE (4096)
-#define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
-#define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0x3ff)
-#define VMM_OFFSET_IN_PAGE(a) ((a) & 0x1000;
-#define pte_t uint32_t
-#define pde_t uint32_t
-
-typedef struct {
-    pte_t entities[VMM_PTE_COUNT];
-} ptable_t;
-
-typedef struct pdirectory {
-    pde_t entities[VMM_PDE_COUNT];
-} pdirectory_t;
+// #define VMM_PTE_COUNT (1024)
+// #define VMM_PDE_COUNT (1024)
+// #define VMM_PAGE_SIZE (4096)
+// #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
+// #define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0x3ff)
+// #define VMM_OFFSET_IN_PAGE(a) ((a) & 0x1000;
+// #define pte_t uint32_t
+// #define pde_t uint32_t
+//
+// typedef struct {
+//     pte_t entities[VMM_PTE_COUNT];
+// } ptable_t;
+//
+// typedef struct pdirectory {
+//     pde_t entities[VMM_PDE_COUNT];
+// } pdirectory_t;
 
 
 void stage2(mem_desc_t *mem_desc) {

@@ -11,7 +11,7 @@ void init_ata(ata_t *ata, uint32_t port, char is_master){
     ata->device_port = port + 0x6;
     ata->command_port = port + 0x7;
     ata->control_port = port + 0x206;
-} 
+}
 
 void indentify_ata_device(ata_t *ata) {
     port_8bit_out(ata->device_port, ata->is_master ? 0xA0 : 0xB0);
@@ -20,26 +20,26 @@ void indentify_ata_device(ata_t *ata) {
     port_8bit_out(ata->lba_mid_port, 0);
     port_8bit_out(ata->lba_hi_port, 0);
     port_8bit_out(ata->command_port, 0xEC);
-    
+
     // check the acceptance of a command
     uint8_t status = port_8bit_in(ata->command_port);
     if (status == 0x00) {
         printf("Cmd isn't accepted");
         return;
     }
-    
+
     // waiting for processing
     // while BSY is on
     while((status & 0x80) == 0x80) {
         status = port_8bit_in(ata->command_port);
     }
-        
+
     // check if drive isn't ready to transer DRQ
     if ((status & 0x08) != 0x08) {
         printf("Don't ready for transport");
         return;
     }
-    
+
     // transfering 256 bytes of data
     for (int i = 0; i < 256; i++) {
         uint16_t data = port_16bit_in(ata->data_port);
@@ -75,14 +75,14 @@ void indentify_ata_device(ata_t *ata) {
 }
 
 void ata_write(ata_t *dev, char *data, int size) {
-    
+
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
-    if (!dev->is_master) { 
+    if (!dev->is_master) {
         dev_config |= (1 << 4);
     }
-    
+
     port_8bit_out(dev->device_port, dev_config);
     port_8bit_out(dev->sector_count_port, 1);
     port_8bit_out(dev->lba_lo_port, 1);
@@ -122,14 +122,14 @@ void ata_write(ata_t *dev, char *data, int size) {
 
 }
 
-void ata_read(ata_t *dev) {
+void ata_read(ata_t *dev, uint8_t *read_data) {
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
-    if (!dev->is_master) { 
+    if (!dev->is_master) {
         dev_config |= (1 << 4);
     }
-    
+
     port_8bit_out(dev->device_port, dev_config);
     port_8bit_out(dev->sector_count_port, 1);
     port_8bit_out(dev->lba_lo_port, 1);
@@ -158,20 +158,16 @@ void ata_read(ata_t *dev) {
 
     for (int i = 0; i < 256; i++) {
         uint16_t data = port_16bit_in(dev->data_port);
-        char *text = "  ";
-        text[0] = (data >> 8) & 0xFF;
-        text[1] = data & 0xFF;
-        printf(text);
+        read_data[2*i + 0] = (data >> 8) & 0xFF;
+        read_data[2*i + 1] = (data >> 0) & 0xFF;
     }
-
-    // printf("WAS HERE");
 }
 
 void ata_flush(ata_t *dev) {
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
-    if (!dev->is_master) { 
+    if (!dev->is_master) {
         dev_config |= (1 << 4);
     }
     port_8bit_out(dev->device_port, dev_config);
@@ -181,11 +177,11 @@ void ata_flush(ata_t *dev) {
     if (status == 0x00) {
         return;
     }
-    
+
     while(((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
         status = port_8bit_in(dev->command_port);
     }
-        
+
     if (status & 0x01) {
         return;
     }

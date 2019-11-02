@@ -62,8 +62,8 @@ MSG_KERNEL_LOAD:
 
 BOOT_DISK: db 0
 MEM_DESC:
-    dw 0x00 ; memory size
-    dw 0x00 ; kernel size 
+    dw 0x00 ; mem table size
+    dw 0x00 ; kernel size
 
 
 times (510-($-$$)) db 0

@@ -4,6 +4,7 @@
 #include <types.h>
 #include <x86/port.h>
 #include <drivers/display.h>
+#include <mem/malloc.h>
 
 typedef struct {                 // LBA28 | LBA48
     uint32_t data_port;          // 16bit | 16 bits
@@ -21,7 +22,7 @@ typedef struct {                 // LBA28 | LBA48
 void init_ata(ata_t *ata, uint32_t port, char is_master);
 void indentify_ata_device(ata_t *ata);
 void ata_write(ata_t *dev, char *data, int size);
-void ata_read(ata_t *dev);
+void ata_read(ata_t *dev, uint8_t *read_data);
 void ata_flush(ata_t *dev);
 
 #endif

@@ -7,7 +7,7 @@
 
 #define CODE_SEG 0x08
 #define DATA_SEG 0x10
-#define IDT_ENTRIES 256
+#define IDT_ENTRIES 256 //fix
 
 #define IRQ_MASTER_OFFSET 32
 #define IRQ_SLAVE_OFFSET 40
@@ -32,6 +32,8 @@ struct IDT_Register {
     u_int32 base;
 } __attribute__((packed)) idt_register;
 
+int proIDT;
+int proIDT2;
 uint32_t* handlers[IDT_ENTRIES];
 
 void idt_element_setup(u_int8 n, u_int32 handler_addr);

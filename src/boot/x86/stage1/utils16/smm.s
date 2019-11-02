@@ -53,4 +53,3 @@ memory_map_done:
     mov [memory_map_size], bp
     popad
     ret
-
