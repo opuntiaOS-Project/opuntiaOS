@@ -54,6 +54,11 @@ bool vmm_init() {
     vmm_enable_paging(true);
 }
 
+bool vmm_load_page(uint32_t t_vert) {
+    uint32_t new_page_phyz_addr = pmm_alloc_block();
+    return vmm_map_page(new_page_phyz_addr, t_vert);
+}
+
 bool vmm_alloc_page(pte_t* t_page) {
     void* new_block = pmm_alloc_block();
     if (!new_block) {
@@ -147,4 +152,15 @@ void vmm_enable_paging(bool enable) {
         asm volatile ("and $0x7FFFFFFF, %eax");
         asm volatile ("mov %eax, %cr0");
     }
+}
+
+void vmm_page_fault_handler(uint8_t t_info, uint32_t t_virt) {
+    // page doesn't present in memory
+    if ((t_info & 1) == 0) {
+        // let's load page
+        printf("Loading page\n");
+        vmm_load_page(t_virt);
+
+    }
+    // while(1) {}
 }

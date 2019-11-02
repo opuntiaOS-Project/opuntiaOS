@@ -73,45 +73,16 @@ void stage3(mem_desc_t *mem_desc) {
 
     uint32_t* kek1 = (uint32_t*)kmalloc(sizeof(uint32_t));
     uint32_t* kek2 = (uint32_t*)kmalloc(sizeof(uint32_t));
-    printh(kek1);
-    printh(kek2);
     *kek1 = 1;
     *kek2 = 2;
-    printd(*kek1);
-    printd(*kek2);
-    //
-    // // testing PMM
-    //
-    // // printf("1st pointer: ");
-    // // printh(kek1);
-    // // printf("\n");
-    // // pmm_free_block(kek1);
-    // printf("Deleting pointer 1\n");
-    // void* kek2 = pmm_alloc_block();
-    // void* kekBig = pmm_alloc_blocks(5);
-    // void* kek3 = pmm_alloc_block();
-    //
-    // printf("2nd pointer: ");
-    // printh(kek2);
-    // printf("\n");
-    // printf("Big pointer: ");
-    // printh(kekBig);
-    // printf("\n");
-    // printf("3rd pointer: ");
-    // printh(kek3);
-    // printf("\n");
-    //
-    // pmm_free_blocks(kekBig, 5);
-    // void* kek4 = pmm_alloc_blocks(3);
-    // void* kek5 = pmm_alloc_blocks(4);
-    //
-    // printf("4th pointer: ");
-    // printh(kek4);
-    // printf("\n");
-    // printf("5th pointer: ");
-    // printh(kek5);
-    // printf("\n");
-    //
+
+    int* newpage = (int *)0x10000000;
+    // for (int i = 0; i < 1000000000; i++) {}
+    *newpage = 8;
+    // for (int i = 0; i < 1000000000; i++) {}
+    // *newpage = 8;
+    printd(*newpage);
+
     register_drivers();
     start_all_drivers();
     find_pci_devices();
