@@ -13,7 +13,7 @@ void isr_standart_handler(uint8_t int_no, uint8_t more_inf, uint32_t cr2) {
 		"Breakpoint",
 		"Detected overflow",
 		"Out-of-bounds",
-		"ejfiowejfoiwejofijewoifjweoifjwoiejfoiwejfoiwejfiowejfoiwejfoiwejfoiwjfoiwejfoiwejfoiwejfoiwejfoiwejf", //Invalid opcode
+		"Invalid opcode", //Invalid opcode
 		"No coprocessor",
 		"Double fault",
 		"Coprocessor segment overrun",

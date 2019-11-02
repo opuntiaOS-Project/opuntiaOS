@@ -36,8 +36,9 @@ void stage2(mem_desc_t *mem_desc) {
         place_to += 512;
     }
 
-    ptable_t* table_0mb = 0x9B000;
-    ptable_t* table_3gb = 0x9C000;
+    ptable_t* table_0mb = 0x9A000;
+    ptable_t* table_3gb = 0x9B000;
+    ptable_t* table_stack = 0x9C000;
     pdirectory_t* dir = 0x9D000;
 
     for (uint32_t phyz = 0, virt = 0, i = 0; i < 1024; phyz+=VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
@@ -55,6 +56,13 @@ void stage2(mem_desc_t *mem_desc) {
         table_3gb->entities[i] = new_page;
     }
 
+    for (uint32_t phyz = 0x000000, virt = 0xffc00000, i = 0; i < 1024; phyz+=VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
+        pte_t new_page = 0;
+        new_page |= 3;
+        new_page |= ((phyz / VMM_PAGE_SIZE) << 12);
+        table_stack->entities[i] = new_page;
+    }
+
     uint8_t* dir_for_memset = (uint8_t*)dir;
     for (int i = 0; i < 1024; i++) {
         dir->entities[i] = 0;
@@ -68,11 +76,18 @@ void stage2(mem_desc_t *mem_desc) {
     dir->entities[768] |= 3;
     dir->entities[768] |= ((table_3gb_int / VMM_PAGE_SIZE) << 12);
 
+    uint32_t table_stack_int = table_stack;
+    dir->entities[1023] |= 3;
+    dir->entities[1023] |= ((table_stack_int / VMM_PAGE_SIZE) << 12);
+
     asm volatile ("mov %%eax, %%cr3" : : "a"(dir));
     // enabling paging
     asm volatile ("mov %cr0, %eax");
     asm volatile ("or $0x80000000, %eax");
     asm volatile ("mov %eax, %cr0");
+
+    asm volatile ("add $0xffc00000, %ebp");
+    asm volatile ("add $0xffc00000, %esp");
 
     asm volatile("push %0" : : "r"(mem_desc));
     asm volatile("mov $0xc0000000, %eax");

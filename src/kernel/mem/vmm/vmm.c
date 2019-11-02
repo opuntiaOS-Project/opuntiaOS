@@ -10,6 +10,7 @@ pdirectory_t* _vmm_cur_pdir = 0;
 bool vmm_init() {
     ptable_t* table_0mb = (ptable_t*)pmm_alloc_block();
     ptable_t* table_3gb = (ptable_t*)pmm_alloc_block();
+    ptable_t* table_stack = (ptable_t*)pmm_alloc_block();
     pdirectory_t* dir = (pdirectory_t*)pmm_alloc_block();
     if (!table_3gb || !table_0mb || !dir) {
         return false;
@@ -32,6 +33,15 @@ bool vmm_init() {
         table_3gb->entities[VMM_OFFSET_IN_TABLE(virt)] = new_page;
     }
 
+    // map 4mb - to the last 4mb
+    for (uint32_t phyz = 0x000000, virt = 0xffc00000, i = 0; i < 1024; phyz+=VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
+        pte_t new_page = 0;
+        pte_set_attr(&new_page, PTE_PRESENT);
+        pte_set_attr(&new_page, PTE_WRITABLE);
+        pte_set_frame(&new_page, phyz / VMM_PAGE_SIZE);
+        table_stack->entities[VMM_OFFSET_IN_TABLE(virt)] = new_page;
+    }
+
     // memset(new_table, 0, sizeof(ptable_t));
     for (int i = 0; i < 1024; i++) {
         dir->entities[i] = 0;
@@ -48,6 +58,12 @@ bool vmm_init() {
     pde_set_attr(pde_3gb, PDE_PRESENT);
     pde_set_attr(pde_3gb, PDE_WRITABLE);
     pde_set_frame(pde_3gb, table_3gb_int / VMM_PAGE_SIZE);
+
+    uint32_t table_stack_int = table_stack;
+    pde_t *pde_stack = vmm_pdirectory_lookup(dir, 0xffc00000);
+    pde_set_attr(pde_stack, PDE_PRESENT);
+    pde_set_attr(pde_stack, PDE_WRITABLE);
+    pde_set_frame(pde_stack, table_stack_int / VMM_PAGE_SIZE);
 
     vmm_switch_pdir(dir);
 
