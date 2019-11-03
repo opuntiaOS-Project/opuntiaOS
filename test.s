@@ -1,7 +1,6 @@
-main:
-    mov eax, 3
-    mov [data], eax
-    mov ebx, [data]
-    int 0x01
-    ret
-data: db 0
+
+mov byte[dev], 5
+int 0x01
+mov eax, [dev]
+ret
+dev: db 0

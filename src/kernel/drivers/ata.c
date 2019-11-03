@@ -122,7 +122,7 @@ void ata_write(ata_t *dev, char *data, int size) {
 
 }
 
-void ata_read(ata_t *dev, uint8_t *read_data) {
+void ata_read(ata_t *dev, uint32_t sectorNum, uint8_t *read_data) {
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
@@ -132,9 +132,9 @@ void ata_read(ata_t *dev, uint8_t *read_data) {
 
     port_8bit_out(dev->device_port, dev_config);
     port_8bit_out(dev->sector_count_port, 1);
-    port_8bit_out(dev->lba_lo_port, 1);
-    port_8bit_out(dev->lba_mid_port, 0);
-    port_8bit_out(dev->lba_hi_port, 0);
+    port_8bit_out(dev->lba_lo_port,   sectorNum & 0x000000FF);
+    port_8bit_out(dev->lba_mid_port, (sectorNum & 0x0000FF00) >> 8);
+    port_8bit_out(dev->lba_hi_port,  (sectorNum & 0x00FF0000) >> 16);
     port_8bit_out(dev->error_port, 0);
     port_8bit_out(dev->command_port, 0x21);
 

@@ -30,6 +30,17 @@ def open_file():
             dd.append(int.from_bytes(byte, byteorder='little'))
     return dd
 
+def open_app(fname):
+    dd = []
+
+    with open(fname, "rb") as f:
+        byte = f.read(1)
+        dd.append(int.from_bytes(byte, byteorder='little'))
+        while byte != b"":
+            byte = f.read(1)
+            dd.append(int.from_bytes(byte, byteorder='little'))
+    return dd
+
 def write_file(dd, withPos = 0):
     with open(copyTo, "rb+") as f:
         f.seek(withPos, 0)
@@ -107,3 +118,7 @@ d_kernel += dd[0x1000:(0x1000 + text_size)]
 
 write_file(d_kernel)
 print(kernelSize)
+
+
+dapp = open_app('btest.bin')
+write_file(dapp, 60 * 512)

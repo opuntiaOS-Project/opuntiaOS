@@ -49,22 +49,22 @@ void find_pci_devices() {
 
                 printf("PCI BUS ");
                 printh(bus);
-                
-                printf(", DEVICE ");
+
+                printf(", DEV ");
                 printh(device);
 
-                printf(", FUNCTION ");
+                printf(", FUNC ");
                 printh(function);
-                
+
                 printf(" = VENDOR ");
                 printh(dev.vendor_id);
-                printf(" = device_id ");
+                printf(" = dev_id ");
                 printh(dev.device_id);
                 printf(", CLASS ");
                 printh(dev.class_id);
                 printf(", SLASS ");
                 printh(dev.subclass_id);
-                // printf("\n");
+                printf("\n");
             }
         }
     }
@@ -111,5 +111,4 @@ bar_t get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id) {
 
 driver_t* get_driver(pcidd_t dev) {
     return 0;
-} 
-
+}

@@ -174,7 +174,10 @@ void vmm_page_fault_handler(uint8_t t_info, uint32_t t_virt) {
     // page doesn't present in memory
     if ((t_info & 1) == 0) {
         // let's load page
-        printf("Loading page\n");
+        printf("Loading page: ");
+        printh(t_virt);
+        printf("\n");
+
         vmm_load_page(t_virt);
 
     }
