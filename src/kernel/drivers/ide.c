@@ -14,6 +14,9 @@ driver_desc_t _ide_driver_info() {
     return ide_desc;
 }
 
+// [Stub]
+// Scanning IDE to find all drives.
+// Try to recognise thier type (now by calling check function of diff techs)
 void ide_install() {
     uint32_t ask_ports[] = {0x1F0, 0x1F0};
     bool is_masters[] = {true, false};

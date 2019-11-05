@@ -156,7 +156,7 @@ void stage3(mem_desc_t *mem_desc) {
     pci_find_devices();
     ide_install();
 
-    // test for searching storage devices
+    // test for searching all storage devices
     device_t cur_dev;
     uint8_t start_s = 0;
     cur_dev.type = DEVICE_STORAGE;

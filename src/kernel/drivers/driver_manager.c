@@ -5,10 +5,14 @@ uint8_t _devices_count = 0;
 int16_t _driver_for_device(pcidd_t t_device_info);
 void _no_driver_for_device(pcidd_t t_device_info);
 
+// Private
+// Handler if device hasn't driver
 void _no_driver_for_device(pcidd_t t_device_info) {
     printf("No driver for the device\n\n");
 }
 
+// Private
+// Try to find the best capable driver for device.
 int16_t _driver_for_device(pcidd_t t_device_info) {
     uint8_t cur_capablity = 0;
     uint8_t best_capablity = 0;
@@ -38,6 +42,7 @@ int16_t _driver_for_device(pcidd_t t_device_info) {
     return -1;
 }
 
+// Registering new driver
 void driver_install(driver_desc_t t_driver_info) {
     driver_t new_driver;
     new_driver.id = _drivers_count;
@@ -45,6 +50,7 @@ void driver_install(driver_desc_t t_driver_info) {
     drivers[_drivers_count++] = new_driver;
 }
 
+// Registering new device
 void device_install(pcidd_t t_device_info) {
     device_t new_device;
     new_device.id = _devices_count;
@@ -63,6 +69,7 @@ void device_install(pcidd_t t_device_info) {
     devices[_devices_count++] = new_device;
 }
 
+// Get first device of Type staring with StartPos
 device_t get_device(uint8_t t_dev_type, uint8_t t_start) {
     for (uint8_t i = t_start; i < _devices_count; i++) {
         if (devices[i].type == t_dev_type) {
@@ -74,6 +81,8 @@ device_t get_device(uint8_t t_dev_type, uint8_t t_start) {
     return bad_device;
 }
 
+// Debug
+// Print all drivers
 void print_drivers_list() {
     for (int i = 0; i < _drivers_count; i++) {
         printf("-------\n");
