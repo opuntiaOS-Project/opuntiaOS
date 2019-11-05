@@ -98,17 +98,13 @@ uint32_t _kbdriver_last_scancode = KEY_UNKNOWN;
 // Public
 
 void register_keyboard_driver() { // all drivers start with main
-    register_driver(kbdriver_install, kbdriver_stop);
+    // register_driver(kbdriver_install, kbdriver_stop);
 }
 
 bool kbdriver_install() {
-    printf("Started keyboard driver\n");
     setup_irq_handler(IRQ1, keyboard_handler);
+    // driver_install(_keyboard_driver_info());
     return true;
-}
-
-void kbdriver_stop() {
-    printf("Stopped keyboard driver\n");
 }
 
 void keyboard_handler() {

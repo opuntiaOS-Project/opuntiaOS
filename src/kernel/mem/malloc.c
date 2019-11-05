@@ -1,4 +1,5 @@
 #include <mem/malloc.h>
+#include <drivers/display.h>
 
 uint32_t _kmalloc_t_start_position = 0;
 
@@ -7,7 +8,7 @@ void kmalloc_init(uint32_t t_start_position) {
 }
 
 void* kmalloc(uint32_t t_size) {
-    if (_kmalloc_t_start_position % 0x1000) {
+    if ((_kmalloc_t_start_position % 0x1000) == 0) {
         uint8_t* new_block = pmm_alloc_block();
         vmm_map_page(new_block, _kmalloc_t_start_position);
     }

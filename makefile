@@ -44,7 +44,11 @@ products/os-image.bin: products/boot.bin products/stage2.bin
 
 run: products/os-image.bin
 	make drive
-	./qemu/programs/qemu-system-i386 -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
+	./qemu/programs/qemu-system-i386 -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -drive id=disk2,file=one2.img,if=none -device ide-drive,drive=disk2,bus=ide.0
+
+run-no-ide: products/os-image.bin
+	make drive
+	./qemu/programs/qemu-system-i386 -m 256M -fda $< -hda one.img -hdb one2.img
 
 debug: products/os-image.bin
 	make drive

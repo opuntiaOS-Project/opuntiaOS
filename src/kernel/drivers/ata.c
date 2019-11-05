@@ -1,6 +1,41 @@
 #include <drivers/ata.h>
 
-void init_ata(ata_t *ata, uint32_t port, char is_master){
+// Private Members
+
+uint8_t _ata_drives_count = 0;
+driver_desc_t _ata_driver_info();
+
+driver_desc_t _ata_driver_info() {
+    driver_desc_t ata_desc;
+    ata_desc.type = DRIVER_STORAGE;
+    ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = ata_add_new_device;
+    ata_desc.functions[DRIVER_STORAGE_READ] = ata_read;
+    ata_desc.functions[DRIVER_STORAGE_WRITE] = ata_write;
+    ata_desc.functions[DRIVER_STORAGE_FLUSH] = ata_flush;
+    ata_desc.pci_serve_class = 0x01;
+    ata_desc.pci_serve_subclass = 0x05;
+    ata_desc.pci_serve_vendor_id = 0x00;
+    ata_desc.pci_serve_device_id = 0x00;
+    return ata_desc;
+}
+
+void ata_add_new_device(device_t t_new_device) {
+    bool is_master = t_new_device.device_desc.port_base >> 31;
+    uint16_t port = t_new_device.device_desc.port_base & 0xFFF;
+    ata_init(&_ata_drives[_ata_drives_count], port, is_master);
+    ata_indentify(&_ata_drives[_ata_drives_count]);
+    _ata_drives_count++;
+    printf("Device added\n");
+}
+
+void ata_install() {
+    // registering driver and passing info to it
+    driver_install(_ata_driver_info());
+
+    return _ata_drives_count;
+}
+
+void ata_init(ata_t *ata, uint32_t port, bool is_master){
     ata->is_master = is_master;
     ata->data_port = port;
     ata->error_port = port + 0x1;
@@ -13,7 +48,7 @@ void init_ata(ata_t *ata, uint32_t port, char is_master){
     ata->control_port = port + 0x206;
 }
 
-void indentify_ata_device(ata_t *ata) {
+bool ata_indentify(ata_t *ata) {
     port_8bit_out(ata->device_port, ata->is_master ? 0xA0 : 0xB0);
     port_8bit_out(ata->sector_count_port, 0);
     port_8bit_out(ata->lba_lo_port, 0);
@@ -25,7 +60,7 @@ void indentify_ata_device(ata_t *ata) {
     uint8_t status = port_8bit_in(ata->command_port);
     if (status == 0x00) {
         printf("Cmd isn't accepted");
-        return;
+        return false;
     }
 
     // waiting for processing
@@ -33,11 +68,10 @@ void indentify_ata_device(ata_t *ata) {
     while((status & 0x80) == 0x80) {
         status = port_8bit_in(ata->command_port);
     }
-
     // check if drive isn't ready to transer DRQ
     if ((status & 0x08) != 0x08) {
-        printf("Don't ready for transport");
-        return;
+        printf("Doesn't ready to transfer DRQ");
+        return false;
     }
 
     // transfering 256 bytes of data
@@ -72,6 +106,7 @@ void indentify_ata_device(ata_t *ata) {
         //printf(text);
     }
     printf("\n");
+    return true;
 }
 
 void ata_write(ata_t *dev, char *data, int size) {
@@ -85,7 +120,7 @@ void ata_write(ata_t *dev, char *data, int size) {
 
     port_8bit_out(dev->device_port, dev_config);
     port_8bit_out(dev->sector_count_port, 1);
-    port_8bit_out(dev->lba_lo_port, 1);
+    port_8bit_out(dev->lba_lo_port, 3);
     port_8bit_out(dev->lba_mid_port, 0);
     port_8bit_out(dev->lba_hi_port, 0);
     port_8bit_out(dev->error_port, 0);
@@ -185,4 +220,8 @@ void ata_flush(ata_t *dev) {
     if (status & 0x01) {
         return;
     }
+}
+
+uint8_t ata_get_drives_count() {
+    return _ata_drives_count;
 }

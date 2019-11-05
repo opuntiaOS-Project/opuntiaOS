@@ -1,7 +1,7 @@
 #ifndef __oneOS__DRIVERS__KEYBOARD_H
 #define __oneOS__DRIVERS__KEYBOARD_H
 
-#include <drivers/driverManager.h>
+#include <drivers/driver_manager.h>
 #include <drivers/display.h>
 #include <x86/idt.h>
 
@@ -159,10 +159,8 @@ enum KEYCODE {
 	KEY_NUMKEYCODES
 };
 
-void register_keyboard_driver();
 void keyboard_handler();
 bool kbdriver_install();
-void kbdriver_stop();
 
 char kbdriver_key_to_ascii (uint32_t code);
 uint32_t kbdriver_get_last_key();

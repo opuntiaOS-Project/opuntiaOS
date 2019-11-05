@@ -3,25 +3,23 @@
 
 #include <types.h>
 #include <x86/port.h>
-#include <drivers/driverManager.h>
+// #include <drivers/driver_manager.h>
 #include <drivers/display.h>
 
-
 typedef struct {
+    uint8_t bus;
+    uint8_t device;
+    uint8_t function;
 
-    u_int8 bus;
-    u_int8 device;
-    u_int8 function;
+    uint16_t vendor_id;
+    uint16_t device_id;
 
-    u_int16 vendor_id;
-    u_int16 device_id;
-    
-    u_int8 class_id;
-    u_int8 subclass_id; 
-    u_int8 interface_id;
-    u_int8 revision_id;
+    uint8_t class_id;
+    uint8_t subclass_id;
+    uint8_t interface_id;
+    uint8_t revision_id;
 
-    u_int32 interrupt;
+    uint32_t interrupt;
     uint32_t port_base;
 } pcidd_t; // pci device desriptor
 
@@ -32,17 +30,16 @@ typedef enum {
 
 typedef struct {
     char prefetchable;
-    uint8_t* address;
+    uint32_t address;
     BarType type;
 } bar_t;
 
 
-u_int32 pci_read(u_int16 bus, u_int16 device, u_int16 function, u_int32 offset);
-void pci_write(u_int8 bus, u_int8 device, u_int8 function, u_int8 offset, u_int32 data);
-char has_device_functions(u_int8 bus, u_int8 device);
-void find_pci_devices();
-pcidd_t get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function);
-bar_t get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id);
-driver_t* get_driver(pcidd_t dev);
+uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t offset);
+void pci_write(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset, uint32_t data);
+char pci_has_device_functions(uint8_t bus, uint8_t device);
+void pci_find_devices();
+pcidd_t pci_get_device_desriptor(uint8_t bus, uint8_t device, uint8_t function);
+bar_t pci_get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id);
 
 #endif

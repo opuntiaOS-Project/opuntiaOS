@@ -1,7 +1,7 @@
 #include <x86/idt.h>
 #include <x86/pci.h>
 #include <types.h>
-#include <drivers/driverManager.h>
+#include <drivers/driver_manager.h>
 #include <drivers/ata.h>
 #include <drivers/display.h>
 #include <drivers/timer.h>
@@ -151,19 +151,26 @@ void stage3(mem_desc_t *mem_desc) {
     // temp solution will change
     kmalloc_init(0xc0000000 + 0x400000);
 
+    ata_install();
+    kbdriver_install();
+    pci_find_devices();
+    ide_install();
 
-    register_drivers();
-    start_all_drivers();
-    find_pci_devices();
+    // test for searching storage devices
+    device_t cur_dev;
+    uint8_t start_s = 0;
+    cur_dev.type = DEVICE_STORAGE;
+    while (cur_dev.type != DEVICE_BAD_SIGN) {
+        cur_dev = get_device(cur_dev.type, start_s);
+        if (cur_dev.type != DEVICE_BAD_SIGN) {
+            printf("!!! Storage device\n");
+        }
+        start_s = cur_dev.id + 1;
+    }
 
-    ata_t ata0m;
-    init_ata(&ata0m, 0x1F0, 1);
-    indentify_ata_device(&ata0m);
-
-    // for test purposes();
     ktest();
 
-    load_app(&ata0m);
+    // load_app(&ata0m);
 
     cmd_install();
 

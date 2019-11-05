@@ -1,22 +1,22 @@
 #include <x86/pci.h>
 
-u_int32 pci_read(u_int16 bus, u_int16 device, u_int16 function, u_int32 offset) {
-    u_int32 id =
+uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t offset) {
+    uint32_t id =
         0x1 << 31
         | ((bus & 0xFF) << 16)
         | ((device & 0x1F) << 11)
         | ((function & 0x07) << 8)
         | (offset & 0xFC);
     port_dword_out(0xCF8, id);
-    u_int32 tmp = (u_int32)(port_dword_in(0xCFC) >> (8 * (offset % 4)));
+    uint32_t tmp = (u_int32)(port_dword_in(0xCFC) >> (8 * (offset % 4)));
     return tmp;
 }
 
-void pci_write(u_int8 bus, u_int8 device, u_int8 function, u_int8 offset, u_int32 data) {
-    u_int32 bus32 = bus;
-    u_int32 device32 = device;
-    u_int16 function16 = function;
-    u_int32 address = (1 << 31)
+void pci_write(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset, uint32_t data) {
+    uint32_t bus32 = bus;
+    uint32_t device32 = device;
+    uint16_t function16 = function;
+    uint32_t address = (1 << 31)
                     | (bus32 << 16)
                     | (device32 << 11)
                     | (function16 << 8)
@@ -25,38 +25,32 @@ void pci_write(u_int8 bus, u_int8 device, u_int8 function, u_int8 offset, u_int3
     port_dword_out(0xCFC, data);
 }
 
-char has_device_functions(u_int8 bus, u_int8 device) {
+char pci_has_device_functions(uint8_t bus, uint8_t device) {
     return pci_read(bus, device, 0, 0x0e) & (1<<7);
 }
 
-void find_pci_devices() {
+void pci_find_devices() {
     printf("Pci scanning\n");
-    u_int8 bus, device, function;
+    uint8_t bus, device, function;
     for (bus = 0; bus < 8; bus++){
         for (device = 0; device < 32; device++){
-            u_int8 functions_count = has_device_functions(bus, device)==0 ? 8 : 1;
+            uint8_t functions_count = pci_has_device_functions(bus, device)==0 ? 8 : 1;
             for (function = 0; function < functions_count; function++) {
-                pcidd_t dev = get_device_desriptor(bus, device, function);
-                if (dev.vendor_id == 0x0000 || dev.vendor_id == 0xffff)
+                pcidd_t dev = pci_get_device_desriptor(bus, device, function);
+                if (dev.vendor_id == 0x0000 || dev.vendor_id == 0xffff) {
                     continue;
+                }
 
                 for (uint8_t bar_id = 0; bar_id < 6; bar_id++) {
-                    bar_t bar = get_bar(bus, device, function, bar_id);
+                    bar_t bar = pci_get_bar(bus, device, function, bar_id);
                     if (bar.address && (bar.type == INPUT_OUTPUT)) {
                         dev.port_base = (uint32_t)bar.address;
                     }
                 }
 
-                printf("PCI BUS ");
-                printh(bus);
+                device_install(dev);
 
-                printf(", DEV ");
-                printh(device);
-
-                printf(", FUNC ");
-                printh(function);
-
-                printf(" = VENDOR ");
+                printf("VENDOR ");
                 printh(dev.vendor_id);
                 printf(" = dev_id ");
                 printh(dev.device_id);
@@ -70,7 +64,7 @@ void find_pci_devices() {
     }
 }
 
-pcidd_t get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function) {
+pcidd_t pci_get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function) {
     pcidd_t new_device;
 
     new_device.bus = bus;
@@ -90,7 +84,7 @@ pcidd_t get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function) {
     return new_device;
 }
 
-bar_t get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id) {
+bar_t pci_get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id) {
     bar_t result;
 
     uint32_t header_type = pci_read(bus, device, function, 0x0e) & 0x7f;
@@ -104,11 +98,8 @@ bar_t get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id) {
     if (result.type == MEMORY_MAPPED) {
 
     } else {
-        result.address = (uint32_t)(bar_val & ~0x3);
+        result.address = (uint32_t)((bar_val >> 2) << 2);
         result.prefetchable = 0;
     }
-}
-
-driver_t* get_driver(pcidd_t dev) {
-    return 0;
+    return result;
 }
