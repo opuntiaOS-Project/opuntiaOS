@@ -1,8 +1,10 @@
 #include <drivers/ide.h>
 
+// ------------
+// Private
+// ------------
+
 driver_desc_t _ide_driver_info();
-uint8_t _ide_drives_count = 0;
-ata_t _ide_drives[2];
 
 driver_desc_t _ide_driver_info() {
     driver_desc_t ide_desc;
@@ -16,6 +18,11 @@ driver_desc_t _ide_driver_info() {
     return ide_desc;
 }
 
+// ------------
+// Public
+// ------------
+
+// install driver
 void ide_install() {
     driver_install(_ide_driver_info());
 }
@@ -24,15 +31,17 @@ void ide_install() {
 // Scanning IDE to find all drives.
 // Try to recognise thier type (now by calling check function of diff techs)
 void ide_find_devices(device_t t_device) {
-    uint32_t ask_ports[] = {0x1F0, 0x1F0};
-    bool is_masters[] = {true, false};
-    for (uint8_t i = 0; i < 2; i++) {
-        ata_init(&_ide_drives[_ide_drives_count], ask_ports[i], is_masters[i]);
-        if (ata_indentify(&_ide_drives[_ide_drives_count])) {
+    const uint8_t DRIVES_COUNT = 2;
+    uint32_t ask_ports[DRIVES_COUNT] = {0x1F0, 0x1F0};
+    bool is_masters[DRIVES_COUNT] = {true, false};
+    for (uint8_t i = 0; i < DRIVES_COUNT; i++) {
+        ata_t new_drive;
+        ata_init(&new_drive, ask_ports[i], is_masters[i]);
+        if (ata_indentify(&new_drive)) {
             _ide_drives_count++;
             device_desc_t new_device;
-            new_device.class_id = 0x01;
-            new_device.subclass_id = 0x05;
+            new_device.class_id = 0x01; // mark as storage
+            new_device.subclass_id = 0x05; // mark as Ata drive
             new_device.interface_id = 0;
             new_device.revision_id = 0;
             new_device.port_base = ask_ports[i] | (1 << 31);

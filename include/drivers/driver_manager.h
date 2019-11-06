@@ -56,12 +56,12 @@ typedef struct {
     uint16_t pci_serve_vendor_id;
     uint16_t pci_serve_device_id;
     uint32_t functions[MAX_DRIVER_FUNCTION_COUNT];
-} driver_desc_t;
+} driver_desc_t; // driver decriptor
 
 typedef struct {
     uint8_t id;
     driver_desc_t driver_desc;
-} driver_t;
+} driver_t; // driver
 
 typedef struct {
     uint8_t bus;
@@ -82,7 +82,7 @@ typedef struct {
     uint8_t type;
     int16_t driver_id;
     device_desc_t device_desc;
-} device_t;
+} device_t; // device
 
 driver_t drivers[MAX_DRIVERS];
 device_t devices[MAX_DEVICES];
@@ -90,8 +90,7 @@ device_t devices[MAX_DEVICES];
 void register_drivers();
 void driver_install(driver_desc_t t_driver_info);
 void device_install(device_desc_t t_device_info);
-void devices_install();
 void print_drivers_list();
 device_t get_device(uint8_t t_dev_type, uint8_t t_start);
 
-#endif
+#endif // __oneOS__DRIVERS__DRIVERMANAGER_H

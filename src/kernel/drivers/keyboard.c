@@ -1,6 +1,7 @@
 #include <drivers/keyboard.h>
 
 // Private
+// Returns key by scancode
 uint32_t _kbdriver_get_keycode(uint8_t t_scancode) {
     uint32_t _kbdriver_scancodes[] = {
         KEY_UNKNOWN,	//0

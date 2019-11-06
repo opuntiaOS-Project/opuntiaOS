@@ -1,5 +1,9 @@
 #include <drivers/driver_manager.h>
 
+// ------------
+// Private
+// ------------
+
 uint8_t _drivers_count = 0;
 uint8_t _devices_count = 0;
 int16_t _driver_for_device(device_desc_t t_device_info);
@@ -41,6 +45,10 @@ int16_t _driver_for_device(device_desc_t t_device_info) {
     }
     return -1;
 }
+
+// ------------
+// Public
+// ------------
 
 // Registering new driver
 void driver_install(driver_desc_t t_driver_info) {
@@ -90,10 +98,6 @@ device_t get_device(uint8_t t_dev_type, uint8_t t_start) {
     device_t bad_device;
     bad_device.type = DEVICE_BAD_SIGN;
     return bad_device;
-}
-
-void devices_install() {
-    pci_find_devices();
 }
 
 // Debug

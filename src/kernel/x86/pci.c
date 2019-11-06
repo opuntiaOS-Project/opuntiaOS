@@ -82,7 +82,7 @@ void pci_find_devices() {
     }
 }
 
-device_desc_t pci_get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function) {
+device_desc_t pci_get_device_desriptor(uint8_t bus, uint8_t device, uint8_t function) {
     device_desc_t new_device;
 
     new_device.bus = bus;
