@@ -3,7 +3,7 @@
 
 #include <types.h>
 #include <x86/port.h>
-// #include <drivers/driver_manager.h>
+#include <drivers/driver_manager.h>
 #include <drivers/display.h>
 
 typedef struct {
@@ -34,12 +34,12 @@ typedef struct {
     BarType type;
 } bar_t;
 
-
+void pci_install();
 uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t offset);
 void pci_write(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset, uint32_t data);
 char pci_has_device_functions(uint8_t bus, uint8_t device);
 void pci_find_devices();
-pcidd_t pci_get_device_desriptor(uint8_t bus, uint8_t device, uint8_t function);
+device_desc_t pci_get_device_desriptor(uint8_t bus, uint8_t device, uint8_t function);
 bar_t pci_get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t bar_id);
 
 #endif

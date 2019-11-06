@@ -2,18 +2,18 @@
 
 uint8_t _drivers_count = 0;
 uint8_t _devices_count = 0;
-int16_t _driver_for_device(pcidd_t t_device_info);
-void _no_driver_for_device(pcidd_t t_device_info);
+int16_t _driver_for_device(device_desc_t t_device_info);
+void _no_driver_for_device(device_desc_t t_device_info);
 
 // Private
 // Handler if device hasn't driver
-void _no_driver_for_device(pcidd_t t_device_info) {
+void _no_driver_for_device(device_desc_t t_device_info) {
     printf("No driver for the device\n\n");
 }
 
 // Private
 // Try to find the best capable driver for device.
-int16_t _driver_for_device(pcidd_t t_device_info) {
+int16_t _driver_for_device(device_desc_t t_device_info) {
     uint8_t cur_capablity = 0;
     uint8_t best_capablity = 0;
     uint8_t best_capable_driver_id = 0;
@@ -50,8 +50,19 @@ void driver_install(driver_desc_t t_driver_info) {
     drivers[_drivers_count++] = new_driver;
 }
 
+// Turn on all drivers which don't need devices
+void drivers_run() {
+    for (uint8_t i = 0; i < _drivers_count; i++) {
+        if (!drivers[i].driver_desc.need_device) {
+            // starting driver
+            void (*rd)() = drivers[i].driver_desc.functions[0];
+            rd();
+        }
+    }
+}
+
 // Registering new device
-void device_install(pcidd_t t_device_info) {
+void device_install(device_desc_t t_device_info) {
     device_t new_device;
     new_device.id = _devices_count;
     new_device.driver_id = _driver_for_device(t_device_info);
@@ -79,6 +90,10 @@ device_t get_device(uint8_t t_dev_type, uint8_t t_start) {
     device_t bad_device;
     bad_device.type = DEVICE_BAD_SIGN;
     return bad_device;
+}
+
+void devices_install() {
+    pci_find_devices();
 }
 
 // Debug

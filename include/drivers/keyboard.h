@@ -161,6 +161,7 @@ enum KEYCODE {
 
 void keyboard_handler();
 bool kbdriver_install();
+void kbdriver_run();
 
 char kbdriver_key_to_ascii (uint32_t code);
 uint32_t kbdriver_get_last_key();

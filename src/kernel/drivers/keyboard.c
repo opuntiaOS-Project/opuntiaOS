@@ -94,6 +94,21 @@ bool _kbdriver_shift_enabled = false;
 bool _kbdriver_ctrl_enabled = false;
 bool _kbdriver_alt_enabled = false;
 uint32_t _kbdriver_last_scancode = KEY_UNKNOWN;
+driver_desc_t _keyboard_driver_info();
+
+driver_desc_t _keyboard_driver_info() {
+    driver_desc_t kbd_desc;
+    kbd_desc.type = DRIVER_INPUT_SYSTEMS;
+    kbd_desc.need_device = false;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = kbdriver_run;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = kbdriver_get_last_key;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = kbdriver_discard_last_key;
+    kbd_desc.pci_serve_class = 0xff;
+    kbd_desc.pci_serve_subclass = 0xff;
+    kbd_desc.pci_serve_vendor_id = 0x00;
+    kbd_desc.pci_serve_device_id = 0x00;
+    return kbd_desc;
+}
 
 // Public
 
@@ -102,11 +117,15 @@ void register_keyboard_driver() { // all drivers start with main
 }
 
 bool kbdriver_install() {
-    setup_irq_handler(IRQ1, keyboard_handler);
-    // driver_install(_keyboard_driver_info());
+    driver_install(_keyboard_driver_info());
     return true;
 }
 
+void kbdriver_run() {
+    setup_irq_handler(IRQ1, keyboard_handler);
+}
+
+// keyboard interrupt handler
 void keyboard_handler() {
     uint8_t scancode = port_byte_in(0x60);
     // _kbdriver_last_scancode = scancode;

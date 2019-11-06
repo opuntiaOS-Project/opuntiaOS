@@ -1,5 +1,23 @@
 #include <x86/pci.h>
 
+driver_desc_t _pci_driver_info();
+
+driver_desc_t _pci_driver_info() {
+    driver_desc_t pci_desc;
+    pci_desc.type = DRIVER_BUS_CONTROLLER;
+    pci_desc.need_device = false;
+    pci_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = pci_find_devices;
+    pci_desc.pci_serve_class = 0xff;
+    pci_desc.pci_serve_subclass = 0xff;
+    pci_desc.pci_serve_vendor_id = 0x00;
+    pci_desc.pci_serve_device_id = 0x00;
+    return pci_desc;
+}
+
+void pci_install() {
+    driver_install(_pci_driver_info());
+}
+
 uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t offset) {
     uint32_t id =
         0x1 << 31
@@ -36,7 +54,7 @@ void pci_find_devices() {
         for (device = 0; device < 32; device++){
             uint8_t functions_count = pci_has_device_functions(bus, device)==0 ? 8 : 1;
             for (function = 0; function < functions_count; function++) {
-                pcidd_t dev = pci_get_device_desriptor(bus, device, function);
+                device_desc_t dev = pci_get_device_desriptor(bus, device, function);
                 if (dev.vendor_id == 0x0000 || dev.vendor_id == 0xffff) {
                     continue;
                 }
@@ -64,8 +82,8 @@ void pci_find_devices() {
     }
 }
 
-pcidd_t pci_get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function) {
-    pcidd_t new_device;
+device_desc_t pci_get_device_desriptor(u_int8 bus, u_int8 device, u_int8 function) {
+    device_desc_t new_device;
 
     new_device.bus = bus;
     new_device.device = device;
