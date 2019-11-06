@@ -79,6 +79,7 @@ typedef struct {
 
 typedef struct {
     uint8_t id;
+    uint8_t translate_id;
     uint8_t type;
     int16_t driver_id;
     device_desc_t device_desc;

@@ -20,9 +20,10 @@ driver_desc_t _ata_driver_info() {
     return ata_desc;
 }
 
-void ata_add_new_device(device_t t_new_device) {
-    bool is_master = t_new_device.device_desc.port_base >> 31;
-    uint16_t port = t_new_device.device_desc.port_base & 0xFFF;
+void ata_add_new_device(device_t *t_new_device) {
+    bool is_master = t_new_device->device_desc.port_base >> 31;
+    uint16_t port = t_new_device->device_desc.port_base & 0xFFF;
+    t_new_device->translate_id = _ata_drives_count;
     ata_init(&_ata_drives[_ata_drives_count], port, is_master);
     ata_indentify(&_ata_drives[_ata_drives_count]);
     _ata_drives_count++;
@@ -38,27 +39,27 @@ void ata_install() {
 
 void ata_init(ata_t *ata, uint32_t port, bool is_master){
     ata->is_master = is_master;
-    ata->data_port = port;
-    ata->error_port = port + 0x1;
-    ata->sector_count_port = port + 0x2;
-    ata->lba_lo_port = port + 0x3;
-    ata->lba_mid_port = port + 0x4;
-    ata->lba_hi_port = port + 0x5;
-    ata->device_port = port + 0x6;
-    ata->command_port = port + 0x7;
-    ata->control_port = port + 0x206;
+    ata->port.data = port;
+    ata->port.error = port + 0x1;
+    ata->port.sector_count = port + 0x2;
+    ata->port.lba_lo = port + 0x3;
+    ata->port.lba_mid = port + 0x4;
+    ata->port.lba_hi = port + 0x5;
+    ata->port.device = port + 0x6;
+    ata->port.command = port + 0x7;
+    ata->port.control = port + 0x206;
 }
 
 bool ata_indentify(ata_t *ata) {
-    port_8bit_out(ata->device_port, ata->is_master ? 0xA0 : 0xB0);
-    port_8bit_out(ata->sector_count_port, 0);
-    port_8bit_out(ata->lba_lo_port, 0);
-    port_8bit_out(ata->lba_mid_port, 0);
-    port_8bit_out(ata->lba_hi_port, 0);
-    port_8bit_out(ata->command_port, 0xEC);
+    port_8bit_out(ata->port.device, ata->is_master ? 0xA0 : 0xB0);
+    port_8bit_out(ata->port.sector_count, 0);
+    port_8bit_out(ata->port.lba_lo, 0);
+    port_8bit_out(ata->port.lba_mid, 0);
+    port_8bit_out(ata->port.lba_hi, 0);
+    port_8bit_out(ata->port.command, 0xEC);
 
     // check the acceptance of a command
-    uint8_t status = port_8bit_in(ata->command_port);
+    uint8_t status = port_8bit_in(ata->port.command);
     if (status == 0x00) {
         printf("Cmd isn't accepted");
         return false;
@@ -67,7 +68,7 @@ bool ata_indentify(ata_t *ata) {
     // waiting for processing
     // while BSY is on
     while((status & 0x80) == 0x80) {
-        status = port_8bit_in(ata->command_port);
+        status = port_8bit_in(ata->port.command);
     }
     // check if drive isn't ready to transer DRQ
     if ((status & 0x08) != 0x08) {
@@ -77,7 +78,7 @@ bool ata_indentify(ata_t *ata) {
 
     // transfering 256 bytes of data
     for (int i = 0; i < 256; i++) {
-        uint16_t data = port_16bit_in(ata->data_port);
+        uint16_t data = port_16bit_in(ata->port.data);
         char *text = "  \0";
         text[0] = (data >> 8) & 0xFF;
         text[1] = data & 0xFF;
@@ -104,34 +105,35 @@ bool ata_indentify(ata_t *ata) {
                 printf("Lba supported\n");
             }
         }
-        //printf(text);
+        // printf(text);
     }
     printf("\n");
     return true;
 }
 
-void ata_write(ata_t *dev, char *data, int size) {
+void ata_write(device_t *t_device, uint32_t sectorNum, char *data, int size) {
+    ata_t dev = _ata_drives[t_device->translate_id];
 
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
-    if (!dev->is_master) {
+    if (!dev.is_master) {
         dev_config |= (1 << 4);
     }
 
-    port_8bit_out(dev->device_port, dev_config);
-    port_8bit_out(dev->sector_count_port, 1);
-    port_8bit_out(dev->lba_lo_port, 3);
-    port_8bit_out(dev->lba_mid_port, 0);
-    port_8bit_out(dev->lba_hi_port, 0);
-    port_8bit_out(dev->error_port, 0);
-    port_8bit_out(dev->command_port, 0x31);
+    port_8bit_out(dev.port.device, dev_config);
+    port_8bit_out(dev.port.sector_count, 1);
+    port_8bit_out(dev.port.lba_lo,   sectorNum & 0x000000FF);
+    port_8bit_out(dev.port.lba_mid, (sectorNum & 0x0000FF00) >> 8);
+    port_8bit_out(dev.port.lba_hi,  (sectorNum & 0x00FF0000) >> 16);
+    port_8bit_out(dev.port.error, 0);
+    port_8bit_out(dev.port.command, 0x31);
 
     // waiting for processing
     // while BSY is on and no Errors
-    uint8_t status = port_8bit_in(dev->command_port);
+    uint8_t status = port_8bit_in(dev.port.command);
     while((status >> 7) & 1 == 1 && (status >> 0) & 1 != 1) {
-        status = port_8bit_in(dev->command_port);
+        status = port_8bit_in(dev.port.command);
         printd(status);
         printf("\n");
     }
@@ -145,7 +147,7 @@ void ata_write(ata_t *dev, char *data, int size) {
 
     for (int i = 0; i < size; i+=2) {
         uint16_t db = (data[i] << 8) + data[i+1];
-        port_16bit_out(dev->data_port, db);
+        port_16bit_out(dev.port.data, db);
         char *text = "  \0";
         text[0] = (db >> 8) & 0xFF;
         text[1] = db & 0xFF;
@@ -153,32 +155,34 @@ void ata_write(ata_t *dev, char *data, int size) {
     }
 
     for (int i = size / 2; i < 256; i++) {
-        port_16bit_out(dev->data_port, 0);
+        port_16bit_out(dev.port.data, 0);
     }
 
 }
 
-void ata_read(ata_t *dev, uint32_t sectorNum, uint8_t *read_data) {
+void ata_read(device_t *t_device, uint32_t sectorNum, uint8_t *read_data) {
+    ata_t dev = _ata_drives[t_device->translate_id];
+
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
-    if (!dev->is_master) {
+    if (!dev.is_master) {
         dev_config |= (1 << 4);
     }
 
-    port_8bit_out(dev->device_port, dev_config);
-    port_8bit_out(dev->sector_count_port, 1);
-    port_8bit_out(dev->lba_lo_port,   sectorNum & 0x000000FF);
-    port_8bit_out(dev->lba_mid_port, (sectorNum & 0x0000FF00) >> 8);
-    port_8bit_out(dev->lba_hi_port,  (sectorNum & 0x00FF0000) >> 16);
-    port_8bit_out(dev->error_port, 0);
-    port_8bit_out(dev->command_port, 0x21);
+    port_8bit_out(dev.port.device, dev_config);
+    port_8bit_out(dev.port.sector_count, 1);
+    port_8bit_out(dev.port.lba_lo,   sectorNum & 0x000000FF);
+    port_8bit_out(dev.port.lba_mid, (sectorNum & 0x0000FF00) >> 8);
+    port_8bit_out(dev.port.lba_hi,  (sectorNum & 0x00FF0000) >> 16);
+    port_8bit_out(dev.port.error, 0);
+    port_8bit_out(dev.port.command, 0x21);
 
     // waiting for processing
     // while BSY is on and no Errors
-    uint8_t status = port_8bit_in(dev->command_port);
+    uint8_t status = port_8bit_in(dev.port.command);
     while(((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
-        status = port_8bit_in(dev->command_port);
+        status = port_8bit_in(dev.port.command);
     }
 
     // check if drive isn't ready to transer DRQ
@@ -193,29 +197,31 @@ void ata_read(ata_t *dev, uint32_t sectorNum, uint8_t *read_data) {
     }
 
     for (int i = 0; i < 256; i++) {
-        uint16_t data = port_16bit_in(dev->data_port);
+        uint16_t data = port_16bit_in(dev.port.data);
         read_data[2*i + 0] = (data >> 8) & 0xFF;
         read_data[2*i + 1] = (data >> 0) & 0xFF;
     }
 }
 
-void ata_flush(ata_t *dev) {
+void ata_flush(device_t *t_device) {
+    ata_t dev = _ata_drives[t_device->translate_id];
+
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
-    if (!dev->is_master) {
+    if (!dev.is_master) {
         dev_config |= (1 << 4);
     }
-    port_8bit_out(dev->device_port, dev_config);
-    port_8bit_out(dev->command_port, 0xE7);
+    port_8bit_out(dev.port.device, dev_config);
+    port_8bit_out(dev.port.command, 0xE7);
 
-    uint8_t status = port_8bit_in(dev->command_port);
+    uint8_t status = port_8bit_in(dev.port.command);
     if (status == 0x00) {
         return;
     }
 
     while(((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
-        status = port_8bit_in(dev->command_port);
+        status = port_8bit_in(dev.port.command);
     }
 
     if (status & 0x01) {

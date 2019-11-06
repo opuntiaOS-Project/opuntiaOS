@@ -30,15 +30,14 @@ void ide_install() {
 // [Stub]
 // Scanning IDE to find all drives.
 // Try to recognise thier type (now by calling check function of diff techs)
-void ide_find_devices(device_t t_device) {
+void ide_find_devices(device_t *t_device) {
     const uint8_t DRIVES_COUNT = 2;
-    uint32_t ask_ports[DRIVES_COUNT] = {0x1F0, 0x1F0};
-    bool is_masters[DRIVES_COUNT] = {true, false};
+    uint32_t ask_ports[] = {0x1F0, 0x1F0};
+    bool is_masters[] = {true, false};
     for (uint8_t i = 0; i < DRIVES_COUNT; i++) {
         ata_t new_drive;
         ata_init(&new_drive, ask_ports[i], is_masters[i]);
         if (ata_indentify(&new_drive)) {
-            _ide_drives_count++;
             device_desc_t new_device;
             new_device.class_id = 0x01; // mark as storage
             new_device.subclass_id = 0x05; // mark as Ata drive

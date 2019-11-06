@@ -81,8 +81,8 @@ void device_install(device_desc_t t_device_info) {
         _no_driver_for_device(t_device_info);
     } else {
         new_device.type = drivers[new_device.driver_id].driver_desc.type;
-        void (*rd)(device_t nd) = drivers[new_device.driver_id].driver_desc.functions[0];
-        rd(new_device);
+        void (*rd)(device_t *nd) = drivers[new_device.driver_id].driver_desc.functions[0];
+        rd(&new_device);
     }
 
     devices[_devices_count++] = new_device;

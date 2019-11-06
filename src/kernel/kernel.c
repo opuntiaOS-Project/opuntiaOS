@@ -151,18 +151,12 @@ void stage3(mem_desc_t *mem_desc) {
     // temp solution will change
     kmalloc_init(0xc0000000 + 0x400000);
 
-
     // installing drivers
     pci_install();
     ide_install();
     ata_install();
     kbdriver_install();
     drivers_run();
-
-    // installing devices
-    // devices_install();
-
-
 
     // test for searching all storage devices
     device_t cur_dev;

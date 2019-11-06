@@ -9,28 +9,34 @@
 
 #define ATA_MAX_DRIVES_COUNT 2
 
-typedef struct {                 // LBA28 | LBA48
-    uint32_t data_port;          // 16bit | 16 bits
-    uint32_t error_port;         // 8 bit | 16 bits
-    uint32_t sector_count_port;  // 8 bit | 16 bits
-    uint32_t lba_lo_port;        // 8 bit | 16 bits
-    uint32_t lba_mid_port;       // 8 bit | 16 bits
-    uint32_t lba_hi_port;        // 8 bit | 16 bits
-    uint32_t device_port;        // 8 bit
-    uint32_t command_port;       // 8 bit
-    uint32_t control_port;       // 8 bit
+typedef struct {            // LBA28 | LBA48
+    uint32_t data;          // 16bit | 16 bits
+    uint32_t error;         // 8 bit | 16 bits
+    uint32_t sector_count;  // 8 bit | 16 bits
+    uint32_t lba_lo;        // 8 bit | 16 bits
+    uint32_t lba_mid;       // 8 bit | 16 bits
+    uint32_t lba_hi;        // 8 bit | 16 bits
+    uint32_t device;        // 8 bit
+    uint32_t command;       // 8 bit
+    uint32_t control;
+} ata_ports_t;
+
+typedef struct {
+    ata_ports_t port;
     bool is_master;
+    bool dma;
+    bool lba;
 } ata_t;
 
 ata_t _ata_drives[ATA_MAX_DRIVES_COUNT];
 
-void ata_add_new_device(device_t t_new_device);
+void ata_add_new_device(device_t *t_new_device);
 
 void ata_install();
 void ata_init(ata_t *ata, uint32_t port, bool is_master);
 bool ata_indentify(ata_t *ata);
-void ata_write(ata_t *dev, char *data, int size);
-void ata_read(ata_t *dev, uint32_t sectorNum, uint8_t *read_data);
-void ata_flush(ata_t *dev);
+void ata_write(device_t *t_device, uint32_t sectorNum, char *data, int size);
+void ata_read(device_t *t_device, uint32_t sectorNum, uint8_t *read_data);
+void ata_flush(device_t *t_device);
 
 #endif //__oneOS__DRIVERS__ATA_H
