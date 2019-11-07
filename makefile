@@ -44,7 +44,7 @@ products/os-image.bin: products/boot.bin products/stage2.bin
 
 run: products/os-image.bin
 	make drive
-	./qemu/programs/qemu-system-i386 -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -drive id=disk2,file=one2.img,if=none -device ide-drive,drive=disk2,bus=ide.0
+	./qemu/programs/qemu-system-i386 -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
 
 run-no-ide: products/os-image.bin
 	make drive
@@ -67,7 +67,10 @@ clean:
 	rm -rf src/boot/x86/stage2/*/*/*/*.bin src/boot/x86/stage2/*/*/*/*.o
 
 one.img:
-	qemu-img create -f raw one.img 1M
+	qemu-img create -f raw one.img 2M
+
+format:
+	python3 utils/fat16_formatter.py
 
 drive:
 	make products/kernel.bin

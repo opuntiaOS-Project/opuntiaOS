@@ -100,7 +100,7 @@ bool ata_indentify(ata_t *ata) {
     return true;
 }
 
-void ata_write(device_t *t_device, uint32_t sectorNum, char *data, int size) {
+void ata_write(device_t *t_device, uint32_t sectorNum, uint8_t *data, uint32_t size) {
     ata_t dev = _ata_drives[t_device->translate_id];
 
     uint8_t dev_config = 0xA0;
@@ -183,8 +183,8 @@ void ata_read(device_t *t_device, uint32_t sectorNum, uint8_t *read_data) {
 
     for (int i = 0; i < 256; i++) {
         uint16_t data = port_16bit_in(dev.port.data);
-        read_data[2*i + 0] = (data >> 8) & 0xFF;
-        read_data[2*i + 1] = (data >> 0) & 0xFF;
+        read_data[2*i + 1] = (data >> 8) & 0xFF;
+        read_data[2*i + 0] = (data >> 0) & 0xFF;
     }
 }
 

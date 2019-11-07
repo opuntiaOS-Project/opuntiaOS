@@ -29,10 +29,10 @@ void stage2(mem_desc_t *mem_desc) {
     init_ata(&ata0m, 0x1F0, 1);
     indentify_ata_device(&ata0m);
     uint32_t place_to = 0x100000;
-    mem_desc->kernel_size = ata_read_to_ram(&ata0m, 0, place_to, 2);
+    mem_desc->kernel_size = ata_read_to_ram(&ata0m, 1, place_to, 2);
     place_to += 512 - 2;
     for (uint16_t i = 1; i < mem_desc->kernel_size * 2; i++) {
-        ata_read_to_ram(&ata0m, i, place_to, 0);
+        ata_read_to_ram(&ata0m, i+1, place_to, 0);
         place_to += 512;
     }
 

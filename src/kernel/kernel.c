@@ -8,6 +8,9 @@
 #include <mem/pmm.h>
 #include <mem/malloc.h>
 
+#include <fs/fat16/fat16.h>
+#include <fs/vfs.h>
+
 #include <cmd/cmd.h>
 
 #include <qemulog.h>
@@ -158,17 +161,9 @@ void stage3(mem_desc_t *mem_desc) {
     kbdriver_install();
     drivers_run();
 
-    // test for searching all storage devices
-    device_t cur_dev;
-    uint8_t start_s = 0;
-    cur_dev.type = DEVICE_STORAGE;
-    while (cur_dev.type != DEVICE_BAD_SIGN) {
-        cur_dev = get_device(cur_dev.type, start_s);
-        if (cur_dev.type != DEVICE_BAD_SIGN) {
-            printf("!!! Storage device\n");
-        }
-        start_s = cur_dev.id + 1;
-    }
+    fat16_install();
+    vfs_install();
+
 
     ktest();
 

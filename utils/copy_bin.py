@@ -2,18 +2,6 @@ copyTo = 'one.img'
 copyFrom = 'products/kernel.bin'
 kernelSize = 0
 
-def print_gh(el):
-    if (el >= 10):
-        return chr(el - 10 + ord('A'))
-    return chr(el + ord('0'))
-
-def print_g(result):
-    for (id,el) in enumerate(result):
-        if id % 16 == 0:
-            print()
-        print(print_gh(el//16), end="")
-        print(print_gh(el%16), end=" ")
-
 def open_file():
     global kernelSize
     kernelSize = 0
@@ -52,8 +40,6 @@ def append(res, plus, offset):
         res[id+offset] = el
     return res
 
-dd = open_file()
-
 def get_from(offset, len):
     global dd
     res = 0
@@ -62,6 +48,8 @@ def get_from(offset, len):
         res += dd[offset + i] * mt
         mt *= 256
     return res
+
+dd = open_file()
 
 e_shoff = get_from(0x20, 4)
 e_shentsize = get_from(0x2E, 2)
@@ -116,9 +104,5 @@ d_kernel[1] = kernelSizeKb2
 d_kernel += dd[0x1000:(0x1000 + text_size)]
 # print_g(d_kernel)
 
-write_file(d_kernel)
+write_file(d_kernel, 512)
 print(kernelSize)
-
-
-dapp = open_app('btest.bin')
-write_file(dapp, 60 * 512)
