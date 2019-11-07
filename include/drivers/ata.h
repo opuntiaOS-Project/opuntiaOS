@@ -24,6 +24,9 @@ typedef struct {            // LBA28 | LBA48
 typedef struct {
     ata_ports_t port;
     bool is_master;
+    uint16_t cylindres;
+    uint16_t heads;
+    uint16_t sectors;
     bool dma;
     bool lba;
 } ata_t;

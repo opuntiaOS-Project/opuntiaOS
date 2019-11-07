@@ -79,35 +79,24 @@ bool ata_indentify(ata_t *ata) {
     // transfering 256 bytes of data
     for (int i = 0; i < 256; i++) {
         uint16_t data = port_16bit_in(ata->port.data);
-        char *text = "  \0";
-        text[0] = (data >> 8) & 0xFF;
-        text[1] = data & 0xFF;
         if (i == 1) {
-            printf("Logical cylindres");
-            printd(data);
-            printf("\n");
+            ata->cylindres = data;
         }
         if (i == 3) {
-            printf("Logical heads");
-            printd(data);
-            printf("\n");
+            ata->heads = data;
         }
         if (i == 6) {
-            printf("Logical sectors");
-            printd(data);
-            printf("\n");
+            ata->sectors = data;
         }
         if (i == 49) {
             if ((data >> 8) & 0x1 == 1) {
-                printf("Dma supported\n");
+                ata->dma = true;
             }
             if ((data >> 9) & 0x1 == 1) {
-                printf("Lba supported\n");
+                ata->lba = true;
             }
         }
-        // printf(text);
     }
-    printf("\n");
     return true;
 }
 
@@ -148,10 +137,6 @@ void ata_write(device_t *t_device, uint32_t sectorNum, char *data, int size) {
     for (int i = 0; i < size; i+=2) {
         uint16_t db = (data[i] << 8) + data[i+1];
         port_16bit_out(dev.port.data, db);
-        char *text = "  \0";
-        text[0] = (db >> 8) & 0xFF;
-        text[1] = db & 0xFF;
-        printf(text);
     }
 
     for (int i = size / 2; i < 256; i++) {
