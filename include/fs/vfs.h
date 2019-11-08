@@ -27,4 +27,11 @@ void vfs_install();
 void vfs_add_device(device_t t_new_dev);
 void vfs_add_fs(fs_desc_t t_new_fs);
 
+void open();
+void close();
+void read();
+void write();
+void create_dir();
+void remove_dir();
+
 #endif // __oneOS__FS__VFS_H
