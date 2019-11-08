@@ -20,6 +20,7 @@ typedef struct {
 
 typedef struct {
     int8_t fs;
+    uint8_t translate_id;
     device_t dev;
 } vfs_device_t;
 
