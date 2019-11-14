@@ -40,3 +40,32 @@ void vfs_add_device(device_t t_new_dev) {
 void vfs_add_fs(fs_desc_t t_new_fs) {
     _vfs_fses[_vfs_fses_count++] = t_new_fs;
 }
+
+void vfs_lookup_dir(uint8_t t_drive_id) {
+    vfs_element_t vfs_buf[16]; // 16 tmp value (will be replaced with std value)
+    uint32_t (*func)(vfs_device_t*, vfs_element_t*) = _vfs_fses[t_drive_id].lookup_dir;
+    uint32_t n = func(&_vfs_devices[t_drive_id], vfs_buf);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < 8; j++) {
+            char *text = " \0";
+            if (j == 0 && vfs_buf[i].filename[j] == 0x20) {
+                printf("START to WORRY\n");
+            }
+            text[0] = vfs_buf[i].filename[j];
+            printf(text);
+        }
+        printf("\n");
+    }
+}
+
+void vfs_create_dir(uint8_t t_drive_id) {
+    bool (*func)(vfs_device_t*, char*) = _vfs_fses[t_drive_id].create_dir;
+    func(&_vfs_devices[t_drive_id], "hello");
+}
+
+void vfs_test() {
+    // vfs_lookup_dir(0);
+    vfs_create_dir(0);
+    vfs_lookup_dir(0);
+
+}

@@ -3,6 +3,14 @@
 
 #include <fs/vfs.h>
 
+#define FAT16_ELEMENT_FOLDER 0x10
+#define FAT16_ELEMENT_ROOT_FOLDER 0x11
+#define FAT16_ELEMENT_NULL 0xFF
+#define FAT16_ELEMENT_ROOT_BLOCK_ID 0
+#define FAT16_DELETED_SIGN 0xe5
+#define FAT16_MAX_FILENAME 8
+#define FAT16_MAX_FILENAME_EXT 3
+
 typedef struct {
     uint16_t bytes_per_sector;
     uint16_t bytes_per_cluster;
@@ -17,12 +25,20 @@ typedef struct {
     uint8_t* fat_ptr;
 } fat16_drive_desc_t;
 
+typedef struct {
+    char filename[FAT16_MAX_FILENAME];
+    char filename_ext[FAT16_MAX_FILENAME_EXT];
+    uint8_t attributes;
+    uint16_t start_cluster_id;
+    uint16_t file_size;
+} fat16_element_t;
+
 void fat16_install();
 
 bool fat16_recognize(vfs_device_t *t_vfs_dev);
 
-void fat16_create_dir();
-void fat16_lookup_dir();
+bool fat16_create_dir(vfs_device_t *t_vfs_dev, char *t_dir_name);
+uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, vfs_element_t* t_buf);
 void fat16_remove_dir();
 
 void fat16_write_file();

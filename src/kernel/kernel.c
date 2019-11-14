@@ -164,6 +164,9 @@ void stage3(mem_desc_t *mem_desc) {
     fat16_install();
     vfs_install();
 
+    printf("\nLS:\n");
+    vfs_test();
+    printf("\n");
 
     ktest();
 

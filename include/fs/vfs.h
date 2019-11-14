@@ -5,6 +5,8 @@
 
 #define VFS_MAX_FS_COUNT 5
 #define VFS_MAX_DEV_COUNT 5
+#define VFS_MAX_FILENAME 16
+#define VFS_MAX_FILENAME_EXT 4
 
 typedef struct {
     void* recognize;
@@ -24,9 +26,21 @@ typedef struct {
     device_t dev;
 } vfs_device_t;
 
+typedef struct {
+    char filename[VFS_MAX_FILENAME];
+    char filename_ext[VFS_MAX_FILENAME_EXT];
+    uint8_t attributes;
+    uint16_t file_size;
+} vfs_element_t;
+
 void vfs_install();
 void vfs_add_device(device_t t_new_dev);
 void vfs_add_fs(fs_desc_t t_new_fs);
+
+
+// Test Func
+// Will be deleted
+void vfs_test();
 
 void open();
 void close();

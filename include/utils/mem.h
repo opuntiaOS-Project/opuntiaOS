@@ -3,7 +3,7 @@
 
 #include <types.h>
 
-void memset(uint8_t* src, uint8_t fll, uint32_t nbytes);
+void memset(uint8_t* dest, uint8_t fll, uint32_t nbytes);
 void memcpy(uint8_t* dest, uint8_t* src, uint32_t nbytes);
 void memccpy(uint8_t* dest, uint8_t* src, uint8_t stop, uint32_t nbytes);
 

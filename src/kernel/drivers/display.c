@@ -123,7 +123,7 @@ void scroll (unsigned char lines) {
     unsigned int mem_offset = lines * MAX_COLS;
     unsigned int bytes_2_del = 2*(MAX_COLS*MAX_ROWS-mem_offset);
     char* src = (mem + mem_offset*2);
-    memcpy(src, mem, bytes_2_del);
+    memcpy(mem, src, bytes_2_del);
 
     for (int i = bytes_2_del; i < 2 * MAX_COLS * MAX_ROWS; i+=2) {
         mem[i] = ' ';

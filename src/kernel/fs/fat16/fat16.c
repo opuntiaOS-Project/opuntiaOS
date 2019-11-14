@@ -1,6 +1,7 @@
 #include <fs/fat16/fat16.h>
 #include <drivers/display.h>
 #include <mem/malloc.h>
+#include <utils/mem.h>
 
 // Private
 
@@ -13,14 +14,35 @@ void _fat16_write(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf, uint
 uint8_t _fat16_load_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive);
 uint8_t _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf);
 
+// Utils
+uint16_t _fat16_cluster_id_to_phyz_addr(vfs_device_t *t_vfs_dev, uint16_t t_val);
+void _fat16_element_to_vfs_element(fat16_element_t *t_fat_elem, vfs_element_t *t_vfs_elem);
+
+// Fat Tools
+uint16_t _fat16_find_free_cluster(vfs_device_t *t_vfs_dev);
+void _fat16_edit_cluster(vfs_device_t *t_vfs_dev, uint16_t t_cluster_id, uint16_t t_value);
+void _fat16_take_cluster(vfs_device_t *t_vfs_dev, uint16_t t_cluster_id);
+
+// Fat16 Element Tools
+void _fat16_encode_element(fat16_element_t *t_element, uint8_t* t_buf);
+fat16_element_t _fat16_decode_element(uint8_t* t_buf);
+bool _fat16_save_element(vfs_device_t *t_vfs_dev, uint8_t* t_cluster_data, uint16_t t_cluster_id_to_write, fat16_element_t *t_element_to_save);
+
+// Dir Tools
+fat16_element_t _fat16_get_dir_by_path();
+
+// Private Implementation
+
 fs_desc_t _fat16_fs_desc() {
     fs_desc_t fat16;
     fat16.recognize = fat16_recognize;
+    fat16.create_dir = fat16_create_dir;
+    fat16.lookup_dir = fat16_lookup_dir;
     return fat16;
 }
 
 void _fat16_read(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf) {
-    printf("DRIVER ID:"); printd(t_vfs_dev->dev.driver_id);
+    // printf("DRIVER ID:"); printd(t_vfs_dev->dev.driver_id);
     void (*rd)(device_t *d, uint32_t s, uint8_t *r) =
         drivers[t_vfs_dev->dev.driver_id].driver_desc.functions[DRIVER_STORAGE_READ];
     rd(&t_vfs_dev->dev, t_addr, t_buf);
@@ -66,6 +88,136 @@ uint8_t _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
     return _fat16_drives_count - 1;
 }
 
+// --------
+// Utils
+// --------
+
+uint16_t _fat16_cluster_id_to_phyz_addr(vfs_device_t *t_vfs_dev, uint16_t t_val) {
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    if (t_val == 0) {
+        return drive_desc->root_dir_start;
+    }
+    return drive_desc->data_seg_start + t_val - 1;
+}
+
+void _fat16_element_to_vfs_element(fat16_element_t *t_fat_elem, vfs_element_t *t_vfs_elem) {
+    memset(t_vfs_elem->filename, 0, VFS_MAX_FILENAME);
+    memset(t_vfs_elem->filename_ext, 0, VFS_MAX_FILENAME_EXT);
+    memccpy(t_vfs_elem->filename, t_fat_elem->filename, 0, FAT16_MAX_FILENAME);
+    memccpy(t_vfs_elem->filename_ext, t_fat_elem->filename_ext, 0, FAT16_MAX_FILENAME_EXT);
+    t_vfs_elem->attributes = t_fat_elem->attributes;
+    t_vfs_elem->file_size = t_fat_elem->file_size;
+}
+
+// --------
+// Fat Tools
+// --------
+
+uint16_t _fat16_find_free_cluster(vfs_device_t *t_vfs_dev) {
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    uint32_t fat_size_bytes = drive_desc->sectors_per_fat * drive_desc->bytes_per_sector;
+    for (uint16_t sector = 0; sector < fat_size_bytes; sector+=2) {
+        uint16_t result = (drive_desc->fat_ptr[sector+1] << 8) + drive_desc->fat_ptr[sector];
+        if (result == 0) {
+            return sector / 2 - 1;
+        }
+    }
+    return 0;
+}
+
+void _fat16_edit_cluster(vfs_device_t *t_vfs_dev, uint16_t t_cluster_id, uint16_t t_value) {
+    uint16_t rec_in_fat = 2 * (t_cluster_id + 1);
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    drive_desc->fat_ptr[rec_in_fat] = t_value % 0x100;
+    drive_desc->fat_ptr[rec_in_fat+1] = (t_value >> 8) % 0x100;
+}
+
+void _fat16_take_cluster(vfs_device_t *t_vfs_dev, uint16_t t_cluster_id) {
+    _fat16_edit_cluster(t_vfs_dev, t_cluster_id, 0xffff);
+}
+
+// --------
+// Fat16 Element Tools
+// --------
+
+void _fat16_encode_element(fat16_element_t *t_element, uint8_t* t_buf) {
+    memset(t_buf, 0x0, FAT16_MAX_FILENAME + FAT16_MAX_FILENAME_EXT);
+    memccpy(t_buf, t_element->filename, 0, FAT16_MAX_FILENAME);
+    memccpy((t_buf+0x08), t_element->filename_ext, 0, FAT16_MAX_FILENAME_EXT);
+    t_buf[0x0b] = t_element->attributes;
+    t_buf[0x1a] = t_element->start_cluster_id % 0x100;
+    t_buf[0x1a+1] = t_element->start_cluster_id / 0x100;
+
+    // encoding file_size
+    t_buf[0x1c] = t_element->file_size % 0x100;
+    t_buf[0x1c+1] = (t_element->file_size >>  8) % 0x100;
+    t_buf[0x1c+2] = (t_element->file_size >> 16) % 0x100;
+    t_buf[0x1c+3] = (t_element->file_size >> 24) % 0x100;
+}
+
+fat16_element_t _fat16_decode_element(uint8_t* t_buf) {
+    fat16_element_t res;
+    memset(res.filename, 0x0, FAT16_MAX_FILENAME);
+    memset(res.filename_ext, 0x0, FAT16_MAX_FILENAME_EXT);
+    memccpy(res.filename, t_buf, 0x0, FAT16_MAX_FILENAME);
+    memccpy(res.filename_ext, (t_buf+0x08), 0x0, FAT16_MAX_FILENAME_EXT);
+    res.attributes = t_buf[0x0b];
+    res.start_cluster_id = t_buf[0x1b] * 0x100 + t_buf[0x1a];
+    res.file_size = (t_buf[0x1c] +
+                    (t_buf[0x1c+1] <<  8) +
+                    (t_buf[0x1c+2] << 16) +
+                    (t_buf[0x1c+3] << 24));
+    return res;
+}
+
+// if t_cluster_data
+bool _fat16_save_element(vfs_device_t *t_vfs_dev, uint8_t* t_cluster_data,
+        uint16_t t_cluster_id_to_write, fat16_element_t *t_element_to_save) {
+
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    uint16_t block_phyz_addr = _fat16_cluster_id_to_phyz_addr(t_vfs_dev, t_cluster_id_to_write);
+    uint8_t cl_data[512];
+    if (!t_cluster_data) {
+        _fat16_read(t_vfs_dev, block_phyz_addr, cl_data);
+    } else {
+        printf("HERE but how\n");
+        memcpy(cl_data, t_cluster_data, 512);
+    }
+
+    // finding spot for the new element
+    bool found = false;
+    uint16_t e_offset;
+    for (e_offset = 0; e_offset < drive_desc->bytes_per_sector; e_offset+=32) {
+        // means that spot is empty
+        if (cl_data[e_offset] == 0x00 ||
+            cl_data[e_offset] == FAT16_DELETED_SIGN) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        return false;
+    }
+
+    uint8_t buf[32];
+    _fat16_encode_element(t_element_to_save, buf);
+    memcpy(cl_data+e_offset, buf, 32);
+    _fat16_write(t_vfs_dev, block_phyz_addr, cl_data, 512);
+    return true;
+}
+
+// --------
+// Dir Tools
+// --------
+
+fat16_element_t _fat16_get_dir_by_path() {
+    fat16_element_t root_dir;
+    root_dir.start_cluster_id = FAT16_ELEMENT_ROOT_BLOCK_ID;
+    root_dir.attributes = FAT16_ELEMENT_ROOT_FOLDER;
+    return root_dir;
+}
+
 // Public
 
 void fat16_install() {
@@ -87,4 +239,51 @@ bool fat16_recognize(vfs_device_t *t_vfs_dev) {
         t_vfs_dev->translate_id = translate_id;
     }
     return isSignatureCorrect;
+}
+
+// --------
+// Dir
+// --------
+
+bool fat16_create_dir(vfs_device_t *t_vfs_dev, char *t_dir_name) {
+    fat16_element_t dir_to_save = _fat16_get_dir_by_path();
+    if (dir_to_save.attributes != FAT16_ELEMENT_FOLDER &&
+        dir_to_save.attributes != FAT16_ELEMENT_ROOT_FOLDER) {
+        return false;
+    }
+
+    fat16_element_t new_folder;
+    new_folder.attributes = FAT16_ELEMENT_FOLDER;
+    memset(new_folder.filename, 0x20, 8);
+    memccpy(new_folder.filename, t_dir_name, 0, 8);
+    memset(new_folder.filename_ext, 0x20, 3);
+
+    new_folder.start_cluster_id = _fat16_find_free_cluster(t_vfs_dev);
+    _fat16_take_cluster(t_vfs_dev, new_folder.start_cluster_id);
+
+    return _fat16_save_element(t_vfs_dev, 0, dir_to_save.start_cluster_id, &new_folder);
+}
+
+uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, vfs_element_t* t_buf) {
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_element_t dir_to_save = _fat16_get_dir_by_path();
+    uint16_t block_phyz_addr = _fat16_cluster_id_to_phyz_addr(t_vfs_dev, dir_to_save.start_cluster_id);
+    uint8_t cl_data[512];
+    _fat16_read(t_vfs_dev, block_phyz_addr, cl_data);
+
+    uint8_t added = 0;
+    fat16_element_t e_fat_tmp;
+    vfs_element_t e_vfs_tmp;
+    for (uint16_t e_offset = 0; e_offset < drive_desc->bytes_per_sector; e_offset += 32) {
+        if (cl_data[e_offset] != 0x00 &&
+            cl_data[e_offset] != FAT16_DELETED_SIGN) {
+            if (cl_data[e_offset] == 0x20) {
+                printf("START to WORRY\n");
+            }
+            e_fat_tmp = _fat16_decode_element(cl_data+e_offset);
+            _fat16_element_to_vfs_element(&e_fat_tmp, &e_vfs_tmp);
+            t_buf[added++] = e_vfs_tmp;
+        }
+    }
+    return added;
 }

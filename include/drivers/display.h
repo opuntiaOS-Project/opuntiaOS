@@ -4,6 +4,7 @@
 #include <x86/port.h>
 #include <types.h>
 #include <utils.h>
+#include <utils/mem.h>
 
 #define VIDEO_MEMORY 0xb8000
 #define VIDEO_ADDRESS 0xb8000

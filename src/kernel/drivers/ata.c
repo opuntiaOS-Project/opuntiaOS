@@ -133,9 +133,8 @@ void ata_write(device_t *t_device, uint32_t sectorNum, uint8_t *data, uint32_t s
         return;
     }
 
-
     for (int i = 0; i < size; i+=2) {
-        uint16_t db = (data[i] << 8) + data[i+1];
+        uint16_t db = (data[i+1] << 8) + data[i];
         port_16bit_out(dev.port.data, db);
     }
 

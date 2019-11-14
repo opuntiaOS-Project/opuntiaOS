@@ -2,7 +2,7 @@
 
 void memset(uint8_t* dest, uint8_t fll, uint32_t nbytes) {
     for (int i = 0; i < nbytes; ++i) {
-        *(dest + i) = *(src + i);
+        *(dest + i) = fll;
     }
 }
 
