@@ -277,9 +277,6 @@ uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, vfs_element_t* t_buf) {
     for (uint16_t e_offset = 0; e_offset < drive_desc->bytes_per_sector; e_offset += 32) {
         if (cl_data[e_offset] != 0x00 &&
             cl_data[e_offset] != FAT16_DELETED_SIGN) {
-            if (cl_data[e_offset] == 0x20) {
-                printf("START to WORRY\n");
-            }
             e_fat_tmp = _fat16_decode_element(cl_data+e_offset);
             _fat16_element_to_vfs_element(&e_fat_tmp, &e_vfs_tmp);
             t_buf[added++] = e_vfs_tmp;

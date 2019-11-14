@@ -48,9 +48,6 @@ void vfs_lookup_dir(uint8_t t_drive_id) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < 8; j++) {
             char *text = " \0";
-            if (j == 0 && vfs_buf[i].filename[j] == 0x20) {
-                printf("START to WORRY\n");
-            }
             text[0] = vfs_buf[i].filename[j];
             printf(text);
         }
