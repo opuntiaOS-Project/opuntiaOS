@@ -37,8 +37,8 @@ void fat16_install();
 
 bool fat16_recognize(vfs_device_t *t_vfs_dev);
 
-bool fat16_create_dir(vfs_device_t *t_vfs_dev, char *t_dir_name);
-uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, vfs_element_t* t_buf);
+bool fat16_create_dir(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_dir_name);
+uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, const char *t_path, vfs_element_t* t_buf);
 void fat16_remove_dir();
 
 void fat16_write_file();

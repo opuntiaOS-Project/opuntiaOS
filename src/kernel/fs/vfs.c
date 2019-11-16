@@ -41,10 +41,10 @@ void vfs_add_fs(fs_desc_t t_new_fs) {
     _vfs_fses[_vfs_fses_count++] = t_new_fs;
 }
 
-void vfs_lookup_dir(uint8_t t_drive_id) {
+void vfs_lookup_dir(uint8_t t_drive_id, const char *path) {
     vfs_element_t vfs_buf[16]; // 16 tmp value (will be replaced with std value)
-    uint32_t (*func)(vfs_device_t*, vfs_element_t*) = _vfs_fses[t_drive_id].lookup_dir;
-    uint32_t n = func(&_vfs_devices[t_drive_id], vfs_buf);
+    uint32_t (*func)(vfs_device_t*, const char *, vfs_element_t*) = _vfs_fses[t_drive_id].lookup_dir;
+    uint32_t n = func(&_vfs_devices[t_drive_id], path, vfs_buf);
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < 8; j++) {
             char *text = " \0";
@@ -56,13 +56,14 @@ void vfs_lookup_dir(uint8_t t_drive_id) {
 }
 
 void vfs_create_dir(uint8_t t_drive_id) {
-    bool (*func)(vfs_device_t*, char*) = _vfs_fses[t_drive_id].create_dir;
-    func(&_vfs_devices[t_drive_id], "hello");
+    bool (*func)(vfs_device_t*, const char*, const char*) = _vfs_fses[t_drive_id].create_dir;
+    func(&_vfs_devices[t_drive_id], "/", "a");
+    func(&_vfs_devices[t_drive_id], "/a/", "b");
 }
 
 void vfs_test() {
     // vfs_lookup_dir(0);
     vfs_create_dir(0);
-    vfs_lookup_dir(0);
-
+    vfs_lookup_dir(0, "/");
+    vfs_lookup_dir(0, "/a/");
 }
