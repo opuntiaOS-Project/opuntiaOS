@@ -58,12 +58,20 @@ void vfs_lookup_dir(uint8_t t_drive_id, const char *path) {
 void vfs_create_dir(uint8_t t_drive_id) {
     bool (*func)(vfs_device_t*, const char*, const char*) = _vfs_fses[t_drive_id].create_dir;
     func(&_vfs_devices[t_drive_id], "/", "a");
-    func(&_vfs_devices[t_drive_id], "/a/", "b");
+    func(&_vfs_devices[t_drive_id], "/", "b");
+    // func(&_vfs_devices[t_drive_id], "/a/", "b");
+}
+
+void vfs_create_file(uint8_t t_drive_id) {
+    bool (*func)(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size) = _vfs_fses[t_drive_id].write_file;
+    func(&_vfs_devices[t_drive_id], "/", "file", "exe", "hello, world", 12);
 }
 
 void vfs_test() {
     // vfs_lookup_dir(0);
     vfs_create_dir(0);
+    vfs_create_file(0);
     vfs_lookup_dir(0, "/");
     vfs_lookup_dir(0, "/a/");
+
 }

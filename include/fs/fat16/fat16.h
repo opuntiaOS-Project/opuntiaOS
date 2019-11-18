@@ -41,7 +41,7 @@ bool fat16_create_dir(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
 uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, const char *t_path, vfs_element_t* t_buf);
 void fat16_remove_dir();
 
-void fat16_write_file();
+bool fat16_write_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size);
 void fat16_read_file();
 void fat16_remove_file();
 
