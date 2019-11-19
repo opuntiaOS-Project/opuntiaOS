@@ -67,10 +67,17 @@ void vfs_create_file(uint8_t t_drive_id) {
     func(&_vfs_devices[t_drive_id], "/", "file", "exe", "hello, world", 12);
 }
 
+void vfs_read_file(uint8_t t_drive_id) {
+    uint8_t* (*func)(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len) = _vfs_fses[t_drive_id].read_file;
+    uint8_t *res = func(&_vfs_devices[t_drive_id], "/", "file", "exe", 0, -1);
+    printf(res);
+}
+
 void vfs_test() {
     // vfs_lookup_dir(0);
     vfs_create_dir(0);
     vfs_create_file(0);
+    vfs_read_file(0);
     vfs_lookup_dir(0, "/");
     vfs_lookup_dir(0, "/a/");
 

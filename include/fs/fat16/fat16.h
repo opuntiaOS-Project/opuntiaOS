@@ -42,7 +42,7 @@ uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, const char *t_path, vfs_eleme
 void fat16_remove_dir();
 
 bool fat16_write_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size);
-void fat16_read_file();
+uint8_t* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len);
 void fat16_remove_file();
 
 #endif // __oneOS__FS__FAT16__FAT16_H
