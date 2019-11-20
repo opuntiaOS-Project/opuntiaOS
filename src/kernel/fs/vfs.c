@@ -83,9 +83,9 @@ void* vfs_read_file(const char *t_path, const char *t_file_name, const char *t_f
 
 void vfs_test() {
     // vfs_lookup_dir(0);
-    vfs_create_dir("/", "hello");
-    vfs_write_file("/", "hello", "exe", "kek", 3);
-    printf((uint8_t *)vfs_read_file("/", "hello", "exe", 0, -1));
-    vfs_lookup_dir("/");
-    vfs_lookup_dir("/a/");
+    // vfs_create_dir("/", "hello");
+    // vfs_write_file("/", "hello", "exe", "kek", 3);
+    // printf((uint8_t *)vfs_read_file("/", "hello", "exe", 0, -1));
+    // vfs_lookup_dir("/");
+    // vfs_lookup_dir("/a/");
 }

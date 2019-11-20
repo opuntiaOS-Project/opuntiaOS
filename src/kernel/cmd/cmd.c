@@ -1,4 +1,5 @@
 #include <cmd/cmd.h>
+#include <fs/vfs.h>
 
 // Private
 
@@ -11,11 +12,24 @@ void _cmd_loop_end();
 void _cmd_input();
 void _cmd_processor();
 bool _cmd_is_ascii(uint32_t key);
+bool _cmd_cmp_command(const char *);
 uint32_t _cmd_getkeycode();
+
+bool _cmd_cmp_command(const char * data) {
+    uint8_t pos = 0;
+    while (data[pos] != '\0') {
+        if (data[pos] != _cmd_buffer[pos]) {
+            return false;
+        }
+        pos++;
+    }
+    return true;
+}
 
 void _cmd_buffer_clear() {
     _cmd_buffer_position = 0;
 }
+
 void _cmd_loop() {
     while (1) {
         _cmd_loop_start();
@@ -44,6 +58,12 @@ void _cmd_input() {
 
 void _cmd_processor() {
     printf("\n");
+    if (_cmd_cmp_command("ls")) {
+        vfs_lookup_dir("/");
+    }
+    if (_cmd_cmp_command("mkdir")) {
+        vfs_create_dir("/", "dsf");
+    }
     printf(_cmd_buffer);
 }
 
