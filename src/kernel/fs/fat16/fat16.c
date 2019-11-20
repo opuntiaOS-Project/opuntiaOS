@@ -492,8 +492,7 @@ bool fat16_write_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
     return true;
 }
 
-
-uint8_t* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len) {
+void* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len) {
     fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
     fat16_element_t dir_to_save = _fat16_get_dir_by_path(t_vfs_dev, t_path);
     if (dir_to_save.attributes != FAT16_ELEMENT_FOLDER &&
@@ -541,5 +540,5 @@ uint8_t* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char
         offset = 0;
     }
     r_buf[r_ind] = '\0';
-    return r_buf;
+    return (void*)r_buf;
 }
