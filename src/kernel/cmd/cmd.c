@@ -4,7 +4,13 @@
 // Private
 
 char* _cmd_buffer = 0;
+char** _cmd_parsed_buffer = 0;
 uint8_t _cmd_buffer_position = 0;
+uint8_t _cmd_parsed_buffer_position = 0;
+
+cmd_redirect_desc_t _cmd_redirects[MAX_CMD];
+uint8_t _cmd_redirects_registered = 0;
+
 void _cmd_buffer_clear();
 void _cmd_loop();
 void _cmd_loop_start();
@@ -13,6 +19,7 @@ void _cmd_input();
 void _cmd_processor();
 bool _cmd_is_ascii(uint32_t key);
 bool _cmd_cmp_command(const char *);
+int16_t _cmd_find_cmd_handler();
 uint32_t _cmd_getkeycode();
 
 bool _cmd_cmp_command(const char * data) {
@@ -24,6 +31,15 @@ bool _cmd_cmp_command(const char * data) {
         pos++;
     }
     return true;
+}
+
+int16_t _cmd_find_cmd_handler() {
+    for (uint8_t i = 0; i < _cmd_redirects_registered; i++) {
+        if (_cmd_cmp_command(_cmd_redirects[i].served_cmd)) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void _cmd_buffer_clear() {
@@ -58,13 +74,30 @@ void _cmd_input() {
 
 void _cmd_processor() {
     printf("\n");
-    if (_cmd_cmp_command("ls")) {
-        vfs_lookup_dir("/");
+
+    _cmd_parsed_buffer_position = 0;
+
+    bool is_prev_space = true;
+
+    for (uint8_t i = 0; i < _cmd_buffer_position; i++) {
+        if (_cmd_buffer[i] == ' ') {
+            is_prev_space = true;
+        } else {
+            if (is_prev_space) {
+                _cmd_parsed_buffer[_cmd_parsed_buffer_position++] = (char*)(_cmd_buffer+i);
+            }
+            is_prev_space = false;
+        }
     }
-    if (_cmd_cmp_command("mkdir")) {
-        vfs_create_dir("/", "dsf");
+
+    int16_t handler = _cmd_find_cmd_handler();
+    if (handler == -1) {
+        printf("No such command");
+    } else {
+        void (*func)(uint8_t args_size, void *args[]) = _cmd_redirects[handler].handler;
+        func(_cmd_parsed_buffer_position, _cmd_parsed_buffer);
     }
-    printf(_cmd_buffer);
+
 }
 
 void _cmd_loop_start() {
@@ -92,5 +125,24 @@ uint32_t _cmd_getkeycode() {
 void cmd_install() {
     clean_screen();
     _cmd_buffer = kmalloc(256);
+    _cmd_parsed_buffer = kmalloc(sizeof(void*) * 256);
     _cmd_loop();
+}
+
+bool cmd_register(const char *t_cmd, void* t_handler) {
+    uint8_t len = 0;
+    while (t_cmd[len] != '\0') len++;
+
+    char *cmd_holder = kmalloc(len+1);
+    memcpy(cmd_holder, t_cmd, len+1);
+
+    if (_cmd_redirects_registered == MAX_CMD) {
+        return false;
+    }
+
+    _cmd_redirects[_cmd_redirects_registered].served_cmd = cmd_holder;
+    _cmd_redirects[_cmd_redirects_registered].handler = t_handler;
+    _cmd_redirects_registered++;
+
+    return true;
 }

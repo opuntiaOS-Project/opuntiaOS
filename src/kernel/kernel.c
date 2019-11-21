@@ -12,6 +12,7 @@
 #include <fs/vfs.h>
 
 #include <cmd/cmd.h>
+#include <cmd/system_commands.h>
 
 #include <qemulog.h>
 
@@ -164,14 +165,15 @@ void stage3(mem_desc_t *mem_desc) {
     fat16_install();
     vfs_install();
 
-    printf("\nLS:\n");
-    vfs_test();
-    printf("\n");
+    // printf("\nLS:\n");
+    // vfs_test();
+    // printf("\n");
 
     ktest();
 
     // load_app(&ata0m);
 
+    syscmd_init();
     cmd_install();
 
     while (1) {}
