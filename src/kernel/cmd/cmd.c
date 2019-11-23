@@ -81,6 +81,10 @@ void _cmd_processor() {
 
     for (uint8_t i = 0; i < _cmd_buffer_position; i++) {
         if (_cmd_buffer[i] == ' ') {
+            if (is_prev_space == false) {
+                // stop sign for apps when attributes are sent
+                _cmd_buffer[i] = '\0';
+            }
             is_prev_space = true;
         } else {
             if (is_prev_space) {
@@ -89,6 +93,8 @@ void _cmd_processor() {
             is_prev_space = false;
         }
     }
+    
+    _cmd_buffer[_cmd_buffer_position] = '\0';
 
     int16_t handler = _cmd_find_cmd_handler();
     if (handler == -1) {
