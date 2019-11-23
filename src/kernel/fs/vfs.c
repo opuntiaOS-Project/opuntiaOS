@@ -7,11 +7,38 @@ _vfs_devices_count = 0;
 _vfs_fses_count = 0;
 
 uint8_t _vfs_get_drive_id(const char* path);
+int8_t _vfs_get_dot_pos_in_filename(const char* t_filename);
+int8_t _vfs_split_filename(char* t_filename);
 
 // Private implementation
 
 uint8_t _vfs_get_drive_id(const char* path) {
     return 0;
+}
+
+int8_t _vfs_get_dot_pos_in_filename(const char* t_filename) {
+    int8_t i = 0;
+    int8_t dot_lst = -1;
+    while (t_filename[i] != '\0') {
+        if (t_filename[i] == '.') {
+            dot_lst = i;
+        }
+        i++;
+    }
+    return dot_lst;
+}
+
+int8_t _vfs_split_filename(char* t_filename) {
+    int8_t i = 0;
+    int8_t dot_lst = _vfs_get_dot_pos_in_filename(t_filename);
+
+    if (dot_lst == -1) {
+        return -1;
+    }
+
+    t_filename[dot_lst] = '\0';
+
+    return dot_lst + 1;
 }
 
 // Public implementation
@@ -48,19 +75,10 @@ void vfs_add_fs(fs_desc_t t_new_fs) {
     _vfs_fses[_vfs_fses_count++] = t_new_fs;
 }
 
-void vfs_lookup_dir(const char *t_path) {
+ uint32_t vfs_lookup_dir(const char *t_path, vfs_element_t *t_buf) {
     uint8_t drive_id = _vfs_get_drive_id(t_path);
-    vfs_element_t vfs_buf[16]; // 16 tmp value (will be replaced with std value)
     uint32_t (*func)(vfs_device_t*, const char *, vfs_element_t*) = _vfs_fses[drive_id].lookup_dir;
-    uint32_t n = func(&_vfs_devices[drive_id], t_path, vfs_buf);
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < 8; j++) {
-            char *text = " \0";
-            text[0] = vfs_buf[i].filename[j];
-            printf(text);
-        }
-        printf("\n");
-    }
+    return func(&_vfs_devices[drive_id], t_path, t_buf);
 }
 
 bool vfs_create_dir(const char* t_path, const char* t_dir_name) {
@@ -69,16 +87,36 @@ bool vfs_create_dir(const char* t_path, const char* t_dir_name) {
     return func(&_vfs_devices[drive_id], t_path, t_dir_name);
 }
 
-void vfs_write_file(const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size) {
+void vfs_write_file(const char *t_path, const char *t_file_name, const uint8_t *t_data, uint32_t t_size) {
+    uint8_t size = 0;
+    while (t_file_name[size] != '\0') size++;
+
+    char *filename = kmalloc(size+1);
+    memcpy(filename, t_file_name, size+1);
+
+    int8_t ext_offset = _vfs_split_filename(filename);
+
     uint8_t drive_id = _vfs_get_drive_id(t_path);
     bool (*func)(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size) = _vfs_fses[drive_id].write_file;
-    func(&_vfs_devices[drive_id], t_path, t_file_name, t_file_ext, t_data, t_size);
+    func(&_vfs_devices[drive_id], t_path, filename, filename+ext_offset, t_data, t_size);
+    kfree(filename);
 }
 
-void* vfs_read_file(const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len) {
+void* vfs_read_file(const char *t_path, const char *t_file_name, uint16_t t_offset, int16_t t_len) {
+    uint8_t size = 0;
+    while (t_file_name[size] != '\0') size++;
+
+    char *filename = kmalloc(size+1);
+    memcpy(filename, t_file_name, size+1);
+
+    int8_t ext_offset = _vfs_split_filename(filename);
+
     uint8_t drive_id = _vfs_get_drive_id(t_path);
     void* (*func)(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len) = _vfs_fses[drive_id].read_file;
-    return func(&_vfs_devices[drive_id], t_path, t_file_name, t_file_ext, t_offset, t_len);
+    char *tmp = func(&_vfs_devices[drive_id], t_path, filename, filename+ext_offset, t_offset, t_len);
+
+    kfree(filename);
+    return tmp;
 }
 
 void vfs_test() {

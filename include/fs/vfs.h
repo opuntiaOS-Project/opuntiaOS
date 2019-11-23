@@ -44,9 +44,9 @@ void vfs_test();
 
 void open();
 void close();
-void vfs_lookup_dir(const char *t_path);
-void vfs_write_file(const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size);
-void* vfs_read_file(const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len);
+uint32_t vfs_lookup_dir(const char *t_path, vfs_element_t *t_buf);
+void vfs_write_file(const char *t_path, const char *t_file_name, const uint8_t *t_data, uint32_t t_size);
+void* vfs_read_file(const char *t_path, const char *t_file_name, uint16_t t_offset, int16_t t_len);
 bool vfs_create_dir(const char* t_path, const char* t_dir_name);
 void remove_dir(); // NOT IMPLEMENTED
 
