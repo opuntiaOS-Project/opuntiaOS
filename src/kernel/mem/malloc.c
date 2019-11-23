@@ -25,3 +25,7 @@ void* kmalloc(uint32_t t_size) {
     _kmalloc_start_position += t_size;
     return old_v;
 }
+
+void kfree(void* t_size) {
+    
+}
