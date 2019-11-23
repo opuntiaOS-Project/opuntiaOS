@@ -120,8 +120,8 @@ uint16_t _fat16_cluster_id_to_phys_addr(vfs_device_t *t_vfs_dev, uint16_t t_val)
 void _fat16_element_to_vfs_element(fat16_element_t *t_fat_elem, vfs_element_t *t_vfs_elem) {
     memset(t_vfs_elem->filename, 0, VFS_MAX_FILENAME);
     memset(t_vfs_elem->filename_ext, 0, VFS_MAX_FILENAME_EXT);
-    memccpy(t_vfs_elem->filename, t_fat_elem->filename, 0, FAT16_MAX_FILENAME);
-    memccpy(t_vfs_elem->filename_ext, t_fat_elem->filename_ext, 0, FAT16_MAX_FILENAME_EXT);
+    memccpy(t_vfs_elem->filename, t_fat_elem->filename, FAT16_ELEMENT_EMPTY_SIGN, FAT16_MAX_FILENAME);
+    memccpy(t_vfs_elem->filename_ext, t_fat_elem->filename_ext, FAT16_ELEMENT_EMPTY_SIGN, FAT16_MAX_FILENAME_EXT);
     t_vfs_elem->attributes = t_fat_elem->attributes;
     t_vfs_elem->file_size = t_fat_elem->file_size;
 }
@@ -249,13 +249,22 @@ fat16_element_t _fat16_get_element(vfs_device_t *t_vfs_dev, uint8_t* t_buf, cons
         ok = true;
         file_offset = e_offset;
         ext_offset = e_offset + FAT16_MAX_FILENAME;
-        for (uint8_t let = 0; t_dn[let] != 0
+
+        uint8_t let = 0;
+        for (; t_dn[let] != 0
                         && let < FAT16_MAX_FILENAME; let++) {
             ok &= (t_buf[file_offset+let] == t_dn[let]);
         }
-        for (uint8_t let = 0; t_de[let] != 0
+        for (; let < FAT16_MAX_FILENAME; let++) {
+            ok &= (t_buf[file_offset+let] == FAT16_ELEMENT_EMPTY_SIGN);
+        }
+        let = 0;
+        for (; t_de[let] != 0
                         && let < FAT16_MAX_FILENAME_EXT; let++) {
             ok &= (t_buf[ext_offset+let] == t_de[let]);
+        }
+        for (; let < FAT16_MAX_FILENAME_EXT; let++) {
+            ok &= (t_buf[ext_offset+let] == FAT16_ELEMENT_EMPTY_SIGN);
         }
 
         if (ok) {
@@ -348,13 +357,13 @@ fat16_element_t _fat16_get_dir_by_path(vfs_device_t *t_vfs_dev, const char *t_pa
 //-------
 
 void _fat16_set_file_name(fat16_element_t *t_element, const char *t_n) {
-    memset(t_element->filename, 0x20, FAT16_MAX_FILENAME);
+    memset(t_element->filename, FAT16_ELEMENT_EMPTY_SIGN, FAT16_MAX_FILENAME);
     memccpy(t_element->filename, t_n, 0x0, FAT16_MAX_FILENAME);
 }
 
 void _fat16_set_file_ext(fat16_element_t *t_element, const char *t_e) {
-    memset(t_element->filename_ext, 0x20, FAT16_MAX_FILENAME);
-    memccpy(t_element->filename_ext, t_e, 0x0, FAT16_MAX_FILENAME);
+    memset(t_element->filename_ext, FAT16_ELEMENT_EMPTY_SIGN, FAT16_MAX_FILENAME_EXT);
+    memccpy(t_element->filename_ext, t_e, 0x0, FAT16_MAX_FILENAME_EXT);
 }
 
 void _fat16_set_attrs(fat16_element_t *t_element, uint16_t t_attrs) {
@@ -405,9 +414,9 @@ bool fat16_create_dir(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
 
     fat16_element_t new_folder;
     new_folder.attributes = FAT16_ELEMENT_FOLDER;
-    memset(new_folder.filename, 0x20, 8);
+    memset(new_folder.filename, FAT16_ELEMENT_EMPTY_SIGN, 8);
     memccpy(new_folder.filename, t_dir_name, 0, 8);
-    memset(new_folder.filename_ext, 0x20, 3);
+    memset(new_folder.filename_ext, FAT16_ELEMENT_EMPTY_SIGN, 3);
 
     new_folder.start_cluster_id = _fat16_find_free_cluster(t_vfs_dev);
     _fat16_take_cluster(t_vfs_dev, new_folder.start_cluster_id);
@@ -514,7 +523,7 @@ void* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
     if (t_len == -1) {
         t_len = file.file_size - t_offset;
     }
-    
+
     if (t_offset + t_len > file.file_size) {
         return 0;
     }
@@ -526,7 +535,7 @@ void* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
     uint16_t data_bytes = drive_desc->bytes_per_cluster-2;
     uint16_t seek = t_offset / data_bytes;
     uint16_t offset = t_offset % data_bytes;
-    uint16_t nxt_cluster = _fat16_seek_cluters(t_vfs_dev, file.start_cluster_id, seek);    
+    uint16_t nxt_cluster = _fat16_seek_cluters(t_vfs_dev, file.start_cluster_id, seek);
 
     while (nxt_cluster != 0xffff) {
         uint16_t phys_addr = _fat16_cluster_id_to_phys_addr(t_vfs_dev, nxt_cluster);

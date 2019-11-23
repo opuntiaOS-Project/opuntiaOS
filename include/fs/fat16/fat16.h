@@ -11,6 +11,8 @@
 #define FAT16_MAX_FILENAME 8
 #define FAT16_MAX_FILENAME_EXT 3
 
+#define FAT16_ELEMENT_EMPTY_SIGN 0x20
+
 typedef struct {
     uint16_t bytes_per_sector;
     uint16_t bytes_per_cluster;
