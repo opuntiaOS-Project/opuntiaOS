@@ -46,6 +46,6 @@ void _syscmd_write(int argc, char *argv[]) {
 void syscmd_init() {
     cmd_register("ls", _syscmd_ls);
     cmd_register("mkdir", _syscmd_mkdir);
-    cmd_register("echo", _syscmd_echo);
-    cmd_register("wr", _syscmd_write);
+    cmd_register("cat", _syscmd_echo);
+    cmd_register("echo", _syscmd_write);
 }
