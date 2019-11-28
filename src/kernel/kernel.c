@@ -134,7 +134,7 @@ void stage3(mem_desc_t *mem_desc) {
         }
     }
     printf("Ram size: "); printh(ram_size);
-    pmm_init(0x100000, mem_desc->kernel_size, ram_size);
+    pmm_init(0xc0000000, mem_desc->kernel_size, ram_size);
     for (int i = 0; i < mem_desc->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
             pmm_init_region(memory_map[i].startLo, memory_map[i].sizeLo);
