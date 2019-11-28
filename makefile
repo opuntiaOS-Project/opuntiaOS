@@ -75,3 +75,6 @@ format:
 drive:
 	make products/kernel.bin
 	python3 utils/copy_bin.py
+
+install_apps:
+	python utils/install_apps.py
