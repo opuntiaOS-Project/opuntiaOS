@@ -5,8 +5,8 @@
 
 // Private
 
-fat16_drive_desc_t _fat16_driver[VFS_MAX_DEV_COUNT];
-uint8_t _fat16_drives_count = 0;
+static fat16_drive_desc_t _fat16_driver[VFS_MAX_DEV_COUNT];
+static uint8_t _fat16_drives_count = 0;
 
 fs_desc_t _fat16_fs_desc();
 void _fat16_read(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf);
@@ -380,8 +380,27 @@ void _fat16_set_file_size(fat16_element_t *t_element, uint16_t t_fs) {
 
 // Public
 
+driver_desc_t _fs_driver_info();
+
+driver_desc_t _fs_driver_info() {
+    driver_desc_t fs_desc;
+    fs_desc.type = DRIVER_FILE_SYSTEM;
+    fs_desc.auto_start = false;
+    fs_desc.is_device_driver = false;
+    fs_desc.is_device_needed = false;
+    fs_desc.is_driver_needed = false;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = fat16_recognize;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE_DIR] = fat16_create_dir;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP_DIR] = fat16_lookup_dir;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_DIR] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_FILE] = fat16_write_file;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_READ_FILE] = fat16_read_file;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_FILE] = 0;
+    return fs_desc;
+}
+
 void fat16_install() {
-    vfs_add_fs(_fat16_fs_desc());
+    driver_install(_fs_driver_info());
 }
 
 // Recognize if it's fat16 drive and if it's fat16 drive, will registered that
@@ -430,7 +449,6 @@ uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, const char *t_path, vfs_eleme
     uint16_t block_phyz_addr = _fat16_cluster_id_to_phys_addr(t_vfs_dev, dir_to_save.start_cluster_id);
     uint8_t cl_data[512];
     _fat16_read(t_vfs_dev, block_phyz_addr, cl_data);
-
     uint8_t added = 0;
     fat16_element_t e_fat_tmp;
     vfs_element_t e_vfs_tmp;

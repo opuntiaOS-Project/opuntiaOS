@@ -3,13 +3,13 @@
 
 // Private
 
-char* _cmd_buffer = 0;
-char** _cmd_parsed_buffer = 0;
-uint8_t _cmd_buffer_position = 0;
-uint8_t _cmd_parsed_buffer_position = 0;
+static char* _cmd_buffer = 0;
+static char** _cmd_parsed_buffer = 0;
+static uint8_t _cmd_buffer_position = 0;
+static uint8_t _cmd_parsed_buffer_position = 0;
 
-cmd_redirect_desc_t _cmd_redirects[MAX_CMD];
-uint8_t _cmd_redirects_registered = 0;
+static cmd_redirect_desc_t _cmd_redirects[MAX_CMD_LENGTH];
+static uint8_t _cmd_redirects_registered = 0;
 
 void _cmd_buffer_clear();
 void _cmd_loop();
@@ -142,7 +142,7 @@ bool cmd_register(const char *t_cmd, void* t_handler) {
     char *cmd_holder = kmalloc(len+1);
     memcpy(cmd_holder, t_cmd, len+1);
 
-    if (_cmd_redirects_registered == MAX_CMD) {
+    if (_cmd_redirects_registered == MAX_CMD_LENGTH) {
         return false;
     }
 

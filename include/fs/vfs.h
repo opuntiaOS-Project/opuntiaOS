@@ -9,15 +9,15 @@
 #define VFS_MAX_FILENAME_EXT 4
 
 typedef struct {
-    void* recognize;
+    uint32_t recognize;
 
-    void* create_dir;
-    void* lookup_dir;
-    void* remove_dir;
+    uint32_t create_dir;
+    uint32_t lookup_dir;
+    uint32_t remove_dir;
 
-    void* write_file;
-    void* read_file;
-    void* remove_file;
+    uint32_t write_file;
+    uint32_t read_file;
+    uint32_t remove_file;
 } fs_desc_t;
 
 typedef struct {
@@ -34,8 +34,8 @@ typedef struct {
 } vfs_element_t;
 
 void vfs_install();
-void vfs_add_device(device_t t_new_dev);
-void vfs_add_fs(fs_desc_t t_new_fs);
+void vfs_add_device(device_t *t_new_dev);
+void vfs_add_fs(driver_t *t_new_fs);
 
 
 // Test Func

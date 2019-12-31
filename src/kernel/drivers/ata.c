@@ -2,13 +2,16 @@
 
 // Private Members
 
-uint8_t _ata_drives_count = 0;
+static uint8_t _ata_drives_count = 0;
 driver_desc_t _ata_driver_info();
 
 driver_desc_t _ata_driver_info() {
     driver_desc_t ata_desc;
-    ata_desc.type = DRIVER_STORAGE;
-    ata_desc.need_device = true;
+    ata_desc.type = DRIVER_STORAGE_DEVICE;
+    ata_desc.auto_start = false;
+    ata_desc.is_device_driver = true;
+    ata_desc.is_device_needed = false;
+    ata_desc.is_driver_needed = false;
     ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = ata_add_new_device;
     ata_desc.functions[DRIVER_STORAGE_READ] = ata_read;
     ata_desc.functions[DRIVER_STORAGE_WRITE] = ata_write;

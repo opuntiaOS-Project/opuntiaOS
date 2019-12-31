@@ -2,6 +2,7 @@
 #define __oneOS__FS__FAT16__FAT16_H
 
 #include <fs/vfs.h>
+#include <drivers/driver_manager.h>
 
 #define FAT16_ELEMENT_FOLDER 0x10
 #define FAT16_ELEMENT_ROOT_FOLDER 0x11

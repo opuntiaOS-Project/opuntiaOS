@@ -5,7 +5,7 @@
 #include <drivers/keyboard.h>
 #include <mem/malloc.h>
 
-#define MAX_CMD 128
+#define MAX_CMD_LENGTH 64
 
 typedef struct {
     char *served_cmd;

@@ -5,12 +5,11 @@ driver_desc_t _pci_driver_info();
 driver_desc_t _pci_driver_info() {
     driver_desc_t pci_desc;
     pci_desc.type = DRIVER_BUS_CONTROLLER;
-    pci_desc.need_device = false;
+    pci_desc.auto_start = true;
+    pci_desc.is_device_driver = false;
+    pci_desc.is_device_needed = false;
+    pci_desc.is_driver_needed = false;
     pci_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = pci_find_devices;
-    pci_desc.pci_serve_class = 0xff;
-    pci_desc.pci_serve_subclass = 0xff;
-    pci_desc.pci_serve_vendor_id = 0x00;
-    pci_desc.pci_serve_device_id = 0x00;
     return pci_desc;
 }
 

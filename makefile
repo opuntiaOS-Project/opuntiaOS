@@ -80,7 +80,7 @@ clean:
 	rm -rf src/boot/x86/stage2/*/*/*/*.bin src/boot/x86/stage2/*/*/*/*.o
 
 ${DISK}:
-	qemu-img create -f raw ${DISK} 2M
+	qemu-img create -f raw ${DISK} 1M
 
 format:
 	${PYTHON3} utils/fat16_formatter.py

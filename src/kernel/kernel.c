@@ -15,6 +15,7 @@
 #include <cmd/system_commands.h>
 
 #include <qemulog.h>
+#include <utils/kernel_self_test.h>
 
 #define MEMORY_MAP_REGION 0xA00
 
@@ -31,93 +32,6 @@ typedef struct {
     uint16_t memory_map_size;
     uint16_t kernel_size;
 } mem_desc_t;
-
-void kpanic(char *t_err_msg);
-void ktest();
-
-void kpanic(char *t_err_msg) {
-    clean_screen();
-    printf("*****\n");
-    printf("Kernel Panic\n");
-    printf("*****\n");
-    printf(t_err_msg);
-    printf("\n*****");
-    while (1) {}
-}
-
-void ktest() {
-    {
-        uint32_t* kek1 = (uint32_t*)kmalloc(sizeof(uint32_t));
-        uint32_t* kek2 = (uint32_t*)kmalloc(sizeof(uint32_t));
-        *kek1 = 1;
-        *kek2 = 2;
-        if (*kek1 == 1 && *kek2 == 2) {
-            // printf("\npassed\n");
-        } else {
-            while (1) {}
-        }
-    }
-    { // page fault new page allocation
-        int* newpage = (int *)0x10000000;
-        *newpage = 8;
-        if (*newpage == 8) {
-            // printf("\npassed\n");
-        } else {
-            while (1) {}
-        }
-    }
-
-
-    asm volatile("int $0"); // test interrupts
-
-    printf("\n\nTests passed [ENTER to continue]");
-
-    uint32_t key = KEY_UNKNOWN;
-    while (key != KEY_RETURN) {
-		key = kbdriver_get_last_key();
-    }
-    kbdriver_discard_last_key();
-}
-
-void load_app(ata_t* ata0m) {
-    uint8_t* new_block = pmm_alloc_block();
-    vmm_map_page(new_block, 0x60000000);
-    uint8_t *app = (uint8_t *)0x60000000;
-    printh(app);
-    uint8_t* read_buffer = (uint8_t*)kmalloc(512);
-    ata_read(ata0m, 60, read_buffer);
-
-    for (int i = 0; i < 256; i+=2) {
-        app[i] = read_buffer[i+1];
-        app[i+1] = read_buffer[i];
-        printh(app[i]); printf(" ");
-        printh(app[i+1]); printf(" ");
-    }
-
-    printf("\n\nTests passed [ENTER to continue]");
-
-    uint32_t key = KEY_UNKNOWN;
-    while (key != KEY_RETURN) {
-		key = kbdriver_get_last_key();
-    }
-    kbdriver_discard_last_key();
-
-    asm volatile("mov $0x60000000, %eax");
-    asm volatile("call %eax"); // test interrupts
-    uint32_t return_value;
-    __asm__("mov %%eax, %%eax" : "=a" (return_value) :);
-
-    printd(return_value);
-
-    printf("\n\nTests passed [ENTER to continue]");
-
-    key = KEY_UNKNOWN;
-    while (key != KEY_RETURN) {
-		key = kbdriver_get_last_key();
-    }
-    kbdriver_discard_last_key();
-    // while(1) {}
-}
 
 void stage3(mem_desc_t *mem_desc) {
     clean_screen();
@@ -154,24 +68,19 @@ void stage3(mem_desc_t *mem_desc) {
     // heap area right after kernel space
     // temp solution will change
     kmalloc_init(0xc0000000 + 0x400000);
+    
+    // kernel self test
+    kernel_self_test(true);
 
     // installing drivers
+    driver_manager_init();
     pci_install();
     ide_install();
     ata_install();
     kbdriver_install();
-    drivers_run();
-
-    fat16_install();
     vfs_install();
-
-    // printf("\nLS:\n");
-    // vfs_test();
-    // printf("\n");
-
-    ktest();
-
-    // load_app(&ata0m);
+    fat16_install();
+    drivers_run();
 
     syscmd_init();
     cmd_install();

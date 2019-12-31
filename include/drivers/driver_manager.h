@@ -5,16 +5,20 @@
 
 #define MAX_DRIVERS 256
 #define MAX_DEVICES 64
-#define MAX_DRIVER_FUNCTION_COUNT 5
+#define MAX_DRIVER_FUNCTION_COUNT 8
+#define DRIVER_NAME_LENGTH 8
 
 // Supported driver's types
 enum DRIVERS_TYPE {
-    DRIVER_STORAGE,
-    DRIVER_VIDEO,
-    DRIVER_SOUND,
-    DRIVER_INPUT_SYSTEMS,
-    DRIVER_NETWORK,
+    DRIVER_STORAGE_DEVICE,
+    DRIVER_VIDEO_DEVICE,
+    DRIVER_SOUND_DEVICE,
+    DRIVER_INPUT_SYSTEMS_DEVICE,
+    DRIVER_NETWORK_DEVICE,
+
     DRIVER_BUS_CONTROLLER,
+    DRIVER_VIRTUAL_FILE_SYSTEM,
+    DRIVER_FILE_SYSTEM,
     DRIVER_BAD_SIGN = 0xff
 };
 
@@ -25,6 +29,7 @@ enum DEVICES_TYPE {
     DEVICE_SOUND,
     DEVICE_INPUT_SYSTEMS,
     DEVICE_NETWORK,
+
     DEVICE_BAD_SIGN = 0xff
 };
 
@@ -48,9 +53,33 @@ enum DRIVER_BUS_CONTROLLER_OPERTAION {
     DRIVER_BUS_CONTROLLER_FIND_DEVICE // function called when a device is found
 };
 
+// Api function of DRIVER_VIRTUAL_FILE_SYSTEM type
+enum DRIVER_VIRTUAL_FILE_SYSTEM_OPERTAION {
+    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE,
+    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER
+};
+
+// Api function of DRIVER_FILE_SYSTEM type
+enum DRIVER_FILE_SYSTEM_OPERTAION {
+    DRIVER_FILE_SYSTEM_RECOGNIZE,
+    DRIVER_FILE_SYSTEM_CREATE_DIR,
+    DRIVER_FILE_SYSTEM_LOOKUP_DIR,
+    DRIVER_FILE_SYSTEM_REMOVE_DIR,
+
+    DRIVER_FILE_SYSTEM_WRITE_FILE,
+    DRIVER_FILE_SYSTEM_READ_FILE,
+    DRIVER_FILE_SYSTEM_REMOVE_FILE,
+};
+
 typedef struct {
     uint8_t type;
-    bool need_device; // True if need to assign to a device
+    char name[DRIVER_NAME_LENGTH];
+    bool auto_start; // True if need to assign to a device
+    bool is_device_driver; // True if it's a dev driver (like ata driver or a mouse driver)
+    bool is_device_needed; // True if need to assign to a device
+    bool is_driver_needed; // True if need to assign to a device
+    uint8_t type_of_needed_device;
+    uint8_t type_of_needed_driver;
     uint8_t pci_serve_class;
     uint8_t pci_serve_subclass;
     uint16_t pci_serve_vendor_id;
@@ -60,6 +89,7 @@ typedef struct {
 
 typedef struct {
     uint8_t id;
+    bool is_active;
     driver_desc_t driver_desc;
 } driver_t; // driver
 
