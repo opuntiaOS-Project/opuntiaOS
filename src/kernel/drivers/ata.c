@@ -26,18 +26,15 @@ driver_desc_t _ata_driver_info() {
 void ata_add_new_device(device_t *t_new_device) {
     bool is_master = t_new_device->device_desc.port_base >> 31;
     uint16_t port = t_new_device->device_desc.port_base & 0xFFF;
-    t_new_device->translate_id = _ata_drives_count;
-    ata_init(&_ata_drives[_ata_drives_count], port, is_master);
-    ata_indentify(&_ata_drives[_ata_drives_count]);
-    _ata_drives_count++;
-    printf("Device added\n");
+    ata_init(&_ata_drives[t_new_device->id], port, is_master);
+    if (ata_indentify(&_ata_drives[t_new_device->id])) {
+        printf("Device added to ata driver\n");
+    }
 }
 
 void ata_install() {
     // registering driver and passing info to it
     driver_install(_ata_driver_info());
-
-    return _ata_drives_count;
 }
 
 void ata_init(ata_t *ata, uint32_t port, bool is_master){
@@ -104,7 +101,7 @@ bool ata_indentify(ata_t *ata) {
 }
 
 void ata_write(device_t *t_device, uint32_t sectorNum, uint8_t *data, uint32_t size) {
-    ata_t dev = _ata_drives[t_device->translate_id];
+    ata_t dev = _ata_drives[t_device->id];
 
     uint8_t dev_config = 0xA0;
     // lba support
@@ -148,7 +145,7 @@ void ata_write(device_t *t_device, uint32_t sectorNum, uint8_t *data, uint32_t s
 }
 
 void ata_read(device_t *t_device, uint32_t sectorNum, uint8_t *read_data) {
-    ata_t dev = _ata_drives[t_device->translate_id];
+    ata_t dev = _ata_drives[t_device->id];
 
     uint8_t dev_config = 0xA0;
     // lba support
@@ -191,7 +188,7 @@ void ata_read(device_t *t_device, uint32_t sectorNum, uint8_t *read_data) {
 }
 
 void ata_flush(device_t *t_device) {
-    ata_t dev = _ata_drives[t_device->translate_id];
+    ata_t dev = _ata_drives[t_device->id];
 
     uint8_t dev_config = 0xA0;
     // lba support

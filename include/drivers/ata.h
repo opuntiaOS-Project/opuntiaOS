@@ -7,8 +7,6 @@
 #include <mem/malloc.h>
 #include <drivers/driver_manager.h>
 
-#define ATA_MAX_DRIVES_COUNT 2
-
 typedef struct {            // LBA28 | LBA48
     uint32_t data;          // 16bit | 16 bits
     uint32_t error;         // 8 bit | 16 bits
@@ -31,7 +29,7 @@ typedef struct {
     bool lba;
 } ata_t;
 
-ata_t _ata_drives[ATA_MAX_DRIVES_COUNT];
+ata_t _ata_drives[MAX_DEVICES_COUNT];
 
 void ata_add_new_device(device_t *t_new_device);
 

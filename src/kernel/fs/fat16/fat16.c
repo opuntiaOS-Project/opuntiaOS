@@ -5,14 +5,14 @@
 
 // Private
 
-static fat16_drive_desc_t _fat16_driver[VFS_MAX_DEV_COUNT];
+static fat16_drive_desc_t _fat16_driver[MAX_DEVICES_COUNT];
 static uint8_t _fat16_drives_count = 0;
 
 fs_desc_t _fat16_fs_desc();
 void _fat16_read(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf);
 void _fat16_write(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf, uint32_t t_buf_size);
 uint8_t _fat16_load_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive);
-uint8_t _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf);
+void _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf);
 
 // Utils
 uint16_t _fat16_cluster_id_to_phys_addr(vfs_device_t *t_vfs_dev, uint16_t t_val);
@@ -86,7 +86,7 @@ uint8_t _fat16_load_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive) {
     }
 }
 
-uint8_t _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
+void _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
     fat16_drive_desc_t new_drive;
     new_drive.bytes_per_sector = t_buf[0x0c] * 0x100 + t_buf[0x0b];
     new_drive.sectors_per_cluster = 1; // data[0x0d]
@@ -101,8 +101,7 @@ uint8_t _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
 
     _fat16_load_fat(t_vfs_dev, &new_drive);
 
-    _fat16_driver[_fat16_drives_count++] = new_drive;
-    return _fat16_drives_count - 1;
+    _fat16_driver[t_vfs_dev->dev.id] = new_drive;
 }
 
 // --------
@@ -110,7 +109,7 @@ uint8_t _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
 // --------
 
 uint16_t _fat16_cluster_id_to_phys_addr(vfs_device_t *t_vfs_dev, uint16_t t_val) {
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     if (t_val == 0) {
         return drive_desc->root_dir_start;
     }
@@ -131,7 +130,7 @@ void _fat16_element_to_vfs_element(fat16_element_t *t_fat_elem, vfs_element_t *t
 // --------
 
 uint16_t _fat16_find_free_cluster(vfs_device_t *t_vfs_dev) {
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     uint32_t fat_size_bytes = drive_desc->sectors_per_fat * drive_desc->bytes_per_sector;
     for (uint16_t sector = 0; sector < fat_size_bytes; sector+=2) {
         uint16_t result = (drive_desc->fat_ptr[sector+1] << 8) + drive_desc->fat_ptr[sector];
@@ -144,14 +143,14 @@ uint16_t _fat16_find_free_cluster(vfs_device_t *t_vfs_dev) {
 
 void _fat16_edit_cluster(vfs_device_t *t_vfs_dev, uint16_t t_cluster_id, uint16_t t_value) {
     uint16_t rec_in_fat = 2 * (t_cluster_id + 1);
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     drive_desc->fat_ptr[rec_in_fat] = t_value % 0x100;
     drive_desc->fat_ptr[rec_in_fat+1] = (t_value >> 8) % 0x100;
 }
 
 uint16_t _fat16_get_cluster_value(vfs_device_t *t_vfs_dev, uint16_t t_cluster_id) {
     uint16_t rec_in_fat = 2 * (t_cluster_id + 1);
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     uint16_t high = drive_desc->fat_ptr[rec_in_fat + 1];
     uint16_t low = drive_desc->fat_ptr[rec_in_fat];
     return (high << 8) + low;
@@ -242,7 +241,7 @@ fat16_element_t _fat16_decode_element(uint8_t* t_buf) {
 }
 
 fat16_element_t _fat16_get_element(vfs_device_t *t_vfs_dev, uint8_t* t_buf, const char *t_dn, const char *t_de) {
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     uint16_t file_offset, ext_offset;
     bool ok = true;
     for (uint16_t e_offset = 0; e_offset < drive_desc->bytes_per_cluster; e_offset++) {
@@ -281,7 +280,7 @@ fat16_element_t _fat16_get_element(vfs_device_t *t_vfs_dev, uint8_t* t_buf, cons
 bool _fat16_save_element(vfs_device_t *t_vfs_dev, uint8_t* t_cluster_data,
         uint16_t t_cluster_id_to_write, fat16_element_t *t_element_to_save) {
 
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     uint16_t block_phys_addr = _fat16_cluster_id_to_phys_addr(t_vfs_dev, t_cluster_id_to_write);
     uint8_t cl_data[512];
     if (!t_cluster_data) {
@@ -414,8 +413,7 @@ bool fat16_recognize(vfs_device_t *t_vfs_dev) {
         isSignatureCorrect &= (fat16Signature[i - 0x36] == res[i]);
     }
     if (isSignatureCorrect) {
-        uint8_t translate_id = _fat16_register_drive(t_vfs_dev, res);
-        t_vfs_dev->translate_id = translate_id;
+        _fat16_register_drive(t_vfs_dev, res);
     }
     return isSignatureCorrect;
 }
@@ -444,7 +442,7 @@ bool fat16_create_dir(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
 }
 
 uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, const char *t_path, vfs_element_t* t_buf) {
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     fat16_element_t dir_to_save = _fat16_get_dir_by_path(t_vfs_dev, t_path);
     uint16_t block_phyz_addr = _fat16_cluster_id_to_phys_addr(t_vfs_dev, dir_to_save.start_cluster_id);
     uint8_t cl_data[512];
@@ -466,7 +464,7 @@ uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, const char *t_path, vfs_eleme
 // Files
 
 bool fat16_write_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size) {
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     fat16_element_t dir_to_save = _fat16_get_dir_by_path(t_vfs_dev, t_path);
     if (dir_to_save.attributes != FAT16_ELEMENT_FOLDER &&
         dir_to_save.attributes != FAT16_ELEMENT_ROOT_FOLDER) {
@@ -520,11 +518,11 @@ bool fat16_write_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
 }
 
 void* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len) {
-    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->translate_id];
+    fat16_drive_desc_t *drive_desc = &_fat16_driver[t_vfs_dev->dev.id];
     fat16_element_t dir_to_save = _fat16_get_dir_by_path(t_vfs_dev, t_path);
     if (dir_to_save.attributes != FAT16_ELEMENT_FOLDER &&
         dir_to_save.attributes != FAT16_ELEMENT_ROOT_FOLDER) {
-        return false;
+        return 0;
     }
 
     uint8_t dir_buf[512];

@@ -3,8 +3,8 @@
 
 #include <types.h>
 
-#define MAX_DRIVERS 256
-#define MAX_DEVICES 64
+#define MAX_DRIVERS_COUNT 256
+#define MAX_DEVICES_COUNT 64
 #define MAX_DRIVER_FUNCTION_COUNT 8
 #define DRIVER_NAME_LENGTH 8
 
@@ -55,8 +55,8 @@ enum DRIVER_BUS_CONTROLLER_OPERTAION {
 
 // Api function of DRIVER_VIRTUAL_FILE_SYSTEM type
 enum DRIVER_VIRTUAL_FILE_SYSTEM_OPERTAION {
-    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE,
-    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER
+    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER,
+    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE
 };
 
 // Api function of DRIVER_FILE_SYSTEM type
@@ -109,14 +109,13 @@ typedef struct {
 
 typedef struct {
     uint8_t id;
-    uint8_t translate_id;
     uint8_t type;
     int16_t driver_id;
     device_desc_t device_desc;
 } device_t; // device
 
-driver_t drivers[MAX_DRIVERS];
-device_t devices[MAX_DEVICES];
+extern driver_t drivers[MAX_DRIVERS_COUNT];
+extern device_t devices[MAX_DEVICES_COUNT];
 
 void register_drivers();
 void driver_install(driver_desc_t t_driver_info);

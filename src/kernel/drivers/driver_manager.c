@@ -7,6 +7,10 @@
 
 static uint8_t _drivers_count = 0;
 static uint8_t _devices_count = 0;
+
+driver_t drivers[MAX_DRIVERS_COUNT];
+device_t devices[MAX_DEVICES_COUNT];
+
 int16_t _driver_for_device(device_desc_t t_device_info);
 void _no_driver_for_device(device_desc_t t_device_info);
 
@@ -64,12 +68,18 @@ char _debug_drivers_print_name(int d_id) {
     for (int i = 0; i < DRIVER_NAME_LENGTH; i++) {
         tmp[i] = drivers[d_id].driver_desc.name[i];
     }
-    tmp[DRIVER_NAME_LENGTH] = '/0';
+    tmp[DRIVER_NAME_LENGTH] = '\0';
     printf(tmp);
     kfree(tmp);
 }
 
-char _debug_drivers_print_start_params(int d_id) {
+void _debug_drivers_print_status(int d_id) {
+    char *tmp = " \0";
+    tmp[0] = _debug_drivers_bool_to_char(drivers[d_id].is_active);
+    printf(tmp);
+}
+
+void _debug_drivers_print_start_params(int d_id) {
     char *tmp = " \0";
     tmp[0] = _debug_drivers_bool_to_char(drivers[d_id].driver_desc.auto_start);
     printf(tmp);
@@ -86,7 +96,7 @@ void _debug_drivers_list() {
         printf("Driver: "); printd(i); printf("\n");
         printf("Id: "); printd(drivers[i].id); printf("\n");
         printf("Name: [currently unsupported]"); printf("\n");
-        printf("Status: [currently unsupported]"); printf("\n");
+        printf("Active: "); _debug_drivers_print_status(i); printf("\n");
         printf("Type: "); printd(drivers[i].driver_desc.type); printf("\n");
         printf("Params: "); _debug_drivers_print_start_params(i); printf("\n");
         if (drivers[i].driver_desc.is_device_driver) {
@@ -121,34 +131,35 @@ void driver_install(driver_desc_t t_driver_info) {
 // Turn on all drivers which don't need devices
 void drivers_run() {
     for (uint8_t i = 0; i < _drivers_count; i++) {
+        drivers[i].is_active = false;
+    }
+
+    for (uint8_t i = 0; i < _drivers_count; i++) {
         if (drivers[i].driver_desc.auto_start) {
             // starting driver
+            drivers[i].is_active = true;
             void (*rd)() = drivers[i].driver_desc.functions[0];
             rd();
         }
     }
-
     pass_drivers_to_master_drivers();
     pass_devices_to_master_drivers();
 }
 
-// device_install registers a new device and find a driver for the device
-void device_install(device_desc_t t_device_info) {
-    device_t new_device;
-    new_device.id = _devices_count;
-    new_device.driver_id = _driver_for_device(t_device_info);
-    new_device.device_desc = t_device_info;
-
-    if (new_device.driver_id == -1) {
-        new_device.type = DEVICE_BAD_SIGN;
-        _no_driver_for_device(t_device_info);
-    } else {
-        new_device.type = drivers[new_device.driver_id].driver_desc.type;
-        void (*rd)(device_t *nd) = drivers[new_device.driver_id].driver_desc.functions[0];
-        rd(&new_device);
+// pass_drivers_to_master_drivers passes drivers to a master driver
+void pass_drivers_to_master_drivers() {
+    for (uint8_t i = 0; i < _drivers_count; i++) {
+        if (drivers[i].driver_desc.is_driver_needed) {
+            for (uint8_t j = 0; j < _drivers_count; j++) {
+                if (drivers[i].driver_desc.type_of_needed_driver == drivers[j].driver_desc.type) {
+                    drivers[i].is_active = true;
+                    drivers[j].is_active = true;
+                    void (*rd)(driver_t *nd) = drivers[i].driver_desc.functions[0];
+                    rd(&drivers[j]);
+                }
+            }
+        }
     }
-
-    devices[_devices_count++] = new_device;
 }
 
 // pass_devices_to_master_drivers passes devices with device_driver 
@@ -158,7 +169,8 @@ void pass_devices_to_master_drivers() {
         if (drivers[i].driver_desc.is_device_needed) {
             for (uint8_t j = 0; j < _devices_count; j++) {
                 if (drivers[i].driver_desc.type_of_needed_device == devices[j].type) {
-                    void (*rd)(device_t *nd) = drivers[i].driver_desc.functions[0];
+                    drivers[i].is_active = true;
+                    void (*rd)(device_t *nd) = drivers[i].driver_desc.functions[1];
                     rd(&devices[j]);
                 }
             }
@@ -166,17 +178,20 @@ void pass_devices_to_master_drivers() {
     }
 }
 
-// pass_drivers_to_master_drivers passes drivers to a master driver
-void pass_drivers_to_master_drivers() {
-    for (uint8_t i = 0; i < _drivers_count; i++) {
-        if (drivers[i].driver_desc.is_driver_needed) {
-            for (uint8_t j = 0; j < _drivers_count; j++) {
-                if (drivers[i].driver_desc.type_of_needed_driver == drivers[j].driver_desc.type) {
-                    void (*rd)(driver_t *nd) = drivers[i].driver_desc.functions[1];
-                    rd(&drivers[j]);
-                }
-            }
-        }
+// device_install registers a new device and find a driver for the device
+void device_install(device_desc_t t_device_info) {
+    uint8_t dev_id = _devices_count++;
+    devices[dev_id].id = dev_id;
+    devices[dev_id].driver_id = _driver_for_device(t_device_info);
+    devices[dev_id].device_desc = t_device_info;
+    
+    if (devices[dev_id].driver_id == -1) {
+        devices[dev_id].type = DEVICE_BAD_SIGN;
+        _no_driver_for_device(t_device_info);
+    } else {
+        devices[dev_id].type = drivers[devices[dev_id].driver_id].driver_desc.type;
+        void (*rd)(device_t *nd) = drivers[devices[dev_id].driver_id].driver_desc.functions[0];
+        rd(&devices[dev_id]);
     }
 }
 

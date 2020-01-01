@@ -1,8 +1,8 @@
 #include <fs/vfs.h>
 
 // Private
-static vfs_device_t _vfs_devices[VFS_MAX_DEV_COUNT];
-static fs_desc_t _vfs_fses[VFS_MAX_FS_COUNT];
+static vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
+static fs_desc_t _vfs_fses[MAX_DRIVERS_COUNT];
 static uint8_t _vfs_devices_count;
 static uint8_t _vfs_fses_count;
 
@@ -13,6 +13,12 @@ int8_t _vfs_split_filename(char* t_filename);
 // Private implementation
 
 uint8_t _vfs_get_drive_id(const char* path) {
+    char search_for = 'C';
+    for (int i = 0; i < MAX_DEVICES_COUNT; i++) {
+        if (_vfs_devices[i].disk_name == search_for) {
+            return i;
+        }
+    }
     return 0;
 }
 
@@ -31,13 +37,10 @@ int8_t _vfs_get_dot_pos_in_filename(const char* t_filename) {
 int8_t _vfs_split_filename(char* t_filename) {
     int8_t i = 0;
     int8_t dot_lst = _vfs_get_dot_pos_in_filename(t_filename);
-
     if (dot_lst == -1) {
         return -1;
     }
-
     t_filename[dot_lst] = '\0';
-
     return dot_lst + 1;
 }
 

@@ -22,7 +22,7 @@ typedef struct {
 
 typedef struct {
     int8_t fs;
-    uint8_t translate_id;
+    char disk_name;
     device_t dev;
 } vfs_device_t;
 

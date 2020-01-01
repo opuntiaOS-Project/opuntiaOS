@@ -57,7 +57,7 @@ void stage3(mem_desc_t *mem_desc) {
 
     pmm_deinit_mat(); // mat deinit
     pmm_deinit_region(0x0, 0x100000); // kernel stack deinit
-    pmm_deinit_region(0x100000, mem_desc->kernel_size * 1024); // kernel deinit
+    pmm_deinit_region(0x100000, mem_desc->kernel_size * 1024); // stage2 deinit
 
     if (vmm_init()) {
         printf("\nVM Remapped\n");
