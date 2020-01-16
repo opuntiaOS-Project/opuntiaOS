@@ -40,7 +40,15 @@ void _syscmd_echo(int argc, char *argv[]) {
 }
 
 void _syscmd_write(int argc, char *argv[]) {
-    vfs_write_file("/", argv[1], "hello", 5);
+    vfs_write_file("/", argv[1], "hell3", 5);
+}
+
+void _syscmd_shutdown(int argc, char *argv[]) {
+    clean_screen();
+    printf("Shutting Down\n");
+    eject_all_devices();
+    clean_screen();
+    printf("Off\n");
 }
 
 void syscmd_init() {
@@ -48,4 +56,5 @@ void syscmd_init() {
     cmd_register("mkdir", _syscmd_mkdir);
     cmd_register("cat", _syscmd_echo);
     cmd_register("echo", _syscmd_write);
+    cmd_register("shutdown", _syscmd_shutdown);
 }

@@ -11,8 +11,10 @@ static uint8_t _fat16_drives_count = 0;
 fs_desc_t _fat16_fs_desc();
 void _fat16_read(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf);
 void _fat16_write(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf, uint32_t t_buf_size);
-uint8_t _fat16_load_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive);
-void _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf);
+void _fat16_load_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive);
+void _fat16_unload_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive);
+void _fat16_register_device(vfs_device_t *t_vfs_dev, uint8_t *t_buf);
+void _fat16_unregister_device(vfs_device_t *t_vfs_dev);
 
 // Utils
 uint16_t _fat16_cluster_id_to_phys_addr(vfs_device_t *t_vfs_dev, uint16_t t_val);
@@ -72,21 +74,34 @@ void _fat16_write(vfs_device_t *t_vfs_dev, uint32_t t_addr, uint8_t *t_buf, uint
     wr(&t_vfs_dev->dev, t_addr, t_buf, t_buf_size);
 }
 
-uint8_t _fat16_load_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive) {
+void _fat16_load_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive) {
     // Todo check Fats if multiple
-    uint8_t data[512];
+    uint8_t buf[512];
     uint32_t fat_size_bytes = t_drive->sectors_per_fat * t_drive->bytes_per_sector;
     t_drive->fat_ptr = (uint8_t*)kmalloc(fat_size_bytes);
     for (uint16_t sector_id = 0; sector_id < t_drive->sectors_per_fat; sector_id++) {
-        _fat16_read(t_vfs_dev, t_drive->start_of_fats + sector_id, data);
+        _fat16_read(t_vfs_dev, t_drive->start_of_fats + sector_id, buf);
         for (uint16_t i_copy = 0; i_copy < t_drive->bytes_per_sector; i_copy++) {
             uint32_t offset = sector_id * t_drive->bytes_per_sector + i_copy;
-            t_drive->fat_ptr[offset] = data[i_copy];
+            t_drive->fat_ptr[offset] = buf[i_copy];
         }
     }
 }
 
-void _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
+void _fat16_unload_fat(vfs_device_t *t_vfs_dev, fat16_drive_desc_t *t_drive) {
+    uint8_t buf[512];
+    uint32_t fat_size_bytes = t_drive->sectors_per_fat * t_drive->bytes_per_sector;
+    for (uint16_t sector_id = 0; sector_id < t_drive->sectors_per_fat; sector_id++) {
+        for (uint16_t i_copy = 0; i_copy < t_drive->bytes_per_sector; i_copy++) {
+            uint32_t offset = sector_id * t_drive->bytes_per_sector + i_copy;
+            buf[i_copy] = t_drive->fat_ptr[offset];
+        }
+        _fat16_write(t_vfs_dev, t_drive->start_of_fats + sector_id, buf, 512);
+    }
+    kfree(t_drive->fat_ptr);
+}
+ 
+void _fat16_register_device(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
     fat16_drive_desc_t new_drive;
     new_drive.bytes_per_sector = t_buf[0x0c] * 0x100 + t_buf[0x0b];
     new_drive.sectors_per_cluster = 1; // data[0x0d]
@@ -102,6 +117,10 @@ void _fat16_register_drive(vfs_device_t *t_vfs_dev, uint8_t *t_buf) {
     _fat16_load_fat(t_vfs_dev, &new_drive);
 
     _fat16_driver[t_vfs_dev->dev.id] = new_drive;
+}
+
+void _fat16_unregister_device(vfs_device_t *t_vfs_dev) {
+    _fat16_unload_fat(t_vfs_dev, &_fat16_driver[t_vfs_dev->dev.id]);
 }
 
 // --------
@@ -395,6 +414,7 @@ driver_desc_t _fs_driver_info() {
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_FILE] = fat16_write_file;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_FILE] = fat16_read_file;
     fs_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_FILE] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = fat16_eject;
     return fs_desc;
 }
 
@@ -413,9 +433,13 @@ bool fat16_recognize(vfs_device_t *t_vfs_dev) {
         isSignatureCorrect &= (fat16Signature[i - 0x36] == res[i]);
     }
     if (isSignatureCorrect) {
-        _fat16_register_drive(t_vfs_dev, res);
+        _fat16_register_device(t_vfs_dev, res);
     }
     return isSignatureCorrect;
+}
+
+bool fat16_eject(vfs_device_t *t_vfs_dev) {
+    _fat16_unregister_device(t_vfs_dev);
 }
 
 // --------

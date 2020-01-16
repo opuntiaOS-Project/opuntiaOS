@@ -56,7 +56,8 @@ enum DRIVER_BUS_CONTROLLER_OPERTAION {
 // Api function of DRIVER_VIRTUAL_FILE_SYSTEM type
 enum DRIVER_VIRTUAL_FILE_SYSTEM_OPERTAION {
     DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER,
-    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE
+    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE,
+    DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE,
 };
 
 // Api function of DRIVER_FILE_SYSTEM type
@@ -69,6 +70,7 @@ enum DRIVER_FILE_SYSTEM_OPERTAION {
     DRIVER_FILE_SYSTEM_WRITE_FILE,
     DRIVER_FILE_SYSTEM_READ_FILE,
     DRIVER_FILE_SYSTEM_REMOVE_FILE,
+    DRIVER_FILE_SYSTEM_EJECT_DEVICE,
 };
 
 typedef struct {
@@ -120,7 +122,9 @@ extern device_t devices[MAX_DEVICES_COUNT];
 void register_drivers();
 void driver_install(driver_desc_t t_driver_info);
 void device_install(device_desc_t t_device_info);
-void print_drivers_list();
+void eject_device(uint8_t dev_id);
+void eject_all_devices();
+void drivers_run();
 device_t get_device(uint8_t t_dev_type, uint8_t t_start);
 
 #endif // __oneOS__DRIVERS__DRIVERMANAGER_H

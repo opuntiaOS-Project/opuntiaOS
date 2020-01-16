@@ -195,6 +195,34 @@ void device_install(device_desc_t t_device_info) {
     }
 }
 
+// Should be called when a device was ejected
+
+void _ask_driver_to_eject_device(uint8_t driver_id, uint8_t dev_id) {
+    if (drivers[driver_id].driver_desc.type == DRIVER_VIRTUAL_FILE_SYSTEM) {
+        void (*ej)(device_t *nd) = drivers[driver_id].driver_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE];
+        ej(&devices[dev_id]);
+    }
+}
+
+void eject_device(uint8_t dev_id) {
+    uint8_t used_driver_id = devices[dev_id].driver_id;
+    _ask_driver_to_eject_device(used_driver_id, dev_id);
+
+    for (uint8_t i = 0; i < _drivers_count; i++) {
+        if (drivers[i].driver_desc.is_device_needed) {
+            if (drivers[i].driver_desc.type_of_needed_device == devices[dev_id].type) {
+                _ask_driver_to_eject_device(i, dev_id);
+            }
+        }
+    }
+}
+
+void eject_all_devices() {
+    for (uint8_t dev_id = 0; dev_id < _devices_count; dev_id++) {
+        eject_device(dev_id);
+    }
+}
+
 // Get first device of Type staring with StartPos
 device_t get_device(uint8_t t_dev_type, uint8_t t_start) {
     for (uint8_t i = t_start; i < _devices_count; i++) {
