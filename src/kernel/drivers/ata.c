@@ -142,6 +142,7 @@ void ata_write(device_t *t_device, uint32_t sectorNum, uint8_t *data, uint32_t s
         port_16bit_out(dev.port.data, 0);
     }
 
+    ata_flush(t_device);
 }
 
 void ata_read(device_t *t_device, uint32_t sectorNum, uint8_t *read_data) {

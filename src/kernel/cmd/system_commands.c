@@ -40,7 +40,23 @@ void _syscmd_echo(int argc, char *argv[]) {
 }
 
 void _syscmd_write(int argc, char *argv[]) {
-    vfs_write_file("/", argv[1], "hell3", 5);
+    vfs_write_file("/", argv[1], "hel10", 5);
+}
+
+void _syscmd_remove(int argc, char *argv[]) {
+    if (vfs_remove_file("/", argv[1])) {
+        printf("Deleted");
+    } else {
+        printf("Err");
+    }
+}
+
+void _syscmd_remove_dir(int argc, char *argv[]) {
+    if (vfs_remove_dir("/", argv[1])) {
+        printf("Deleted");
+    } else {
+        printf("Err");
+    }
 }
 
 void _syscmd_shutdown(int argc, char *argv[]) {
@@ -49,6 +65,7 @@ void _syscmd_shutdown(int argc, char *argv[]) {
     eject_all_devices();
     clean_screen();
     printf("Off\n");
+    while(1) {}
 }
 
 void syscmd_init() {
@@ -56,5 +73,7 @@ void syscmd_init() {
     cmd_register("mkdir", _syscmd_mkdir);
     cmd_register("cat", _syscmd_echo);
     cmd_register("echo", _syscmd_write);
+    cmd_register("rm", _syscmd_remove);
+    cmd_register("dirrm", _syscmd_remove_dir);
     cmd_register("shutdown", _syscmd_shutdown);
 }

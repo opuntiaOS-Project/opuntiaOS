@@ -11,6 +11,7 @@
 #define FAT16_DELETED_SIGN 0xe5
 #define FAT16_MAX_FILENAME 8
 #define FAT16_MAX_FILENAME_EXT 3
+#define FAT16_MAX_PATH_LEN 256
 
 #define FAT16_ELEMENT_EMPTY_SIGN 0x20
 
@@ -43,10 +44,10 @@ bool fat16_eject(vfs_device_t *t_vfs_dev);
 
 bool fat16_create_dir(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_dir_name);
 uint32_t fat16_lookup_dir(vfs_device_t *t_vfs_dev, const char *t_path, vfs_element_t* t_buf);
-void fat16_remove_dir();
+bool fat16_remove_dir_handler(vfs_device_t *vfs_dev, const char *path, const char *dir_name);
 
 bool fat16_write_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, const uint8_t *t_data, uint32_t t_size);
 void* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len);
-void fat16_remove_file();
+bool fat16_remove_file(vfs_device_t *vfs_dev, const char *path, const char *filename, const char *file_ext);
 
 #endif // __oneOS__FS__FAT16__FAT16_H

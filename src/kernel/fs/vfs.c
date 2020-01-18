@@ -132,6 +132,12 @@ bool vfs_create_dir(const char* t_path, const char* t_dir_name) {
     return func(&_vfs_devices[drive_id], t_path, t_dir_name);
 }
 
+bool vfs_remove_dir(const char* path, const char* dir_name) {
+    uint8_t drive_id = _vfs_get_drive_id(path);
+    bool (*func)(vfs_device_t*, const char*, const char*) = _vfs_fses[_vfs_devices[drive_id].fs].remove_dir;
+    return func(&_vfs_devices[drive_id], path, dir_name);
+}
+
 void vfs_write_file(const char *t_path, const char *t_file_name, const uint8_t *t_data, uint32_t t_size) {
     uint8_t size = 0;
     while (t_file_name[size] != '\0') size++;
@@ -162,6 +168,25 @@ void* vfs_read_file(const char *t_path, const char *t_file_name, uint16_t t_offs
     uint8_t drive_id = _vfs_get_drive_id(t_path);
     void* (*func)(vfs_device_t *t_vfs_dev, const char *t_path, const char *t_file_name, const char *t_file_ext, uint16_t t_offset, int16_t t_len) = _vfs_fses[_vfs_devices[drive_id].fs].read_file;
     char *tmp = func(&_vfs_devices[drive_id], t_path, filename, filename+ext_offset, t_offset, t_len);
+    kfree(filename);
+    return tmp;
+}
+
+bool vfs_remove_file(const char *t_path, const char *t_file_name) {
+    uint8_t size = 0;
+    while (t_file_name[size] != '\0') size++;
+
+    char *filename = kmalloc(size+1);
+    memcpy(filename, t_file_name, size+1);
+
+    int8_t ext_offset = _vfs_split_filename(filename);
+    if (ext_offset == -1) {
+        return 0;
+    }
+
+    uint8_t drive_id = _vfs_get_drive_id(t_path);
+    void* (*func)(vfs_device_t *vfs_dev, const char *path, const char *filename, const char *file_ext) = _vfs_fses[_vfs_devices[drive_id].fs].remove_file;
+    char *tmp = func(&_vfs_devices[drive_id], t_path, filename, filename+ext_offset);
     kfree(filename);
     return tmp;
 }
