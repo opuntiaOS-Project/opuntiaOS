@@ -74,6 +74,6 @@ void syscmd_init() {
     cmd_register("cat", _syscmd_echo);
     cmd_register("echo", _syscmd_write);
     cmd_register("rm", _syscmd_remove);
-    cmd_register("dirrm", _syscmd_remove_dir);
+    cmd_register("rmdir", _syscmd_remove_dir);
     cmd_register("shutdown", _syscmd_shutdown);
 }

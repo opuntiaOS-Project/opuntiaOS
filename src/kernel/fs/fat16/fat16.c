@@ -417,9 +417,6 @@ fat16_element_t _fat16_get_dir_by_path(vfs_device_t *t_vfs_dev, const char *t_pa
 
             if (dir.attributes != FAT16_ELEMENT_ROOT_FOLDER
                 && dir.attributes != FAT16_ELEMENT_FOLDER) {
-                
-                dir_name[7] = 0;
-                printf(dir_name);
                 // means dir doens't exist
                 dir.attributes = FAT16_ELEMENT_NULL;
                 return dir;
@@ -704,7 +701,7 @@ void* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
 
     uint16_t data_bytes = drive_desc->bytes_per_cluster-2;
     uint16_t seek = t_offset / data_bytes;
-    uint16_t offset = t_offset % data_bytes;
+    uint16_t offset = t_offset % data_bytes; 
     uint16_t nxt_cluster = _fat16_seek_cluters(t_vfs_dev, file.start_cluster_id, seek);
 
     while (nxt_cluster != 0xffff) {

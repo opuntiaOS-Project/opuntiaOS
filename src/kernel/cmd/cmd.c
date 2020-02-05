@@ -30,7 +30,7 @@ bool _cmd_cmp_command(const char * data) {
         }
         pos++;
     }
-    return true;
+    return (_cmd_buffer[pos] == ' ' || _cmd_buffer[pos] == '\0');
 }
 
 int16_t _cmd_find_cmd_handler() {
