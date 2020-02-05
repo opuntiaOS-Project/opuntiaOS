@@ -5,9 +5,9 @@
 #include <x86/port.h>
 #include <x86/pic.h>
 
-#define CODE_SEG 0x08
-#define DATA_SEG 0x10
-#define IDT_ENTRIES 256 //fix
+#define INIT_CODE_SEG 0x08
+#define INIT_DATA_SEG 0x10
+#define IDT_ENTRIES 0x100
 
 #define IRQ_MASTER_OFFSET 32
 #define IRQ_SLAVE_OFFSET 40
@@ -20,26 +20,24 @@ typedef struct {
 } regs_t;
 
 struct IDT_Entry {
-    u_int16 offset_lower;
-    u_int16 segment;
-    u_int8  zero;
-    u_int8  type;
-    u_int16 offset_upper;
+    uint16_t offset_lower;
+    uint16_t segment;
+    uint8_t  zero;
+    uint8_t  type;
+    uint16_t offset_upper;
 } __attribute__((packed)) idt[IDT_ENTRIES];
 
 struct IDT_Register {
-    u_int16 limit;
-    u_int32 base;
+    uint16_t limit;
+    void* base;
 } __attribute__((packed)) idt_register;
 
-int proIDT;
-int proIDT2;
-uint32_t* handlers[IDT_ENTRIES];
+void** handlers[IDT_ENTRIES];
 
-void idt_element_setup(u_int8 n, u_int32 handler_addr);
+void idt_element_setup(uint8_t n, void* handler_addr);
 void idt_setup();
 
-void setup_irq_handler(u_int8 interrupt_no, void (*handler)());
+void setup_irq_handler(uint8_t interrupt_no, void (*handler)());
 void init_irq_handlers();
 
 /* ISRs reserved for CPU exceptions */
