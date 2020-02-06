@@ -1,12 +1,5 @@
 #include <utils.h>
 
-void memcpy(char* src, char* dest, unsigned int nbytes) {
-    int i;
-    for (i = 0; i < nbytes; ++i) {
-        *(dest + i) = *(src + i);
-    }
-}
-
 void htos(uint32_t hex, char str[]) {
     int i = 0;
     if (hex == 0) {
@@ -50,8 +43,8 @@ void reverse(char s[]) {
     }
 }
 
-int strlen(char s[]) {
-    int i = 0;
+uint32_t strlen(char *s) {
+    uint32_t i = 0;
     while (s[i] != '\0') ++i;
     return i;
 }

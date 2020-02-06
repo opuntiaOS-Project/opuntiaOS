@@ -9,7 +9,10 @@ driver_desc_t _ide_driver_info();
 driver_desc_t _ide_driver_info() {
     driver_desc_t ide_desc;
     ide_desc.type = DRIVER_BUS_CONTROLLER;
-    ide_desc.need_device = true;
+    ide_desc.auto_start = false;
+    ide_desc.is_device_driver = true;
+    ide_desc.is_device_needed = false;
+    ide_desc.is_driver_needed = false;
     ide_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = ide_find_devices;
     ide_desc.pci_serve_class = 0x01;
     ide_desc.pci_serve_subclass = 0x01;

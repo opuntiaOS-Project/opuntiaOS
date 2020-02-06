@@ -90,6 +90,22 @@ def system_id():
         result[id] = ord(el)
     return result
 
+def header():
+    result = bytearray(512)
+    result = merge(result, test_id(), 0x3)
+    result = merge(result, bytes_per_sector(), 0xB)
+    result = merge(result, sectors_per_cluster(), 0xD)
+    result = merge(result, reserved_sectors(), 0xE)
+    result = merge(result, number_of_fats(), 0x10)
+    result = merge(result, root_entires(), 0x11)
+    result = merge(result, sectors_per_fat(), 0x16)
+    result = merge(result, volume_label(), 0x2B)
+    result = merge(result, system_id(), 0x36)
+    result[511] = 0x00
+    result[510] = 0x00
+    print_g(result)
+    return result
+
 def fat_size():
     if (format_settings['RootEntires'] * 32) % 512 != 0:
         print("RootEntires error [couldn't fit into sectors]")
@@ -112,24 +128,9 @@ def sectors_per_fat():
     result[1] = fsize // 256
     return result
 
-def header():
-    result = bytearray(512)
-    result = merge(result, test_id(), 0x3)
-    result = merge(result, bytes_per_sector(), 0xB)
-    result = merge(result, sectors_per_cluster(), 0xD)
-    result = merge(result, reserved_sectors(), 0xE)
-    result = merge(result, number_of_fats(), 0x10)
-    result = merge(result, root_entires(), 0x11)
-    result = merge(result, sectors_per_fat(), 0x16)
-    result = merge(result, volume_label(), 0x2B)
-    result = merge(result, system_id(), 0x36)
-    result[511] = 0x00
-    result[510] = 0x00
-    print_g(result)
-    return result
-
 def fat():
     fsize = fat_size()
+    print(fsize)
     result = bytearray(512 * fsize)
     result[0] = 0xf8
     result[1] = 0xff
@@ -140,7 +141,7 @@ def fat():
     data_sectors = file_descriptor['size'] // 512 - root_dir_sectors - load_sectors
     free_data_sectors = data_sectors - fsize * format_settings['NumberOfFATs']
     covered_data_clusters = fsize * 512 // 2 - 2
-    data_clusters = (data_sectors - format_settings['SectorPerClustor'] + 1) // format_settings['SectorPerClustor'] + 1
+    data_clusters = (free_data_sectors - format_settings['SectorPerClustor'] + 1) // format_settings['SectorPerClustor'] + 1
     unused_clusters = covered_data_clusters - data_clusters
     print(covered_data_clusters, data_clusters, unused_clusters)
     if unused_clusters < 0:

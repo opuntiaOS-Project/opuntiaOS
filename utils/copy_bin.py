@@ -1,3 +1,5 @@
+from config import *
+
 copyTo = 'one.img'
 copyFrom = 'products/kernel.bin'
 kernelSize = 0
@@ -104,5 +106,7 @@ d_kernel[1] = kernelSizeKb2
 d_kernel += dd[0x1000:(0x1000 + text_size)]
 # print_g(d_kernel)
 
+zeroes = [0] * (512 * (format_settings['ReservedSectors'] - 1))
+write_file(zeroes, 512)
 write_file(d_kernel, 512)
 print(kernelSize)

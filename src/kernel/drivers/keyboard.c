@@ -91,16 +91,19 @@ uint32_t _kbdriver_get_keycode(uint8_t t_scancode) {
     return _kbdriver_scancodes[t_scancode];
 }
 
-bool _kbdriver_shift_enabled = false;
-bool _kbdriver_ctrl_enabled = false;
-bool _kbdriver_alt_enabled = false;
-uint32_t _kbdriver_last_scancode = KEY_UNKNOWN;
+static bool _kbdriver_shift_enabled = false;
+static bool _kbdriver_ctrl_enabled = false;
+static bool _kbdriver_alt_enabled = false;
+static uint32_t _kbdriver_last_scancode = KEY_UNKNOWN;
 driver_desc_t _keyboard_driver_info();
 
 driver_desc_t _keyboard_driver_info() {
     driver_desc_t kbd_desc;
-    kbd_desc.type = DRIVER_INPUT_SYSTEMS;
-    kbd_desc.need_device = false;
+    kbd_desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
+	kbd_desc.auto_start = true;
+    kbd_desc.is_device_driver = false;
+	kbd_desc.is_device_needed = false;
+	kbd_desc.is_driver_needed = false;
     kbd_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = kbdriver_run;
     kbd_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = kbdriver_get_last_key;
     kbd_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = kbdriver_discard_last_key;
