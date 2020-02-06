@@ -1,4 +1,5 @@
 #include <mem/pmm.h>
+#include <global.h>
 
 // [Privates Prototypes]
 uint32_t _pmm_round_floor(uint32_t t_value);
@@ -8,6 +9,11 @@ void _pmm_mat_free_block(uint32_t t_block_id);
 bool _pmm_mat_test_block(uint32_t t_block_id);
 uint32_t _pmm_first_free_block();
 uint32_t _pmm_first_free_block_n(uint32_t t_size);
+void _pmm_init_region(uint32_t t_region_start, uint32_t t_region_length);
+void _pmm_deinit_region(uint32_t t_region_start, uint32_t t_region_length);
+void _pmm_deinit_mat();
+void _pmm_calc_ram_size(mem_desc_t *mem_desc);
+void _pmm_allocate_mat(void* t_mat_base);
 
 // [Private]
 // _pmm_round_floor to round floor to the 4kb block bound
@@ -86,24 +92,9 @@ uint32_t _pmm_first_free_block_n(uint32_t t_size) {
     return 0x0;
 }
 
-// pmm_init puts MAT (Memory allocation table) in the ram
-void pmm_init(uint32_t t_kernel_start, uint16_t t_kernel_size_kb, uint32_t t_ram_size) {
-    pmm_ram_size = t_ram_size;
-    t_kernel_start = _pmm_round_floor(t_kernel_start);
-    uint32_t kernel_size = t_kernel_size_kb * 1024;
-    kernel_size = _pmm_round_ceil(kernel_size);
-    pmm_mat = (void*)(t_kernel_start + kernel_size);
-    pmm_mat_size = pmm_ram_size / PMM_BLOCK_SIZE / PMM_BLOCKS_PER_BYTE;
-    pmm_max_blocks = pmm_ram_size / PMM_BLOCK_SIZE;
-    pmm_used_blocks = pmm_max_blocks;
-    // mark all block as unavailable
-    for (uint32_t i = 0; i < pmm_mat_size; ++i) {
-        pmm_mat[i] = 0xff;
-    }
-}
-
-// pmm_init_region marks the region as writable
-void pmm_init_region(uint32_t t_region_start, uint32_t t_region_length) {
+// [Private]
+// _pmm_init_region marks the region as writable
+void _pmm_init_region(uint32_t t_region_start, uint32_t t_region_length) {
     t_region_start = _pmm_round_ceil(t_region_start);
     t_region_length = _pmm_round_floor(t_region_length);
     uint32_t block_id = t_region_start / PMM_BLOCK_SIZE;
@@ -122,8 +113,9 @@ void pmm_init_region(uint32_t t_region_start, uint32_t t_region_length) {
     }
 }
 
-// pmm_deinit_region marks the region as NOT writable
-void pmm_deinit_region(uint32_t t_region_start, uint32_t t_region_length) {
+// [Private]
+// _pmm_deinit_region marks the region as NOT writable
+void _pmm_deinit_region(uint32_t t_region_start, uint32_t t_region_length) {
     t_region_start = _pmm_round_floor(t_region_start);
     t_region_length = _pmm_round_ceil(t_region_length);
     uint32_t block_id = t_region_start / PMM_BLOCK_SIZE;
@@ -142,9 +134,53 @@ void pmm_deinit_region(uint32_t t_region_start, uint32_t t_region_length) {
     }
 }
 
-// pmm_deinit_mat marks the region where MAT is placed as NOT writable
-void pmm_deinit_mat() {
-    pmm_deinit_region(pmm_mat, pmm_mat_size);
+// [Private]
+// _pmm_deinit_mat marks the region where MAT is placed as NOT writable
+void _pmm_deinit_mat() {
+    _pmm_deinit_region(pmm_mat, pmm_mat_size);
+}
+
+// [Private]
+// _pmm_calc_ram_size calculates ram size depends on the memory map
+void _pmm_calc_ram_size(mem_desc_t *mem_desc) {
+    pmm_ram_size = 0;
+    memory_map_t *memory_map = (memory_map_t *)MEMORY_MAP_REGION;
+    for (int i = 0; i < mem_desc->memory_map_size; i++) {
+        if (memory_map[i].type == 1) {
+            pmm_ram_size = memory_map[i].startLo + memory_map[i].sizeLo;
+        }
+    }
+}
+
+// [Private]
+// _pmm_allocate_mat puts MAT (Memory allocation table) in the ram
+void _pmm_allocate_mat(void* t_mat_base) {
+    pmm_mat = t_mat_base;
+    pmm_mat_size = pmm_ram_size / PMM_BLOCK_SIZE / PMM_BLOCKS_PER_BYTE;
+    pmm_max_blocks = pmm_ram_size / PMM_BLOCK_SIZE;
+    pmm_used_blocks = pmm_max_blocks;
+    // mark all block as unavailable
+    for (uint32_t i = 0; i < pmm_mat_size; ++i) {
+        pmm_mat[i] = 0xff;
+    }
+}
+
+void pmm_setup(mem_desc_t *mem_desc) {
+    uint32_t kernel_base = _pmm_round_floor(KERNEL_BASE);
+    uint32_t kernel_size = _pmm_round_ceil(mem_desc->kernel_size * 1024);
+    _pmm_calc_ram_size(mem_desc);
+    _pmm_allocate_mat(kernel_base+kernel_size);
+
+    memory_map_t *memory_map = (memory_map_t *)MEMORY_MAP_REGION;
+    for (int i = 0; i < mem_desc->memory_map_size; i++) {
+        if (memory_map[i].type == 1) {
+            _pmm_init_region(memory_map[i].startLo, memory_map[i].sizeLo);
+        }
+    }
+
+    _pmm_deinit_mat(); // mat deinit
+    _pmm_deinit_region(0x0, KERNEL_PM_BASE); // kernel stack deinit
+    _pmm_deinit_region(KERNEL_PM_BASE, mem_desc->kernel_size * 1024); // stage2 deinit
 }
 
 // pmm_alloc_blocks allocates blocks
