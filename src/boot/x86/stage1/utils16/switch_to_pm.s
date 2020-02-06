@@ -1,6 +1,6 @@
 [bits 16]
 switch_to_pm:
-    cli ; turn off interuptions
+    cli ; turn off interupts
     lgdt [gdt_descriptor]
     mov eax, cr0
     or eax, 0x1
