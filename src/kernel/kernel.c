@@ -1,4 +1,5 @@
 #include <x86/idt.h>
+#include <x86/gdt.h>
 #include <x86/pci.h>
 #include <types.h>
 #include <drivers/driver_manager.h>
@@ -35,6 +36,7 @@ typedef struct {
 
 void stage3(mem_desc_t *mem_desc) {
     clean_screen();
+    gdt_setup();
     idt_setup();
     asm volatile("sti");
     // init_timer();
