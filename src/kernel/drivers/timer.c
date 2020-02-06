@@ -2,7 +2,7 @@
 
 void init_timer() { // Set uo to IRQ0
     set_frequency(100);
-    setup_irq_handler(IRQ0, timer_handler);
+    set_irq_handler(IRQ0, timer_handler);
 }
 
 void set_frequency(u_int16 freq) {

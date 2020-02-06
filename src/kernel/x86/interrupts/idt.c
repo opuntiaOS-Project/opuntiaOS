@@ -1,5 +1,13 @@
 #include <x86/idt.h>
 
+void lidt(void* p, uint16_t size) {
+    volatile uint16_t pd[3];
+    pd[0] = size-1;
+    pd[1] = (uint32_t)p;
+    pd[2] = (uint32_t)p >> 16;
+	asm volatile("lidt (%0)" : : "r"(pd));
+}
+
 void idt_setup() {
 	idt_element_setup(0, (void*)isr0);
 	idt_element_setup(1, (void*)isr1);
@@ -58,14 +66,15 @@ void idt_setup() {
     }
 
     init_irq_handlers();
-    idt_load();
+    lidt(idt, sizeof(idt));
+    asm volatile("sti");
 }
 
-void setup_irq_handler(uint8_t interrupt_no, void (*handler)()) {
+void set_irq_handler(uint8_t interrupt_no, void (*handler)()) {
     handlers[interrupt_no] = handler;
 }
 
-void init_irq_handlers() {
+inline void init_irq_handlers() {
     int i;
     for (i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++){
         handlers[i] = irq_empty_handler;
@@ -75,13 +84,7 @@ void init_irq_handlers() {
     }
 }
 
-void idt_load() {
-	idt_register.base = (void*)&idt;
-	idt_register.limit = (uint16_t)(IDT_ENTRIES * sizeof(struct IDT_Entry) - 1);
-	__asm__("lidt (%0)" : : "r"(&idt_register));
-}
-
-void idt_element_setup(uint8_t n, void* handler_addr) {
+inline void idt_element_setup(uint8_t n, void* handler_addr) {
 	idt[n].offset_lower = (uint32_t)handler_addr & 0xffff;
 	idt[n].segment = INIT_CODE_SEG;
 	idt[n].zero = 0;

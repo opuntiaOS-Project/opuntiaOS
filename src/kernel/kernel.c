@@ -38,7 +38,6 @@ void stage3(mem_desc_t *mem_desc) {
     clean_screen();
     gdt_setup();
     idt_setup();
-    asm volatile("sti");
     // init_timer();
 
     printf("Kernel size: "); printd(mem_desc->kernel_size); printf("KB\n");

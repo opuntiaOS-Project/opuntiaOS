@@ -1,5 +1,5 @@
-#ifndef __oneOS__INTERRUPTS__IDT_H
-#define __oneOS__INTERRUPTS__IDT_H
+#ifndef __oneOS__X86__INTERRUPTS__IDT_H
+#define __oneOS__X86__INTERRUPTS__IDT_H
 
 #include <types.h>
 #include <x86/port.h>
@@ -12,32 +12,20 @@
 #define IRQ_MASTER_OFFSET 32
 #define IRQ_SLAVE_OFFSET 40
 
-typedef struct {
-    // TODO add segments support
-    uint8_t int_no;
-    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-    uint32_t eip, cs, eflags, useresp, ss;
-} regs_t;
-
-struct IDT_Entry {
+struct idt_entry { // call gate
     uint16_t offset_lower;
     uint16_t segment;
-    uint8_t  zero;
+    uint8_t  zero; 
     uint8_t  type;
     uint16_t offset_upper;
 } __attribute__((packed)) idt[IDT_ENTRIES];
-
-struct IDT_Register {
-    uint16_t limit;
-    void* base;
-} __attribute__((packed)) idt_register;
 
 void** handlers[IDT_ENTRIES];
 
 void idt_element_setup(uint8_t n, void* handler_addr);
 void idt_setup();
 
-void setup_irq_handler(uint8_t interrupt_no, void (*handler)());
+void set_irq_handler(uint8_t interrupt_no, void (*handler)());
 void init_irq_handlers();
 
 /* ISRs reserved for CPU exceptions */
@@ -110,4 +98,4 @@ extern void irq_empty_handler();
 #define IRQ14 46
 #define IRQ15 47
 
-#endif
+#endif // __oneOS__X86__INTERRUPTS__IDT_H

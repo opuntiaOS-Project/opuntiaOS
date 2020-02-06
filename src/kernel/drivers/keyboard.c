@@ -126,7 +126,7 @@ bool kbdriver_install() {
 }
 
 void kbdriver_run() {
-    setup_irq_handler(IRQ1, keyboard_handler);
+    set_irq_handler(IRQ1, keyboard_handler);
 }
 
 // keyboard interrupt handler
