@@ -24,17 +24,10 @@ void stage3(mem_desc_t *mem_desc) {
     idt_setup();
     // init_timer();
 
+    // mem setup
     pmm_setup(mem_desc);
-
-    if (vmm_init()) {
-        printf("\nVM Remapped\n");
-    } else {
-        kpanic("VM Remap error");
-    }
-
-    // heap area right after kernel space
-    // temp solution will change
-    kmalloc_init(0xc0000000 + 0x400000);
+    vmm_setup();
+    kmalloc_init(KMALLOC_BASE);
     
     // kernel self test
     kernel_self_test(true);

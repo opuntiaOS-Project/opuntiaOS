@@ -167,6 +167,11 @@ isr12:
 
 
 isr13:
+    push eax
+    mov eax, [esp+4]
+    mov [com_inf], al
+    pop eax
+    add esp, 4
     mov byte[int_no], 13
     jmp  isr_common
 

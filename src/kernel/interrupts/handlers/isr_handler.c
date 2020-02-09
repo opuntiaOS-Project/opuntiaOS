@@ -41,7 +41,12 @@ void isr_standart_handler(uint8_t int_no, uint8_t more_inf, uint32_t cr2) {
 		"Reserved"};
     printf(exception_messages[int_no]);
     printd(more_inf);
+	if (int_no == 13) {
+		while (1) {};
+	}
     if (int_no == 14) {
-        vmm_page_fault_handler(more_inf, cr2);
+		printf(" ");
+		printh(cr2);
+		vmm_page_fault_handler(more_inf, cr2);
     }
 }

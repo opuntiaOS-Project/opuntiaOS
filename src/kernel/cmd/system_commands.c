@@ -1,6 +1,7 @@
 #include <cmd/system_commands.h>
 #include <fs/vfs.h>
 #include <mem/malloc.h>
+#include <x86/tss.h>
 
 void _syscmd_init_vfs();
 
@@ -68,6 +69,10 @@ void _syscmd_shutdown(int argc, char *argv[]) {
     while(1) {}
 }
 
+void umode(int argc, char *argv[]) {
+    switch_to_user_mode();
+}
+
 void syscmd_init() {
     cmd_register("ls", _syscmd_ls);
     cmd_register("mkdir", _syscmd_mkdir);
@@ -76,4 +81,5 @@ void syscmd_init() {
     cmd_register("rm", _syscmd_remove);
     cmd_register("rmdir", _syscmd_remove_dir);
     cmd_register("shutdown", _syscmd_shutdown);
+    cmd_register("umode", umode);
 }

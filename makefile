@@ -26,6 +26,9 @@ QEMU_I386 = ./qemu/programs/qemu-system-i386
 QEMU = ${QEMU_I386}
 DISK = one.img
 
+GDBPORT = $(shell expr `id -u` % 5000 + 25000)
+QEMUGDB = -s
+
 all: run
 
 products/kernel.bin: products/stage3_entry.o ${C_OBJ} ${S_OBJ}
@@ -41,7 +44,7 @@ products/stage3_entry.o: src/boot/x86/stage3_entry.s
 	${NASM} $< -f elf -o $@
 
 %.o: %.c ${HEADERS}
-	${I386_ELF_GCC} -ffreestanding -c $< -o $@ -I./include
+	${I386_ELF_GCC} -ggdb -ffreestanding -c $< -o $@ -I./include
 
 %.o: %.s
 	${NASM} $< -f elf -o $@
@@ -57,7 +60,12 @@ products/os-image.bin: products/boot.bin products/stage2.bin
 
 run: products/os-image.bin ${DISK}
 	make drive
-	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
+	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 
+
+run-dbg: products/os-image.bin ${DISK}
+	make drive
+	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -S $(QEMUGDB)
+
 
 run-no-ide: products/os-image.bin
 	make drive
