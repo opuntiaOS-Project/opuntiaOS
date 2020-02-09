@@ -5,9 +5,10 @@
 #include <types.h>
 #include <utils.h>
 #include <utils/mem.h>
+#include <global.h>
 
-#define VIDEO_MEMORY 0xb8000
-#define VIDEO_ADDRESS 0xb8000
+#define VIDEO_MEMORY 0xb8000 + BIOS_SETTING_BASE
+#define VIDEO_ADDRESS 0xb8000 + BIOS_SETTING_BASE
 #define MAX_ROWS 25
 #define MAX_COLS 80
 

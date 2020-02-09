@@ -2,7 +2,6 @@
 #include <drivers/display.h>
 
 uint32_t _kmalloc_start_position = 0;
-bool sjiufjhwieufj = 0;
 
 void kmalloc_init(uint32_t t_start_position) {
     _kmalloc_start_position = t_start_position;

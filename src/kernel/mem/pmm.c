@@ -166,21 +166,36 @@ void _pmm_allocate_mat(void* t_mat_base) {
 }
 
 void pmm_setup(mem_desc_t *mem_desc) {
-    uint32_t kernel_base = _pmm_round_floor(KERNEL_BASE);
+    uint32_t kernel_base_c = _pmm_round_ceil(KERNEL_BASE);
     uint32_t kernel_size = _pmm_round_ceil(mem_desc->kernel_size * 1024);
     _pmm_calc_ram_size(mem_desc);
-    _pmm_allocate_mat(kernel_base+kernel_size);
+    _pmm_allocate_mat(kernel_base_c+kernel_size);
 
     memory_map_t *memory_map = (memory_map_t *)MEMORY_MAP_REGION;
     for (int i = 0; i < mem_desc->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
+            printh(memory_map[i].startLo); printf(" "); printh(memory_map[i].sizeLo); printf("\n");
             _pmm_init_region(memory_map[i].startLo, memory_map[i].sizeLo);
         }
     }
 
+    printh(pmm_mat_size);
+
+    // while (1) {}
+
+    _pmm_deinit_region(0x0, 0x200000);
+    // TODO DEINIT MAT DOES NOT WORK;
     _pmm_deinit_mat(); // mat deinit
     _pmm_deinit_region(0x0, KERNEL_PM_BASE); // kernel stack deinit
     _pmm_deinit_region(KERNEL_PM_BASE, mem_desc->kernel_size * 1024); // stage2 deinit
+
+    void* kek = 0;
+    for (int i = 0; i < 10; i++) {
+        kek = pmm_alloc_block();
+        printh(kek); printf("\n");
+    }
+
+    // while (1) {}
 }
 
 // pmm_alloc_blocks allocates blocks

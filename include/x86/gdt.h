@@ -3,7 +3,7 @@
 
 #include <types.h>
 
-#define GDT_MAX_ENTRIES 5
+#define GDT_MAX_ENTRIES 6
 #define SEG_KCODE 1  // kernel code
 #define SEG_KDATA 2  // kernel data+stack
 #define SEG_UCODE 3  // user code
@@ -19,7 +19,7 @@
 
 #define DPL_USER 0x3
 
-static struct gdt_entry {
+struct gdt_entry {
     uint32_t lim_15_0 : 16;
     uint32_t base_15_0 : 16;
     uint32_t base_23_16 : 8;
@@ -33,12 +33,22 @@ static struct gdt_entry {
     uint32_t db : 1;
     uint32_t g : 1;
     uint32_t base_31_24 : 8;
-} gdt[GDT_MAX_ENTRIES];
+} __attribute__((packed)) gdt[GDT_MAX_ENTRIES];
 
-#define SEG(type, base, limit, dpl) (struct gdt_entry)         \
+// gdt_entry_t gdt[GDT_MAX_ENTRIES];
+
+// segment with page granularity
+#define SEG_PG(type, base, limit, dpl) (struct gdt_entry)         \
 { ((limit) >> 12) & 0xffff, (uint32_t)(base) & 0xffff,         \
   ((uint32_t)(base) >> 16) & 0xff, type, 1, dpl, 1,            \
-  (uint32_t)(limit) >> 28, 0, 0, 1, 1, (uint32_t)(base) >> 24  \
+  ((uint32_t)(limit) >> 28), 0, 0, 1, 1, (uint32_t)(base) >> 24  \
+}
+
+// segment with byte granularity
+#define SEG_BG(type, base, limit, dpl) (struct gdt_entry)         \
+{ ((limit)) & 0xffff, (uint32_t)(base) & 0xffff,         \
+  ((uint32_t)(base) >> 16) & 0xff, type, 0, dpl, 1,            \
+  (((uint32_t)(limit) >> 16) & 0xf), 0, 0, 0, 0, (uint32_t)(base) >> 24  \
 }
 
 void gdt_setup();
