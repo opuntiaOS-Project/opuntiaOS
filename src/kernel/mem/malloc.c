@@ -16,7 +16,7 @@ void* kmalloc(uint32_t t_size) {
 
     while (t_size > alloc_size) {
         uint8_t* new_block = pmm_alloc_block();
-        vmm_map_page(new_block, cur_ptr);
+        vmm_map_page(new_block, cur_ptr, 0, false);
         cur_ptr += VMM_PAGE_SIZE;
         alloc_size += VMM_PAGE_SIZE;
     }

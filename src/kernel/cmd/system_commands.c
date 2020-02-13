@@ -2,6 +2,7 @@
 #include <fs/vfs.h>
 #include <mem/malloc.h>
 #include <x86/tss.h>
+#include <tasking/tasking.h>
 
 void _syscmd_init_vfs();
 
@@ -25,6 +26,29 @@ void _syscmd_ls(int argc, char *argv[]) {
 
         str_buf[fname_len + fext_len + 1] = '\0';
         printf(str_buf);
+        printf("\n");
+    }
+}
+
+// Prints file's info
+void _syscmd_fstat(int argc, char *argv[]) {
+    vfs_element_t elem = vfs_get_file_info("/", argv[1]);
+    char str_buf[VFS_MAX_FILENAME + VFS_MAX_FILENAME_EXT + 2];
+    if (elem.attributes != VFS_ATTR_NOTFILE) {
+        uint32_t fname_len = strlen(elem.filename);
+        uint32_t fext_len = strlen(elem.filename_ext);
+        memcpy(str_buf, elem.filename, fname_len);
+        if (elem.attributes >= 0x10) {
+            str_buf[fname_len] = '/';
+        } else {
+            str_buf[fname_len] = '.';
+            memcpy(str_buf+fname_len+1, elem.filename_ext, fext_len);
+        }
+
+        str_buf[fname_len + fext_len + 1] = '\0';
+        printf(str_buf);
+        printf("\n");
+        printf("File Size: "); printd(elem.file_size);
         printf("\n");
     }
 }
@@ -70,13 +94,14 @@ void _syscmd_shutdown(int argc, char *argv[]) {
 }
 
 void umode(int argc, char *argv[]) {
-    switch_to_user_mode();
+    run_proc();
 }
 
 void syscmd_init() {
     cmd_register("ls", _syscmd_ls);
     cmd_register("mkdir", _syscmd_mkdir);
     cmd_register("cat", _syscmd_echo);
+    cmd_register("fstat", _syscmd_fstat);
     cmd_register("echo", _syscmd_write);
     cmd_register("rm", _syscmd_remove);
     cmd_register("rmdir", _syscmd_remove_dir);

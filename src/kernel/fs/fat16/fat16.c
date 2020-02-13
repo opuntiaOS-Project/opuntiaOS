@@ -708,7 +708,7 @@ void* fat16_read_file(vfs_device_t *t_vfs_dev, const char *t_path, const char *t
         uint16_t phys_addr = _fat16_cluster_id_to_phys_addr(t_vfs_dev, nxt_cluster);
         _fat16_read(t_vfs_dev, phys_addr, c_buf);
 
-        for (uint16_t c_byte = offset; c_buf[c_byte] != 0 && r_ind < t_len && c_byte < data_bytes; c_byte++) {
+        for (uint16_t c_byte = offset; r_ind < t_len && c_byte < data_bytes; c_byte++) {
             r_buf[r_ind++] = c_buf[c_byte];
         }
 

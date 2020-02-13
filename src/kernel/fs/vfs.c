@@ -120,7 +120,7 @@ void vfs_add_fs(driver_t *t_new_driver) {
     _vfs_fses[_vfs_fses_count++] = new_fs;
 }
 
- uint32_t vfs_lookup_dir(const char *t_path, vfs_element_t *t_buf) {
+uint32_t vfs_lookup_dir(const char *t_path, vfs_element_t *t_buf) {
     uint8_t drive_id = _vfs_get_drive_id(t_path);
     uint32_t (*func)(vfs_device_t*, const char *, vfs_element_t*) = _vfs_fses[_vfs_devices[drive_id].fs].lookup_dir;
     return func(&_vfs_devices[drive_id], t_path, t_buf);
@@ -189,6 +189,41 @@ bool vfs_remove_file(const char *t_path, const char *t_file_name) {
     char *tmp = func(&_vfs_devices[drive_id], t_path, filename, filename+ext_offset);
     kfree(filename);
     return tmp;
+}
+
+vfs_element_t vfs_get_file_info(const char *t_path, const char *t_file_name) {
+    vfs_element_t no_elem;
+    no_elem.attributes = VFS_ATTR_NOTFILE;
+    uint8_t size = 0;
+    while (t_file_name[size] != '\0') size++;
+
+    char *filename = kmalloc(size+1);
+    memcpy(filename, t_file_name, size+1);
+
+    int8_t ext_offset = _vfs_split_filename(filename);
+    if (ext_offset == -1) {
+        return no_elem;
+    }
+
+    vfs_element_t vfs_buf[16]; // TODO 16 tmp value (will be replaced with std value)
+    uint32_t n = vfs_lookup_dir(t_path, vfs_buf);
+    for (int i = 0; i < n; i++) {
+        uint32_t fname_len = strlen(vfs_buf[i].filename);
+        uint32_t fext_len = strlen(vfs_buf[i].filename_ext);
+
+        if (fname_len != ext_offset - 1) {
+            continue;
+        }
+        if (fext_len != (size - ext_offset)) {
+            continue;
+        }
+        int cmp1 = memcmp(filename, vfs_buf[i].filename, fname_len);
+        int cmp2 = memcmp(filename+ext_offset, vfs_buf[i].filename_ext, fext_len);
+        if (cmp1 == 0 && cmp2 == 0) {
+            return vfs_buf[i];
+        }
+    }
+    return no_elem;
 }
 
 void vfs_test() {

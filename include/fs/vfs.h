@@ -7,6 +7,7 @@
 #define VFS_MAX_DEV_COUNT 5
 #define VFS_MAX_FILENAME 16
 #define VFS_MAX_FILENAME_EXT 4
+#define VFS_ATTR_NOTFILE 0xff
 
 typedef struct {
     void* recognize;
@@ -53,5 +54,7 @@ bool vfs_remove_dir(const char* path, const char* dir_name);
 void vfs_write_file(const char *t_path, const char *t_file_name, const uint8_t *t_data, uint32_t t_size);
 void* vfs_read_file(const char *t_path, const char *t_file_name, uint16_t t_offset, int16_t t_len);
 bool vfs_remove_file(const char *t_path, const char *t_file_name);
+
+vfs_element_t vfs_get_file_info(const char *t_path, const char *t_file_name);
 
 #endif // __oneOS__FS__VFS_H
