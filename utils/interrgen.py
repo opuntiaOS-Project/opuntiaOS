@@ -32,15 +32,7 @@ irq{0}:
 
 for i in range(40, 48):
     print("""
-irq{0}:
-    cli
-    pusha
-    push ds
-    push es
-    push fs
-    push gs
-    push esp
-    push byte {1}
-    jmp  irq_slave_common_bottom
+syscall{0}:
+    
     """.format(i-32, i)
 )

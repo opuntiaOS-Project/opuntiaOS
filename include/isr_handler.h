@@ -2,9 +2,11 @@
 #define __oneOS__INTERRUPTS__ISRHANDLER_H
 
 #include <types.h>
+#include <x86/idt.h>
 #include <drivers/display.h>
 
-uint32_t isr_handler(uint8_t int_no, uint8_t more_inf, uint32_t cr2, uint32_t esp);
-void isr_standart_handler(uint8_t int_no, uint8_t more_inf, uint32_t cr2);
+void isr_handler(trapframe_t *tf);
+void isr_standart_handler(trapframe_t *tf);
+uint32_t rcr2();
 
 #endif
