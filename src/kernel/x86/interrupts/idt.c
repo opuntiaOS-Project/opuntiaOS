@@ -91,6 +91,8 @@ inline void idt_element_setup(uint8_t n, void* handler_addr, bool is_user) {
 	idt[n].segment = INIT_CODE_SEG;
 	idt[n].zero = 0;
     idt[n].type = 0x8E;
+    // setting user type
+    // now user can call this sw interrupts (syscalls)
     if (is_user) {
 	    idt[n].type |= (0b1100000);
     }
