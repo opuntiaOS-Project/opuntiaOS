@@ -11,9 +11,22 @@ void isr_handler(trapframe_t *tf) {
     isr_standart_handler(tf);
 }
 
-void isr_standart_handler(trapframe_t *tf) {
+void syscall_processor(trapframe_t *tf) {
+	if (tf->int_no == 49) {
+		char letter = tf->eax;
+		char *txt = " \n";
+		txt[0] = letter;
+		printf(txt);
+	}
 	if (tf->int_no == 48) {
-		printf("A");
+		uint32_t value = tf->eax;
+		printd(value);
+	}
+}
+
+void isr_standart_handler(trapframe_t *tf) {
+	if (tf->int_no >= 48) {
+		syscall_processor(tf);
 		return;
 	}
     const char *exception_messages[32] = { "Division by zero",
@@ -57,6 +70,7 @@ void isr_standart_handler(trapframe_t *tf) {
 		if (tf->err == 5) {
 			printh(tf->eip); printf("\n");
 			printh(tf->esp); printf("\n");
+			printh(tf->ebp); printf("\n");
 			printf(" ");
 			printh(rcr2());
 			while(1) {}

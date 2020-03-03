@@ -22,7 +22,7 @@ void stage3(mem_desc_t *mem_desc) {
     clean_screen();
     gdt_setup();
     idt_setup();
-    // init_timer();
+    init_timer();
 
     // mem setup
     pmm_setup(mem_desc);
@@ -41,6 +41,8 @@ void stage3(mem_desc_t *mem_desc) {
     vfs_install();
     fat16_install();
     drivers_run();
+
+    scheduler_init();
 
     syscmd_init();
     cmd_install();
