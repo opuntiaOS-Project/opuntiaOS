@@ -47,6 +47,17 @@ pdirectory_t* vmm_new_user_pdir() {
     return new_table;
 }
 
+// creating user pdir coping the existing one.
+// TODO may not work because of PHYS adderes translation (Bug #3)
+pdirectory_t* vmm_create_a_copy_of_user_pdir(pdirectory_t* copy_from) {
+    pdirectory_t *new_table = (pdirectory_t*)_vmm_alloc_block();
+    for (int i = 0; i < 1024; i++) {
+        new_table->entities[i] = copy_from->entities[i];
+    }
+    return new_table;
+}
+
+
 void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size) {
     if (data_size > 256) {
         kpanic("Init proccess is too big");
