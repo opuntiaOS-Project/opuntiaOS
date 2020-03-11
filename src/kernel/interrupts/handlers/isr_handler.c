@@ -12,15 +12,19 @@ void isr_handler(trapframe_t *tf) {
 }
 
 void syscall_processor(trapframe_t *tf) {
+	if (tf->int_no == 48) {
+		uint32_t value = tf->eax;
+		printd(value);
+	}
 	if (tf->int_no == 49) {
 		char letter = tf->eax;
 		char *txt = " \n";
 		txt[0] = letter;
 		printf(txt);
 	}
-	if (tf->int_no == 48) {
-		uint32_t value = tf->eax;
-		printd(value);
+	if (tf->int_no == 50) {
+		printf("fork was called\n");
+		fork();
 	}
 }
 

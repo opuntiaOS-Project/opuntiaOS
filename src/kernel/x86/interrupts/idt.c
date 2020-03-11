@@ -63,7 +63,11 @@ void idt_setup() {
     idt_element_setup(46, (void*)irq14, SYS);
     idt_element_setup(47, (void*)irq15, SYS);
     
-    for (int i = 48; i < 256; i++) {
+
+    idt_element_setup(48, (void*)syscall1, USER);
+    idt_element_setup(49, (void*)syscall2, USER);
+    idt_element_setup(50, (void*)syscall3, USER);
+    for (int i = 51; i < 256; i++) {
         idt_element_setup(i, (void*)syscall1, USER);
     }
 
@@ -97,4 +101,4 @@ inline void idt_element_setup(uint8_t n, void* handler_addr, bool is_user) {
 	    idt[n].type |= (0b1100000);
     }
 	idt[n].offset_upper = (uint32_t)handler_addr >> 16;
-}
+}   

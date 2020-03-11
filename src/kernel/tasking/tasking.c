@@ -10,6 +10,8 @@
 extern irq_return();
 extern switch_contexts(context_t **old, context_t *new);
 
+static nxtpid = 0;
+
 // switching the page dir and tss to the current proc
 void switchuvm(proc_t *p) {
     gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss)-1, 0);
@@ -29,9 +31,7 @@ void jumper() {
 
 // alocating proc and kernel stack of the proc
 void allocate_proc(proc_t *p) {
-    // creating new page dir
-    p->pdir = vmm_new_user_pdir();
-
+    p->pid = ++nxtpid;
     // allocating kernel stack
     p->kstack = kmalloc(VMM_PAGE_SIZE);
     char *sp = p->kstack + VMM_PAGE_SIZE;
@@ -50,11 +50,13 @@ void allocate_proc(proc_t *p) {
 // All others processes will fork
 void run_proc() {
     nxt_proc = 0;
-    proc_t *p = &proc[nxt_proc];
+    proc_t *p = &proc[nxt_proc++];
     
-    uint8_t *code = vfs_read_file("/", "main.sys", 0, -1);
-    vfs_element_t fstat = vfs_get_file_info("/", "main.sys");
+    uint8_t *code = vfs_read_file("/", "pro.sys", 0, -1);
+    vfs_element_t fstat = vfs_get_file_info("/", "pro.sys");
 
+    // creating new page dir
+    p->pdir = vmm_new_user_pdir();
     allocate_proc(p);
     vmm_copy_program_data(p->pdir, code, fstat.file_size);
     p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
@@ -72,6 +74,23 @@ void run_proc() {
 
     switchuvm(p);
     switch_contexts(&stub_cntx_ptr, p->context);
+}
+
+void fork() {
+    proc_t *new_p = &proc[nxt_proc++];
+    new_p->pdir = vmm_create_a_copy_of_user_pdir(active_proc->pdir);
+    allocate_proc(new_p);
+    memcpy(new_p->tf, active_proc->tf, sizeof(trapframe_t));
+    new_p->tf->eax = 0;
+    active_proc->tf->eax = new_p->pid;
+    switchuvm(new_p);
+    switch_contexts(&active_proc->context, new_p->context);
+}
+
+
+// TODO add ELF support
+void exec() {
+    
 }
 
 // TODO tmp solution to launch the second proc

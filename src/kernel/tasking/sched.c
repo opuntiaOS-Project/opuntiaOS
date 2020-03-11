@@ -35,7 +35,8 @@ void sched() {
         p = &proc[nxtrun];
         switchuvm(p); // setting up proc env
         switch_contexts(&cpu_ptr->scheduler, p->context); // jumping into proc
-        nxtrun = 1 - nxtrun; // TODO foe test only 2 procs were implemented
+        nxtrun++; // TODO foe test only 2 procs were implemented
+        nxtrun %= nxt_proc;
         p = 0;
     }
 }
