@@ -52,7 +52,7 @@ bool _pmm_mat_test_block(uint32_t t_block_id) {
 // [Private]
 // _pmm_first_free_block returns block_id
 uint32_t _pmm_first_free_block() {
-    uint32_t *mat_big = pmm_mat;
+    uint32_t *mat_big = (uint32_t*)pmm_mat;
     for (uint32_t i = 0; i < pmm_mat_size / 4; i++) {
         if (mat_big[i] != 0xffffffff) {
             for (uint8_t j = 0; j < 32; j++) {
@@ -72,7 +72,7 @@ uint32_t _pmm_first_free_block_n(uint32_t t_size) {
     if (t_size == 1) {
         return _pmm_first_free_block();
     }
-    uint32_t *mat_big = pmm_mat;
+    uint32_t *mat_big = (uint32_t*)pmm_mat;
     for (uint32_t i = 0; i < pmm_mat_size / 4; i++) {
         if (mat_big[i] != 0xffffffff) {
             for (uint8_t j = 0; j < 32; j++) {
@@ -137,7 +137,7 @@ void _pmm_deinit_region(uint32_t t_region_start, uint32_t t_region_length) {
 // [Private]
 // _pmm_deinit_mat marks the region where MAT is placed as NOT writable
 void _pmm_deinit_mat() {
-    _pmm_deinit_region(pmm_mat, pmm_mat_size);
+    _pmm_deinit_region((uint32_t)pmm_mat, pmm_mat_size);
 }
 
 // [Private]
@@ -169,7 +169,7 @@ void pmm_setup(mem_desc_t *mem_desc) {
     uint32_t kernel_base_c = _pmm_round_ceil(KERNEL_BASE);
     uint32_t kernel_size = _pmm_round_ceil(mem_desc->kernel_size * 1024);
     _pmm_calc_ram_size(mem_desc);
-    _pmm_allocate_mat(kernel_base_c+kernel_size);
+    _pmm_allocate_mat((void*)(kernel_base_c+kernel_size));
 
     memory_map_t *memory_map = (memory_map_t *)MEMORY_MAP_REGION;
     for (int i = 0; i < mem_desc->memory_map_size; i++) {
@@ -187,15 +187,8 @@ void pmm_setup(mem_desc_t *mem_desc) {
     // TODO DEINIT MAT DOES NOT WORK;
     _pmm_deinit_mat(); // mat deinit
     _pmm_deinit_region(0x0, KERNEL_PM_BASE); // kernel stack deinit
-    _pmm_deinit_region(KERNEL_PM_BASE, mem_desc->kernel_size * 1024); // stage2 deinit
-
-    void* kek = 0;
-    for (int i = 0; i < 10; i++) {
-        kek = pmm_alloc_block();
-        printh(kek); printf("\n");
-    }
-
-    // while (1) {}
+    _pmm_deinit_region(KERNEL_PM_BASE, mem_desc->kernel_size * 1024); // kernel deinit
+    // TODO seems like mistake is near
 }
 
 // pmm_alloc_blocks allocates blocks
@@ -209,7 +202,7 @@ void* pmm_alloc_blocks(uint32_t t_size) {
         _pmm_mat_alloc_block(block_id + i);
         pmm_used_blocks++;
     }
-    return block_id * PMM_BLOCK_SIZE;
+    return (void*)(block_id * PMM_BLOCK_SIZE);
 }
 
 // pmm_free_blocks frees the blocks
@@ -235,7 +228,7 @@ void* pmm_alloc_block() {
     }
     _pmm_mat_alloc_block(block_id);
     pmm_used_blocks++;
-    return block_id * PMM_BLOCK_SIZE;
+    return (void*)(block_id * PMM_BLOCK_SIZE);
 }
 
 // pmm_free_block frees the block

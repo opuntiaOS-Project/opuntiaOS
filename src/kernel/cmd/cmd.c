@@ -4,7 +4,7 @@
 // Private
 
 static char* _cmd_buffer = 0;
-static char** _cmd_parsed_buffer = 0;
+char** _cmd_parsed_buffer = 0;
 static uint8_t _cmd_buffer_position = 0;
 static uint8_t _cmd_parsed_buffer_position = 0;
 
@@ -100,7 +100,7 @@ void _cmd_processor() {
     if (handler == -1) {
         printf("No such command");
     } else {
-        void (*func)(uint8_t args_size, void *args[]) = _cmd_redirects[handler].handler;
+        void (*func)(uint8_t args_size, char *args[]) = _cmd_redirects[handler].handler;
         func(_cmd_parsed_buffer_position, _cmd_parsed_buffer);
     }
 
@@ -135,19 +135,19 @@ void cmd_install() {
     _cmd_loop();
 }
 
-bool cmd_register(const char *t_cmd, void* t_handler) {
+bool cmd_register(char *cmd, void* handler) {
     uint8_t len = 0;
-    while (t_cmd[len] != '\0') len++;
+    while (cmd[len] != '\0') len++;
 
     char *cmd_holder = kmalloc(len+1);
-    memcpy(cmd_holder, t_cmd, len+1);
+    memcpy(cmd_holder, cmd, len+1);
 
     if (_cmd_redirects_registered == MAX_CMD_LENGTH) {
         return false;
     }
 
     _cmd_redirects[_cmd_redirects_registered].served_cmd = cmd_holder;
-    _cmd_redirects[_cmd_redirects_registered].handler = t_handler;
+    _cmd_redirects[_cmd_redirects_registered].handler = handler;
     _cmd_redirects_registered++;
 
     return true;

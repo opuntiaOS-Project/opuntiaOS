@@ -22,7 +22,7 @@ PYTHON3 = python3
 # OS RUN CONFIG
 KERNEL_STAGE2_POSITION = 0x1000
 KERNEL_STAGE3_POSITION = 0xc0000000
-QEMU_I386 = ./qemu/programs/qemu-system-i386
+QEMU_I386 = qemu-system-i386
 QEMU = ${QEMU_I386}
 DISK = one.img
 
@@ -44,7 +44,7 @@ products/stage3_entry.o: src/boot/x86/stage3_entry.s
 	${NASM} $< -f elf -o $@
 
 %.o: %.c ${HEADERS}
-	${I386_ELF_GCC} -ggdb -ffreestanding -c $< -o $@ -I./include
+	${I386_ELF_GCC} -ggdb -ffreestanding -c $< -o $@ -I./include -Werror -Wno-address-of-packed-member
 
 %.o: %.s
 	${NASM} $< -f elf -o $@

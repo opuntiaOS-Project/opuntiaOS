@@ -1,30 +1,34 @@
 #include <mem/vmm/pte.h>
 
-void pte_set_attr(pte_t* t_pte, uint32_t t_attrs) {
+void page_desc_set_attr(page_desc_t* t_pte, uint32_t t_attrs) {
     *t_pte |= (1 << t_attrs);
 }
 
-void pte_del_attr(pte_t* t_pte, uint32_t t_attrs) {
+void page_desc_del_attr(page_desc_t* t_pte, uint32_t t_attrs) {
     *t_pte &= ~(1 << t_attrs);
 }
 
-void pte_set_frame(pte_t* t_pte, uint32_t frame) {
-    pte_del_frame(t_pte);
-    *t_pte |= (frame << PTE_FRAME);
+void page_desc_set_frame(page_desc_t* t_pte, uint32_t frame) {
+    page_desc_del_frame(t_pte);
+    *t_pte |= (frame << PAGE_DESC_FRAME);
 }
 
-void pte_del_frame(pte_t* t_pte) {
-    *t_pte &= ((1 << (PTE_FRAME)) - 1);
+void page_desc_del_frame(page_desc_t* t_pte) {
+    *t_pte &= ((1 << (PAGE_DESC_FRAME)) - 1);
 }
 
-bool pte_is_present(pte_t t_pte) {
-    return t_pte & PTE_PRESENT;
+bool page_desc_is_present(page_desc_t t_pte) {
+    return t_pte & PAGE_DESC_PRESENT;
 }
 
-bool pte_is_writable(pte_t t_pte) {
-    return ((t_pte & PTE_WRITABLE) >> 1);
+bool page_desc_is_writable(page_desc_t t_pte) {
+    return ((t_pte & PAGE_DESC_WRITABLE) >> 1);
 }
 
-uint32_t pte_get_frame(pte_t t_pte) {
-    return (t_pte >> PTE_FRAME);
+bool page_desc_is_user(page_desc_t t_pte) {
+    return ((t_pte >> PAGE_DESC_USER) & 1);
+}
+
+uint32_t page_desc_get_frame(page_desc_t t_pte) {
+    return (t_pte >> PAGE_DESC_FRAME) << 12;
 }

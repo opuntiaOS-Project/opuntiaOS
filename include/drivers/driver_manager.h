@@ -119,6 +119,7 @@ typedef struct {
 extern driver_t drivers[MAX_DRIVERS_COUNT];
 extern device_t devices[MAX_DEVICES_COUNT];
 
+bool driver_manager_init();
 void register_drivers();
 void driver_install(driver_desc_t t_driver_info);
 void device_install(device_desc_t t_device_info);
@@ -126,5 +127,7 @@ void eject_device(uint8_t dev_id);
 void eject_all_devices();
 void drivers_run();
 device_t get_device(uint8_t t_dev_type, uint8_t t_start);
+void pass_drivers_to_master_drivers();
+void pass_devices_to_master_drivers();
 
 #endif // __oneOS__DRIVERS__DRIVERMANAGER_H

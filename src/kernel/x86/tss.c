@@ -13,10 +13,11 @@ char *kernel_stack;
 
 // test function
 // will be removed
+// TODO might be unused
 void switch_to_user_mode() {
     kernel_stack = (char*)kmalloc(VMM_PAGE_SIZE);
     gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss)-1, 0);
-    tss.esp0 = kernel_stack + VMM_PAGE_SIZE - 1;
+    tss.esp0 = (uint32_t)(kernel_stack + VMM_PAGE_SIZE - 1);
     tss.ss0 = (SEG_KDATA << 3);
     // tss.iomap_offset = 0xffff;
     ltr(SEG_TSS << 3);

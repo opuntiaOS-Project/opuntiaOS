@@ -17,8 +17,8 @@ typedef struct {                 // LBA28 | LBA48
     char is_master;
 } ata_t;
 
-void init_ata(ata_t *ata, uint32_t port, char is_master);
-void indentify_ata_device(ata_t *ata);
-uint16_t ata_read_to_ram(ata_t *dev, uint32_t sectorNum, uint32_t toRam, uint8_t offset);
+extern void init_ata(ata_t *ata, uint32_t port, char is_master);
+extern void indentify_ata_device(ata_t *ata);
+extern uint16_t ata_read_to_ram(ata_t *dev, uint32_t sectorNum, uint32_t toRam, uint8_t offset);
 
 #endif

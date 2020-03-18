@@ -98,11 +98,11 @@ uint16_t ata_read_to_ram(ata_t *dev, uint32_t sectorNum, uint32_t toRam, uint8_t
 
     // check if drive isn't ready to transer DRQ
     if (((status >> 0) & 1) == 1) {
-        return;
+        return 0;
     }
 
     if (((status >> 3) & 1) == 0) {
-        return;
+        return 0;
     }
 
     uint8_t *ram = (uint8_t *)toRam;

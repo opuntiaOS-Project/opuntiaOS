@@ -13,6 +13,6 @@ typedef struct {
 } cmd_redirect_desc_t;
 
 void cmd_install();
-bool cmd_register(const char *t_cmd, void* t_handler);
+bool cmd_register(char *cmd, void* handler);
 
 #endif //__oneOS__CMD__CMD_H

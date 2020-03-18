@@ -12,10 +12,10 @@ driver_desc_t _ata_driver_info() {
     ata_desc.is_device_driver = true;
     ata_desc.is_device_needed = false;
     ata_desc.is_driver_needed = false;
-    ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = ata_add_new_device;
-    ata_desc.functions[DRIVER_STORAGE_READ] = ata_read;
-    ata_desc.functions[DRIVER_STORAGE_WRITE] = ata_write;
-    ata_desc.functions[DRIVER_STORAGE_FLUSH] = ata_flush;
+    ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = (uint32_t)ata_add_new_device;
+    ata_desc.functions[DRIVER_STORAGE_READ] = (uint32_t)ata_read;
+    ata_desc.functions[DRIVER_STORAGE_WRITE] = (uint32_t)ata_write;
+    ata_desc.functions[DRIVER_STORAGE_FLUSH] = (uint32_t)ata_flush;
     ata_desc.pci_serve_class = 0x01;
     ata_desc.pci_serve_subclass = 0x05;
     ata_desc.pci_serve_vendor_id = 0x00;

@@ -1,5 +1,6 @@
 #include <isr_handler.h>
 #include <mem/vmm/vmm.h>
+#include <tasking/tasking.h> // TODO del that
 
 uint32_t rcr2() {
 	uint32_t val;
