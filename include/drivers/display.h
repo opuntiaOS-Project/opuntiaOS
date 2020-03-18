@@ -7,8 +7,8 @@
 #include <utils/mem.h>
 #include <global.h>
 
-#define VIDEO_MEMORY 0xb8000 + BIOS_SETTING_BASE
-#define VIDEO_ADDRESS 0xb8000 + BIOS_SETTING_BASE
+#define VIDEO_MEMORY (char*)(0xb8000 + BIOS_SETTING_BASE)
+#define VIDEO_ADDRESS (char*)(0xb8000 + BIOS_SETTING_BASE)
 #define MAX_ROWS 25
 #define MAX_COLS 80
 
@@ -37,5 +37,9 @@ void clean_screen();
 void scroll(unsigned char lines);
 char col_in_field(int col);
 char row_in_field(int row);
+
+void set_cursor_offset(unsigned short offset);
+int get_cursor_offet();
+int get_offset(int col, int row);
 
 #endif

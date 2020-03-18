@@ -10,30 +10,47 @@
 #define VMM_PDE_COUNT (1024)
 #define VMM_PAGE_SIZE (4096)
 
+enum VMM_ERR_CODES {
+    VMM_ERR_PDIR,
+    VMM_ERR_NO_SPACE,
+    VMM_ERR_BAD_ADDR,
+};
+
 typedef struct {
-    pte_t entities[VMM_PTE_COUNT];
+    page_desc_t entities[VMM_PTE_COUNT];
 } ptable_t;
 
 typedef struct pdirectory {
-    pde_t entities[VMM_PDE_COUNT];
+    table_desc_t entities[VMM_PDE_COUNT];
 } pdirectory_t;
 
-bool vmm_setup();
-bool vmm_alloc_page(pte_t* t_page);
-bool vmm_free_page(pte_t* t_page);
-pte_t* vmm_ptable_lookup(ptable_t *t_ptable, uint32_t t_addr);
-pde_t* vmm_pdirectory_lookup(pdirectory_t *t_pdir, uint32_t t_addr);
-pdirectory_t* vmm_get_current_pdir();
-bool vmm_switch_pdir(pdirectory_t *t_pdir);
-void vmm_enable_paging(bool enable);
-bool vmm_map_page(uint32_t t_phyz, uint32_t t_virt, pdirectory_t* dir, bool user);
-bool vmm_map_pages(uint32_t t_phyz, uint32_t t_virt, uint32_t t_n_pages);
 
-void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size);
+/**
+ * PUBLIC FUNCTIONS
+ */
+
+int vmm_setup();
+
+table_desc_t* vmm_pdirectory_lookup(pdirectory_t *t_pdir, uint32_t t_addr);
+page_desc_t* vmm_ptable_lookup(ptable_t *t_ptable, uint32_t t_addr);
+int vmm_allocate_ptable(uint32_t vaddr);
+int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner);
+int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, bool owner);
+
+int vmm_copy_page(uint32_t vaddr, ptable_t *src_ptable);
 
 pdirectory_t* vmm_new_user_pdir();
+pdirectory_t* vmm_new_forked_user_pdir();
+void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size); // will be deprecated
+pdirectory_t* vmm_get_active_pdir();
 
-bool vmm_load_page(uint32_t t_vert);
-void vmm_page_fault_handler(uint8_t t_info, uint32_t t_virt);
+int vmm_load_page(uint32_t vaddr);
+int vmm_alloc_page(page_desc_t* page);
+int vmm_free_page(page_desc_t* page);
+void vmm_page_fault_handler(uint8_t info, uint32_t vaddr);
+
+int vmm_switch_pdir(pdirectory_t *pdir);
+void vmm_enable_paging();
+void vmm_disable_paging();
 
 #endif // __oneOS__MEM__VMM__VMM_H

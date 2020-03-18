@@ -6,13 +6,13 @@ void memset(uint8_t* dest, uint8_t fll, uint32_t nbytes) {
     }
 }
 
-void memcpy(uint8_t* dest, uint8_t* src, uint32_t nbytes) {
+void memcpy(uint8_t* dest, const uint8_t* src, uint32_t nbytes) {
     for (int i = 0; i < nbytes; ++i) {
         *(dest + i) = *(src + i);
     }
 }
 
-void memccpy(uint8_t* dest, uint8_t* src, uint8_t stop, uint32_t nbytes) {
+void memccpy(uint8_t* dest, const uint8_t* src, uint8_t stop, uint32_t nbytes) {
     for (int i = 0; i < nbytes; ++i) {
         if (*(src + i) == stop) {
             return;
@@ -21,7 +21,7 @@ void memccpy(uint8_t* dest, uint8_t* src, uint8_t stop, uint32_t nbytes) {
     }
 }
 
-int memcmp(uint8_t* src1, uint8_t* src2, uint32_t nbytes) {
+int memcmp(const uint8_t* src1, const uint8_t* src2, uint32_t nbytes) {
     for (int i = 0; i < nbytes; ++i) {
         if (*(src1 + i) < *(src2 + i)) {
             return -1;

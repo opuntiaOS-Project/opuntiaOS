@@ -77,16 +77,16 @@ void idt_setup() {
 }
 
 void set_irq_handler(uint8_t interrupt_no, void (*handler)()) {
-    handlers[interrupt_no] = handler;
+    handlers[interrupt_no] = (void*)handler;
 }
 
 inline void init_irq_handlers() {
     int i;
     for (i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++){
-        handlers[i] = irq_empty_handler;
+        handlers[i] = (void*)irq_empty_handler;
     }
     for (i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++){
-        handlers[i] = irq_empty_handler;
+        handlers[i] = (void*)irq_empty_handler;
     }
 }
 

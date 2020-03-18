@@ -4,18 +4,19 @@
 #include <x86/gdt.h>
 #include <x86/tss.h>
 #include <tasking/sched.h>
+#include <mem/malloc.h>
 
 #define FL_IF 0x00000200
 
-extern irq_return();
-extern switch_contexts(context_t **old, context_t *new);
+extern void irq_return();
+extern void switch_contexts(context_t **old, context_t *new);
 
-static nxtpid = 0;
+static int nxtpid = 0;
 
 // switching the page dir and tss to the current proc
 void switchuvm(proc_t *p) {
     gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss)-1, 0);
-    tss.esp0 = p->kstack + VMM_PAGE_SIZE;
+    tss.esp0 = (uint32_t)(p->kstack + VMM_PAGE_SIZE);
     tss.ss0 = (SEG_KDATA << 3);
     // tss.iomap_offset = 0xffff;
     active_proc = p;
@@ -41,9 +42,9 @@ void allocate_proc(proc_t *p) {
     *(uint32_t*)sp = (uint32_t)irq_return;
     sp -= sizeof(*p->context);
     p->context = (context_t*)sp;
-    memset(p->context, 0, sizeof(*p->context));
+    memset((void*)p->context, 0, sizeof(*p->context));
     p->context->eip = (uint32_t)jumper;
-    memset(p->tf, 0, sizeof(*p->tf));
+    memset((void*)p->tf, 0, sizeof(*p->tf));
 }
 
 // Start init proccess
@@ -78,9 +79,9 @@ void run_proc() {
 
 void fork() {
     proc_t *new_p = &proc[nxt_proc++];
-    new_p->pdir = vmm_create_a_copy_of_user_pdir(active_proc->pdir);
+    new_p->pdir = vmm_new_forked_user_pdir();
     allocate_proc(new_p);
-    memcpy(new_p->tf, active_proc->tf, sizeof(trapframe_t));
+    memcpy((void*)new_p->tf, (void*)active_proc->tf, sizeof(trapframe_t));
     new_p->tf->eax = 0;
     active_proc->tf->eax = new_p->pid;
     switchuvm(new_p);

@@ -104,9 +104,9 @@ driver_desc_t _keyboard_driver_info() {
     kbd_desc.is_device_driver = false;
 	kbd_desc.is_device_needed = false;
 	kbd_desc.is_driver_needed = false;
-    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = kbdriver_run;
-    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = kbdriver_get_last_key;
-    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = kbdriver_discard_last_key;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = (uint32_t)kbdriver_run;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = (uint32_t)kbdriver_get_last_key;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = (uint32_t)kbdriver_discard_last_key;
     kbd_desc.pci_serve_class = 0xff;
     kbd_desc.pci_serve_subclass = 0xff;
     kbd_desc.pci_serve_vendor_id = 0x00;
@@ -266,12 +266,4 @@ uint32_t kbdriver_get_last_key() {
 
 void kbdriver_discard_last_key() {
 	_kbdriver_last_scancode = KEY_UNKNOWN;
-}
-
-void print(char l){
-    print_string(l, WHITE_ON_BLACK, -1, -1);
-}
-
-void print_letter(uint8_t t_scancode) {
-    printd(_kbdriver_get_keycode(t_scancode) == KEY_A);
 }

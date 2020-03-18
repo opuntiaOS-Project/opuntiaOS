@@ -1,228 +1,578 @@
 #include <mem/vmm/vmm.h>
 #include <drivers/display.h>
 #include <global.h>
+#include <tasking/tasking.h>
+#include <mem/malloc.h>
+#include <utils/kernel_self_test.h>
 
+#define pdir_t pdirectory_t
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
 #define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0x3ff)
-#define VMM_OFFSET_IN_PAGE(a) ((a) & 0x1000;
+#define VMM_OFFSET_IN_PAGE(a) ((a) & 0xfff);
 
-#define V2P(addr) ((uint32_t)addr - KERNEL_BASE + KERNEL_PM_BASE)
-#define P2V(addr) ((uint32_t)addr + KERNEL_BASE - KERNEL_PM_BASE)
+#define VMM_KERNEL_TABLES_START 768
+#define VMM_USER_TABLES_START 0
+#define IS_INDIVIDUAL_PER_DIR(index) (index < VMM_KERNEL_TABLES_START || (index == VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)))
 
-static pdirectory_t* _vmm_cur_pdir = 0;
-static pdirectory_t* _vmm_cur_pdir_phys = 0;
-pdirectory_t* _vmm_kpdir = 0;
+// owner of page or table
+#define USER true
+#define KERNEL false
+#define CHOOSE_OWNER(vaddr) (vaddr >= KERNEL_BASE ? KERNEL : USER)
 
-void* _vmm_alloc_block() {
-    return P2V(pmm_alloc_block());
+static pdir_t *_vmm_kernel_pdir;
+static pdir_t *_vmm_active_pdir;
+static uint32_t pspace_start_vaddr; 
+static uint32_t kernel_ptables_start_paddr; 
+static uint32_t kmalloc_start_vaddr;
+
+#define vmm_kernel_pdir_phys2virt(paddr) ((void*)((uint32_t)paddr + KERNEL_BASE - KERNEL_PM_BASE))
+
+
+/**
+ * PRIVATE FUNCTIONS
+ */
+
+inline static void* _vmm_pspace_get_vaddr_of_active_pdir();
+inline static void* _vmm_pspace_get_nth_active_ptable(uint32_t n);
+inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr);
+static bool _vmm_split_pspace();
+static void _vmm_pspace_init();
+static table_desc_t _vmm_pspace_gen();
+static void* _vmm_kernel_convert_vaddr2paddr(uint32_t vaddr);
+static void* _vmm_convert_vaddr2paddr(uint32_t vaddr);
+
+inline static void* _vmm_alloc_kernel_block();
+static bool _vmm_init_switch_to_kernel_pdir();
+static void _vmm_map_init_kernel_pages(uint32_t paddr, uint32_t vaddr);
+static bool _vmm_create_kernel_ptables();
+static bool _vmm_map_kernel();
+
+inline static void _vmm_flush_tlb_entry(uint32_t vaddr);
+
+static bool _vmm_is_copy_on_write(uint32_t vaddr);
+static void _vmm_resolve_copy_on_write(uint32_t vaddr);
+
+static int _vmm_self_test();
+
+
+/**
+ * PSPACE FUNCTIONS
+ * 
+ * Pspace is a space with all current tables mapped there.
+ * The space starts from @pspace_start_vaddr and length is 4mb
+ */
+
+/**
+ * The function is supposed to setup pspace_start_vaddr
+ * Every virtual space has its own user's ptables in the area.
+ * The kernel's patables are the same.
+ */
+
+inline static void* _vmm_pspace_get_vaddr_of_active_pdir() {
+    return (void*)_vmm_active_pdir;
 }
 
-bool vmm_setup() {
-    _vmm_kpdir = (pdirectory_t*)_vmm_alloc_block();
-    if (!_vmm_kpdir) {
-        return false;
-    }
+inline static void* _vmm_pspace_get_nth_active_ptable(uint32_t n) {
+    return (void*)(pspace_start_vaddr + n * VMM_PAGE_SIZE);
+}
 
-    memset(_vmm_kpdir, 0, sizeof(*_vmm_kpdir));
-    vmm_create_kernel_tables();
-    _vmm_cur_pdir = _vmm_kpdir;
-    vmm_map_pages(0x100000, 0xc0000000, 1024); // kernel code+data is mapped here
-    vmm_map_pages(0x000000, 0xffc00000, 1024); // 16 bits data is mapped here and init stack
-    vmm_map_pages(0x000000, 0x000000, 1024); // 16 bits data is mapped here and init stack
+inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr) {
+    return (void*)_vmm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(vaddr));
+}
+
+static bool _vmm_split_pspace() {
+    pspace_start_vaddr = 0xc0400000;
     
-    vmm_switch_pdir(_vmm_cur_pdir);
-    vmm_enable_paging(true);
-    return true;
+    if (VMM_OFFSET_IN_TABLE(pspace_start_vaddr) != 0) {
+        kpanic("WRONG PSPACE START ADDR");
+    }
+    
+    // TODO fix here
+    kernel_ptables_start_paddr = 0x220000;
+    while ((uint32_t)pmm_alloc_block() < (kernel_ptables_start_paddr - 2 * VMM_PAGE_SIZE)) {}
+    _vmm_kernel_pdir = (pdir_t*)_vmm_alloc_kernel_block();
+    _vmm_active_pdir = (pdir_t*)_vmm_kernel_pdir;
+    memset((void*)_vmm_active_pdir, 0, sizeof(*_vmm_active_pdir)); // TODO problem for now
+    kmalloc_start_vaddr = pspace_start_vaddr + 4 * 1024 * 1024; // plus 4mb
 }
 
-
-// creating user pdir
-// copy kernel's tabel to the table
-// TODO may not work because of PHYS adderes translation (Bug #3)
-pdirectory_t* vmm_new_user_pdir() {
-    pdirectory_t *new_table = (pdirectory_t*)_vmm_alloc_block();
+/**
+ * The function is used to init pspace
+ * Used only in the first stage of VM init
+ */
+static void _vmm_pspace_init() {
+    uint32_t kernel_ptabels_vaddr = pspace_start_vaddr + 768 * VMM_PAGE_SIZE; // map what
+    uint32_t kernel_ptabels_paddr = kernel_ptables_start_paddr;  // map to
     for (int i = 768; i < 1024; i++) {
-        new_table->entities[i] = _vmm_kpdir->entities[i];
+        table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, kernel_ptabels_vaddr);
+        if (!table_desc_is_present(*ptable_desc)) {
+            // must present
+            kpanic("PSPACE_6335 : BUG\n");
+        }
+        ptable_t *ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - 768) * VMM_PAGE_SIZE);
+        page_desc_t* page = vmm_ptable_lookup(ptable_vaddr, kernel_ptabels_vaddr);
+        page_desc_set_attr(page, PAGE_DESC_PRESENT);
+        page_desc_set_attr(page, PAGE_DESC_WRITABLE);
+        page_desc_set_frame(page, kernel_ptabels_paddr / VMM_PAGE_SIZE);
+        kernel_ptabels_vaddr += VMM_PAGE_SIZE;
+        kernel_ptabels_paddr += VMM_PAGE_SIZE;
     }
-    return new_table;
 }
 
-// creating user pdir coping the existing one.
-// TODO may not work because of PHYS adderes translation (Bug #3)
-pdirectory_t* vmm_create_a_copy_of_user_pdir(pdirectory_t* copy_from) {
-    pdirectory_t *new_table = (pdirectory_t*)_vmm_alloc_block();
+/**
+ * The function is used to generate new pspace.
+ * The function returns the table of itself. 
+ */
+static table_desc_t _vmm_pspace_gen() {
+    ptable_t *cur_ptable = (ptable_t*)_vmm_pspace_get_nth_active_ptable(769);
+    ptable_t *new_ptable = (ptable_t*)kmalloc_full_page();
     for (int i = 0; i < 1024; i++) {
-        new_table->entities[i] = copy_from->entities[i];
+        // coping all pages
+        new_ptable->entities[i] = cur_ptable->entities[i];
     }
-    return new_table;
-}
 
-
-void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size) {
-    if (data_size > 256) {
-        kpanic("Init proccess is too big");
-    }
-    uint8_t *tmp_block = pmm_alloc_block();
-    for (int i = 0; i < data_size; i++) {
-        tmp_block[i] = data[i];
-    }
-    vmm_map_page(tmp_block, 0, dir, true);
-}
-
-bool vmm_load_page(uint32_t t_vert) {
-    uint32_t new_page_phyz_addr = pmm_alloc_block();
-    return vmm_map_page(new_page_phyz_addr, t_vert, 0, false);
-}
-
-bool vmm_alloc_page(pte_t* t_page) {
-    void* new_block = pmm_alloc_block();
-    if (!new_block) {
-        return false;
-    }
-    pte_set_attr(t_page, PTE_PRESENT);
-    pte_set_frame(t_page, (uint32_t)new_block / VMM_PAGE_SIZE);
-    return true;
-}
-
-bool vmm_free_page(pte_t* t_page) {
-    uint32_t frame = pte_get_frame(t_page);
-    pmm_free_block(frame * VMM_PAGE_SIZE);
-    pte_del_attr(t_page, PTE_PRESENT);
-}
-
-void vmm_create_kernel_tables() {
-    if (!_vmm_kpdir) {
-        return false;
-    }
-    uint32_t table_coverage = VMM_PAGE_SIZE * 1024;
-    uint32_t virt = KERNEL_BASE;
-    for (; virt < 0xffc00000; virt += table_coverage) {
-        pde_t* cur_ptable = vmm_pdirectory_lookup(_vmm_kpdir, virt);
-        ptable_t* new_table = (ptable_t*)_vmm_alloc_block();
-        if (!new_table) {
-            return false;
-        }
-        memset(new_table, 0, sizeof(*new_table));
-        
-        uint32_t new_table_int = V2P(new_table);
-        pde_set_attr(cur_ptable, PDE_PRESENT);
-        pde_set_attr(cur_ptable, PDE_WRITABLE);
-        pde_set_frame(cur_ptable, new_table_int / VMM_PAGE_SIZE);
-    }
-    {
-        pde_t* cur_ptable = vmm_pdirectory_lookup(_vmm_kpdir, 0xffc00000);
-        ptable_t* new_table = (ptable_t*)_vmm_alloc_block();
-        if (!new_table) {
-            return false;
-        }
-        memset(new_table, 0, sizeof(*new_table));
-        
-        uint32_t new_table_int = V2P(new_table);
-        pde_set_attr(cur_ptable, PDE_PRESENT);
-        pde_set_attr(cur_ptable, PDE_WRITABLE);
-        pde_set_frame(cur_ptable, new_table_int / VMM_PAGE_SIZE);
-    }
-}
-
-bool vmm_map_page(uint32_t t_phyz, uint32_t t_virt, pdirectory_t* cur_pdir, bool user) {
-    if (!cur_pdir) {
-        cur_pdir = vmm_get_current_pdir();
-    }
-    if (!cur_pdir) {
-        return false;
-    }
+    page_desc_t pspace_page = 0;
+    page_desc_set_attr(&pspace_page, PAGE_DESC_PRESENT);
+    page_desc_set_attr(&pspace_page, PAGE_DESC_WRITABLE);
+    page_desc_set_frame(&pspace_page, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)new_ptable) / VMM_PAGE_SIZE);
+    new_ptable->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = pspace_page;
     
-    pde_t* cur_ptable = vmm_pdirectory_lookup(cur_pdir, t_virt);
-    if (!(*cur_ptable & 1)) {
-        ptable_t* new_table = (ptable_t*)_vmm_alloc_block();
-        if (!new_table) {
-            return false;
-        }
-        memset(new_table, 0, sizeof(*new_table));
-        
-        uint32_t new_table_int = V2P(new_table);
-        pde_set_attr(cur_ptable, PDE_PRESENT);
-        pde_set_attr(cur_ptable, PDE_WRITABLE);
-        if (user) {
-            pde_set_attr(cur_ptable, PDE_USER);
-        }
-        pde_set_frame(cur_ptable, new_table_int / VMM_PAGE_SIZE);
-    }
+    table_desc_t pspace_table = 0;
+    table_desc_set_attr(&pspace_table, TABLE_DESC_PRESENT);
+    table_desc_set_attr(&pspace_table, TABLE_DESC_WRITABLE);
+    table_desc_set_frame(&pspace_table, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)new_ptable) / VMM_PAGE_SIZE);
 
-    ptable_t *phys_table_address = (ptable_t*)(pde_get_frame(*cur_ptable) * VMM_PAGE_SIZE);
-    ptable_t *virt_table_address = P2V(phys_table_address);
-    pte_t* page = vmm_ptable_lookup(virt_table_address, t_virt);
-    pte_set_attr(page, PTE_PRESENT);
-    pte_set_attr(page, PTE_WRITABLE);
-    if (user) {
-        pte_set_attr(page, PTE_USER);
-    }
-    pte_set_frame(page, t_phyz / VMM_PAGE_SIZE);
-    return true;
+    return pspace_table; 
 }
 
-// Map n pages of currently active pdir
-bool vmm_map_pages(uint32_t phys, uint32_t virt, uint32_t n_pages) {
-    if ((phys & 0xfff) || (virt & 0xfff)) {
-        return false;
-    }
-    for (; n_pages; phys+=VMM_PAGE_SIZE, virt+=VMM_PAGE_SIZE, n_pages--) {
-        vmm_map_page(phys, virt, 0, false);
-    }
-    return true;
+/**
+ * The function is used to traslate a virtual address into physical
+ * Used only in the first stage of VM init
+ */
+static void* _vmm_kernel_convert_vaddr2paddr(uint32_t vaddr) {
+    ptable_t *ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - 768) * VMM_PAGE_SIZE);
+    page_desc_t *page_desc = vmm_ptable_lookup(ptable_vaddr, vaddr);
+    return (void*)((page_desc_get_frame(*page_desc)) | (vaddr & 0xfff));
 }
 
-pte_t* vmm_ptable_lookup(ptable_t *t_ptable, uint32_t t_addr) {
-    if (t_ptable) {
-        return &t_ptable->entities[VMM_OFFSET_IN_TABLE(t_addr)];
-    }
-    return 0;
+/**
+ * The function is used to traslate a virtual address into physical
+ */
+static void* _vmm_convert_vaddr2paddr(uint32_t vaddr) {
+    ptable_t *ptable_vaddr = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    page_desc_t *page_desc = vmm_ptable_lookup(ptable_vaddr, vaddr);
+    return (void*)((page_desc_get_frame(*page_desc)) | (vaddr & 0xfff));
 }
 
-pde_t* vmm_pdirectory_lookup(pdirectory_t *t_pdir, uint32_t t_addr) {
-    if (t_pdir) {
-        return &t_pdir->entities[VMM_OFFSET_IN_DIRECTORY(t_addr)];
-    }
-    return 0;
+
+/**
+ * VM INITIALIZATION FUNCTIONS
+ */
+
+inline static void* _vmm_alloc_kernel_block() {
+    return vmm_kernel_pdir_phys2virt(pmm_alloc_block());
 }
 
-bool vmm_switch_pdir(pdirectory_t *t_pdir) {
-    if (!t_pdir) {
-        return false;
-    }
-
-    _vmm_cur_pdir = t_pdir;
-    _vmm_cur_pdir_phys = V2P(t_pdir);
+/**
+ * The function is used to update active pdir
+ * Used only in the first stage of VM init
+ */
+static bool _vmm_init_switch_to_kernel_pdir() {
+    _vmm_active_pdir = _vmm_kernel_pdir;
     asm volatile ("cli");
-    asm volatile ("mov %%eax, %%cr3" : : "a"(_vmm_cur_pdir_phys));
+    asm volatile ("mov %%eax, %%cr3" : : "a"((uint32_t)_vmm_kernel_convert_vaddr2paddr((uint32_t)_vmm_active_pdir)));
     asm volatile ("sti");
     return true;
 }
 
-pdirectory_t* vmm_get_current_pdir() {
-    return _vmm_cur_pdir;
-}
-
-void vmm_enable_paging(bool enable) {
-    if (enable) {
-        asm volatile ("mov %cr0, %eax");
-        asm volatile ("or $0x80000000, %eax");
-        asm volatile ("mov %eax, %cr0");
-    } else {
-        asm volatile ("mov %cr0, %eax");
-        asm volatile ("and $0x7FFFFFFF, %eax");
-        asm volatile ("mov %eax, %cr0");
+/**
+ * The function is used to map kernel pages
+ * Used only in the first stage of VM init
+ */
+static void _vmm_map_init_kernel_pages(uint32_t paddr, uint32_t vaddr) {
+    ptable_t *ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - 768) * VMM_PAGE_SIZE);
+    for (uint32_t phyz = paddr, virt = vaddr, i = 0; i < 1024; phyz+=VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
+        pte_t new_page = ((phyz / VMM_PAGE_SIZE) << 12) | 3;
+        ptable_paddr->entities[i] = new_page;
     }
 }
 
-void vmm_page_fault_handler(uint8_t t_info, uint32_t t_virt) {
+/**
+ * The function is supposed to create all kernel tables and map necessary
+ * data into _vmm_kernel_pdir.
+ * Used only in the first stage of VM init
+ */
+static bool _vmm_create_kernel_ptables() {
+    uint32_t table_coverage = VMM_PAGE_SIZE * 1024;
+    uint32_t kernel_ptabels_vaddr = VMM_KERNEL_TABLES_START * table_coverage;
+    
+    for (int i = VMM_KERNEL_TABLES_START; i < 1024; i++, kernel_ptabels_vaddr += table_coverage) {        
+        // updating table descriptor of kernel's pdir
+        table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_kernel_pdir, kernel_ptabels_vaddr);
+        uint32_t paddr = (uint32_t)pmm_alloc_block();
+        if (!paddr) {
+            kpanic("PADDR_5546 : BUG\n");
+        }
+        table_desc_set_attr(ptable_desc, TABLE_DESC_PRESENT);
+        table_desc_set_attr(ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_frame(ptable_desc, paddr / VMM_PAGE_SIZE);
+    }
+    
+    _vmm_map_init_kernel_pages(0x00100000, 0xc0000000);
+    _vmm_map_init_kernel_pages(0x00000000, 0xffc00000);
+
+    return true;
+}
+
+/**
+ * The function is supposed to map secondary data for kernel's pdir.
+ * Used only in the first stage of VM init
+ */
+static bool _vmm_map_kernel() {
+    vmm_map_pages(0x00000000, 0x00000000, 1024, KERNEL);
+    return true;
+}
+
+int vmm_setup() {
+    _vmm_split_pspace();
+    _vmm_create_kernel_ptables();
+    _vmm_pspace_init();
+    _vmm_init_switch_to_kernel_pdir();
+    _vmm_map_kernel();
+    kmalloc_init(kmalloc_start_vaddr);
+    if (_vmm_self_test() < 0) {
+        kpanic("VMM SELF TEST Not passed");
+    }
+    return 0;
+}
+
+/**
+ * VM TOOLS
+ */
+
+inline static void _vmm_flush_tlb_entry(uint32_t vaddr) {
+    asm volatile("invlpg (%0)" ::"r" (vaddr) : "memory");
+}
+
+table_desc_t* vmm_pdirectory_lookup(pdirectory_t *pdir, uint32_t vaddr) {
+    if (pdir) {
+        return &pdir->entities[VMM_OFFSET_IN_DIRECTORY(vaddr)];
+    }
+    return 0;
+}
+
+page_desc_t* vmm_ptable_lookup(ptable_t *ptable, uint32_t vaddr) {
+    if (ptable) {
+        return &ptable->entities[VMM_OFFSET_IN_TABLE(vaddr)];
+    }
+    return 0;
+}
+
+/**
+ * The function is supposed to create new ptable (not kernel) and
+ * rebuild pspace to match to the new setup
+ */
+int vmm_allocate_ptable(uint32_t vaddr) {
+    if (_vmm_active_pdir == 0) {
+        return -VMM_ERR_PDIR; 
+    }
+
+    uint32_t ptable_paddr = (uint32_t)pmm_alloc_block();
+    if (!ptable_paddr) {
+        // TODO may be cleaner should be called here;
+        return -VMM_ERR_NO_SPACE;
+    }
+    uint32_t ptable_vaddr = (uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+
+    table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    table_desc_set_attr(ptable_desc, TABLE_DESC_PRESENT);
+    table_desc_set_attr(ptable_desc, TABLE_DESC_WRITABLE);
+    table_desc_set_frame(ptable_desc, ptable_paddr / VMM_PAGE_SIZE);
+
+    if (CHOOSE_OWNER(vaddr) == USER) {
+        table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
+    }
+    
+    return vmm_map_page(ptable_vaddr, ptable_paddr, CHOOSE_OWNER(vaddr));
+}
+
+/**
+ * The function is supposed to map vaddr to paddr
+ */
+int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner) {
+    if (!_vmm_active_pdir) {
+        return -VMM_ERR_PDIR; 
+    }
+
+    table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    if (!table_desc_is_present(*ptable_desc)) {
+        vmm_allocate_ptable(vaddr);
+    }
+
+    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    page_desc_t* page = vmm_ptable_lookup(ptable, vaddr);
+    page_desc_set_attr(page, PAGE_DESC_PRESENT);
+    page_desc_set_attr(page, PAGE_DESC_WRITABLE);
+    page_desc_set_frame(page, paddr / VMM_PAGE_SIZE);
+    
+    if (owner == USER) {
+        page_desc_set_attr(page, PAGE_DESC_USER);
+    }
+    
+    _vmm_flush_tlb_entry(vaddr);
+
+    return 0;
+}
+
+/**
+ * The function is supposed to map a sequence of vaddrs to paddrs
+ */
+int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, bool owner) {
+    if ((paddr & 0xfff) || (vaddr & 0xfff)) {
+        return -VMM_ERR_BAD_ADDR;
+    }
+
+    int status = 0;
+    for (; n_pages; paddr+=VMM_PAGE_SIZE, vaddr+=VMM_PAGE_SIZE, n_pages--) {
+        if (status = vmm_map_page(vaddr, paddr, owner) < 0) {
+            return status;
+        }
+    }
+
+    return 0;
+}
+
+
+/**
+ * COPY ON WRITE FUNCTIONS
+ */
+
+static bool _vmm_is_copy_on_write(uint32_t vaddr) {
+    table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    return table_desc_is_copy_on_write(*ptable_desc);
+}
+
+// TODO handle delete of tables and dirs
+static void _vmm_resolve_copy_on_write(uint32_t vaddr) {
+    table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    ptable_t *src_ptable = kmalloc_full_page();
+    ptable_t *root_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    memcpy((uint8_t*)src_ptable, (uint8_t*)root_ptable, VMM_PAGE_SIZE);
+    vmm_allocate_ptable(vaddr);
+    ptable_t *new_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    
+    // currently do that for all pages
+    for (int i = 0; i < 1024; i++) {
+        uint32_t page_vaddr = ((vaddr >> 22) << 22) + (i * VMM_PAGE_SIZE);
+        page_desc_t *page_desc = vmm_ptable_lookup(src_ptable, page_vaddr);
+        if ((uint32_t)*page_desc != 0) {
+            vmm_copy_page(page_vaddr, src_ptable);
+        }
+    }
+}
+
+/**
+ * The function is supposed to copy a page from @src_ptable to active
+ * ptable. The page which is copied has address @vaddr.
+ */
+int vmm_copy_page(uint32_t vaddr, ptable_t *src_ptable) {
+    vmm_load_page(vaddr);
+    uint32_t old_page_vaddr = (uint32_t)kmalloc_full_page_only_vaddr();
+    page_desc_t *old_page_desc = vmm_ptable_lookup(src_ptable, vaddr);
+    uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
+    vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL);
+    memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
+    // TODO free address only;
+    // vmm_unmap_page(old_page_vaddr, old_page_paddr, KERNEL);
+    // free();
+    return 0;
+}
+
+
+/**
+ * USER PDIR MANIPULATIONS FUNCTIONS
+ */
+
+// creating user pdir
+// copy kernel's table to the table
+// TODO may not work because of PHYS address translation (Bug #3)
+
+/**
+ * The function is supposed to create all new user's pdir.
+ */
+pdirectory_t* vmm_new_user_pdir() {
+    pdirectory_t *pdir = (pdirectory_t*)kmalloc_full_page();
+    
+    for (int i = VMM_USER_TABLES_START; i < VMM_KERNEL_TABLES_START; i++) {
+        pdir->entities[i] = 0;
+    }
+    
+    for (int i = VMM_KERNEL_TABLES_START; i < 1024; i++) {
+        if (!IS_INDIVIDUAL_PER_DIR(i)) {
+            pdir->entities[i] = _vmm_active_pdir->entities[i];
+        }
+    }
+
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = _vmm_pspace_gen();
+    return pdir;
+}
+
+/**
+ * The function is supposed to fork a new user's pdir from the active
+ */
+pdirectory_t* vmm_new_forked_user_pdir() {
+    pdirectory_t *pdir = (pdirectory_t*)kmalloc_full_page();
+    
+    // coping all tables
+    for (int i = 0; i < 1024; i++) {
+        pdir->entities[i] = _vmm_active_pdir->entities[i];
+    }
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = _vmm_pspace_gen();
+    
+    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+        table_desc_t *ptable_desc = &pdir->entities[i];
+        table_desc_del_attr(ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attr(ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+    }
+
+    return pdir;
+}
+
+/** WILL BE DEPRECATED
+ * The function is supposed to copy init program data into the pdir
+ */
+void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size) {
+    if (data_size > 256) {
+        kpanic("Init proccess is too big");
+    }
+    
+    uint8_t *tmp_block = kmalloc_full_page();
+    
+    for (int i = 0; i < data_size; i++) {
+        tmp_block[i] = data[i];
+    }
+    
+    vmm_switch_pdir(dir);
+    vmm_map_page(0x0, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)tmp_block), USER);
+    vmm_switch_pdir(_vmm_kernel_pdir);
+}
+
+pdirectory_t* vmm_get_active_pdir() {
+    return _vmm_active_pdir;
+}
+
+/**
+ * PF HANDLER FUNCTIONS
+ */
+
+int vmm_load_page(uint32_t vaddr) {
+    uint32_t paddr = (uint32_t)pmm_alloc_block();
+    if (!paddr) {
+        // clean here to make it able to allocate
+        kpanic("NO SPACE");
+    }
+    return vmm_map_page(vaddr, paddr, CHOOSE_OWNER(vaddr));
+}
+
+// currently unused and unoptimized with rewritten vmm
+int vmm_alloc_page(page_desc_t* page) {
+    void* new_block = kmalloc_full_page();
+    if (!new_block) {
+        return -VMM_ERR_BAD_ADDR;
+    }
+    page_desc_set_attr(page, PAGE_DESC_PRESENT);
+    page_desc_set_frame(page, (uint32_t)new_block / VMM_PAGE_SIZE);
+    return 0;
+}
+
+// currently unused and unoptimized with rewritten vmm
+int vmm_free_page(page_desc_t* page) {
+    uint32_t frame = page_desc_get_frame(*page);
+    pmm_free_block((void*)(frame * VMM_PAGE_SIZE));
+    page_desc_del_attr(page, PAGE_DESC_PRESENT);
+    return 0;
+}
+
+void vmm_page_fault_handler(uint8_t info, uint32_t vaddr) {
     // page doesn't present in memory
-    if ((t_info & 1) == 0) {
-        // let's load page
-        printf("Loading page: ");
-        printh(t_virt);
-        printf("\n");
-
-        vmm_load_page(t_virt);
+    if (info == 7) {
+        // copy on write ?
+        if (_vmm_is_copy_on_write(vaddr)) {
+            // printf("COW\n");
+            _vmm_resolve_copy_on_write(vaddr);
+        } else {
+            printf("NO_COW UNH\n");
+            while (1) {}
+        }
+    } else {
+        if ((info & 1) == 0) {
+            // let's load page
+            printf("Loading page: ");
+            printh(vaddr);
+            printf("\n");
+            vmm_load_page(vaddr);
+        } else {
+            while (1) {}
+        }
     }
+}
+
+
+/**
+ * VM SETTING FUNCTIONS
+ */
+
+int vmm_switch_pdir(pdirectory_t *pdir) {
+    if (((uint32_t)pdir & (VMM_PAGE_SIZE-1)) != 0) {
+        kpanic("vmm_switch_pdir: wrong pdir");
+    }
+
+    _vmm_active_pdir = pdir;
+    asm volatile ("cli");
+    asm volatile ("mov %%eax, %%cr3" : : "a"((uint32_t)_vmm_convert_vaddr2paddr((uint32_t)pdir)));
+    asm volatile ("sti");
+    return 0;
+}
+
+void vmm_enable_paging() {
+    asm volatile ("mov %cr0, %eax");
+    asm volatile ("or $0x80000000, %eax");
+    asm volatile ("mov %eax, %cr0");
+}
+
+void vmm_disable_paging() {
+    asm volatile ("mov %cr0, %eax");
+    asm volatile ("and $0x7FFFFFFF, %eax");
+    asm volatile ("mov %eax, %cr0");
+}
+
+
+/**
+ * VM SELF TEST FUNCTIONS
+ */
+
+static int _vmm_self_test() {
+    vmm_map_pages(0x00f0000, 0x8f000000, 1, false);
+    vmm_map_pages(0x00f0000, 0x8f000000, 1, false);
+    bool correct = true;
+    correct &= ((uint32_t)_vmm_convert_vaddr2paddr(KERNEL_BASE) == KERNEL_PM_BASE);
+    correct &= ((uint32_t)_vmm_convert_vaddr2paddr(0xffc00000) == 0x0);
+    correct &= ((uint32_t)_vmm_convert_vaddr2paddr(0x100) == 0x100);
+    correct &= ((uint32_t)_vmm_convert_vaddr2paddr(0x8f000000) == 0x00f0000);
+    if (correct) {
+        return 0;
+    }
+    return 1;
+}
+
+static bool vmm_test_pspace_vaddr_of_active_ptable() {
+    uint32_t vaddr = 0xc0000000;
+    ptable_t *pt = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    page_desc_t *ppage = vmm_ptable_lookup(pt, vaddr);
+    page_desc_del_attr(ppage, PAGE_DESC_PRESENT);
+    uint32_t* kek1 = (uint32_t*)vaddr;
+    *kek1 = 1;
+    // should cause PF
+    while (1) {}
+    return true;
 }

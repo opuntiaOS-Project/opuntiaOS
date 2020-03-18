@@ -18,7 +18,7 @@ typedef struct {
 cpu_t cpus[CPU_CNT];
 proc_t *active_proc;
 
-void setup_scheduler();
+void scheduler_init();
 void presched();
 void sched();
 

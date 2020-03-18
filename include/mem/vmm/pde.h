@@ -1,32 +1,35 @@
-#ifndef __oneOS__MEM__VMM__PDE_H
-#define __oneOS__MEM__VMM__PDE_H
+#ifndef __oneOS__MEM__VMM__TABLE_DESC_H
+#define __oneOS__MEM__VMM__TABLE_DESC_H
 
 #include <types.h>
 
+#define table_desc_t uint32_t
 #define pde_t uint32_t
 
-enum PDE_PAGE_FLAGS {
-    PDE_PRESENT = 0,
-    PDE_WRITABLE,
-    PDE_USER,
-    PDE_PWT,
-    PDE_PCD,
-    PDE_ACCESSED,
-    PDE_DIRTY,
-    PDE_4MB,
-    PDE_CPU_GLOBAL,
-    PDE_LV4_GLOBAL,
-    PDE_FRAME = 12
+enum TABLE_DESC_PAGE_FLAGS {
+    TABLE_DESC_PRESENT = 0,
+    TABLE_DESC_WRITABLE,
+    TABLE_DESC_USER,
+    TABLE_DESC_PWT,
+    TABLE_DESC_PCD,
+    TABLE_DESC_ACCESSED,
+    TABLE_DESC_DIRTY,
+    TABLE_DESC_4MB,
+    TABLE_DESC_CPU_GLOBAL,
+    TABLE_DESC_LV4_GLOBAL,
+    TABLE_DESC_COPY_ON_WRITE,
+    TABLE_DESC_FRAME = 12
 };
 
-void pde_set_attr(pde_t* t_pde, uint32_t t_attrs);
-void pde_del_attr(pde_t* t_pde, uint32_t t_attrs);
-void pde_set_frame(pde_t* t_pde, uint32_t frame);
-void pde_del_frame(pde_t* t_pde);
+void table_desc_set_attr(table_desc_t* t_pde, uint32_t t_attrs);
+void table_desc_del_attr(table_desc_t* t_pde, uint32_t t_attrs);
+void table_desc_set_frame(table_desc_t* t_pde, uint32_t frame);
+void table_desc_del_frame(table_desc_t* t_pde);
 
-bool pde_is_present(pde_t t_pde);
-bool pde_is_writable(pde_t t_pde);
-bool pde_is_4mb(pde_t t_pde);
-uint32_t pde_get_frame(pde_t t_pde);
+bool table_desc_is_present(table_desc_t t_pde);
+bool table_desc_is_writable(table_desc_t t_pde);
+bool table_desc_is_4mb(table_desc_t t_pde);
+bool table_desc_is_copy_on_write(table_desc_t t_pde);
+uint32_t table_desc_get_frame(table_desc_t t_pde);
 
-#endif //__oneOS__MEM__VMM__PDE_H
+#endif //__oneOS__MEM__VMM__TABLE_DESC_H

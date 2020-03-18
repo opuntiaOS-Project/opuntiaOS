@@ -1,4 +1,7 @@
 #include <utils/kernel_self_test.h>
+#include <drivers/display.h>
+#include <mem/malloc.h>
+#include <mem/vmm/vmm.h>
 
 bool _test_kmalloc();
 bool _test_page_fault();
@@ -50,6 +53,7 @@ bool kernel_self_test(bool throw_kernel_panic) {
         bool (*test)() = active_test[i];
         if (!test()) {
             if (throw_kernel_panic) {
+                while (1) {}
                 kpanic_at_test("Kernel-self-test NOT passed", i);
             } else {
                 return false;

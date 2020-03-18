@@ -9,7 +9,7 @@ driver_desc_t _pci_driver_info() {
     pci_desc.is_device_driver = false;
     pci_desc.is_device_needed = false;
     pci_desc.is_driver_needed = false;
-    pci_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = pci_find_devices;
+    pci_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = (uint32_t)pci_find_devices;
     return pci_desc;
 }
 

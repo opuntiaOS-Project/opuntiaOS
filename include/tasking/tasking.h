@@ -5,6 +5,8 @@
 #include <mem/vmm/vmm.h>
 #include <x86/idt.h>
 
+#define MAX_PROCESS_COUNT 1024
+
 typedef struct {
     uint32_t edi;
     uint32_t esi;
@@ -23,8 +25,11 @@ typedef struct {
     trapframe_t *tf;
 } __attribute__((packed)) proc_t;
 
-proc_t proc[32];
+proc_t proc[MAX_PROCESS_COUNT];
 uint32_t nxt_proc;
+
+void switchuvm(proc_t *p);
+void fork();
 
 void run_proc();
 void set_proc2();

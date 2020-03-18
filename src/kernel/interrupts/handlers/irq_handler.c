@@ -2,7 +2,7 @@
 #include <tasking/tasking.h>
 
 void irq_redirect(uint8_t int_no) {
-    void (*func)() = handlers[int_no];
+    void (*func)() = (void*)handlers[int_no];
     func();
 }
 
