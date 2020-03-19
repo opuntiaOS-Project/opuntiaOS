@@ -2,3 +2,5 @@
 *.img
 products/
 *.o
+*DS_Store
+*.pyc
