@@ -4,9 +4,15 @@ mov esp, ebp
 mov ebx, 332
 int 50 ; fork
 int 48 ; printing eax
-mov eax, 0x233
-mov [eax], word 3
+cmp eax, 0
+jne ffe
+ffe2:
+    mov edx, 0x233
+    mov [edx], eax
 start:
-    mov eax, 0x3
-    ; int 48
+    int 48
     jmp start
+ffe:
+    int 50 ; fork
+    int 48 ; printing eax
+    jmp ffe2
