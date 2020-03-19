@@ -430,9 +430,15 @@ pdirectory_t* vmm_new_forked_user_pdir() {
     pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = _vmm_pspace_gen();
     
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-        table_desc_t *ptable_desc = &pdir->entities[i];
-        table_desc_del_attr(ptable_desc, TABLE_DESC_WRITABLE);
-        table_desc_set_attr(ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+        // COW: blocking current pdir
+        table_desc_t *act_ptable_desc = &_vmm_active_pdir->entities[i];
+        table_desc_del_attr(act_ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attr(act_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+
+        // COW: blocking new pdir
+        table_desc_t *new_ptable_desc = &pdir->entities[i];
+        table_desc_del_attr(new_ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attr(new_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
     }
 
     return pdir;
@@ -552,7 +558,6 @@ void vmm_disable_paging() {
  */
 
 static int _vmm_self_test() {
-    vmm_map_pages(0x00f0000, 0x8f000000, 1, false);
     vmm_map_pages(0x00f0000, 0x8f000000, 1, false);
     bool correct = true;
     correct &= ((uint32_t)_vmm_convert_vaddr2paddr(KERNEL_BASE) == KERNEL_PM_BASE);
