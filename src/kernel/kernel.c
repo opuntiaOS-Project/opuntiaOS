@@ -28,7 +28,7 @@ void stage3(mem_desc_t *mem_desc) {
     clean_screen();
     gdt_setup();
     idt_setup();
-    // init_timer();
+    init_timer();
 
     // mem setup
     pmm_setup(mem_desc);
