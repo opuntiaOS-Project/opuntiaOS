@@ -67,7 +67,8 @@ void idt_setup() {
     idt_element_setup(48, (void*)syscall1, USER);
     idt_element_setup(49, (void*)syscall2, USER);
     idt_element_setup(50, (void*)syscall3, USER);
-    for (int i = 51; i < 256; i++) {
+    idt_element_setup(51, (void*)syscall4, USER);
+    for (int i = 52; i < 256; i++) {
         idt_element_setup(i, (void*)syscall1, USER);
     }
 

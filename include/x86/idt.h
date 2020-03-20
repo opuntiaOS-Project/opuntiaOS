@@ -120,6 +120,7 @@ extern void irq_empty_handler();
 extern void syscall1();
 extern void syscall2();
 extern void syscall3();
+extern void syscall4();
 
 #define IRQ0 32
 #define IRQ1 33

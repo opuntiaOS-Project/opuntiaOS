@@ -51,6 +51,7 @@ global irq15
 global syscall1
 global syscall2
 global syscall3
+global syscall4
 
 extern isr_handler
 extern irq_handler
@@ -418,4 +419,10 @@ syscall3:
     push 0
     push 50
     jmp  isr_common
+
+syscall4:
+    push 0
+    push 51
+    jmp  isr_common
+
 

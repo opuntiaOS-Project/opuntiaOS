@@ -95,7 +95,7 @@ void _syscmd_shutdown(int argc, char *argv[]) {
 
 void umode(int argc, char *argv[]) {
     // set_proc2();
-    run_proc();
+    tasking_start_init_proc();
 }
 
 void syscmd_init() {
