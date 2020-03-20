@@ -33,6 +33,10 @@ bool table_desc_is_copy_on_write(table_desc_t pde) {
     return (pde >> TABLE_DESC_COPY_ON_WRITE) & 1;
 }
 
+bool table_desc_has_attr(table_desc_t pde, uint32_t attr) {
+    return (pde >> attr) & 1;
+}
+
 uint32_t table_desc_get_frame(table_desc_t t_pde) {
     return (t_pde >> TABLE_DESC_FRAME) << 12;
 }

@@ -18,6 +18,7 @@ enum TABLE_DESC_PAGE_FLAGS {
     TABLE_DESC_CPU_GLOBAL,
     TABLE_DESC_LV4_GLOBAL,
     TABLE_DESC_COPY_ON_WRITE,
+    TABLE_DESC_ZEROING_ON_DEMAND,
     TABLE_DESC_FRAME = 12
 };
 
@@ -26,6 +27,7 @@ void table_desc_del_attr(table_desc_t* t_pde, uint32_t t_attrs);
 void table_desc_set_frame(table_desc_t* t_pde, uint32_t frame);
 void table_desc_del_frame(table_desc_t* t_pde);
 
+bool table_desc_has_attr(table_desc_t pde, uint32_t attr);
 bool table_desc_is_present(table_desc_t t_pde);
 bool table_desc_is_writable(table_desc_t t_pde);
 bool table_desc_is_4mb(table_desc_t t_pde);
