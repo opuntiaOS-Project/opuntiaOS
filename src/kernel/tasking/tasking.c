@@ -24,14 +24,34 @@ void switchuvm(proc_t *p) {
     vmm_switch_pdir(p->pdir);
 }
 
+
+static bool _tasking_load_bin(pdirectory_t* pdir, const char* path) {
+    uint8_t *prog = vfs_read_file("/", path, 0, -1);
+    vfs_element_t fstat = vfs_get_file_info("/", path);
+    if (fstat.attributes == VFS_ATTR_NOTFILE) {
+        return false;
+    }
+    vmm_copy_to_pdir(pdir, prog, 0, fstat.file_size);
+    return true;
+}
+
+// TODO add ELF support
+static bool _tasking_load(pdirectory_t* pdir, const char* path) {
+    return _tasking_load_bin(pdir, path);
+}
+
+
 // used to jump to trapend
 // the jump will start the process
-void jumper() {
+void _tasking_jumper() {
     return;
 }
 
-// alocating proc and kernel stack of the proc
-void allocate_proc(proc_t *p) {
+proc_t* tasking_get_active_proc() {
+    return active_proc;
+}
+
+static void _tasking_allocate_proc(proc_t *p) {
     p->pid = ++nxtpid;
     // allocating kernel stack
     p->kstack = kmalloc(VMM_PAGE_SIZE);
@@ -43,23 +63,20 @@ void allocate_proc(proc_t *p) {
     sp -= sizeof(*p->context);
     p->context = (context_t*)sp;
     memset((void*)p->context, 0, sizeof(*p->context));
-    p->context->eip = (uint32_t)jumper;
+    p->context->eip = (uint32_t)_tasking_jumper;
     memset((void*)p->tf, 0, sizeof(*p->tf));
 }
 
 // Start init proccess
 // All others processes will fork
-void run_proc() {
+void tasking_start_init_proc() {
     nxt_proc = 0;
     proc_t *p = &proc[nxt_proc++];
-    
-    uint8_t *code = vfs_read_file("/", "pro.sys", 0, -1);
-    vfs_element_t fstat = vfs_get_file_info("/", "pro.sys");
 
     // creating new page dir
     p->pdir = vmm_new_user_pdir();
-    allocate_proc(p);
-    vmm_copy_program_data(p->pdir, code, fstat.file_size);
+    _tasking_load(p->pdir, "init.sys");
+    _tasking_allocate_proc(p);
     p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
     p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
     p->tf->es = p->tf->ds;
@@ -77,10 +94,10 @@ void run_proc() {
     switch_contexts(&stub_cntx_ptr, p->context);
 }
 
-void fork() {
+void tasking_fork() {
     proc_t *new_p = &proc[nxt_proc++];
     new_p->pdir = vmm_new_forked_user_pdir();
-    allocate_proc(new_p);
+    _tasking_allocate_proc(new_p);
     memcpy((void*)new_p->tf, (void*)active_proc->tf, sizeof(trapframe_t));
     new_p->tf->eax = 0;
     active_proc->tf->eax = new_p->pid;
@@ -88,29 +105,16 @@ void fork() {
     switch_contexts(&active_proc->context, new_p->context);
 }
 
-
-// TODO add ELF support
-void exec() {
-    
-}
-
-// TODO tmp solution to launch the second proc
-// Will be deleted 
-void set_proc2() {
-    nxt_proc = 1;
-    proc_t *p = &proc[nxt_proc];
-    char *code = vfs_read_file("/", "init2.sys", 0, -1);
-    vfs_element_t fstat = vfs_get_file_info("/", "init2.sys");
-    
-    allocate_proc(p);
-    vmm_copy_program_data(p->pdir, code, fstat.file_size);
-
-    p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
-    p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
-    p->tf->es = p->tf->ds;
-    p->tf->ss = p->tf->ds;
-    p->tf->eflags = FL_IF;
-    p->tf->ebp = VMM_PAGE_SIZE - 1;
-    p->tf->esp = VMM_PAGE_SIZE - 1;
-    p->tf->eip = 0;
+// TODO add POSIX support
+void tasking_exec() {
+    proc_t *proc = tasking_get_active_proc();
+    char *launch_path = (char*)proc->tf->ecx; // for now let's think that our string is at ecx
+    vmm_zero_user_pages(proc->pdir);
+    if (!_tasking_load(proc->pdir, launch_path)) {
+        proc->tf->eax = -1;
+        return;
+    }
+    proc->tf->ebp = VMM_PAGE_SIZE;
+    proc->tf->esp = VMM_PAGE_SIZE;
+    proc->tf->eip = 0;
 }

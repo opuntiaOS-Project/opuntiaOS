@@ -29,9 +29,9 @@ proc_t proc[MAX_PROCESS_COUNT];
 uint32_t nxt_proc;
 
 void switchuvm(proc_t *p);
-void fork();
+void tasking_fork();
+void tasking_exec();
 
-void run_proc();
-void set_proc2();
+void tasking_start_init_proc();
 
 #endif // __oneOS__X86__TASKING__TASKING_H

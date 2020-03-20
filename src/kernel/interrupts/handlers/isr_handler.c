@@ -25,7 +25,11 @@ void syscall_processor(trapframe_t *tf) {
 	}
 	if (tf->int_no == 50) {
 		printf("fork was called\n");
-		fork();
+		tasking_fork();
+	}
+	if (tf->int_no == 51) {
+		printf("exec was called\n");
+		tasking_exec();
 	}
 }
 
