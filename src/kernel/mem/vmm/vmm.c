@@ -48,9 +48,14 @@ static bool _vmm_create_kernel_ptables();
 static bool _vmm_map_kernel();
 
 inline static void _vmm_flush_tlb_entry(uint32_t vaddr);
+inline static uint32_t _vmm_round_ceil_to_page(uint32_t value);
+inline static uint32_t _vmm_round_floor_to_page(uint32_t value);
 
 static bool _vmm_is_copy_on_write(uint32_t vaddr);
 static void _vmm_resolve_copy_on_write(uint32_t vaddr);
+
+static bool _vmm_is_zeroing_on_demand(uint32_t vaddr);
+static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr);
 
 static int _vmm_self_test();
 
@@ -254,6 +259,18 @@ inline static void _vmm_flush_tlb_entry(uint32_t vaddr) {
     asm volatile("invlpg (%0)" ::"r" (vaddr) : "memory");
 }
 
+inline static uint32_t _vmm_round_ceil_to_page(uint32_t value) {
+    if ((value & (VMM_PAGE_SIZE - 1)) != 0) {
+        value += VMM_PAGE_SIZE;
+        value &= (0xffffffff - (VMM_PAGE_SIZE - 1));
+    }
+    return value;
+}
+
+inline static uint32_t _vmm_round_floor_to_page(uint32_t value) {
+    return (value & (0xffffffff - (VMM_PAGE_SIZE - 1)));
+}
+
 table_desc_t* vmm_pdirectory_lookup(pdirectory_t *pdir, uint32_t vaddr) {
     if (pdir) {
         return &pdir->entities[VMM_OFFSET_IN_DIRECTORY(vaddr)];
@@ -361,7 +378,7 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr) {
     vmm_allocate_ptable(vaddr);
     ptable_t *new_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     
-    // currently do that for all pages
+    // TODO currently do that for all pages
     for (int i = 0; i < 1024; i++) {
         uint32_t page_vaddr = ((vaddr >> 22) << 22) + (i * VMM_PAGE_SIZE);
         page_desc_t *page_desc = vmm_ptable_lookup(src_ptable, page_vaddr);
@@ -388,6 +405,41 @@ int vmm_copy_page(uint32_t vaddr, ptable_t *src_ptable) {
     return 0;
 }
 
+
+/**
+ * ZEROING ON DEMAND FUNCTIONS
+ */
+
+static bool _vmm_is_zeroing_on_demand(uint32_t vaddr) {
+    table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    if (table_desc_has_attr(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
+        return true;
+    }
+    ptable_t *ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    table_desc_t *ppage_desc = vmm_ptable_lookup(ptable, vaddr);
+    return page_desc_has_attr(*ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
+}
+
+static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr) {
+    table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    ptable_t *ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    
+    if (table_desc_has_attr(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
+        for (int i = 0; i < 1024; i++) {
+            page_desc_set_attr(&ptable->entities[i], PAGE_DESC_ZEROING_ON_DEMAND);
+            page_desc_del_attr(&ptable->entities[i], PAGE_DESC_WRITABLE);
+        }
+        table_desc_del_attr(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
+    }
+
+    table_desc_t *ppage_desc = vmm_ptable_lookup(ptable, vaddr);
+    
+    uint8_t *dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    memset(dest, 0, VMM_PAGE_SIZE);
+    
+    page_desc_del_attr(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
+    page_desc_set_attr(ppage_desc, PAGE_DESC_WRITABLE);
+}
 
 /**
  * USER PDIR MANIPULATIONS FUNCTIONS
@@ -463,6 +515,44 @@ void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size)
     vmm_switch_pdir(_vmm_kernel_pdir);
 }
 
+void* vmm_bring_to_kernel(uint8_t* src, uint32_t length) {
+    if ((uint32_t)src >= KERNEL_BASE) {
+        return src;
+    }
+    uint8_t *kaddr = kmalloc(length);
+    memcpy(kaddr, src, length);
+    return (void*)kaddr;
+}
+
+void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uint32_t length) {
+    pdirectory_t* prev_pdir = vmm_get_active_pdir();
+    uint8_t* ksrc;
+    if ((uint32_t)src < KERNEL_BASE) {
+        // means that it's in user space
+        // so it should be copied here
+        ksrc = vmm_bring_to_kernel(src, length);
+    } else {
+        ksrc = src;
+    }
+
+    vmm_switch_pdir(pdir);
+
+    uint8_t *dest = (uint8_t*)dest_vaddr;
+
+    // TODO maybe it's possible to make faster than getting PF every page
+    memcpy(dest, ksrc, length);
+
+    vmm_switch_pdir(prev_pdir);
+}
+
+void vmm_zero_user_pages(pdirectory_t* pdir) {
+    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+        table_desc_t *ptable_desc = &pdir->entities[i];
+        table_desc_del_attr(ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attr(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
+    }
+}
+
 pdirectory_t* vmm_get_active_pdir() {
     return _vmm_active_pdir;
 }
@@ -477,7 +567,10 @@ int vmm_load_page(uint32_t vaddr) {
         // clean here to make it able to allocate
         kpanic("NO SPACE");
     }
-    return vmm_map_page(vaddr, paddr, CHOOSE_OWNER(vaddr));
+    int res = vmm_map_page(vaddr, paddr, CHOOSE_OWNER(vaddr));
+    uint8_t *dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    memset(dest, 0, VMM_PAGE_SIZE);
+    return res;
 }
 
 // currently unused and unoptimized with rewritten vmm
@@ -501,14 +594,16 @@ int vmm_free_page(page_desc_t* page) {
 
 void vmm_page_fault_handler(uint8_t info, uint32_t vaddr) {
     // page doesn't present in memory
-    if (info == 7) {
+    printd(info);
+    if ((info & 0b11) == 0b11) {
+        while (1) {}
         // copy on write ?
         if (_vmm_is_copy_on_write(vaddr)) {
             // printf("COW\n");
             _vmm_resolve_copy_on_write(vaddr);
-        } else {
-            printf("NO_COW UNH\n");
-            while (1) {}
+        } 
+        if (_vmm_is_zeroing_on_demand(vaddr)) {
+            _vmm_resolve_zeroing_on_demand(vaddr);
         }
     } else {
         if ((info & 1) == 0) {

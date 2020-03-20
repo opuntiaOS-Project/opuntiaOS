@@ -18,6 +18,7 @@ enum PAGE_DESC_PAGE_FLAGS {
     PAGE_DESC_CPU_GLOBAL,
     PAGE_DESC_LV4_GLOBAL,
     PAGE_DESC_COPY_ON_WRITE,
+    PAGE_DESC_ZEROING_ON_DEMAND,
     PAGE_DESC_FRAME = 12
 };
 
@@ -26,6 +27,7 @@ void page_desc_del_attr(page_desc_t* t_pte, uint32_t t_attrs);
 void page_desc_set_frame(page_desc_t* t_pte, uint32_t frame);
 void page_desc_del_frame(page_desc_t* t_pte);
 
+bool page_desc_has_attr(page_desc_t pte, uint32_t attr);
 bool page_desc_is_present(page_desc_t t_pte);
 bool page_desc_is_writable(page_desc_t t_pte);
 bool page_desc_is_user(page_desc_t t_pte);

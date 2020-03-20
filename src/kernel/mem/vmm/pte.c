@@ -29,6 +29,10 @@ bool page_desc_is_user(page_desc_t t_pte) {
     return ((t_pte >> PAGE_DESC_USER) & 1);
 }
 
+bool page_desc_has_attr(page_desc_t pte, uint32_t attr) {
+    return (pte >> attr) & 1;
+}
+
 uint32_t page_desc_get_frame(page_desc_t t_pte) {
     return (t_pte >> PAGE_DESC_FRAME) << 12;
 }
