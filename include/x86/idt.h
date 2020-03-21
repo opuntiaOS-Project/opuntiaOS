@@ -117,10 +117,7 @@ extern void irq15();
 extern void irq_null();
 extern void irq_empty_handler();
 
-extern void syscall1();
-extern void syscall2();
-extern void syscall3();
-extern void syscall4();
+extern void syscall();
 
 #define IRQ0 32
 #define IRQ1 33
