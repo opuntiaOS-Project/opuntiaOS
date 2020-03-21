@@ -13,11 +13,18 @@ S_OBJ = ${S_SOURCES:.s=.o}
 C_OBJ2 = ${C_SOURCES2:.c=.o}
 S_OBJ2 = ${S_SOURCES2:.s=.o}
 
-# BUILDING CONFIG
-I386_ELF_GCC = i386-elf-gcc
-I386_LD = i386-elf-ld
-NASM = /usr/local/bin/nasm
 PYTHON3 = python3
+
+include makefile.configs
+
+C_COMPILE_FLAGS += -ffreestanding -I./include 
+C_DEBUG_FLAGS += -ggdb
+C_WARNING_FLAGS += -Werror -Wno-address-of-packed-member
+C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS}
+
+ASM_KERNEL_FLAGS = -f elf
+
+LD_KERNEL_FLAGS = -Ttext ${KERNEL_STAGE3_POSITION} --oformat elf32-i386
 
 # OS RUN CONFIG
 KERNEL_STAGE2_POSITION = 0x1000
@@ -29,25 +36,33 @@ DISK = one.img
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUGDB = -s
 
+QUIET = @
+
 all: run
 
 products/kernel.bin: products/stage3_entry.o ${C_OBJ} ${S_OBJ}
-	${I386_LD} -Ttext ${KERNEL_STAGE3_POSITION} -o $@ $^ --oformat elf32-i386
+	@echo "$(notdir $(CURDIR)): LD $@"
+	${QUIET} ${I386_LD} -o $@ $^ ${LD_KERNEL_FLAGS}
 
 products/stage2.bin: products/stage2_entry.o ${C_OBJ2} ${S_OBJ2}
-	${I386_LD} -o $@ -Ttext ${KERNEL_STAGE2_POSITION} $^ --oformat binary
+	@echo "$(notdir $(CURDIR)): LD_S2 $@"
+	${QUIET} ${I386_LD} -o $@ -Ttext ${KERNEL_STAGE2_POSITION} $^ --oformat binary
 
 products/stage2_entry.o: src/boot/x86/stage2_entry.s
-	${NASM} $< -f elf -o $@
+	@echo "$(notdir $(CURDIR)): S2_ENTRY_ASM $@"
+	${QUIET} ${NASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
 products/stage3_entry.o: src/boot/x86/stage3_entry.s
-	${NASM} $< -f elf -o $@
+	@echo "$(notdir $(CURDIR)): S3_ENTRY_ASM $@"
+	${QUIET} ${NASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
 %.o: %.c ${HEADERS}
-	${I386_ELF_GCC} -ggdb -ffreestanding -c $< -o $@ -I./include -Werror -Wno-address-of-packed-member
+	@echo "$(notdir $(CURDIR)): CC $@"
+	${QUIET} ${I386_ELF_GCC}  -c $< -o $@ ${C_FLAGS}
 
 %.o: %.s
-	${NASM} $< -f elf -o $@
+	@echo "$(notdir $(CURDIR)): ASM $@"
+	${QUIET} ${NASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
