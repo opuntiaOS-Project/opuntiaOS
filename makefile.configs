@@ -6,3 +6,4 @@ NASM = /usr/local/bin/nasm
 CC = i386-elf-gcc
 LD = i386-elf-ld
 ASM = /usr/local/bin/nasm
+AR = i386-elf-ar
