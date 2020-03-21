@@ -2,25 +2,16 @@
 # $< = first dependency
 # $^ = all dependencies
 
-C_SOURCES = $(wildcard src/kernel/*.c src/kernel/*/*.c src/kernel/*/*/*.c src/kernel/*/*/*/*.c)
-S_SOURCES = $(wildcard src/kernel/*.s src/kernel/*/*.s src/kernel/*/*/*.s src/kernel/*/*/*/*.s)
-C_SOURCES2 = $(wildcard src/boot/x86/stage2/*.c src/boot/x86/stage2/*/*.c src/boot/x86/stage2/*/*/*.c src/boot/x86/stage2/*/*/*/*.c)
-S_SOURCES2 = $(wildcard src/boot/x86/stage2/*.s src/boot/x86/stage2/*/*.s src/boot/x86/stage2/*/*/*.s src/boot/x86/stage2/*/*/*/*.s)
-
-HEADERS = $(wildcard include/*.h)
-C_OBJ = ${C_SOURCES:.c=.o}
-S_OBJ = ${S_SOURCES:.s=.o}
-C_OBJ2 = ${C_SOURCES2:.c=.o}
-S_OBJ2 = ${S_SOURCES2:.s=.o}
-
-PYTHON3 = python3
+# --- Init ------------------------------------------------------------------ #
 
 include makefile.configs
+PYTHON3 = python3
 
-C_COMPILE_FLAGS += -ffreestanding -I./include 
+C_COMPILE_FLAGS += -ffreestanding
+C_INCLUDES += -I./include 
 C_DEBUG_FLAGS += -ggdb
 C_WARNING_FLAGS += -Werror -Wno-address-of-packed-member
-C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS}
+C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS} ${C_INCLUDES}
 
 ASM_KERNEL_FLAGS = -f elf
 
@@ -38,57 +29,141 @@ QEMUGDB = -s
 
 QUIET = @
 
-all: run
+all: products/os-image.bin ${DISK} install_os
 
-products/kernel.bin: products/stage3_entry.o ${C_OBJ} ${S_OBJ}
-	@echo "$(notdir $(CURDIR)): LD $@"
-	${QUIET} ${I386_LD} -o $@ $^ ${LD_KERNEL_FLAGS}
+# --- Stage1 ---------------------------------------------------------------- #
 
-products/stage2.bin: products/stage2_entry.o ${C_OBJ2} ${S_OBJ2}
+products/boot.bin: src/boot/x86/stage1/boot.s
+	${ASM} $< -f bin -o $@
+
+# --- Stage2 ---------------------------------------------------------------- #
+
+
+STAGE2_PATH = src/boot/x86/stage2
+
+STAGE2_C_SRC = $(wildcard \
+					src/boot/x86/stage2/*.c \
+					src/boot/x86/stage2/*/*.c \
+					src/boot/x86/stage2/*/*/*.c \
+					src/boot/x86/stage2/*/*/*/*.c )
+STAGE2_S_SRC = $(wildcard \
+					src/boot/x86/stage2/*.s \
+					src/boot/x86/stage2/*/*.s \
+					src/boot/x86/stage2/*/*/*.s \
+					src/boot/x86/stage2/*/*/*/*.s )
+
+HEADERS = $(wildcard include/*.h)
+STAGE2_C_OBJ = ${STAGE2_C_SRC:.c=.o}
+STAGE2_S_OBJ = ${STAGE2_S_SRC:.s=.o}
+
+products/stage2.bin: products/stage2_entry.o ${STAGE2_C_OBJ} ${STAGE2_S_OBJ}
 	@echo "$(notdir $(CURDIR)): LD_S2 $@"
-	${QUIET} ${I386_LD} -o $@ -Ttext ${KERNEL_STAGE2_POSITION} $^ --oformat binary
+	${QUIET} ${LD} -o $@ -Ttext ${KERNEL_STAGE2_POSITION} $^ --oformat binary
 
 products/stage2_entry.o: src/boot/x86/stage2_entry.s
 	@echo "$(notdir $(CURDIR)): S2_ENTRY_ASM $@"
-	${QUIET} ${NASM} $< -o $@ ${ASM_KERNEL_FLAGS}
+	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
+
+${STAGE2_PATH}/%.o: ${STAGE2_PATH}/%.c
+	@echo "$(notdir $(CURDIR)): CC $@"
+	${QUIET} ${CC}  -c $< -o $@ ${C_FLAGS}
+
+${STAGE2_PATH}/%.o: ${STAGE2_PATH}/%.s
+	@echo "$(notdir $(CURDIR)): ASM $@"
+	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
+
+# --- Kernel ---------------------------------------------------------------- #
+
+KERNEL_PATH = src/kernel
+
+KERNEL_C_SRC = $(wildcard \
+					src/kernel/*.c \
+					src/kernel/*/*.c \
+					src/kernel/*/*/*.c \
+					src/kernel/*/*/*/*.c )
+KERNEL_S_SRC = $(wildcard \
+					src/kernel/*.s \
+					src/kernel/*/*.s \
+					src/kernel/*/*/*.s \
+					src/kernel/*/*/*/*.s )
+
+
+HEADERS = $(wildcard include/*.h)
+KERNEL_C_OBJ = ${KERNEL_C_SRC:.c=.o}
+KERNEL_S_OBJ = ${KERNEL_S_SRC:.s=.o}
+
+products/kernel.bin: products/stage3_entry.o ${KERNEL_C_OBJ} ${KERNEL_S_OBJ}
+	@echo "$(notdir $(CURDIR)): LD $@"
+	${QUIET} ${LD} -o $@ $^ ${LD_KERNEL_FLAGS}
 
 products/stage3_entry.o: src/boot/x86/stage3_entry.s
 	@echo "$(notdir $(CURDIR)): S3_ENTRY_ASM $@"
-	${QUIET} ${NASM} $< -o $@ ${ASM_KERNEL_FLAGS}
+	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
-%.o: %.c ${HEADERS}
+${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.c
 	@echo "$(notdir $(CURDIR)): CC $@"
-	${QUIET} ${I386_ELF_GCC}  -c $< -o $@ ${C_FLAGS}
+	${QUIET} ${CC}  -c $< -o $@ ${C_FLAGS}
 
-%.o: %.s
+${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 	@echo "$(notdir $(CURDIR)): ASM $@"
-	${QUIET} ${NASM} $< -o $@ ${ASM_KERNEL_FLAGS}
+	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
+
+# --- Lib ------------------------------------------------------------------- #
+
+ARFLAGS = rcs
+
+LIBKERNEL=libs/libkernel.a
+LIBKERNEL_PATH=libs/libkernel
+LIBKERNEL_SRC=$(wildcard libs/libkernel/*.c)
+LIBKERNEL_OBJ=$(patsubst %.c,%.o,$(LIBKERNEL_SRC))
+
+LIBRARIES=$(LIBKERNEL)
+
+${LIBKERNEL_PATH}/%.o: ${LIBKERNEL_PATH}/%.c
+	@echo "$(notdir $(CURDIR)): CC $@"
+	${QUIET} ${CC}  -c $< -o $@ ${C_FLAGS}
+
+${LIBKERNEL}: ${LIBKERNEL_OBJ}
+	${AR} ${ARFLAGS} $@ $^
+
+# --- Apps ------------------------------------------------------------------ #
+
+C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/
+
+APPS_PATH = userland
+
+APPS = 	${APPS_PATH}/init.sys \
+		${APPS_PATH}/sec.sys \
+		${APPS_PATH}/main.sys
+
+# system apps
+${APPS_PATH}/%.sys: ${APPS_PATH}/%.s
+	${ASM} $< -f elf -o tmp.o
+	${LD} tmp.o -Ttext 0x0 -o $@ --oformat binary
+	cp $@ home/
+
+#std compiler
+${APPS_PATH}/%.o: ${APPS_PATH}/%.c
+	${CC} -c $< -o $@ ${C_USERLAND_FLAGS}
+
+# test with lib
+${APPS_PATH}/main.sys: ${APPS_PATH}/main.o ${LIBKERNEL}
+	${LD} $^ -Ttext 0x0 -o $@ --oformat binary
+	cp $@ home/
+
+# --- Others ---------------------------------------------------------------- #
 
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
 
-products/boot.bin: src/boot/x86/stage1/boot.s
-	${NASM} $< -f bin -o $@
-
 products/os-image.bin: products/boot.bin products/stage2.bin
 	cat $^ > $@
 
-run: products/os-image.bin ${DISK}
-	make drive
+run: products/os-image.bin ${DISK} install_os install_apps
 	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 
 
-run-dbg: products/os-image.bin ${DISK}
-	make drive
+run-dbg: products/os-image.bin ${DISK} install_os
 	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -S $(QEMUGDB)
-
-
-run-no-ide: products/os-image.bin
-	make drive
-	${QEMU} -m 256M -fda $< -hda one.img -hdb one2.img
-
-debug: products/os-image.bin
-	make drive
-	${QEMU} -serial file:serial.log -d int -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0
 
 clean:
 	rm -rf products/*.bin products/*.o debug/*.dis
@@ -108,8 +183,8 @@ ${DISK}:
 format:
 	${PYTHON3} utils/fat16_formatter.py
 
-drive: products/kernel.bin
+install_os: ${DISK} products/kernel.bin
 	${PYTHON3} utils/copy_bin.py
 
-install_apps:
+install_apps: ${APPS}
 	${PYTHON3} utils/install_apps.py
