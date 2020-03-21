@@ -48,15 +48,13 @@ global irq13
 global irq14
 global irq15
 
-global syscall1
-global syscall2
-global syscall3
-global syscall4
+global syscall
 
 extern isr_handler
 extern irq_handler
+extern sys_handler
 
-global irq_return
+global trap_return
 
 int_no: db 0
 com_inf: db 0
@@ -80,16 +78,7 @@ isr_common:
     push esp
     call isr_handler
     add esp, 4
-
-isr_return:
-    popad
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    add esp, 0x8
-    sti
-    iret
+    jmp trap_return
 
 irq_common:
     cli
@@ -109,8 +98,29 @@ irq_common:
     push esp
     call irq_handler
     add esp, 4
+    jmp trap_return
 
-irq_return:
+sys_common:
+    cli
+    
+    push ds
+    push es
+    push fs
+    push gs
+    pushad
+
+    mov ax, 0x8 ; SEG_KDATA
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    
+    push esp
+    call sys_handler
+    add esp, 4
+    jmp trap_return
+
+trap_return:
     popad
     pop gs
     pop fs
@@ -405,24 +415,9 @@ irq15:
     push 47
     jmp  irq_common
 
-syscall1:
+syscall:
     push 0
-    push 48
-    jmp  isr_common
-
-syscall2:
-    push 0
-    push 49
-    jmp  isr_common
-
-syscall3:
-    push 0
-    push 50
-    jmp  isr_common
-
-syscall4:
-    push 0
-    push 51
-    jmp  isr_common
+    push 0x80
+    jmp  sys_common
 
 

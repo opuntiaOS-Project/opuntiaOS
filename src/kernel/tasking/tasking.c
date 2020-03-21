@@ -8,7 +8,7 @@
 
 #define FL_IF 0x00000200
 
-extern void irq_return();
+extern void trap_return();
 extern void switch_contexts(context_t **old, context_t *new);
 
 static int nxtpid = 0;
@@ -59,7 +59,7 @@ static void _tasking_allocate_proc(proc_t *p) {
     sp -= sizeof(*p->tf);
     p->tf = (trapframe_t *)sp;
     sp -= 4;
-    *(uint32_t*)sp = (uint32_t)irq_return;
+    *(uint32_t*)sp = (uint32_t)trap_return;
     sp -= sizeof(*p->context);
     p->context = (context_t*)sp;
     memset((void*)p->context, 0, sizeof(*p->context));

@@ -1,4 +1,6 @@
 #include <x86/idt.h>
+#include <sys_handler.h>
+
 #define USER true
 #define SYS false
 
@@ -63,15 +65,12 @@ void idt_setup() {
     idt_element_setup(46, (void*)irq14, SYS);
     idt_element_setup(47, (void*)irq15, SYS);
     
-
-    idt_element_setup(48, (void*)syscall1, USER);
-    idt_element_setup(49, (void*)syscall2, USER);
-    idt_element_setup(50, (void*)syscall3, USER);
-    idt_element_setup(51, (void*)syscall4, USER);
-    for (int i = 52; i < 256; i++) {
-        idt_element_setup(i, (void*)syscall1, USER);
+    for (int i = 48; i < 256; i++) {
+        idt_element_setup(i, (void*)syscall, SYS);
     }
-
+    
+    idt_element_setup(SYSCALL, (void*)syscall, USER);
+    
     init_irq_handlers();
     lidt(idt, sizeof(idt));
     asm volatile("sti");
