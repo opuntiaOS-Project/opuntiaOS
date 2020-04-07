@@ -86,7 +86,7 @@ typedef struct {
     uint8_t pci_serve_subclass;
     uint16_t pci_serve_vendor_id;
     uint16_t pci_serve_device_id;
-    uint32_t functions[MAX_DRIVER_FUNCTION_COUNT];
+    void* functions[MAX_DRIVER_FUNCTION_COUNT];
 } driver_desc_t; // driver decriptor
 
 typedef struct {

@@ -104,9 +104,9 @@ driver_desc_t _keyboard_driver_info() {
     kbd_desc.is_device_driver = false;
 	kbd_desc.is_device_needed = false;
 	kbd_desc.is_driver_needed = false;
-    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = (uint32_t)kbdriver_run;
-    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = (uint32_t)kbdriver_get_last_key;
-    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = (uint32_t)kbdriver_discard_last_key;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = kbdriver_run;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = kbdriver_get_last_key;
+    kbd_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = kbdriver_discard_last_key;
     kbd_desc.pci_serve_class = 0xff;
     kbd_desc.pci_serve_subclass = 0xff;
     kbd_desc.pci_serve_vendor_id = 0x00;

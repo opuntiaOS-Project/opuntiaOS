@@ -14,6 +14,7 @@
 #include <mem/malloc.h>
 
 #include <fs/fat16/fat16.h>
+#include <fs/ext2/ext2.h>
 #include <fs/vfs.h>
 
 #include <cmd/cmd.h>
@@ -45,6 +46,7 @@ void stage3(mem_desc_t *mem_desc) {
     kbdriver_install();
     vfs_install();
     fat16_install();
+    ext2_install();
     drivers_run();
 
     scheduler_init();

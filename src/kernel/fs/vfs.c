@@ -59,9 +59,9 @@ driver_desc_t _vfs_driver_info() {
     vfs_desc.is_driver_needed = true;
     vfs_desc.type_of_needed_device = DEVICE_STORAGE;
     vfs_desc.type_of_needed_driver = DRIVER_FILE_SYSTEM;
-    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE] = (uint32_t)vfs_add_device;
-    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER] = (uint32_t)vfs_add_fs;
-    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE] = (uint32_t)vfs_eject_device;
+    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE] = vfs_add_device;
+    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER] = vfs_add_fs;
+    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE] = vfs_eject_device;
     return vfs_desc;
 }
 
@@ -112,14 +112,14 @@ void vfs_add_fs(driver_t *t_new_driver) {
         return;
     }
     fs_desc_t new_fs;
-    new_fs.recognize = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
-    new_fs.create_dir = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE_DIR];
-    new_fs.lookup_dir = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP_DIR];
-    new_fs.remove_dir = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_DIR];
-    new_fs.write_file = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_FILE];
-    new_fs.read_file = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_FILE];
-    new_fs.remove_file = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_FILE];
-    new_fs.eject_device = (void*)t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
+    new_fs.recognize = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
+    new_fs.create_dir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE_DIR];
+    new_fs.lookup_dir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP_DIR];
+    new_fs.remove_dir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_DIR];
+    new_fs.write_file = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_FILE];
+    new_fs.read_file = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_FILE];
+    new_fs.remove_file = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_FILE];
+    new_fs.eject_device = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
     _vfs_fses[_vfs_fses_count++] = new_fs;
 }
 
