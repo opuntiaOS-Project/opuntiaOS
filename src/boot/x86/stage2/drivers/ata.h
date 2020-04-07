@@ -1,8 +1,9 @@
 #ifndef __oneOS__STAGE2__ATA_H
 #define __oneOS__STAGE2__ATA_H
 
-#include <types.h>
-#include <x86/port.h>
+#include "../types.h"
+#include "port.h"
+#include "drive_desc.h"
 
 typedef struct {                 // LBA28 | LBA48
     uint32_t data_port;          // 16bit | 16 bits
@@ -17,8 +18,9 @@ typedef struct {                 // LBA28 | LBA48
     char is_master;
 } ata_t;
 
-extern void init_ata(ata_t *ata, uint32_t port, char is_master);
-extern void indentify_ata_device(ata_t *ata);
-extern uint16_t ata_read_to_ram(ata_t *dev, uint32_t sectorNum, uint32_t toRam, uint8_t offset);
+void init_ata(uint32_t port, char is_master);
+int indentify_ata_device(drive_desc_t *drive_desc);
+int ata_read(uint32_t sector, uint8_t* read_to);
+// extern uint16_t ata_read_to_ram(ata_t *dev, uint32_t sectorNum, uint32_t toRam, uint8_t offset);
 
 #endif

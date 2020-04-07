@@ -1,0 +1,25 @@
+#ifndef __oneLO__MEM__VMM__TABLE_DESC_H
+#define __oneLO__MEM__VMM__TABLE_DESC_H
+
+#include "../types.h"
+
+#define table_desc_t uint32_t
+#define pde_t uint32_t
+
+enum TABLE_DESC_PAGE_FLAGS {
+    TABLE_DESC_PRESENT = 0,
+    TABLE_DESC_WRITABLE,
+    TABLE_DESC_USER,
+    TABLE_DESC_PWT,
+    TABLE_DESC_PCD,
+    TABLE_DESC_ACCESSED,
+    TABLE_DESC_DIRTY,
+    TABLE_DESC_4MB,
+    TABLE_DESC_CPU_GLOBAL,
+    TABLE_DESC_LV4_GLOBAL,
+    TABLE_DESC_COPY_ON_WRITE,
+    TABLE_DESC_ZEROING_ON_DEMAND,
+    TABLE_DESC_FRAME = 12
+};
+
+#endif //__oneLO__MEM__VMM__TABLE_DESC_H
