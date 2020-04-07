@@ -475,14 +475,14 @@ driver_desc_t _fs_driver_info() {
     fs_desc.is_device_driver = false;
     fs_desc.is_device_needed = false;
     fs_desc.is_driver_needed = false;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = (uint32_t)fat16_recognize;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE_DIR] = (uint32_t)fat16_create_dir;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP_DIR] = (uint32_t)fat16_lookup_dir;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_DIR] = (uint32_t)fat16_remove_dir_handler;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_FILE] = (uint32_t)fat16_write_file;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_READ_FILE] = (uint32_t)fat16_read_file;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_FILE] = (uint32_t)fat16_remove_file;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = (uint32_t)fat16_eject;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = fat16_recognize;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE_DIR] = fat16_create_dir;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP_DIR] = fat16_lookup_dir;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_DIR] = fat16_remove_dir_handler;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_FILE] = fat16_write_file;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_READ_FILE] = fat16_read_file;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_REMOVE_FILE] = fat16_remove_file;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = fat16_eject;
     return fs_desc;
 }
 

@@ -9,7 +9,7 @@ driver_desc_t _pci_driver_info() {
     pci_desc.is_device_driver = false;
     pci_desc.is_device_needed = false;
     pci_desc.is_driver_needed = false;
-    pci_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = (uint32_t)pci_find_devices;
+    pci_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = pci_find_devices;
     return pci_desc;
 }
 
@@ -25,7 +25,7 @@ uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t off
         | ((function & 0x07) << 8)
         | (offset & 0xFC);
     port_dword_out(0xCF8, id);
-    uint32_t tmp = (u_int32)(port_dword_in(0xCFC) >> (8 * (offset % 4)));
+    uint32_t tmp = (uint32_t)(port_dword_in(0xCFC) >> (8 * (offset % 4)));
     return tmp;
 }
 
