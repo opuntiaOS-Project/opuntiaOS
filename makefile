@@ -192,3 +192,9 @@ install_os: ${DISK} products/kernel.bin
 
 install_apps: ${APPS}
 	${PYTHON3} utils/install_apps.py
+
+sync:
+	sudo fuse-ext2 one.img base -o rw+
+	sudo mkdir -p base/boot
+	sudo cp products/kernel.bin base/boot/
+	sudo umount base
