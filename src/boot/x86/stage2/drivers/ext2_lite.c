@@ -23,16 +23,16 @@ uint32_t _ext2_lite_get_offset_of_block(uint32_t block_index) {
     return SUPERBLOCK_START + (block_index - 1) * _ext2_lite_get_block_len();
 }
 
+static uint8_t tmp_read_buf[8192];
 void _ext2_lite_read(uint8_t *buf, uint32_t start, uint32_t len) {
-    uint8_t tmp_buf[512];
     void (*read)(uint32_t sector, uint8_t* read_to) = active_drive_desc->read;
     int already_read = 0;
     while (len != 0) {
         uint32_t sector = start / 512;
         uint32_t start_offset = start % 512;
-        read(sector, tmp_buf);
+        read(sector, tmp_read_buf);
         for (int i = 0; i < _ext2_lite_min(512 - start_offset, len); i++) {
-            buf[already_read++] = tmp_buf[start_offset + i];
+            buf[already_read++] = tmp_read_buf[start_offset + i];
         }
         len -= _ext2_lite_min(512 - start_offset, len);
         start += _ext2_lite_min(512 - start_offset, len); 
@@ -69,10 +69,18 @@ int ext2_lite_init(drive_desc_t *drive_desc, fs_desc_t *fs_desc) {
     if (superblock.rev_level != 0) {
         return -1;
     }
+
+    // TODO currently support up to 8192 bytes a block.
+    if (superblock.log_block_size > 3) {
+        return -1;
+    }
+
+    // fs_desc->get_file_desc = ext2_lite_read;
     fs_desc->read = ext2_lite_read;
     return 0;
 }
 
+static uint8_t tmp_dir_buf[8192];
 int ext2_lite_has_in_dir(uint32_t block_index, char *path, uint32_t *found_inode_index) {
     if (block_index == 0) {
         return -1;
@@ -82,11 +90,9 @@ int ext2_lite_has_in_dir(uint32_t block_index, char *path, uint32_t *found_inode
         while(1) {}
         return -1;
     }
-    // TODO assume a 1024 block for now only;
-    uint8_t block_data[1024];
-    printd(block_index);
-    _ext2_lite_read(block_data, _ext2_lite_get_offset_of_block(block_index), _ext2_lite_get_block_len());
-    dir_entry_t* start_of_entry = (dir_entry_t*)block_data;
+    
+    _ext2_lite_read(tmp_dir_buf, _ext2_lite_get_offset_of_block(block_index), _ext2_lite_get_block_len());
+    dir_entry_t* start_of_entry = (dir_entry_t*)tmp_dir_buf;
     // TODO mightn't stop at right time
     for (;;) {
         if (start_of_entry->inode == 0) {
@@ -94,7 +100,7 @@ int ext2_lite_has_in_dir(uint32_t block_index, char *path, uint32_t *found_inode
         }
         // checking name of this entry
         bool is_name_correct = true;
-        printf((char*)start_of_entry+8); printf("\n");
+        // printf((char*)start_of_entry+8); printf("\n");
         // while (1) {}
 
         for (int i = 0; i < start_of_entry->name_len; i++) {
@@ -114,7 +120,7 @@ int ext2_lite_has_in_dir(uint32_t block_index, char *path, uint32_t *found_inode
         }
         
         start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
-        if ((uint32_t)start_of_entry >= (uint32_t)block_data + _ext2_lite_get_block_len()) {
+        if ((uint32_t)start_of_entry >= (uint32_t)tmp_dir_buf + _ext2_lite_get_block_len()) {
             return -1;
         }
     }
@@ -122,12 +128,14 @@ int ext2_lite_has_in_dir(uint32_t block_index, char *path, uint32_t *found_inode
 }
 
 int ext2_lite_scan_dir(inode_t inode, char *path, inode_t *res_inode) {
+    // printf("AT SCAN DIR\n");
     uint32_t nxt_inode_index;
     uint32_t path_offset = 0;
     for (;;) {
 new_inode:
         for (int i = 0; i < 12; i++) {
             if (inode.block[i] != 0) {
+                // printf("START SCAN\n");
                 if (ext2_lite_has_in_dir(inode.block[i], &path[path_offset], &nxt_inode_index) == 0) {
                     // printf("Found\n");
                     while (path[path_offset] != '\0' && path[path_offset] != '/') path_offset++;
@@ -147,32 +155,103 @@ new_inode:
     return -1;
 }
 
-int ext2_lite_read(drive_desc_t *drive_desc, char *path, uint8_t *read_to) {
+int ext2_lite_get_inode(drive_desc_t *drive_desc, char *path, inode_t *file_inode) {
     active_drive_desc = drive_desc;
+    // printf("AT GET INODE\n");
     inode_t root_inode;
-    inode_t file_inode;
     _ext2_lite_read_inode(2, &root_inode);
 
     int res = -1;
     if (path[0] == '/') {
-        res = ext2_lite_scan_dir(root_inode, &path[1], &file_inode);
+        res = ext2_lite_scan_dir(root_inode, &path[1], file_inode);
     } else {
-        res = ext2_lite_scan_dir(root_inode, path, &file_inode);
+        res = ext2_lite_scan_dir(root_inode, path, file_inode);
     }
+    
+    return res;
+}
 
-    printd(file_inode.size);
+static uint8_t tmp_block_buf[8192];
+uint32_t _ext2_lite_get_block_of_file_lev0(uint32_t cur_block, uint32_t file_block_index) {
+    _ext2_lite_read(tmp_block_buf, _ext2_lite_get_offset_of_block(cur_block), _ext2_lite_get_block_len());
+    uint32_t *buf = (uint32_t*)tmp_block_buf;
+    return buf[file_block_index];
+}
 
-    if (res == 0) {
-        printf("OK_file\n");
+uint32_t _ext2_lite_get_block_of_file_lev1(uint32_t cur_block, uint32_t file_block_index) {
+    _ext2_lite_read(tmp_block_buf, _ext2_lite_get_offset_of_block(cur_block), _ext2_lite_get_block_len());
+    uint32_t *buf = (uint32_t*)tmp_block_buf;
+
+    uint32_t lev_contain = _ext2_lite_get_block_len() / 4;
+    uint32_t offset = file_block_index / lev_contain;
+    uint32_t offset_inner = file_block_index % lev_contain;
+
+    return _ext2_lite_get_block_of_file_lev0(buf[offset], offset_inner);
+}
+
+uint32_t _ext2_lite_get_block_of_file_lev2(uint32_t cur_block, uint32_t file_block_index) {
+    _ext2_lite_read(tmp_block_buf, _ext2_lite_get_offset_of_block(cur_block), _ext2_lite_get_block_len());
+    uint32_t *buf = (uint32_t*)tmp_block_buf;
+
+    uint32_t block_len = _ext2_lite_get_block_len() / 4;
+    uint32_t lev_contain = block_len * block_len;
+    uint32_t offset = file_block_index / lev_contain;
+    uint32_t offset_inner = file_block_index % lev_contain;
+
+    return _ext2_lite_get_block_of_file_lev1(buf[offset], offset_inner);
+}
+
+uint32_t _ext2_lite_get_block_of_file_lev3(uint32_t cur_block, uint32_t file_block_index) {
+    _ext2_lite_read(tmp_block_buf, _ext2_lite_get_offset_of_block(cur_block), _ext2_lite_get_block_len());
+    uint32_t *buf = (uint32_t*)tmp_block_buf;
+
+    uint32_t block_len = _ext2_lite_get_block_len() / 4;
+    uint32_t lev_contain = block_len * block_len * block_len;
+    uint32_t offset = file_block_index / lev_contain;
+    uint32_t offset_inner = file_block_index % lev_contain;
+
+    return _ext2_lite_get_block_of_file_lev2(buf[offset], offset_inner);
+}
+
+// TODO think of more effecient version
+uint32_t _ext2_lite_get_block_of_file(inode_t *inode, uint32_t file_block_index) {
+    uint32_t block_len = _ext2_lite_get_block_len() / 4;
+    if (file_block_index < 12) {
+        return inode->block[file_block_index];
+    } else if (file_block_index < 12 + block_len) { // single indirect
+        return _ext2_lite_get_block_of_file_lev0(inode->block[12], file_block_index - 12);
+    } else if (file_block_index < 12 + block_len + block_len * block_len) { // double indirect
+        return _ext2_lite_get_block_of_file_lev1(inode->block[13], file_block_index - 12 - block_len);
+    } else { // triple indirect
+        return _ext2_lite_get_block_of_file_lev0(inode->block[14], file_block_index - (12 + block_len + block_len * block_len));
     }
+    
+}
 
-    // _ext2_lite_read_inode(2, &root_inode);
+// TODO think of more effecient version
+// Note to save mem: the func reuses tmp_block_buf.
+int ext2_lite_read(drive_desc_t *drive_desc, char *path, uint8_t *buf, uint32_t from, uint32_t len) {
+    active_drive_desc = drive_desc;
+    inode_t inode;
+    ext2_lite_get_inode(drive_desc, path, &inode);
+    
+    const uint32_t block_len = _ext2_lite_get_block_len();
+    uint32_t start_block_index = from / block_len;
+    uint32_t end_block_index = (from + len) / block_len;
+    uint32_t read_offset = from % block_len;
+    uint32_t write_offset = 0;
 
-    // printd(root_inode.mode);
-
-    if (_ext2_lite_get_block_len() == 1024) {
-        printf("OK\n");
+    for (uint32_t block_index = start_block_index; block_index <= end_block_index; block_index++) {
+        uint32_t data_block_index = _ext2_lite_get_block_of_file(&inode, block_index);
+        _ext2_lite_read(tmp_block_buf, _ext2_lite_get_offset_of_block(data_block_index), _ext2_lite_get_block_len());
+        for (int i = 0; i < _ext2_lite_min(len, block_len - read_offset); i++) {
+            buf[write_offset++] = tmp_block_buf[read_offset + i];
+        }
+        len -= _ext2_lite_min(len, block_len - read_offset);
+        read_offset = 0;
     }
-
-    while (1) {}
+    if (len != 0) {
+        return -1;
+    }
+    return 0;
 }

@@ -8,6 +8,7 @@
 #include "mem/mem_map.h"
 #include "drivers/ata.h"
 #include "drivers/ext2_lite.h"
+#include "drivers/elf_lite.h"
 #include "drivers/drive_desc.h"
 #include "drivers/fs_desc.h"
 #include "drivers/display.h"
@@ -52,8 +53,15 @@ void stage2(mem_desc_t *mem_desc) {
 
     // printh((uint32_t)drive_desc.read);
     // printh((uint32_t)fs_desc.read);
-    int (*read_kernel)(drive_desc_t *drive_desc, char *path, uint8_t *read_to) = fs_desc.read;
-    read_kernel(&drive_desc, KERNEL_PATH, (uint8_t*)KERNEL_BASE);
+    // int (*read_kernel)(drive_desc_t *drive_desc, char *path, uint8_t *buf, uint32_t from, uint32_t len) = fs_desc.read;
+    // read_kernel(&drive_desc, KERNEL_PATH, (uint8_t*)KERNEL_BASE, 0, 128);
+
+    uint32_t kernel_size;
+    printd(elf_load_kernel(&drive_desc, &fs_desc, KERNEL_PATH, &kernel_size));
+    // while (1) {}
+
+    // TODO fix 
+    mem_desc->kernel_size = kernel_size / 1024 + 5;
 
     // uint32_t place_to = 0x100000;
     // mem_desc->kernel_size = ata_read_to_ram(&ata0m, 1, place_to, 2);

@@ -9,7 +9,7 @@ void _ext2_read_superblock();
 void _ext2_read_superblock(vfs_device_t *dev, superblock_t *buf) {
     void (*rd)(device_t *d, uint32_t s, uint8_t *r) =
         drivers[dev->dev.driver_id].driver_desc.functions[DRIVER_STORAGE_READ];
-    rd(&dev->dev, SUPERBLOCK_START, (uint8_t*)buf);
+    rd(&dev->dev, 2, (uint8_t*)buf);
     // rd(&dev->dev, 1024+512, ((uint8_t*)buf)+512);
 }
 
@@ -39,8 +39,8 @@ void ext2_install() {
 bool ext2_recognize_drive(vfs_device_t *dev) {
     superblock_t *superblock = (superblock_t*)kmalloc(1024);
     _ext2_read_superblock(dev, superblock);
-    printh(superblock->magic);
-    while (1) {}
+    // printh(superblock->magic);
+    // while (1) {}
     if (superblock->magic != 0xEF53) {
         return false;
     }
