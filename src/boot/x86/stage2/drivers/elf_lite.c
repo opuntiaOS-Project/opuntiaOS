@@ -46,11 +46,7 @@ int elf_load_kernel(drive_desc_t *drive_desc, fs_desc_t *fs_desc, char *path, ui
 
         // Let's load it
         if (program_header.p_type == PT_LOAD) {
-            // TODO fix in Makefile
-            uint32_t paddr = program_header.p_paddr - 0xc0000000 + 0x100000;
-            printh(paddr);
-            printf("\n");
-            read_drive(drive_desc, path, (uint8_t*)paddr, program_header.p_offset, program_header.p_filesz);
+            read_drive(drive_desc, path, (uint8_t*)program_header.p_paddr, program_header.p_offset, program_header.p_filesz);
         }
 
     }
