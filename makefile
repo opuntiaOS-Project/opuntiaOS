@@ -14,7 +14,7 @@ C_WARNING_FLAGS += -Werror -Wno-address-of-packed-member
 
 ASM_KERNEL_FLAGS = -f elf
 
-LD_KERNEL_FLAGS = -Ttext ${KERNEL_STAGE3_POSITION} --oformat elf32-i386
+LD_KERNEL_FLAGS = -T link.ld --oformat elf32-i386
 
 # OS RUN CONFIG
 KERNEL_STAGE2_POSITION = 0x1000
