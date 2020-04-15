@@ -28,7 +28,7 @@ QEMUGDB = -s
 
 QUIET = @
 
-all: products/os-image.bin ${DISK} install_os
+all: products/os-image.bin products/kernel.bin
 
 # --- Stage1 ---------------------------------------------------------------- #
 
@@ -160,10 +160,10 @@ debug/kernel.dis: products/kernel.bin
 products/os-image.bin: products/boot.bin products/stage2.bin
 	cat $^ > $@
 
-run: products/os-image.bin ${DISK} install_apps
-	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 
+run: products/os-image.bin ${DISK}
+	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -serial stdio
 
-run-dbg: products/os-image.bin ${DISK} install_os
+run-dbg: products/os-image.bin ${DISK}
 	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -S $(QEMUGDB)
 
 clean:
@@ -193,8 +193,9 @@ install_os: ${DISK} products/kernel.bin
 install_apps: ${APPS}
 	${PYTHON3} utils/install_apps.py
 
-sync:
-	sudo fuse-ext2 one.img base -o rw+
-	sudo mkdir -p base/boot
-	sudo cp products/kernel.bin base/boot/
-	sudo umount base
+sync: products/kernel.bin
+	sudo fuse-ext2 one.img mountpoint -o rw+
+	sudo mkdir -p mountpoint/boot
+	sudo cp -r base/ mountpoint/
+	sudo cp products/kernel.bin mountpoint/boot/
+	sudo umount mountpoint
