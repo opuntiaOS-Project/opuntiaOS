@@ -93,27 +93,18 @@ int ext2_lite_has_in_dir(uint32_t block_index, char *path, uint32_t *found_inode
     
     _ext2_lite_read(tmp_dir_buf, _ext2_lite_get_offset_of_block(block_index), _ext2_lite_get_block_len());
     dir_entry_t* start_of_entry = (dir_entry_t*)tmp_dir_buf;
-    // TODO mightn't stop at right time
     for (;;) {
         if (start_of_entry->inode == 0) {
             return -1;
         }
         // checking name of this entry
         bool is_name_correct = true;
-        // printf((char*)start_of_entry+8); printf("\n");
-        // while (1) {}
-
         for (int i = 0; i < start_of_entry->name_len; i++) {
             is_name_correct &= (path[i] == *((char*)start_of_entry+8+i));
             
         }
         is_name_correct &= (path[start_of_entry->name_len] == '\0' || path[start_of_entry->name_len] == '/');
         
-        // if (start_of_entry->name_len == 4) {
-        //     printf(path);
-        //     while (1) {}
-        // }
-
         if (is_name_correct) {
             *found_inode_index = start_of_entry->inode;
             return 0;
