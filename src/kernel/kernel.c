@@ -45,7 +45,7 @@ void stage3(mem_desc_t *mem_desc) {
     ata_install();
     kbdriver_install();
     vfs_install();
-    fat16_install();
+    // fat16_install();
     ext2_install();
     drivers_run();
 

@@ -21,6 +21,10 @@ typedef struct {
     void* remove_file;
 
     void* eject_device;
+
+    void* open;
+    void* read;
+    void* write;
 } fs_desc_t;
 
 typedef struct {
@@ -35,6 +39,20 @@ typedef struct {
     uint8_t attributes;
     uint16_t file_size;
 } vfs_element_t;
+
+#define VNODE_LEN (sizeof(vnode_t))
+typedef struct {
+    uint16_t mode;
+    uint16_t uid;
+    uint32_t size;
+    uint32_t atime;
+    uint32_t ctime;
+    uint32_t mtime;
+    uint32_t dtime;
+    uint16_t gid;
+    uint32_t dev_id;
+    uint32_t inode_idx;
+} file_descriptor_t;
 
 void vfs_install();
 void vfs_add_device(device_t *t_new_dev);
@@ -56,5 +74,11 @@ void* vfs_read_file(const char *t_path, const char *t_file_name, uint16_t t_offs
 bool vfs_remove_file(const char *t_path, const char *t_file_name);
 
 vfs_element_t vfs_get_file_info(const char *t_path, const char *t_file_name);
+
+/* NEW APIS */
+
+int vfs_open(const char *path, file_descriptor_t *fd);
+int vfs_read(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
+int vfs_write(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
 
 #endif // __oneOS__FS__VFS_H

@@ -98,6 +98,31 @@ void umode(int argc, char *argv[]) {
     tasking_start_init_proc();
 }
 
+void open(int argc, char *argv[]) {
+    // set_proc2();
+    file_descriptor_t fd;
+    vfs_open(argv[1], &fd);
+    printf("Inode: "); printd(fd.inode_idx); printf("\n");
+    printf("Size: "); printd(fd.size); printf("\n");
+    
+    char data[127];
+    memset(data, 0, sizeof(data));
+    vfs_read(&fd, (uint8_t*)&data, 1, 10);
+    printf(data);
+}
+
+void write(int argc, char *argv[]) {
+    // set_proc2();
+    file_descriptor_t fd;
+    vfs_open(argv[1], &fd);
+    printf("Inode: "); printd(fd.inode_idx); printf("\n");
+    printf("Size: "); printd(fd.size); printf("\n");
+    
+    char data[] = {"Goodb"};
+    vfs_write(&fd, (uint8_t*)&data, 0, 5);
+    printf(data);
+}
+
 void syscmd_init() {
     cmd_register("ls", _syscmd_ls);
     cmd_register("mkdir", _syscmd_mkdir);
@@ -108,4 +133,7 @@ void syscmd_init() {
     cmd_register("rmdir", _syscmd_remove_dir);
     cmd_register("shutdown", _syscmd_shutdown);
     cmd_register("umode", umode);
+
+    cmd_register("open", open);
+    cmd_register("wr", write);
 }

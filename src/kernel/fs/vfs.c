@@ -111,7 +111,18 @@ void vfs_add_fs(driver_t *t_new_driver) {
     if (t_new_driver->driver_desc.type != DRIVER_FILE_SYSTEM) {
         return;
     }
+
+    // printf("Reg new fs\n");
+
     fs_desc_t new_fs;
+    new_fs.open = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_OPEN];
+    new_fs.read = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
+    new_fs.write = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+    // printh((uint32_t)(t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE]));
+    // printh((uint32_t)(t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_OPEN]));
+    // printh((uint32_t)(t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ]));
+    // while (1) {}
+
     new_fs.recognize = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
     new_fs.create_dir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE_DIR];
     new_fs.lookup_dir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP_DIR];
@@ -123,10 +134,10 @@ void vfs_add_fs(driver_t *t_new_driver) {
     _vfs_fses[_vfs_fses_count++] = new_fs;
 }
 
-uint32_t vfs_lookup_dir(const char *t_path, vfs_element_t *t_buf) {
-    uint8_t drive_id = _vfs_get_drive_id(t_path);
+uint32_t vfs_lookup_dir(const char *path, vfs_element_t *buf) {
+    uint8_t drive_id = _vfs_get_drive_id(path);
     uint32_t (*func)(vfs_device_t*, const char *, vfs_element_t*) = _vfs_fses[_vfs_devices[drive_id].fs].lookup_dir;
-    return func(&_vfs_devices[drive_id], t_path, t_buf);
+    return func(&_vfs_devices[drive_id], path, buf);
 }
 
 bool vfs_create_dir(const char* t_path, const char* t_dir_name) {
@@ -228,6 +239,24 @@ vfs_element_t vfs_get_file_info(const char *t_path, const char *t_file_name) {
         }
     }
     return no_elem;
+}
+
+int vfs_open(const char *path, file_descriptor_t *fd) {
+    uint8_t drive_id = _vfs_get_drive_id(path);
+    uint32_t (*func)(vfs_device_t*, const char*, file_descriptor_t*) = _vfs_fses[_vfs_devices[drive_id].fs].open;
+    return func(&_vfs_devices[drive_id], path, fd);
+}
+
+int vfs_read(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len) {
+    uint8_t drive_id = fd->dev_id;
+    uint32_t (*func)(vfs_device_t*, file_descriptor_t*, uint8_t*, uint32_t, uint32_t) = _vfs_fses[_vfs_devices[drive_id].fs].read;
+    return func(&_vfs_devices[drive_id], fd, buf, start, len);
+}
+
+int vfs_write(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len) {
+    uint8_t drive_id = fd->dev_id;
+    uint32_t (*func)(vfs_device_t*, file_descriptor_t*, uint8_t*, uint32_t, uint32_t) = _vfs_fses[_vfs_devices[drive_id].fs].write;
+    return func(&_vfs_devices[drive_id], fd, buf, start, len);
 }
 
 void vfs_test() {
