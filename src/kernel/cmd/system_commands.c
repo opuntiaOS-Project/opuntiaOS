@@ -55,7 +55,9 @@ void _syscmd_fstat(int argc, char *argv[]) {
 
 // imitation of mkdir app
 void _syscmd_mkdir(int argc, char *argv[]) {
-    vfs_create_dir("/", argv[1]);
+    file_descriptor_t fd;
+    vfs_open("/", &fd);
+    vfs_mkdir(&fd, argv[1]);
 }
 
 void _syscmd_echo(int argc, char *argv[]) {
@@ -102,7 +104,7 @@ void open(int argc, char *argv[]) {
     // set_proc2();
     file_descriptor_t fd;
     vfs_open(argv[1], &fd);
-    printf("Inode: "); printd(fd.inode_idx); printf("\n");
+    printf("Inode: "); printd(fd.inode_index); printf("\n");
     printf("Size: "); printd(fd.size); printf("\n");
     
     char data[127];
@@ -115,7 +117,7 @@ void write(int argc, char *argv[]) {
     // set_proc2();
     file_descriptor_t fd;
     vfs_open(argv[1], &fd);
-    printf("Inode: "); printd(fd.inode_idx); printf("\n");
+    printf("Inode: "); printd(fd.inode_index); printf("\n");
     printf("Size: "); printd(fd.size); printf("\n");
     
     char data[] = {"Goodb"};

@@ -118,6 +118,7 @@ void vfs_add_fs(driver_t *t_new_driver) {
     new_fs.open = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_OPEN];
     new_fs.read = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
     new_fs.write = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+    new_fs.mkdir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
     // printh((uint32_t)(t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE]));
     // printh((uint32_t)(t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_OPEN]));
     // printh((uint32_t)(t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ]));
@@ -257,6 +258,12 @@ int vfs_write(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len)
     uint8_t drive_id = fd->dev_id;
     uint32_t (*func)(vfs_device_t*, file_descriptor_t*, uint8_t*, uint32_t, uint32_t) = _vfs_fses[_vfs_devices[drive_id].fs].write;
     return func(&_vfs_devices[drive_id], fd, buf, start, len);
+}
+
+int vfs_mkdir(file_descriptor_t *fd, const char* name) {
+    uint8_t drive_id = fd->dev_id;
+    uint32_t (*func)(vfs_device_t*, file_descriptor_t*, const char*) = _vfs_fses[_vfs_devices[drive_id].fs].mkdir;
+    return func(&_vfs_devices[drive_id], fd, name);
 }
 
 void vfs_test() {
