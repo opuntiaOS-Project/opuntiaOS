@@ -195,6 +195,7 @@ install_apps: ${APPS}
 
 sync: products/kernel.bin
 	sudo fuse-ext2 one.img mountpoint -o rw+
+	sudo mkdir -p mountpoint
 	sudo mkdir -p mountpoint/boot
 	sudo cp -r base/ mountpoint/
 	sudo cp products/kernel.bin mountpoint/boot/
