@@ -25,6 +25,7 @@ typedef struct {
     void* open;
     void* read;
     void* write;
+    void* mkdir;
 } fs_desc_t;
 
 typedef struct {
@@ -51,7 +52,7 @@ typedef struct {
     uint32_t dtime;
     uint16_t gid;
     uint32_t dev_id;
-    uint32_t inode_idx;
+    uint32_t inode_index;
 } file_descriptor_t;
 
 void vfs_install();
@@ -80,5 +81,6 @@ vfs_element_t vfs_get_file_info(const char *t_path, const char *t_file_name);
 int vfs_open(const char *path, file_descriptor_t *fd);
 int vfs_read(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_write(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
+int vfs_mkdir(file_descriptor_t *fd, const char* name);
 
 #endif // __oneOS__FS__VFS_H

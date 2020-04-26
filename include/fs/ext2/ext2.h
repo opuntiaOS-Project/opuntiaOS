@@ -108,7 +108,7 @@ typedef struct {
     uint32_t osd2[3];
 } inode_t;
 
-    
+#define DIR_ENTRY_LEN (sizeof(dir_entry_t))
 typedef struct {
     uint32_t inode;
     uint16_t rec_len;
@@ -129,5 +129,6 @@ int ext2_get_inode_idx(vfs_device_t *dev, const char *path, uint32_t *file_inode
 int ext2_open(vfs_device_t *dev, const char *path, file_descriptor_t *fd);
 int ext2_read(vfs_device_t *dev, file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_write(vfs_device_t *dev, file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
+int ext2_mkdir(vfs_device_t *dev, file_descriptor_t *fd, const char* name);
 
 #endif // __oneOS__FS__EXT2__EXT2_H
