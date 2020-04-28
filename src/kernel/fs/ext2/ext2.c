@@ -4,8 +4,10 @@
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define SUPERBLOCK _ext2_superblocks[dev->dev.id]
 #define GROUP_TABLES _ext2_group_tables[dev->dev.id]
-#define BLOCK_LEN (1 << (SUPERBLOCK->log_block_size + 10))
+#define BLOCK_LEN (1024 << (SUPERBLOCK->log_block_size))
+#define TO_EXT_BLOCK_SIZE(x) (x / (2 << (SUPERBLOCK->log_block_size)))
 #define NORM_FILENAME(x) (x + ((4 - (x & 0b11)) & 0b11))
+
 
 static superblock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
 static group_desc_t* _ext2_group_tables[MAX_DEVICES_COUNT];
@@ -267,7 +269,7 @@ static int ext2_allocate_block(vfs_device_t* dev, uint32_t* block_index, uint32_
 static int ext2_allocate_block_for_inode(vfs_device_t* dev, inode_t* inode, uint32_t pref_group, uint32_t* block_index)
 {
     if (ext2_allocate_block(dev, block_index, pref_group) == 0) {
-        uint32_t blocks_per_inode = inode->blocks / (BLOCK_LEN / 512);
+        uint32_t blocks_per_inode = TO_EXT_BLOCK_SIZE(inode->blocks);
         if (_ext2_set_block_of_inode(dev, inode, blocks_per_inode, *block_index) == 0) {
             inode->blocks += BLOCK_LEN / 512;
             return 0;
@@ -471,7 +473,7 @@ int ext2_add_child(vfs_device_t* dev, inode_t* inode, uint32_t child_inode_index
 {
     inode_t child_inode;
     uint32_t block_index;
-    uint32_t blocks_per_dir = inode->blocks / (BLOCK_LEN / 512);
+    uint32_t blocks_per_dir = TO_EXT_BLOCK_SIZE(inode->blocks);
 
     for (int i = 0; i < blocks_per_dir; i++) {
         if (block_index = _ext2_get_block_of_inode(dev, inode, i)) {
@@ -616,23 +618,39 @@ int ext2_read(vfs_device_t* dev, file_descriptor_t* fd, uint8_t* buf, uint32_t s
 int ext2_write(vfs_device_t* dev, file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
 {
     inode_t inode;
+    bool flush_inode = false;
     ext2_read_inode(dev, fd->inode_index, &inode);
 
     const uint32_t block_len = BLOCK_LEN;
     uint32_t start_block_index = start / block_len;
     uint32_t end_block_index = (start + len) / block_len;
     uint32_t write_offset = start % block_len;
+    uint32_t to_write = len;
     uint32_t already_written = start % block_len;
-
+    uint32_t blocks_per_file = TO_EXT_BLOCK_SIZE(inode.blocks);
+    
     for (uint32_t block_index = start_block_index; block_index <= end_block_index; block_index++) {
-        uint32_t data_block_index = _ext2_get_block_of_inode(dev, &inode, block_index);
+        
+        uint32_t data_block_index;
+        if (blocks_per_file <= block_index) {
+            ext2_allocate_block_for_inode(dev, &inode, 0, &data_block_index);
+            flush_inode = true;
+        } else {
+            data_block_index = _ext2_get_block_of_inode(dev, &inode, block_index);
+        }
+        
         _ext2_write_to_dev(dev, buf + already_written, _ext2_get_block_offset(dev, data_block_index) + write_offset, MIN(len, block_len - write_offset));
-        len -= MIN(len, block_len - write_offset);
-        already_written += MIN(len, block_len - write_offset);
+        to_write -= MIN(to_write, block_len - write_offset);
+        already_written += MIN(to_write, block_len - write_offset);
         write_offset = 0;
     }
 
-    if (len != 0) {
+    if (flush_inode) {
+        inode.size = start + len;
+        ext2_write_inode(dev, fd->inode_index, &inode);
+    }
+
+    if (to_write != 0) {
         return -1;
     }
 
