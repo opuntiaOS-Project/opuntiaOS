@@ -126,7 +126,7 @@ int ext2_read_inode(vfs_device_t *dev, uint32_t inode_id, inode_t *inode);
 int ext2_has_in_dir(vfs_device_t *dev, uint32_t block_idx, const char *path, uint32_t *found_inode_idx);
 int ext2_scan_dir(vfs_device_t *dev, inode_t inode, const char *path, uint32_t *res_inode_idx);
 int ext2_get_inode_idx(vfs_device_t *dev, const char *path, uint32_t *file_inode);
-int ext2_open(vfs_device_t *dev, const char *path, file_descriptor_t *fd);
+int ext2_open(vfs_device_t* dev, file_descriptor_t* base, const char* path, file_descriptor_t* fd);
 int ext2_read(vfs_device_t *dev, file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_write(vfs_device_t *dev, file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_mkdir(vfs_device_t *dev, file_descriptor_t *fd, const char* name);
