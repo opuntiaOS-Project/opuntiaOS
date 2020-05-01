@@ -8,7 +8,6 @@
 #define TO_EXT_BLOCK_SIZE(x) (x / (2 << (SUPERBLOCK->log_block_size)))
 #define NORM_FILENAME(x) (x + ((4 - (x & 0b11)) & 0b11))
 
-
 static superblock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
 static group_desc_t* _ext2_group_tables[MAX_DEVICES_COUNT];
 
@@ -565,12 +564,17 @@ int ext2_get_inode_by_path(vfs_device_t* dev, const char* path, inode_t* root_in
 }
 
 // TODO: add support for root
-int ext2_open(vfs_device_t* dev, const char* path, file_descriptor_t* fd)
+int ext2_open(vfs_device_t* dev, file_descriptor_t* base, const char* path, file_descriptor_t* fd)
 {
     uint32_t inode_index;
     inode_t inode;
+    inode_t base_inode;
 
-    if (ext2_get_inode_by_path(dev, path, 0, &inode_index) < 0) {
+    if (ext2_read_inode(dev, base->inode_index, &base_inode) < 0) {
+        // perror("[Ext2]: can't load inode");
+        return -1;
+    }
+    if (ext2_get_inode_by_path(dev, path, &base_inode, &inode_index) < 0) {
         // perror("[Ext2]: can't find inode");
         return -1;
     }
@@ -578,6 +582,7 @@ int ext2_open(vfs_device_t* dev, const char* path, file_descriptor_t* fd)
         // perror("[Ext2]: can't load inode");
         return -1;
     }
+    
     fd->mode = inode.mode;
     fd->atime = inode.atime;
     fd->ctime = inode.ctime;
@@ -628,9 +633,9 @@ int ext2_write(vfs_device_t* dev, file_descriptor_t* fd, uint8_t* buf, uint32_t 
     uint32_t to_write = len;
     uint32_t already_written = start % block_len;
     uint32_t blocks_per_file = TO_EXT_BLOCK_SIZE(inode.blocks);
-    
+
     for (uint32_t block_index = start_block_index; block_index <= end_block_index; block_index++) {
-        
+
         uint32_t data_block_index;
         if (blocks_per_file <= block_index) {
             ext2_allocate_block_for_inode(dev, &inode, 0, &data_block_index);
@@ -638,7 +643,7 @@ int ext2_write(vfs_device_t* dev, file_descriptor_t* fd, uint8_t* buf, uint32_t 
         } else {
             data_block_index = _ext2_get_block_of_inode(dev, &inode, block_index);
         }
-        
+
         _ext2_write_to_dev(dev, buf + already_written, _ext2_get_block_offset(dev, data_block_index) + write_offset, MIN(len, block_len - write_offset));
         to_write -= MIN(to_write, block_len - write_offset);
         already_written += MIN(to_write, block_len - write_offset);
@@ -672,7 +677,7 @@ int ext2_mkdir(vfs_device_t* dev, file_descriptor_t* fd, const char* name)
         return -1;
     }
     if (ext2_add_child(dev, &inode, dir_inode_index, name) < 0) {
-        return -1;    
+        return -1;
     }
     if (ext2_write_inode(dev, fd->inode_index, &inode) < 0) {
         return -1;

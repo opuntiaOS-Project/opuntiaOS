@@ -30,7 +30,6 @@ typedef struct {
 
 typedef struct {
     int8_t fs;
-    char disk_name;
     device_t dev;
 } vfs_device_t;
 
@@ -41,7 +40,6 @@ typedef struct {
     uint16_t file_size;
 } vfs_element_t;
 
-#define VNODE_LEN (sizeof(vnode_t))
 typedef struct {
     uint16_t mode;
     uint16_t uid;
@@ -56,9 +54,9 @@ typedef struct {
 } file_descriptor_t;
 
 void vfs_install();
-void vfs_add_device(device_t *t_new_dev);
-void vfs_add_fs(driver_t *t_new_fs);
-void vfs_eject_device(device_t *t_new_dev);
+void vfs_add_device(device_t* t_new_dev);
+void vfs_add_fs(driver_t* t_new_fs);
+void vfs_eject_device(device_t* t_new_dev);
 
 // Test Func
 // Will be deleted
@@ -66,21 +64,21 @@ void vfs_test();
 
 void open();
 void close();
-uint32_t vfs_lookup_dir(const char *t_path, vfs_element_t *t_buf);
+uint32_t vfs_lookup_dir(const char* t_path, vfs_element_t* t_buf);
 bool vfs_create_dir(const char* t_path, const char* t_dir_name);
 bool vfs_remove_dir(const char* path, const char* dir_name);
 
-void vfs_write_file(const char *t_path, const char *t_file_name, const uint8_t *t_data, uint32_t t_size);
-void* vfs_read_file(const char *t_path, const char *t_file_name, uint16_t t_offset, int16_t t_len);
-bool vfs_remove_file(const char *t_path, const char *t_file_name);
+void vfs_write_file(const char* t_path, const char* t_file_name, const uint8_t* t_data, uint32_t t_size);
+void* vfs_read_file(const char* t_path, const char* t_file_name, uint16_t t_offset, int16_t t_len);
+bool vfs_remove_file(const char* t_path, const char* t_file_name);
 
-vfs_element_t vfs_get_file_info(const char *t_path, const char *t_file_name);
+vfs_element_t vfs_get_file_info(const char* t_path, const char* t_file_name);
 
 /* NEW APIS */
 
-int vfs_open(const char *path, file_descriptor_t *fd);
-int vfs_read(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
-int vfs_write(file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
-int vfs_mkdir(file_descriptor_t *fd, const char* name);
+int vfs_open(file_descriptor_t* base, const char* path, file_descriptor_t* fd);
+int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
+int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
+int vfs_mkdir(file_descriptor_t* fd, const char* name);
 
 #endif // __oneOS__FS__VFS_H

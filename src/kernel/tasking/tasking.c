@@ -24,14 +24,13 @@ void switchuvm(proc_t *p) {
     vmm_switch_pdir(p->pdir);
 }
 
-
+// TODO: add check if fd is ok. Maybe that there is no such file.
 static bool _tasking_load_bin(pdirectory_t* pdir, const char* path) {
-    uint8_t *prog = vfs_read_file("/", path, 0, -1);
-    vfs_element_t fstat = vfs_get_file_info("/", path);
-    if (fstat.attributes == VFS_ATTR_NOTFILE) {
-        return false;
-    }
-    vmm_copy_to_pdir(pdir, prog, 0, fstat.file_size);
+    file_descriptor_t fd;
+    vfs_open((file_descriptor_t*)(0), path, &fd);
+    uint8_t *prog = kmalloc(fd.size);
+    vfs_read(&fd, prog, 0, fd.size);
+    vmm_copy_to_pdir(pdir, prog, 0, fd.size);
     return true;
 }
 
