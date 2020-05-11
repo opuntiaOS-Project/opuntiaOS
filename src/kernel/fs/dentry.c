@@ -63,7 +63,7 @@ static dentry_t* dentry_cache_find_empty()
 static void dentry_rem(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_DIRTY)) {
-        dentry->ops->write_inode(dentry);
+        dentry->ops->dentry.write_inode(dentry);
     }
 
     // This marks the dentry as deleted.
@@ -80,9 +80,9 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     dentry->dev = &_vfs_devices[dentry->dev_indx];
     dentry->ops = &_vfs_fses[dentry->dev->fs];
     dentry->inode_indx = inode_indx;
-    dentry->fsdata = dentry->ops->get_fsdata(dentry);
+    dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
     dentry->inode = (inode_t*)kmalloc(INODE_LEN);
-    if (dentry->ops->read_inode(dentry) < 0) {
+    if (dentry->ops->dentry.read_inode(dentry) < 0) {
         printf("CANT READ INODE");
     }
     return dentry;
@@ -160,4 +160,23 @@ bool dentry_test_flag(dentry_t* dentry, uint32_t flag)
 void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags &= ~flag;
+}
+
+// TODO: check it changes smth
+void dentry_inode_set_flag(dentry_t* dentry, uint32_t flag)
+{
+    dentry->inode->mode |= flag;
+    dentry_set_flag(dentry, DENTRY_DIRTY);
+}
+
+bool dentry_inode_test_flag(dentry_t* dentry, uint32_t flag)
+{
+    return (dentry->inode->mode & flag) > 0;
+}
+
+// TODO: check it changes smth
+void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag)
+{
+    dentry->inode->mode &= ~flag;
+    dentry_set_flag(dentry, DENTRY_DIRTY);
 }

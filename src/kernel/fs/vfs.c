@@ -75,17 +75,20 @@ void vfs_add_fs(driver_t* t_new_driver)
     }
 
     fs_ops_t new_fs;
-    new_fs.write_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
-    new_fs.read_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
-    new_fs.get_fsdata = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GET_fsdata];
-    new_fs.lookup = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
 
-    new_fs.open = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_OPEN];
-    new_fs.read = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
-    new_fs.write = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
-    new_fs.mkdir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
     new_fs.recognize = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
     new_fs.eject_device = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
+
+    new_fs.file.mkdir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
+    new_fs.file.getdirent = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT]; // TODO FIX
+    new_fs.file.lookup = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
+    new_fs.file.read = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
+    new_fs.file.write = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+
+    new_fs.dentry.write_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
+    new_fs.dentry.read_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
+    new_fs.dentry.get_fsdata = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
+
     _vfs_fses[_vfs_fses_count++] = new_fs;
 }
 
@@ -100,14 +103,19 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd)
     }
 
     fd->dentry = dentry_duplicate(file);
-    fd->ops = file->ops;
+    fd->offset = 0;
+    fd->ops = &file->ops->file;
     return 0;
 }
 
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
+    if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
+        return -1;
+    }
+
     uint32_t next_inode;
-    if (dir->ops->lookup(dir, name, len, &next_inode) == 0) {
+    if (dir->ops->file.lookup(dir, name, len, &next_inode) == 0) {
         *result = dentry_get(root_fs_dev_id, next_inode);
         return 0;
     }
@@ -116,19 +124,28 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
 {
-    uint32_t (*func)(dentry_t*, uint8_t*, uint32_t, uint32_t) = fd->ops->read;
-    return func(fd->dentry, buf, start, len);
+    return fd->ops->read(fd->dentry, buf, start, len);
 }
 
 int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
 {
-    uint32_t (*func)(dentry_t*, uint8_t*, uint32_t, uint32_t) = fd->ops->write;
-    return func(fd->dentry, buf, start, len);
+    return fd->ops->write(fd->dentry, buf, start, len);
 }
 
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
 {
-    return dir->ops->mkdir(dir, name, len, mode);
+    if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
+        return -1;
+    }
+    return dir->ops->file.mkdir(dir, name, len, mode);
+}
+
+int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t *res)
+{
+    if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
+        return -1;
+    }
+    return dir_fd->ops->getdirent(dir_fd->dentry, &dir_fd->offset, res);
 }
 
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result)
