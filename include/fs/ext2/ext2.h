@@ -1,7 +1,6 @@
 #ifndef __oneOS__FS__EXT2__EXT2_H
 #define __oneOS__FS__EXT2__EXT2_H
 
-#include <fs/vfs.h>
 #include <types.h>
 
 #define SUPERBLOCK_START 1024
@@ -114,21 +113,11 @@ typedef struct {
     uint16_t rec_len;
     uint8_t name_len;
     uint8_t file_type;
-    char* name; // TODO maybe not used?
+    char* name;
 } dir_entry_t;
 
-
 void ext2_install();
-bool ext2_recognize_drive(vfs_device_t *dev);
-void ext2_stub();
 
-int ext2_read_inode(vfs_device_t *dev, uint32_t inode_id, inode_t *inode);
-int ext2_has_in_dir(vfs_device_t *dev, uint32_t block_idx, const char *path, uint32_t *found_inode_idx);
-int ext2_scan_dir(vfs_device_t *dev, inode_t inode, const char *path, uint32_t *res_inode_idx);
-int ext2_get_inode_idx(vfs_device_t *dev, const char *path, uint32_t *file_inode);
-int ext2_open(vfs_device_t* dev, file_descriptor_t* base, const char* path, file_descriptor_t* fd);
-int ext2_read(vfs_device_t *dev, file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
-int ext2_write(vfs_device_t *dev, file_descriptor_t *fd, uint8_t* buf, uint32_t start, uint32_t len);
-int ext2_mkdir(vfs_device_t *dev, file_descriptor_t *fd, const char* name);
+/* All others apis are avail for VFS throw struct fs_ops_t */
 
 #endif // __oneOS__FS__EXT2__EXT2_H
