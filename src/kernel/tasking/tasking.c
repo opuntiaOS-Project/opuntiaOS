@@ -26,11 +26,11 @@ void switchuvm(proc_t *p) {
 
 // TODO: add check if fd is ok. Maybe that there is no such file.
 static bool _tasking_load_bin(pdirectory_t* pdir, const char* path) {
-    file_descriptor_t fd;
-    vfs_open((file_descriptor_t*)(0), path, &fd);
-    uint8_t *prog = kmalloc(fd.size);
-    vfs_read(&fd, prog, 0, fd.size);
-    vmm_copy_to_pdir(pdir, prog, 0, fd.size);
+    // file_descriptor_t fd;
+    // vfs_open((file_descriptor_t*)(0), path, &fd);
+    // uint8_t *prog = kmalloc(fd.size);
+    // vfs_read(&fd, prog, 0, fd.size);
+    // vmm_copy_to_pdir(pdir, prog, 0, fd.size);
     return true;
 }
 
