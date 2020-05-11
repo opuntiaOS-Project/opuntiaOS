@@ -325,9 +325,9 @@ int ext2_allocate_inode(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_inde
  * DIR FUNCTIONS
  */
 
-// TODO: currently only link version is supported.
+// NOTE: currently only link version is supported.
 // TODO: add cache.
-int _ext2_scan_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index)
+int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index)
 {
     if (block_index == 0) {
         return -1;
@@ -365,17 +365,39 @@ int _ext2_scan_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_inde
     return -2;
 }
 
-int ext2_dir_find_child(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_index)
+int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint32_t* offset, dirent_t* dirent)
 {
-    uint32_t block_per_dir = TO_EXT_BLOCK_SIZE(dentry->fsdata.sb, dentry->inode->blocks);
-    uint32_t found_inode = 0;
-    for (int block_index = 0; block_index < block_per_dir; block_index++) {
-        uint32_t data_block_index = _ext2_get_block_of_inode(dentry, block_index);
-        if (_ext2_scan_dir_block(dentry->dev, dentry->fsdata, data_block_index, name, len, res_inode_index) == 0) {
+    if (block_index == 0) {
+        return -1;
+    }
+    const uint32_t block_len = BLOCK_LEN(fsdata.sb);
+    uint32_t internal_offset = *offset % block_len;
+
+    uint8_t* tmp_buf = (uint8_t*)kmalloc(block_len);
+    _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
+    for (;;) {
+        dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + internal_offset);
+        internal_offset += start_of_entry->rec_len;
+        *offset += start_of_entry->rec_len;
+
+        if (start_of_entry->inode != 0) {
+            int name_len = start_of_entry->name_len;
+            if (name_len > 251) {
+                printf("[VFS] Full name len is unsupported\n");
+                name_len = 251;
+            }
+            memcpy(dirent->name, (char*)start_of_entry+8, name_len);
+            dirent->name[name_len] = '\0';
             return 0;
         }
+        
+        if (internal_offset >= block_len) {
+            kfree(tmp_buf);
+            return -1;
+        }
     }
-    return -1;
+    kfree(tmp_buf);
+    return -2;
 }
 
 int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len)
@@ -558,6 +580,18 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return 0;
 }
 
+int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
+{
+    uint32_t block_per_dir = TO_EXT_BLOCK_SIZE(dir->fsdata.sb, dir->inode->blocks);
+    for (int block_index = 0; block_index < block_per_dir; block_index++) {
+        uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
+        if (_ext2_lookup_block(dir->dev, dir->fsdata, data_block_index, name, len, res_inode_indx) == 0) {
+            return 0;
+        }
+    }
+    return -1;
+}
+
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
 {
     uint32_t new_dir_inode_indx = 0;
@@ -575,6 +609,25 @@ int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
     }
 
     dentry_put(new_dir);
+    return 0;
+}
+
+int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
+{
+    const uint32_t block_len = BLOCK_LEN(dir->fsdata.sb);
+    uint32_t blocks_per_dir = TO_EXT_BLOCK_SIZE(dir->fsdata.sb, dir->inode->blocks);
+    if (*offset >= blocks_per_dir * block_len) {
+        return -1;
+    }
+
+    for (uint32_t block_index = *offset / block_len; block_index < blocks_per_dir; block_index++) {
+        uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
+        if (_ext2_getdirent_block(dir->dev, dir->fsdata, data_block_index, offset, res) == 0) {
+            return 0;
+        }
+    }
+    
+
     return 0;
 }
 
@@ -598,8 +651,9 @@ driver_desc_t _ext2_driver_info()
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = ext2_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = ext2_write_inode;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_GET_fsdata] = get_fsdata;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = ext2_dir_find_child;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = get_fsdata;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = ext2_lookup;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT] = ext2_getdirent;
     return fs_desc;
 }
 

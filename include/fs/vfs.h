@@ -28,6 +28,12 @@ typedef struct {
     device_t *dev;
 } vfs_device_t;
 
+struct dirent {
+    uint32_t inode_indx;
+    char name[251];
+};
+typedef struct dirent dirent_t;
+
 #define DENTRY_DIRTY 0x1
 #define DENTRY_MOUNTPOINT 0x2
 struct dentry{
@@ -42,30 +48,6 @@ struct dentry{
 };
 typedef struct dentry dentry_t;
 
-struct fs_ops {
-    void* recognize;
-
-    void* create_dir;
-    void* lookup_dir;
-    void* remove_dir;
-
-    void* write_file;
-    void* read_file;
-    void* remove_file;
-
-    void* eject_device;
-
-    void* open;
-    void* read;
-    void* write;
-    int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
-    int (*read_inode)(dentry_t* dentry);
-    int (*write_inode)(dentry_t* dentry);
-    fsdata_t (*get_fsdata)(dentry_t* dentry);
-    int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
-};
-typedef struct fs_ops fs_ops_t;
-
 struct dentry_cache_list {
     struct dentry_cache_list* prev;
     struct dentry_cache_list* next;
@@ -74,11 +56,38 @@ struct dentry_cache_list {
 };
 typedef struct dentry_cache_list dentry_cache_list_t;
 
-typedef struct {
-    dentry_t* dentry;
-    fs_ops_t* ops;
-} file_descriptor_t;
+struct file_ops {
+    int (*read)(dentry_t*, uint8_t*, uint32_t, uint32_t);
+    int (*write)(dentry_t*, uint8_t*, uint32_t, uint32_t);
+    int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
+    int (*getdirent)(dentry_t* dir, uint32_t* offset, dirent_t* res);
+    int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
+};
+typedef struct file_ops file_ops_t;
 
+struct dentry_ops {
+    int (*read_inode)(dentry_t* dentry);
+    int (*write_inode)(dentry_t* dentry);
+    fsdata_t (*get_fsdata)(dentry_t* dentry);
+};
+typedef struct dentry_ops dentry_ops_t;
+
+struct fs_ops {
+    void* recognize;
+    void* eject_device;
+
+    file_ops_t file;
+    dentry_ops_t dentry;
+};
+typedef struct fs_ops fs_ops_t;
+
+
+struct file_descriptor {
+    dentry_t* dentry;
+    uint32_t offset;
+    file_ops_t* ops;
+};
+typedef struct file_descriptor file_descriptor_t;
 
 /**
  * DENTRIES
@@ -92,6 +101,10 @@ void dentry_put_all_dentries_of_dev(uint32_t dev_indx);
 void dentry_set_flag(dentry_t* dentry, uint32_t flag);
 bool dentry_test_flag(dentry_t* dentry, uint32_t flag);
 void dentry_rem_flag(dentry_t* dentry, uint32_t flag);
+void dentry_inode_set_flag(dentry_t* dentry, uint32_t flag);
+bool dentry_inode_test_flag(dentry_t* dentry, uint32_t flag);
+void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag);
+
 
 /**
  * VFS APIS
@@ -102,11 +115,6 @@ void vfs_add_device(device_t* t_new_dev);
 void vfs_add_fs(driver_t* t_new_fs);
 void vfs_eject_device(device_t* t_new_dev);
 
-void open();
-void close();
-
-/* NEW APIS */
-
 int vfs_resolve_path(const char* path, dentry_t** result);
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result);
 
@@ -115,5 +123,6 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd);
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
+int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t *res);
 
 #endif // __oneOS__FS__VFS_H
