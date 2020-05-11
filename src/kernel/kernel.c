@@ -13,7 +13,6 @@
 #include <mem/pmm.h>
 #include <mem/malloc.h>
 
-#include <fs/fat16/fat16.h>
 #include <fs/ext2/ext2.h>
 #include <fs/vfs.h>
 
