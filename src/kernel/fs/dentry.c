@@ -147,36 +147,39 @@ void dentry_put_all_dentries_of_dev(uint32_t dev_indx)
     }
 }
 
-void dentry_set_flag(dentry_t* dentry, uint32_t flag)
+inline void dentry_set_flag(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags |= flag;
 }
 
-bool dentry_test_flag(dentry_t* dentry, uint32_t flag)
+inline bool dentry_test_flag(dentry_t* dentry, uint32_t flag)
 {
     return (dentry->flags & flag) > 0;
 }
 
-void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
+inline void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags &= ~flag;
 }
 
-// TODO: check it changes smth
-void dentry_inode_set_flag(dentry_t* dentry, uint32_t flag)
+inline void dentry_inode_set_flag(dentry_t* dentry, uint32_t flag)
 {
+    if (!dentry_inode_test_flag(dentry, flag)) {
+        dentry_set_flag(dentry, DENTRY_DIRTY);
+    }
     dentry->inode->mode |= flag;
-    dentry_set_flag(dentry, DENTRY_DIRTY);
+    
 }
 
-bool dentry_inode_test_flag(dentry_t* dentry, uint32_t flag)
+inline bool dentry_inode_test_flag(dentry_t* dentry, uint32_t flag)
 {
     return (dentry->inode->mode & flag) > 0;
 }
 
-// TODO: check it changes smth
-void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag)
+inline void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag)
 {
+    if (dentry_inode_test_flag(dentry, flag)) {
+        dentry_set_flag(dentry, DENTRY_DIRTY);
+    }
     dentry->inode->mode &= ~flag;
-    dentry_set_flag(dentry, DENTRY_DIRTY);
 }
