@@ -116,7 +116,7 @@ fsdata_t get_fsdata(dentry_t* dentry)
 
 void ext2_stub()
 {
-    printf("EXT2\n");
+    kprintf("EXT2\n");
 }
 
 /**
@@ -383,14 +383,14 @@ int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_ind
         if (start_of_entry->inode != 0) {
             int name_len = start_of_entry->name_len;
             if (name_len > 251) {
-                printf("[VFS] Full name len is unsupported\n");
+                kprintf("[VFS] Full name len is unsupported\n");
                 name_len = 251;
             }
-            memcpy(dirent->name, (char*)start_of_entry+8, name_len);
+            memcpy(dirent->name, (char*)start_of_entry + 8, name_len);
             dirent->name[name_len] = '\0';
             return 0;
         }
-        
+
         if (internal_offset >= block_len) {
             kfree(tmp_buf);
             return -1;
@@ -626,7 +626,6 @@ int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
             return 0;
         }
     }
-    
 
     return 0;
 }

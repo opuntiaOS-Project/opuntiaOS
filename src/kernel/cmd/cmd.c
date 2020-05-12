@@ -73,7 +73,7 @@ void _cmd_input() {
 }
 
 void _cmd_processor() {
-    printf("\n");
+    kprintf("\n");
 
     _cmd_parsed_buffer_position = 0;
 
@@ -98,7 +98,7 @@ void _cmd_processor() {
 
     int16_t handler = _cmd_find_cmd_handler();
     if (handler == -1) {
-        printf("No such command");
+        kprintf("No such command");
     } else {
         void (*func)(uint8_t args_size, char *args[]) = _cmd_redirects[handler].handler;
         func(_cmd_parsed_buffer_position, _cmd_parsed_buffer);
@@ -107,12 +107,12 @@ void _cmd_processor() {
 }
 
 void _cmd_loop_start() {
-    printf("cmd> ");
+    kprintf("cmd> ");
 }
 
 void _cmd_loop_end() {
     _cmd_buffer_clear();
-    printf("\n");
+    kprintf("\n");
 }
 
 bool _cmd_is_ascii(uint32_t key) {

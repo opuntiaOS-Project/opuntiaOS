@@ -174,12 +174,12 @@ void pmm_setup(mem_desc_t *mem_desc) {
     memory_map_t *memory_map = (memory_map_t *)MEMORY_MAP_REGION;
     for (int i = 0; i < mem_desc->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
-            printh(memory_map[i].startLo); printf(" "); printh(memory_map[i].sizeLo); printf("\n");
+            kprinth(memory_map[i].startLo); kprintf(" "); kprinth(memory_map[i].sizeLo); kprintf("\n");
             _pmm_init_region(memory_map[i].startLo, memory_map[i].sizeLo);
         }
     }
 
-    printh(pmm_mat_size);
+    kprinth(pmm_mat_size);
 
     // while (1) {}
 

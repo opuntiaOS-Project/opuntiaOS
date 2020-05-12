@@ -47,7 +47,7 @@ char pci_has_device_functions(uint8_t bus, uint8_t device) {
 }
 
 void pci_find_devices() {
-    printf("Pci scanning\n");
+    kprintf("Pci scanning\n");
     uint8_t bus, device, function;
     for (bus = 0; bus < 8; bus++){
         for (device = 0; device < 32; device++){
@@ -67,15 +67,7 @@ void pci_find_devices() {
 
                 device_install(dev);
 
-                printf("VENDOR ");
-                printh(dev.vendor_id);
-                printf(" = dev_id ");
-                printh(dev.device_id);
-                printf(", CLASS ");
-                printh(dev.class_id);
-                printf(", SLASS ");
-                printh(dev.subclass_id);
-                printf("\n");
+                kprintf("Vendor %x, devID %x, cl %x scl %x\n", dev.vendor_id, dev.device_id, dev.class_id, dev.subclass_id);
             }
         }
     }

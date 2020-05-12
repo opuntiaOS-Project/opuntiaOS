@@ -31,16 +31,16 @@ void _syscmd_ls(int argc, char *argv[]) {
 
     dirent_t tmp;
     while (vfs_getdirent(&fd, &tmp) == 0) {
-        printf(tmp.name); printf("\n");
+        kprintf(tmp.name); kprintf("\n");
     }
 }
 
 void _syscmd_shutdown(int argc, char *argv[]) {
     clean_screen();
-    printf("Shutting Down\n");
+    kprintf("Shutting Down\n");
     eject_all_devices();
     clean_screen();
-    printf("Off\n");
+    kprintf("Off\n");
     while(1) {}
 }
 
@@ -53,33 +53,33 @@ void umode(int argc, char *argv[]) {
 //     // set_proc2();
 //     file_descriptor_t fd;
 //     vfs_open((file_descriptor_t*)(0), argv[1], &fd);
-//     printf("Inode: "); printd(fd.inode_index); printf("\n");
-//     printf("Size: "); printd(fd.size); printf("\n");
+//     kprintf("Inode: "); kprintd(fd.inode_index); kprintf("\n");
+//     kprintf("Size: "); kprintd(fd.size); kprintf("\n");
     
 //     char data[127];
 //     memset(data, 0, sizeof(data));
 //     vfs_read(&fd, (uint8_t*)&data, 1, 10);
-//     printf(data);
+//     kprintf(data);
 // }
 
 // void write(int argc, char *argv[]) {
 //     // set_proc2();
 //     file_descriptor_t fd;
 //     vfs_open((file_descriptor_t*)(0), argv[1], &fd);
-//     printf("Inode: "); printd(fd.inode_index); printf("\n");
-//     printf("Size: "); printd(fd.size); printf("\n");
+//     kprintf("Inode: "); kprintd(fd.inode_index); kprintf("\n");
+//     kprintf("Size: "); kprintd(fd.size); kprintf("\n");
     
 //     char data[2048];
 //     for (int i = 0; i < 2048; i++) {
 //         data[i] = '1';
 //     } 
 //     vfs_write(&fd, (uint8_t*)&data, 0, 2048);
-//     // printf(data);
+//     // kprintf(data);
 
 //     fd;
 //     vfs_open((file_descriptor_t*)(0), argv[1], &fd);
-//     printf("Inode: "); printd(fd.inode_index); printf("\n");
-//     printf("Size: "); printd(fd.size); printf("\n");
+//     kprintf("Inode: "); kprintd(fd.inode_index); kprintf("\n");
+//     kprintf("Size: "); kprintd(fd.size); kprintf("\n");
 // }
 
 void read(int argc, char *argv[]) {
@@ -89,15 +89,15 @@ void read(int argc, char *argv[]) {
     if (vfs_resolve_path(argv[1], &file) < 0) {
         return;
     }
-    printf("endndn");
+    kprintf("endndn");
     vfs_open(file, &fd);
-    printf("Inode: "); printd(fd.dentry->inode_indx); printf("\n");
-    printf("Size: "); printd(fd.dentry->inode->size); printf("\n");
+    kprintf("Inode: "); kprintd(fd.dentry->inode_indx); kprintf("\n");
+    kprintf("Size: "); kprintd(fd.dentry->inode->size); kprintf("\n");
     
     char data[127];
     memset(data, 0, sizeof(data));
     vfs_read(&fd, (uint8_t*)&data, 1, 10);
-    printf(data);
+    kprintf(data);
 }
 
 void syscmd_init() {

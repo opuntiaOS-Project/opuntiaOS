@@ -28,7 +28,7 @@ void ata_add_new_device(device_t *t_new_device) {
     uint16_t port = t_new_device->device_desc.port_base & 0xFFF;
     ata_init(&_ata_drives[t_new_device->id], port, is_master);
     if (ata_indentify(&_ata_drives[t_new_device->id])) {
-        printf("Device added to ata driver\n");
+        kprintf("Device added to ata driver\n");
     }
 }
 
@@ -61,7 +61,7 @@ bool ata_indentify(ata_t *ata) {
     // check the acceptance of a command
     uint8_t status = port_8bit_in(ata->port.command);
     if (status == 0x00) {
-        printf("Cmd isn't accepted");
+        kprintf("Cmd isn't accepted");
         return false;
     }
 
@@ -72,7 +72,7 @@ bool ata_indentify(ata_t *ata) {
     }
     // check if drive isn't ready to transer DRQ
     if ((status & 0x08) != 0x08) {
-        printf("Doesn't ready to transfer DRQ");
+        kprintf("Doesn't ready to transfer DRQ");
         return false;
     }
 
@@ -123,13 +123,13 @@ void ata_write(device_t *t_device, uint32_t sectorNum, uint8_t *data, uint32_t s
     uint8_t status = port_8bit_in(dev.port.command);
     while((status >> 7) & 1 == 1 && (status >> 0) & 1 != 1) {
         status = port_8bit_in(dev.port.command);
-        printd(status);
-        printf("\n");
+        kprintd(status);
+        kprintf("\n");
     }
 
     // check if drive isn't ready to transer DRQ
     if ((status >> 0) & 1 == 1) {
-        printf("Error");
+        kprintf("Error");
         return;
     }
 
@@ -172,12 +172,12 @@ void ata_read(device_t *t_device, uint32_t sectorNum, uint8_t *read_data) {
 
     // check if drive isn't ready to transer DRQ
     if (((status >> 0) & 1) == 1) {
-        printf("Error");
+        kprintf("Error");
         return;
     }
 
     if (((status >> 3) & 1) == 0) {
-        printf("No DRQ");
+        kprintf("No DRQ");
         return;
     }
 

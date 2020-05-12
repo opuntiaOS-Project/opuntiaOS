@@ -17,7 +17,7 @@ void _no_driver_for_device(device_desc_t t_device_info);
 // Private
 // Handler if device hasn't driver
 void _no_driver_for_device(device_desc_t t_device_info) {
-    printf("No driver for the device\n\n");
+    kprintf("No driver for the device\n\n");
 }
 
 // Private
@@ -69,43 +69,43 @@ char _debug_drivers_print_name(int d_id) {
         tmp[i] = drivers[d_id].driver_desc.name[i];
     }
     tmp[DRIVER_NAME_LENGTH] = '\0';
-    printf(tmp);
+    kprintf(tmp);
     kfree(tmp);
 }
 
 void _debug_drivers_print_status(int d_id) {
     char *tmp = " \0";
     tmp[0] = _debug_drivers_bool_to_char(drivers[d_id].is_active);
-    printf(tmp);
+    kprintf(tmp);
 }
 
 void _debug_drivers_print_start_params(int d_id) {
     char *tmp = " \0";
     tmp[0] = _debug_drivers_bool_to_char(drivers[d_id].driver_desc.auto_start);
-    printf(tmp);
+    kprintf(tmp);
     tmp[0] = _debug_drivers_bool_to_char(drivers[d_id].driver_desc.is_device_driver);
-    printf(tmp);
+    kprintf(tmp);
     tmp[0] = _debug_drivers_bool_to_char(drivers[d_id].driver_desc.is_device_needed);
-    printf(tmp);
+    kprintf(tmp);
     tmp[0] = _debug_drivers_bool_to_char(drivers[d_id].driver_desc.is_driver_needed);
-    printf(tmp);
+    kprintf(tmp);
 }
 
 void _debug_drivers_list() {
     for (int i = 0; i < _drivers_count; i++) {
-        printf("Driver: "); printd(i); printf("\n");
-        printf("Id: "); printd(drivers[i].id); printf("\n");
-        printf("Name: [currently unsupported]"); printf("\n");
-        printf("Active: "); _debug_drivers_print_status(i); printf("\n");
-        printf("Type: "); printd(drivers[i].driver_desc.type); printf("\n");
-        printf("Params: "); _debug_drivers_print_start_params(i); printf("\n");
+        kprintf("Driver: "); kprintd(i); kprintf("\n");
+        kprintf("Id: "); kprintd(drivers[i].id); kprintf("\n");
+        kprintf("Name: [currently unsupported]"); kprintf("\n");
+        kprintf("Active: "); _debug_drivers_print_status(i); kprintf("\n");
+        kprintf("Type: "); kprintd(drivers[i].driver_desc.type); kprintf("\n");
+        kprintf("Params: "); _debug_drivers_print_start_params(i); kprintf("\n");
         if (drivers[i].driver_desc.is_device_driver) {
-            printf("PCI_SERVE_CLASS: "); printd(drivers[i].driver_desc.pci_serve_class); printf("\n");
-            printf("PCI_SERVE_SUBCLASS: "); printd(drivers[i].driver_desc.pci_serve_subclass); printf("\n");
-            printf("PCI_SERVE_VENDOR: "); printd(drivers[i].driver_desc.pci_serve_vendor_id); printf("\n");
-            printf("PCI_SERVE_DEVICE: "); printd(drivers[i].driver_desc.pci_serve_device_id); printf("\n");
+            kprintf("PCI_SERVE_CLASS: "); kprintd(drivers[i].driver_desc.pci_serve_class); kprintf("\n");
+            kprintf("PCI_SERVE_SUBCLASS: "); kprintd(drivers[i].driver_desc.pci_serve_subclass); kprintf("\n");
+            kprintf("PCI_SERVE_VENDOR: "); kprintd(drivers[i].driver_desc.pci_serve_vendor_id); kprintf("\n");
+            kprintf("PCI_SERVE_DEVICE: "); kprintd(drivers[i].driver_desc.pci_serve_device_id); kprintf("\n");
         }
-        printf("-------\n");
+        kprintf("-------\n");
     }
 }
 
