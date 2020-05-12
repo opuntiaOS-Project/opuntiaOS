@@ -1,21 +1,30 @@
-#include <tasking/tasking.h>
+/*
+ * Copyright (C) 2020 Nikita Melekhin
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License v2 as published by the
+ * Free Software Foundation.
+ */
+
 #include <fs/vfs.h>
-#include <x86/idt.h>
-#include <x86/gdt.h>
-#include <x86/tss.h>
-#include <tasking/sched.h>
 #include <mem/malloc.h>
+#include <tasking/sched.h>
+#include <tasking/tasking.h>
+#include <x86/gdt.h>
+#include <x86/idt.h>
+#include <x86/tss.h>
 
 #define FL_IF 0x00000200
 
 extern void trap_return();
-extern void switch_contexts(context_t **old, context_t *new);
+extern void switch_contexts(context_t** old, context_t* new);
 
 static int nxtpid = 0;
 
 // switching the page dir and tss to the current proc
-void switchuvm(proc_t *p) {
-    gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss)-1, 0);
+void switchuvm(proc_t* p)
+{
+    gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
     tss.esp0 = (uint32_t)(p->kstack + VMM_PAGE_SIZE);
     tss.ss0 = (SEG_KDATA << 3);
     // tss.iomap_offset = 0xffff;
@@ -25,38 +34,46 @@ void switchuvm(proc_t *p) {
 }
 
 // TODO: add check if fd is ok. Maybe that there is no such file.
-static bool _tasking_load_bin(pdirectory_t* pdir, const char* path) {
-    // file_descriptor_t fd;
-    // vfs_open((file_descriptor_t*)(0), path, &fd);
-    // uint8_t *prog = kmalloc(fd.size);
-    // vfs_read(&fd, prog, 0, fd.size);
-    // vmm_copy_to_pdir(pdir, prog, 0, fd.size);
+static bool _tasking_load_bin(pdirectory_t* pdir, const char* path)
+{
+    dentry_t* file;
+    file_descriptor_t fd;
+
+    vfs_resolve_path(path, &file);
+    vfs_open(file, &fd);
+
+    uint8_t* prog = kmalloc(fd.dentry->inode->size);
+    fd.ops->read(fd.dentry, prog, 0, fd.dentry->inode->size);
+    vmm_copy_to_pdir(pdir, prog, 0, fd.dentry->inode->size);
     return true;
 }
 
 // TODO add ELF support
-static bool _tasking_load(pdirectory_t* pdir, const char* path) {
+static bool _tasking_load(pdirectory_t* pdir, const char* path)
+{
     return _tasking_load_bin(pdir, path);
 }
 
-
 // used to jump to trapend
 // the jump will start the process
-void _tasking_jumper() {
+void _tasking_jumper()
+{
     return;
 }
 
-proc_t* tasking_get_active_proc() {
+proc_t* tasking_get_active_proc()
+{
     return active_proc;
 }
 
-static void _tasking_allocate_proc(proc_t *p) {
+static void _tasking_allocate_proc(proc_t* p)
+{
     p->pid = ++nxtpid;
     // allocating kernel stack
     p->kstack = kmalloc(VMM_PAGE_SIZE);
-    char *sp = p->kstack + VMM_PAGE_SIZE;
+    char* sp = p->kstack + VMM_PAGE_SIZE;
     sp -= sizeof(*p->tf);
-    p->tf = (trapframe_t *)sp;
+    p->tf = (trapframe_t*)sp;
     sp -= 4;
     *(uint32_t*)sp = (uint32_t)trap_return;
     sp -= sizeof(*p->context);
@@ -68,9 +85,10 @@ static void _tasking_allocate_proc(proc_t *p) {
 
 // Start init proccess
 // All others processes will fork
-void tasking_start_init_proc() {
+void tasking_start_init_proc()
+{
     nxt_proc = 0;
-    proc_t *p = &proc[nxt_proc++];
+    proc_t* p = &proc[nxt_proc++];
 
     // creating new page dir
     p->pdir = vmm_new_user_pdir();
@@ -87,14 +105,15 @@ void tasking_start_init_proc() {
 
     // stub context
     context_t stub_cntx;
-    context_t *stub_cntx_ptr = &stub_cntx;
+    context_t* stub_cntx_ptr = &stub_cntx;
 
     switchuvm(p);
     switch_contexts(&stub_cntx_ptr, p->context);
 }
 
-void tasking_fork() {
-    proc_t *new_p = &proc[nxt_proc++];
+void tasking_fork()
+{
+    proc_t* new_p = &proc[nxt_proc++];
     new_p->pdir = vmm_new_forked_user_pdir();
     _tasking_allocate_proc(new_p);
     memcpy((void*)new_p->tf, (void*)active_proc->tf, sizeof(trapframe_t));
@@ -105,9 +124,10 @@ void tasking_fork() {
 }
 
 // TODO add POSIX support
-void tasking_exec() {
-    proc_t *proc = tasking_get_active_proc();
-    char *launch_path = (char*)proc->tf->ecx; // for now let's think that our string is at ecx
+void tasking_exec()
+{
+    proc_t* proc = tasking_get_active_proc();
+    char* launch_path = (char*)proc->tf->ecx; // for now let's think that our string is at ecx
     vmm_zero_user_pages(proc->pdir);
     if (!_tasking_load(proc->pdir, launch_path)) {
         proc->tf->eax = -1;
