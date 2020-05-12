@@ -55,13 +55,13 @@ void vfs_add_device(device_t* dev)
             return;
         }
     }
-    printf("Can't find FS\n");
+    kprintf("Can't find FS\n");
 }
 
 // TODO: reuse unused slots
 void vfs_eject_device(device_t* dev)
 {
-    printf("Ejecting\n");
+    kprintf("Ejecting\n");
     uint8_t fs_id = _vfs_devices[dev->id].fs;
     bool (*eject)(vfs_device_t * nd) = _vfs_fses[fs_id].eject_device;
     eject(&_vfs_devices[dev->id]);

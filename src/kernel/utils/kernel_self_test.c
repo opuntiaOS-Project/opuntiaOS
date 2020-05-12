@@ -22,22 +22,22 @@ bool _test_page_fault() {
 
 void kpanic(char *t_err_msg) {
     clean_screen();
-    printf("*****\n");
-    printf("Kernel Panic\n");
-    printf("*****\n");
-    printf(t_err_msg);
-    printf("\n*****");
+    kprintf("*****\n");
+    kprintf("Kernel Panic\n");
+    kprintf("*****\n");
+    kprintf(t_err_msg);
+    kprintf("\n*****");
     while (1) {}
 }
 
 void kpanic_at_test(char *t_err_msg, uint16_t test_no) {
     clean_screen();
-    printf("*****\n");
-    printf("Kernel Panic\n");
-    printf("*****\n");
-    printf(t_err_msg);
-    printf("\nFailed Test: "); printd(test_no);
-    printf("\n*****");
+    kprintf("*****\n");
+    kprintf("Kernel Panic\n");
+    kprintf("*****\n");
+    kprintf(t_err_msg);
+    kprintf("\nFailed Test: "); kprintd(test_no);
+    kprintf("\n*****");
     while (1) {}
 }
 
@@ -69,18 +69,18 @@ bool kernel_self_test(bool throw_kernel_panic) {
 //     uint8_t* new_block = pmm_alloc_block();
 //     vmm_map_page(new_block, 0x60000000);
 //     uint8_t *app = (uint8_t *)0x60000000;
-//     printh(app);
+//     kprinth(app);
 //     uint8_t* read_buffer = (uint8_t*)kmalloc(512);
 //     ata_read(ata0m, 60, read_buffer);
 
 //     for (int i = 0; i < 256; i+=2) {
 //         app[i] = read_buffer[i+1];
 //         app[i+1] = read_buffer[i];
-//         printh(app[i]); printf(" ");
-//         printh(app[i+1]); printf(" ");
+//         kprinth(app[i]); kprintf(" ");
+//         kprinth(app[i+1]); kprintf(" ");
 //     }
 
-//     printf("\n\nTests passed [ENTER to continue]");
+//     kprintf("\n\nTests passed [ENTER to continue]");
 
 //     uint32_t key = KEY_UNKNOWN;
 //     while (key != KEY_RETURN) {
@@ -93,9 +93,9 @@ bool kernel_self_test(bool throw_kernel_panic) {
 //     uint32_t return_value;
 //     __asm__("mov %%eax, %%eax" : "=a" (return_value) :);
 
-//     printd(return_value);
+//     kprintd(return_value);
 
-//     printf("\n\nTests passed [ENTER to continue]");
+//     kprintf("\n\nTests passed [ENTER to continue]");
 
 //     key = KEY_UNKNOWN;
 //     while (key != KEY_RETURN) {

@@ -17,7 +17,7 @@ void sys_handler(trapframe_t *tf) {
     callee(tf);
 }
 void sys_restart_syscall(trapframe_t *tf) {
-    printd(tf->ebx);
+    kprintd(tf->ebx);
 }
 void sys_exit(trapframe_t *tf) {
     

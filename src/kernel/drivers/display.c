@@ -56,6 +56,14 @@ void print_string(const char* string, unsigned char color, int col, int row) {
 void print_hex(uint32_t hex, unsigned char color, int col, int row) {
     uint32_t pk = (uint32_t)0x10000000;
     bool was_not_zero = 0;
+
+    if (hex == 0) {
+        print_char('0', color, col, row);
+    } else {
+        print_char('0', color, col, row);
+        print_char('x', color, col, row);
+    }
+
     while (pk > 0) {
         uint32_t pp = hex / pk;
         if (was_not_zero || pp > 0) {
@@ -68,11 +76,6 @@ void print_hex(uint32_t hex, unsigned char color, int col, int row) {
         }
         hex -= pp * pk;
         pk /= 16;
-    }
-    if (was_not_zero) {
-        print_char('h', color, col, row);
-    } else {
-        print_char('0', color, col, row);
     }
 }
 
@@ -93,15 +96,37 @@ void print_dec(uint32_t dec, unsigned char color, int col, int row) {
     }
 }
 
-void printf(const char* string) {
-    print_string(string, WHITE_ON_BLACK, -1, -1);
+void kprintf(const char* format, ...) {
+    char *ptr_to_next_arg = (char*)((uint32_t)&format + sizeof(void*));
+    while (*format) {
+        if (*format == '%') {
+            format++;
+            if (*format == 'x') {
+                uint32_t* arg =(uint32_t*)ptr_to_next_arg;
+                ptr_to_next_arg += sizeof(uint32_t);
+                kprinth(*arg);
+            } else if (*format == 'd') {
+                uint32_t* arg =(uint32_t*)ptr_to_next_arg;
+                ptr_to_next_arg += sizeof(uint32_t);
+                kprintd(*arg);
+            } else if (*format == 's') {
+                char** arg = (char**)ptr_to_next_arg;
+                ptr_to_next_arg += sizeof(char**);
+                print_string(*arg, WHITE_ON_BLACK, -1, -1);
+            }
+        } else {
+            print_char(*format, WHITE_ON_BLACK, -1, -1);
+        }
+        format++;
+    }
+    // print_string(string, WHITE_ON_BLACK, -1, -1);
 }
 
-void printh(uint32_t hex) {
+void kprinth(uint32_t hex) {
     print_hex(hex, WHITE_ON_BLACK, -1, -1);
 }
 
-void printd(uint32_t dec) {
+void kprintd(uint32_t dec) {
     print_dec(dec, WHITE_ON_BLACK, -1, -1);
 }
 

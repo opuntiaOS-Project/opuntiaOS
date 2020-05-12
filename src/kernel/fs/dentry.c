@@ -83,7 +83,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
     dentry->inode = (inode_t*)kmalloc(INODE_LEN);
     if (dentry->ops->dentry.read_inode(dentry) < 0) {
-        printf("CANT READ INODE");
+        kprintf("CANT READ INODE");
     }
     return dentry;
 }

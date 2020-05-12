@@ -594,12 +594,12 @@ int vmm_free_page(page_desc_t* page) {
 
 void vmm_page_fault_handler(uint8_t info, uint32_t vaddr) {
     // page doesn't present in memory
-    printd(info);
+    kprintd(info);
     if ((info & 0b11) == 0b11) {
         while (1) {}
         // copy on write ?
         if (_vmm_is_copy_on_write(vaddr)) {
-            // printf("COW\n");
+            // kprintf("COW\n");
             _vmm_resolve_copy_on_write(vaddr);
         } 
         if (_vmm_is_zeroing_on_demand(vaddr)) {
@@ -608,9 +608,9 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr) {
     } else {
         if ((info & 1) == 0) {
             // let's load page
-            printf("Loading page: ");
-            printh(vaddr);
-            printf("\n");
+            kprintf("Loading page: ");
+            kprinth(vaddr);
+            kprintf("\n");
             vmm_load_page(vaddr);
         } else {
             while (1) {}
