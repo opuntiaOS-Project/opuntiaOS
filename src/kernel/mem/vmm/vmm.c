@@ -2,7 +2,7 @@
 #include <drivers/display.h>
 #include <global.h>
 #include <tasking/tasking.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 #include <utils/kernel_self_test.h>
 
 #define pdir_t pdirectory_t
@@ -130,7 +130,7 @@ static void _vmm_pspace_init() {
  */
 static table_desc_t _vmm_pspace_gen() {
     ptable_t *cur_ptable = (ptable_t*)_vmm_pspace_get_nth_active_ptable(769);
-    ptable_t *new_ptable = (ptable_t*)kmalloc_full_page();
+    ptable_t *new_ptable = (ptable_t*)kmalloc_page_aligned();
     for (int i = 0; i < 1024; i++) {
         // coping all pages
         new_ptable->entities[i] = cur_ptable->entities[i];
@@ -372,7 +372,7 @@ static bool _vmm_is_copy_on_write(uint32_t vaddr) {
 // TODO handle delete of tables and dirs
 static void _vmm_resolve_copy_on_write(uint32_t vaddr) {
     table_desc_t *ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
-    ptable_t *src_ptable = kmalloc_full_page();
+    ptable_t *src_ptable = kmalloc_page_aligned();
     ptable_t *root_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     memcpy((uint8_t*)src_ptable, (uint8_t*)root_ptable, VMM_PAGE_SIZE);
     vmm_allocate_ptable(vaddr);
@@ -394,7 +394,8 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr) {
  */
 int vmm_copy_page(uint32_t vaddr, ptable_t *src_ptable) {
     vmm_load_page(vaddr);
-    uint32_t old_page_vaddr = (uint32_t)kmalloc_full_page_only_vaddr();
+    // TODO check because of memory leak.
+    uint32_t old_page_vaddr = (uint32_t)kmalloc_page_aligned_only_vaddr();
     page_desc_t *old_page_desc = vmm_ptable_lookup(src_ptable, vaddr);
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL);
@@ -453,7 +454,7 @@ static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr) {
  * The function is supposed to create all new user's pdir.
  */
 pdirectory_t* vmm_new_user_pdir() {
-    pdirectory_t *pdir = (pdirectory_t*)kmalloc_full_page();
+    pdirectory_t *pdir = (pdirectory_t*)kmalloc_page_aligned();
     
     for (int i = VMM_USER_TABLES_START; i < VMM_KERNEL_TABLES_START; i++) {
         pdir->entities[i] = 0;
@@ -473,7 +474,7 @@ pdirectory_t* vmm_new_user_pdir() {
  * The function is supposed to fork a new user's pdir from the active
  */
 pdirectory_t* vmm_new_forked_user_pdir() {
-    pdirectory_t *pdir = (pdirectory_t*)kmalloc_full_page();
+    pdirectory_t *pdir = (pdirectory_t*)kmalloc_page_aligned();
     
     // coping all tables
     for (int i = 0; i < 1024; i++) {
@@ -504,7 +505,7 @@ void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size)
         kpanic("Init proccess is too big");
     }
     
-    uint8_t *tmp_block = kmalloc_full_page();
+    uint8_t *tmp_block = kmalloc_page_aligned();
     
     for (int i = 0; i < data_size; i++) {
         tmp_block[i] = data[i];
@@ -575,7 +576,7 @@ int vmm_load_page(uint32_t vaddr) {
 
 // currently unused and unoptimized with rewritten vmm
 int vmm_alloc_page(page_desc_t* page) {
-    void* new_block = kmalloc_full_page();
+    void* new_block = kmalloc_page_aligned();
     if (!new_block) {
         return -VMM_ERR_BAD_ADDR;
     }

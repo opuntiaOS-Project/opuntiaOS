@@ -1,6 +1,6 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 
 static cpu_t *cpu_ptr;
 

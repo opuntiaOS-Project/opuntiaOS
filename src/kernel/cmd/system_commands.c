@@ -1,6 +1,6 @@
 #include <cmd/system_commands.h>
 #include <fs/vfs.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 #include <x86/tss.h>
 #include <tasking/tasking.h>
 

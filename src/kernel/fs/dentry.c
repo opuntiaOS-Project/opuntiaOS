@@ -8,7 +8,7 @@
 
 #include <drivers/display.h>
 #include <fs/vfs.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 #include <utils/mem.h>
 
 #define DENTRY_ALLOC_SIZE 4096 // 4KB. Shows the size of list's parts

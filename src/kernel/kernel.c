@@ -11,7 +11,7 @@
 #include <drivers/ide.h>
 
 #include <mem/pmm.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 
 #include <fs/ext2/ext2.h>
 #include <fs/vfs.h>

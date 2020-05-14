@@ -35,14 +35,10 @@ void stage2(mem_desc_t *mem_desc) {
     drive_desc_t drive_desc;
     fs_desc_t fs_desc;
 
-    printf("P1");
-
     if (get_load_disk(&drive_desc) != 0) {
         printf("E1");
         while(1) {}
     }
-
-    printf("P2");
 
     if (get_fs_of_disk(&drive_desc, &fs_desc) != 0) {
         printf("E2");
@@ -58,18 +54,9 @@ void stage2(mem_desc_t *mem_desc) {
 
     uint32_t kernel_size;
     printd(elf_load_kernel(&drive_desc, &fs_desc, KERNEL_PATH, &kernel_size));
-    // while (1) {}
 
     // TODO fix 
-    mem_desc->kernel_size = kernel_size / 1024 + 5;
-
-    // uint32_t place_to = 0x100000;
-    // mem_desc->kernel_size = ata_read_to_ram(&ata0m, 1, place_to, 2);
-    // place_to += 512 - 2;
-    // for (uint16_t i = 1; i < mem_desc->kernel_size * 2; i++) {
-    //     ata_read_to_ram(&ata0m, i+1, place_to, 0);
-    //     place_to += 512;
-    // }
+    mem_desc->kernel_size = kernel_size / 1024 + 1;
 
     vm_setup();
 

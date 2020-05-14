@@ -1,7 +1,7 @@
 #include <x86/gdt.h>
 #include <x86/tss.h>
 #include <mem/vmm/vmm.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 
 void lgdt(void* p, uint16_t size) {
     volatile uint16_t pd[3];
