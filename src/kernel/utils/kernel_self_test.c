@@ -1,6 +1,6 @@
 #include <utils/kernel_self_test.h>
 #include <drivers/display.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 
 bool _test_kmalloc();

@@ -8,7 +8,7 @@
 
 #include <drivers/display.h>
 #include <fs/vfs.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 #include <utils/mem.h>
 
 vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];

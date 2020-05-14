@@ -7,7 +7,7 @@
  */
 
 #include <fs/vfs.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <x86/gdt.h>

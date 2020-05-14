@@ -4,7 +4,7 @@
 #include <types.h>
 #include <x86/port.h>
 #include <drivers/display.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 #include <drivers/driver_manager.h>
 
 typedef struct {            // LBA28 | LBA48

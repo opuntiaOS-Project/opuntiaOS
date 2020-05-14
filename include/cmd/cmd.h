@@ -3,7 +3,7 @@
 
 #include <drivers/display.h>
 #include <drivers/keyboard.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 
 #define MAX_CMD_LENGTH 64
 

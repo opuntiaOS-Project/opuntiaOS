@@ -7,7 +7,7 @@
  */
 
 #include <fs/vfs.h>
-#include <mem/malloc.h>
+#include <mem/kmalloc.h>
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define SUPERBLOCK _ext2_superblocks[dev->dev->id]
@@ -388,6 +388,7 @@ int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_ind
             }
             memcpy(dirent->name, (char*)start_of_entry + 8, name_len);
             dirent->name[name_len] = '\0';
+            kfree(tmp_buf);
             return 0;
         }
 
