@@ -45,22 +45,9 @@ void isr_standart_handler(trapframe_t *tf) {
 		"Reserved",
 		"Reserved",
 		"Reserved"};
-    kprintf(exception_messages[tf->int_no]);
-    kprintd(tf->err);
-	if (tf->int_no == 13) {
-		while (1) {};
-	}
     if (tf->int_no == 14) {
-		if (tf->err == 5) {
-			kprinth(tf->eip); kprintf("\n");
-			kprinth(tf->esp); kprintf("\n");
-			kprinth(tf->ebp); kprintf("\n");
-			kprintf(" ");
-			kprinth(rcr2());
-			while(1) {}
-		}
-		kprintf(" ");
-		kprinth(rcr2());
 		vmm_page_fault_handler(tf->err, rcr2());
-    }
+    } else {
+		kprintf("INT %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+	}
 }
