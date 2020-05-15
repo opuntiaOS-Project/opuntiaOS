@@ -9,6 +9,8 @@
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 
+#define MAX_BLOCK_LEN 4096
+
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define SUPERBLOCK _ext2_superblocks[dev->dev->id]
 #define GROUP_TABLES _ext2_group_tables[dev->dev->id]
@@ -104,6 +106,23 @@ bool ext2_recognize_drive(vfs_device_t* dev)
     _ext2_group_tables[dev->dev->id] = group_table;
 
     return true;
+}
+
+void ext2_save_state(vfs_device_t* dev) {
+    if (!_ext2_superblocks[dev->dev->id]) {
+        return;
+    }
+
+    superblock_t* superblock = _ext2_superblocks[dev->dev->id];
+
+    // FIXME: for now we consider that we have at max 5 groups
+    uint32_t group_table_len = 5 * GROUP_LEN;
+    group_desc_t* group_table = _ext2_group_tables[dev->dev->id];
+    _ext2_write_to_dev(dev, (uint8_t*)group_table, _ext2_get_block_offset(superblock, 2), group_table_len);
+    kfree(group_table);
+
+    _ext2_write_to_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
+    kfree(superblock);
 }
 
 fsdata_t get_fsdata(dentry_t* dentry)
@@ -219,7 +238,7 @@ int _ext2_set_block_of_inode(dentry_t* dentry, uint32_t inode_block_index, uint3
 
 static int ext2_find_free_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t* block_index, uint32_t group_index)
 {
-    uint8_t* block_bitmap = (uint8_t*)kmalloc(BLOCK_LEN(fsdata.sb));
+    uint8_t block_bitmap[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
 
     for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
@@ -227,11 +246,9 @@ static int ext2_find_free_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t* bl
             *block_index = fsdata.sb->blocks_per_group * group_index + off + 1;
             _ext2_bitmap_set(block_bitmap, off, 1);
             _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
-            kfree(block_bitmap);
             return 0;
         }
     }
-    kfree(block_bitmap);
     return -1;
 }
 
@@ -291,7 +308,7 @@ int ext2_write_inode(dentry_t* dentry)
 
 int ext2_find_free_inode(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t group_index)
 {
-    uint8_t* inode_bitmap = (uint8_t*)kmalloc(BLOCK_LEN(fsdata.sb));
+    uint8_t inode_bitmap[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
 
     for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
@@ -299,11 +316,9 @@ int ext2_find_free_inode(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_ind
             *inode_index = SUPERBLOCK->inodes_per_group * group_index + off + 1;
             _ext2_bitmap_set(inode_bitmap, off, 1);
             _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
-            kfree(inode_bitmap);
             return 0;
         }
     }
-    kfree(inode_bitmap);
     return -1;
 }
 
@@ -333,12 +348,11 @@ int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index,
         return -1;
     }
 
-    uint8_t* tmp_buf = (uint8_t*)kmalloc(BLOCK_LEN(fsdata.sb));
+    uint8_t tmp_buf[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), BLOCK_LEN(fsdata.sb));
     dir_entry_t* start_of_entry = (dir_entry_t*)tmp_buf;
     for (;;) {
         if (start_of_entry->inode == 0) {
-            kfree(tmp_buf);
             return -1;
         }
 
@@ -350,18 +364,15 @@ int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index,
 
             if (is_name_same) {
                 *found_inode_index = start_of_entry->inode;
-                kfree(tmp_buf);
                 return 0;
             }
         }
 
         start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
         if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
-            kfree(tmp_buf);
             return -1;
         }
     }
-    kfree(tmp_buf);
     return -2;
 }
 
@@ -373,7 +384,7 @@ int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_ind
     const uint32_t block_len = BLOCK_LEN(fsdata.sb);
     uint32_t internal_offset = *offset % block_len;
 
-    uint8_t* tmp_buf = (uint8_t*)kmalloc(block_len);
+    uint8_t tmp_buf[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
     for (;;) {
         dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + internal_offset);
@@ -388,16 +399,13 @@ int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_ind
             }
             memcpy(dirent->name, (char*)start_of_entry + 8, name_len);
             dirent->name[name_len] = '\0';
-            kfree(tmp_buf);
             return 0;
         }
 
         if (internal_offset >= block_len) {
-            kfree(tmp_buf);
             return -1;
         }
     }
-    kfree(tmp_buf);
     return -2;
 }
 
@@ -411,7 +419,7 @@ int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint3
     uint32_t min_rec_len = 8 + record_name_len;
     dir_entry_t new_entry;
 
-    uint8_t* tmp_buf = (uint8_t*)kmalloc(DIR_ENTRY_LEN);
+    uint8_t tmp_buf[DIR_ENTRY_LEN];
     _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), DIR_ENTRY_LEN);
     dir_entry_t* start_of_entry = (dir_entry_t*)tmp_buf;
     new_entry.inode = child_dentry->inode_indx;
@@ -421,7 +429,6 @@ int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint3
     memcpy((void*)((uint32_t)start_of_entry + 8), (void*)filename, len);
     memset((void*)((uint32_t)start_of_entry + 8 + len), 0, record_name_len - len);
     _ext2_write_to_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), DIR_ENTRY_LEN);
-    kfree(tmp_buf);
     return 0;
 }
 
@@ -435,7 +442,7 @@ int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_in
     uint32_t min_rec_len = 8 + record_name_len;
     dir_entry_t new_entry;
 
-    uint8_t* tmp_buf = (uint8_t*)kmalloc(BLOCK_LEN(fsdata.sb));
+    uint8_t tmp_buf[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), BLOCK_LEN(fsdata.sb));
     dir_entry_t* start_of_entry = (dir_entry_t*)tmp_buf;
     dir_entry_t* start_of_new_entry;
@@ -464,7 +471,6 @@ int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_in
 
         start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
         if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
-            kfree(tmp_buf);
             return -1;
         }
     }
@@ -474,7 +480,6 @@ update_res:
     memcpy((void*)((uint32_t)start_of_new_entry + 8), (void*)filename, len);
     memset((void*)((uint32_t)start_of_new_entry + 8 + len), 0, record_name_len - len);
     _ext2_write_to_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), BLOCK_LEN(fsdata.sb));
-    kfree(tmp_buf);
     return 0;
 }
 
@@ -647,7 +652,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = ext2_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = ext2_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = ext2_mkdir;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = ext2_stub;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = ext2_save_state;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = ext2_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = ext2_write_inode;
