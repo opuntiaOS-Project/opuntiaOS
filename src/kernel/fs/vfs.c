@@ -14,7 +14,7 @@
 vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
 fs_ops_t _vfs_fses[MAX_DRIVERS_COUNT];
 uint8_t _vfs_fses_count; // Will be deleted in next builds
-uint32_t root_fs_dev_id;
+int32_t root_fs_dev_id = -1;
 
 /**
  * DENTRY CACHES
@@ -40,22 +40,35 @@ void vfs_install()
     driver_install(_vfs_driver_info());
 }
 
+int vfs_detect_fs_of_dev(vfs_device_t* vfs_dev)
+{
+    for (uint8_t i = 0; i < _vfs_fses_count; i++) {
+        if (!_vfs_fses[i].recognize) {
+            continue;
+        }
+
+        bool (*is_capable)(vfs_device_t * nd) = _vfs_fses[i].recognize;
+        if (is_capable(vfs_dev)) {
+            vfs_dev->fs = i;
+            return 0;
+        }
+    }
+    return -1;
+}
+
 void vfs_add_device(device_t* dev)
 {
     if (dev->type != DEVICE_STORAGE) {
         return;
     }
-    _vfs_devices[dev->id].dev = dev;
-    for (uint8_t i = 0; i < _vfs_fses_count; i++) {
-        bool (*is_capable)(vfs_device_t * nd) = _vfs_fses[i].recognize;
-        if (is_capable(&_vfs_devices[dev->id])) {
-            // FIXME: currently last disk is a rootfs. May be to detect? :^)
-            root_fs_dev_id = dev->id;
-            _vfs_devices[dev->id].fs = i;
-            return;
-        }
+    
+    if (root_fs_dev_id == -1) {
+        root_fs_dev_id = dev->id;
     }
-    kprintf("Can't find FS\n");
+    _vfs_devices[dev->id].dev = dev;
+    if (!dev->is_virtual) {
+        vfs_detect_fs_of_dev(&_vfs_devices[dev->id]);
+    }
 }
 
 // TODO: reuse unused slots
@@ -174,6 +187,10 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
         if (vfs_lookup(cur_dent, name, len, &cur_dent) < 0) {
             return -1;
         }
+
+        while (dentry_test_flag(cur_dent, DENTRY_MOUNTPOINT)) {
+            cur_dent = cur_dent->mounted_dentry;
+        }
     }
 
     *result = dentry_duplicate(cur_dent);
@@ -183,4 +200,60 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
 int vfs_resolve_path(const char* path, dentry_t** result)
 {
     return vfs_resolve_path_start_from((dentry_t*)0, path, result);
+}
+
+int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
+{
+    if (dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
+        kprintf("Already a mount point\n");
+        return -1;
+    }
+    if (!dentry_inode_test_flag(mountpoint, EXT2_S_IFDIR)) {
+        kprintf("Not a dir\n");
+        return -1;
+    }
+
+    vfs_add_device(dev);
+    _vfs_devices[dev->id].fs = fs_indx;
+
+    mountpoint = dentry_duplicate(mountpoint); // to keep mounts in mem until to umount
+    dentry_set_flag(mountpoint, DENTRY_MOUNTPOINT);
+    
+    dentry_t* mounted_dentry = dentry_get(dev->id, 2);
+    mounted_dentry = dentry_duplicate(mounted_dentry); // to keep mounts in mem until to umount
+    dentry_set_flag(mounted_dentry, DENTRY_MOUNTED);
+    
+    mountpoint->mounted_dentry = mounted_dentry;
+    mounted_dentry->mountpoint = mountpoint;
+
+    return 0;
+}
+
+int vfs_umount(dentry_t* mounted_dentry)
+{
+    if (!dentry_test_flag(mounted_dentry, DENTRY_MOUNTED)) {
+        kprintf("Not mounted\n");
+        return -1;
+    }
+
+    dentry_t* mountpoint = mounted_dentry->mountpoint;
+
+    if (!dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
+        kprintf("Not a mountpoint\n");
+        return -1;
+    }
+
+    dentry_rem_flag(mounted_dentry, DENTRY_MOUNTED);
+    mounted_dentry->mountpoint = 0;
+    dentry_put(mounted_dentry);
+    
+    dentry_rem_flag(mountpoint, DENTRY_MOUNTPOINT);
+    mountpoint->mounted_dentry = 0;
+    dentry_put(mountpoint);
+
+    if (dentry_test_flag(mountpoint, DENTRY_MOUNTED)) {
+        vfs_umount(mountpoint);
+    }
+
+    return 0;
 }
