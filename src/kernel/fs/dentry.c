@@ -60,7 +60,7 @@ static dentry_t* dentry_cache_find_empty()
     return &last->data[0];
 }
 
-static void dentry_rem(dentry_t* dentry)
+static void dentry_flush_inode(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_DIRTY)) {
         dentry->ops->dentry.write_inode(dentry);
@@ -68,6 +68,7 @@ static void dentry_rem(dentry_t* dentry)
 
     // This marks the dentry as deleted.
     dentry->inode_indx = 0;
+    kfree(dentry->inode);
 }
 
 static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
@@ -120,7 +121,7 @@ static void dentry_force_put(dentry_t* dentry)
 
     dentry->d_count = 0;
     if (dentry->d_count == 0) {
-        dentry_rem(dentry);
+        dentry_flush_inode(dentry);
     }
 }
 
@@ -129,7 +130,7 @@ void dentry_put(dentry_t* dentry)
     dentry->d_count--;
 
     if (dentry->d_count == 0) {
-        dentry_rem(dentry);
+        dentry_flush_inode(dentry);
     }
 }
 

@@ -11,6 +11,7 @@
 
 #include <drivers/driver_manager.h>
 #include <fs/ext2/ext2.h>
+#include <fs/procfs/procfs.h>
 
 #define VFS_MAX_FS_COUNT 5
 #define VFS_MAX_DEV_COUNT 5
@@ -36,6 +37,7 @@ typedef struct dirent dirent_t;
 
 #define DENTRY_DIRTY 0x1
 #define DENTRY_MOUNTPOINT 0x2
+#define DENTRY_MOUNTED 0x4
 struct dentry{
     uint32_t d_count;
     uint32_t flags;
@@ -45,6 +47,9 @@ struct dentry{
     struct fs_ops* ops;
     uint32_t dev_indx;
     vfs_device_t* dev;
+
+    struct dentry* mountpoint;
+    struct dentry* mounted_dentry;
 };
 typedef struct dentry dentry_t;
 
@@ -105,7 +110,6 @@ void dentry_inode_set_flag(dentry_t* dentry, uint32_t flag);
 bool dentry_inode_test_flag(dentry_t* dentry, uint32_t flag);
 void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag);
 
-
 /**
  * VFS APIS
  */
@@ -124,5 +128,8 @@ int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
 int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t *res);
+
+int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
+int vfs_umount(dentry_t* mountpoint);
 
 #endif // __oneOS__FS__VFS_H

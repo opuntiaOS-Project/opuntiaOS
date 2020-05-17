@@ -197,6 +197,7 @@ sync: products/kernel.bin
 	sudo fuse-ext2 one.img mountpoint -o rw+
 	sudo mkdir -p mountpoint
 	sudo mkdir -p mountpoint/boot
+	sudo mkdir -p mountpoint/proc
 	sudo cp -r base/ mountpoint/
 	sudo cp products/kernel.bin mountpoint/boot/
 	sudo umount mountpoint

@@ -100,6 +100,23 @@ void read(int argc, char *argv[]) {
     kprintf(data);
 }
 
+void procfs(int argc, char *argv[]) {
+    dentry_t* mp;
+    if (vfs_resolve_path("/proc", &mp) < 0) {
+        return;
+    }
+    vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 1);
+}
+
+void umount(int argc, char *argv[]) {
+    dentry_t* mp;
+    if (vfs_resolve_path("/proc", &mp) < 0) {
+        return;
+    }
+    vfs_umount(mp);
+}
+
+
 void syscmd_init() {
     cmd_register("mkdir", _syscmd_mkdir);
     cmd_register("ls", _syscmd_ls);
@@ -107,6 +124,8 @@ void syscmd_init() {
     cmd_register("umode", umode);
 
     cmd_register("cat", read);
+    cmd_register("procfs", procfs);
+    cmd_register("umount", umount);
 
     ;
     // cmd_register("wr", write);

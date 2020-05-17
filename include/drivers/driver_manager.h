@@ -116,6 +116,7 @@ typedef struct {
 typedef struct {
     uint8_t id;
     uint8_t type;
+    bool is_virtual;
     int16_t driver_id;
     device_desc_t device_desc;
 } device_t; // device
@@ -133,5 +134,6 @@ void drivers_run();
 device_t get_device(uint8_t t_dev_type, uint8_t t_start);
 void pass_drivers_to_master_drivers();
 void pass_devices_to_master_drivers();
+device_t* new_virtual_device(uint8_t type);
 
 #endif // __oneOS__DRIVERS__DRIVERMANAGER_H

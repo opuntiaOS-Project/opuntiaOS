@@ -44,7 +44,7 @@ int16_t _driver_for_device(device_desc_t t_device_info) {
             cur_capablity |= 0b0001;
         }
         if (cur_capablity > best_capablity) {
-            best_capablity = cur_capablity;
+        best_capablity = cur_capablity;
             best_capable_driver_id = i;
         }
     }
@@ -184,6 +184,7 @@ void device_install(device_desc_t t_device_info) {
     devices[dev_id].id = dev_id;
     devices[dev_id].driver_id = _driver_for_device(t_device_info);
     devices[dev_id].device_desc = t_device_info;
+    devices[dev_id].is_virtual = false;
     
     if (devices[dev_id].driver_id == -1) {
         devices[dev_id].type = DEVICE_BAD_SIGN;
@@ -233,4 +234,12 @@ device_t get_device(uint8_t t_dev_type, uint8_t t_start) {
     device_t bad_device;
     bad_device.type = DEVICE_BAD_SIGN;
     return bad_device;
+}
+
+device_t* new_virtual_device(uint8_t type) {
+    uint8_t dev_id = _devices_count++;
+    devices[dev_id].id = dev_id;
+    devices[dev_id].type = type;
+    devices[dev_id].is_virtual = true;
+    return &devices[dev_id];
 }
