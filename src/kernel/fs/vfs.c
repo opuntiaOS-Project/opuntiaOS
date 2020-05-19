@@ -121,6 +121,16 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd)
     return 0;
 }
 
+int vfs_close(file_descriptor_t* fd)
+{
+    if (!fd) {
+        return -1;
+    }
+
+    dentry_put(fd->dentry);
+    return 0;
+}
+
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
     if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {

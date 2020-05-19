@@ -33,6 +33,7 @@ void _syscmd_ls(int argc, char *argv[]) {
     while (vfs_getdirent(&fd, &tmp) == 0) {
         kprintf(tmp.name); kprintf("\n");
     }
+    vfs_close(&fd);
 }
 
 void _syscmd_shutdown(int argc, char *argv[]) {
@@ -89,7 +90,6 @@ void read(int argc, char *argv[]) {
     if (vfs_resolve_path(argv[1], &file) < 0) {
         return;
     }
-    kprintf("endndn");
     vfs_open(file, &fd);
     kprintf("Inode: "); kprintd(fd.dentry->inode_indx); kprintf("\n");
     kprintf("Size: "); kprintd(fd.dentry->inode->size); kprintf("\n");
@@ -98,6 +98,7 @@ void read(int argc, char *argv[]) {
     memset(data, 0, sizeof(data));
     vfs_read(&fd, (uint8_t*)&data, 1, 10);
     kprintf(data);
+    vfs_close(&fd);
 }
 
 void procfs(int argc, char *argv[]) {
