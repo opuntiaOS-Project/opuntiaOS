@@ -124,6 +124,7 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
 
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int vfs_open(dentry_t* file, file_descriptor_t* fd);
+int vfs_close(file_descriptor_t* fd);
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
