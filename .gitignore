@@ -6,3 +6,5 @@ products/
 *DS_Store
 *.pyc
 .DS_Store/
+base/boot/
+base/bin/

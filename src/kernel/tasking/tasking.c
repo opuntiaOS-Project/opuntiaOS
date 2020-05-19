@@ -92,7 +92,7 @@ void tasking_start_init_proc()
 
     // creating new page dir
     p->pdir = vmm_new_user_pdir();
-    _tasking_load(p->pdir, "init.sys");
+    _tasking_load(p->pdir, "boot/init");
     _tasking_allocate_proc(p);
     p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
     p->tf->ds = (SEG_UDATA << 3) | DPL_USER;

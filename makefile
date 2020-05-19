@@ -11,10 +11,11 @@ C_COMPILE_FLAGS += -ffreestanding
 C_INCLUDES += -I./include 
 C_DEBUG_FLAGS += -ggdb
 C_WARNING_FLAGS += -Werror -Wno-address-of-packed-member
-
 ASM_KERNEL_FLAGS = -f elf
-
 LD_KERNEL_FLAGS = -T link.ld --oformat elf32-i386
+
+# FS CONFIG
+BASE_DIR = base
 
 # OS RUN CONFIG
 KERNEL_STAGE2_POSITION = 0x1000
@@ -28,7 +29,7 @@ QEMUGDB = -s
 
 QUIET = @
 
-all: products/os-image.bin products/kernel.bin
+all: products/os-image.bin products/kernel.bin apps
 
 # --- Stage1 ---------------------------------------------------------------- #
 
@@ -103,7 +104,7 @@ products/stage3_entry.o: src/boot/x86/stage3_entry.s
 
 ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.c
 	@echo "$(notdir $(CURDIR)): CC $@"
-	${QUIET} ${CC}  -c $< -o $@ ${C_FLAGS}
+	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
 
 ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 	@echo "$(notdir $(CURDIR)): ASM $@"
@@ -113,46 +114,73 @@ ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 
 ARFLAGS = rcs
 
-LIBKERNEL=libs/libkernel.a
-LIBKERNEL_PATH=libs/libkernel
+LIB_PATH = ${BASE_DIR}/lib
+LIBKERNEL = $(LIB_PATH)/libkernel.a
+LIBKERNEL_PATH = libs/libkernel
 LIBKERNEL_SRC=$(wildcard libs/libkernel/*.c)
 LIBKERNEL_OBJ=$(patsubst %.c,%.o,$(LIBKERNEL_SRC))
 
-LIBRARIES=$(LIBKERNEL)
+LIBRARIES = $(LIBKERNEL)
 
 ${LIBKERNEL_PATH}/%.o: ${LIBKERNEL_PATH}/%.c
 	@echo "$(notdir $(CURDIR)): CC $@"
-	${QUIET} ${CC}  -c $< -o $@ ${C_FLAGS}
+	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
 
 ${LIBKERNEL}: ${LIBKERNEL_OBJ}
 	${AR} ${ARFLAGS} $@ $^
 
+
+# --- CRTs ------------------------------------------------------------------- #
+
+CRTS = libs/crt0.o \
+
+libs/crt0.o: libs/crt0.s
+	$(ASM) $< -f elf -o $@
+	
 # --- Apps ------------------------------------------------------------------ #
 
 C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/
 
 APPS_PATH = userland
 
-APPS = 	${APPS_PATH}/init.sys \
-		${APPS_PATH}/sec.sys \
-		${APPS_PATH}/main.sys
+define APP_TEMPLATE
+$(1)_BINARY = $(BASE_DIR)/$($(1)_INSTALL_PATH)/$($(1)_NAME)
+$(1)_ELF  = $(APPS_PATH)/$($(1)_NAME).exec
+$(1)_C_SOURCES =  $$(wildcard ${APPS_PATH}/$($(1)_NAME)/*.c) \
+				$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*.c) \
+			   	$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*/*.c)
+$(1)_S_SOURCES = $$(wildcard ${APPS_PATH}/$($(1)_NAME)/*.s) \
+				$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*.s) \
+			   	$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*/*.s)
+
+$(1)_C_OBJECTS = $$(patsubst %.c,%.o,$$($(1)_C_SOURCES))
+$(1)_S_OBJECTS = $$(patsubst %.s,%.o,$$($(1)_S_SOURCES))
 
 # system apps
-${APPS_PATH}/%.sys: ${APPS_PATH}/%.s
-	${ASM} $< -f elf -o tmp.o
-	${LD} tmp.o -Ttext 0x0 -o $@ --oformat binary
-	cp $@ home/
+$$($(1)_BINARY): $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) $$(LIBRARIES)
+	@echo "$($(1)_NAME) [LD]  $$@"
+	$(QUIET) $$(LD) $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) -Ttext 0x0 -o $$@ --oformat binary $$(LIBRARIES)
 
 #std compiler
-${APPS_PATH}/%.o: ${APPS_PATH}/%.c
-	${CC} -c $< -o $@ ${C_USERLAND_FLAGS}
+${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.c
+	@echo "$($(1)_NAME) [CC]  $$@"
+	$(QUIET) $$(CC) -c $$< -o $$@ $$(C_USERLAND_FLAGS)
 
-# test with lib
-${APPS_PATH}/main.sys: ${APPS_PATH}/main.o ${LIBKERNEL}
-	${LD} $^ -Ttext 0x0 -o $@ --oformat binary
-	cp $@ home/
+#std compiler
+${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.s
+	@echo "$($(1)_NAME) [ASM] $$@"
+	$(QUIET) $$(ASM) $$< -f elf -o $$@
+
+APPS_BINARIES += $$($(1)_BINARY)
+endef
+
+# For now we build them as binaries
+include ${APPS_PATH}/*/.info.mk
+$(foreach app, $(APPS), $(eval $(call APP_TEMPLATE,$(app))))
 
 # --- Others ---------------------------------------------------------------- #
+
+apps: $(APPS_BINARIES)
 
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
