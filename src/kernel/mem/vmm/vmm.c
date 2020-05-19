@@ -47,7 +47,6 @@ static void _vmm_map_init_kernel_pages(uint32_t paddr, uint32_t vaddr);
 static bool _vmm_create_kernel_ptables();
 static bool _vmm_map_kernel();
 
-inline static void _vmm_flush_tlb_entry(uint32_t vaddr);
 inline static uint32_t _vmm_round_ceil_to_page(uint32_t value);
 inline static uint32_t _vmm_round_floor_to_page(uint32_t value);
 
@@ -56,6 +55,10 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr);
 
 static bool _vmm_is_zeroing_on_demand(uint32_t vaddr);
 static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr);
+
+inline static void _vmm_flush_tlb_entry(uint32_t vaddr);
+inline static void _vmm_enable_write_protect();
+inline static void _vmm_disable_write_protect();
 
 static int _vmm_self_test();
 
@@ -244,6 +247,7 @@ int vmm_setup() {
     _vmm_pspace_init();
     _vmm_init_switch_to_kernel_pdir();
     _vmm_map_kernel();
+    _vmm_enable_write_protect();
     kmalloc_init(kmalloc_start_vaddr);
     if (_vmm_self_test() < 0) {
         kpanic("VMM SELF TEST Not passed");
@@ -254,10 +258,6 @@ int vmm_setup() {
 /**
  * VM TOOLS
  */
-
-inline static void _vmm_flush_tlb_entry(uint32_t vaddr) {
-    asm volatile("invlpg (%0)" ::"r" (vaddr) : "memory");
-}
 
 inline static uint32_t _vmm_round_ceil_to_page(uint32_t value) {
     if ((value & (VMM_PAGE_SIZE - 1)) != 0) {
@@ -474,14 +474,14 @@ pdirectory_t* vmm_new_user_pdir() {
  * The function is supposed to fork a new user's pdir from the active
  */
 pdirectory_t* vmm_new_forked_user_pdir() {
-    pdirectory_t *pdir = (pdirectory_t*)kmalloc_page_aligned();
+    pdirectory_t *new_pdir = (pdirectory_t*)kmalloc_page_aligned();
     
     // coping all tables
     for (int i = 0; i < 1024; i++) {
-        pdir->entities[i] = _vmm_active_pdir->entities[i];
+        new_pdir->entities[i] = _vmm_active_pdir->entities[i];
     }
-    pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = _vmm_pspace_gen();
-    
+    new_pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = _vmm_pspace_gen();
+
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         // COW: blocking current pdir
         table_desc_t *act_ptable_desc = &_vmm_active_pdir->entities[i];
@@ -489,12 +489,12 @@ pdirectory_t* vmm_new_forked_user_pdir() {
         table_desc_set_attr(act_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
 
         // COW: blocking new pdir
-        table_desc_t *new_ptable_desc = &pdir->entities[i];
+        table_desc_t *new_ptable_desc = &new_pdir->entities[i];
         table_desc_del_attr(new_ptable_desc, TABLE_DESC_WRITABLE);
         table_desc_set_attr(new_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
     }
 
-    return pdir;
+    return new_pdir;
 }
 
 /** WILL BE DEPRECATED
@@ -542,7 +542,6 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uin
 
     // TODO maybe it's possible to make faster than getting PF every page
     memcpy(dest, ksrc, length);
-
     vmm_switch_pdir(prev_pdir);
 }
 
@@ -597,11 +596,11 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr) {
     if ((info & 0b11) == 0b11) {
         // copy on write ?
         if (_vmm_is_copy_on_write(vaddr)) {
-            kprintf("Resolving COW\n");
+            kprintf("Resolving COW %x\n", vaddr);
             _vmm_resolve_copy_on_write(vaddr);
         } 
         if (_vmm_is_zeroing_on_demand(vaddr)) {
-            kprintf("Resolving ZOD\n");
+            kprintf("Resolving ZOD %x\n", vaddr);
             _vmm_resolve_zeroing_on_demand(vaddr);
         }
     } else {
@@ -615,8 +614,24 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr) {
 
 
 /**
- * VM SETTING FUNCTIONS
+ * CPU BASED FUNCTIONS
  */
+
+inline static void _vmm_flush_tlb_entry(uint32_t vaddr) {
+    asm volatile("invlpg (%0)" ::"r" (vaddr) : "memory");
+}
+
+inline static void _vmm_enable_write_protect() {
+    asm volatile ("mov %cr0, %eax");
+    asm volatile ("or $0x10000, %eax");
+    asm volatile ("mov %eax, %cr0");
+}
+
+inline static void _vmm_disable_write_protect() {
+    asm volatile ("mov %cr0, %eax");
+    asm volatile ("and $0xFFFEFFFF, %eax");
+    asm volatile ("mov %eax, %cr0");
+}
 
 int vmm_switch_pdir(pdirectory_t *pdir) {
     if (((uint32_t)pdir & (VMM_PAGE_SIZE-1)) != 0) {
@@ -641,7 +656,6 @@ void vmm_disable_paging() {
     asm volatile ("and $0x7FFFFFFF, %eax");
     asm volatile ("mov %eax, %cr0");
 }
-
 
 /**
  * VM SELF TEST FUNCTIONS
