@@ -115,18 +115,18 @@ ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 ARFLAGS = rcs
 
 LIB_PATH = ${BASE_DIR}/lib
-LIBKERNEL = $(LIB_PATH)/libkernel.a
-LIBKERNEL_PATH = libs/libkernel
-LIBKERNEL_SRC=$(wildcard libs/libkernel/*.c)
-LIBKERNEL_OBJ=$(patsubst %.c,%.o,$(LIBKERNEL_SRC))
+LIBSYSTEM = $(LIB_PATH)/libsystem.a
+LIBSYSTEM_PATH = libs/libsystem
+LIBSYSTEM_SRC=$(wildcard libs/libsystem/*.c)
+LIBSYSTEM_OBJ=$(patsubst %.c,%.o,$(LIBSYSTEM_SRC))
 
-LIBRARIES = $(LIBKERNEL)
+LIBRARIES = $(LIBSYSTEM)
 
-${LIBKERNEL_PATH}/%.o: ${LIBKERNEL_PATH}/%.c
+${LIBSYSTEM_PATH}/%.o: ${LIBSYSTEM_PATH}/%.c
 	@echo "$(notdir $(CURDIR)): CC $@"
 	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
 
-${LIBKERNEL}: ${LIBKERNEL_OBJ}
+${LIBSYSTEM}: ${LIBSYSTEM_OBJ}
 	${AR} ${ARFLAGS} $@ $^
 
 
