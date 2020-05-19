@@ -33,7 +33,7 @@ void presched() {
 void sched() {
     proc_t *p;
     for (;;) {
-        kprintf("Scheduling\n");
+        kprintf("Scheduling, next %d\n", nxtrun);
         p = &proc[nxtrun];
         switchuvm(p); // setting up proc env
         switch_contexts(&cpu_ptr->scheduler, p->context); // jumping into proc
