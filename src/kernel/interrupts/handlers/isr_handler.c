@@ -1,6 +1,6 @@
 #include <isr_handler.h>
 #include <mem/vmm/vmm.h>
-#include <tasking/tasking.h> // TODO del that
+#include <tasking/tasking.h>
 
 uint32_t rcr2() {
 	uint32_t val;
@@ -45,7 +45,7 @@ void isr_standart_handler(trapframe_t *tf) {
 		"Reserved",
 		"Reserved",
 		"Reserved"};
-    if (tf->int_no == 14) {
+	if (tf->int_no == 14) {
 		vmm_page_fault_handler(tf->err, rcr2());
     } else {
 		kprintf("INT %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);

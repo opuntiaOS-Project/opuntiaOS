@@ -89,6 +89,12 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     return dentry;
 }
 
+void dentry_set_parent(dentry_t* to, dentry_t* parent)
+{
+    to->parent_inode_indx = parent->inode_indx;
+    to->parent_dev_indx = parent->dev_indx;
+}
+
 dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx)
 {
     dentry_cache_list_t* dentry_cache_block = dentry_cache;
@@ -112,7 +118,6 @@ dentry_t* dentry_duplicate(dentry_t* dentry)
     return dentry;
 }
 
-// TODO: check when mountpoints
 static void dentry_force_put(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_MOUNTPOINT)) {

@@ -47,6 +47,9 @@ struct dentry{
     struct fs_ops* ops;
     uint32_t dev_indx;
     vfs_device_t* dev;
+    
+    uint32_t parent_inode_indx;
+    uint32_t parent_dev_indx;
 
     struct dentry* mountpoint;
     struct dentry* mounted_dentry;
@@ -98,6 +101,7 @@ typedef struct file_descriptor file_descriptor_t;
  * DENTRIES
  */
 
+void dentry_set_parent(dentry_t* to, dentry_t* parent);
 dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx);
 void dentry_add(uint32_t dev_indx, uint32_t inode_indx, dentry_t res);
 dentry_t* dentry_duplicate(dentry_t* dentry);

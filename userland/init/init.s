@@ -14,7 +14,6 @@ main:
 
 loop: ; for main proc
     mov eax, 0x00 ; print
-    mov ebx, 0x8 ; print
     int 0x80 ; syscall
     jmp loop
 exec:
