@@ -1,7 +1,7 @@
 #include <libsystem/syscalls.h>
 
 int main() {
-    int tmp = the_best_lib_func();
+    int tmp = 4;
     while (1) {
         print(tmp);
     }

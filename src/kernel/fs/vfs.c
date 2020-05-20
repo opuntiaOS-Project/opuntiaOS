@@ -194,13 +194,17 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
         while (*path != '\0' && *path != '/')
             path++, len++;
 
+        dentry_t* parent_dent = cur_dent;
         if (vfs_lookup(cur_dent, name, len, &cur_dent) < 0) {
             return -1;
         }
-
+        
         while (dentry_test_flag(cur_dent, DENTRY_MOUNTPOINT)) {
             cur_dent = cur_dent->mounted_dentry;
         }
+
+        dentry_set_parent(cur_dent, parent_dent);
+        // dentry_put(parent_dent);
     }
 
     *result = dentry_duplicate(cur_dent);

@@ -8,3 +8,4 @@ products/
 .DS_Store/
 base/boot/
 base/bin/
+mountpoint/

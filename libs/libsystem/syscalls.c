@@ -1,7 +1,35 @@
-void print(int value) {
-    asm volatile ("push %%ebx; movl $0, %%eax; movl %1, %%ebx; int $0x80; pop %%ebx" :: "r"(value), "r"(value) : "memory");
+/*
+ * Copyright (C) 2020 Nikita Melekhin
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License v2 as published by the
+ * Free Software Foundation.
+ */
+
+#include "syscalls.h"
+
+enum sysid {
+    SYSPRINT = 0,
+    SYSEXTT,
+    SYSFORK,
+    SYSREAD,
+    SYSOPEN,
+    SYSCLOSE,
+    SYSEXEC,
+};
+typedef enum sysid sysid_t;
+
+static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
+{
+    int ret;
+    asm volatile("push %%ebx;movl %2,%%ebx;int $0x80;pop %%ebx"
+                 : "=a"(ret)
+                 : "0"(sysid), "r"((int)(p1)), "c"((int)(p2)), "d"((int)(p3)), "S"((int)(p4)), "D"((int)(p5))
+                 : "memory");
+    return ret;
 }
 
-int the_best_lib_func() {
-    return 4;
+void print(int value)
+{
+    syscall(SYSEXTT, 6, 0, 0, 0, 0); // SYSPRINT
 }
