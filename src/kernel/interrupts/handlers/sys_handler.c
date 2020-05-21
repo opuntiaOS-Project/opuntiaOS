@@ -36,11 +36,11 @@ void sys_restart_syscall(trapframe_t* tf)
 }
 void sys_exit(trapframe_t* tf)
 {
-    kprintf("CALL EXIT\n");
+    tasking_exit(tf);
 }
 void sys_fork(trapframe_t* tf)
 {
-    tasking_fork();
+    tasking_fork(tf);
 }
 void sys_read(trapframe_t* tf)
 {
@@ -53,5 +53,5 @@ void sys_close(trapframe_t* tf)
 }
 void sys_exec(trapframe_t* tf)
 {
-    tasking_exec();
+    tasking_exec(tf);
 }
