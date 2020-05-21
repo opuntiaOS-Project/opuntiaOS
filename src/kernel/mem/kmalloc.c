@@ -118,11 +118,6 @@ void* kmalloc_page_aligned()
     return kmalloc_aligned(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
 }
 
-void* kmalloc_page_aligned_only_vaddr()
-{
-    return kmalloc_aligned(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
-}
-
 void kfree(void* ptr)
 {
     kmalloc_header_t* sptr = (kmalloc_header_t*)ptr;

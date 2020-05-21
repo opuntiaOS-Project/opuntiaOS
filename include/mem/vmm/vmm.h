@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020 Nikita Melekhin
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License v2 as published by the
+ * Free Software Foundation.
+ */
+
 #ifndef __oneOS__MEM__VMM__VMM_H
 #define __oneOS__MEM__VMM__VMM_H
 
@@ -12,6 +20,7 @@
 
 enum VMM_ERR_CODES {
     VMM_ERR_PDIR,
+    VMM_ERR_PTABLE,
     VMM_ERR_NO_SPACE,
     VMM_ERR_BAD_ADDR,
 };
@@ -34,9 +43,11 @@ int vmm_setup();
 table_desc_t* vmm_pdirectory_lookup(pdirectory_t *t_pdir, uint32_t t_addr);
 page_desc_t* vmm_ptable_lookup(ptable_t *t_ptable, uint32_t t_addr);
 int vmm_allocate_ptable(uint32_t vaddr);
+int vmm_free_pdir(pdirectory_t* pdir);
+
 int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner);
 int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, bool owner);
-
+int vmm_unmap_page(uint32_t vaddr);
 int vmm_copy_page(uint32_t vaddr, ptable_t *src_ptable);
 
 pdirectory_t* vmm_new_user_pdir();
