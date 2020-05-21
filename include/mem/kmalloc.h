@@ -21,7 +21,7 @@
 void kmalloc_init(uint32_t t_start_position);
 void* kmalloc(uint32_t t_size);
 void* kmalloc_page_aligned();
-void* kmalloc_page_aligned_only_vaddr();
 void kfree(void* ptr);
+void kfree_aligned(void* ptr);
 
 #endif // __oneOS__MEM__KMALLOC_H
