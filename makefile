@@ -159,7 +159,7 @@ $(1)_S_OBJECTS = $$(patsubst %.s,%.o,$$($(1)_S_SOURCES))
 # system apps
 $$($(1)_BINARY): $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) $$(LIBRARIES)
 	@echo "$($(1)_NAME) [LD]  $$@"
-	$(QUIET) $$(LD) $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) -Ttext 0x0 -o $$@ --oformat binary $$(LIBRARIES)
+	$(QUIET) $$(LD) $$(CRTS) $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) -Ttext 0x0 -o $$@ --oformat binary $$(LIBRARIES)
 
 #std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.c
@@ -205,6 +205,10 @@ clean:
 	rm -rf src/boot/x86/stage2/*/*.bin src/boot/x86/stage2/*/*.o
 	rm -rf src/boot/x86/stage2/*/*/*.bin src/boot/x86/stage2/*/*/*.o
 	rm -rf src/boot/x86/stage2/*/*/*/*.bin src/boot/x86/stage2/*/*/*/*.o
+
+	rm -rf userland/*/*.o
+	rm -rf libs/*/*.o
+	rm -rf libs/*.o
 
 ${DISK}:
 	qemu-img create -f raw ${DISK} 1M
