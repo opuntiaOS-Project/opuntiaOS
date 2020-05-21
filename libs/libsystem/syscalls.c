@@ -31,5 +31,14 @@ static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
 
 void print(int value)
 {
-    syscall(SYSEXTT, 6, 0, 0, 0, 0); // SYSPRINT
+    // syscall(SYSEXTT, 6, 0, 0, 0, 0); // SYSPRINT
+}
+
+void exit(int ret_code) {
+    syscall(SYSEXTT, ret_code, 0, 0, 0, 0);
+}
+
+void open(int value)
+{
+    // syscall(SYSEXTT, 6, 0, 0, 0, 0); // SYSPRINT
 }
