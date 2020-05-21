@@ -118,6 +118,14 @@ static proc_t* _tasking_alloc_proc()
     return p;
 }
 
+static void _tasking_free_proc(proc_t* p)
+{
+    p->pid = 0;
+    kfree(p->kstack);
+    dentry_put(p->cwd);
+    vmm_free_pdir(p->pdir);
+}
+
 /**
  * Start init proccess
  * All others processes will fork
@@ -185,4 +193,12 @@ void tasking_exec(trapframe_t* tf)
     proc->tf->ebp = VMM_PAGE_SIZE;
     proc->tf->esp = VMM_PAGE_SIZE;
     proc->tf->eip = 0;
+}
+
+void tasking_exit(trapframe_t* tf)
+{
+    proc_t* proc = tasking_get_active_proc();
+    kprintf("Task %d exit with code: %d\n", proc->pid, tf->ebx);
+    _tasking_free_proc(proc);
+    presched_no_context();
 }

@@ -30,14 +30,22 @@ void presched() {
     switch_contexts(&active_proc->context, cpu_ptr->scheduler);
 }
 
+void presched_no_context() {
+    context_t stub_cntx;
+    context_t* stub_cntx_ptr = &stub_cntx;
+    switch_contexts(&stub_cntx_ptr, cpu_ptr->scheduler);
+}
+
 void sched() {
     proc_t *p;
     for (;;) {
-        kprintf("Scheduling, next %d\n", nxtrun);
         p = &proc[nxtrun];
-        switchuvm(p); // setting up proc env
-        switch_contexts(&cpu_ptr->scheduler, p->context); // jumping into proc
-        nxtrun++; // TODO foe test only 2 procs were implemented
+        if (p->pid > 0) {
+            kprintf("Scheduling, next %d\n", p->pid);
+            switchuvm(p); // setting up proc env
+            switch_contexts(&cpu_ptr->scheduler, p->context); // jumping into proc
+        }
+        nxtrun++;
         nxtrun %= nxt_proc;
         p = 0;
     }
