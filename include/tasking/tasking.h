@@ -42,8 +42,9 @@ uint32_t nxt_proc;
 proc_t* tasking_get_active_proc();
 
 void switchuvm(proc_t* p);
-void tasking_fork();
-void tasking_exec();
+void tasking_fork(trapframe_t* tf);
+void tasking_exec(trapframe_t* tf);
+void tasking_exit(trapframe_t* tf);
 
 void tasking_start_init_proc();
 

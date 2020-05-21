@@ -20,6 +20,7 @@ proc_t *active_proc;
 
 void scheduler_init();
 void presched();
+void presched_no_context();
 void sched();
 
 #endif // __oneOS__X86__TASKING__SCHED_H
