@@ -51,7 +51,7 @@ STAGE2_S_SRC = $(wildcard \
 					src/boot/x86/stage2/*/*/*.s \
 					src/boot/x86/stage2/*/*/*/*.s )
 
-HEADERS = $(wildcard include/*.h)
+STAGE2_HEADERS = $(wildcard include/*.h)
 STAGE2_C_OBJ = ${STAGE2_C_SRC:.c=.o}
 STAGE2_S_OBJ = ${STAGE2_S_SRC:.s=.o}
 STAGE2_C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS}
@@ -88,7 +88,7 @@ KERNEL_S_SRC = $(wildcard \
 					src/kernel/*/*/*/*.s )
 
 
-HEADERS = $(wildcard include/*.h)
+KERNEL_HEADERS = $(shell find include -name "*.h")
 KERNEL_C_OBJ = ${KERNEL_C_SRC:.c=.o}
 KERNEL_S_OBJ = ${KERNEL_S_SRC:.s=.o}
 
@@ -102,7 +102,7 @@ products/stage3_entry.o: src/boot/x86/stage3_entry.s
 	@echo "$(notdir $(CURDIR)): S3_ENTRY_ASM $@"
 	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
-${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.c
+${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.c ${KERNEL_HEADERS}
 	@echo "$(notdir $(CURDIR)): CC $@"
 	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
 
