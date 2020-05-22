@@ -15,6 +15,7 @@
 #include <x86/idt.h>
 
 #define MAX_PROCESS_COUNT 1024
+#define MAX_OPEN_FILES 16
 
 typedef struct {
     uint32_t edi;
@@ -34,6 +35,7 @@ typedef struct {
     trapframe_t* tf;
 
     dentry_t* cwd;
+    file_descriptor_t* fds;
 } __attribute__((packed)) proc_t;
 
 proc_t proc[MAX_PROCESS_COUNT];

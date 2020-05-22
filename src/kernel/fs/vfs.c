@@ -128,6 +128,9 @@ int vfs_close(file_descriptor_t* fd)
     }
 
     dentry_put(fd->dentry);
+    fd->dentry = 0;
+    fd->offset = 0;
+    fd->ops = 0;
     return 0;
 }
 
