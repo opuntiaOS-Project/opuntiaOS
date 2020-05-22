@@ -137,15 +137,15 @@ static bool _vmm_split_pspace()
  */
 static void _vmm_pspace_init()
 {
-    uint32_t kernel_ptabels_vaddr = pspace_start_vaddr + 768 * VMM_PAGE_SIZE; // map what
+    uint32_t kernel_ptabels_vaddr = pspace_start_vaddr + VMM_KERNEL_TABLES_START * VMM_PAGE_SIZE; // map what
     uint32_t kernel_ptabels_paddr = kernel_ptables_start_paddr; // map to
-    for (int i = 768; i < 1024; i++) {
+    for (int i = VMM_KERNEL_TABLES_START; i < 1024; i++) {
         table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, kernel_ptabels_vaddr);
         if (!table_desc_is_present(*ptable_desc)) {
             // must present
             kpanic("PSPACE_6335 : BUG\n");
         }
-        ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - 768) * VMM_PAGE_SIZE);
+        ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - VMM_KERNEL_TABLES_START) * VMM_PAGE_SIZE);
         page_desc_t* page = vmm_ptable_lookup(ptable_vaddr, kernel_ptabels_vaddr);
         page_desc_set_attr(page, PAGE_DESC_PRESENT);
         page_desc_set_attr(page, PAGE_DESC_WRITABLE);
@@ -161,12 +161,10 @@ static void _vmm_pspace_init()
  */
 static table_desc_t _vmm_pspace_gen()
 {
-    ptable_t* cur_ptable = (ptable_t*)_vmm_pspace_get_nth_active_ptable(769);
+    ptable_t* cur_ptable = (ptable_t*)_vmm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr));
 
     uint32_t ptable_paddr = (uint32_t)pmm_alloc_block();
     ptable_t* new_ptable = (ptable_t*)vmm_get_free_vaddr();
-
-    kprintf("PSPACE %x %x\n", new_ptable, ptable_paddr);
 
     vmm_map_page((uint32_t)new_ptable, ptable_paddr, KERNEL);
 
@@ -208,7 +206,7 @@ static void _vmm_free_pspace(pdirectory_t* pdir)
  */
 static void* _vmm_kernel_convert_vaddr2paddr(uint32_t vaddr)
 {
-    ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - 768) * VMM_PAGE_SIZE);
+    ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - VMM_KERNEL_TABLES_START) * VMM_PAGE_SIZE);
     page_desc_t* page_desc = vmm_ptable_lookup(ptable_vaddr, vaddr);
     return (void*)((page_desc_get_frame(*page_desc)) | (vaddr & 0xfff));
 }
@@ -254,7 +252,7 @@ static bool _vmm_init_switch_to_kernel_pdir()
  */
 static void _vmm_map_init_kernel_pages(uint32_t paddr, uint32_t vaddr)
 {
-    ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - 768) * VMM_PAGE_SIZE);
+    ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - VMM_KERNEL_TABLES_START) * VMM_PAGE_SIZE);
     for (uint32_t phyz = paddr, virt = vaddr, i = 0; i < 1024; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
         pte_t new_page = ((phyz / VMM_PAGE_SIZE) << 12) | 3;
         ptable_paddr->entities[i] = new_page;
