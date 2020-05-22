@@ -113,14 +113,27 @@ static proc_t* _tasking_alloc_proc()
     p->context->eip = (uint32_t)_tasking_jumper;
     memset((void*)p->tf, 0, sizeof(*p->tf));
 
+    /* setting current work directory */
     p->cwd = 0;
+
+    /* allocating space for open files */
+    p->fds = kmalloc(MAX_OPEN_FILES * sizeof(file_descriptor_t));
 
     return p;
 }
 
 static void _tasking_free_proc(proc_t* p)
 {
+    /* closing opend fds */
+    for (int i = 0; i < MAX_OPEN_FILES; i++) {
+        if (p->fds[i].dentry) {
+            /* think as active fd */
+            vfs_close(&p->fds[i]);
+        }
+    }
+    
     p->pid = 0;
+    kfree(p->fds);
     kfree(p->kstack);
     dentry_put(p->cwd);
     vmm_free_pdir(p->pdir);

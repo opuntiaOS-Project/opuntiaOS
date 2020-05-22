@@ -94,6 +94,7 @@ struct file_descriptor {
     dentry_t* dentry;
     uint32_t offset;
     file_ops_t* ops;
+    uint32_t padding;
 };
 typedef struct file_descriptor file_descriptor_t;
 
