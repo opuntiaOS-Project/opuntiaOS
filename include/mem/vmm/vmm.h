@@ -14,6 +14,9 @@
 #include <mem/vmm/pte.h>
 #include <mem/vmm/pde.h>
 
+#define KB (1024)
+#define MB (1024 * 1024)
+
 #define VMM_PTE_COUNT (1024)
 #define VMM_PDE_COUNT (1024)
 #define VMM_PAGE_SIZE (4096)

@@ -8,6 +8,7 @@
 
 #include <drivers/display.h>
 #include <mem/kmalloc.h>
+#include <mem/vmm/zonem.h>
 
 struct kmalloc_header {
     uint32_t len;
@@ -25,9 +26,9 @@ static void _kmalloc_init_bitmap()
     memset(kmalloc_bitmap, 0, _kmalloc_bitmap_len);
 }
 
-void kmalloc_init(uint32_t start_position)
+void kmalloc_init()
 {
-    kmalloc_bitmap = (uint8_t*)start_position;
+    kmalloc_bitmap = (uint8_t*)zonem_new_vzone(KMALLOC_SPACE_SIZE);
     _kmalloc_init_bitmap();
 }
 
