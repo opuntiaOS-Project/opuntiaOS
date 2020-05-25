@@ -503,14 +503,23 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr)
  */
 int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
 {
-    vmm_load_page(vaddr);
-    // TODO check because of memory leak.
-    uint32_t old_page_vaddr = (uint32_t)vmm_get_free_vaddr();
     page_desc_t* old_page_desc = vmm_ptable_lookup(src_ptable, vaddr);
+    
+    /* Based on an old page */
+    if (page_desc_is_user(*old_page_desc)) {
+        vmm_load_page(vaddr, USER);
+    } else {
+        vmm_load_page(vaddr, KERNEL);
+    }
+    
+    /* Mapping the old page to do a copy */
+    uint32_t old_page_vaddr = (uint32_t)vmm_get_free_vaddr();
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL);
+    
     memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
-    // TODO free address only;
+    
+    /* Freeing */
     vmm_unmap_page(old_page_vaddr);
     vmm_free_free_vaddr((void*)old_page_vaddr);
     return 0;
@@ -695,14 +704,14 @@ pdirectory_t* vmm_get_active_pdir()
  * PF HANDLER FUNCTIONS
  */
 
-int vmm_load_page(uint32_t vaddr)
+int vmm_load_page(uint32_t vaddr, bool owner)
 {
     uint32_t paddr = (uint32_t)pmm_alloc_block();
     if (!paddr) {
         // clean here to make it able to allocate
         kpanic("NO SPACE");
     }
-    int res = vmm_map_page(vaddr, paddr, CHOOSE_OWNER(vaddr));
+    int res = vmm_map_page(vaddr, paddr, owner);
     uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
     memset(dest, 0, VMM_PAGE_SIZE);
     return res;
@@ -743,7 +752,7 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
         }
     } else {
         if ((info & 1) == 0) {
-            vmm_load_page(vaddr);
+            vmm_load_page(vaddr, CHOOSE_OWNER(vaddr));
         } else {
             kpanic("VMM: where are we?\n");
         }

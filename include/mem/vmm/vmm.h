@@ -61,7 +61,7 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uin
 void vmm_zero_user_pages(pdirectory_t* pdir);
 pdirectory_t* vmm_get_active_pdir();
 
-int vmm_load_page(uint32_t vaddr);
+int vmm_load_page(uint32_t vaddr, bool owner);
 int vmm_alloc_page(page_desc_t* page);
 int vmm_free_page(page_desc_t* page);
 void vmm_page_fault_handler(uint8_t info, uint32_t vaddr);
