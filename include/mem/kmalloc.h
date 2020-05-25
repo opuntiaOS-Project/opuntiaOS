@@ -12,14 +12,11 @@
 #include <types.h>
 #include <mem/vmm/vmm.h>
 
-#define MB (1024 * 1024)
-#define KB (1024)
-
 #define KMALLOC_SPACE_SIZE (4 * MB)
 #define KMALLOC_BLOCK_SIZE 32
 
-void kmalloc_init(uint32_t t_start_position);
-void* kmalloc(uint32_t t_size);
+void kmalloc_init();
+void* kmalloc(uint32_t size);
 void* kmalloc_page_aligned();
 void kfree(void* ptr);
 void kfree_aligned(void* ptr);
