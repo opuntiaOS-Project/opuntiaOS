@@ -34,11 +34,17 @@ void print(int value)
     // syscall(SYSEXTT, 6, 0, 0, 0, 0); // SYSPRINT
 }
 
-void exit(int ret_code) {
+void exit(int ret_code)
+{
     syscall(SYSEXTT, ret_code, 0, 0, 0, 0);
 }
 
-void open(int value)
+enum OPEN_MODE {
+    O_RDONLY,
+    O_WRONLY,
+    O_RDWR
+};
+int open(const char *pathname, int flags)
 {
-    // syscall(SYSEXTT, 6, 0, 0, 0, 0); // SYSPRINT
+    return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);
 }

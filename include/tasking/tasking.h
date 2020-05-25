@@ -15,7 +15,7 @@
 #include <x86/idt.h>
 
 #define MAX_PROCESS_COUNT 1024
-#define MAX_OPEN_FILES 16
+#define MAX_OPENED_FILES 16
 
 typedef struct {
     uint32_t edi;
@@ -43,11 +43,31 @@ uint32_t nxt_proc;
 
 proc_t* tasking_get_active_proc();
 
+/**
+ * CPU FUNCTIONS
+ */
+
 void switchuvm(proc_t* p);
+
+/**
+ * TASK LOADING FUNCTIONS
+ */
+
+void tasking_start_init_proc();
+
+/**
+ * TASKING RELATED FUNCTIONS
+ */
+
+file_descriptor_t* tasking_get_free_fd(proc_t* proc);
+file_descriptor_t* tasking_get_fd(proc_t* proc, int index);
+
+/**
+ * SYSCALL IMPLEMENTATION
+ */
+
 void tasking_fork(trapframe_t* tf);
 void tasking_exec(trapframe_t* tf);
 void tasking_exit(trapframe_t* tf);
-
-void tasking_start_init_proc();
 
 #endif // __oneOS__X86__TASKING__TASKING_H

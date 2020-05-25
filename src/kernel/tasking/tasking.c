@@ -16,7 +16,7 @@
 
 #define FL_IF 0x00000200
 
-static int nxtpid = 0;
+static int nxtpid = 1;
 
 extern void trap_return();
 extern void switch_contexts(context_t** old, context_t* new);
@@ -47,7 +47,7 @@ void _tasking_jumper()
 }
 
 /**
- * TASK LOADING
+ * TASK LOADING FUNCTIONS
  */
 
 static int _tasking_load_bin(pdirectory_t* pdir, file_descriptor_t* fd)
@@ -70,7 +70,7 @@ static int _tasking_load(proc_t* proc, const char* path)
         return -1;
     }
     int ret = _tasking_load_bin(proc->pdir, &fd);
-    
+
     proc->cwd = dentry_get(file->parent_dev_indx, file->parent_inode_indx);
     vfs_close(&fd);
     return ret;
@@ -90,7 +90,7 @@ proc_t* tasking_get_active_proc()
 static proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[nxt_proc++];
-    p->pid = ++nxtpid;
+    p->pid = nxtpid++;
 
     /* allocating kernel stack */
     p->kstack = kmalloc(VMM_PAGE_SIZE);
@@ -117,7 +117,7 @@ static proc_t* _tasking_alloc_proc()
     p->cwd = 0;
 
     /* allocating space for open files */
-    p->fds = kmalloc(MAX_OPEN_FILES * sizeof(file_descriptor_t));
+    p->fds = kmalloc(MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
     return p;
 }
@@ -125,13 +125,13 @@ static proc_t* _tasking_alloc_proc()
 static void _tasking_free_proc(proc_t* p)
 {
     /* closing opend fds */
-    for (int i = 0; i < MAX_OPEN_FILES; i++) {
+    for (int i = 0; i < MAX_OPENED_FILES; i++) {
         if (p->fds[i].dentry) {
             /* think as active fd */
             vfs_close(&p->fds[i]);
         }
     }
-    
+
     p->pid = 0;
     kfree(p->fds);
     kfree(p->kstack);
@@ -175,7 +175,29 @@ void tasking_start_init_proc()
     switch_contexts(&stub_cntx_ptr, p->context);
 }
 
-/* Syscall implementation */
+/**
+ * TASKING RELATED FUNCTIONS
+ */
+
+file_descriptor_t* tasking_get_free_fd(proc_t* proc)
+{
+    for (int i = 0; i < MAX_OPENED_FILES; i++) {
+        if (!proc->fds[i].dentry) {
+            return &proc->fds[i];
+        }
+    }
+}
+
+file_descriptor_t* tasking_get_fd(proc_t* proc, int index)
+{
+    return &proc->fds[index];
+}
+
+/**
+ * SYSCALL IMPLEMENTATION
+ */
+
+/* Syscall */
 void tasking_fork(trapframe_t* tf)
 {
     proc_t* new_proc = _tasking_alloc_proc();
@@ -193,7 +215,7 @@ void tasking_fork(trapframe_t* tf)
     switch_contexts(&active_proc->context, new_proc->context);
 }
 
-/* Syscall implementation */
+/* Syscall */
 /* TODO: Posix & zeroing-on-demand */
 void tasking_exec(trapframe_t* tf)
 {
@@ -208,6 +230,7 @@ void tasking_exec(trapframe_t* tf)
     proc->tf->eip = 0;
 }
 
+/* Syscall */
 void tasking_exit(trapframe_t* tf)
 {
     proc_t* proc = tasking_get_active_proc();
