@@ -9,6 +9,8 @@
 #include <sys_handler.h>
 #include <tasking/tasking.h>
 
+#define param1 (tf->ebx)
+
 /* 32 bit Linux-like syscalls */
 
 static inline void set_return(trapframe_t* tf, int val)
@@ -45,12 +47,25 @@ void sys_fork(trapframe_t* tf)
 void sys_read(trapframe_t* tf)
 {
 }
-void sys_open(trapframe_t* tf)
+
+int sys_open(trapframe_t* tf)
 {
+    file_descriptor_t* fd = tasking_get_free_fd(tasking_get_active_proc());
+    dentry_t* file;
+    if (vfs_resolve_path((char*)param1, &file) < 0) {
+        return -1;
+    }
+    int res = vfs_open(file, fd);
+    dentry_put(file);
+    return res;
 }
-void sys_close(trapframe_t* tf)
+
+int sys_close(trapframe_t* tf)
 {
+    file_descriptor_t* fd = tasking_get_fd(tasking_get_active_proc(), param1);
+    return vfs_close(fd);
 }
+
 void sys_exec(trapframe_t* tf)
 {
     tasking_exec(tf);

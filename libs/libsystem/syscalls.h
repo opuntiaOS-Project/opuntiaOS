@@ -1,2 +1,2 @@
 void print(int value);
-void exit(int value);
+int open(const char *pathname, int flags);
