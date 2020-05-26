@@ -15,5 +15,8 @@ void sys_read(trapframe_t *tf);
 int sys_open(trapframe_t* tf);
 int sys_close(trapframe_t *tf);
 void sys_exec(trapframe_t *tf);
+void sys_sigaction(trapframe_t* tf);
+void sys_sigreturn(trapframe_t* tf);
+void sys_raise(trapframe_t* tf);
 
 #endif // __oneOS__INTERRUPTS__SYS_HANDLER_H
