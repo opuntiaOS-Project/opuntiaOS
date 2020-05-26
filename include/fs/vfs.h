@@ -107,6 +107,7 @@ dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx);
 void dentry_add(uint32_t dev_indx, uint32_t inode_indx, dentry_t res);
 dentry_t* dentry_duplicate(dentry_t* dentry);
 void dentry_put(dentry_t* dentry);
+void dentry_force_put(dentry_t* dentry);
 void dentry_put_all_dentries_of_dev(uint32_t dev_indx);
 void dentry_set_flag(dentry_t* dentry, uint32_t flag);
 bool dentry_test_flag(dentry_t* dentry, uint32_t flag);
