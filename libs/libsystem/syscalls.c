@@ -16,6 +16,9 @@ enum sysid {
     SYSOPEN,
     SYSCLOSE,
     SYSEXEC,
+    SYSSIGACTION,
+    SYSSIGRETURN,
+    SYSRAISE,
 };
 typedef enum sysid sysid_t;
 
@@ -31,7 +34,7 @@ static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
 
 void print(int value)
 {
-    // syscall(SYSEXTT, 6, 0, 0, 0, 0); // SYSPRINT
+    syscall(SYSPRINT, 6, 0, 0, 0, 0); // SYSPRINT
 }
 
 void exit(int ret_code)
@@ -47,4 +50,14 @@ enum OPEN_MODE {
 int open(const char *pathname, int flags)
 {
     return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);
+}
+
+int sigaction(int signo, void* callback)
+{
+    return syscall(SYSSIGACTION, (int)signo, (int)callback, 0, 0, 0);
+}
+
+int raise(int signo)
+{
+    return syscall(SYSRAISE, (int)signo, 0, 0, 0, 0);
 }

@@ -10,6 +10,8 @@
 #include <tasking/tasking.h>
 
 #define param1 (tf->ebx)
+#define param2 (tf->ecx)
+#define param3 (tf->edx)
 
 /* 32 bit Linux-like syscalls */
 
@@ -26,24 +28,31 @@ void sys_handler(trapframe_t* tf)
         sys_fork,
         sys_read,
         sys_open,
-        sys_close,
+        sys_close, // 5
         sys_exec,
+        sys_sigaction,
+        sys_sigreturn,
+        sys_raise,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
 }
+
 void sys_restart_syscall(trapframe_t* tf)
 {
     kprintd(tf->ebx);
 }
+
 void sys_exit(trapframe_t* tf)
 {
     tasking_exit(tf);
 }
+
 void sys_fork(trapframe_t* tf)
 {
     tasking_fork(tf);
 }
+
 void sys_read(trapframe_t* tf)
 {
 }
@@ -69,4 +78,20 @@ int sys_close(trapframe_t* tf)
 void sys_exec(trapframe_t* tf)
 {
     tasking_exec(tf);
+}
+
+void sys_sigaction(trapframe_t* tf)
+{
+    set_return(tf, signal_set_handler(tasking_get_active_proc(), (int)param1, (void*)param2));
+}
+
+void sys_sigreturn(trapframe_t* tf)
+{
+    signal_restore_proc_after_handling_signal(tasking_get_active_proc());
+}
+
+void sys_raise(trapframe_t* tf)
+{
+    signal_set_pending(tasking_get_active_proc(), (int)param1);
+    signal_dispatch_pending(tasking_get_active_proc());
 }

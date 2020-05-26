@@ -48,6 +48,7 @@ void stage3(mem_desc_t *mem_desc) {
     procfs_install();
     drivers_run();
 
+    tasking_init();
     scheduler_init();
 
     syscmd_init();

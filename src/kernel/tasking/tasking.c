@@ -119,6 +119,11 @@ static proc_t* _tasking_alloc_proc()
     /* allocating space for open files */
     p->fds = kmalloc(MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
+    /* setting signal handlers to 0 */
+    proc->signals_mask = 0xffffffff; /* for now all signals are legal */
+    proc->pending_signals_mask = 0;
+    memset((void*)proc->signal_handlers, 0, sizeof(proc->signal_handlers));
+
     return p;
 }
 
@@ -145,7 +150,6 @@ static void _tasking_free_proc(proc_t* p)
  */
 void tasking_start_init_proc()
 {
-    nxt_proc = 0;
     proc_t* p = _tasking_alloc_proc();
 
     /* creating new pdir */
@@ -178,6 +182,12 @@ void tasking_start_init_proc()
 /**
  * TASKING RELATED FUNCTIONS
  */
+
+void tasking_init()
+{
+    nxt_proc = 0;
+    signal_init();
+}
 
 file_descriptor_t* tasking_get_free_fd(proc_t* proc)
 {

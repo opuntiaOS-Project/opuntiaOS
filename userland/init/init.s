@@ -14,7 +14,7 @@ main:
 
 loop: ; for main proc
     mov eax, 0x00 ; print
-    int 0x80 ; syscall
+    ; int 0x80 ; syscall
     jmp loop
 exec:
     mov ecx, pathToLaunch
