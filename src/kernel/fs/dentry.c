@@ -118,7 +118,7 @@ dentry_t* dentry_duplicate(dentry_t* dentry)
     return dentry;
 }
 
-static void dentry_force_put(dentry_t* dentry)
+void dentry_force_put(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_MOUNTPOINT)) {
         return;
