@@ -273,7 +273,16 @@ static bool _vmm_create_kernel_ptables()
         }
         table_desc_set_attr(ptable_desc, TABLE_DESC_PRESENT);
         table_desc_set_attr(ptable_desc, TABLE_DESC_WRITABLE);
-        table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
+
+        /**
+         * VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr) shows number of table where pspace starts. 
+         * Since pspace is right after kernel, let's protect them and not give user access to the whole
+         * ptable (and since ptable is not user, all pages inside it are not user too).
+         */
+        if (i > VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)) {
+            table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
+        }
+        
         table_desc_set_frame(ptable_desc, paddr / VMM_PAGE_SIZE);
     }
 
