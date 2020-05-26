@@ -20,16 +20,6 @@ bool _test_page_fault() {
     return *newpage == 8;
 }
 
-void kpanic(char *t_err_msg) {
-    clean_screen();
-    kprintf("*****\n");
-    kprintf("Kernel Panic\n");
-    kprintf("*****\n");
-    kprintf(t_err_msg);
-    kprintf("\n*****");
-    while (1) {}
-}
-
 void kpanic_at_test(char *t_err_msg, uint16_t test_no) {
     clean_screen();
     kprintf("*****\n");
