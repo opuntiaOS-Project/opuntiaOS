@@ -17,6 +17,11 @@
 #define KB (1024)
 #define MB (1024 * 1024)
 
+// owner of page or table
+#define USER_PAGE true
+#define KERNEL_PAGE false
+#define PAGE_CHOOSE_OWNER(vaddr) (vaddr >= KERNEL_BASE ? KERNEL_PAGE : USER_PAGE)
+
 #define VMM_PTE_COUNT (1024)
 #define VMM_PDE_COUNT (1024)
 #define VMM_PAGE_SIZE (4096)

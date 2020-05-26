@@ -23,11 +23,6 @@
 #define VMM_USER_TABLES_START 0
 #define IS_INDIVIDUAL_PER_DIR(index) (index < VMM_KERNEL_TABLES_START || (index == VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)))
 
-// owner of page or table
-#define USER true
-#define KERNEL false
-#define CHOOSE_OWNER(vaddr) (vaddr >= KERNEL_BASE ? KERNEL : USER)
-
 static pdir_t* _vmm_kernel_pdir;
 static pdir_t* _vmm_active_pdir;
 static uint32_t pspace_start_vaddr;
@@ -166,7 +161,7 @@ static table_desc_t _vmm_pspace_gen()
     uint32_t ptable_paddr = (uint32_t)pmm_alloc_block();
     ptable_t* new_ptable = (ptable_t*)vmm_get_free_vaddr();
 
-    vmm_map_page((uint32_t)new_ptable, ptable_paddr, KERNEL);
+    vmm_map_page((uint32_t)new_ptable, ptable_paddr, KERNEL_PAGE);
 
     for (int i = 0; i < 1024; i++) {
         // coping all pages
@@ -278,6 +273,7 @@ static bool _vmm_create_kernel_ptables()
         }
         table_desc_set_attr(ptable_desc, TABLE_DESC_PRESENT);
         table_desc_set_attr(ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
         table_desc_set_frame(ptable_desc, paddr / VMM_PAGE_SIZE);
     }
 
@@ -293,7 +289,7 @@ static bool _vmm_create_kernel_ptables()
  */
 static bool _vmm_map_kernel()
 {
-    vmm_map_pages(0x00000000, 0x00000000, 1024, KERNEL);
+    vmm_map_pages(0x00000000, 0x00000000, 1024, KERNEL_PAGE);
     return true;
 }
 
@@ -367,13 +363,10 @@ int vmm_allocate_ptable(uint32_t vaddr)
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
     table_desc_set_attr(ptable_desc, TABLE_DESC_PRESENT);
     table_desc_set_attr(ptable_desc, TABLE_DESC_WRITABLE);
+    table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
     table_desc_set_frame(ptable_desc, ptable_paddr / VMM_PAGE_SIZE);
-
-    if (CHOOSE_OWNER(vaddr) == USER) {
-        table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
-    }
-
-    return vmm_map_page(ptable_vaddr, ptable_paddr, CHOOSE_OWNER(vaddr));
+    
+    return vmm_map_page(ptable_vaddr, ptable_paddr, PAGE_CHOOSE_OWNER(vaddr));
 }
 
 static int vmm_free_ptable(uint32_t ptable_indx)
@@ -418,7 +411,7 @@ int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner)
     page_desc_set_attr(page, PAGE_DESC_WRITABLE);
     page_desc_set_frame(page, paddr / VMM_PAGE_SIZE);
 
-    if (owner == USER) {
+    if (owner == USER_PAGE) {
         page_desc_set_attr(page, PAGE_DESC_USER);
     }
 
@@ -507,15 +500,15 @@ int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
     
     /* Based on an old page */
     if (page_desc_is_user(*old_page_desc)) {
-        vmm_load_page(vaddr, USER);
+        vmm_load_page(vaddr, USER_PAGE);
     } else {
-        vmm_load_page(vaddr, KERNEL);
+        vmm_load_page(vaddr, KERNEL_PAGE);
     }
     
     /* Mapping the old page to do a copy */
     uint32_t old_page_vaddr = (uint32_t)vmm_get_free_vaddr();
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-    vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL);
+    vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL_PAGE);
     
     memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
     
@@ -651,7 +644,7 @@ void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size)
     }
 
     vmm_switch_pdir(dir);
-    vmm_map_page(0x0, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)tmp_block), USER);
+    vmm_map_page(0x0, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)tmp_block), USER_PAGE);
     vmm_switch_pdir(_vmm_kernel_pdir);
 }
 
@@ -752,7 +745,7 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
         }
     } else {
         if ((info & 1) == 0) {
-            vmm_load_page(vaddr, CHOOSE_OWNER(vaddr));
+            vmm_load_page(vaddr, PAGE_CHOOSE_OWNER(vaddr));
         } else {
             kpanic("VMM: where are we?\n");
         }
