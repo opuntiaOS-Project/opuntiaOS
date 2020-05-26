@@ -12,7 +12,7 @@
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zonem.h>
 #include <tasking/tasking.h>
-#include <utils/kernel_self_test.h>
+#include <utils/kassert.h>
 
 #define pdir_t pdirectory_t
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
