@@ -71,7 +71,7 @@ static int _tasking_load(proc_t* proc, const char* path)
     }
     int ret = _tasking_load_bin(proc->pdir, &fd);
 
-    proc->cwd = dentry_get(file->parent_dev_indx, file->parent_inode_indx);
+    proc->cwd = dentry_get_parent(file);
     vfs_close(&fd);
     return ret;
 }

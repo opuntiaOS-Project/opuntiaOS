@@ -93,10 +93,12 @@ void vfs_add_fs(driver_t* t_new_driver)
     new_fs.eject_device = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
 
     new_fs.file.mkdir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
-    new_fs.file.getdirent = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT]; // TODO FIX
+    new_fs.file.getdirent = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT];
     new_fs.file.lookup = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
     new_fs.file.read = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
     new_fs.file.write = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+    new_fs.file.create = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
+    new_fs.file.rm = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RM];
 
     new_fs.dentry.write_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
     new_fs.dentry.read_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
@@ -133,6 +135,28 @@ int vfs_close(file_descriptor_t* fd)
     fd->ops = 0;
     return 0;
 }
+
+int vfs_create(dentry_t* dir, const char* name, uint32_t len)
+{
+    /* Check if there is a file with the same name */
+    dentry_t* tmp;
+    if (vfs_lookup(dir, name, len, &tmp) == 0) {
+        return -1;
+    }
+
+    return dir->ops->file.create(dir, name, len);
+}
+
+int vfs_rm(dentry_t* file)
+{
+    if (file->d_count != 1) {
+        kprintf("Dcnt not %d\n", file->d_count);
+        return -1;
+    }
+
+    return file->ops->file.rm(file);
+}
+
 
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
