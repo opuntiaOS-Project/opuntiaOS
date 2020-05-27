@@ -17,7 +17,8 @@
 #define pdir_t pdirectory_t
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
 #define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0x3ff)
-#define VMM_OFFSET_IN_PAGE(a) ((a) & 0xfff);
+#define VMM_OFFSET_IN_PAGE(a) ((a) & 0xfff)
+#define FRAME(addr) (addr / VMM_PAGE_SIZE)
 
 #define VMM_KERNEL_TABLES_START 768
 #define VMM_USER_TABLES_START 0
@@ -142,9 +143,8 @@ static void _vmm_pspace_init()
         }
         ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - VMM_KERNEL_TABLES_START) * VMM_PAGE_SIZE);
         page_desc_t* page = vmm_ptable_lookup(ptable_vaddr, kernel_ptabels_vaddr);
-        page_desc_set_attr(page, PAGE_DESC_PRESENT);
-        page_desc_set_attr(page, PAGE_DESC_WRITABLE);
-        page_desc_set_frame(page, kernel_ptabels_paddr / VMM_PAGE_SIZE);
+        page_desc_set_attrs(page, PAGE_DESC_PRESENT | PAGE_DESC_WRITABLE);
+        page_desc_set_frame(page, FRAME(kernel_ptabels_paddr));
         kernel_ptabels_vaddr += VMM_PAGE_SIZE;
         kernel_ptabels_paddr += VMM_PAGE_SIZE;
     }
@@ -169,15 +169,13 @@ static table_desc_t _vmm_pspace_gen()
     }
 
     page_desc_t pspace_page = 0;
-    page_desc_set_attr(&pspace_page, PAGE_DESC_PRESENT);
-    page_desc_set_attr(&pspace_page, PAGE_DESC_WRITABLE);
-    page_desc_set_frame(&pspace_page, ptable_paddr / VMM_PAGE_SIZE);
+    page_desc_set_attrs(&pspace_page, PAGE_DESC_PRESENT | PAGE_DESC_WRITABLE);
+    page_desc_set_frame(&pspace_page, FRAME(ptable_paddr));
     new_ptable->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = pspace_page;
 
     table_desc_t pspace_table = 0;
-    table_desc_set_attr(&pspace_table, TABLE_DESC_PRESENT);
-    table_desc_set_attr(&pspace_table, TABLE_DESC_WRITABLE);
-    table_desc_set_frame(&pspace_table, ptable_paddr / VMM_PAGE_SIZE);
+    table_desc_set_attrs(&pspace_table, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE);
+    table_desc_set_frame(&pspace_table, FRAME(ptable_paddr));
 
     vmm_unmap_page((uint32_t)new_ptable);
     vmm_free_free_vaddr(new_ptable);
@@ -188,7 +186,7 @@ static table_desc_t _vmm_pspace_gen()
 static void _vmm_free_pspace(pdirectory_t* pdir)
 {
     table_desc_t* ptable_desc = &pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)];
-    if (!table_desc_has_attr(*ptable_desc, TABLE_DESC_PRESENT)) {
+    if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
         return;
     }
     pmm_free_block((void*)table_desc_get_frame(*ptable_desc));
@@ -249,7 +247,7 @@ static void _vmm_map_init_kernel_pages(uint32_t paddr, uint32_t vaddr)
 {
     ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - VMM_KERNEL_TABLES_START) * VMM_PAGE_SIZE);
     for (uint32_t phyz = paddr, virt = vaddr, i = 0; i < 1024; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
-        pte_t new_page = ((phyz / VMM_PAGE_SIZE) << 12) | 3;
+        pte_t new_page = (FRAME(phyz) << 12) | 3;
         ptable_paddr->entities[i] = new_page;
     }
 }
@@ -271,8 +269,7 @@ static bool _vmm_create_kernel_ptables()
         if (!paddr) {
             kpanic("PADDR_5546 : BUG\n");
         }
-        table_desc_set_attr(ptable_desc, TABLE_DESC_PRESENT);
-        table_desc_set_attr(ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE);
 
         /**
          * VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr) shows number of table where pspace starts. 
@@ -280,10 +277,10 @@ static bool _vmm_create_kernel_ptables()
          * ptable (and since ptable is not user, all pages inside it are not user too).
          */
         if (i > VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)) {
-            table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
+            table_desc_set_attrs(ptable_desc, TABLE_DESC_USER);
         }
         
-        table_desc_set_frame(ptable_desc, paddr / VMM_PAGE_SIZE);
+        table_desc_set_frame(ptable_desc, FRAME(paddr));
     }
 
     _vmm_map_init_kernel_pages(0x00100000, 0xc0000000);
@@ -370,10 +367,8 @@ int vmm_allocate_ptable(uint32_t vaddr)
     uint32_t ptable_vaddr = (uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
 
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
-    table_desc_set_attr(ptable_desc, TABLE_DESC_PRESENT);
-    table_desc_set_attr(ptable_desc, TABLE_DESC_WRITABLE);
-    table_desc_set_attr(ptable_desc, TABLE_DESC_USER);
-    table_desc_set_frame(ptable_desc, ptable_paddr / VMM_PAGE_SIZE);
+    table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE | TABLE_DESC_USER);
+    table_desc_set_frame(ptable_desc, FRAME(ptable_paddr));
     
     return vmm_map_page(ptable_vaddr, ptable_paddr, PAGE_CHOOSE_OWNER(vaddr));
 }
@@ -386,11 +381,11 @@ static int vmm_free_ptable(uint32_t ptable_indx)
 
     table_desc_t* ptable_desc = &_vmm_active_pdir->entities[ptable_indx];
 
-    if (!table_desc_has_attr(*ptable_desc, TABLE_DESC_PRESENT)) {
+    if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
         return -1;
     }
 
-    if (table_desc_has_attr(*ptable_desc, TABLE_DESC_COPY_ON_WRITE)) {
+    if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_COPY_ON_WRITE)) {
         return -1;
     }
 
@@ -416,12 +411,11 @@ int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner)
 
     ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     page_desc_t* page = vmm_ptable_lookup(ptable, vaddr);
-    page_desc_set_attr(page, PAGE_DESC_PRESENT);
-    page_desc_set_attr(page, PAGE_DESC_WRITABLE);
-    page_desc_set_frame(page, paddr / VMM_PAGE_SIZE);
+    page_desc_set_attrs(page, PAGE_DESC_PRESENT | PAGE_DESC_WRITABLE);
+    page_desc_set_frame(page, FRAME(paddr));
 
     if (owner == USER_PAGE) {
-        page_desc_set_attr(page, PAGE_DESC_USER);
+        page_desc_set_attrs(page, PAGE_DESC_USER);
     }
 
     _vmm_flush_tlb_entry(vaddr);
@@ -442,8 +436,8 @@ int vmm_unmap_page(uint32_t vaddr)
 
     ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     page_desc_t* page = vmm_ptable_lookup(ptable, vaddr);
-    page_desc_del_attr(page, PAGE_DESC_PRESENT);
-    page_desc_del_attr(page, PAGE_DESC_WRITABLE);
+    page_desc_del_attrs(page, PAGE_DESC_PRESENT);
+    page_desc_del_attrs(page, PAGE_DESC_WRITABLE);
     page_desc_del_frame(page);
     _vmm_flush_tlb_entry(vaddr);
 
@@ -534,12 +528,12 @@ int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
 static bool _vmm_is_zeroing_on_demand(uint32_t vaddr)
 {
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
-    if (table_desc_has_attr(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
+    if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
         return true;
     }
     ptable_t* ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     table_desc_t* ppage_desc = vmm_ptable_lookup(ptable, vaddr);
-    return page_desc_has_attr(*ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
+    return page_desc_has_attrs(*ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
 }
 
 static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
@@ -547,12 +541,12 @@ static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
     ptable_t* ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
 
-    if (table_desc_has_attr(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
+    if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
         for (int i = 0; i < 1024; i++) {
-            page_desc_set_attr(&ptable->entities[i], PAGE_DESC_ZEROING_ON_DEMAND);
-            page_desc_del_attr(&ptable->entities[i], PAGE_DESC_WRITABLE);
+            page_desc_set_attrs(&ptable->entities[i], PAGE_DESC_ZEROING_ON_DEMAND);
+            page_desc_del_attrs(&ptable->entities[i], PAGE_DESC_WRITABLE);
         }
-        table_desc_del_attr(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
+        table_desc_del_attrs(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
     }
 
     table_desc_t* ppage_desc = vmm_ptable_lookup(ptable, vaddr);
@@ -560,8 +554,8 @@ static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
     uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
     memset(dest, 0, VMM_PAGE_SIZE);
 
-    page_desc_del_attr(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
-    page_desc_set_attr(ppage_desc, PAGE_DESC_WRITABLE);
+    page_desc_del_attrs(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
+    page_desc_set_attrs(ppage_desc, PAGE_DESC_WRITABLE);
 }
 
 /**
@@ -609,13 +603,13 @@ pdirectory_t* vmm_new_forked_user_pdir()
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         // COW: blocking current pdir
         table_desc_t* act_ptable_desc = &_vmm_active_pdir->entities[i];
-        table_desc_del_attr(act_ptable_desc, TABLE_DESC_WRITABLE);
-        table_desc_set_attr(act_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+        table_desc_del_attrs(act_ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attrs(act_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
 
         // COW: blocking new pdir
         table_desc_t* new_ptable_desc = &new_pdir->entities[i];
-        table_desc_del_attr(new_ptable_desc, TABLE_DESC_WRITABLE);
-        table_desc_set_attr(new_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+        table_desc_del_attrs(new_ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attrs(new_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
     }
 
     return new_pdir;
@@ -692,8 +686,8 @@ void vmm_zero_user_pages(pdirectory_t* pdir)
 {
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         table_desc_t* ptable_desc = &pdir->entities[i];
-        table_desc_del_attr(ptable_desc, TABLE_DESC_WRITABLE);
-        table_desc_set_attr(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
+        table_desc_del_attrs(ptable_desc, TABLE_DESC_WRITABLE);
+        table_desc_set_attrs(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
     }
 }
 
@@ -726,8 +720,8 @@ int vmm_alloc_page(page_desc_t* page)
     if (!new_block) {
         return -VMM_ERR_BAD_ADDR;
     }
-    page_desc_set_attr(page, PAGE_DESC_PRESENT);
-    page_desc_set_frame(page, (uint32_t)new_block / VMM_PAGE_SIZE);
+    page_desc_set_attrs(page, PAGE_DESC_PRESENT);
+    page_desc_set_frame(page, FRAME((uint32_t)new_block));
     return 0;
 }
 
@@ -736,7 +730,7 @@ int vmm_free_page(page_desc_t* page)
 {
     uint32_t frame = page_desc_get_frame(*page);
     pmm_free_block((void*)(frame * VMM_PAGE_SIZE));
-    page_desc_del_attr(page, PAGE_DESC_PRESENT);
+    page_desc_del_attrs(page, PAGE_DESC_PRESENT);
     return 0;
 }
 
@@ -837,7 +831,7 @@ static bool vmm_test_pspace_vaddr_of_active_ptable()
     uint32_t vaddr = 0xc0000000;
     ptable_t* pt = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     page_desc_t* ppage = vmm_ptable_lookup(pt, vaddr);
-    page_desc_del_attr(ppage, PAGE_DESC_PRESENT);
+    page_desc_del_attrs(ppage, PAGE_DESC_PRESENT);
     uint32_t* kek1 = (uint32_t*)vaddr;
     *kek1 = 1;
     // should cause PF
