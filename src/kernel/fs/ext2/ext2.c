@@ -8,6 +8,7 @@
 
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
+#include <utils/kassert.h>
 
 #define MAX_BLOCK_LEN 4096
 
@@ -31,10 +32,7 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
 static bool _ext2_bitmap_get(uint8_t* bitmap, uint32_t index);
 static void _ext2_bitmap_set(uint8_t* bitmap, uint32_t index, bool value);
 
-/**
- * BLOCK FUNCTIONS
- */
-
+/* BLOCK FUNCTIONS */
 static uint32_t _ext2_get_block_offset(superblock_t* sb, uint32_t block_index);
 
 static uint32_t _ext2_get_block_of_inode_lev0(dentry_t* dentry, uint32_t cur_block, uint32_t inode_block_index);
@@ -53,10 +51,7 @@ static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
 
 static int _ext2_allocate_block_for_inode(dentry_t* dentry, uint32_t pref_group, uint32_t* block_index);
 
-/**
- * INODE FUNCTIONS
- */
-
+/* INODE FUNCTIONS */
 int ext2_read_inode(dentry_t* dentry);
 int ext2_write_inode(dentry_t* dentry);
 
@@ -65,22 +60,18 @@ static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32
 static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t inode_index);
 static int _ext2_free_inode(dentry_t* dentry);
 
-/**
- * DIR FUNCTIONS
- */
-
+/* DIR FUNCTIONS */
 static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index);
 static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint32_t* offset, dirent_t* dirent);
 static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len);
 static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len);
+static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry);
 
 static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* name, int len);
+static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry);
 static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, uint16_t mode);
 
-/**
- * API FUNTIONS
- */
-
+/* API FUNTIONS */
 bool ext2_recognize_drive(vfs_device_t* dev);
 void ext2_save_state(vfs_device_t* dev);
 fsdata_t get_fsdata(dentry_t* dentry);
@@ -91,6 +82,7 @@ int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_ino
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
 int ext2_create(dentry_t* dir, const char* name, uint32_t len);
+int ext2_rm(dentry_t* dentry);
 
 /**
  * DRIVE RELATED FUNCTIONS
@@ -387,6 +379,7 @@ static int _ext2_free_inode(dentry_t* dentry)
 
     _ext2_free_inode_index(dentry->dev, dentry->fsdata, dentry->inode_indx);
     dentry_force_put(dentry);
+    return 0;
 }
 
 /**
@@ -501,11 +494,7 @@ static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
     dir_entry_t* start_of_new_entry;
 
     if (start_of_entry->inode == 0) {
-        new_entry.inode = child_dentry->inode_indx;
-        new_entry.rec_len = BLOCK_LEN(fsdata.sb);
-        new_entry.name_len = len;
-        start_of_new_entry = start_of_entry;
-        goto update_res;
+       kpanic("Ext2: can't add as first entry with help of that function.");
     }
 
     for (;;) {
@@ -536,6 +525,42 @@ update_res:
     return 0;
 }
 
+static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry)
+{
+    if (block_index == 0) {
+        return -1;
+    }
+
+    uint8_t tmp_buf[MAX_BLOCK_LEN];
+    _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), BLOCK_LEN(fsdata.sb));
+    dir_entry_t* start_of_entry = (dir_entry_t*)tmp_buf;
+    dir_entry_t* prev_entry = (dir_entry_t*)0;
+
+    for (;;) {
+        
+        if (start_of_entry->inode == child_dentry->inode_indx) {
+            /* FIXME: just fix that */
+            if (!prev_entry) {
+                kpanic("Ext2: can't delete first entry.");
+            }
+            
+            /* deleting entry */
+            start_of_entry->inode = 0;
+            prev_entry->rec_len += start_of_entry->rec_len;
+
+            _ext2_write_to_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), BLOCK_LEN(fsdata.sb));
+
+            return 0;
+        }
+
+        prev_entry = start_of_entry;
+        start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
+        if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
+            return -1;
+        }
+    }
+}
+
 static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* name, int len)
 {
     uint32_t block_index;
@@ -563,6 +588,24 @@ updated_inode:
     child_dentry->inode->links_count++;
     dentry_set_flag(child_dentry, DENTRY_DIRTY);
     return 0;
+}
+
+static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
+{
+    uint32_t block_index;
+    uint32_t blocks_per_dir = TO_EXT_BLOCK_SIZE(dir->fsdata.sb, dir->inode->blocks);
+
+    for (int i = 0; i < blocks_per_dir; i++) {
+        if (block_index = _ext2_get_block_of_inode(dir, i)) {
+            if (_ext2_rm_from_dir_block(dir->dev, dir->fsdata, block_index, child_dentry) == 0) {
+                child_dentry->inode->links_count--;
+                dentry_set_flag(child_dentry, DENTRY_DIRTY);
+                return 0;
+            }
+        }
+    }
+
+    return -1;
 }
 
 static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, uint16_t mode)
@@ -712,6 +755,25 @@ int ext2_create(dentry_t* dir, const char* name, uint32_t len)
     return 0;
 }
 
+int ext2_rm(dentry_t* dentry)
+{
+    dentry_t* parent_dir = dentry_get_parent(dentry);
+
+    if (!parent_dir) {
+        return -1;
+    }
+
+    if (_ext2_rm_child(parent_dir, dentry) < 0) {
+        return -1;
+    }
+
+    if (_ext2_free_inode(dentry) < 0) {
+        return -1;
+    }
+    
+    return 0;
+}
+
 /* TODO return int */
 bool ext2_recognize_drive(vfs_device_t* dev)
 {
@@ -788,6 +850,9 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = get_fsdata;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = ext2_lookup;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT] = ext2_getdirent;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = ext2_create;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = ext2_rm;
+
     return fs_desc;
 }
 

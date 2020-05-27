@@ -70,6 +70,8 @@ struct file_ops {
     int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
     int (*getdirent)(dentry_t* dir, uint32_t* offset, dirent_t* res);
     int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
+    int (*create)(dentry_t* dentry, const char* name, uint32_t len);
+    int (*rm)(dentry_t* dentry);
 };
 typedef struct file_ops file_ops_t;
 
@@ -104,6 +106,7 @@ typedef struct file_descriptor file_descriptor_t;
 
 void dentry_set_parent(dentry_t* to, dentry_t* parent);
 dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx);
+dentry_t* dentry_get_parent(dentry_t* dentry);
 void dentry_add(uint32_t dev_indx, uint32_t inode_indx, dentry_t res);
 dentry_t* dentry_duplicate(dentry_t* dentry);
 void dentry_put(dentry_t* dentry);
@@ -128,6 +131,8 @@ void vfs_eject_device(device_t* t_new_dev);
 int vfs_resolve_path(const char* path, dentry_t** result);
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result);
 
+int vfs_create(dentry_t* dir, const char* name, uint32_t len);
+int vfs_rm(dentry_t* file);
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int vfs_open(dentry_t* file, file_descriptor_t* fd);
 int vfs_close(file_descriptor_t* fd);

@@ -95,6 +95,11 @@ void dentry_set_parent(dentry_t* to, dentry_t* parent)
     to->parent_dev_indx = parent->dev_indx;
 }
 
+dentry_t* dentry_get_parent(dentry_t* dentry)
+{
+    return dentry_get(dentry->parent_dev_indx, dentry->parent_inode_indx);
+}
+
 dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx)
 {
     dentry_cache_list_t* dentry_cache_block = dentry_cache;

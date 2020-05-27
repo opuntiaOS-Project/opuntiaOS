@@ -118,6 +118,53 @@ void umount(int argc, char *argv[]) {
 }
 
 
+
+void touch(int argc, char *argv[]) {
+    dentry_t* dir;
+    if (vfs_resolve_path(argv[1], &dir) < 0) {
+        return;
+    }
+
+    int len = strlen(argv[2]);
+
+    if (vfs_create(dir, argv[2], len) < 0) {
+        return;
+    }
+}
+
+void write(int argc, char *argv[]) {
+    dentry_t* file;
+    file_descriptor_t fd;
+    if (vfs_resolve_path(argv[1], &file) < 0) {
+        return;
+    }
+
+    if (vfs_open(file, &fd) < 0) {
+        return;
+    }
+
+    int len = strlen(argv[2]);
+    if (vfs_write(&fd, argv[2], 0, len) < 0) {
+        return;
+    }
+
+    vfs_close(&fd);
+}
+
+void rm(int argc, char *argv[]) {
+    dentry_t* file;
+    file_descriptor_t fd;
+    if (vfs_resolve_path(argv[1], &file) < 0) {
+        return;
+    }
+    dentry_put(file);
+    if (vfs_rm(file) < 0) {
+        kprintf("Dosn't del");
+        return;
+    }
+}
+
+
 void syscmd_init() {
     cmd_register("mkdir", _syscmd_mkdir);
     cmd_register("ls", _syscmd_ls);
@@ -128,6 +175,8 @@ void syscmd_init() {
     cmd_register("procfs", procfs);
     cmd_register("umount", umount);
 
-    ;
-    // cmd_register("wr", write);
+    cmd_register("touch", touch);
+    cmd_register("rm", rm);
+
+    cmd_register("write", write);
 }
