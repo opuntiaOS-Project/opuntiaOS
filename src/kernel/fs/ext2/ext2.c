@@ -29,8 +29,9 @@ static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start,
 static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, uint32_t len);
 
 /* UTILS */
-static bool _ext2_bitmap_get(uint8_t* bitmap, uint32_t index);
-static void _ext2_bitmap_set(uint8_t* bitmap, uint32_t index, bool value);
+static inline bool _ext2_bitmap_get(uint8_t* bitmap, uint32_t index);
+static inline void _ext2_bitmap_set_bit(uint8_t* bitmap, uint32_t index);
+static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index);
 
 /* BLOCK FUNCTIONS */
 static uint32_t _ext2_get_block_offset(superblock_t* sb, uint32_t block_index);
@@ -71,6 +72,9 @@ static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* na
 static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry);
 static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, uint16_t mode);
 
+/* FILE FUNCTIONS */
+static int _ext2_setup_file(dentry_t* file, uint16_t mode);
+
 /* API FUNTIONS */
 bool ext2_recognize_drive(vfs_device_t* dev);
 void ext2_save_state(vfs_device_t* dev);
@@ -81,7 +85,7 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx);
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
-int ext2_create(dentry_t* dir, const char* name, uint32_t len);
+int ext2_create(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
 int ext2_rm(dentry_t* dentry);
 
 /**
@@ -130,14 +134,19 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
  * UTILS
  */
 
-static bool _ext2_bitmap_get(uint8_t* bitmap, uint32_t index)
+static inline bool _ext2_bitmap_get(uint8_t* bitmap, uint32_t index)
 {
     return (bitmap[index / 8] >> (index % 8)) & 1;
 }
 
-static void _ext2_bitmap_set(uint8_t* bitmap, uint32_t index, bool value)
+static inline void _ext2_bitmap_set_bit(uint8_t* bitmap, uint32_t index)
 {
-    bitmap[index / 8] |= ((value & 1) << (index % 8));
+    bitmap[index / 8] |= (uint8_t)(1 << (index % 8));
+}
+
+static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index)
+{
+    bitmap[index / 8] &= ~(1 << (index % 8));
 }
 
 /**
@@ -246,7 +255,7 @@ static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint3
     for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
         if (!_ext2_bitmap_get(block_bitmap, off)) {
             *block_index = fsdata.sb->blocks_per_group * group_index + off + 1;
-            _ext2_bitmap_set(block_bitmap, off, 1);
+            _ext2_bitmap_set_bit(block_bitmap, off);
             _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
             return 0;
         }
@@ -270,6 +279,7 @@ static int _ext2_allocate_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32
 
 static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index)
 {
+    block_index--;
     uint32_t block_len = BLOCK_LEN(fsdata.sb);
     uint32_t group_index = block_index / block_len;
     uint32_t off = block_index % block_len;
@@ -277,7 +287,7 @@ static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
     uint8_t block_bitmap[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), block_len);
 
-    _ext2_bitmap_set(block_bitmap, off, 0);
+    _ext2_bitmap_unset_bit(block_bitmap, off);
     _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), block_len);
     return 0;
 }
@@ -330,7 +340,7 @@ static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint3
     for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
         if (!_ext2_bitmap_get(inode_bitmap, off)) {
             *inode_index = SUPERBLOCK->inodes_per_group * group_index + off + 1;
-            _ext2_bitmap_set(inode_bitmap, off, 1);
+            _ext2_bitmap_set_bit(inode_bitmap, off);
             _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
             return 0;
         }
@@ -354,6 +364,7 @@ static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32
 
 static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t inode_index)
 {
+    inode_index--;
     uint32_t block_len = BLOCK_LEN(fsdata.sb);
     uint32_t inodes_per_group = fsdata.sb->inodes_per_group;
     uint32_t group_index = inode_index / inodes_per_group;
@@ -362,7 +373,7 @@ static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t i
     uint8_t inode_bitmap[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), block_len);
 
-    _ext2_bitmap_set(inode_bitmap, off, 0);
+    _ext2_bitmap_unset_bit(inode_bitmap, off);
     _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), block_len);
     return 0;
 }
@@ -625,6 +636,21 @@ static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, uint16_t mode)
 }
 
 /**
+ * FILE FUNCTIONS
+ */
+
+static int _ext2_setup_file(dentry_t* file, uint16_t mode)
+{
+    file->inode->mode = mode;
+    file->inode->uid = 0; // FIXME: uid of real user
+    file->inode->links_count = 0;
+    file->inode->blocks = 0;
+    file->inode->size = 0;
+    dentry_set_flag(file, DENTRY_DIRTY);
+    return 0;
+}
+
+/**
  * API FUNTIONS
  */
 
@@ -738,13 +764,18 @@ int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
     return 0;
 }
 
-int ext2_create(dentry_t* dir, const char* name, uint32_t len)
+int ext2_create(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
 {
     uint32_t new_file_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_file_inode_indx, 0) < 0) {
         return -1;
     }
     dentry_t* new_file = dentry_get(dir->dev_indx, new_file_inode_indx);
+
+    if (_ext2_setup_file(new_file, mode) < 0) {
+        dentry_put(new_file);
+        return -1;
+    }
 
     if (_ext2_add_child(dir, new_file, name, len) < 0) {
         dentry_put(new_file);

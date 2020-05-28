@@ -126,8 +126,9 @@ void touch(int argc, char *argv[]) {
     }
 
     int len = strlen(argv[2]);
+    uint16_t mode = EXT2_S_IFREG | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
 
-    if (vfs_create(dir, argv[2], len) < 0) {
+    if (vfs_create(dir, argv[2], len, mode) < 0) {
         return;
     }
 }
