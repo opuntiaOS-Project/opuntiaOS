@@ -130,3 +130,21 @@ void kfree_aligned(void* ptr)
 {
     kfree(((void**)ptr)[-1]);
 }
+
+void* krealloc(void* ptr, uint32_t new_size)
+{
+    uint32_t old_size = ((kmalloc_header_t*)ptr)[-1].len;
+    if (old_size == new_size) {
+        return ptr;
+    }
+    
+    uint8_t* new_area = kmalloc(new_size);
+    if (new_area == 0) {
+        return 0;
+    }
+    
+    memcpy(new_area, ptr, new_size > old_size ? new_size : old_size);
+    kfree(ptr);
+
+    return new_area;
+}

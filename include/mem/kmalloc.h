@@ -20,5 +20,6 @@ void* kmalloc(uint32_t size);
 void* kmalloc_page_aligned();
 void kfree(void* ptr);
 void kfree_aligned(void* ptr);
+void* krealloc(void* ptr, uint32_t size);
 
 #endif // __oneOS__MEM__KMALLOC_H
