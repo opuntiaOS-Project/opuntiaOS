@@ -6,6 +6,7 @@
  * Free Software Foundation.
  */
 
+#include <algo/bitmap.h>
 #include <drivers/display.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/zoner.h>
@@ -17,63 +18,21 @@ typedef struct kmalloc_header kmalloc_header_t;
 
 static void* _kmalloc_data_start;
 static uint32_t _kmalloc_bitmap_len = 0;
-static uint8_t* kmalloc_bitmap;
+static uint8_t* _kmalloc_bitmap;
+static bitmap_t bitmap;
 
 static void _kmalloc_init_bitmap()
 {
     _kmalloc_bitmap_len = (KMALLOC_SPACE_SIZE / KMALLOC_BLOCK_SIZE / 8);
-    _kmalloc_data_start = (void*)(kmalloc_bitmap + _kmalloc_bitmap_len);
-    memset(kmalloc_bitmap, 0, _kmalloc_bitmap_len);
+    _kmalloc_data_start = (void*)(_kmalloc_bitmap + _kmalloc_bitmap_len);
+    bitmap = bitmap_create(_kmalloc_bitmap, _kmalloc_bitmap_len);
+    memset(_kmalloc_bitmap, 0, _kmalloc_bitmap_len);
 }
 
 void kmalloc_init()
 {
-    kmalloc_bitmap = (uint8_t*)zonem_new_vzone(KMALLOC_SPACE_SIZE);
+    _kmalloc_bitmap = (uint8_t*)zoner_new_vzone(KMALLOC_SPACE_SIZE);
     _kmalloc_init_bitmap();
-}
-
-// TODO: can be speeded up with tzcnt
-static int kmalloc_find_space(int req)
-{
-    int taken = 0;
-    int start = 0;
-    for (int i = 0; i < _kmalloc_bitmap_len; i++) {
-        if (kmalloc_bitmap[i] == 0xff) {
-            continue;
-        }
-        for (int j = 0; j < 8; j++) {
-            if ((kmalloc_bitmap[i] >> j) & 1) {
-                taken = 0;
-            } else {
-                if (taken == 0) {
-                    start = i * 8 + j;
-                }
-                taken++;
-                if (taken == req) {
-                    return start;
-                }
-            }
-        }
-    }
-    return -1;
-}
-
-static void kmalloc_take(int start, int len)
-{
-    for (int i = start; i < start + len; i++) {
-        int block = i / 8;
-        int offset = i % 8;
-        kmalloc_bitmap[block] |= (1 << offset);
-    }
-}
-
-static void kmalloc_free(int start, int len)
-{
-    for (int i = start; i < start + len; i++) {
-        int block = i / 8;
-        int offset = i % 8;
-        kmalloc_bitmap[block] &= ~((1 << offset));
-    }
 }
 
 static inline uint32_t kmalloc_to_vaddr(int start)
@@ -93,14 +52,14 @@ void* kmalloc(uint32_t size)
 
     int blocks_needed = (act_size + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
 
-    int start = kmalloc_find_space(blocks_needed);
+    int start = bitmap_find_space(bitmap, blocks_needed);
     if (start < 0) {
         return 0;
     }
 
     kmalloc_header_t* space = (kmalloc_header_t*)kmalloc_to_vaddr(start);
     space->len = act_size;
-    kmalloc_take(start, blocks_needed);
+    bitmap_set_range(bitmap, start, blocks_needed);
 
     return (void*)&space[1];
 }
@@ -123,7 +82,7 @@ void kfree(void* ptr)
 {
     kmalloc_header_t* sptr = (kmalloc_header_t*)ptr;
     int blocks_to_delete = (sptr[-1].len + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
-    kmalloc_free(kmalloc_to_index((uint32_t)&sptr[-1]), blocks_to_delete);
+    bitmap_unset_range(bitmap, kmalloc_to_index((uint32_t)&sptr[-1]), blocks_to_delete);
 }
 
 void kfree_aligned(void* ptr)
@@ -137,12 +96,12 @@ void* krealloc(void* ptr, uint32_t new_size)
     if (old_size == new_size) {
         return ptr;
     }
-    
+
     uint8_t* new_area = kmalloc(new_size);
     if (new_area == 0) {
         return 0;
     }
-    
+
     memcpy(new_area, ptr, new_size > old_size ? new_size : old_size);
     kfree(ptr);
 
