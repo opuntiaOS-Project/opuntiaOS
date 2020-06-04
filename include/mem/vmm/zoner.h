@@ -6,12 +6,12 @@
  * Free Software Foundation.
  */
 
-#ifndef __oneOS__MEM__VMM__ZONEM_H
-#define __oneOS__MEM__VMM__ZONEM_H
+#ifndef __oneOS__MEM__VMM__zoner_H
+#define __oneOS__MEM__VMM__zoner_H
 
 #include <types.h>
 
-void zonem_init(uint32_t start_vaddr);
-uint32_t zonem_new_vzone(uint32_t size);
+void zoner_init(uint32_t start_vaddr);
+uint32_t zoner_new_vzone(uint32_t size);
 
-#endif // __oneOS__MEM__VMM__ZONEM_H
+#endif // __oneOS__MEM__VMM__zoner_H

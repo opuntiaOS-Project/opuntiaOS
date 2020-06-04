@@ -10,7 +10,7 @@
 #include <global.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
-#include <mem/vmm/zonem.h>
+#include <mem/vmm/zoner.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
 
@@ -111,7 +111,7 @@ inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr)
 
 static bool _vmm_split_pspace()
 {
-    pspace_start_vaddr = zonem_new_vzone(4 * MB);
+    pspace_start_vaddr = zoner_new_vzone(4 * MB);
 
     if (VMM_OFFSET_IN_TABLE(pspace_start_vaddr) != 0) {
         kpanic("WRONG PSPACE START ADDR");
@@ -124,7 +124,7 @@ static bool _vmm_split_pspace()
     _vmm_kernel_pdir = (pdir_t*)_vmm_alloc_kernel_block();
     _vmm_active_pdir = (pdir_t*)_vmm_kernel_pdir;
     memset((void*)_vmm_active_pdir, 0, sizeof(*_vmm_active_pdir)); // TODO problem for now
-    vmm_reserved_area_start_vaddr = zonem_new_vzone(1 * MB);
+    vmm_reserved_area_start_vaddr = zoner_new_vzone(1 * MB);
 }
 
 /**
@@ -301,7 +301,7 @@ static bool _vmm_map_kernel()
 
 int vmm_setup()
 {
-    zonem_init(0xc0400000);
+    zoner_init(0xc0400000);
     _vmm_split_pspace();
     _vmm_create_kernel_ptables();
     _vmm_pspace_init();

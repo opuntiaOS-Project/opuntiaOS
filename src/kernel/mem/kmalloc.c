@@ -8,7 +8,7 @@
 
 #include <drivers/display.h>
 #include <mem/kmalloc.h>
-#include <mem/vmm/zonem.h>
+#include <mem/vmm/zoner.h>
 
 struct kmalloc_header {
     uint32_t len;
