@@ -7,7 +7,7 @@
  */
 
 #include <mem/vmm/vmm.h>
-#include <mem/vmm/zonem.h>
+#include <mem/vmm/zoner.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
 
@@ -22,7 +22,7 @@ extern void signal_caller_end();
 
 static void _signal_init_caller()
 {
-    _signal_caller = zonem_new_vzone(VMM_PAGE_SIZE);
+    _signal_caller = zoner_new_vzone(VMM_PAGE_SIZE);
     vmm_load_page(_signal_caller, USER_PAGE);
     uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller_start;
     memcpy((void*)_signal_caller, (void*)signal_caller_start, signal_caller_len);
