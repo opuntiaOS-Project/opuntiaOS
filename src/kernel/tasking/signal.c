@@ -11,7 +11,7 @@
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
 
-static uint32_t _signal_caller;
+static zone_t _signal_jumper_zone;
 
 extern void signal_caller_start();
 extern void signal_caller_end();
@@ -22,10 +22,10 @@ extern void signal_caller_end();
 
 static void _signal_init_caller()
 {
-    _signal_caller = zoner_new_vzone(VMM_PAGE_SIZE);
-    vmm_load_page(_signal_caller, USER_PAGE);
+    _signal_jumper_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    vmm_load_page(_signal_jumper_zone.start, USER_PAGE);
     uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller_start;
-    memcpy((void*)_signal_caller, (void*)signal_caller_start, signal_caller_len);
+    memcpy((void*)_signal_jumper_zone.start, (void*)signal_caller_start, signal_caller_len);
 }
 
 void signal_init()
@@ -142,7 +142,7 @@ static int signal_process(proc_t* proc, int signo)
 {
     if (proc->signal_handlers[signo]) {
         signal_setup_stack_to_handle_signal(proc, signo);
-        proc->tf->eip = _signal_caller;
+        proc->tf->eip = _signal_jumper_zone.start;
         return 0;
     }
     return -1;

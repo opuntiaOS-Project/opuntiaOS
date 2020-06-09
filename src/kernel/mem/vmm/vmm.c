@@ -22,14 +22,13 @@
 
 #define VMM_KERNEL_TABLES_START 768
 #define VMM_USER_TABLES_START 0
-#define IS_INDIVIDUAL_PER_DIR(index) (index < VMM_KERNEL_TABLES_START || (index == VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)))
+#define IS_INDIVIDUAL_PER_DIR(index) (index < VMM_KERNEL_TABLES_START || (index == VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)))
 
 static pdir_t* _vmm_kernel_pdir;
 static pdir_t* _vmm_active_pdir;
-static uint32_t pspace_start_vaddr;
+static zone_t pspace_zone;
 static uint32_t kernel_ptables_start_paddr;
 static uint32_t vmm_reserved_area_start_vaddr;
-static uint32_t kmalloc_start_vaddr;
 
 #define vmm_kernel_pdir_phys2virt(paddr) ((void*)((uint32_t)paddr + KERNEL_BASE - KERNEL_PM_BASE))
 
@@ -68,28 +67,14 @@ inline static void _vmm_disable_write_protect();
 static int _vmm_self_test();
 
 /**
- * VMM VADDR ALLOCATOR FUNCTIONS
- */
-
-/* TODO: Add check */
-static void* vmm_get_free_vaddr()
-{
-    return (void*)vmm_reserved_area_start_vaddr;
-}
-
-static void* vmm_free_free_vaddr()
-{
-}
-
-/**
  * PSPACE FUNCTIONS
  * 
  * Pspace is a space with all current tables mapped there.
- * The space starts from @pspace_start_vaddr and length is 4mb
+ * The space starts from @pspace_zone.start and length is 4mb
  */
 
 /**
- * The function is supposed to setup pspace_start_vaddr
+ * The function is supposed to setup pspace_zone.start
  * Every virtual space has its own user's ptables in the area.
  * The kernel's patables are the same.
  */
@@ -101,7 +86,7 @@ inline static void* _vmm_pspace_get_vaddr_of_active_pdir()
 
 inline static void* _vmm_pspace_get_nth_active_ptable(uint32_t n)
 {
-    return (void*)(pspace_start_vaddr + n * VMM_PAGE_SIZE);
+    return (void*)(pspace_zone.start + n * VMM_PAGE_SIZE);
 }
 
 inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr)
@@ -111,20 +96,20 @@ inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr)
 
 static bool _vmm_split_pspace()
 {
-    pspace_start_vaddr = zoner_new_vzone(4 * MB);
-
-    if (VMM_OFFSET_IN_TABLE(pspace_start_vaddr) != 0) {
+    pspace_zone = zoner_new_zone(4 * MB);
+    
+    if (VMM_OFFSET_IN_TABLE(pspace_zone.start) != 0) {
         kpanic("WRONG PSPACE START ADDR");
     }
 
-    // TODO fix here
+    // FIXME: remove constant basing on kernel len.
     kernel_ptables_start_paddr = 0x220000;
     while ((uint32_t)pmm_alloc_block() < (kernel_ptables_start_paddr - 2 * VMM_PAGE_SIZE)) {
     }
     _vmm_kernel_pdir = (pdir_t*)_vmm_alloc_kernel_block();
     _vmm_active_pdir = (pdir_t*)_vmm_kernel_pdir;
     memset((void*)_vmm_active_pdir, 0, sizeof(*_vmm_active_pdir)); // TODO problem for now
-    vmm_reserved_area_start_vaddr = zoner_new_vzone(1 * MB);
+    vmm_reserved_area_start_vaddr = zoner_new_zone(1 * MB).start; // TODO: will be deprecated!
 }
 
 /**
@@ -133,7 +118,7 @@ static bool _vmm_split_pspace()
  */
 static void _vmm_pspace_init()
 {
-    uint32_t kernel_ptabels_vaddr = pspace_start_vaddr + VMM_KERNEL_TABLES_START * VMM_PAGE_SIZE; // map what
+    uint32_t kernel_ptabels_vaddr = pspace_zone.start + VMM_KERNEL_TABLES_START * VMM_PAGE_SIZE; // map what
     uint32_t kernel_ptabels_paddr = kernel_ptables_start_paddr; // map to
     for (int i = VMM_KERNEL_TABLES_START; i < 1024; i++) {
         table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, kernel_ptabels_vaddr);
@@ -156,10 +141,11 @@ static void _vmm_pspace_init()
  */
 static table_desc_t _vmm_pspace_gen()
 {
-    ptable_t* cur_ptable = (ptable_t*)_vmm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr));
+    ptable_t* cur_ptable = (ptable_t*)_vmm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(pspace_zone.start));
 
     uint32_t ptable_paddr = (uint32_t)pmm_alloc_block();
-    ptable_t* new_ptable = (ptable_t*)vmm_get_free_vaddr();
+    zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    ptable_t* new_ptable = (ptable_t*)tmp_zone.start;
 
     vmm_map_page((uint32_t)new_ptable, ptable_paddr, KERNEL_PAGE);
 
@@ -171,21 +157,21 @@ static table_desc_t _vmm_pspace_gen()
     page_desc_t pspace_page = 0;
     page_desc_set_attrs(&pspace_page, PAGE_DESC_PRESENT | PAGE_DESC_WRITABLE);
     page_desc_set_frame(&pspace_page, FRAME(ptable_paddr));
-    new_ptable->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = pspace_page;
+    new_ptable->entities[VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)] = pspace_page;
 
     table_desc_t pspace_table = 0;
     table_desc_set_attrs(&pspace_table, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE);
     table_desc_set_frame(&pspace_table, FRAME(ptable_paddr));
 
     vmm_unmap_page((uint32_t)new_ptable);
-    vmm_free_free_vaddr(new_ptable);
+    zoner_free_zone(tmp_zone);
 
     return pspace_table;
 }
 
 static void _vmm_free_pspace(pdirectory_t* pdir)
 {
-    table_desc_t* ptable_desc = &pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)];
+    table_desc_t* ptable_desc = &pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)];
     if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
         return;
     }
@@ -272,11 +258,11 @@ static bool _vmm_create_kernel_ptables()
         table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE);
 
         /**
-         * VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr) shows number of table where pspace starts. 
+         * VMM_OFFSET_IN_DIRECTORY(pspace_zone.start) shows number of table where pspace starts. 
          * Since pspace is right after kernel, let's protect them and not give user access to the whole
          * ptable (and since ptable is not user, all pages inside it are not user too).
          */
-        if (i > VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)) {
+        if (i > VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)) {
             table_desc_set_attrs(ptable_desc, TABLE_DESC_USER);
         }
         
@@ -308,7 +294,8 @@ int vmm_setup()
     _vmm_init_switch_to_kernel_pdir();
     _vmm_map_kernel();
     _vmm_enable_write_protect();
-    kmalloc_init(kmalloc_start_vaddr);
+    zoner_place_bitmap();
+    kmalloc_init();
     if (_vmm_self_test() < 0) {
         kpanic("VMM SELF TEST Not passed");
     }
@@ -509,7 +496,8 @@ int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
     }
     
     /* Mapping the old page to do a copy */
-    uint32_t old_page_vaddr = (uint32_t)vmm_get_free_vaddr();
+    zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    uint32_t old_page_vaddr = (uint32_t)tmp_zone.start;
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL_PAGE);
     
@@ -517,7 +505,7 @@ int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
     
     /* Freeing */
     vmm_unmap_page(old_page_vaddr);
-    vmm_free_free_vaddr((void*)old_page_vaddr);
+    zoner_free_zone(tmp_zone);
     return 0;
 }
 
@@ -583,7 +571,7 @@ pdirectory_t* vmm_new_user_pdir()
         }
     }
 
-    pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = _vmm_pspace_gen();
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)] = _vmm_pspace_gen();
     return pdir;
 }
 
@@ -598,7 +586,7 @@ pdirectory_t* vmm_new_forked_user_pdir()
     for (int i = 0; i < 1024; i++) {
         new_pdir->entities[i] = _vmm_active_pdir->entities[i];
     }
-    new_pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_start_vaddr)] = _vmm_pspace_gen();
+    new_pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)] = _vmm_pspace_gen();
 
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         // COW: blocking current pdir
