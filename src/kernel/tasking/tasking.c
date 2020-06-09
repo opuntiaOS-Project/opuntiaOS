@@ -29,7 +29,7 @@ extern void switch_contexts(context_t** old, context_t* new);
 void switchuvm(proc_t* p)
 {
     gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
-    tss.esp0 = (uint32_t)(p->kstack + VMM_PAGE_SIZE);
+    tss.esp0 = (uint32_t)(p->kstack.start + VMM_PAGE_SIZE);
     tss.ss0 = (SEG_KDATA << 3);
     // tss.iomap_offset = 0xffff;
     active_proc = p;
@@ -93,8 +93,8 @@ static proc_t* _tasking_alloc_proc()
     p->pid = nxtpid++;
 
     /* allocating kernel stack */
-    p->kstack = kmalloc(VMM_PAGE_SIZE);
-    char* sp = p->kstack + VMM_PAGE_SIZE;
+    p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
+    char* sp = (char*)(p->kstack.start + VMM_PAGE_SIZE);
 
     /* setting trapframe in kernel stack */
     sp -= sizeof(*p->tf);
@@ -139,7 +139,7 @@ static void _tasking_free_proc(proc_t* p)
 
     p->pid = 0;
     kfree(p->fds);
-    kfree(p->kstack);
+    zoner_free_zone(p->kstack);
     dentry_put(p->cwd);
     vmm_free_pdir(p->pdir);
 }
@@ -157,7 +157,8 @@ void tasking_start_init_proc()
 
     if (_tasking_load(p, "/boot/init") < 0) {
         kprintf("Can't load init proc");
-        while (1) {}
+        while (1) {
+        }
     }
 
     /* setting init trapframe */
