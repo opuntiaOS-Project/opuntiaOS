@@ -10,7 +10,7 @@
 #include <mem/kmalloc.h>
 #include <drivers/display.h>
 
-bitmap_t bitmap_create(uint8_t* data, uint32_t len)
+bitmap_t bitmap_wrap(uint8_t* data, uint32_t len)
 {
     bitmap_t bitmap;
     bitmap.data = data;
@@ -26,7 +26,7 @@ bitmap_t bitmap_allocate(uint32_t len)
         alloc_len++;
     }
     uint8_t* data = kmalloc(alloc_len);
-    return bitmap_create(data, len);
+    return bitmap_wrap(data, len);
 }
 
 /* TODO: can be speeded up with tzcnt */
