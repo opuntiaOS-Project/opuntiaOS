@@ -66,7 +66,7 @@ void zoner_init(uint32_t start_vaddr)
 zone_t zoner_new_zone(uint32_t size)
 {
     if (size % VMM_PAGE_SIZE) {
-        size = (size + VMM_PAGE_SIZE) % VMM_PAGE_SIZE;
+        size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
     }
 
     zone_t zone;
