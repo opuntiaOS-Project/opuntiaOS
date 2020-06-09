@@ -11,6 +11,7 @@
 
 #include <fs/vfs.h>
 #include <mem/vmm/vmm.h>
+#include <mem/vmm/zoner.h>
 #include <types.h>
 #include <x86/idt.h>
 
@@ -31,13 +32,13 @@ typedef struct {
     pdirectory_t* pdir;
     uint32_t pid;
 
-    char* kstack;
+    zone_t kstack;
     context_t* context; // context of kernel's registers
     trapframe_t* tf;
 
     dentry_t* cwd;
     file_descriptor_t* fds;
-    
+
     uint32_t signals_mask;
     uint32_t pending_signals_mask;
     void* signal_handlers[SIGNALS_CNT];
