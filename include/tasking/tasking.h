@@ -10,6 +10,7 @@
 #define __oneOS__X86__TASKING__TASKING_H
 
 #include <fs/vfs.h>
+#include <tasking/proc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <types.h>
@@ -18,31 +19,6 @@
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16
 #define SIGNALS_CNT 32
-
-typedef struct {
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebx;
-    uint32_t ebp;
-    uint32_t eip;
-} __attribute__((packed)) context_t;
-
-typedef struct {
-    uint32_t sz;
-    pdirectory_t* pdir;
-    uint32_t pid;
-
-    zone_t kstack;
-    context_t* context; // context of kernel's registers
-    trapframe_t* tf;
-
-    dentry_t* cwd;
-    file_descriptor_t* fds;
-
-    uint32_t signals_mask;
-    uint32_t pending_signals_mask;
-    void* signal_handlers[SIGNALS_CNT];
-} __attribute__((packed)) proc_t;
 
 proc_t proc[MAX_PROCESS_COUNT];
 uint32_t nxt_proc;
@@ -66,8 +42,6 @@ void tasking_start_init_proc();
  */
 
 void tasking_init();
-file_descriptor_t* tasking_get_free_fd(proc_t* proc);
-file_descriptor_t* tasking_get_fd(proc_t* proc, int index);
 
 /**
  * SYSCALL IMPLEMENTATION
