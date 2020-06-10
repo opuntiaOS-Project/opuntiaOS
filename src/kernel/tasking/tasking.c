@@ -90,10 +90,9 @@ proc_t* tasking_get_active_proc()
 static proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[nxt_proc++];
+    proc_prepare(p);
     p->pid = nxtpid++;
 
-    /* allocating kernel stack */
-    p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
     char* sp = (char*)(p->kstack.start + VMM_PAGE_SIZE);
 
     /* setting trapframe in kernel stack */
@@ -113,35 +112,7 @@ static proc_t* _tasking_alloc_proc()
     p->context->eip = (uint32_t)_tasking_jumper;
     memset((void*)p->tf, 0, sizeof(*p->tf));
 
-    /* setting current work directory */
-    p->cwd = 0;
-
-    /* allocating space for open files */
-    p->fds = kmalloc(MAX_OPENED_FILES * sizeof(file_descriptor_t));
-
-    /* setting signal handlers to 0 */
-    proc->signals_mask = 0xffffffff; /* for now all signals are legal */
-    proc->pending_signals_mask = 0;
-    memset((void*)proc->signal_handlers, 0, sizeof(proc->signal_handlers));
-
     return p;
-}
-
-static void _tasking_free_proc(proc_t* p)
-{
-    /* closing opend fds */
-    for (int i = 0; i < MAX_OPENED_FILES; i++) {
-        if (p->fds[i].dentry) {
-            /* think as active fd */
-            vfs_close(&p->fds[i]);
-        }
-    }
-
-    p->pid = 0;
-    kfree(p->fds);
-    zoner_free_zone(p->kstack);
-    dentry_put(p->cwd);
-    vmm_free_pdir(p->pdir);
 }
 
 /**
@@ -190,20 +161,6 @@ void tasking_init()
     signal_init();
 }
 
-file_descriptor_t* tasking_get_free_fd(proc_t* proc)
-{
-    for (int i = 0; i < MAX_OPENED_FILES; i++) {
-        if (!proc->fds[i].dentry) {
-            return &proc->fds[i];
-        }
-    }
-}
-
-file_descriptor_t* tasking_get_fd(proc_t* proc, int index)
-{
-    return &proc->fds[index];
-}
-
 /**
  * SYSCALL IMPLEMENTATION
  */
@@ -246,6 +203,6 @@ void tasking_exit(trapframe_t* tf)
 {
     proc_t* proc = tasking_get_active_proc();
     kprintf("Task %d exit with code: %d\n", proc->pid, tf->ebx);
-    _tasking_free_proc(proc);
+    proc_free(proc);
     presched_no_context();
 }

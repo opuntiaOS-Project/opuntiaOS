@@ -59,7 +59,7 @@ void sys_read(trapframe_t* tf)
 
 int sys_open(trapframe_t* tf)
 {
-    file_descriptor_t* fd = tasking_get_free_fd(tasking_get_active_proc());
+    file_descriptor_t* fd = proc_get_free_fd(tasking_get_active_proc());
     dentry_t* file;
     if (vfs_resolve_path((char*)param1, &file) < 0) {
         return -1;
@@ -71,7 +71,7 @@ int sys_open(trapframe_t* tf)
 
 int sys_close(trapframe_t* tf)
 {
-    file_descriptor_t* fd = tasking_get_fd(tasking_get_active_proc(), param1);
+    file_descriptor_t* fd = proc_get_fd(tasking_get_active_proc(), param1);
     return vfs_close(fd);
 }
 
