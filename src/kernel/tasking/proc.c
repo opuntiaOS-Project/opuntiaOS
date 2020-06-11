@@ -36,6 +36,11 @@ int proc_prepare(proc_t* p)
     p->pending_signals_mask = 0;
     memset((void*)p->signal_handlers, 0, sizeof(p->signal_handlers));
 
+    /* setting up zones */
+    if (dynamic_array_init(&p->zones, sizeof(proc_zone_t)) != 0) {
+        return -1;
+    }
+
     return 0;
 }
 
@@ -78,4 +83,72 @@ file_descriptor_t* proc_get_free_fd(proc_t* proc)
 file_descriptor_t* proc_get_fd(proc_t* proc, int index)
 {
     return &proc->fds[index];
+}
+
+/**
+ * PROC ZONING
+ */
+
+static inline bool _proc_zones_intersect(uint32_t start1, uint32_t size1, uint32_t start2, uint32_t size2)
+{   
+    uint32_t end1 = start1 + size1 - 1;
+    uint32_t end2 = start2 + size2 - 1;
+    return  (start1 <= start2 && start2 <= end1)    ||
+            (start1 <= end2 && end2 <= end1)        ||
+            (start2 <= start1 && start1 <= end2)    ||
+            (start2 <= end1 && end1 <= end2);
+}
+
+static inline bool _proc_can_add_zone(proc_t* proc, proc_zone_t* zone)
+{
+    uint32_t zones_count = proc->zones.size;
+
+    for (uint32_t i = 0; i < zones_count; i++) {
+        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
+        if (_proc_zones_intersect(zone->start, zone->len, zone->start, zone->len)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
+{
+    proc_zone_t new_zone;
+    new_zone.start = start;
+    new_zone.len = len;
+
+    if (_proc_can_add_zone(proc, &new_zone)) {
+        if (dynamic_array_push(&proc->zones, &new_zone) != 0) {
+            return 0;
+        }
+        return (proc_zone_t*)dynamic_array_get(&proc->zones, proc->zones.size-1);
+    }
+
+    return 0;
+}
+
+// FIXME: We think them sorted.
+proc_zone_t* proc_new_random_zone(proc_t* proc, int size)
+{
+    uint32_t prev_end = 0;
+    uint32_t zones_count = proc->zones.size;
+
+    for (uint32_t i = 0; i < zones_count; i++) {
+        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
+        if (prev_end + size - 1 < zone->start) {
+            goto found;
+        }
+        prev_end = zone->start + zone->len;
+    }
+
+    if (prev_end + size - 1 < KERNEL_BASE) {
+        goto found;
+    }
+
+    return 0;
+
+found:
+    return proc_new_zone(proc, prev_end, size);
 }
