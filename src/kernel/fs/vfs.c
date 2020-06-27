@@ -128,7 +128,7 @@ int vfs_close(file_descriptor_t* fd)
     if (!fd) {
         return -1;
     }
-
+    
     dentry_put(fd->dentry);
     fd->dentry = 0;
     fd->offset = 0;
@@ -150,7 +150,7 @@ int vfs_create(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
 int vfs_rm(dentry_t* file)
 {
     if (file->d_count != 1) {
-        kprintf("Dcnt not %d\n", file->d_count);
+        kprintf("d_count isn't 1%d\n", file->d_count);
         return -1;
     }
 
@@ -226,15 +226,22 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
             return -1;
         }
         
+        dentry_t* lookuped_dent = cur_dent;
         while (dentry_test_flag(cur_dent, DENTRY_MOUNTPOINT)) {
             cur_dent = cur_dent->mounted_dentry;
         }
 
+        if (dentry_test_flag(lookuped_dent, DENTRY_MOUNTPOINT)) {
+            dentry_put(lookuped_dent);
+            cur_dent = dentry_duplicate(cur_dent);
+        }
+
         dentry_set_parent(cur_dent, parent_dent);
-        // dentry_put(parent_dent);
+        dentry_put(parent_dent);
     }
 
     *result = dentry_duplicate(cur_dent);
+    dentry_put(cur_dent);
     return 0;
 }
 
@@ -257,16 +264,15 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
     vfs_add_device(dev);
     _vfs_devices[dev->id].fs = fs_indx;
 
-    mountpoint = dentry_duplicate(mountpoint); // to keep mounts in mem until to umount
+    mountpoint = dentry_duplicate(mountpoint); /* We keep mounts in mem until to umount. */
     dentry_set_flag(mountpoint, DENTRY_MOUNTPOINT);
     
-    dentry_t* mounted_dentry = dentry_get(dev->id, 2);
-    mounted_dentry = dentry_duplicate(mounted_dentry); // to keep mounts in mem until to umount
+    dentry_t* mounted_dentry = dentry_get(dev->id, 2); /* Not going to put it, to keep mounts in mem until to umount */
     dentry_set_flag(mounted_dentry, DENTRY_MOUNTED);
     
     mountpoint->mounted_dentry = mounted_dentry;
     mounted_dentry->mountpoint = mountpoint;
-
+    
     return 0;
 }
 
@@ -285,11 +291,12 @@ int vfs_umount(dentry_t* mounted_dentry)
     }
 
     dentry_rem_flag(mounted_dentry, DENTRY_MOUNTED);
-    mounted_dentry->mountpoint = 0;
-    dentry_put(mounted_dentry);
-    
     dentry_rem_flag(mountpoint, DENTRY_MOUNTPOINT);
+
+    mounted_dentry->mountpoint = 0;
     mountpoint->mounted_dentry = 0;
+
+    dentry_put(mounted_dentry);
     dentry_put(mountpoint);
 
     if (dentry_test_flag(mountpoint, DENTRY_MOUNTED)) {
