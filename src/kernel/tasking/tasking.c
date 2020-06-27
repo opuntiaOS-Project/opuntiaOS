@@ -89,11 +89,14 @@ static int _tasking_load(proc_t* proc, const char* path)
         return -1;
     }
     if (vfs_open(file, &fd)) {
+        dentry_put(file);
         return -1;
     }
     int ret = _tasking_load_bin(proc, &fd);
 
     proc->cwd = dentry_get_parent(file);
+
+    dentry_put(file);
     vfs_close(&fd);
     return ret;
 }
@@ -108,8 +111,6 @@ static void _tasking_copy_proc(proc_t* new_proc)
         proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&active_proc->zones, i);
         dynamic_array_push(&new_proc->zones, zone_to_copy);
     }
-
-    kprintf("Proc is copied\n");
 }
 
 proc_t* tasking_get_active_proc()
