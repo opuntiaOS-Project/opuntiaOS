@@ -700,7 +700,8 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         write_offset = 0;
     }
 
-    if (blocks_allocated <= end_block_index) {
+    
+    if (dentry->inode->size != start + len) {
         dentry->inode->size = start + len;
         dentry_set_flag(dentry, DENTRY_DIRTY);
     }
