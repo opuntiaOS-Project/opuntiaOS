@@ -20,7 +20,7 @@ void table_desc_del_attrs(table_desc_t* pde, uint32_t attrs)
 
 bool table_desc_has_attrs(table_desc_t pde, uint32_t attrs)
 {
-    return (pde & attrs > 0);
+    return ((pde & attrs) > 0);
 }
 
 void table_desc_set_frame(table_desc_t* pde, uint32_t frame)
@@ -36,25 +36,25 @@ void table_desc_del_frame(table_desc_t* pde)
 
 bool table_desc_is_present(table_desc_t pde)
 {
-    return (pde & TABLE_DESC_PRESENT > 0);
+    return ((pde & TABLE_DESC_PRESENT) > 0);
 }
 
 bool table_desc_is_writable(table_desc_t pde)
 {
-    return (pde & TABLE_DESC_WRITABLE > 0);
+    return ((pde & TABLE_DESC_WRITABLE) > 0);
 }
 
 bool table_desc_is_4mb(table_desc_t pde)
 {
-    return (pde & TABLE_DESC_4MB > 0);
+    return ((pde & TABLE_DESC_4MB) > 0);
 }
 
 bool table_desc_is_copy_on_write(table_desc_t pde)
 {
-    return (pde & TABLE_DESC_COPY_ON_WRITE > 0);
+    return ((pde & TABLE_DESC_COPY_ON_WRITE) > 0);
 }
 
 uint32_t table_desc_get_frame(table_desc_t pde)
 {
-    return (pde >> TABLE_DESC_FRAME_OFFSET) << TABLE_DESC_FRAME_OFFSET;
+    return ((pde >> TABLE_DESC_FRAME_OFFSET) << TABLE_DESC_FRAME_OFFSET);
 }
