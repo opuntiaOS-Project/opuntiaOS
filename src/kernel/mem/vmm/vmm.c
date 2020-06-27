@@ -464,13 +464,17 @@ static bool _vmm_is_copy_on_write(uint32_t vaddr)
 static void _vmm_resolve_copy_on_write(uint32_t vaddr)
 {
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    
+    /* copying old ptable to kernel */
     ptable_t* src_ptable = kmalloc_page_aligned();
     ptable_t* root_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     memcpy((uint8_t*)src_ptable, (uint8_t*)root_ptable, VMM_PAGE_SIZE);
+    
+    /* setting up new ptable */
     vmm_allocate_ptable(vaddr);
     ptable_t* new_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
 
-    // TODO currently do that for all pages
+    /* FIXME: Currently we do that for all pages in the table. */
     for (int i = 0; i < 1024; i++) {
         uint32_t page_vaddr = ((vaddr >> 22) << 22) + (i * VMM_PAGE_SIZE);
         page_desc_t* page_desc = vmm_ptable_lookup(src_ptable, page_vaddr);
@@ -540,6 +544,7 @@ static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
     table_desc_t* ppage_desc = vmm_ptable_lookup(ptable, vaddr);
 
     uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    // kprintf("HERE IS A LOOP WHY\n");
     memset(dest, 0, VMM_PAGE_SIZE);
 
     page_desc_del_attrs(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
@@ -654,19 +659,18 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uin
     pdirectory_t* prev_pdir = vmm_get_active_pdir();
     uint8_t* ksrc;
     if ((uint32_t)src < KERNEL_BASE) {
-        // means that it's in user space
-        // so it should be copied here
+        /* Means that it's in user space, so it should be copied here. */
         ksrc = vmm_bring_to_kernel(src, length);
     } else {
         ksrc = src;
     }
 
     vmm_switch_pdir(pdir);
-
+    
+    /* FIXME: maybe it's possible to make faster than getting PF every page */
     uint8_t* dest = (uint8_t*)dest_vaddr;
-
-    // TODO maybe it's possible to make faster than getting PF every page
     memcpy(dest, ksrc, length);
+    
     vmm_switch_pdir(prev_pdir);
 }
 
@@ -692,8 +696,8 @@ int vmm_load_page(uint32_t vaddr, bool owner)
 {
     uint32_t paddr = (uint32_t)pmm_alloc_block();
     if (!paddr) {
-        // clean here to make it able to allocate
-        kpanic("NO SPACE");
+        /* TODO: Swap pages to make it able to allocate. */
+        kpanic("NO PHYSICAL SPACE");
     }
     int res = vmm_map_page(vaddr, paddr, owner);
     uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
@@ -725,13 +729,10 @@ int vmm_free_page(page_desc_t* page)
 void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
 {
     if ((info & 0b11) == 0b11) {
-        // copy on write ?
         if (_vmm_is_copy_on_write(vaddr)) {
-            kprintf("Resolving COW %x\n", vaddr);
             _vmm_resolve_copy_on_write(vaddr);
         }
         if (_vmm_is_zeroing_on_demand(vaddr)) {
-            kprintf("Resolving ZOD %x\n", vaddr);
             _vmm_resolve_zeroing_on_demand(vaddr);
         }
     } else {
