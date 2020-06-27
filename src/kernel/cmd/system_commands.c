@@ -26,8 +26,11 @@ void _syscmd_ls(int argc, char *argv[]) {
     }
 
     if (vfs_open(dir, &fd) < 0) {
+        dentry_put(dir);
         return;
     }
+    
+    dentry_put(dir);
 
     dirent_t tmp;
     while (vfs_getdirent(&fd, &tmp) == 0) {
@@ -90,7 +93,12 @@ void read(int argc, char *argv[]) {
     if (vfs_resolve_path(argv[1], &file) < 0) {
         return;
     }
-    vfs_open(file, &fd);
+    if (vfs_open(file, &fd) < 0) {
+        dentry_put(file);
+        return;
+    }
+    dentry_put(file);
+    
     kprintf("Inode: "); kprintd(fd.dentry->inode_indx); kprintf("\n");
     kprintf("Size: "); kprintd(fd.dentry->inode->size); kprintf("\n");
     
@@ -107,6 +115,7 @@ void procfs(int argc, char *argv[]) {
         return;
     }
     vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 1);
+    dentry_put(mp);
 }
 
 void umount(int argc, char *argv[]) {
@@ -115,9 +124,8 @@ void umount(int argc, char *argv[]) {
         return;
     }
     vfs_umount(mp);
+    dentry_put(mp);
 }
-
-
 
 void touch(int argc, char *argv[]) {
     dentry_t* dir;
@@ -160,7 +168,7 @@ void rm(int argc, char *argv[]) {
     }
     dentry_put(file);
     if (vfs_rm(file) < 0) {
-        kprintf("Dosn't del");
+        kprintf("Doesn't del");
         return;
     }
 }
