@@ -18,6 +18,7 @@ extern fs_ops_t _vfs_fses[MAX_DRIVERS_COUNT];
 extern uint8_t _vfs_fses_count;
 extern uint32_t root_fs_dev_id;
 
+static uint32_t stat_cached_dentries = 0; /* Count of dentries which are held. */
 static dentry_cache_list_t* dentry_cache;
 static uint16_t* dentry_cahced;
 
@@ -193,4 +194,9 @@ inline void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag)
         dentry_set_flag(dentry, DENTRY_DIRTY);
     }
     dentry->inode->mode &= ~flag;
+}
+
+uint32_t dentry_stat_cached_count()
+{
+    return stat_cached_dentries;
 }

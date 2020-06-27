@@ -119,6 +119,8 @@ void dentry_inode_set_flag(dentry_t* dentry, uint32_t flag);
 bool dentry_inode_test_flag(dentry_t* dentry, uint32_t flag);
 void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag);
 
+uint32_t dentry_stat_cached_count();
+
 /**
  * VFS APIS
  */
