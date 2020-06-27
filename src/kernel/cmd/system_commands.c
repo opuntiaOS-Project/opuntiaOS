@@ -104,7 +104,7 @@ void read(int argc, char *argv[]) {
     
     char data[127];
     memset(data, 0, sizeof(data));
-    vfs_read(&fd, (uint8_t*)&data, 1, 10);
+    vfs_read(&fd, (uint8_t*)&data, 0, fd.dentry->inode->size);
     kprintf(data);
     vfs_close(&fd);
 }
@@ -173,6 +173,9 @@ void rm(int argc, char *argv[]) {
     }
 }
 
+void dentries_stat(int argc, char *argv[]) {
+    kprintf("Cached dentried: %d\n", dentry_stat_cached_count());
+}
 
 void syscmd_init() {
     cmd_register("mkdir", _syscmd_mkdir);
@@ -188,4 +191,5 @@ void syscmd_init() {
     cmd_register("rm", rm);
 
     cmd_register("write", write);
+    cmd_register("dentries", dentries_stat);
 }
