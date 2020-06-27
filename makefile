@@ -34,6 +34,7 @@ all: products/os-image.bin products/kernel.bin apps
 # --- Stage1 ---------------------------------------------------------------- #
 
 products/boot.bin: src/boot/x86/stage1/boot.s
+	@mkdir -p products
 	${ASM} $< -f bin -o $@
 
 # --- Stage2 ---------------------------------------------------------------- #
@@ -57,10 +58,12 @@ STAGE2_S_OBJ = ${STAGE2_S_SRC:.s=.o}
 STAGE2_C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS}
 
 products/stage2.bin: products/stage2_entry.o ${STAGE2_C_OBJ} ${STAGE2_S_OBJ}
+	@mkdir -p products
 	@echo "$(notdir $(CURDIR)): LD_S2 $@"
 	${QUIET} ${LD} -o $@ -Ttext ${KERNEL_STAGE2_POSITION} $^ --oformat binary
 
 products/stage2_entry.o: src/boot/x86/stage2_entry.s
+	@mkdir -p products
 	@echo "$(notdir $(CURDIR)): S2_ENTRY_ASM $@"
 	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
@@ -95,10 +98,12 @@ KERNEL_S_OBJ = ${KERNEL_S_SRC:.s=.o}
 C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS} ${C_INCLUDES}
 
 products/kernel.bin: products/stage3_entry.o ${KERNEL_C_OBJ} ${KERNEL_S_OBJ}
+	@mkdir -p products
 	@echo "$(notdir $(CURDIR)): LD $@"
 	${QUIET} ${LD} -o $@ $^ ${LD_KERNEL_FLAGS}
 
 products/stage3_entry.o: src/boot/x86/stage3_entry.s
+	@mkdir -p products
 	@echo "$(notdir $(CURDIR)): S3_ENTRY_ASM $@"
 	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
@@ -123,6 +128,7 @@ LIBSYSTEM_OBJ=$(patsubst %.c,%.o,$(LIBSYSTEM_SRC))
 LIBRARIES = $(LIBSYSTEM)
 
 ${LIBSYSTEM_PATH}/%.o: ${LIBSYSTEM_PATH}/%.c
+	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): CC $@"
 	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
 
@@ -158,15 +164,16 @@ $(1)_S_OBJECTS = $$(patsubst %.s,%.o,$$($(1)_S_SOURCES))
 
 # system apps
 $$($(1)_BINARY): $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) $$(LIBRARIES)
+	@mkdir -p $(BASE_DIR)/$($(1)_INSTALL_PATH)
 	@echo "$($(1)_NAME) [LD]  $$@"
 	$(QUIET) $$(LD) $$(CRTS) $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) -Ttext 0x0 -o $$@ --oformat binary $$(LIBRARIES)
 
-#std compiler
+# std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.c
 	@echo "$($(1)_NAME) [CC]  $$@"
 	$(QUIET) $$(CC) -c $$< -o $$@ $$(C_USERLAND_FLAGS)
 
-#std compiler
+# std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.s
 	@echo "$($(1)_NAME) [ASM] $$@"
 	$(QUIET) $$(ASM) $$< -f elf -o $$@
@@ -186,6 +193,7 @@ debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@
 
 products/os-image.bin: products/boot.bin products/stage2.bin
+	@mkdir -p products
 	cat $^ > $@
 
 run: products/os-image.bin ${DISK}
@@ -216,13 +224,15 @@ ${DISK}:
 format_ext2: ${DISK}
 	sudo /usr/local/opt/e2fsprogs/sbin/mkfs.ext2 -r 0 ${DISK}
 
-format:
+format_fat16:
 	${PYTHON3} utils/fat16_formatter.py
 
-install_os: ${DISK} products/kernel.bin
+# was used with fat16
+old_install_os: ${DISK} products/kernel.bin
 	${PYTHON3} utils/copy_bin.py
 
-install_apps: ${APPS}
+# was used with fat16
+old_install_apps: ${APPS}
 	${PYTHON3} utils/install_apps.py
 
 sync: products/kernel.bin
