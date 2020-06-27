@@ -50,11 +50,33 @@ void _tasking_jumper()
  * TASK LOADING FUNCTIONS
  */
 
-static int _tasking_load_bin(pdirectory_t* pdir, file_descriptor_t* fd)
+static void _tasking_regs_init(proc_t* p)
 {
+    p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
+    p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
+    p->tf->es = p->tf->ds;
+    p->tf->ss = p->tf->ds;
+    p->tf->eflags = FL_IF;
+}
+
+static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
+{
+    uint32_t code_size = fd->dentry->inode->size;
+    proc_zone_t* code_zone = proc_new_random_zone(p, code_size);
+    proc_zone_t* stack_zone = proc_new_random_zone_backward(p, VMM_PAGE_SIZE);
+    
     uint8_t* prog = kmalloc(fd->dentry->inode->size);
     fd->ops->read(fd->dentry, prog, 0, fd->dentry->inode->size);
-    vmm_copy_to_pdir(pdir, prog, 0, fd->dentry->inode->size);
+    vmm_copy_to_pdir(p->pdir, prog, code_zone->start, fd->dentry->inode->size);
+
+    _tasking_regs_init(p);
+    
+    /* Installing app depending regs */
+    
+    p->tf->ebp = stack_zone->start + VMM_PAGE_SIZE - 1;
+    p->tf->esp = p->tf->ebp;
+    p->tf->eip = code_zone->start;
+
     return 0;
 }
 
@@ -69,7 +91,7 @@ static int _tasking_load(proc_t* proc, const char* path)
     if (vfs_open(file, &fd)) {
         return -1;
     }
-    int ret = _tasking_load_bin(proc->pdir, &fd);
+    int ret = _tasking_load_bin(proc, &fd);
 
     proc->cwd = dentry_get_parent(file);
     vfs_close(&fd);
@@ -80,6 +102,14 @@ static void _tasking_copy_proc(proc_t* new_proc)
 {
     memcpy((void*)new_proc->tf, (void*)active_proc->tf, sizeof(trapframe_t));
     new_proc->cwd = dentry_duplicate(active_proc->cwd);
+
+    /* TODO: change the size in advance */
+    for (int i = 0; i < active_proc->zones.size; i++) {
+        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&active_proc->zones, i);
+        dynamic_array_push(&new_proc->zones, zone_to_copy);
+    }
+
+    kprintf("Proc is copied\n");
 }
 
 proc_t* tasking_get_active_proc()
@@ -132,16 +162,6 @@ void tasking_start_init_proc()
         }
     }
 
-    /* setting init trapframe */
-    p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
-    p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
-    p->tf->es = p->tf->ds;
-    p->tf->ss = p->tf->ds;
-    p->tf->eflags = FL_IF;
-    p->tf->ebp = VMM_PAGE_SIZE;
-    p->tf->esp = VMM_PAGE_SIZE;
-    p->tf->eip = 0;
-
     /* stub context to switch for the first time */
     context_t stub_cntx;
     context_t* stub_cntx_ptr = &stub_cntx;
@@ -188,14 +208,15 @@ void tasking_fork(trapframe_t* tf)
 void tasking_exec(trapframe_t* tf)
 {
     proc_t* proc = tasking_get_active_proc();
+
+    /* Cleaning proc */
+    dynamic_array_clear(&proc->zones);
+
     char* launch_path = (char*)proc->tf->ecx; // for now let's think that our string is at ecx
     if (_tasking_load(proc, launch_path) < 0) {
         proc->tf->eax = -1;
         return;
     }
-    proc->tf->ebp = VMM_PAGE_SIZE;
-    proc->tf->esp = VMM_PAGE_SIZE;
-    proc->tf->eip = 0;
 }
 
 /* Syscall */
