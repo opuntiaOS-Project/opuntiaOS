@@ -83,6 +83,7 @@ file_descriptor_t* proc_get_fd(proc_t* proc, int index);
  */
 
 proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len);
-proc_zone_t* proc_new_random_zone(proc_t* proc, int size);
+proc_zone_t* proc_new_random_zone(proc_t* proc, uint32_t len);
+proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len);
 
 #endif // __oneOS__X86__TASKING__PROC_H
