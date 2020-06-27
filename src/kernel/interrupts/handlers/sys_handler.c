@@ -13,7 +13,8 @@
 #define param2 (tf->ecx)
 #define param3 (tf->edx)
 
-/* 32 bit Linux-like syscalls */
+/* From Linux 4.14.0 headers. */
+/* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
 
 static inline void set_return(trapframe_t* tf, int val)
 {
@@ -27,8 +28,9 @@ void sys_handler(trapframe_t* tf)
         sys_exit,
         sys_fork,
         sys_read,
+        sys_write,
         sys_open,
-        sys_close, // 5
+        sys_close, // 6
         sys_exec,
         sys_sigaction,
         sys_sigreturn,
@@ -53,26 +55,39 @@ void sys_fork(trapframe_t* tf)
     tasking_fork(tf);
 }
 
+/* TODO: copying to/from user! */
 void sys_read(trapframe_t* tf)
 {
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(tasking_get_active_proc(), (int)param1);
+    int res = vfs_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
+    set_return(tf, res);
 }
 
-int sys_open(trapframe_t* tf)
+/* TODO: copying to/from user! */
+void sys_write(trapframe_t* tf)
+{
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(tasking_get_active_proc(), (int)param1);
+    int res = vfs_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
+    set_return(tf, res);
+}
+
+void sys_open(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_free_fd(tasking_get_active_proc());
     dentry_t* file;
     if (vfs_resolve_path((char*)param1, &file) < 0) {
-        return -1;
+        set_return(tf, -1);
+        return;
     }
     int res = vfs_open(file, fd);
     dentry_put(file);
-    return res;
+    set_return(tf, res);
 }
 
-int sys_close(trapframe_t* tf)
+void sys_close(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(tasking_get_active_proc(), param1);
-    return vfs_close(fd);
+    set_return(tf, vfs_close(fd));
 }
 
 void sys_exec(trapframe_t* tf)

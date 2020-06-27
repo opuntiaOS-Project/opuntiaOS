@@ -13,12 +13,14 @@ main:
     jne exec ; starting new proc
 
 loop: ; for main proc
-    mov eax, 0x00 ; print
-    ; int 0x80 ; syscall
+    ; mov eax, 0x00 ; print
+    mov eax, 0x01 ; exit
+    mov ebx, 0x02
+    int 0x80 ; syscall
     jmp loop
 exec:
     mov ecx, pathToLaunch
-    mov eax, 6 ; exec
+    mov eax, 7 ; exec
     int 0x80 ; syscall
     jmp loop
     ; since that we launch a new prgram

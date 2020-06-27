@@ -13,6 +13,7 @@ enum sysid {
     SYSEXTT,
     SYSFORK,
     SYSREAD,
+    SYSWRITE,
     SYSOPEN,
     SYSCLOSE,
     SYSEXEC,
@@ -34,7 +35,17 @@ static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
 
 void print(int value)
 {
-    syscall(SYSPRINT, 6, 0, 0, 0, 0); // SYSPRINT
+    syscall(SYSPRINT, value, 0, 0, 0, 0); // SYSPRINT
+}
+
+int read(int fd, char *buf, size_t count)
+{
+    return syscall(SYSREAD, (int)fd, (int)buf, (int)count, 0, 0);
+}
+
+int write(int fd, const void *buf, size_t count)
+{
+    return syscall(SYSWRITE, (int)fd, (int)buf, (int)count, 0, 0);
 }
 
 void exit(int ret_code)
@@ -42,11 +53,6 @@ void exit(int ret_code)
     syscall(SYSEXTT, ret_code, 0, 0, 0, 0);
 }
 
-enum OPEN_MODE {
-    O_RDONLY,
-    O_WRONLY,
-    O_RDWR
-};
 int open(const char *pathname, int flags)
 {
     return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);

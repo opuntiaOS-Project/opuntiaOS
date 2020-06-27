@@ -53,7 +53,7 @@ int proc_free(proc_t* p)
     /* closing opend fds */
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
         if (p->fds[i].dentry) {
-            /* think as active fd */
+            /* think as an active fd */
             vfs_close(&p->fds[i]);
         }
     }
