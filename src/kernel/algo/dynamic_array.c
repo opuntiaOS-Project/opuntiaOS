@@ -79,6 +79,7 @@ int dynamic_array_push(dynamic_array_t* v, void* element)
     v->size++;
     void* place = dynamic_array_get(v, v->size-1);
     memcpy(place, element, v->element_size);
+    return 0;
 }
 
 int dynamic_array_pop(dynamic_array_t* v)
@@ -88,4 +89,12 @@ int dynamic_array_pop(dynamic_array_t* v)
         return 0;
     }
     return -1;
+}
+
+int dynamic_array_clear(dynamic_array_t* v)
+{
+    while (v->size) {
+        v->size--;
+    }
+    return 0;
 }

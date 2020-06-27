@@ -26,5 +26,6 @@ int dynamic_array_init_of_size(dynamic_array_t* v, uint32_t capacity, uint32_t e
 void* dynamic_array_get(dynamic_array_t* v, int index);
 int dynamic_array_push(dynamic_array_t* v, void* element);
 int dynamic_array_pop(dynamic_array_t* v);
+int dynamic_array_clear(dynamic_array_t* v);
 
 #endif // __oneOS__ALGO__DYNAMIC_ARRAY_H
