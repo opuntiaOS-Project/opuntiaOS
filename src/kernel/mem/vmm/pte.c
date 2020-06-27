@@ -20,7 +20,7 @@ void page_desc_del_attrs(page_desc_t* pte, uint32_t attrs)
 
 bool page_desc_has_attrs(page_desc_t pte, uint32_t attrs)
 {
-    return (pte & attrs > 0);
+    return ((pte & attrs) > 0);
 }
 
 void page_desc_set_frame(page_desc_t* pte, uint32_t frame)
@@ -36,20 +36,20 @@ void page_desc_del_frame(page_desc_t* pte)
 
 bool page_desc_is_present(page_desc_t pte)
 {
-    return (pte & PAGE_DESC_PRESENT > 0);
+    return ((pte & PAGE_DESC_PRESENT) > 0);
 }
 
 bool page_desc_is_writable(page_desc_t pte)
 {
-    return (pte & PAGE_DESC_WRITABLE > 0);
+    return ((pte & PAGE_DESC_WRITABLE) > 0);
 }
 
 bool page_desc_is_user(page_desc_t pte)
 {
-    return (pte & PAGE_DESC_USER > 0);
+    return ((pte & PAGE_DESC_USER) > 0);
 }
 
 uint32_t page_desc_get_frame(page_desc_t pte)
 {
-    return (pte >> PAGE_DESC_FRAME_OFFSET) << PAGE_DESC_FRAME_OFFSET;
+    return ((pte >> PAGE_DESC_FRAME_OFFSET) << PAGE_DESC_FRAME_OFFSET);
 }
