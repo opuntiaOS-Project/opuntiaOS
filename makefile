@@ -235,7 +235,11 @@ old_install_os: ${DISK} products/kernel.bin
 old_install_apps: ${APPS}
 	${PYTHON3} utils/install_apps.py
 
-sync: products/kernel.bin
+base_env:
+	sudo mkdir -p base/dev
+	sudo mkdir -p base/proc
+
+sync: base_env products/kernel.bin
 	sudo fuse-ext2 one.img mountpoint -o rw+
 	sudo mkdir -p mountpoint
 	sudo mkdir -p mountpoint/boot
