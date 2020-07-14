@@ -84,10 +84,12 @@ typedef struct {
 #define EXT2_S_IWOTH 0x0002
 #define EXT2_S_IXOTH 0x0001
 
+typedef uint16_t mode_t;
+
 #define INODE_LEN (sizeof(inode_t))
 #define INODES_RESERVED 11
 typedef struct {
-    uint16_t mode;
+    mode_t   mode;
     uint16_t uid;
     uint32_t size;
     uint32_t atime;

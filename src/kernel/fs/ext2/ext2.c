@@ -70,10 +70,10 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
 
 static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* name, int len);
 static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry);
-static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, uint16_t mode);
+static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode);
 
 /* FILE FUNCTIONS */
-static int _ext2_setup_file(dentry_t* file, uint16_t mode);
+static int _ext2_setup_file(dentry_t* file, mode_t mode);
 
 /* API FUNTIONS */
 bool ext2_recognize_drive(vfs_device_t* dev);
@@ -83,9 +83,9 @@ fsdata_t get_fsdata(dentry_t* dentry);
 int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx);
-int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
+int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
-int ext2_create(dentry_t* dir, const char* name, uint32_t len, uint16_t mode);
+int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
 int ext2_rm(dentry_t* dentry);
 
 /**
@@ -619,7 +619,7 @@ static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
     return -1;
 }
 
-static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, uint16_t mode)
+static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode)
 {
     dir->inode->mode = mode;
     dir->inode->uid = 0; // FIXME: uid of real user
@@ -639,7 +639,7 @@ static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, uint16_t mode)
  * FILE FUNCTIONS
  */
 
-static int _ext2_setup_file(dentry_t* file, uint16_t mode)
+static int _ext2_setup_file(dentry_t* file, mode_t mode)
 {
     file->inode->mode = mode;
     file->inode->uid = 0; // FIXME: uid of real user
@@ -725,7 +725,7 @@ int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_ino
     return -1;
 }
 
-int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
+int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
     uint32_t new_dir_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_dir_inode_indx, 0) < 0) {
@@ -765,7 +765,7 @@ int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
     return 0;
 }
 
-int ext2_create(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
+int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
     uint32_t new_file_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_file_inode_indx, 0) < 0) {

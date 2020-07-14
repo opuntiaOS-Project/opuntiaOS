@@ -136,7 +136,7 @@ int vfs_close(file_descriptor_t* fd)
     return 0;
 }
 
-int vfs_create(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
+int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
     /* Check if there is a file with the same name */
     dentry_t* tmp;
@@ -182,7 +182,7 @@ int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
     return fd->ops->write(fd->dentry, buf, start, len);
 }
 
-int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, uint16_t mode)
+int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
     if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
         return -1;

@@ -261,25 +261,25 @@ inline void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
     dentry->flags &= ~flag;
 }
 
-inline void dentry_inode_set_flag(dentry_t* dentry, uint32_t flag)
+inline void dentry_inode_set_flag(dentry_t* dentry, mode_t mode)
 {
-    if (!dentry_inode_test_flag(dentry, flag)) {
+    if (!dentry_inode_test_flag(dentry, mode)) {
         dentry_set_flag(dentry, DENTRY_DIRTY);
     }
-    dentry->inode->mode |= flag;
+    dentry->inode->mode |= mode;
 }
 
-inline bool dentry_inode_test_flag(dentry_t* dentry, uint32_t flag)
+inline bool dentry_inode_test_flag(dentry_t* dentry, mode_t mode)
 {
-    return (dentry->inode->mode & flag) > 0;
+    return (dentry->inode->mode & mode) > 0;
 }
 
-inline void dentry_inode_rem_flag(dentry_t* dentry, uint32_t flag)
+inline void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode)
 {
-    if (dentry_inode_test_flag(dentry, flag)) {
+    if (dentry_inode_test_flag(dentry, mode)) {
         dentry_set_flag(dentry, DENTRY_DIRTY);
     }
-    dentry->inode->mode &= ~flag;
+    dentry->inode->mode &= ~mode;
 }
 
 uint32_t dentry_stat_cached_count()
