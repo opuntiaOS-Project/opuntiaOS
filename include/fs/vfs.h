@@ -84,6 +84,7 @@ typedef struct dentry_ops dentry_ops_t;
 
 struct fs_ops {
     void* recognize;
+    void* prepare_fs;
     void* eject_device;
 
     file_ops_t file;
@@ -126,7 +127,8 @@ uint32_t dentry_stat_cached_count();
  */
 
 void vfs_install();
-void vfs_add_device(device_t* t_new_dev);
+int vfs_add_dev(device_t* dev);
+int vfs_add_dev_with_fs(device_t* dev, int fs_id);
 void vfs_add_fs(driver_t* t_new_fs);
 void vfs_eject_device(device_t* t_new_dev);
 

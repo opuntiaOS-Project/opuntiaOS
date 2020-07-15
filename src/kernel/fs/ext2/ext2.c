@@ -77,6 +77,7 @@ static int _ext2_setup_file(dentry_t* file, mode_t mode);
 
 /* API FUNTIONS */
 bool ext2_recognize_drive(vfs_device_t* dev);
+int ext2_prepare_fs(vfs_device_t* dev);
 void ext2_save_state(vfs_device_t* dev);
 fsdata_t get_fsdata(dentry_t* dentry);
 
@@ -821,6 +822,14 @@ bool ext2_recognize_drive(vfs_device_t* dev)
         return false;
     }
 
+    kfree(superblock);
+
+    return true;
+}
+
+int ext2_prepare_fs(vfs_device_t* dev) {
+    superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
+    _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     _ext2_superblocks[dev->dev->id] = superblock;
 
     // FIXME: for now we consider that we have at max 5 groups
@@ -830,7 +839,7 @@ bool ext2_recognize_drive(vfs_device_t* dev)
 
     _ext2_group_tables[dev->dev->id] = group_table;
 
-    return true;
+    return 0;
 }
 
 void ext2_save_state(vfs_device_t* dev)
@@ -872,6 +881,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.is_device_needed = false;
     fs_desc.is_driver_needed = false;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = ext2_recognize_drive;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = ext2_prepare_fs;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = ext2_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = ext2_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = ext2_mkdir;

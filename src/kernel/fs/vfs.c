@@ -29,7 +29,7 @@ driver_desc_t _vfs_driver_info()
     vfs_desc.is_driver_needed = true;
     vfs_desc.type_of_needed_device = DEVICE_STORAGE;
     vfs_desc.type_of_needed_driver = DRIVER_FILE_SYSTEM;
-    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE] = vfs_add_device;
+    vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE] = vfs_add_dev;
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER] = vfs_add_fs;
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE] = vfs_eject_device;
     return vfs_desc;
@@ -40,7 +40,7 @@ void vfs_install()
     driver_install(_vfs_driver_info());
 }
 
-int vfs_detect_fs_of_dev(vfs_device_t* vfs_dev)
+int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
 {
     for (uint8_t i = 0; i < _vfs_fses_count; i++) {
         if (!_vfs_fses[i].recognize) {
@@ -56,19 +56,50 @@ int vfs_detect_fs_of_dev(vfs_device_t* vfs_dev)
     return -1;
 }
 
-void vfs_add_device(device_t* dev)
+int vfs_add_dev(device_t* dev)
 {
     if (dev->type != DEVICE_STORAGE) {
-        return;
+        return -1;
     }
     
     if (root_fs_dev_id == -1) {
         root_fs_dev_id = dev->id;
     }
+
     _vfs_devices[dev->id].dev = dev;
     if (!dev->is_virtual) {
-        vfs_detect_fs_of_dev(&_vfs_devices[dev->id]);
+        if (vfs_choose_fs_of_dev(&_vfs_devices[dev->id]) < 0) {
+            return -1;
+        }
     }
+    
+    if (_vfs_fses[_vfs_devices[dev->id].fs].prepare_fs) {
+        int (*prepare_fs)(vfs_device_t* nd) = _vfs_fses[_vfs_devices[dev->id].fs].prepare_fs;
+        return prepare_fs(&_vfs_devices[dev->id]);
+    }
+
+    return 0;
+}
+
+int vfs_add_dev_with_fs(device_t* dev, int fs_id)
+{
+    if (dev->type != DEVICE_STORAGE) {
+        return -1;
+    }
+
+    if (root_fs_dev_id == -1) {
+        root_fs_dev_id = dev->id;
+    }
+
+    _vfs_devices[dev->id].dev = dev;
+    _vfs_devices[dev->id].fs = fs_id;
+
+    if (_vfs_fses[_vfs_devices[dev->id].fs].prepare_fs) {
+        int (*prepare_fs)(vfs_device_t* nd) = _vfs_fses[_vfs_devices[dev->id].fs].prepare_fs;
+        return prepare_fs(&_vfs_devices[dev->id]);
+    }
+
+    return 0;
 }
 
 // TODO: reuse unused slots
@@ -90,6 +121,7 @@ void vfs_add_fs(driver_t* t_new_driver)
     fs_ops_t new_fs;
 
     new_fs.recognize = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
+    new_fs.prepare_fs = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS];
     new_fs.eject_device = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
 
     new_fs.file.mkdir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
@@ -261,8 +293,7 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
         return -1;
     }
 
-    vfs_add_device(dev);
-    _vfs_devices[dev->id].fs = fs_indx;
+    vfs_add_dev_with_fs(dev, fs_indx);
 
     mountpoint = dentry_duplicate(mountpoint); /* We keep mounts in mem until to umount. */
     dentry_set_flag(mountpoint, DENTRY_MOUNTPOINT);
