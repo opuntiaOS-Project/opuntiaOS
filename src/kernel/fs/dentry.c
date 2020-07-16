@@ -6,6 +6,7 @@
  * Free Software Foundation.
  */
 
+#include <algo/dynamic_array.h>
 #include <drivers/display.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
@@ -15,8 +16,7 @@
 #define DENTRY_SWAP_THRESHOLD_FOR_INODE_CACHE (16 * KB)
 
 extern vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
-extern fs_ops_t _vfs_fses[MAX_DRIVERS_COUNT];
-extern uint8_t _vfs_fses_count;
+extern dynamic_array_t _vfs_fses;
 extern uint32_t root_fs_dev_id;
 
 static bool can_stay_inode_cache = 1; /* If we can stay inode cache. */
@@ -151,7 +151,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     dentry->flags = 0;
     dentry->dev_indx = dev_indx;
     dentry->dev = &_vfs_devices[dentry->dev_indx];
-    dentry->ops = &_vfs_fses[dentry->dev->fs];
+    dentry->ops = dynamic_array_get(&_vfs_fses, dentry->dev->fs);
     dentry->inode_indx = inode_indx;
     dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
     

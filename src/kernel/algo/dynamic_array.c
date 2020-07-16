@@ -98,3 +98,8 @@ int dynamic_array_clear(dynamic_array_t* v)
     }
     return 0;
 }
+
+uint32_t dynamic_array_size(dynamic_array_t* v)
+{
+    return v->size;
+}

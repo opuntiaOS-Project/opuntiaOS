@@ -6,14 +6,14 @@
  * Free Software Foundation.
  */
 
+#include <algo/dynamic_array.h>
 #include <drivers/display.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <utils/mem.h>
 
 vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
-fs_ops_t _vfs_fses[MAX_DRIVERS_COUNT];
-uint8_t _vfs_fses_count; // Will be deleted in next builds
+dynamic_array_t _vfs_fses;
 int32_t root_fs_dev_id = -1;
 
 /**
@@ -35,21 +35,33 @@ driver_desc_t _vfs_driver_info()
     return vfs_desc;
 }
 
+/**
+ * Init of vfs
+ */
 void vfs_install()
 {
     driver_install(_vfs_driver_info());
+    dynamic_array_init(&_vfs_fses, sizeof(fs_ops_t));
 }
 
 int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
 {
-    for (uint8_t i = 0; i < _vfs_fses_count; i++) {
-        if (!_vfs_fses[i].recognize) {
+    int fs_cnt = _vfs_fses.size;
+    // kprintf("%d", fs_cnt);
+    // while (1) {}
+    for (uint8_t i = 0; i < fs_cnt; i++) {
+        fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
+        if (!fs->recognize) {
             continue;
         }
 
-        bool (*is_capable)(vfs_device_t * nd) = _vfs_fses[i].recognize;
+        bool (*is_capable)(vfs_device_t * nd) = fs->recognize;
         if (is_capable(vfs_dev)) {
             vfs_dev->fs = i;
+            if (fs->prepare_fs) {
+                int (*prepare_fs)(vfs_device_t * nd) = fs->prepare_fs;
+                return prepare_fs(&_vfs_devices[vfs_dev->dev->id]);
+            }
             return 0;
         }
     }
@@ -61,7 +73,7 @@ int vfs_add_dev(device_t* dev)
     if (dev->type != DEVICE_STORAGE) {
         return -1;
     }
-    
+
     if (root_fs_dev_id == -1) {
         root_fs_dev_id = dev->id;
     }
@@ -72,12 +84,6 @@ int vfs_add_dev(device_t* dev)
             return -1;
         }
     }
-    
-    if (_vfs_fses[_vfs_devices[dev->id].fs].prepare_fs) {
-        int (*prepare_fs)(vfs_device_t* nd) = _vfs_fses[_vfs_devices[dev->id].fs].prepare_fs;
-        return prepare_fs(&_vfs_devices[dev->id]);
-    }
-
     return 0;
 }
 
@@ -94,8 +100,9 @@ int vfs_add_dev_with_fs(device_t* dev, int fs_id)
     _vfs_devices[dev->id].dev = dev;
     _vfs_devices[dev->id].fs = fs_id;
 
-    if (_vfs_fses[_vfs_devices[dev->id].fs].prepare_fs) {
-        int (*prepare_fs)(vfs_device_t* nd) = _vfs_fses[_vfs_devices[dev->id].fs].prepare_fs;
+    fs_ops_t* fs = dynamic_array_get(&_vfs_fses, fs_id);
+    if (fs->prepare_fs) {
+        int (*prepare_fs)(vfs_device_t * nd) = fs->prepare_fs;
         return prepare_fs(&_vfs_devices[dev->id]);
     }
 
@@ -107,36 +114,39 @@ void vfs_eject_device(device_t* dev)
 {
     kprintf("Ejecting\n");
     uint8_t fs_id = _vfs_devices[dev->id].fs;
-    bool (*eject)(vfs_device_t * nd) = _vfs_fses[fs_id].eject_device;
-    eject(&_vfs_devices[dev->id]);
+    fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)fs_id);
+    if (fs->eject_device) {
+        bool (*eject)(vfs_device_t * nd) = fs->eject_device;
+        eject(&_vfs_devices[dev->id]);
+    }
     dentry_put_all_dentries_of_dev(dev->id);
 }
 
-void vfs_add_fs(driver_t* t_new_driver)
+void vfs_add_fs(driver_t* new_driver)
 {
-    if (t_new_driver->driver_desc.type != DRIVER_FILE_SYSTEM) {
+    if (new_driver->driver_desc.type != DRIVER_FILE_SYSTEM) {
         return;
     }
 
     fs_ops_t new_fs;
 
-    new_fs.recognize = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
-    new_fs.prepare_fs = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS];
-    new_fs.eject_device = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
+    new_fs.recognize = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
+    new_fs.prepare_fs = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS];
+    new_fs.eject_device = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
 
-    new_fs.file.mkdir = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
-    new_fs.file.getdirent = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT];
-    new_fs.file.lookup = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
-    new_fs.file.read = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
-    new_fs.file.write = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
-    new_fs.file.create = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
-    new_fs.file.rm = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RM];
+    new_fs.file.mkdir = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
+    new_fs.file.getdirent = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT];
+    new_fs.file.lookup = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
+    new_fs.file.read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
+    new_fs.file.write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+    new_fs.file.create = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
+    new_fs.file.rm = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RM];
 
-    new_fs.dentry.write_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
-    new_fs.dentry.read_inode = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
-    new_fs.dentry.get_fsdata = t_new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
+    new_fs.dentry.write_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
+    new_fs.dentry.read_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
+    new_fs.dentry.get_fsdata = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
 
-    _vfs_fses[_vfs_fses_count++] = new_fs;
+    dynamic_array_push(&_vfs_fses, &new_fs);
 }
 
 int vfs_open(dentry_t* file, file_descriptor_t* fd)
@@ -160,7 +170,7 @@ int vfs_close(file_descriptor_t* fd)
     if (!fd) {
         return -1;
     }
-    
+
     dentry_put(fd->dentry);
     fd->dentry = 0;
     fd->offset = 0;
@@ -188,7 +198,6 @@ int vfs_rm(dentry_t* file)
 
     return file->ops->file.rm(file);
 }
-
 
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
@@ -222,7 +231,7 @@ int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
     return dir->ops->file.mkdir(dir, name, len, mode | EXT2_S_IFDIR);
 }
 
-int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t *res)
+int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t* res)
 {
     if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
         return -1;
@@ -257,7 +266,7 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
         if (vfs_lookup(cur_dent, name, len, &cur_dent) < 0) {
             return -1;
         }
-        
+
         dentry_t* lookuped_dent = cur_dent;
         while (dentry_test_flag(cur_dent, DENTRY_MOUNTPOINT)) {
             cur_dent = cur_dent->mounted_dentry;
@@ -297,13 +306,13 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 
     mountpoint = dentry_duplicate(mountpoint); /* We keep mounts in mem until to umount. */
     dentry_set_flag(mountpoint, DENTRY_MOUNTPOINT);
-    
+
     dentry_t* mounted_dentry = dentry_get(dev->id, 2); /* Not going to put it, to keep mounts in mem until to umount */
     dentry_set_flag(mounted_dentry, DENTRY_MOUNTED);
-    
+
     mountpoint->mounted_dentry = mounted_dentry;
     mounted_dentry->mountpoint = mountpoint;
-    
+
     return 0;
 }
 
