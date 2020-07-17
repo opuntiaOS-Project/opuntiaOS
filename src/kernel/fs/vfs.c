@@ -49,7 +49,7 @@ int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
     int fs_cnt = _vfs_fses.size;
     // kprintf("%d", fs_cnt);
     // while (1) {}
-    for (uint8_t i = 0; i < fs_cnt; i++) {
+    for (int i = 0; i < fs_cnt; i++) {
         fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
         if (!fs->recognize) {
             continue;
@@ -113,7 +113,7 @@ int vfs_add_dev_with_fs(device_t* dev, int fs_id)
 void vfs_eject_device(device_t* dev)
 {
     kprintf("Ejecting\n");
-    uint8_t fs_id = _vfs_devices[dev->id].fs;
+    int fs_id = _vfs_devices[dev->id].fs;
     fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)fs_id);
     if (fs->eject_device) {
         bool (*eject)(vfs_device_t * nd) = fs->eject_device;

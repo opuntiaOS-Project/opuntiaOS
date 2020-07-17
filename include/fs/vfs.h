@@ -25,7 +25,7 @@ typedef struct {
 } fsdata_t;
 
 typedef struct {
-    int8_t fs;
+    int fs;
     device_t *dev;
 } vfs_device_t;
 
