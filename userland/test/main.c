@@ -11,8 +11,8 @@ int main()
     sigaction(9, acceptsig);
     raise(9);
     int fd = open("/data.txt", O_RDWR);
-    print(fd);
-    print(write(fd, "airpods", 8));
-    int tmp = 4;
-    return tmp;
+    if (write(fd, "airpods", 8) < 0) {
+        return 1;
+    }
+    return 0;
 }

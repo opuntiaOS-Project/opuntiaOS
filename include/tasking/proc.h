@@ -75,7 +75,7 @@ int proc_free(proc_t* p);
  */
 
 file_descriptor_t* proc_get_free_fd(proc_t* proc);
-file_descriptor_t* proc_get_fd(proc_t* proc, int index);
+file_descriptor_t* proc_get_fd(proc_t* proc, uint32_t index);
 
 
 /**

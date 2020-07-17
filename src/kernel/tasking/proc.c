@@ -80,8 +80,16 @@ file_descriptor_t* proc_get_free_fd(proc_t* proc)
     }
 }
 
-file_descriptor_t* proc_get_fd(proc_t* proc, int index)
+file_descriptor_t* proc_get_fd(proc_t* proc, uint32_t index)
 {
+    if (index >= MAX_OPENED_FILES) {
+        return 0;
+    }
+
+    if (!proc->fds[index].dentry) {
+        return 0;
+    }
+
     return &proc->fds[index];
 }
 

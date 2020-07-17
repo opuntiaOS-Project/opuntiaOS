@@ -16,7 +16,7 @@
 /* From Linux 4.14.0 headers. */
 /* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
 
-static inline void set_return(trapframe_t* tf, int val)
+static inline void set_return(trapframe_t* tf, uint32_t val)
 {
     tf->eax = val;
 }
@@ -59,6 +59,10 @@ void sys_fork(trapframe_t* tf)
 void sys_read(trapframe_t* tf)
 {
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(tasking_get_active_proc(), (int)param1);
+    if (!fd) {
+        set_return(tf, -1);
+        return;
+    }
     int res = vfs_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
     set_return(tf, res);
 }
@@ -67,6 +71,10 @@ void sys_read(trapframe_t* tf)
 void sys_write(trapframe_t* tf)
 {
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(tasking_get_active_proc(), (int)param1);
+    if (!fd) {
+        set_return(tf, -1);
+        return;
+    }
     int res = vfs_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
     set_return(tf, res);
 }
