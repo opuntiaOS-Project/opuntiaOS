@@ -192,7 +192,7 @@ int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 int vfs_rm(dentry_t* file)
 {
     if (file->d_count != 1) {
-        kprintf("d_count isn't 1%d\n", file->d_count);
+        kprintf("d_count isn't 1, but %d\n", file->d_count);
         return -1;
     }
 

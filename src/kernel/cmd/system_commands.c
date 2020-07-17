@@ -164,9 +164,9 @@ void rm(int argc, char *argv[]) {
     dentry_t* file;
     file_descriptor_t fd;
     if (vfs_resolve_path(argv[1], &file) < 0) {
+        dentry_put(file);
         return;
     }
-    dentry_put(file);
     if (vfs_rm(file) < 0) {
         kprintf("Doesn't del");
         return;
