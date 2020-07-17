@@ -163,13 +163,9 @@ void tasking_start_init_proc()
         }
     }
 
-    /* stub context to switch for the first time */
-    context_t stub_cntx;
-    context_t* stub_cntx_ptr = &stub_cntx;
-
     /* switch to init proc */
     switchuvm(p);
-    switch_contexts(&stub_cntx_ptr, p->context);
+    presched_no_context();
 }
 
 /**
