@@ -544,7 +544,6 @@ static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
     table_desc_t* ppage_desc = vmm_ptable_lookup(ptable, vaddr);
 
     uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
-    // kprintf("HERE IS A LOOP WHY\n");
     memset(dest, 0, VMM_PAGE_SIZE);
 
     page_desc_del_attrs(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);

@@ -159,7 +159,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
         dentry->inode = (inode_t*)kmalloc(INODE_LEN);
         stat_cached_inodes_area_size += INODE_LEN;
     }
-    
+
     if (dentry->ops->dentry.read_inode(dentry) < 0) {
         kprintf("CANT READ INODE");
         return 0;

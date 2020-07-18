@@ -1,13 +1,15 @@
 #include <cmd/system_commands.h>
+#include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
-#include <x86/tss.h>
 #include <tasking/tasking.h>
+#include <x86/tss.h>
 
 void _syscmd_init_vfs();
 
 // imitation of mkdir app
-void _syscmd_mkdir(int argc, char *argv[]) {
+void _syscmd_mkdir(int argc, char* argv[])
+{
     dentry_t* dir;
     if (vfs_resolve_path("/", &dir) < 0) {
         return;
@@ -18,37 +20,44 @@ void _syscmd_mkdir(int argc, char *argv[]) {
     vfs_mkdir(dir, argv[1], name_len, dir_mode);
 }
 
-void _syscmd_ls(int argc, char *argv[]) {
+void _syscmd_ls(int argc, char* argv[])
+{
     file_descriptor_t fd;
     dentry_t* dir;
     if (vfs_resolve_path(argv[1], &dir) < 0) {
+        kprintf("Can't path");
         return;
     }
 
     if (vfs_open(dir, &fd) < 0) {
+        kprintf("Can't open");
         dentry_put(dir);
         return;
     }
-    
+
     dentry_put(dir);
 
     dirent_t tmp;
     while (vfs_getdirent(&fd, &tmp) == 0) {
-        kprintf(tmp.name); kprintf("\n");
+        kprintf(tmp.name);
+        kprintf("\n");
     }
     vfs_close(&fd);
 }
 
-void _syscmd_shutdown(int argc, char *argv[]) {
+void _syscmd_shutdown(int argc, char* argv[])
+{
     clean_screen();
     kprintf("Shutting Down\n");
     eject_all_devices();
     clean_screen();
     kprintf("Off\n");
-    while(1) {}
+    while (1) {
+    }
 }
 
-void umode(int argc, char *argv[]) {
+void umode(int argc, char* argv[])
+{
     // set_proc2();
     tasking_start_init_proc();
 }
@@ -59,7 +68,7 @@ void umode(int argc, char *argv[]) {
 //     vfs_open((file_descriptor_t*)(0), argv[1], &fd);
 //     kprintf("Inode: "); kprintd(fd.inode_index); kprintf("\n");
 //     kprintf("Size: "); kprintd(fd.size); kprintf("\n");
-    
+
 //     char data[127];
 //     memset(data, 0, sizeof(data));
 //     vfs_read(&fd, (uint8_t*)&data, 1, 10);
@@ -72,11 +81,11 @@ void umode(int argc, char *argv[]) {
 //     vfs_open((file_descriptor_t*)(0), argv[1], &fd);
 //     kprintf("Inode: "); kprintd(fd.inode_index); kprintf("\n");
 //     kprintf("Size: "); kprintd(fd.size); kprintf("\n");
-    
+
 //     char data[2048];
 //     for (int i = 0; i < 2048; i++) {
 //         data[i] = '1';
-//     } 
+//     }
 //     vfs_write(&fd, (uint8_t*)&data, 0, 2048);
 //     // kprintf(data);
 
@@ -86,7 +95,8 @@ void umode(int argc, char *argv[]) {
 //     kprintf("Size: "); kprintd(fd.size); kprintf("\n");
 // }
 
-void read(int argc, char *argv[]) {
+void read(int argc, char* argv[])
+{
     // set_proc2();
     file_descriptor_t fd;
     dentry_t* file;
@@ -98,18 +108,23 @@ void read(int argc, char *argv[]) {
         return;
     }
     dentry_put(file);
-    
-    kprintf("Inode: "); kprintd(fd.dentry->inode_indx); kprintf("\n");
-    kprintf("Size: "); kprintd(fd.dentry->inode->size); kprintf("\n");
-    
-    char data[127];
+
+    kprintf("Inode: ");
+    kprintd(fd.dentry->inode_indx);
+    kprintf("\n");
+    kprintf("Size: ");
+    kprintd(fd.dentry->inode->size);
+    kprintf("\n");
+
+    char data[512];
     memset(data, 0, sizeof(data));
     vfs_read(&fd, (uint8_t*)&data, 0, fd.dentry->inode->size);
     kprintf(data);
     vfs_close(&fd);
 }
 
-void procfs(int argc, char *argv[]) {
+void procfs(int argc, char* argv[])
+{
     dentry_t* mp;
     if (vfs_resolve_path("/proc", &mp) < 0) {
         return;
@@ -118,7 +133,41 @@ void procfs(int argc, char *argv[]) {
     dentry_put(mp);
 }
 
-void umount(int argc, char *argv[]) {
+void devfs(int argc, char* argv[])
+{
+    dentry_t* mp;
+    if (vfs_resolve_path("/dev", &mp) < 0) {
+        return;
+    }
+    vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
+    dentry_put(mp);
+}
+
+int devfs_read_dummy(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len) {
+    for (int i = 0; i < len; i++) {
+        buf[i] = 'a';
+    }
+    return 0;
+}
+
+void devadd(int argc, char* argv[])
+{
+    dentry_t* mp;
+    if (vfs_resolve_path("/dev", &mp) < 0) {
+        return;
+    }
+    
+    file_ops_t fops;
+    fops.read = devfs_read_dummy;
+    devfs_register(mp, "tty", 3, 0, &fops);
+
+    dentry_put(mp);
+
+    kprintf("ADDED\n");
+}
+
+void umount(int argc, char* argv[])
+{
     dentry_t* mp;
     if (vfs_resolve_path("/proc", &mp) < 0) {
         return;
@@ -127,7 +176,8 @@ void umount(int argc, char *argv[]) {
     dentry_put(mp);
 }
 
-void touch(int argc, char *argv[]) {
+void touch(int argc, char* argv[])
+{
     dentry_t* dir;
     if (vfs_resolve_path(argv[1], &dir) < 0) {
         return;
@@ -141,7 +191,8 @@ void touch(int argc, char *argv[]) {
     }
 }
 
-void write(int argc, char *argv[]) {
+void write(int argc, char* argv[])
+{
     dentry_t* file;
     file_descriptor_t fd;
     if (vfs_resolve_path(argv[1], &file) < 0) {
@@ -160,7 +211,8 @@ void write(int argc, char *argv[]) {
     vfs_close(&fd);
 }
 
-void rm(int argc, char *argv[]) {
+void rm(int argc, char* argv[])
+{
     dentry_t* file;
     file_descriptor_t fd;
     if (vfs_resolve_path(argv[1], &file) < 0) {
@@ -173,11 +225,13 @@ void rm(int argc, char *argv[]) {
     }
 }
 
-void dentries_stat(int argc, char *argv[]) {
+void dentries_stat(int argc, char* argv[])
+{
     kprintf("Cached dentried: %d\n", dentry_stat_cached_count());
 }
 
-void syscmd_init() {
+void syscmd_init()
+{
     cmd_register("mkdir", _syscmd_mkdir);
     cmd_register("ls", _syscmd_ls);
     cmd_register("shutdown", _syscmd_shutdown);
@@ -185,6 +239,8 @@ void syscmd_init() {
 
     cmd_register("cat", read);
     cmd_register("procfs", procfs);
+    cmd_register("devfs", devfs);
+    cmd_register("devadd", devadd);
     cmd_register("umount", umount);
 
     cmd_register("touch", touch);

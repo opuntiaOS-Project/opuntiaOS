@@ -14,6 +14,8 @@
 #include <mem/kmalloc.h>
 
 #include <fs/ext2/ext2.h>
+#include <fs/devfs/devfs.h>
+#include <fs/procfs/procfs.h>
 #include <fs/vfs.h>
 
 #include <cmd/cmd.h>
@@ -46,6 +48,7 @@ void stage3(mem_desc_t *mem_desc) {
     vfs_install();
     ext2_install();
     procfs_install();
+    devfs_install();
     drivers_run();
 
     tasking_init();
