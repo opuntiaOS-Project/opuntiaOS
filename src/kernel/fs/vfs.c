@@ -41,14 +41,12 @@ driver_desc_t _vfs_driver_info()
 void vfs_install()
 {
     driver_install(_vfs_driver_info());
-    dynamic_array_init(&_vfs_fses, sizeof(fs_ops_t));
+    dynamic_array_init_of_size(&_vfs_fses, sizeof(fs_ops_t), 16);
 }
 
 int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
 {
     int fs_cnt = _vfs_fses.size;
-    // kprintf("%d", fs_cnt);
-    // while (1) {}
     for (int i = 0; i < fs_cnt; i++) {
         fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
         if (!fs->recognize) {
@@ -207,7 +205,7 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 
     uint32_t next_inode;
     if (dir->ops->file.lookup(dir, name, len, &next_inode) == 0) {
-        *result = dentry_get(root_fs_dev_id, next_inode);
+        *result = dentry_get(dir->dev_indx, next_inode);
         return 0;
     }
     return -1;
@@ -236,6 +234,7 @@ int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t* res)
     if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
         return -1;
     }
+    kprintf("Offset: %d\n", dir_fd->offset);
     return dir_fd->ops->getdirent(dir_fd->dentry, &dir_fd->offset, res);
 }
 

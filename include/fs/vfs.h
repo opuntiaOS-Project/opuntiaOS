@@ -11,7 +11,6 @@
 
 #include <drivers/driver_manager.h>
 #include <fs/ext2/ext2.h>
-#include <fs/procfs/procfs.h>
 
 #define VFS_MAX_FS_COUNT 5
 #define VFS_MAX_DEV_COUNT 5
@@ -26,7 +25,7 @@ typedef struct {
 
 typedef struct {
     int fs;
-    device_t *dev;
+    device_t* dev;
 } vfs_device_t;
 
 struct dirent {
@@ -38,7 +37,7 @@ typedef struct dirent dirent_t;
 #define DENTRY_DIRTY 0x1
 #define DENTRY_MOUNTPOINT 0x2
 #define DENTRY_MOUNTED 0x4
-struct dentry{
+struct dentry {
     uint32_t d_count;
     uint32_t flags;
     uint32_t inode_indx;
@@ -47,7 +46,7 @@ struct dentry{
     struct fs_ops* ops;
     uint32_t dev_indx;
     vfs_device_t* dev;
-    
+
     uint32_t parent_inode_indx;
     uint32_t parent_dev_indx;
 
@@ -91,7 +90,6 @@ struct fs_ops {
     dentry_ops_t dentry;
 };
 typedef struct fs_ops fs_ops_t;
-
 
 struct file_descriptor {
     dentry_t* dentry;
@@ -143,7 +141,7 @@ int vfs_close(file_descriptor_t* fd);
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
-int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t *res);
+int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t* res);
 
 int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
 int vfs_umount(dentry_t* mountpoint);
