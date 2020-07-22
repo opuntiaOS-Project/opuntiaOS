@@ -1,5 +1,6 @@
-#include <x86/idt.h>
+#include <x86/common.h>
 #include <x86/gdt.h>
+#include <x86/idt.h>
 #include <x86/pci.h>
 
 #include <types.h>
@@ -35,7 +36,7 @@ void stage3(mem_desc_t *mem_desc) {
     // mem setup
     pmm_setup(mem_desc);
     vmm_setup();
-    
+
     // kernel self test
     kernel_self_test(true);
 
@@ -55,6 +56,7 @@ void stage3(mem_desc_t *mem_desc) {
     scheduler_init();
 
     syscmd_init();
+    cli();
     cmd_install();
 
     while (1) { }

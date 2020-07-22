@@ -13,6 +13,7 @@
 #include <mem/vmm/zoner.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
+#include <x86/common.h>
 
 #define pdir_t pdirectory_t
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
@@ -97,7 +98,7 @@ inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr)
 static bool _vmm_split_pspace()
 {
     pspace_zone = zoner_new_zone(4 * MB);
-    
+
     if (VMM_OFFSET_IN_TABLE(pspace_zone.start) != 0) {
         kpanic("WRONG PSPACE START ADDR");
     }
@@ -216,12 +217,12 @@ inline static void* _vmm_alloc_kernel_block()
 static bool _vmm_init_switch_to_kernel_pdir()
 {
     _vmm_active_pdir = _vmm_kernel_pdir;
-    asm volatile("cli");
+    cli();
     /* Should have :Memory here? */
     asm volatile("mov %%eax, %%cr3"
                  :
                  : "a"((uint32_t)_vmm_kernel_convert_vaddr2paddr((uint32_t)_vmm_active_pdir)));
-    asm volatile("sti");
+    sti();
     return true;
 }
 
@@ -265,7 +266,7 @@ static bool _vmm_create_kernel_ptables()
         if (i > VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)) {
             table_desc_set_attrs(ptable_desc, TABLE_DESC_USER);
         }
-        
+
         table_desc_set_frame(ptable_desc, FRAME(paddr));
     }
 
@@ -356,7 +357,7 @@ int vmm_allocate_ptable(uint32_t vaddr)
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
     table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE | TABLE_DESC_USER);
     table_desc_set_frame(ptable_desc, FRAME(ptable_paddr));
-    
+
     return vmm_map_page(ptable_vaddr, ptable_paddr, PAGE_CHOOSE_OWNER(vaddr));
 }
 
@@ -464,12 +465,12 @@ static bool _vmm_is_copy_on_write(uint32_t vaddr)
 static void _vmm_resolve_copy_on_write(uint32_t vaddr)
 {
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
-    
+
     /* copying old ptable to kernel */
     ptable_t* src_ptable = kmalloc_page_aligned();
     ptable_t* root_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     memcpy((uint8_t*)src_ptable, (uint8_t*)root_ptable, VMM_PAGE_SIZE);
-    
+
     /* setting up new ptable */
     vmm_allocate_ptable(vaddr);
     ptable_t* new_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
@@ -491,22 +492,22 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr)
 int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
 {
     page_desc_t* old_page_desc = vmm_ptable_lookup(src_ptable, vaddr);
-    
+
     /* Based on an old page */
     if (page_desc_is_user(*old_page_desc)) {
         vmm_load_page(vaddr, USER_PAGE);
     } else {
         vmm_load_page(vaddr, KERNEL_PAGE);
     }
-    
+
     /* Mapping the old page to do a copy */
     zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
     uint32_t old_page_vaddr = (uint32_t)tmp_zone.start;
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL_PAGE);
-    
+
     memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
-    
+
     /* Freeing */
     vmm_unmap_page(old_page_vaddr);
     zoner_free_zone(tmp_zone);
@@ -665,11 +666,11 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uin
     }
 
     vmm_switch_pdir(pdir);
-    
+
     /* FIXME: maybe it's possible to make faster than getting PF every page */
     uint8_t* dest = (uint8_t*)dest_vaddr;
     memcpy(dest, ksrc, length);
-    
+
     vmm_switch_pdir(prev_pdir);
 }
 
@@ -773,12 +774,16 @@ int vmm_switch_pdir(pdirectory_t* pdir)
         kpanic("vmm_switch_pdir: wrong pdir");
     }
 
+    cli();
+    if (_vmm_active_pdir == pdir) {
+        sti();
+        return 0;
+    }
     _vmm_active_pdir = pdir;
-    asm volatile("cli");
     asm volatile("mov %%eax, %%cr3"
                  :
                  : "a"((uint32_t)_vmm_convert_vaddr2paddr((uint32_t)pdir)));
-    asm volatile("sti");
+    sti();
     return 0;
 }
 

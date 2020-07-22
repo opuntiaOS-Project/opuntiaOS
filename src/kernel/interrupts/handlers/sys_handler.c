@@ -8,6 +8,7 @@
 
 #include <sys_handler.h>
 #include <tasking/tasking.h>
+#include <x86/common.h>
 
 #define param1 (tf->ebx)
 #define param2 (tf->ecx)
@@ -23,6 +24,7 @@ static inline void set_return(trapframe_t* tf, uint32_t val)
 
 void sys_handler(trapframe_t* tf)
 {
+    cli();
     const void* syscalls[] = {
         sys_restart_syscall,
         sys_exit,
@@ -38,6 +40,7 @@ void sys_handler(trapframe_t* tf)
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
+    sti();
 }
 
 void sys_restart_syscall(trapframe_t* tf)
