@@ -5,17 +5,17 @@
 
 #include <types.h>
 
-#include <drivers/driver_manager.h>
 #include <drivers/ata.h>
 #include <drivers/display.h>
-#include <drivers/timer.h>
+#include <drivers/driver_manager.h>
 #include <drivers/ide.h>
+#include <drivers/timer.h>
 
-#include <mem/pmm.h>
 #include <mem/kmalloc.h>
+#include <mem/pmm.h>
 
-#include <fs/ext2/ext2.h>
 #include <fs/devfs/devfs.h>
+#include <fs/ext2/ext2.h>
 #include <fs/procfs/procfs.h>
 #include <fs/vfs.h>
 
@@ -27,7 +27,8 @@
 #include <qemulog.h>
 #include <utils/kernel_self_test.h>
 
-void stage3(mem_desc_t *mem_desc) {
+void stage3(mem_desc_t* mem_desc)
+{
     clean_screen();
     gdt_setup();
     idt_setup();
@@ -57,7 +58,9 @@ void stage3(mem_desc_t *mem_desc) {
 
     syscmd_init();
     cli();
-    cmd_install();
+    tasking_create_kernel_thread(cmd_install);
+    presched_no_context(); /* Starting a scheduler */
 
-    while (1) { }
+    while (1) {
+    }
 }

@@ -17,6 +17,9 @@
 #define SEGF_W 0x2 // writeable (if non-exec)
 #define SEGF_D 0x4 // grows down (if non-exec)
 
+#define FL_IF 0x00000200
+
+#define DPL_KERN 0x0
 #define DPL_USER 0x3
 
 struct gdt_entry {

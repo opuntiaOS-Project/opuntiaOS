@@ -67,8 +67,14 @@ typedef struct {
     void* signal_handlers[SIGNALS_CNT];
 } __attribute__((packed)) proc_t;
 
-int proc_prepare(proc_t* p);
+int proc_setup(proc_t* p);
+int proc_setup_kstack(proc_t* p);
+void proc_segregs_setup(proc_t* p);
 int proc_free(proc_t* p);
+
+int kthread_setup(proc_t* p);
+int kthread_setup_regs(proc_t* p, void* entry_point);
+void kthread_segregs_setup(proc_t* p);
 
 /**
  * PROC FD FUNCTIONS

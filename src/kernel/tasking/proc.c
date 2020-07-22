@@ -9,16 +9,21 @@
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
+#include <x86/gdt.h>
+#include <x86/tss.h>
+
+extern void trap_return();
+extern void _tasking_jumper();
 
 /**
  * INIT FUNCTIONS
  */
 
-int proc_prepare(proc_t* p)
+int proc_setup(proc_t* p)
 {
     /* allocating kernel stack */
     p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
-    if (p->kstack.start == 0) {
+    if (!p->kstack.start) {
         return -1;
     }
 
@@ -27,7 +32,7 @@ int proc_prepare(proc_t* p)
 
     /* allocating space for open files */
     p->fds = kmalloc(MAX_OPENED_FILES * sizeof(file_descriptor_t));
-    if (p->fds == 0) {
+    if (!p->fds) {
         return -1;
     }
 
@@ -37,11 +42,86 @@ int proc_prepare(proc_t* p)
     memset((void*)p->signal_handlers, 0, sizeof(p->signal_handlers));
 
     /* setting up zones */
-    if (dynamic_array_init(&p->zones, sizeof(proc_zone_t)) != 0) {
+    if (dynamic_array_init_of_size(&p->zones, sizeof(proc_zone_t), 8) != 0) {
         return -1;
     }
 
     return 0;
+}
+
+int kthread_setup(proc_t* p)
+{
+    /* allocating kernel stack */
+    p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
+    if (!p->kstack.start) {
+        return -1;
+    }
+
+    /* setting current work directory */
+    p->cwd = 0;
+
+    /* setting signal handlers to 0 */
+    p->signals_mask = 0x0; /* All signals are disabled. */
+    p->pending_signals_mask = 0x0;
+    memset((void*)p->signal_handlers, 0, sizeof(p->signal_handlers));
+
+    return 0;
+}
+
+int kthread_setup_regs(proc_t* p, void* entry_point)
+{
+    zone_t stack = zoner_new_zone(VMM_PAGE_SIZE);
+    if (!stack.start) {
+        return -1;
+    }
+
+    kthread_segregs_setup(p);
+    p->tf->ebp = (stack.start + VMM_PAGE_SIZE);
+    p->tf->esp = p->tf->ebp;
+    p->tf->eip = (uint32_t)entry_point;
+    return 0;
+}
+
+int proc_setup_kstack(proc_t* p)
+{
+    char* sp = (char*)(p->kstack.start + VMM_PAGE_SIZE);
+
+    /* setting trapframe in kernel stack */
+    sp -= sizeof(*p->tf);
+    p->tf = (trapframe_t*)sp;
+    
+    /* setting return point in kernel stack */
+    sp -= 4;
+    *(uint32_t*)sp = (uint32_t)trap_return;
+
+    /* setting context in kernel stack */
+    sp -= sizeof(*p->context);
+    p->context = (context_t*)sp;
+
+    /* setting init data */
+    memset((void*)p->context, 0, sizeof(*p->context));
+    p->context->eip = (uint32_t)_tasking_jumper;
+    memset((void*)p->tf, 0, sizeof(*p->tf));
+
+    return 0;
+}
+
+void proc_segregs_setup(proc_t* p)
+{
+    p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
+    p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
+    p->tf->es = p->tf->ds;
+    p->tf->ss = p->tf->ds;
+    p->tf->eflags = FL_IF;
+}
+
+void kthread_segregs_setup(proc_t* p)
+{
+    p->tf->cs = (SEG_KCODE << 3);
+    p->tf->ds = (SEG_KDATA << 3);
+    p->tf->es = p->tf->ds;
+    p->tf->ss = p->tf->ds;
+    p->tf->eflags = FL_IF;
 }
 
 int proc_free(proc_t* p)

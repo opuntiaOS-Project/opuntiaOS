@@ -15,8 +15,6 @@
 #include <x86/idt.h>
 #include <x86/tss.h>
 
-#define FL_IF 0x00000200
-
 static int nxtpid = 1;
 
 extern void trap_return();
@@ -52,30 +50,19 @@ void _tasking_jumper()
  * TASK LOADING FUNCTIONS
  */
 
-static void _tasking_regs_init(proc_t* p)
-{
-    p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
-    p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
-    p->tf->es = p->tf->ds;
-    p->tf->ss = p->tf->ds;
-    p->tf->eflags = FL_IF;
-}
-
 static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
 {
     uint32_t code_size = fd->dentry->inode->size;
     proc_zone_t* code_zone = proc_new_random_zone(p, code_size);
     proc_zone_t* stack_zone = proc_new_random_zone_backward(p, VMM_PAGE_SIZE);
-    
+
     uint8_t* prog = kmalloc(fd->dentry->inode->size);
     fd->ops->read(fd->dentry, prog, 0, fd->dentry->inode->size);
     vmm_copy_to_pdir(p->pdir, prog, code_zone->start, fd->dentry->inode->size);
 
-    _tasking_regs_init(p);
-    
-    /* Installing app depending regs */
-    
-    p->tf->ebp = stack_zone->start + VMM_PAGE_SIZE - 1;
+    /* Setting registers */
+    proc_segregs_setup(p);
+    p->tf->ebp = stack_zone->start + VMM_PAGE_SIZE;
     p->tf->esp = p->tf->ebp;
     p->tf->eip = code_zone->start;
 
@@ -123,28 +110,19 @@ proc_t* tasking_get_active_proc()
 static proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[nxt_proc++];
-    proc_prepare(p);
     p->pid = nxtpid++;
+    proc_setup(p);
+    proc_setup_kstack(p);
+    return p;
+}
 
-    char* sp = (char*)(p->kstack.start + VMM_PAGE_SIZE);
-
-    /* setting trapframe in kernel stack */
-    sp -= sizeof(*p->tf);
-    p->tf = (trapframe_t*)sp;
-
-    /* setting return point in kernel stack */
-    sp -= 4;
-    *(uint32_t*)sp = (uint32_t)trap_return;
-
-    /* setting context in kernel stack */
-    sp -= sizeof(*p->context);
-    p->context = (context_t*)sp;
-
-    /* setting init data */
-    memset((void*)p->context, 0, sizeof(*p->context));
-    p->context->eip = (uint32_t)_tasking_jumper;
-    memset((void*)p->tf, 0, sizeof(*p->tf));
-
+static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
+{
+    proc_t* p = &proc[nxt_proc++];
+    p->pid = nxtpid++;
+    kthread_setup(p);
+    proc_setup_kstack(p);
+    kthread_setup_regs(p, entry_point);
     return p;
 }
 
@@ -164,10 +142,13 @@ void tasking_start_init_proc()
         while (1) {
         }
     }
+}
 
-    /* switch to init proc */
-    switchuvm(p);
-    presched_no_context();
+int tasking_create_kernel_thread(void* entry_point)
+{
+    proc_t* p = _tasking_alloc_kernel_thread(entry_point);
+    p->pdir = vmm_get_kernel_pdir();
+    return 0;
 }
 
 /**
@@ -196,10 +177,6 @@ void tasking_fork(trapframe_t* tf)
     /* setting output */
     new_proc->tf->eax = 0;
     active_proc->tf->eax = new_proc->pid;
-
-    /* switch to forked proc */
-    switchuvm(new_proc);
-    switch_contexts(&active_proc->context, new_proc->context);
 }
 
 /* Syscall */
@@ -222,7 +199,7 @@ void tasking_exec(trapframe_t* tf)
 void tasking_exit(trapframe_t* tf)
 {
     proc_t* proc = tasking_get_active_proc();
-    kprintf("Task %d exit with code: %d\n", proc->pid, tf->ebx);
     proc_free(proc);
+    active_proc = 0;
     presched_no_context();
 }
