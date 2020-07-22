@@ -572,7 +572,7 @@ pdirectory_t* vmm_new_user_pdir()
 
     for (int i = VMM_KERNEL_TABLES_START; i < 1024; i++) {
         if (!IS_INDIVIDUAL_PER_DIR(i)) {
-            pdir->entities[i] = _vmm_active_pdir->entities[i];
+            pdir->entities[i] = _vmm_kernel_pdir->entities[i];
         }
     }
 
@@ -686,6 +686,11 @@ void vmm_zero_user_pages(pdirectory_t* pdir)
 pdirectory_t* vmm_get_active_pdir()
 {
     return _vmm_active_pdir;
+}
+
+pdirectory_t* vmm_get_kernel_pdir()
+{
+    return _vmm_kernel_pdir;
 }
 
 /**
