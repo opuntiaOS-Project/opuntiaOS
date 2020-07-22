@@ -10,7 +10,7 @@
 #include <mem/kmalloc.h>
 #include <utils/kassert.h>
 
-#define MAX_BLOCK_LEN 4096
+#define MAX_BLOCK_LEN 1024
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define SUPERBLOCK _ext2_superblocks[dev->dev->id]
