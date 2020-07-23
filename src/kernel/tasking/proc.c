@@ -35,6 +35,7 @@ int proc_setup(proc_t* p)
     if (!p->fds) {
         return -1;
     }
+    memset((void*)p->fds, 0, MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
     /* setting signal handlers to 0 */
     p->signals_mask = 0xffffffff; /* for now all signals are legal */
