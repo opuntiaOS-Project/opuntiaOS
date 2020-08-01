@@ -22,6 +22,7 @@
 
 proc_t proc[MAX_PROCESS_COUNT];
 uint32_t nxt_proc;
+uint32_t ended_proc;
 
 proc_t* tasking_get_active_proc();
 

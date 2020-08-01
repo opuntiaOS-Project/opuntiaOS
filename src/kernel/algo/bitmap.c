@@ -57,7 +57,7 @@ int bitmap_find_space(bitmap_t bitmap, int req)
 
 int bitmap_set(bitmap_t bitmap, int where)
 {
-    if (where >= bitmap.len) {
+    if (where >= bitmap.len * 8) {
         return -1;
     }
 
@@ -70,7 +70,7 @@ int bitmap_set(bitmap_t bitmap, int where)
 
 int bitmap_unset(bitmap_t bitmap, int where)
 {
-    if (where >= bitmap.len) {
+    if (where >= bitmap.len * 8) {
         return -1;
     }
 

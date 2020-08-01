@@ -158,6 +158,7 @@ int tasking_create_kernel_thread(void* entry_point)
 void tasking_init()
 {
     nxt_proc = 0;
+    ended_proc = 1;
     signal_init();
 }
 
@@ -201,5 +202,6 @@ void tasking_exit(trapframe_t* tf)
     proc_t* proc = tasking_get_active_proc();
     proc_free(proc);
     active_proc = 0;
+    ended_proc++;
     presched_no_context();
 }

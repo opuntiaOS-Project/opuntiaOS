@@ -60,6 +60,7 @@ void* kmalloc(uint32_t size)
     int start = bitmap_find_space(bitmap, blocks_needed);
     if (start < 0) {
         kprintf("[Err] NO SPACE AT KMALLOC");
+        while (1) {}
         return 0;
     }
 
