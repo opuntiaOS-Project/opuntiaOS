@@ -234,7 +234,6 @@ int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t* res)
     if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
         return -1;
     }
-    kprintf("Offset: %d\n", dir_fd->offset);
     return dir_fd->ops->getdirent(dir_fd->dentry, &dir_fd->offset, res);
 }
 

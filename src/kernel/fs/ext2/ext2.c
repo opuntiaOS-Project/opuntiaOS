@@ -14,24 +14,29 @@
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define SUPERBLOCK _ext2_superblocks[dev->dev->id]
-#define GROUP_TABLES _ext2_group_tables[dev->dev->id]
+#define GROUP_TABLES _ext2_group_table_info[dev->dev->id].table
 #define BLOCK_LEN(sb) (1024 << (sb->log_block_size))
 #define TO_EXT_BLOCK_SIZE(sb, x) (x / (2 << (sb->log_block_size)))
 #define NORM_FILENAME(x) (x + ((4 - (x & 0b11)) & 0b11))
 
 static superblock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
-static group_desc_t* _ext2_group_tables[MAX_DEVICES_COUNT];
+static groups_info_t _ext2_group_table_info[MAX_DEVICES_COUNT];
 
 driver_desc_t _ext2_driver_info();
 
 /* DRIVE RELATED FUNCTIONS */
 static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, uint32_t len);
 static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, uint32_t len);
+static uint32_t _ext2_get_disk_size(vfs_device_t* dev);
 
 /* UTILS */
 static inline bool _ext2_bitmap_get(uint8_t* bitmap, uint32_t index);
 static inline void _ext2_bitmap_set_bit(uint8_t* bitmap, uint32_t index);
 static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index);
+
+/* GROUPS FUNCTIONS */
+static inline uint32_t _ext2_get_group_len(superblock_t* sb);
+static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superblock_t* sb);
 
 /* BLOCK FUNCTIONS */
 static uint32_t _ext2_get_block_offset(superblock_t* sb, uint32_t block_index);
@@ -131,6 +136,12 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
     }
 }
 
+static uint32_t _ext2_get_disk_size(vfs_device_t* dev)
+{
+    uint32_t (*get_size)(device_t * d) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_CAPACITY];
+    return get_size(dev->dev);
+}
+
 /**
  * UTILS
  */
@@ -148,6 +159,26 @@ static inline void _ext2_bitmap_set_bit(uint8_t* bitmap, uint32_t index)
 static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index)
 {
     bitmap[index / 8] &= ~(1 << (index % 8));
+}
+
+/**
+ * GROUPS FUNCTIONS
+ */
+
+static inline uint32_t _ext2_get_group_len(superblock_t* sb)
+{
+    return BLOCK_LEN(sb) * BLOCK_LEN(sb) * 8;
+}
+
+static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superblock_t* sb)
+{
+    uint32_t sz = _ext2_get_disk_size(dev) - SUPERBLOCK_START;
+    uint32_t ans = sz / _ext2_get_group_len(sb);
+    /* TODO: Work with the last smaller group. */
+    // if (sz % get_group_len()) {
+    //     ans++;
+    // }
+    return ans;
 }
 
 /**
@@ -251,13 +282,13 @@ int _ext2_set_block_of_inode(dentry_t* dentry, uint32_t inode_block_index, uint3
 static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* block_index, uint32_t group_index)
 {
     uint8_t block_bitmap[MAX_BLOCK_LEN];
-    _ext2_read_from_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
+    _ext2_read_from_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
 
     for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
         if (!_ext2_bitmap_get(block_bitmap, off)) {
             *block_index = fsdata.sb->blocks_per_group * group_index + off + 1;
             _ext2_bitmap_set_bit(block_bitmap, off);
-            _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
+            _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
             return 0;
         }
     }
@@ -286,10 +317,10 @@ static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
     uint32_t off = block_index % block_len;
 
     uint8_t block_bitmap[MAX_BLOCK_LEN];
-    _ext2_read_from_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), block_len);
+    _ext2_read_from_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].block_bitmap), block_len);
 
     _ext2_bitmap_unset_bit(block_bitmap, off);
-    _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].block_bitmap), block_len);
+    _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].block_bitmap), block_len);
     return 0;
 }
 
@@ -318,7 +349,7 @@ int ext2_read_inode(dentry_t* dentry)
     uint32_t inodes_per_group = dentry->fsdata.sb->inodes_per_group;
     uint32_t holder_group = (dentry->inode_indx - 1) / inodes_per_group;
     uint32_t pos_inside_group = (dentry->inode_indx - 1) % inodes_per_group;
-    uint32_t inode_start = _ext2_get_block_offset(dentry->fsdata.sb, dentry->fsdata.gt[holder_group].inode_table) + (pos_inside_group * INODE_LEN);
+    uint32_t inode_start = _ext2_get_block_offset(dentry->fsdata.sb, dentry->fsdata.gt->table[holder_group].inode_table) + (pos_inside_group * INODE_LEN);
     _ext2_read_from_dev(dentry->dev, (uint8_t*)dentry->inode, inode_start, INODE_LEN);
     return 0;
 }
@@ -328,7 +359,7 @@ int ext2_write_inode(dentry_t* dentry)
     uint32_t inodes_per_group = dentry->fsdata.sb->inodes_per_group;
     uint32_t holder_group = (dentry->inode_indx - 1) / inodes_per_group;
     uint32_t pos_inside_group = (dentry->inode_indx - 1) % inodes_per_group;
-    uint32_t inode_start = _ext2_get_block_offset(dentry->fsdata.sb, dentry->fsdata.gt[holder_group].inode_table) + (pos_inside_group * INODE_LEN);
+    uint32_t inode_start = _ext2_get_block_offset(dentry->fsdata.sb, dentry->fsdata.gt->table[holder_group].inode_table) + (pos_inside_group * INODE_LEN);
     _ext2_write_to_dev(dentry->dev, (uint8_t*)dentry->inode, inode_start, INODE_LEN);
     return 0;
 }
@@ -336,13 +367,13 @@ int ext2_write_inode(dentry_t* dentry)
 static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t group_index)
 {
     uint8_t inode_bitmap[MAX_BLOCK_LEN];
-    _ext2_read_from_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
+    _ext2_read_from_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
 
     for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
         if (!_ext2_bitmap_get(inode_bitmap, off)) {
             *inode_index = SUPERBLOCK->inodes_per_group * group_index + off + 1;
             _ext2_bitmap_set_bit(inode_bitmap, off);
-            _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
+            _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
             return 0;
         }
     }
@@ -354,7 +385,7 @@ static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32
     /* TODO: change group count to real value */
     uint32_t groups_cnt = 3;
     for (int i = 0; i < groups_cnt; i++) {
-        if (fsdata.gt[(pref_group + i) % groups_cnt].free_inodes_count) {
+        if (fsdata.gt->table[(pref_group + i) % groups_cnt].free_inodes_count) {
             if (_ext2_find_free_inode_index(dev, fsdata, inode_index, pref_group) == 0) {
                 return 0;
             }
@@ -372,10 +403,10 @@ static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t i
     uint32_t off = inode_index % inodes_per_group;
 
     uint8_t inode_bitmap[MAX_BLOCK_LEN];
-    _ext2_read_from_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), block_len);
+    _ext2_read_from_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].inode_bitmap), block_len);
 
     _ext2_bitmap_unset_bit(inode_bitmap, off);
-    _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt[group_index].inode_bitmap), block_len);
+    _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].inode_bitmap), block_len);
     return 0;
 }
 
@@ -506,7 +537,7 @@ static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
     dir_entry_t* start_of_new_entry;
 
     if (start_of_entry->inode == 0) {
-       kpanic("Ext2: can't add as first entry with help of that function.");
+        kpanic("Ext2: can't add as first entry with help of that function.");
     }
 
     for (;;) {
@@ -549,13 +580,13 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
     dir_entry_t* prev_entry = (dir_entry_t*)0;
 
     for (;;) {
-        
+
         if (start_of_entry->inode == child_dentry->inode_indx) {
             /* FIXME: just fix that */
             if (!prev_entry) {
                 kpanic("Ext2: can't delete first entry.");
             }
-            
+
             /* deleting entry */
             start_of_entry->inode = 0;
             prev_entry->rec_len += start_of_entry->rec_len;
@@ -701,7 +732,6 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         write_offset = 0;
     }
 
-    
     if (dentry->inode->size != start + len) {
         dentry->inode->size = start + len;
         dentry_set_flag(dentry, DENTRY_DIRTY);
@@ -803,7 +833,7 @@ int ext2_rm(dentry_t* dentry)
     if (_ext2_free_inode(dentry) < 0) {
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -827,17 +857,20 @@ bool ext2_recognize_drive(vfs_device_t* dev)
     return true;
 }
 
-int ext2_prepare_fs(vfs_device_t* dev) {
+int ext2_prepare_fs(vfs_device_t* dev)
+{
     superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     _ext2_superblocks[dev->dev->id] = superblock;
 
     // FIXME: for now we consider that we have at max 5 groups
-    uint32_t group_table_len = 5 * GROUP_LEN;
+    uint32_t groups_cnt = _ext2_get_groups_cnt(dev, superblock);
+    uint32_t group_table_len = groups_cnt * GROUP_LEN;
     group_desc_t* group_table = (group_desc_t*)kmalloc(group_table_len);
     _ext2_read_from_dev(dev, (uint8_t*)group_table, _ext2_get_block_offset(superblock, 2), group_table_len);
 
-    _ext2_group_tables[dev->dev->id] = group_table;
+    _ext2_group_table_info[dev->dev->id].count = groups_cnt;
+    _ext2_group_table_info[dev->dev->id].table = group_table;
 
     return 0;
 }
@@ -851,8 +884,8 @@ void ext2_save_state(vfs_device_t* dev)
     superblock_t* superblock = _ext2_superblocks[dev->dev->id];
 
     // FIXME: for now we consider that we have at max 5 groups
-    uint32_t group_table_len = 5 * GROUP_LEN;
-    group_desc_t* group_table = _ext2_group_tables[dev->dev->id];
+    uint32_t group_table_len = _ext2_group_table_info[dev->dev->id].count * GROUP_LEN;
+    group_desc_t* group_table = _ext2_group_table_info[dev->dev->id].table;
     _ext2_write_to_dev(dev, (uint8_t*)group_table, _ext2_get_block_offset(superblock, 2), group_table_len);
     kfree(group_table);
 
@@ -864,7 +897,7 @@ fsdata_t get_fsdata(dentry_t* dentry)
 {
     fsdata_t fsdata;
     fsdata.sb = _ext2_superblocks[dentry->dev_indx];
-    fsdata.gt = _ext2_group_tables[dentry->dev_indx];
+    fsdata.gt = &_ext2_group_table_info[dentry->dev_indx];
     return fsdata;
 }
 

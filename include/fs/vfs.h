@@ -19,8 +19,13 @@
 #define VFS_ATTR_NOTFILE 0xff
 
 typedef struct {
+    uint32_t count;
+    group_desc_t* table;
+} groups_info_t;
+
+typedef struct {
     superblock_t* sb;
-    group_desc_t* gt;
+    groups_info_t* gt;
 } fsdata_t;
 
 typedef struct {

@@ -219,7 +219,7 @@ clean:
 	rm -rf libs/*.o
 
 ${DISK}:
-	qemu-img create -f raw ${DISK} 1M
+	qemu-img create -f raw ${DISK} 16M
 
 format_ext2: ${DISK}
 	sudo /usr/local/opt/e2fsprogs/sbin/mkfs.ext2 -r 0 ${DISK}
