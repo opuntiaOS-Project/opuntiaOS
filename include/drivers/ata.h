@@ -27,6 +27,7 @@ typedef struct {
     uint16_t sectors;
     bool dma;
     bool lba;
+    uint32_t capacity; // in sectors
 } ata_t;
 
 ata_t _ata_drives[MAX_DEVICES_COUNT];
@@ -36,8 +37,5 @@ void ata_add_new_device(device_t *t_new_device);
 void ata_install();
 void ata_init(ata_t *ata, uint32_t port, bool is_master);
 bool ata_indentify(ata_t *ata);
-void ata_write(device_t *t_device, uint32_t sector, uint8_t *data, uint32_t size);
-void ata_read(device_t *t_device, uint32_t sector, uint8_t *read_data);
-void ata_flush(device_t *t_device);
 
 #endif //__oneOS__DRIVERS__ATA_H
