@@ -48,10 +48,20 @@ struct proc_zone {
 };
 typedef struct proc_zone proc_zone_t;
 
+enum PROC_STATUS {
+    PROC_INVALID = 0,
+    PROC_RUNNING,
+    PROC_DEAD,
+    PROC_STOPPED,
+    PROC_BLOCKED,
+    PROC_DYING,
+};
+
 typedef struct {
     uint32_t sz;
     pdirectory_t* pdir;
     uint32_t pid;
+    uint32_t status;
 
     zone_t kstack;
     context_t* context; // context of kernel's registers

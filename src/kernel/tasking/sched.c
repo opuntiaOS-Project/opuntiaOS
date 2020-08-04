@@ -45,7 +45,7 @@ void sched()
     proc_t* p;
     for (;;) {
         p = &proc[nxtrun];
-        if (p->pid > 0) {
+        if (p->status == PROC_RUNNING) {
             switchuvm(p); // setting up proc env
             switch_contexts(&cpu_ptr->scheduler, p->context); // jumping into proc
         }

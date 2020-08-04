@@ -136,6 +136,7 @@ void tasking_start_init_proc()
 
     /* creating new pdir */
     p->pdir = vmm_new_user_pdir();
+    p->status = PROC_RUNNING;
 
     if (_tasking_load(p, "/boot/init") < 0) {
         kprintf("Can't load init proc");
@@ -148,6 +149,7 @@ int tasking_create_kernel_thread(void* entry_point)
 {
     proc_t* p = _tasking_alloc_kernel_thread(entry_point);
     p->pdir = vmm_get_kernel_pdir();
+    p->status = PROC_RUNNING;
     return 0;
 }
 
@@ -171,6 +173,7 @@ void tasking_fork(trapframe_t* tf)
 {
     proc_t* new_proc = _tasking_alloc_proc();
     new_proc->pdir = vmm_new_forked_user_pdir();
+    new_proc->status = active_proc->status;
 
     /* copying data from proc to new proc */
     _tasking_copy_proc(new_proc);
