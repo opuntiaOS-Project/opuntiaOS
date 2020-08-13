@@ -16,6 +16,7 @@ enum sysid {
     SYSWRITE,
     SYSOPEN,
     SYSCLOSE,
+    SYSWAITPID,
     SYSEXEC,
     SYSSIGACTION,
     SYSSIGRETURN,

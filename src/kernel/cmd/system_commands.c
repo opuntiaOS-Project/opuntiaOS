@@ -56,9 +56,16 @@ void _syscmd_shutdown(int argc, char* argv[])
     }
 }
 
+int k554_created = 2;
 void umode(int argc, char* argv[])
 {
+    
+    // while (1) {
+        // while (created + 1 != ended_proc) {}
     tasking_start_init_proc();
+    tasking_waitpid(k554_created);
+    k554_created += 2;
+    // }
 }
 
 // void open(int argc, char *argv[]) {

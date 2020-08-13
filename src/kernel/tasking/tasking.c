@@ -107,6 +107,17 @@ proc_t* tasking_get_active_proc()
     return active_proc;
 }
 
+proc_t* tasking_get_proc(int pid) {
+    proc_t* p;
+    for (int i = 0; i < nxt_proc; i++) {
+        p = &proc[i];
+        if (p->pid == pid) {
+            return p;
+        }
+    }
+    return 0;
+}
+
 static proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[nxt_proc++];
@@ -199,10 +210,25 @@ void tasking_exec(trapframe_t* tf)
     }
 }
 
+int tasking_waitpid(int pid)
+{
+    proc_t* proc = tasking_get_active_proc();
+    proc_t* joinee_proc = tasking_get_proc(pid);
+    if (!joinee_proc) {
+        return -1;
+    }
+    proc->joinee = joinee_proc;
+    joinee_proc->joiner = proc;
+    init_join_blocker(proc);
+    presched();
+    return 0;
+}
+
 /* Syscall */
 void tasking_exit(trapframe_t* tf)
 {
     proc_t* proc = tasking_get_active_proc();
+    proc->exit_code = tf->ebx;
     proc_free(proc);
     active_proc = 0;
     ended_proc++;

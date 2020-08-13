@@ -33,9 +33,10 @@ void sys_handler(trapframe_t* tf)
         sys_write,
         sys_open,
         sys_close, // 6
+        sys_waitpid, // 7
         sys_exec,
         sys_sigaction,
-        sys_sigreturn,
+        sys_sigreturn, // When this is moved, change signal_caller.s for now.
         sys_raise,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
@@ -99,6 +100,12 @@ void sys_close(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(tasking_get_active_proc(), param1);
     set_return(tf, vfs_close(fd));
+}
+
+void sys_waitpid(trapframe_t* tf)
+{
+    int ret = tasking_waitpid(param1);
+    set_return(tf, ret);
 }
 
 void sys_exec(trapframe_t* tf)

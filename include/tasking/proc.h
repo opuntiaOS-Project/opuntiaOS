@@ -57,7 +57,19 @@ enum PROC_STATUS {
     PROC_DYING,
 };
 
-typedef struct {
+enum BLOCKER_REASON {
+    BLOCKER_INVALID,
+    BLOCKER_JOIN,
+};
+
+struct proc;
+struct blocker {
+    int reason;
+    int (*should_unblock)(struct proc* p);
+};
+typedef struct blocker blocker_t;
+
+struct proc {
     uint32_t sz;
     pdirectory_t* pdir;
     uint32_t pid;
@@ -72,10 +84,18 @@ typedef struct {
     dentry_t* cwd;
     file_descriptor_t* fds;
 
+    struct blocker blocker;
+    int exit_code;
+    struct proc* joinee;
+    struct proc* joiner;
+
     uint32_t signals_mask;
     uint32_t pending_signals_mask;
     void* signal_handlers[SIGNALS_CNT];
-} __attribute__((packed)) proc_t;
+};
+typedef struct proc proc_t;
+
+int init_join_blocker(struct proc* p);
 
 int proc_setup(proc_t* p);
 int proc_setup_kstack(proc_t* p);

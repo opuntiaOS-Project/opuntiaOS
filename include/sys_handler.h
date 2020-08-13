@@ -15,6 +15,7 @@ void sys_read(trapframe_t *tf);
 void sys_write(trapframe_t *tf);
 void sys_open(trapframe_t* tf);
 void sys_close(trapframe_t *tf);
+void sys_waitpid(trapframe_t *tf);
 void sys_exec(trapframe_t *tf);
 void sys_sigaction(trapframe_t* tf);
 void sys_sigreturn(trapframe_t* tf);

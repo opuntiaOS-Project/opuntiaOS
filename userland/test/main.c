@@ -8,8 +8,8 @@ int acceptsig(int signo)
 
 int main()
 {
-    sigaction(9, acceptsig);
-    raise(9);
+    sigaction(8, acceptsig);
+    raise(8);
     int fd = open("/data.txt", O_RDWR);
     if (write(fd, "airpods", 8) < 0) {
         return 1;
