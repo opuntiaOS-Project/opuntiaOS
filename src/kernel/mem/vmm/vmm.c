@@ -61,6 +61,7 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr);
 static bool _vmm_is_zeroing_on_demand(uint32_t vaddr);
 static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr);
 
+inline static void _vmm_flush_tlb();
 inline static void _vmm_flush_tlb_entry(uint32_t vaddr);
 inline static void _vmm_enable_write_protect();
 inline static void _vmm_disable_write_protect();
@@ -752,6 +753,13 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
 /**
  * CPU BASED FUNCTIONS
  */
+
+inline static void _vmm_flush_tlb()
+{
+    asm volatile("mov %%eax, %%cr3"
+                 :
+                 : "a"((uint32_t)_vmm_convert_vaddr2paddr((uint32_t)_vmm_active_pdir)));
+}
 
 inline static void _vmm_flush_tlb_entry(uint32_t vaddr)
 {

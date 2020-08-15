@@ -192,6 +192,11 @@ void tasking_fork(trapframe_t* tf)
     /* setting output */
     new_proc->tf->eax = 0;
     active_proc->tf->eax = new_proc->pid;
+
+    /*  After copying the task we need to flush tlb. To do that we need
+        to reload cr3 register with a new pdir. To not waste our resources
+        we will simply run other process and of course pdir will be refreshed. */
+    presched();
 }
 
 /* Syscall */
