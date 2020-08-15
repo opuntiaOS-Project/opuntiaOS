@@ -686,6 +686,16 @@ static int _ext2_setup_file(dentry_t* file, mode_t mode)
  * API FUNTIONS
  */
 
+bool ext2_can_read(dentry_t* dentry)
+{
+    return true;
+}
+
+bool ext2_can_write(dentry_t* dentry)
+{
+    return true;
+}
+
 int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
@@ -915,6 +925,8 @@ driver_desc_t _ext2_driver_info()
     fs_desc.is_driver_needed = false;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = ext2_recognize_drive;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = ext2_prepare_fs;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = ext2_can_read;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE] = ext2_can_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = ext2_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = ext2_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = ext2_mkdir;

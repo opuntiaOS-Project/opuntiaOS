@@ -8,6 +8,7 @@
 
 #include <sys_handler.h>
 #include <tasking/tasking.h>
+#include <tasking/sched.h>
 #include <x86/common.h>
 
 #define param1 (tf->ebx)
@@ -67,6 +68,13 @@ void sys_read(trapframe_t* tf)
         set_return(tf, -1);
         return;
     }
+
+    /* If we can't read right now, let's block until we can */
+    if (!vfs_can_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3)) {
+        init_read_blocker(tasking_get_active_proc(), fd->dentry);
+        presched();
+    }
+
     int res = vfs_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
     set_return(tf, res);
 }

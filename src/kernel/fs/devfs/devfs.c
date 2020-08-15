@@ -285,6 +285,24 @@ int devfs_mkdir_dummy(dentry_t* dir, const char* name, uint32_t len, mode_t mode
     return -1;
 }
 
+int devfs_can_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+{
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    if (devfs_inode->handlers.can_read) {
+        return devfs_inode->handlers.can_read(dentry);
+    }
+    return true;
+}
+
+int devfs_can_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+{
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    if (devfs_inode->handlers.can_write) {
+        return devfs_inode->handlers.can_write(dentry);
+    }
+    return true;
+}
+
 int devfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
@@ -317,6 +335,8 @@ driver_desc_t _devfs_driver_info()
     fs_desc.is_driver_needed = false;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = devfs_prepare_fs;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = devfs_can_read;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE] = devfs_can_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = devfs_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = devfs_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = devfs_mkdir_dummy;
@@ -372,4 +392,15 @@ devfs_inode_t* devfs_register(dentry_t* dir, const char* name, uint32_t len, mod
     memcpy((void*)&new_entry->handlers, (void*)handlers, sizeof(*handlers));
 
     return new_entry;
+}
+
+int devfs_mount() 
+{
+    dentry_t* mp;
+    if (vfs_resolve_path("/dev", &mp) < 0) {
+        return -1;
+    }
+    vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
+    dentry_put(mp);
+    return 0;
 }

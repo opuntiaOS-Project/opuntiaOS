@@ -139,16 +139,6 @@ void procfs(int argc, char* argv[])
     dentry_put(mp);
 }
 
-void devfs(int argc, char* argv[])
-{
-    dentry_t* mp;
-    if (vfs_resolve_path("/dev", &mp) < 0) {
-        return;
-    }
-    vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
-    dentry_put(mp);
-}
-
 int devfs_read_dummy(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len) {
     for (int i = 0; i < len; i++) {
         buf[i] = 'a';
@@ -158,18 +148,6 @@ int devfs_read_dummy(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t le
 
 void devadd(int argc, char* argv[])
 {
-    dentry_t* mp;
-    if (vfs_resolve_path("/dev", &mp) < 0) {
-        return;
-    }
-    
-    file_ops_t fops;
-    fops.read = devfs_read_dummy;
-    devfs_register(mp, "tty", 3, 0, &fops);
-
-    dentry_put(mp);
-
-    kprintf("ADDED\n");
 }
 
 void umount(int argc, char* argv[])
@@ -245,7 +223,6 @@ void syscmd_init()
 
     cmd_register("cat", read);
     cmd_register("procfs", procfs);
-    cmd_register("devfs", devfs);
     cmd_register("devadd", devadd);
     cmd_register("umount", umount);
 

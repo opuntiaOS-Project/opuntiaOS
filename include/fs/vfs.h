@@ -69,6 +69,8 @@ struct dentry_cache_list {
 typedef struct dentry_cache_list dentry_cache_list_t;
 
 struct file_ops {
+    bool (*can_read)(dentry_t*);
+    bool (*can_write)(dentry_t*);
     int (*read)(dentry_t*, uint8_t*, uint32_t, uint32_t);
     int (*write)(dentry_t*, uint8_t*, uint32_t, uint32_t);
     int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
@@ -143,6 +145,8 @@ int vfs_rm(dentry_t* file);
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int vfs_open(dentry_t* file, file_descriptor_t* fd);
 int vfs_close(file_descriptor_t* fd);
+bool vfs_can_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
+bool vfs_can_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);

@@ -19,6 +19,8 @@
 #include <fs/procfs/procfs.h>
 #include <fs/vfs.h>
 
+#include <tty/tty.h>
+
 #include <cmd/cmd.h>
 #include <cmd/system_commands.h>
 
@@ -26,6 +28,12 @@
 
 #include <qemulog.h>
 #include <utils/kernel_self_test.h>
+
+// FIXME
+void launching() {
+    tasking_start_init_proc();
+    while (1) {}
+}
 
 void stage3(mem_desc_t* mem_desc)
 {
@@ -53,12 +61,15 @@ void stage3(mem_desc_t* mem_desc)
     devfs_install();
     drivers_run();
 
+    devfs_mount();
+    tty_setup();
+
     tasking_init();
     scheduler_init();
 
     syscmd_init();
     cli();
-    tasking_create_kernel_thread(cmd_install);
+    tasking_create_kernel_thread(launching);
     presched_no_context(); /* Starting a scheduler */
 
     while (1) {

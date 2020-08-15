@@ -60,6 +60,7 @@ enum PROC_STATUS {
 enum BLOCKER_REASON {
     BLOCKER_INVALID,
     BLOCKER_JOIN,
+    BLOCKER_READ,
 };
 
 struct proc;
@@ -88,6 +89,7 @@ struct proc {
     int exit_code;
     struct proc* joinee;
     struct proc* joiner;
+    dentry_t* blocker_dentry;
 
     uint32_t signals_mask;
     uint32_t pending_signals_mask;
@@ -96,6 +98,7 @@ struct proc {
 typedef struct proc proc_t;
 
 int init_join_blocker(struct proc* p);
+int init_read_blocker(struct proc* proc, dentry_t* bd);
 
 int proc_setup(proc_t* p);
 int proc_setup_kstack(proc_t* p);

@@ -1,4 +1,5 @@
 #include <drivers/keyboard.h>
+#include <tty/tty.h>
 
 // Private
 // Returns key by scancode
@@ -167,6 +168,7 @@ void keyboard_handler() {
                 _kbdriver_alt_enabled = true;
                 break;
         }
+		tty_eat_key(_kbdriver_get_keycode(scancode));
     }
 }
 

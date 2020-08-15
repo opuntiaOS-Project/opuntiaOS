@@ -135,6 +135,8 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.file.mkdir = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
     new_fs.file.getdirent = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT];
     new_fs.file.lookup = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
+    new_fs.file.can_read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
+    new_fs.file.can_write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
     new_fs.file.read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
     new_fs.file.write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
     new_fs.file.create = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
@@ -209,6 +211,16 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
         return 0;
     }
     return -1;
+}
+
+bool vfs_can_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
+{
+    return fd->ops->can_read(fd->dentry);
+}
+
+bool vfs_can_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
+{
+    return fd->ops->can_write(fd->dentry);
 }
 
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)

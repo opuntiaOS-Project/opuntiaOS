@@ -24,3 +24,18 @@ int init_join_blocker(proc_t* proc)
     proc->blocker.should_unblock = should_unblock_join_block;
     return 0;
 }
+
+
+int should_unblock_read_block(proc_t* proc)
+{
+    return proc->blocker_dentry->ops->file.can_read(proc->blocker_dentry);
+}
+
+int init_read_blocker(proc_t* proc, dentry_t* bd)
+{
+    proc->blocker_dentry = bd;
+    proc->status = PROC_BLOCKED;
+    proc->blocker.reason = BLOCKER_JOIN;
+    proc->blocker.should_unblock = should_unblock_read_block;
+    return 0;
+}
