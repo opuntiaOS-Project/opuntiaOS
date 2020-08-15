@@ -52,7 +52,7 @@ void sys_restart_syscall(trapframe_t* tf)
 
 void sys_exit(trapframe_t* tf)
 {
-    tasking_exit(tf);
+    tasking_exit((int)param1);
 }
 
 void sys_fork(trapframe_t* tf)

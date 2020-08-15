@@ -29,10 +29,17 @@
 #include <qemulog.h>
 #include <utils/kernel_self_test.h>
 
+/* If we stay our anythread alone it can't get keyboard input,
+   so we will switch to idle_thread to fix it. */
+void idle_thread() {
+    while(1) {}
+}
+
 // FIXME
 void launching() {
+    tasking_create_kernel_thread(idle_thread);
     tasking_start_init_proc();
-    while (1) {}
+    tasking_exit(0);
 }
 
 void stage3(mem_desc_t* mem_desc)
@@ -62,13 +69,13 @@ void stage3(mem_desc_t* mem_desc)
     drivers_run();
 
     devfs_mount();
-    tty_setup();
 
     tasking_init();
     scheduler_init();
 
     syscmd_init();
     cli();
+    clean_screen();
     tasking_create_kernel_thread(launching);
     presched_no_context(); /* Starting a scheduler */
 

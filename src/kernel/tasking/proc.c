@@ -9,6 +9,7 @@
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
+#include <tty/tty.h>
 #include <x86/gdt.h>
 #include <x86/tss.h>
 
@@ -21,6 +22,7 @@ extern void _tasking_jumper();
 
 int proc_setup(proc_t* p)
 {
+    p->is_kthread = false;
     /* allocating kernel stack */
     p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
     if (!p->kstack.start) {
@@ -50,8 +52,27 @@ int proc_setup(proc_t* p)
     return 0;
 }
 
+int proc_setup_tty(proc_t* p, tty_entry_t* tty)
+{
+    file_descriptor_t* fd0 = &p->fds[0];
+    file_descriptor_t* fd1 = &p->fds[1];
+    p->tty = tty;
+    
+    char* path_to_tty = "dev/tty ";
+    path_to_tty[7] = tty->id + '0';
+    dentry_t* tty_dentry;
+    if (vfs_resolve_path(path_to_tty, &tty_dentry) < 0) {
+        return -1;
+    }
+    int res = vfs_open(tty_dentry, fd0);
+    res = vfs_open(tty_dentry, fd1);
+    dentry_put(tty_dentry);
+    return 0;
+}
+
 int kthread_setup(proc_t* p)
 {
+    p->is_kthread = true;
     /* allocating kernel stack */
     p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
     if (!p->kstack.start) {
@@ -60,6 +81,8 @@ int kthread_setup(proc_t* p)
 
     /* setting current work directory */
     p->cwd = 0;
+
+    p->fds = 0;
 
     /* setting signal handlers to 0 */
     p->signals_mask = 0x0; /* All signals are disabled. */
@@ -90,7 +113,7 @@ int proc_setup_kstack(proc_t* p)
     /* setting trapframe in kernel stack */
     sp -= sizeof(*p->tf);
     p->tf = (trapframe_t*)sp;
-    
+
     /* setting return point in kernel stack */
     sp -= 4;
     *(uint32_t*)sp = (uint32_t)trap_return;
@@ -131,20 +154,29 @@ int proc_free(proc_t* p)
         return -1;
     }
 
-    /* closing opend fds */
-    for (int i = 0; i < MAX_OPENED_FILES; i++) {
-        if (p->fds[i].dentry) {
-            /* think as an active fd */
-            vfs_close(&p->fds[i]);
-        }
-    }
-
     p->pid = 0;
     p->status = PROC_DEAD;
-    kfree(p->fds);
+
+    /* closing opend fds */
+    if (p->fds) {
+        for (int i = 0; i < MAX_OPENED_FILES; i++) {
+            if (p->fds[i].dentry) {
+                /* think as an active fd */
+                vfs_close(&p->fds[i]);
+            }
+        }
+        kfree(p->fds);
+    }
+
+    if (p->cwd) {
+        dentry_put(p->cwd);
+    }
+
     zoner_free_zone(p->kstack);
-    dentry_put(p->cwd);
-    vmm_free_pdir(p->pdir);
+
+    if (!p->is_kthread) {
+        vmm_free_pdir(p->pdir);
+    }
 
     return 0;
 }

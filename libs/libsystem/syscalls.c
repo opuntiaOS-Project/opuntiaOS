@@ -34,11 +34,6 @@ static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
     return ret;
 }
 
-void print(int value)
-{
-    syscall(SYSPRINT, value, 0, 0, 0, 0); // SYSPRINT
-}
-
 int read(int fd, char *buf, size_t count)
 {
     return syscall(SYSREAD, (int)fd, (int)buf, (int)count, 0, 0);
@@ -52,6 +47,21 @@ int write(int fd, const void *buf, size_t count)
 void exit(int ret_code)
 {
     syscall(SYSEXTT, ret_code, 0, 0, 0, 0);
+}
+
+int fork()
+{
+    return syscall(SYSFORK, 0, 0, 0, 0, 0);
+}
+
+int wait(int pid)
+{
+    return syscall(SYSWAITPID, pid, 0, 0, 0, 0);
+}
+
+int exec(char* path)
+{
+    return syscall(SYSEXEC, (int)path, 0, 0, 0, 0);
 }
 
 int open(const char *pathname, int flags)

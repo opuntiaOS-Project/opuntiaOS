@@ -51,7 +51,7 @@ void tasking_init();
 
 void tasking_fork(trapframe_t* tf);
 void tasking_exec(trapframe_t* tf);
-void tasking_exit(trapframe_t* tf);
+void tasking_exit(int exit_code);
 int tasking_waitpid(int pid);
 
 /**

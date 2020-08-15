@@ -10,6 +10,7 @@
 #include <mem/kmalloc.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
+#include <tty/tty.h>
 #include <x86/common.h>
 #include <x86/gdt.h>
 #include <x86/idt.h>
@@ -94,11 +95,21 @@ static void _tasking_copy_proc(proc_t* new_proc)
 {
     memcpy((void*)new_proc->tf, (void*)active_proc->tf, sizeof(trapframe_t));
     new_proc->cwd = dentry_duplicate(active_proc->cwd);
+    new_proc->tty = active_proc->tty;
 
     /* TODO: change the size in advance */
     for (int i = 0; i < active_proc->zones.size; i++) {
         proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&active_proc->zones, i);
         dynamic_array_push(&new_proc->zones, zone_to_copy);
+    }
+
+    if (active_proc->fds) {
+        for (int i = 0; i < MAX_OPENED_FILES; i++) {
+            if (active_proc->fds[i].dentry) {
+                file_descriptor_t* fd = &new_proc->fds[i];
+                vfs_open(active_proc->fds[i].dentry, fd);
+            }
+        }
     }
 }
 
@@ -107,7 +118,8 @@ proc_t* tasking_get_active_proc()
     return active_proc;
 }
 
-proc_t* tasking_get_proc(int pid) {
+proc_t* tasking_get_proc(int pid)
+{
     proc_t* p;
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
@@ -144,6 +156,7 @@ static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
 void tasking_start_init_proc()
 {
     proc_t* p = _tasking_alloc_proc();
+    proc_setup_tty(p, tty_new());
 
     /* creating new pdir */
     p->pdir = vmm_new_user_pdir();
@@ -208,7 +221,7 @@ void tasking_exec(trapframe_t* tf)
     /* Cleaning proc */
     dynamic_array_clear(&proc->zones);
 
-    char* launch_path = (char*)proc->tf->ecx; // for now let's think that our string is at ecx
+    char* launch_path = (char*)proc->tf->ebx; // for now let's think that our string is at ebx
     if (_tasking_load(proc, launch_path) < 0) {
         proc->tf->eax = -1;
         return;
@@ -230,10 +243,10 @@ int tasking_waitpid(int pid)
 }
 
 /* Syscall */
-void tasking_exit(trapframe_t* tf)
+void tasking_exit(int exit_code)
 {
     proc_t* proc = tasking_get_active_proc();
-    proc->exit_code = tf->ebx;
+    proc->exit_code = exit_code;
     proc_free(proc);
     active_proc = 0;
     ended_proc++;

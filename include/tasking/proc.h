@@ -13,6 +13,7 @@
 #include <fs/vfs.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
+#include <tty/tty.h>
 #include <types.h>
 #include <x86/idt.h>
 
@@ -84,6 +85,7 @@ struct proc {
 
     dentry_t* cwd;
     file_descriptor_t* fds;
+    tty_entry_t* tty;
 
     struct blocker blocker;
     int exit_code;
@@ -94,6 +96,8 @@ struct proc {
     uint32_t signals_mask;
     uint32_t pending_signals_mask;
     void* signal_handlers[SIGNALS_CNT];
+
+    bool is_kthread;
 };
 typedef struct proc proc_t;
 
@@ -102,6 +106,7 @@ int init_read_blocker(struct proc* proc, dentry_t* bd);
 
 int proc_setup(proc_t* p);
 int proc_setup_kstack(proc_t* p);
+int proc_setup_tty(proc_t* p, tty_entry_t* tty);
 void proc_segregs_setup(proc_t* p);
 int proc_free(proc_t* p);
 
