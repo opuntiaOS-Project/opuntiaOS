@@ -7,8 +7,9 @@
  */
 
 #include <algo/bitmap.h>
-#include <mem/kmalloc.h>
 #include <drivers/display.h>
+#include <errno.h>
+#include <mem/kmalloc.h>
 
 bitmap_t bitmap_wrap(uint8_t* data, uint32_t len)
 {
@@ -52,13 +53,13 @@ int bitmap_find_space(bitmap_t bitmap, int req)
             }
         }
     }
-    return -1;
+    return -ENODATA;
 }
 
 int bitmap_set(bitmap_t bitmap, int where)
 {
     if (where >= bitmap.len * 8) {
-        return -1;
+        return -EFAULT;
     }
 
     int block = where / 8;
@@ -71,7 +72,7 @@ int bitmap_set(bitmap_t bitmap, int where)
 int bitmap_unset(bitmap_t bitmap, int where)
 {
     if (where >= bitmap.len * 8) {
-        return -1;
+        return -EFAULT;
     }
 
     int block = where / 8;
@@ -85,7 +86,7 @@ int bitmap_set_range(bitmap_t bitmap, int start, int len)
 {
     for (int i = start; i < start + len; i++) {
         if (bitmap_set(bitmap, i) != 0) {
-            return -1;
+            return -EPERM;
         }
     }
     return 0;
@@ -95,7 +96,7 @@ int bitmap_unset_range(bitmap_t bitmap, int start, int len)
 {
     for (int i = start; i < start + len; i++) {
         if (bitmap_unset(bitmap, i) != 0) {
-            return -1;
+            return -EPERM;
         }
     }
     return 0;

@@ -7,6 +7,7 @@
  */
 
 #include <algo/dynamic_array.h>
+#include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <mem/kmalloc.h>
 
@@ -32,7 +33,7 @@ static int _devfs_alloc_entry_zone()
 {
     void* new_zone = kmalloc(DEVFS_ZONE_SIZE);
     if (!new_zone) {
-        return -1;
+        return ENOMEM;
     }
 
     dynamic_array_push(&entry_zones, &new_zone);
@@ -45,7 +46,7 @@ static int _devfs_alloc_name_zone()
 {
     void* new_zone = kmalloc(DEVFS_ZONE_SIZE);
     if (!new_zone) {
-        return -1;
+        return -ENOMEM;
     }
 
     dynamic_array_push(&name_zones, &new_zone);
@@ -117,7 +118,7 @@ static inline devfs_inode_t* _devfs_get_devfs_inode(uint32_t inode_indx)
 static int _devfs_add_to_list(devfs_inode_t* parent, devfs_inode_t* new_entry)
 {
     if (!parent || !new_entry) {
-        return -1;
+        return -EINVAL;
     }
 
     if (!parent->last) {
@@ -155,7 +156,7 @@ static devfs_inode_t* _devfs_alloc_entry(devfs_inode_t* parent)
 static int _devfs_set_name(devfs_inode_t* entry, const char* name, uint32_t len)
 {
     if (!entry || !name) {
-        return -1;
+        return -EINVAL;
     }
     if (len > 255) {
         return -2;
@@ -163,7 +164,7 @@ static int _devfs_set_name(devfs_inode_t* entry, const char* name, uint32_t len)
 
     char* name_space = _devfs_new_name(len);
     if (!name_space) {
-        return -1;
+        return -ENOMEM;
     }
 
     memcpy((void*)name_space, (void*)name, len);
@@ -187,7 +188,6 @@ static int _devfs_setup_root()
 /**
  * VFS Api
  */
-
 
 fsdata_t devfs_data(dentry_t* dentry)
 {
@@ -213,7 +213,7 @@ int devfs_read_inode(dentry_t* dentry)
         confident using inode in vfs, since inode and devfs_inode are not similar. */
     devfs_inode_t* devfs_inode = _devfs_get_devfs_inode(dentry->inode_indx);
     if (!devfs_inode) {
-        return -1;
+        return -EFAULT;
     }
     memcpy((void*)dentry->inode, (void*)devfs_inode, DEVFS_INODE_LEN);
     return 0;
@@ -223,7 +223,7 @@ int devfs_write_inode(dentry_t* dentry)
 {
     devfs_inode_t* devfs_inode = _devfs_get_devfs_inode(dentry->inode_indx);
     if (!devfs_inode) {
-        return -1;
+        return -EFAULT;
     }
     memcpy((void*)devfs_inode, (void*)dentry->inode, DEVFS_INODE_LEN);
     return 0;
@@ -241,23 +241,23 @@ int devfs_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
     /* Scanining dir from the start */
     if (*offset == 0) {
         if (!devfs_inode->first) {
-            return -1;
+            return -EFAULT;
         }
         *offset = (uint32_t)devfs_inode->first;
     }
-    
+
     devfs_inode_t* child_devfs_inode = (devfs_inode_t*)*offset;
     res->inode_indx = child_devfs_inode->index;
 
     uint32_t len = strlen(child_devfs_inode->name);
     memcpy((void*)res->name, (void*)child_devfs_inode->name, len + 1);
-    
+
     if (child_devfs_inode->next) {
         *offset = (uint32_t)child_devfs_inode->next;
     } else {
         *offset = 0xffffffff;
     }
-    
+
     return 0;
 }
 
@@ -277,7 +277,7 @@ int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_in
         child = child->next;
     }
 
-    return -1;
+    return -ENOENT;
 }
 
 int devfs_mkdir_dummy(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
@@ -309,7 +309,7 @@ int devfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     if (devfs_inode->handlers.read) {
         return devfs_inode->handlers.read(dentry, buf, start, len);
     }
-    return -1;
+    return -EFAULT;
 }
 
 int devfs_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
@@ -318,7 +318,7 @@ int devfs_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     if (devfs_inode->handlers.write) {
         return devfs_inode->handlers.write(dentry, buf, start, len);
     }
-    return -1;
+    return -EFAULT;
 }
 
 /**
@@ -394,11 +394,11 @@ devfs_inode_t* devfs_register(dentry_t* dir, const char* name, uint32_t len, mod
     return new_entry;
 }
 
-int devfs_mount() 
+int devfs_mount()
 {
     dentry_t* mp;
     if (vfs_resolve_path("/dev", &mp) < 0) {
-        return -1;
+        return -ENOENT;
     }
     vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
     dentry_put(mp);

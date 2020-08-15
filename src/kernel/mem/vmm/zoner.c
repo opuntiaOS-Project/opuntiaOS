@@ -20,6 +20,7 @@
  */
 
 #include <algo/bitmap.h>
+#include <errno.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 
@@ -102,7 +103,7 @@ int zoner_free_zone(zone_t zone)
 {
     /* Checking if it was allocated with bitmap */
     if (zone.start < _zoner_next_vaddr) {
-        return -1;
+        return -EPERM;
     }
 
     int start = ZONER_TO_BITMAP_INDEX(zone.start);

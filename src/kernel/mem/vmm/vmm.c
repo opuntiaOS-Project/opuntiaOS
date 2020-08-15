@@ -7,6 +7,7 @@
  */
 
 #include <drivers/display.h>
+#include <errno.h>
 #include <global.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
@@ -371,11 +372,11 @@ static int vmm_free_ptable(uint32_t ptable_indx)
     table_desc_t* ptable_desc = &_vmm_active_pdir->entities[ptable_indx];
 
     if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
-        return -1;
+        return -EFAULT;
     }
 
     if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_COPY_ON_WRITE)) {
-        return -1;
+        return -EFAULT;
     }
 
     pmm_free_block((void*)table_desc_get_frame(*ptable_desc));
@@ -612,7 +613,7 @@ pdirectory_t* vmm_new_forked_user_pdir()
 int vmm_free_pdir(pdirectory_t* pdir)
 {
     if (!pdir) {
-        return -1;
+        return -EINVAL;
     }
 
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {

@@ -6,6 +6,7 @@
  * Free Software Foundation.
  */
 
+#include <errno.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
@@ -26,7 +27,7 @@ int proc_setup(proc_t* p)
     /* allocating kernel stack */
     p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
     if (!p->kstack.start) {
-        return -1;
+        return -ENOMEM;
     }
 
     /* setting current work directory */
@@ -35,7 +36,7 @@ int proc_setup(proc_t* p)
     /* allocating space for open files */
     p->fds = kmalloc(MAX_OPENED_FILES * sizeof(file_descriptor_t));
     if (!p->fds) {
-        return -1;
+        return -ENOMEM;
     }
     memset((void*)p->fds, 0, MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
@@ -46,7 +47,7 @@ int proc_setup(proc_t* p)
 
     /* setting up zones */
     if (dynamic_array_init_of_size(&p->zones, sizeof(proc_zone_t), 8) != 0) {
-        return -1;
+        return -ENOMEM;
     }
 
     return 0;
@@ -62,7 +63,7 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     path_to_tty[7] = tty->id + '0';
     dentry_t* tty_dentry;
     if (vfs_resolve_path(path_to_tty, &tty_dentry) < 0) {
-        return -1;
+        return -ENOENT;
     }
     int res = vfs_open(tty_dentry, fd0);
     res = vfs_open(tty_dentry, fd1);
@@ -76,7 +77,7 @@ int kthread_setup(proc_t* p)
     /* allocating kernel stack */
     p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
     if (!p->kstack.start) {
-        return -1;
+        return -ENOMEM;
     }
 
     /* setting current work directory */
@@ -96,7 +97,7 @@ int kthread_setup_regs(proc_t* p, void* entry_point)
 {
     zone_t stack = zoner_new_zone(VMM_PAGE_SIZE);
     if (!stack.start) {
-        return -1;
+        return -ENOMEM;
     }
 
     kthread_segregs_setup(p);
@@ -151,7 +152,7 @@ void kthread_segregs_setup(proc_t* p)
 int proc_free(proc_t* p)
 {
     if (p->status == PROC_DEAD || p->status == PROC_INVALID || p->pid == 0) {
-        return -1;
+        return -ESRCH;
     }
 
     p->pid = 0;

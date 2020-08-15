@@ -6,6 +6,7 @@
  * Free Software Foundation.
  */
 
+#include <errno.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/sched.h>
@@ -76,11 +77,11 @@ static int _tasking_load(proc_t* proc, const char* path)
     file_descriptor_t fd;
 
     if (vfs_resolve_path_start_from(proc->cwd, path, &file) < 0) {
-        return -1;
+        return -ENOENT;
     }
-    if (vfs_open(file, &fd)) {
+    if (vfs_open(file, &fd) < 0) {
         dentry_put(file);
-        return -1;
+        return -ENOENT;
     }
     int ret = _tasking_load_bin(proc, &fd);
 
@@ -223,7 +224,7 @@ void tasking_exec(trapframe_t* tf)
 
     char* launch_path = (char*)proc->tf->ebx; // for now let's think that our string is at ebx
     if (_tasking_load(proc, launch_path) < 0) {
-        proc->tf->eax = -1;
+        proc->tf->eax = -ENOENT;
         return;
     }
 }
@@ -233,7 +234,7 @@ int tasking_waitpid(int pid)
     proc_t* proc = tasking_get_active_proc();
     proc_t* joinee_proc = tasking_get_proc(pid);
     if (!joinee_proc) {
-        return -1;
+        return -ESRCH;
     }
     proc->joinee = joinee_proc;
     joinee_proc->joiner = proc;

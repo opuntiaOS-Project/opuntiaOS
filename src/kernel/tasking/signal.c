@@ -6,6 +6,7 @@
  * Free Software Foundation.
  */
 
+#include <errno.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <tasking/tasking.h>
@@ -57,7 +58,7 @@ static inline uint32_t signal_pop_from_user_stack(proc_t* proc)
 int signal_set_handler(proc_t* proc, int signo, void* handler)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
-        return -1;
+        return -EINVAL;
     }
     proc->signal_handlers[signo] = handler;
     return 0;
@@ -69,7 +70,7 @@ int signal_set_handler(proc_t* proc, int signo, void* handler)
 int signal_set_allow(proc_t* proc, int signo)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
-        return -1;
+        return -EINVAL;
     }
     proc->signals_mask |= (1 << signo);
     return 0;
@@ -81,7 +82,7 @@ int signal_set_allow(proc_t* proc, int signo)
 int signal_set_private(proc_t* proc, int signo)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
-        return -1;
+        return -EINVAL;
     }
     proc->signals_mask &= ~(1 << signo);
     return 0;
@@ -90,7 +91,7 @@ int signal_set_private(proc_t* proc, int signo)
 int signal_set_pending(proc_t* proc, int signo)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
-        return -1;
+        return -EINVAL;
     }
     proc->pending_signals_mask |= (1 << signo);
     return 0;
@@ -145,7 +146,7 @@ static int signal_process(proc_t* proc, int signo)
         proc->tf->eip = _signal_jumper_zone.start;
         return 0;
     }
-    return -1;
+    return -EFAULT;
 }
 
 int signal_dispatch_pending(proc_t* proc)
@@ -153,7 +154,7 @@ int signal_dispatch_pending(proc_t* proc)
     uint32_t candidate_signals = proc->pending_signals_mask & proc->signals_mask;
 
     if (!candidate_signals) {
-        return -1;
+        return -EACCES;
     }
 
     uint32_t signo = 1;

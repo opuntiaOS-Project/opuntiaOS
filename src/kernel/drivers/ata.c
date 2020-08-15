@@ -7,6 +7,7 @@
  */
 
 #include <drivers/ata.h>
+#include <errno.h>
 
 static uint8_t _ata_drives_count = 0;
 static driver_desc_t _ata_driver_info();
@@ -167,7 +168,7 @@ int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size
     // check if drive isn't ready to transer DRQ
     if ((status >> 0) & 1 == 1) {
         kprintf("Error");
-        return -1;
+        return -EBUSY;
     }
 
     for (int i = 0; i < size; i += 2) {
@@ -206,12 +207,12 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
     // check if drive isn't ready to transer DRQ
     if (((status >> 0) & 1) == 1) {
         kprintf("Error");
-        return -1;
+        return -EBUSY;
     }
 
     if (((status >> 3) & 1) == 0) {
         kprintf("No DRQ");
-        return -1;
+        return -ENODEV;
     }
 
     for (int i = 0; i < 256; i++) {
@@ -232,7 +233,7 @@ int ata_flush(device_t* device)
 
     uint8_t status = port_8bit_in(dev->port.command);
     if (status == 0x00) {
-        return -1;
+        return -ENODEV;
     }
 
     while (((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
@@ -240,7 +241,7 @@ int ata_flush(device_t* device)
     }
 
     if (status & 0x01) {
-        return -1;
+        return -EBUSY;
     }
     
     return 0;

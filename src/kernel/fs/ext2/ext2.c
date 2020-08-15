@@ -6,6 +6,7 @@
  * Free Software Foundation.
  */
 
+#include <errno.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <utils/kassert.h>
@@ -292,7 +293,7 @@ static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint3
             return 0;
         }
     }
-    return -1;
+    return -ENOSPC;
 }
 
 static int _ext2_allocate_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* block_index, uint32_t pref_group)
@@ -306,7 +307,7 @@ static int _ext2_allocate_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32
             }
         }
     }
-    return -1;
+    return -ENOSPC;
 }
 
 static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index)
@@ -337,7 +338,7 @@ static int _ext2_allocate_block_for_inode(dentry_t* dentry, uint32_t pref_group,
             return 0;
         }
     }
-    return -1;
+    return -ENOSPC;
 }
 
 /**
@@ -377,7 +378,7 @@ static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint3
             return 0;
         }
     }
-    return -1;
+    return -ENOSPC;
 }
 
 static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t pref_group)
@@ -391,7 +392,7 @@ static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32
             }
         }
     }
-    return -1;
+    return -ENOSPC;
 }
 
 static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t inode_index)
@@ -434,7 +435,7 @@ static int _ext2_free_inode(dentry_t* dentry)
 static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index)
 {
     if (block_index == 0) {
-        return -1;
+        return -EINVAL;
     }
 
     uint8_t tmp_buf[MAX_BLOCK_LEN];
@@ -442,7 +443,7 @@ static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block
     dir_entry_t* start_of_entry = (dir_entry_t*)tmp_buf;
     for (;;) {
         if (start_of_entry->inode == 0) {
-            return -1;
+            return -EFAULT;
         }
 
         if (start_of_entry->name_len == len) {
@@ -459,16 +460,16 @@ static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block
 
         start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
         if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
-            return -1;
+            return -EFAULT;
         }
     }
-    return -2;
+    return -EFAULT;
 }
 
 static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint32_t* offset, dirent_t* dirent)
 {
     if (block_index == 0) {
-        return -1;
+        return -EINVAL;
     }
     const uint32_t block_len = BLOCK_LEN(fsdata.sb);
     uint32_t internal_offset = *offset % block_len;
@@ -492,16 +493,16 @@ static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t bl
         }
 
         if (internal_offset >= block_len) {
-            return -1;
+            return -EFAULT;
         }
     }
-    return -2;
+    return -EFAULT;
 }
 
 static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len)
 {
     if (block_index == 0) {
-        return -1;
+        return -EINVAL;
     }
 
     uint32_t record_name_len = NORM_FILENAME(len);
@@ -524,7 +525,7 @@ static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata
 static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len)
 {
     if (block_index == 0) {
-        return -1;
+        return -EINVAL;
     }
 
     uint32_t record_name_len = NORM_FILENAME(len);
@@ -556,7 +557,7 @@ static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
 
         start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
         if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
-            return -1;
+            return -EFAULT;
         }
     }
 
@@ -571,7 +572,7 @@ update_res:
 static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry)
 {
     if (block_index == 0) {
-        return -1;
+        return -EINVAL;
     }
 
     uint8_t tmp_buf[MAX_BLOCK_LEN];
@@ -599,7 +600,7 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
         prev_entry = start_of_entry;
         start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
         if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
-            return -1;
+            return -EFAULT;
         }
     }
 }
@@ -625,7 +626,7 @@ static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* na
         }
     }
 
-    return -1;
+    return -EFAULT;
 
 updated_inode:
     child_dentry->inode->links_count++;
@@ -648,7 +649,7 @@ static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
         }
     }
 
-    return -1;
+    return -ENOENT;
 }
 
 static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode)
@@ -659,10 +660,10 @@ static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode)
     dir->inode->blocks = 0;
     dentry_set_flag(dir, DENTRY_DIRTY);
     if (_ext2_add_child(dir, dir, ".", 1) < 0) {
-        return -1;
+        return -EFAULT;
     }
     if (_ext2_add_child(dir, parent_dir, "..", 2) < 0) {
-        return -1;
+        return -EFAULT;
     }
     return 0;
 }
@@ -712,7 +713,7 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         read_offset = 0;
     }
     if (len != 0) {
-        return -1;
+        return -EFAULT;
     }
 
     return 0;
@@ -748,7 +749,7 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     }
 
     if (to_write != 0) {
-        return -1;
+        return -EFAULT;
     }
 
     return 0;
@@ -763,25 +764,25 @@ int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_ino
             return 0;
         }
     }
-    return -1;
+    return -ENOENT;
 }
 
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
     uint32_t new_dir_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_dir_inode_indx, 0) < 0) {
-        return -1;
+        return -ENOSPC;
     }
 
     dentry_t* new_dir = dentry_get(dir->dev_indx, new_dir_inode_indx);
 
     if (_ext2_setup_dir(new_dir, dir, mode) < 0) {
         dentry_put(new_dir);
-        return -1;
+        return -EFAULT;
     }
     if (_ext2_add_child(dir, new_dir, name, len) < 0) {
         dentry_put(new_dir);
-        return -1;
+        return -EFAULT;
     }
 
     dentry_put(new_dir);
@@ -810,18 +811,18 @@ int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
     uint32_t new_file_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_file_inode_indx, 0) < 0) {
-        return -1;
+        return -ENOSPC;
     }
     dentry_t* new_file = dentry_get(dir->dev_indx, new_file_inode_indx);
 
     if (_ext2_setup_file(new_file, mode) < 0) {
         dentry_put(new_file);
-        return -1;
+        return -EFAULT;
     }
 
     if (_ext2_add_child(dir, new_file, name, len) < 0) {
         dentry_put(new_file);
-        return -1;
+        return -EFAULT;
     }
 
     dentry_put(new_file);
@@ -833,15 +834,16 @@ int ext2_rm(dentry_t* dentry)
     dentry_t* parent_dir = dentry_get_parent(dentry);
 
     if (!parent_dir) {
-        return -1;
+        // Can't delete root
+        return -EPERM;
     }
 
     if (_ext2_rm_child(parent_dir, dentry) < 0) {
-        return -1;
+        return -EFAULT;
     }
 
     if (_ext2_free_inode(dentry) < 0) {
-        return -1;
+        return -EFAULT;
     }
 
     return 0;

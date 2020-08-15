@@ -8,6 +8,7 @@
 
 #include <algo/dynamic_array.h>
 #include <drivers/display.h>
+#include <errno.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <utils/mem.h>
@@ -63,13 +64,13 @@ int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
             return 0;
         }
     }
-    return -1;
+    return -ENOENT;
 }
 
 int vfs_add_dev(device_t* dev)
 {
     if (dev->type != DEVICE_STORAGE) {
-        return -1;
+        return -EPERM;
     }
 
     if (root_fs_dev_id == -1) {
@@ -79,7 +80,7 @@ int vfs_add_dev(device_t* dev)
     _vfs_devices[dev->id].dev = dev;
     if (!dev->is_virtual) {
         if (vfs_choose_fs_of_dev(&_vfs_devices[dev->id]) < 0) {
-            return -1;
+            return -ENOENT;
         }
     }
     return 0;
@@ -88,7 +89,7 @@ int vfs_add_dev(device_t* dev)
 int vfs_add_dev_with_fs(device_t* dev, int fs_id)
 {
     if (dev->type != DEVICE_STORAGE) {
-        return -1;
+        return -EPERM;
     }
 
     if (root_fs_dev_id == -1) {
@@ -152,11 +153,11 @@ void vfs_add_fs(driver_t* new_driver)
 int vfs_open(dentry_t* file, file_descriptor_t* fd)
 {
     if (!file) {
-        return -1;
+        return -EFAULT;
     }
 
     if (!fd) {
-        return -1;
+        return -EFAULT;
     }
 
     fd->dentry = dentry_duplicate(file);
@@ -168,7 +169,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd)
 int vfs_close(file_descriptor_t* fd)
 {
     if (!fd) {
-        return -1;
+        return -EFAULT;
     }
 
     dentry_put(fd->dentry);
@@ -183,7 +184,7 @@ int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
     /* Check if there is a file with the same name */
     dentry_t* tmp;
     if (vfs_lookup(dir, name, len, &tmp) == 0) {
-        return -1;
+        return -EEXIST;
     }
 
     return dir->ops->file.create(dir, name, len, mode);
@@ -193,7 +194,7 @@ int vfs_rm(dentry_t* file)
 {
     if (file->d_count != 1) {
         kprintf("d_count isn't 1, but %d\n", file->d_count);
-        return -1;
+        return -EPERM;
     }
 
     return file->ops->file.rm(file);
@@ -202,7 +203,7 @@ int vfs_rm(dentry_t* file)
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
     if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
-        return -1;
+        return -ENOTDIR;
     }
 
     uint32_t next_inode;
@@ -210,7 +211,7 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
         *result = dentry_get(dir->dev_indx, next_inode);
         return 0;
     }
-    return -1;
+    return -ENOENT;
 }
 
 bool vfs_can_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
@@ -236,7 +237,7 @@ int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
     if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
-        return -1;
+        return -ENOTDIR;
     }
     return dir->ops->file.mkdir(dir, name, len, mode | EXT2_S_IFDIR);
 }
@@ -244,7 +245,7 @@ int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t* res)
 {
     if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
-        return -1;
+        return -ENOTDIR;
     }
     return dir_fd->ops->getdirent(dir_fd->dentry, &dir_fd->offset, res);
 }
@@ -252,7 +253,7 @@ int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t* res)
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result)
 {
     if (!path) {
-        return -1;
+        return -EFAULT;
     }
 
     dentry_t* cur_dent;
@@ -274,7 +275,7 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
 
         dentry_t* parent_dent = cur_dent;
         if (vfs_lookup(cur_dent, name, len, &cur_dent) < 0) {
-            return -1;
+            return -ENOENT;
         }
 
         dentry_t* lookuped_dent = cur_dent;
@@ -305,11 +306,11 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 {
     if (dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
         kprintf("Already a mount point\n");
-        return -1;
+        return -EBUSY;
     }
     if (!dentry_inode_test_flag(mountpoint, EXT2_S_IFDIR)) {
         kprintf("Not a dir\n");
-        return -1;
+        return -ENOTDIR;
     }
 
     vfs_add_dev_with_fs(dev, fs_indx);
@@ -330,14 +331,14 @@ int vfs_umount(dentry_t* mounted_dentry)
 {
     if (!dentry_test_flag(mounted_dentry, DENTRY_MOUNTED)) {
         kprintf("Not mounted\n");
-        return -1;
+        return -EPERM;
     }
 
     dentry_t* mountpoint = mounted_dentry->mountpoint;
 
     if (!dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
         kprintf("Not a mountpoint\n");
-        return -1;
+        return -EPERM;
     }
 
     dentry_rem_flag(mounted_dentry, DENTRY_MOUNTED);
