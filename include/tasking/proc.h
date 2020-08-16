@@ -29,9 +29,14 @@ typedef struct {
     uint32_t eip;
 } __attribute__((packed)) context_t;
 
+/* Like Page Flags in vmm.h */
 enum PROC_ZONE_FLAGS {
-    PROC_ZONE_EXEC = 0x1,
-    PROC_ZONE_WRITE = 0x2,
+    PROC_ZONE_WRITABLE = 0x1,
+    PROC_ZONE_READABLE = 0x2,
+    PROC_ZONE_EXECUTABLE = 0x4,
+    PROC_ZONE_NOT_CACHEABLE = 0x8,
+    PROC_ZONE_COW = 0x10,
+    PROC_ZONE_USER = 0x20,
 };
 
 enum PROC_ZONE_TYPES {

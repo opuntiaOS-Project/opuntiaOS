@@ -58,7 +58,7 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     file_descriptor_t* fd0 = &p->fds[0];
     file_descriptor_t* fd1 = &p->fds[1];
     p->tty = tty;
-    
+
     char* path_to_tty = "dev/tty ";
     path_to_tty[7] = tty->id + '0';
     dentry_t* tty_dentry;
@@ -235,6 +235,10 @@ static inline bool _proc_can_add_zone(proc_t* proc, uint32_t start, uint32_t len
 
 proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
 {
+    if (len % VMM_PAGE_SIZE) {
+        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
+    }
+
     proc_zone_t new_zone;
     new_zone.start = start;
     new_zone.len = len;
@@ -252,6 +256,10 @@ proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
 /* FIXME: Think of more efficient way */
 proc_zone_t* proc_new_random_zone(proc_t* proc, uint32_t len)
 {
+    if (len % VMM_PAGE_SIZE) {
+        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
+    }
+
     uint32_t zones_count = proc->zones.size;
 
     /* Check if we can put it at the beginning */
@@ -281,6 +289,10 @@ proc_zone_t* proc_new_random_zone(proc_t* proc, uint32_t len)
 /* FIXME: Think of more efficient way */
 proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len)
 {
+    if (len % VMM_PAGE_SIZE) {
+        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
+    }
+
     uint32_t zones_count = proc->zones.size;
 
     /* Check if we can put it at the end */

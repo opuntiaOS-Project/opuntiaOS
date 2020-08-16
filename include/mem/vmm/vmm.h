@@ -17,7 +17,7 @@
 #define KB (1024)
 #define MB (1024 * 1024)
 
-/* Page settings */
+/* Note: If you change them, change also proc zone flags */
 enum PAGE_FLAGS {
     PAGE_WRITABLE = 0x1,
     PAGE_READABLE = 0x2,

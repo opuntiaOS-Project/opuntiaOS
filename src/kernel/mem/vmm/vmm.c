@@ -388,9 +388,6 @@ static int vmm_free_ptable(uint32_t ptable_indx)
 /**
  * The function is supposed to map vaddr to paddr
  */
-int gdbstop() {
-    return 1;
-}
 
 int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings)
 {
@@ -417,8 +414,6 @@ int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings)
 
     if (is_writable) {
         page_desc_set_attrs(page, PAGE_DESC_WRITABLE);
-    } else {
-        gdbstop();
     }
 
     if (is_user) {
@@ -784,6 +779,7 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
         }
     } else {
         if ((info & 1) == 0) {
+            /* TODO: Check if we load a page for a program, and set flags like in zone-container */
             vmm_load_page(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
         } else {
             kpanic("VMM: where are we?\n");
