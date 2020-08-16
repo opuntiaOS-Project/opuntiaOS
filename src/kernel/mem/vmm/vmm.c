@@ -150,7 +150,7 @@ static table_desc_t _vmm_pspace_gen()
     zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
     ptable_t* new_ptable = (ptable_t*)tmp_zone.start;
 
-    vmm_map_page((uint32_t)new_ptable, ptable_paddr, KERNEL_PAGE);
+    vmm_map_page((uint32_t)new_ptable, ptable_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
 
     for (int i = 0; i < 1024; i++) {
         // coping all pages
@@ -284,7 +284,7 @@ static bool _vmm_create_kernel_ptables()
  */
 static bool _vmm_map_kernel()
 {
-    vmm_map_pages(0x00000000, 0x00000000, 1024, KERNEL_PAGE);
+    vmm_map_pages(0x00000000, 0x00000000, 1024, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     return true;
 }
 
@@ -360,7 +360,7 @@ int vmm_allocate_ptable(uint32_t vaddr)
     table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE | TABLE_DESC_USER);
     table_desc_set_frame(ptable_desc, FRAME(ptable_paddr));
 
-    return vmm_map_page(ptable_vaddr, ptable_paddr, PAGE_CHOOSE_OWNER(vaddr));
+    return vmm_map_page(ptable_vaddr, ptable_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
 }
 
 static int vmm_free_ptable(uint32_t ptable_indx)
@@ -388,11 +388,22 @@ static int vmm_free_ptable(uint32_t ptable_indx)
 /**
  * The function is supposed to map vaddr to paddr
  */
-int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner)
+int gdbstop() {
+    return 1;
+}
+
+int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings)
 {
     if (!_vmm_active_pdir) {
         return -VMM_ERR_PDIR;
     }
+
+    bool is_writable = ((settings & PAGE_WRITABLE) > 0);
+    bool is_readable = ((settings & PAGE_READABLE) > 0);
+    bool is_executable = ((settings & PAGE_EXECUTABLE) > 0);
+    bool is_not_cacheable = ((settings & PAGE_NOT_CACHEABLE) > 0);
+    bool is_cow = ((settings & PAGE_COW) > 0);
+    bool is_user = ((settings & PAGE_USER) > 0);
 
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
@@ -401,11 +412,21 @@ int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner)
 
     ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
     page_desc_t* page = vmm_ptable_lookup(ptable, vaddr);
-    page_desc_set_attrs(page, PAGE_DESC_PRESENT | PAGE_DESC_WRITABLE);
+    page_desc_set_attrs(page, PAGE_DESC_PRESENT);
     page_desc_set_frame(page, FRAME(paddr));
 
-    if (owner == USER_PAGE) {
+    if (is_writable) {
+        page_desc_set_attrs(page, PAGE_DESC_WRITABLE);
+    } else {
+        gdbstop();
+    }
+
+    if (is_user) {
         page_desc_set_attrs(page, PAGE_DESC_USER);
+    }
+
+    if (is_not_cacheable) {
+        page_desc_set_attrs(page, PAGE_DESC_NOT_CACHEABLE);
     }
 
     _vmm_flush_tlb_entry(vaddr);
@@ -437,7 +458,7 @@ int vmm_unmap_page(uint32_t vaddr)
 /**
  * The function is supposed to map a sequence of vaddrs to paddrs
  */
-int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, bool owner)
+int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, uint32_t settings)
 {
     if ((paddr & 0xfff) || (vaddr & 0xfff)) {
         return -VMM_ERR_BAD_ADDR;
@@ -445,7 +466,7 @@ int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, bool owner)
 
     int status = 0;
     for (; n_pages; paddr += VMM_PAGE_SIZE, vaddr += VMM_PAGE_SIZE, n_pages--) {
-        if (status = vmm_map_page(vaddr, paddr, owner) < 0) {
+        if (status = vmm_map_page(vaddr, paddr, settings) < 0) {
             return status;
         }
     }
@@ -496,17 +517,13 @@ int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
     page_desc_t* old_page_desc = vmm_ptable_lookup(src_ptable, vaddr);
 
     /* Based on an old page */
-    if (page_desc_is_user(*old_page_desc)) {
-        vmm_load_page(vaddr, USER_PAGE);
-    } else {
-        vmm_load_page(vaddr, KERNEL_PAGE);
-    }
+    vmm_load_page(vaddr, page_desc_get_settings(*old_page_desc));
 
     /* Mapping the old page to do a copy */
     zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
     uint32_t old_page_vaddr = (uint32_t)tmp_zone.start;
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-    vmm_map_page(old_page_vaddr, old_page_paddr, KERNEL_PAGE);
+    vmm_map_page(old_page_vaddr, old_page_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
 
     memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
 
@@ -642,7 +659,7 @@ void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size)
     }
 
     vmm_switch_pdir(dir);
-    vmm_map_page(0x0, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)tmp_block), USER_PAGE);
+    vmm_map_page(0x0, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)tmp_block), PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_USER);
     vmm_switch_pdir(_vmm_kernel_pdir);
 }
 
@@ -699,14 +716,37 @@ pdirectory_t* vmm_get_kernel_pdir()
  * PF HANDLER FUNCTIONS
  */
 
-int vmm_load_page(uint32_t vaddr, bool owner)
+int vmm_tune_page(uint32_t vaddr, uint32_t settings)
+{
+    bool is_writable = ((settings & PAGE_WRITABLE) > 0);
+    bool is_readable = ((settings & PAGE_READABLE) > 0);
+    bool is_executable = ((settings & PAGE_EXECUTABLE) > 0);
+    bool is_not_cacheable = ((settings & PAGE_NOT_CACHEABLE) > 0);
+    bool is_cow = ((settings & PAGE_COW) > 0);
+    bool is_user = ((settings & PAGE_USER) > 0);
+
+    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    page_desc_t* page = vmm_ptable_lookup(ptable, vaddr);
+
+    if (page_desc_is_present(*page)) {
+        is_user ? page_desc_set_attrs(page, PAGE_DESC_USER) : page_desc_del_attrs(page, PAGE_DESC_USER);
+        is_writable ? page_desc_set_attrs(page, PAGE_DESC_WRITABLE) : page_desc_del_attrs(page, PAGE_DESC_WRITABLE);
+        is_not_cacheable ? page_desc_set_attrs(page, PAGE_DESC_NOT_CACHEABLE) : page_desc_del_attrs(page, PAGE_DESC_NOT_CACHEABLE);
+    } else {
+        vmm_load_page(vaddr, settings);
+    }
+
+    _vmm_flush_tlb_entry(vaddr);
+}
+
+int vmm_load_page(uint32_t vaddr, uint32_t settings)
 {
     uint32_t paddr = (uint32_t)pmm_alloc_block();
     if (!paddr) {
         /* TODO: Swap pages to make it able to allocate. */
         kpanic("NO PHYSICAL SPACE");
     }
-    int res = vmm_map_page(vaddr, paddr, owner);
+    int res = vmm_map_page(vaddr, paddr, settings);
     uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
     memset(dest, 0, VMM_PAGE_SIZE);
     return res;
@@ -744,7 +784,7 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
         }
     } else {
         if ((info & 1) == 0) {
-            vmm_load_page(vaddr, PAGE_CHOOSE_OWNER(vaddr));
+            vmm_load_page(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
         } else {
             kpanic("VMM: where are we?\n");
         }
@@ -821,7 +861,7 @@ void vmm_disable_paging()
 
 static int _vmm_self_test()
 {
-    vmm_map_pages(0x00f0000, 0x8f000000, 1, false);
+    vmm_map_pages(0x00f0000, 0x8f000000, 1, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     bool correct = true;
     correct &= ((uint32_t)_vmm_convert_vaddr2paddr(KERNEL_BASE) == KERNEL_PM_BASE);
     correct &= ((uint32_t)_vmm_convert_vaddr2paddr(0xffc00000) == 0x0);

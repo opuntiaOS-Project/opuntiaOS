@@ -39,6 +39,8 @@ void sys_handler(trapframe_t* tf)
         sys_sigaction,
         sys_sigreturn, // When this is moved, change signal_caller.s for now.
         sys_raise,
+        sys_mmap,
+        sys_munmap,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
@@ -135,4 +137,14 @@ void sys_raise(trapframe_t* tf)
 {
     signal_set_pending(tasking_get_active_proc(), (int)param1);
     signal_dispatch_pending(tasking_get_active_proc());
+}
+
+void sys_mmap(trapframe_t* tf)
+{
+    
+}
+
+void sys_munmap(trapframe_t* tf)
+{
+    
 }

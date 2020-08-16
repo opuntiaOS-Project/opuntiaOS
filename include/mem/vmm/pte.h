@@ -41,6 +41,10 @@ void page_desc_del_frame(page_desc_t* pte);
 bool page_desc_is_present(page_desc_t pte);
 bool page_desc_is_writable(page_desc_t pte);
 bool page_desc_is_user(page_desc_t pte);
+bool page_desc_is_not_cacheable(page_desc_t pte);
+bool page_desc_is_cow(page_desc_t pte);
+
 uint32_t page_desc_get_frame(page_desc_t pte);
+uint32_t page_desc_get_settings(page_desc_t pte);
 
 #endif //__oneOS__MEM__VMM__PAGE_DESC_H

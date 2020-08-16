@@ -17,10 +17,19 @@
 #define KB (1024)
 #define MB (1024 * 1024)
 
-// owner of page or table
+/* Page settings */
+enum PAGE_FLAGS {
+    PAGE_WRITABLE = 0x1,
+    PAGE_READABLE = 0x2,
+    PAGE_EXECUTABLE = 0x4,
+    PAGE_NOT_CACHEABLE = 0x8,
+    PAGE_COW = 0x10,
+    PAGE_USER = 0x20,
+};
+
 #define USER_PAGE true
 #define KERNEL_PAGE false
-#define PAGE_CHOOSE_OWNER(vaddr) (vaddr >= KERNEL_BASE ? KERNEL_PAGE : USER_PAGE)
+#define PAGE_CHOOSE_OWNER(vaddr) (vaddr >= KERNEL_BASE ? 0 : PAGE_USER)
 
 #define VMM_PTE_COUNT (1024)
 #define VMM_PDE_COUNT (1024)
@@ -53,8 +62,8 @@ page_desc_t* vmm_ptable_lookup(ptable_t *t_ptable, uint32_t t_addr);
 int vmm_allocate_ptable(uint32_t vaddr);
 int vmm_free_pdir(pdirectory_t* pdir);
 
-int vmm_map_page(uint32_t vaddr, uint32_t paddr, bool owner);
-int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, bool owner);
+int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings);
+int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, uint32_t settings);
 int vmm_unmap_page(uint32_t vaddr);
 int vmm_copy_page(uint32_t vaddr, ptable_t *src_ptable);
 
@@ -67,7 +76,9 @@ void vmm_zero_user_pages(pdirectory_t* pdir);
 pdirectory_t* vmm_get_active_pdir();
 pdirectory_t* vmm_get_kernel_pdir();
 
-int vmm_load_page(uint32_t vaddr, bool owner);
+int vmm_load_page(uint32_t vaddr, uint32_t settings);
+int vmm_tune_page(uint32_t vaddr, uint32_t settings);
+
 int vmm_alloc_page(page_desc_t* page);
 int vmm_free_page(page_desc_t* page);
 void vmm_page_fault_handler(uint8_t info, uint32_t vaddr);
