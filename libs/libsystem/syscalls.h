@@ -2,6 +2,7 @@
 #define __oneOS__libsystem__SYSCALLS_H
 
 #include "types.h"
+#include "../../include/syscall_structs.h"
 
 void print(int value);
 
@@ -19,5 +20,6 @@ int exec(char* path);
 
 int raise(int signo);
 int sigaction(int signo, void* callback);
+int mmap(mmap_params_t* params);
 
 #endif /* __oneOS__libsystem__SYSCALLS_H */

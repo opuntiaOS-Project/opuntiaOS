@@ -21,6 +21,8 @@ enum sysid {
     SYSSIGACTION,
     SYSSIGRETURN,
     SYSRAISE,
+    SYSMMAP,
+    SYSMUNMAP,
 };
 typedef enum sysid sysid_t;
 
@@ -77,4 +79,9 @@ int sigaction(int signo, void* callback)
 int raise(int signo)
 {
     return syscall(SYSRAISE, (int)signo, 0, 0, 0, 0);
+}
+
+int mmap(mmap_params_t* params)
+{
+    return syscall(SYSMMAP, (int)params, 0, 0, 0, 0);
 }

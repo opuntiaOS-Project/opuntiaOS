@@ -6,9 +6,11 @@
  * Free Software Foundation.
  */
 
+#include <errno.h>
 #include <sys_handler.h>
-#include <tasking/tasking.h>
+#include <syscall_structs.h>
 #include <tasking/sched.h>
+#include <tasking/tasking.h>
 #include <x86/common.h>
 
 #define param1 (tf->ebx)
@@ -141,10 +143,45 @@ void sys_raise(trapframe_t* tf)
 
 void sys_mmap(trapframe_t* tf)
 {
-    
+    mmap_params_t* params = (mmap_params_t*)param1;
+
+    bool map_shared = ((params->flags & MAP_SHARED) > 0);
+    bool map_anonymous = ((params->flags & MAP_ANONYMOUS) > 0);
+    bool map_private = ((params->flags & MAP_PRIVATE) > 0);
+    bool map_stack = ((params->flags & MAP_STACK) > 0);
+    bool map_fixed = ((params->flags & MAP_FIXED) > 0);
+
+    bool map_exec = ((params->prot & PROT_EXEC) > 0);
+    bool map_read = ((params->prot & PROT_READ) > 0);
+    bool map_write = ((params->prot & PROT_WRITE) > 0);
+
+    proc_zone_t* zone = proc_new_random_zone(tasking_get_active_proc(), params->size);
+    if (!zone) {
+        set_return(tf, -ENOMEM);
+        return;
+    }
+
+    if (map_read) {
+        zone->flags |= PROC_ZONE_READABLE;
+    }
+    if (map_write) {
+        zone->flags |= PROC_ZONE_WRITABLE;
+    }
+    if (map_exec) {
+        zone->flags |= PROC_ZONE_EXECUTABLE;
+    }
+
+    if (map_anonymous) {
+
+    } else {
+        /* TODO: Add support for not MAP_ANONYMOUS. */
+        set_return(tf, -EFAULT);
+        return;
+    }
+
+    set_return(tf, zone->start);
 }
 
 void sys_munmap(trapframe_t* tf)
 {
-    
 }
