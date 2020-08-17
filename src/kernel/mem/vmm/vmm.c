@@ -58,6 +58,10 @@ inline static uint32_t _vmm_round_floor_to_page(uint32_t value);
 
 static bool _vmm_is_copy_on_write(uint32_t vaddr);
 static void _vmm_resolve_copy_on_write(uint32_t vaddr);
+static void _vmm_ensure_cow_for_page(uint32_t vaddr);
+static void _vmm_ensure_cow_for_range(uint32_t vaddr, uint32_t length);
+static int _vmm_copy_page_to_resolve_cow(uint32_t vaddr, ptable_t* src_ptable);
+
 
 static bool _vmm_is_zeroing_on_demand(uint32_t vaddr);
 static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr);
@@ -296,7 +300,7 @@ int vmm_setup()
     _vmm_pspace_init();
     _vmm_init_switch_to_kernel_pdir();
     _vmm_map_kernel();
-    _vmm_enable_write_protect();
+    // _vmm_enable_write_protect();
     zoner_place_bitmap();
     kmalloc_init();
     if (_vmm_self_test() < 0) {
@@ -498,21 +502,37 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr)
         uint32_t page_vaddr = ((vaddr >> 22) << 22) + (i * VMM_PAGE_SIZE);
         page_desc_t* page_desc = vmm_ptable_lookup(src_ptable, page_vaddr);
         if ((uint32_t)*page_desc != 0) {
-            vmm_copy_page(page_vaddr, src_ptable);
+            _vmm_copy_page_to_resolve_cow(page_vaddr, src_ptable);
         }
+    }
+}
+
+static void _vmm_ensure_cow_for_page(uint32_t vaddr)
+{
+    if (_vmm_is_copy_on_write(vaddr)) {
+        _vmm_resolve_copy_on_write(vaddr);
+    }
+}
+
+static void _vmm_ensure_cow_for_range(uint32_t vaddr, uint32_t length)
+{
+    uint32_t page_addr = ((vaddr >> 12) << 12); /* To page start */
+    while (page_addr < vaddr + length) {
+        _vmm_ensure_cow_for_page(page_addr);
+        page_addr += VMM_PAGE_SIZE;
     }
 }
 
 /**
  * The function is supposed to copy a page from @src_ptable to active
- * ptable. The page which is copied has address @vaddr.
+ * ptable. The page which is copied has address @vaddr. ONLY TO RESOLVE COW!
  */
-int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
+static int _vmm_copy_page_to_resolve_cow(uint32_t vaddr, ptable_t* src_ptable)
 {
     page_desc_t* old_page_desc = vmm_ptable_lookup(src_ptable, vaddr);
 
     /* Based on an old page */
-    vmm_load_page(vaddr, page_desc_get_settings(*old_page_desc));
+    vmm_load_page(vaddr, page_desc_get_settings_ignore_cow(*old_page_desc));
 
     /* Mapping the old page to do a copy */
     zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
@@ -520,6 +540,9 @@ int vmm_copy_page(uint32_t vaddr, ptable_t* src_ptable)
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page(old_page_vaddr, old_page_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
 
+    /*  We don't need to check if there is a problem with cow, since this is a special copy function
+        to resolve cow. So, we know that pages were created recently. Checking cow here would cause an
+        ub, since table has not been setup correctly yet. */
     memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
 
     /* Freeing */
@@ -638,6 +661,7 @@ int vmm_free_pdir(pdirectory_t* pdir)
     return 0;
 }
 
+
 /** WILL BE DEPRECATED
  * The function is supposed to copy init program data into the pdir
  */
@@ -681,7 +705,7 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uin
 
     vmm_switch_pdir(pdir);
 
-    /* FIXME: maybe it's possible to make faster than getting PF every page */
+    _vmm_ensure_cow_for_range(dest_vaddr, length);
     uint8_t* dest = (uint8_t*)dest_vaddr;
     memcpy(dest, ksrc, length);
 
@@ -747,6 +771,39 @@ int vmm_load_page(uint32_t vaddr, uint32_t settings)
     return res;
 }
 
+/**
+ * The function is supposed to copy a page from @src_ptable to active
+ * ptable. The page which is copied has address @vaddr. ONLY TO RESOLVE COW!
+ */
+int vmm_copy_page(uint32_t to_vaddr, uint32_t src_vaddr, ptable_t* src_ptable)
+{
+    page_desc_t* old_page_desc = vmm_ptable_lookup(src_ptable, src_vaddr);
+
+    /* Based on an old page */
+    ptable_t* cur_ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(to_vaddr);
+    page_desc_t* cur_page = vmm_ptable_lookup(cur_ptable, to_vaddr);
+
+    if (!page_desc_is_present(*cur_page)) {
+        vmm_load_page(to_vaddr, page_desc_get_settings_ignore_cow(*old_page_desc));
+    } else {
+        _vmm_ensure_cow_for_page(to_vaddr);
+    }
+
+    /* Mapping the old page to do a copy */
+    zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    uint32_t old_page_vaddr = (uint32_t)tmp_zone.start;
+    uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
+    vmm_map_page(old_page_vaddr, old_page_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+
+
+    memcpy((uint8_t*)to_vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
+
+    /* Freeing */
+    vmm_unmap_page(old_page_vaddr);
+    zoner_free_zone(tmp_zone);
+    return 0;
+}
+
 // currently unused and unoptimized with rewritten vmm
 int vmm_alloc_page(page_desc_t* page)
 {
@@ -768,7 +825,7 @@ int vmm_free_page(page_desc_t* page)
     return 0;
 }
 
-void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
+int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
 {
     if ((info & 0b11) == 0b11) {
         if (_vmm_is_copy_on_write(vaddr)) {
@@ -780,11 +837,27 @@ void vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
     } else {
         if ((info & 1) == 0) {
             /* TODO: Check if we load a page for a program, and set flags like in zone-container */
-            vmm_load_page(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
+            if (PAGE_CHOOSE_OWNER(vaddr) == PAGE_USER && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
+                proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
+                if (!holder_proc) {
+                    kpanic("No proc with the pdir\n");
+                }
+
+                proc_zone_t* zone = proc_find_zone(holder_proc, vaddr);
+                if (!zone) {
+                    return SHOULD_CRASH;
+                }
+                vmm_load_page(vaddr, zone->flags);
+            } else {
+                // FIXME: Now we have a standard zone for kernel, but it's better to do the same thing as for user's
+                vmm_load_page(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+            }
         } else {
             kpanic("VMM: where are we?\n");
         }
     }
+    
+    return OK;
 }
 
 /**

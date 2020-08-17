@@ -30,20 +30,20 @@ typedef struct {
 } __attribute__((packed)) context_t;
 
 /* Like Page Flags in vmm.h */
-enum PROC_ZONE_FLAGS {
-    PROC_ZONE_WRITABLE = 0x1,
-    PROC_ZONE_READABLE = 0x2,
-    PROC_ZONE_EXECUTABLE = 0x4,
-    PROC_ZONE_NOT_CACHEABLE = 0x8,
-    PROC_ZONE_COW = 0x10,
-    PROC_ZONE_USER = 0x20,
+enum ZONE_FLAGS {
+    ZONE_WRITABLE = 0x1,
+    ZONE_READABLE = 0x2,
+    ZONE_EXECUTABLE = 0x4,
+    ZONE_NOT_CACHEABLE = 0x8,
+    ZONE_COW = 0x10,
+    ZONE_USER = 0x20,
 };
 
-enum PROC_ZONE_TYPES {
-    PROC_ZONE_CODE = 0x1,
-    PROC_ZONE_DATA = 0x2,
-    PROC_ZONE_STACK = 0x4,
-    PROC_ZONE_MMAP = 0x8,
+enum ZONE_TYPES {
+    ZONE_TYPE_CODE = 0x1,
+    ZONE_TYPE_DATA = 0x2,
+    ZONE_TYPE_STACK = 0x4,
+    ZONE_TYPE_MMAP = 0x8,
 };
 
 struct proc_zone {
@@ -134,5 +134,6 @@ file_descriptor_t* proc_get_fd(proc_t* proc, uint32_t index);
 proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len);
 proc_zone_t* proc_new_random_zone(proc_t* proc, uint32_t len);
 proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len);
+proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr);
 
 #endif // __oneOS__X86__TASKING__PROC_H

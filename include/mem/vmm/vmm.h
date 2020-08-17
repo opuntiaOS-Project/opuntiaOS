@@ -50,6 +50,10 @@ typedef struct pdirectory {
     table_desc_t entities[VMM_PDE_COUNT];
 } pdirectory_t;
 
+enum VMM_PF_HANDLER {
+    OK = 0,
+    SHOULD_CRASH = -1,
+};
 
 /**
  * PUBLIC FUNCTIONS
@@ -65,7 +69,7 @@ int vmm_free_pdir(pdirectory_t* pdir);
 int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings);
 int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, uint32_t settings);
 int vmm_unmap_page(uint32_t vaddr);
-int vmm_copy_page(uint32_t vaddr, ptable_t *src_ptable);
+int vmm_copy_page(uint32_t to_vaddr, uint32_t src_vaddr, ptable_t* src_ptable);
 
 pdirectory_t* vmm_new_user_pdir();
 pdirectory_t* vmm_new_forked_user_pdir();
@@ -81,7 +85,7 @@ int vmm_tune_page(uint32_t vaddr, uint32_t settings);
 
 int vmm_alloc_page(page_desc_t* page);
 int vmm_free_page(page_desc_t* page);
-void vmm_page_fault_handler(uint8_t info, uint32_t vaddr);
+int vmm_page_fault_handler(uint8_t info, uint32_t vaddr);
 
 int vmm_switch_pdir(pdirectory_t *pdir);
 void vmm_enable_paging();

@@ -25,6 +25,8 @@ uint32_t nxt_proc;
 uint32_t ended_proc;
 
 proc_t* tasking_get_active_proc();
+proc_t* tasking_get_proc(uint32_t pid);
+proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir);
 
 /**
  * CPU FUNCTIONS

@@ -162,13 +162,13 @@ void sys_mmap(trapframe_t* tf)
     }
 
     if (map_read) {
-        zone->flags |= PROC_ZONE_READABLE;
+        zone->flags |= ZONE_READABLE;
     }
     if (map_write) {
-        zone->flags |= PROC_ZONE_WRITABLE;
+        zone->flags |= ZONE_WRITABLE;
     }
     if (map_exec) {
-        zone->flags |= PROC_ZONE_EXECUTABLE;
+        zone->flags |= ZONE_EXECUTABLE;
     }
 
     if (map_anonymous) {

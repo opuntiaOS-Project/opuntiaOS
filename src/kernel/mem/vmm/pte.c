@@ -82,3 +82,18 @@ uint32_t page_desc_get_settings(page_desc_t pte)
     }
     return res;
 }
+
+uint32_t page_desc_get_settings_ignore_cow(page_desc_t pte)
+{
+    uint32_t res = PAGE_READABLE;
+    if (page_desc_is_writable(pte)) {
+        res |= PAGE_WRITABLE;
+    }
+    if (page_desc_is_user(pte)) {
+        res |= PAGE_USER;
+    }
+    if (page_desc_is_not_cacheable(pte)) {
+        res |= PAGE_NOT_CACHEABLE;
+    }
+    return res;
+}

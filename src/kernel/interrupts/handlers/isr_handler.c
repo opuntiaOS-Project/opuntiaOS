@@ -1,16 +1,8 @@
 #include <isr_handler.h>
 #include <mem/vmm/vmm.h>
 #include <tasking/tasking.h>
-#include <x86/common.h>
 #include <utils/kassert.h>
-
-uint32_t rcr2()
-{
-    uint32_t val;
-    asm volatile("movl %%cr2,%0"
-                 : "=r"(val));
-    return val;
-}
+#include <x86/common.h>
 
 void isr_handler(trapframe_t* tf)
 {
@@ -19,7 +11,7 @@ void isr_handler(trapframe_t* tf)
 
 void isr_standart_handler(trapframe_t* tf)
 {
-	cli();
+    cli();
     const char* exception_messages[32] = { "Division by zero",
         "Debug",
         "Non-maskable interrupt",
@@ -55,7 +47,7 @@ void isr_standart_handler(trapframe_t* tf)
 
     /* TODO: A thing to change */
     if (tf->int_no == 14) {
-        vmm_page_fault_handler(tf->err, rcr2());
+        vmm_page_fault_handler(tf->err, read_cr2());
     } else if (tf->int_no == 6) {
         kprintf("invalid opcode ");
         proc_t* proc = tasking_get_active_proc();
@@ -64,9 +56,9 @@ void isr_standart_handler(trapframe_t* tf)
         } else {
             kprintf("in proc %d\n", proc->pid);
         }
-        while(1) {}
+        while (1) { }
     } else {
         kprintf("INT %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
     }
-	sti();
+    sti();
 }

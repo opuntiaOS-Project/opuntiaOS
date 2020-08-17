@@ -242,6 +242,8 @@ proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
     proc_zone_t new_zone;
     new_zone.start = start;
     new_zone.len = len;
+    new_zone.type = 0;
+    new_zone.flags = ZONE_USER;
 
     if (_proc_can_add_zone(proc, start, len)) {
         if (dynamic_array_push(&proc->zones, &new_zone) != 0) {
@@ -317,4 +319,18 @@ proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len)
     }
 
     return proc_new_zone(proc, max_end - len, len);
+}
+
+proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr)
+{
+    uint32_t zones_count = proc->zones.size;
+
+    for (uint32_t i = 0; i < zones_count; i++) {
+        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
+        if (zone->start <= addr && addr < zone->start + zone->len) {
+            return zone;
+        }
+    }
+
+    return 0;
 }

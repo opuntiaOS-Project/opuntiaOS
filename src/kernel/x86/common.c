@@ -25,3 +25,20 @@ void sti()
         asm volatile("sti");
     }
 }
+
+uint32_t read_cr2()
+{
+    uint32_t val;
+    asm volatile("movl %%cr2,%0"
+                 : "=r"(val));
+    return val;
+}
+
+
+uint32_t read_cr3()
+{
+    uint32_t val;
+    asm volatile("movl %%cr3,%0"
+                 : "=r"(val));
+    return val;
+}

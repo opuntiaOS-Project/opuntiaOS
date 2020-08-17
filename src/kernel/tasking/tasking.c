@@ -56,7 +56,12 @@ static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
 {
     uint32_t code_size = fd->dentry->inode->size;
     proc_zone_t* code_zone = proc_new_random_zone(p, code_size);
+    code_zone->type = ZONE_TYPE_CODE;
+    code_zone->flags |= ZONE_READABLE | ZONE_EXECUTABLE;
+
     proc_zone_t* stack_zone = proc_new_random_zone_backward(p, VMM_PAGE_SIZE);
+    stack_zone->type = ZONE_TYPE_STACK;
+    stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
     uint8_t* prog = kmalloc(fd->dentry->inode->size);
     fd->ops->read(fd->dentry, prog, 0, fd->dentry->inode->size);
@@ -119,12 +124,24 @@ proc_t* tasking_get_active_proc()
     return active_proc;
 }
 
-proc_t* tasking_get_proc(int pid)
+proc_t* tasking_get_proc(uint32_t pid)
 {
     proc_t* p;
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
         if (p->pid == pid) {
+            return p;
+        }
+    }
+    return 0;
+}
+
+proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
+{
+    proc_t* p;
+    for (int i = 0; i < nxt_proc; i++) {
+        p = &proc[i];
+        if (p->pdir == pdir) {
             return p;
         }
     }
