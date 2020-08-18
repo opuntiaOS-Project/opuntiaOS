@@ -206,6 +206,17 @@ void tasking_init()
     signal_init();
 }
 
+void tasking_die(proc_t* p)
+{
+    /* FIXME: Currently we exit right here */
+    p->status = PROC_DEAD;
+    proc->exit_code = 1;
+    proc_free(proc);
+    active_proc = 0;
+    ended_proc++;
+    presched_no_context();
+}
+
 /**
  * SYSCALL IMPLEMENTATION
  */

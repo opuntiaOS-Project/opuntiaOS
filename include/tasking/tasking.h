@@ -46,6 +46,7 @@ int tasking_create_kernel_thread(void* entry_point);
  */
 
 void tasking_init();
+void tasking_die(proc_t* proc);
 
 /**
  * SYSCALL IMPLEMENTATION

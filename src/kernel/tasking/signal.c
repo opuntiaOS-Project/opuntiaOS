@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
+#include <tasking/signal.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
 
@@ -140,12 +141,24 @@ int signal_restore_proc_after_handling_signal(proc_t* proc)
     return ret;
 }
 
+static int signal_default_action(int signo)
+{
+    if (signo == 9) {
+        return SIGNAL_ACTION_TERMINATE;
+    }
+}
+
 static int signal_process(proc_t* proc, int signo)
 {
     if (proc->signal_handlers[signo]) {
         signal_setup_stack_to_handle_signal(proc, signo);
         proc->tf->eip = _signal_jumper_zone.start;
         return 0;
+    } else {
+        int result = signal_default_action(signo);
+        if (result == SIGNAL_ACTION_TERMINATE) {
+            tasking_die(proc);
+        }
     }
     return -EFAULT;
 }
