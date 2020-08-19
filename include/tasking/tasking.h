@@ -17,6 +17,7 @@
 #include <x86/idt.h>
 
 #define MAX_PROCESS_COUNT 1024
+#define MAX_DYING_PROCESS_COUNT 8
 #define MAX_OPENED_FILES 16
 #define SIGNALS_CNT 32
 
@@ -47,6 +48,7 @@ int tasking_create_kernel_thread(void* entry_point);
 
 void tasking_init();
 void tasking_die(proc_t* proc);
+void tasking_kill_dying();
 
 /**
  * SYSCALL IMPLEMENTATION

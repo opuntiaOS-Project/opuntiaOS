@@ -47,12 +47,14 @@ void sched_unblock_procs()
 
 void presched()
 {
+    tasking_kill_dying();
     sched_unblock_procs();
     switch_contexts(&active_proc->context, cpu_ptr->scheduler);
 }
 
 void presched_no_context()
 {
+    tasking_kill_dying();
     sched_unblock_procs();
     active_proc = 0;
     switch_to_context(cpu_ptr->scheduler);

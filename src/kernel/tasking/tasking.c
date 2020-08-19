@@ -214,13 +214,20 @@ void tasking_init()
 
 void tasking_die(proc_t* p)
 {
-    /* FIXME: Currently we exit right here */
-    p->status = PROC_DEAD;
-    proc->exit_code = 1;
-    proc_free(proc);
-    active_proc = 0;
+    p->status = PROC_DYING;
     ended_proc++;
-    presched_no_context();
+}
+
+void tasking_kill_dying()
+{
+    proc_t* p;
+    for (int i = 0; i < nxt_proc; i++) {
+        p = &proc[i];
+        if (p->status == PROC_DYING) {
+            proc_free(p);
+            p->status = PROC_DEAD;
+        }
+    }
 }
 
 /**
@@ -282,8 +289,6 @@ void tasking_exit(int exit_code)
 {
     proc_t* proc = tasking_get_active_proc();
     proc->exit_code = exit_code;
-    proc_free(proc);
-    active_proc = 0;
-    ended_proc++;
+    tasking_die(proc);
     presched_no_context();
 }
