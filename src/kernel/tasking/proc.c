@@ -173,6 +173,9 @@ int proc_free(proc_t* p)
         dentry_put(p->cwd);
     }
 
+    dynamic_array_free(&p->zones);
+
+    /* Key parts deletion. After that line you can't work with this process. */
     zoner_free_zone(p->kstack);
 
     if (!p->is_kthread) {

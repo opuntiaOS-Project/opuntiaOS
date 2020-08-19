@@ -60,6 +60,14 @@ int dynamic_array_init_of_size(dynamic_array_t* v, uint32_t element_size, uint32
     return 0;
 }
 
+int dynamic_array_free(dynamic_array_t* v)
+{
+    kfree(v->data);
+    v->size = 0;
+    v->capacity = 0;
+    return 0;
+}
+
 void* dynamic_array_get(dynamic_array_t* v, int index)
 {
     if (index >= v->size) {

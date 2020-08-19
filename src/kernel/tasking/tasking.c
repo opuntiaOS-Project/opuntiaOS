@@ -76,11 +76,14 @@ static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
     p->tf->esp = p->tf->ebp;
     p->tf->eip = code_zone->start;
 
+    kfree(prog);
+
     return 0;
 }
 
 static int _tasking_load(proc_t* proc, const char* path)
 {
+    kprintf(" Start %d \n", proc->pid);
     dentry_t* file;
     file_descriptor_t fd;
 

@@ -505,6 +505,8 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr)
             _vmm_copy_page_to_resolve_cow(page_vaddr, src_ptable);
         }
     }
+
+    kfree_aligned(src_ptable);
 }
 
 static void _vmm_ensure_cow_for_page(uint32_t vaddr)
@@ -708,6 +710,10 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uin
     _vmm_ensure_cow_for_range(dest_vaddr, length);
     uint8_t* dest = (uint8_t*)dest_vaddr;
     memcpy(dest, ksrc, length);
+
+    if ((uint32_t)src < KERNEL_BASE) {
+        kfree(ksrc);
+    }
 
     vmm_switch_pdir(prev_pdir);
 }
