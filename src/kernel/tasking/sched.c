@@ -5,6 +5,9 @@
 static cpu_t* cpu_ptr;
 
 int nxtrun = 0;
+cpu_t cpus[CPU_CNT];
+proc_t *active_proc;
+
 
 extern void switch_contexts(context_t** old, context_t* new);
 extern void switch_to_context(context_t* new);

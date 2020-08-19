@@ -1,18 +1,20 @@
 #ifndef __oneOS__HARDWARECOMMUNICATION__PORT_H
 #define __oneOS__HARDWARECOMMUNICATION__PORT_H
 
-unsigned char port_byte_in(unsigned short port);
-void port_byte_out(unsigned short port, unsigned char data);
-unsigned short port_word_in(unsigned short port);
-void port_word_out(unsigned short port, unsigned short data);
-unsigned int port_dword_in(unsigned short port);
-void port_dword_out(unsigned short port, unsigned int data);
-unsigned char port_8bit_in(unsigned short port);
-void port_8bit_out(unsigned short port, unsigned char data);
-unsigned short port_16bit_in(unsigned short port);
-void port_16bit_out(unsigned short port, unsigned short data);
-unsigned int port_32bit_in(unsigned short port);
-void port_32bit_out(unsigned short port, unsigned int data);
+#include <types.h>
+
+uint8_t port_byte_in(uint16_t port);
+void port_byte_out(uint16_t port, uint8_t data);
+uint16_t port_word_in(uint16_t port);
+void port_word_out(uint16_t port, uint16_t data);
+uint32_t port_dword_in(uint16_t port);
+void port_dword_out(uint16_t port, uint32_t data);
+uint8_t port_8bit_in(uint16_t port);
+void port_8bit_out(uint16_t port, uint8_t data);
+uint16_t port_16bit_in(uint16_t port);
+void port_16bit_out(uint16_t port, uint16_t data);
+uint32_t port_32bit_in(uint16_t port);
+void port_32bit_out(uint16_t port, uint32_t data);
 void io_wait();
 
 #endif

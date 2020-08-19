@@ -3,6 +3,8 @@
 #include <mem/vmm/vmm.h>
 #include <mem/kmalloc.h>
 
+struct gdt_entry gdt[GDT_MAX_ENTRIES];
+
 void lgdt(void* p, uint16_t size) {
     volatile uint16_t pd[3];
     pd[0] = size-1;

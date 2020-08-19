@@ -47,7 +47,7 @@ typedef struct {
     uint32_t iomap_offset : 16;
 } __attribute__((packed)) tss_t;
 
-tss_t tss;
+extern tss_t tss;
 
 void ltr(uint16_t seg);
 

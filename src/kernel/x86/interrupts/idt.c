@@ -1,6 +1,9 @@
 #include <x86/idt.h>
 #include <sys_handler.h>
 
+struct idt_entry idt[IDT_ENTRIES];
+void** handlers[IDT_ENTRIES];
+
 #define USER true
 #define SYS false
 

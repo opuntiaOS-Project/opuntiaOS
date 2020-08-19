@@ -7,6 +7,7 @@
 
 static int next_tty = 0;
 static tty_entry_t* active_tty = 0;
+tty_entry_t ttys[TTY_MAX_COUNT];
 
 static tty_entry_t* _tty_get(dentry_t* dentry)
 {

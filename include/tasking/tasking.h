@@ -20,9 +20,9 @@
 #define MAX_OPENED_FILES 16
 #define SIGNALS_CNT 32
 
-proc_t proc[MAX_PROCESS_COUNT];
-uint32_t nxt_proc;
-uint32_t ended_proc;
+extern proc_t proc[MAX_PROCESS_COUNT];
+extern uint32_t nxt_proc;
+extern uint32_t ended_proc;
 
 proc_t* tasking_get_active_proc();
 proc_t* tasking_get_proc(uint32_t pid);

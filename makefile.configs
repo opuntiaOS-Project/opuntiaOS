@@ -1,9 +1,9 @@
 # x86-32 building config
-I386_ELF_GCC = i386-elf-gcc
-I386_LD = i386-elf-ld
+I386_ELF_GCC = i686-elf-gcc
+I386_LD = i686-elf-ld
 NASM = /usr/local/bin/nasm
 
-CC = i386-elf-gcc
-LD = i386-elf-ld
+CC = i686-elf-gcc
+LD = i686-elf-ld
 ASM = /usr/local/bin/nasm
-AR = i386-elf-ar
+AR = i686-elf-ar

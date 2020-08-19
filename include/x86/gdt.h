@@ -36,9 +36,9 @@ struct gdt_entry {
     uint32_t db : 1;
     uint32_t g : 1;
     uint32_t base_31_24 : 8;
-} __attribute__((packed)) gdt[GDT_MAX_ENTRIES];
+} __attribute__((packed));
 
-// gdt_entry_t gdt[GDT_MAX_ENTRIES];
+extern struct gdt_entry gdt[GDT_MAX_ENTRIES];
 
 // segment with page granularity
 #define SEG_PG(type, base, limit, dpl) (struct gdt_entry)         \

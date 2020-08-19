@@ -30,7 +30,7 @@ typedef struct {
     uint32_t capacity; // in sectors
 } ata_t;
 
-ata_t _ata_drives[MAX_DEVICES_COUNT];
+extern ata_t _ata_drives[MAX_DEVICES_COUNT];
 
 void ata_add_new_device(device_t *t_new_device);
 

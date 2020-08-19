@@ -18,7 +18,7 @@ struct idt_entry { // call gate
     uint8_t  zero; 
     uint8_t  type;
     uint16_t offset_upper;
-} __attribute__((packed)) idt[IDT_ENTRIES];
+} __attribute__((packed));
 
 typedef struct {
     // registers as pushed by pusha
@@ -56,7 +56,8 @@ typedef struct {
 } trapframe_t;
 
 
-void** handlers[IDT_ENTRIES];
+extern struct idt_entry idt[IDT_ENTRIES];
+extern void** handlers[IDT_ENTRIES];
 
 void idt_element_setup(uint8_t n, void* handler_addr, bool user);
 void idt_setup();

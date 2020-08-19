@@ -3,6 +3,8 @@
 #include <mem/vmm/vmm.h>
 #include <mem/kmalloc.h>
 
+tss_t tss;
+
 void ltr(uint16_t seg) {
     asm volatile("ltr %0" : : "r"(seg));
 }

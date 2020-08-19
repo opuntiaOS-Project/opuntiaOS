@@ -14,7 +14,7 @@ struct tty_entry {
 };
 typedef struct tty_entry tty_entry_t;
 
-tty_entry_t ttys[TTY_MAX_COUNT];
+extern tty_entry_t ttys[TTY_MAX_COUNT];
 
 tty_entry_t* tty_new();
 void tty_eat_key(char key);

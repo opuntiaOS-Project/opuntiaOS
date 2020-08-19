@@ -15,8 +15,8 @@ typedef struct {
     context_t *scheduler; // context of sched's registers
 } __attribute__((packed)) cpu_t;
 
-cpu_t cpus[CPU_CNT];
-proc_t *active_proc;
+extern cpu_t cpus[CPU_CNT];
+extern proc_t *active_proc;
 
 void scheduler_init();
 void presched();

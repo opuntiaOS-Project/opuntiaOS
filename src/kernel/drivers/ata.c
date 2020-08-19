@@ -9,6 +9,8 @@
 #include <drivers/ata.h>
 #include <errno.h>
 
+ata_t _ata_drives[MAX_DEVICES_COUNT];
+
 static uint8_t _ata_drives_count = 0;
 static driver_desc_t _ata_driver_info();
 

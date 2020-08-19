@@ -18,6 +18,9 @@
 #include <x86/tss.h>
 
 static int nxtpid = 1;
+proc_t proc[MAX_PROCESS_COUNT];
+uint32_t nxt_proc;
+uint32_t ended_proc;
 
 extern void trap_return();
 extern void switch_contexts(context_t** old, context_t* new);
