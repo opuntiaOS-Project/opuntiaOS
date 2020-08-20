@@ -222,8 +222,22 @@ ${DISK}:
 	qemu-img create -f raw ${DISK} 16M
 
 format_ext2: ${DISK}
-	sudo /usr/local/opt/e2fsprogs/sbin/mkfs.ext2 -r 0 ${DISK}
+	sudo ${MKFS} -t ext2 -r 0 -b 1024 ${DISK}
 
+base_env:
+	sudo mkdir -p base/dev
+	sudo mkdir -p base/proc
+
+sync: base_env products/kernel.bin
+	sudo mkdir -p mountpoint
+	sudo ${MOUNT_EXT2} one.img mountpoint -o rw+
+	sudo mkdir -p mountpoint/boot
+	sudo mkdir -p mountpoint/proc
+	sudo cp -r base/* mountpoint/
+	sudo cp products/kernel.bin mountpoint/boot/
+	sudo umount mountpoint
+
+# was used with fat16
 format_fat16:
 	${PYTHON3} utils/fat16_formatter.py
 
@@ -234,16 +248,3 @@ old_install_os: ${DISK} products/kernel.bin
 # was used with fat16
 old_install_apps: ${APPS}
 	${PYTHON3} utils/install_apps.py
-
-base_env:
-	sudo mkdir -p base/dev
-	sudo mkdir -p base/proc
-
-sync: base_env products/kernel.bin
-	sudo fuse-ext2 one.img mountpoint -o rw+
-	sudo mkdir -p mountpoint
-	sudo mkdir -p mountpoint/boot
-	sudo mkdir -p mountpoint/proc
-	sudo cp -r base/ mountpoint/
-	sudo cp products/kernel.bin mountpoint/boot/
-	sudo umount mountpoint
