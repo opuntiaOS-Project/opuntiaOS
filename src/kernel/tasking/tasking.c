@@ -83,7 +83,6 @@ static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
 
 static int _tasking_load(proc_t* proc, const char* path)
 {
-    kprintf(" Start %d \n", proc->pid);
     dentry_t* file;
     file_descriptor_t fd;
 
@@ -184,13 +183,13 @@ void tasking_start_init_proc()
 
     /* creating new pdir */
     p->pdir = vmm_new_user_pdir();
-    p->status = PROC_RUNNING;
 
     if (_tasking_load(p, "/boot/init") < 0) {
-        kprintf("Can't load init proc");
-        while (1) {
-        }
+        kprintf("Failed to load init proc");
+        p->status = PROC_INVALID;
+        while (1) { }
     }
+    p->status = PROC_RUNNING;
 }
 
 int tasking_create_kernel_thread(void* entry_point)
