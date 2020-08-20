@@ -91,6 +91,7 @@ void sys_write(trapframe_t* tf)
         set_return(tf, -1);
         return;
     }
+
     int res = vfs_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
     set_return(tf, res);
 }

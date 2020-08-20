@@ -66,12 +66,14 @@ static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
+
+    /* Copying an exec code */
     uint8_t* prog = kmalloc(fd->dentry->inode->size);
     fd->ops->read(fd->dentry, prog, 0, fd->dentry->inode->size);
     vmm_copy_to_pdir(p->pdir, prog, code_zone->start, fd->dentry->inode->size);
 
     /* Setting registers */
-    proc_segregs_setup(p);
+    proc_setup_segment_regs(p);
     p->tf->ebp = stack_zone->start + VMM_PAGE_SIZE;
     p->tf->esp = p->tf->ebp;
     p->tf->eip = code_zone->start;
@@ -93,6 +95,12 @@ static int _tasking_load(proc_t* proc, const char* path)
         dentry_put(file);
         return -ENOENT;
     }
+
+    /* Put it back, since now we have a new cwd */
+    if (proc->cwd) {
+        dentry_put(proc->cwd);
+    }
+
     int ret = _tasking_load_bin(proc, &fd);
 
     proc->cwd = dentry_get_parent(file);
@@ -253,20 +261,32 @@ void tasking_fork(trapframe_t* tf)
     presched();
 }
 
+static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, char** env)
+{
+    int res = _tasking_load(p, path);
+    proc_fill_up_stack(p, argc, argv, env);
+    return res;
+}
+
 /* Syscall */
 /* TODO: Posix & zeroing-on-demand */
 void tasking_exec(trapframe_t* tf)
 {
-    proc_t* proc = tasking_get_active_proc();
+    proc_t* p = tasking_get_active_proc();
 
     /* Cleaning proc */
-    dynamic_array_clear(&proc->zones);
+    dynamic_array_clear(&p->zones);
 
-    char* launch_path = (char*)proc->tf->ebx; // for now let's think that our string is at ebx
-    if (_tasking_load(proc, launch_path) < 0) {
-        proc->tf->eax = -ENOENT;
-        return;
-    }
+    char* path = (char*)p->tf->ebx; // for now let's think that our string is at ebx
+    
+    /* FIXME: Delete and pass real params */
+    int argc = 2;
+    char* argv[] = {
+        "b",
+        "a"
+    };
+    
+    _tasking_do_exec(p, path, argc, argv, 0);
 }
 
 int tasking_waitpid(int pid)

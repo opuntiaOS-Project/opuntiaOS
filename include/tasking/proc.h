@@ -106,34 +106,54 @@ struct proc {
 };
 typedef struct proc proc_t;
 
-int init_join_blocker(struct proc* p);
-int init_read_blocker(struct proc* proc, dentry_t* bd);
+/**
+ * PROC FUNCTIONS
+ */
 
 int proc_setup(proc_t* p);
 int proc_setup_kstack(proc_t* p);
 int proc_setup_tty(proc_t* p, tty_entry_t* tty);
-void proc_segregs_setup(proc_t* p);
+void proc_setup_segment_regs(proc_t* p);
+int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env);
 int proc_free(proc_t* p);
+
+/**
+ * KTHREAD FUNCTIONS
+ */
 
 int kthread_setup(proc_t* p);
 int kthread_setup_regs(proc_t* p, void* entry_point);
-void kthread_segregs_setup(proc_t* p);
+void kthread_setup_segment_regs(proc_t* p);
+int kthread_free(proc_t* p);
+
 
 /**
  * PROC FD FUNCTIONS
  */
 
-file_descriptor_t* proc_get_free_fd(proc_t* proc);
-file_descriptor_t* proc_get_fd(proc_t* proc, uint32_t index);
-
+file_descriptor_t* proc_get_free_fd(proc_t* p);
+file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index);
 
 /**
- * PROC ZONING
+ * PROC ZONER FUNCTIONS
  */
 
-proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len);
-proc_zone_t* proc_new_random_zone(proc_t* proc, uint32_t len);
-proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len);
-proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr);
+proc_zone_t* proc_new_zone(proc_t* p, uint32_t start, uint32_t len);
+proc_zone_t* proc_new_random_zone(proc_t* p, uint32_t len);
+proc_zone_t* proc_new_random_zone_backward(proc_t* p, uint32_t len);
+proc_zone_t* proc_find_zone(proc_t* p, uint32_t addr);
+
+/**
+ * BLOCKER FUNCTIONS
+ */
+
+int init_join_blocker(proc_t* p);
+int init_read_blocker(proc_t* p, dentry_t* bd);
+
+/**
+ * DEBUG FUNCTIONS
+ */
+
+int proc_dump_frame(proc_t* p);
 
 #endif // __oneOS__X86__TASKING__PROC_H

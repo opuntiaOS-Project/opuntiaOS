@@ -1,7 +1,7 @@
 #include <libsystem/syscalls.h>
 
-int main()
+int main(int argc, char** argv)
 {
-    raise(9);
+    write(1, (char*)argv[1], 6);
     return 0;
 }

@@ -859,6 +859,8 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
                 vmm_load_page(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
             }
         } else {
+            kprintf("%x", vaddr);
+            while (1) {}
             kpanic("VMM: where are we?\n");
         }
     }

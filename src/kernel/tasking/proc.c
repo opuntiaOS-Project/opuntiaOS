@@ -71,42 +71,6 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     return 0;
 }
 
-int kthread_setup(proc_t* p)
-{
-    p->is_kthread = true;
-    /* allocating kernel stack */
-    p->kstack = zoner_new_zone(VMM_PAGE_SIZE);
-    if (!p->kstack.start) {
-        return -ENOMEM;
-    }
-
-    /* setting current work directory */
-    p->cwd = 0;
-
-    p->fds = 0;
-
-    /* setting signal handlers to 0 */
-    p->signals_mask = 0x0; /* All signals are disabled. */
-    p->pending_signals_mask = 0x0;
-    memset((void*)p->signal_handlers, 0, sizeof(p->signal_handlers));
-
-    return 0;
-}
-
-int kthread_setup_regs(proc_t* p, void* entry_point)
-{
-    zone_t stack = zoner_new_zone(VMM_PAGE_SIZE);
-    if (!stack.start) {
-        return -ENOMEM;
-    }
-
-    kthread_segregs_setup(p);
-    p->tf->ebp = (stack.start + VMM_PAGE_SIZE);
-    p->tf->esp = p->tf->ebp;
-    p->tf->eip = (uint32_t)entry_point;
-    return 0;
-}
-
 int proc_setup_kstack(proc_t* p)
 {
     char* sp = (char*)(p->kstack.start + VMM_PAGE_SIZE);
@@ -131,7 +95,7 @@ int proc_setup_kstack(proc_t* p)
     return 0;
 }
 
-void proc_segregs_setup(proc_t* p)
+void proc_setup_segment_regs(proc_t* p)
 {
     p->tf->cs = (SEG_UCODE << 3) | DPL_USER;
     p->tf->ds = (SEG_UDATA << 3) | DPL_USER;
@@ -140,13 +104,83 @@ void proc_segregs_setup(proc_t* p)
     p->tf->eflags = FL_IF;
 }
 
-void kthread_segregs_setup(proc_t* p)
+/**
+ * PROC STACK FUNCTIONS
+ */
+
+static inline void _proc_push_to_user_stack(proc_t* proc, uint32_t value)
 {
-    p->tf->cs = (SEG_KCODE << 3);
-    p->tf->ds = (SEG_KDATA << 3);
-    p->tf->es = p->tf->ds;
-    p->tf->ss = p->tf->ds;
-    p->tf->eflags = FL_IF;
+    proc->tf->esp -= 4;
+    *((uint32_t*)proc->tf->esp) = value;
+}
+
+static inline uint32_t _proc_pop_from_user_stack(proc_t* proc)
+{
+    uint32_t val = *((uint32_t*)proc->tf->esp);
+    proc->tf->esp += 4;
+    return val;
+}
+
+static inline void _proc_simulate_push_to_user_stack(proc_t* proc)
+{
+    proc->tf->esp -= 4;
+}
+
+static inline void _proc_simulate_pop_from_user_stack(proc_t* proc)
+{
+    proc->tf->esp += 4;
+}
+
+int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env)
+{
+    /* TODO: Add env */
+    uint32_t argv_data_size = 0;
+    for (int i = 0; i < argc; i++) {
+        argv_data_size += strlen(argv[i]) + 1;
+    }
+
+    if (argv_data_size % 4) {
+        argv_data_size += 4 - (argv_data_size % 4);
+    }
+    
+    uint32_t size_in_stack = argv_data_size + argc * sizeof(char*) + sizeof(argc) + sizeof(char*);
+    int* tmp_buf = (int*)kmalloc(size_in_stack);
+    if (!tmp_buf) {
+        return -EAGAIN;
+    }
+    memset((void*)tmp_buf, 0, size_in_stack);
+
+    char* tmp_buf_ptr = ((char*)tmp_buf) + size_in_stack;
+    char* tmp_buf_data_ptr = tmp_buf_ptr - argv_data_size;
+    uint32_t* tmp_buf_array_ptr = (uint32_t*)((char*)tmp_buf_data_ptr - argc * sizeof(char*));
+    int* tmp_buf_argv_ptr = (int*)((char*)tmp_buf_array_ptr - sizeof(char*));
+    int* tmp_buf_argc_ptr = (int*)((char*)tmp_buf_argv_ptr - sizeof(int));
+    
+    uint32_t data_esp = p->tf->esp - argv_data_size;
+    uint32_t array_esp = data_esp - argc * sizeof(char*);
+    uint32_t argv_esp = array_esp - 4;
+    uint32_t argc_esp = argv_esp - 4;
+
+    for (int i = argc - 1; i >= 0; i--) {
+        uint32_t len = strlen(argv[i]);
+        tmp_buf_ptr -= len + 1;
+        p->tf->esp -= len + 1;
+        memcpy(tmp_buf_ptr, argv[i], len);
+        tmp_buf_ptr[len] = 0;
+
+        tmp_buf_array_ptr[i] = p->tf->esp;
+    }
+
+    *tmp_buf_argv_ptr = array_esp;
+    *tmp_buf_argc_ptr = argc;
+
+    p->tf->esp = argc_esp;
+
+    vmm_copy_to_pdir(p->pdir, (uint8_t*)tmp_buf, p->tf->esp, size_in_stack);
+
+    kfree(tmp_buf);
+
+    return 0;
 }
 
 int proc_free(proc_t* p)
@@ -212,128 +246,14 @@ file_descriptor_t* proc_get_fd(proc_t* proc, uint32_t index)
 }
 
 /**
- * PROC ZONING
+ * PROC DEBUG FUNCTIONS
  */
 
-static inline bool _proc_zones_intersect(uint32_t start1, uint32_t size1, uint32_t start2, uint32_t size2)
+int proc_dump_frame(proc_t* p)
 {
-    uint32_t end1 = start1 + size1 - 1;
-    uint32_t end2 = start2 + size2 - 1;
-    return (start1 <= start2 && start2 <= end1) || (start1 <= end2 && end2 <= end1) || (start2 <= start1 && start1 <= end2) || (start2 <= end1 && end1 <= end2);
-}
-
-static inline bool _proc_can_add_zone(proc_t* proc, uint32_t start, uint32_t len)
-{
-    uint32_t zones_count = proc->zones.size;
-
-    for (uint32_t i = 0; i < zones_count; i++) {
-        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
-        if (_proc_zones_intersect(start, len, zone->start, zone->len)) {
-            return false;
-        }
+    for (uint32_t i = p->tf->esp; i < p->tf->ebp; i++) {
+        uint8_t byte = *(uint8_t*)i;
+        uint32_t b32 = (uint32_t)byte;
+        kprintf("%x - %x\n", i, b32);
     }
-
-    return true;
-}
-
-proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
-{
-    if (len % VMM_PAGE_SIZE) {
-        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
-    }
-
-    proc_zone_t new_zone;
-    new_zone.start = start;
-    new_zone.len = len;
-    new_zone.type = 0;
-    new_zone.flags = ZONE_USER;
-
-    if (_proc_can_add_zone(proc, start, len)) {
-        if (dynamic_array_push(&proc->zones, &new_zone) != 0) {
-            return 0;
-        }
-        return (proc_zone_t*)dynamic_array_get(&proc->zones, proc->zones.size - 1);
-    }
-
-    return 0;
-}
-
-/* FIXME: Think of more efficient way */
-proc_zone_t* proc_new_random_zone(proc_t* proc, uint32_t len)
-{
-    if (len % VMM_PAGE_SIZE) {
-        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
-    }
-
-    uint32_t zones_count = proc->zones.size;
-
-    /* Check if we can put it at the beginning */
-    proc_zone_t* ret = proc_new_zone(proc, 0, len);
-    if (ret) {
-        return ret;
-    }
-
-    uint32_t min_start = 0xffffffff;
-
-    for (uint32_t i = 0; i < zones_count; i++) {
-        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
-        if (_proc_can_add_zone(proc, zone->start + zone->len, len)) {
-            if (min_start > zone->start + zone->len) {
-                min_start = zone->start + zone->len;
-            }
-        }
-    }
-
-    if (min_start == 0xffffffff) {
-        return 0;
-    }
-
-    return proc_new_zone(proc, min_start, len);
-}
-
-/* FIXME: Think of more efficient way */
-proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len)
-{
-    if (len % VMM_PAGE_SIZE) {
-        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
-    }
-
-    uint32_t zones_count = proc->zones.size;
-
-    /* Check if we can put it at the end */
-    proc_zone_t* ret = proc_new_zone(proc, KERNEL_BASE - len, len);
-    if (ret) {
-        return ret;
-    }
-
-    uint32_t max_end = 0;
-
-    for (uint32_t i = 0; i < zones_count; i++) {
-        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
-        if (_proc_can_add_zone(proc, zone->start - len, len)) {
-            if (max_end < zone->start) {
-                max_end = zone->start;
-            }
-        }
-    }
-
-    if (max_end == 0) {
-        return 0;
-    }
-
-    return proc_new_zone(proc, max_end - len, len);
-}
-
-proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr)
-{
-    uint32_t zones_count = proc->zones.size;
-
-    for (uint32_t i = 0; i < zones_count; i++) {
-        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
-        if (zone->start <= addr && addr < zone->start + zone->len) {
-            return zone;
-        }
-    }
-
-    return 0;
 }
