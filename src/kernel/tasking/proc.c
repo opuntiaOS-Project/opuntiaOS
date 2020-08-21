@@ -143,7 +143,7 @@ int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env)
         argv_data_size += 4 - (argv_data_size % 4);
     }
     
-    uint32_t size_in_stack = argv_data_size + argc * sizeof(char*) + sizeof(argc) + sizeof(char*);
+    uint32_t size_in_stack = argv_data_size + (argc + 1) * sizeof(char*) + sizeof(argc) + sizeof(char*);
     int* tmp_buf = (int*)kmalloc(size_in_stack);
     if (!tmp_buf) {
         return -EAGAIN;
@@ -152,12 +152,12 @@ int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env)
 
     char* tmp_buf_ptr = ((char*)tmp_buf) + size_in_stack;
     char* tmp_buf_data_ptr = tmp_buf_ptr - argv_data_size;
-    uint32_t* tmp_buf_array_ptr = (uint32_t*)((char*)tmp_buf_data_ptr - argc * sizeof(char*));
+    uint32_t* tmp_buf_array_ptr = (uint32_t*)((char*)tmp_buf_data_ptr - (argc + 1) * sizeof(char*));
     int* tmp_buf_argv_ptr = (int*)((char*)tmp_buf_array_ptr - sizeof(char*));
     int* tmp_buf_argc_ptr = (int*)((char*)tmp_buf_argv_ptr - sizeof(int));
     
     uint32_t data_esp = p->tf->esp - argv_data_size;
-    uint32_t array_esp = data_esp - argc * sizeof(char*);
+    uint32_t array_esp = data_esp - (argc + 1) * sizeof(char*);
     uint32_t argv_esp = array_esp - 4;
     uint32_t argc_esp = argv_esp - 4;
 
@@ -170,6 +170,7 @@ int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env)
 
         tmp_buf_array_ptr[i] = p->tf->esp;
     }
+    tmp_buf_array_ptr[argc] = 0;
 
     *tmp_buf_argv_ptr = array_esp;
     *tmp_buf_argc_ptr = argc;

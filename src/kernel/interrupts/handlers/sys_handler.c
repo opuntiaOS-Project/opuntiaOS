@@ -123,7 +123,7 @@ void sys_waitpid(trapframe_t* tf)
 
 void sys_exec(trapframe_t* tf)
 {
-    tasking_exec(tf);
+    set_return(tf, tasking_exec((char*)param1, (const char**)param2, (const char**)param3));
 }
 
 void sys_sigaction(trapframe_t* tf)

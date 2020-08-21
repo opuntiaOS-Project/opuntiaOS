@@ -270,23 +270,53 @@ static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, 
 
 /* Syscall */
 /* TODO: Posix & zeroing-on-demand */
-void tasking_exec(trapframe_t* tf)
+int tasking_exec(const char* path, const char** argv, const char** env)
 {
     proc_t* p = tasking_get_active_proc();
+    char* kpath = 0;
+    int kargc = 0;
+    char** kargv = 0;
+    char** kenv = 0;
+
+    if (!str_validate_len(path, 128)) {
+        return -EINVAL;
+    }
+    kpath = kmem_bring_to_kernel(path, strlen(path));
+
+    if (argv) {
+        if (!ptrarr_validate_len(argv, 128)) {
+            return -EINVAL;
+        }
+        kargc = ptrarr_len(argv);
+        
+        /* Validating arguments size */
+        uint32_t data_len = 0;
+        for (int argi = 0; argi < kargc; argi++) {
+            if (!str_validate_len(argv[argi], 128)) {
+                return -EINVAL;
+            }
+            data_len += strlen(argv[argi]) + 1;
+            if (data_len > 128) {
+                return -EINVAL;
+            }
+        }
+
+        kargv = kmem_bring_to_kernel_ptrarr(argv, kargc);
+    }
+    
 
     /* Cleaning proc */
     dynamic_array_clear(&p->zones);
 
-    char* path = (char*)p->tf->ebx; // for now let's think that our string is at ebx
-    
-    /* FIXME: Delete and pass real params */
-    int argc = 2;
-    char* argv[] = {
-        "b",
-        "a"
-    };
-    
-    _tasking_do_exec(p, path, argc, argv, 0);
+    int ret = _tasking_do_exec(p, kpath, kargc, kargv, 0);
+
+    kfree(kpath);
+    for (int argi = 0; argi < kargc; argi++) {
+        kfree(kargv[argi]);
+    }
+    kfree(kargv);
+
+    return ret;
 }
 
 int tasking_waitpid(int pid)

@@ -70,7 +70,6 @@ int strcmp(const char* a, const char* b)
     return 0;
 }
 
-
 int strncmp(const char* a, const char* b, uint32_t num)
 {
     while (*a == *b && *a != 0 && *b != 0 && num) {
@@ -88,4 +87,37 @@ int strncmp(const char* a, const char* b, uint32_t num)
     }
 
     return 0;
+}
+
+bool str_validate_len(const char* s, uint32_t len)
+{
+    for (int i = 0; i < len + 1; i++) {
+        if (s[i] == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Ptr array utils
+ */
+
+uint32_t ptrarr_len(const char** s)
+{
+    uint32_t len = 0;
+    while (s[len] != 0) {
+        ++len;
+    }
+    return len;
+}
+
+bool ptrarr_validate_len(const char** s, uint32_t len)
+{
+    for (int i = 0; i < len + 1; i++) {
+        if (s[i] == 0) {
+            return true;
+        }
+    }
+    return false;
 }

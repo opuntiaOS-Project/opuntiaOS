@@ -8,7 +8,13 @@
 
 int main()
 {
-    char buf[256];
+    char buf[32];
+    char* arg[] = {
+        "b",
+        "a",
+        "e",
+    };
+    arg[2] = (char*)0;
     
     while (1) {
         write(1, "ucmd> ", 5);
@@ -17,7 +23,7 @@ int main()
         }
         int fork_res = fork();
         if (fork_res == 0) {
-            exec("/bin/echo");
+            execve("/bin/echo", arg, 0);
         } else {
             wait(fork_res);
         }

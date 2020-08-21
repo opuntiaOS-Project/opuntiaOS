@@ -61,9 +61,9 @@ int wait(int pid)
     return syscall(SYSWAITPID, pid, 0, 0, 0, 0);
 }
 
-int exec(char* path)
+int execve(char* path, char** argv, char** env)
 {
-    return syscall(SYSEXEC, (int)path, 0, 0, 0, 0);
+    return syscall(SYSEXEC, (int)path, (int)argv, (int)env, 0, 0);
 }
 
 int open(const char *pathname, int flags)
