@@ -98,15 +98,20 @@ void sys_write(trapframe_t* tf)
 
 void sys_open(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_free_fd(tasking_get_active_proc());
+    proc_t* p = tasking_get_active_proc();
+    file_descriptor_t* fd = proc_get_free_fd(p);
     dentry_t* file;
-    if (vfs_resolve_path((char*)param1, &file) < 0) {
+    if (vfs_resolve_path_start_from(p->cwd, (char*)param1, &file) < 0) {
         set_return(tf, -1);
         return;
     }
     int res = vfs_open(file, fd);
     dentry_put(file);
-    set_return(tf, res);
+    if (!res) {
+        set_return(tf, proc_get_fd_id(p, fd));
+    } else {
+        set_return(tf, res);
+    }
 }
 
 void sys_close(trapframe_t* tf)

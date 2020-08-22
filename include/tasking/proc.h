@@ -133,6 +133,7 @@ int kthread_free(proc_t* p);
 
 file_descriptor_t* proc_get_free_fd(proc_t* p);
 file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index);
+int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd);
 
 /**
  * PROC ZONER FUNCTIONS

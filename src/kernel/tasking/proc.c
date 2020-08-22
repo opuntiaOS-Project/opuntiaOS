@@ -224,6 +224,19 @@ int proc_free(proc_t* p)
  * PROC FD FUNCTIONS
  */
 
+int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd)
+{
+    /* Calculating id with pointers */
+    uint32_t start = (uint32_t)proc->fds;
+    uint32_t fd_ptr = (uint32_t)fd;
+    fd_ptr -= start;
+    int fd_res = fd_ptr / sizeof(file_descriptor_t);
+    if (!(fd_ptr % sizeof(file_descriptor_t))) {
+        return fd_res;
+    }
+    return -1;
+}
+
 file_descriptor_t* proc_get_free_fd(proc_t* proc)
 {
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
