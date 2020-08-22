@@ -103,16 +103,18 @@ static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start,
 {
     void (*read)(device_t * d, uint32_t s, uint8_t * r) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_READ];
     int already_read = 0;
+    uint32_t sector = start / 512;
+    uint32_t start_offset = start % 512;
     uint8_t tmp_buf[512];
-    while (len != 0) {
-        uint32_t sector = start / 512;
-        uint32_t start_offset = start % 512;
+    
+    while (len) {
         read(dev->dev, sector, tmp_buf);
         for (int i = 0; i < MIN(512 - start_offset, len); i++) {
             buf[already_read++] = tmp_buf[start_offset + i];
         }
         len -= MIN(512 - start_offset, len);
-        start += MIN(512 - start_offset, len);
+        sector++;
+        start_offset = 0;
     }
 }
 
@@ -121,10 +123,10 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
     void (*read)(device_t * d, uint32_t s, uint8_t * r) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_READ];
     void (*write)(device_t * d, uint32_t s, uint8_t * r, uint32_t siz) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_WRITE];
     int already_written = 0;
+    uint32_t sector = start / 512;
+    uint32_t start_offset = start % 512;
     uint8_t tmp_buf[512];
     while (len != 0) {
-        uint32_t sector = start / 512;
-        uint32_t start_offset = start % 512;
         if (start_offset != 0 || len < 512) {
             read(dev->dev, sector, tmp_buf);
         }
@@ -133,7 +135,8 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
         }
         write(dev->dev, sector, tmp_buf, 512);
         len -= MIN(512 - start_offset, len);
-        start += MIN(512 - start_offset, len);
+        sector++;
+        start_offset = 0;
     }
 }
 
