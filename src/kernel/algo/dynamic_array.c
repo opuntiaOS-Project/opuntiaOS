@@ -101,9 +101,7 @@ int dynamic_array_pop(dynamic_array_t* v)
 
 int dynamic_array_clear(dynamic_array_t* v)
 {
-    while (v->size) {
-        v->size--;
-    }
+    v->size = 0;
     return 0;
 }
 

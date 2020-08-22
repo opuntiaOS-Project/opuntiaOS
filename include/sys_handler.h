@@ -23,4 +23,6 @@ void sys_raise(trapframe_t* tf);
 void sys_mmap(trapframe_t* tf);
 void sys_munmap(trapframe_t* tf);
 
+void sys_none(trapframe_t* tf);
+
 #endif // __oneOS__INTERRUPTS__SYS_HANDLER_H

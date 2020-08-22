@@ -4,7 +4,6 @@
 #include "types.h"
 #include "../../include/syscall_structs.h"
 
-void print(int value);
 
 enum OPEN_MODE {
     O_RDONLY,

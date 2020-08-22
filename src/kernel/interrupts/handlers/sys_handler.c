@@ -35,8 +35,11 @@ void sys_handler(trapframe_t* tf)
         sys_read,
         sys_write,
         sys_open,
-        sys_close, // 6
-        sys_waitpid, // 7
+        sys_close,
+        sys_waitpid,
+        sys_none, // sys_creat
+        sys_none, // sys_link
+        sys_none, // sys_unlink
         sys_exec,
         sys_sigaction,
         sys_sigreturn, // When this is moved, change signal_caller.s for now.
@@ -191,3 +194,5 @@ void sys_mmap(trapframe_t* tf)
 void sys_munmap(trapframe_t* tf)
 {
 }
+
+void sys_none(trapframe_t* tf) { }

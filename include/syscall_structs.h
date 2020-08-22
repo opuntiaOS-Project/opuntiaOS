@@ -19,6 +19,27 @@ typedef char           bool;
 
 #endif
 
+enum __sysid {
+    SYSPRINT = 0,
+    SYSEXTT,
+    SYSFORK,
+    SYSREAD,
+    SYSWRITE,
+    SYSOPEN,
+    SYSCLOSE,
+    SYSWAITPID,
+    SYSCREAT,
+    SYSLINK,
+    SYSUNLINK,
+    SYSEXEC,
+    SYSSIGACTION,
+    SYSSIGRETURN,
+    SYSRAISE,
+    SYSMMAP,
+    SYSMUNMAP,
+};
+typedef enum __sysid sysid_t;
+
 #define MAP_SHARED 0x01
 #define MAP_PRIVATE 0x02
 #define MAP_FIXED 0x10

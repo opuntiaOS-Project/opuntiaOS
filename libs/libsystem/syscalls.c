@@ -8,24 +8,6 @@
 
 #include "syscalls.h"
 
-enum sysid {
-    SYSPRINT = 0,
-    SYSEXTT,
-    SYSFORK,
-    SYSREAD,
-    SYSWRITE,
-    SYSOPEN,
-    SYSCLOSE,
-    SYSWAITPID,
-    SYSEXEC,
-    SYSSIGACTION,
-    SYSSIGRETURN,
-    SYSRAISE,
-    SYSMMAP,
-    SYSMUNMAP,
-};
-typedef enum sysid sysid_t;
-
 static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
 {
     int ret;
