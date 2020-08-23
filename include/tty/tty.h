@@ -1,15 +1,16 @@
 #ifndef __oneOS__TTY__TTY_H
 #define __oneOS__TTY__TTY_H
 
+#include <types.h>
+#include <algo/ringbuffer.h>
+
 #define TTY_MAX_COUNT 8
 #define TTY_BUFFER_SIZE 1024
 
 struct tty_entry {
     int id;
     int inode_indx;
-    char* buffer;
-    int start;
-    int end;
+    ringbuffer_t buffer;
     int lines_avail;
 };
 typedef struct tty_entry tty_entry_t;

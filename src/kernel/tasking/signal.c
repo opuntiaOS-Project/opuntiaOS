@@ -27,7 +27,7 @@ static void _signal_init_caller()
     _signal_jumper_zone = zoner_new_zone(VMM_PAGE_SIZE);
     vmm_load_page(_signal_jumper_zone.start, PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_READABLE | PAGE_USER);
     uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller_start;
-    memcpy((void*)_signal_jumper_zone.start, (void*)signal_caller_start, signal_caller_len);
+    memcpy(_signal_jumper_zone.ptr, (void*)signal_caller_start, signal_caller_len);
     vmm_tune_page(_signal_jumper_zone.start, PAGE_EXECUTABLE | PAGE_READABLE | PAGE_USER);
 }
 

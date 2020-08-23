@@ -11,12 +11,14 @@
 
 #include <types.h>
 
-struct zone
-{
-    uint32_t start;
+struct __zone {
+    union {
+        uint32_t start;
+        uint8_t* ptr;
+    };
     uint32_t len;
 };
-typedef struct zone zone_t;
+typedef struct __zone zone_t;
 
 void zoner_init(uint32_t start_vaddr);
 void zoner_place_bitmap();

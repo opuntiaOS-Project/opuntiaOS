@@ -30,7 +30,6 @@ static pdir_t* _vmm_kernel_pdir;
 static pdir_t* _vmm_active_pdir;
 static zone_t pspace_zone;
 static uint32_t kernel_ptables_start_paddr;
-static uint32_t vmm_reserved_area_start_vaddr;
 
 #define vmm_kernel_pdir_phys2virt(paddr) ((void*)((uint32_t)paddr + KERNEL_BASE - KERNEL_PM_BASE))
 
@@ -116,7 +115,6 @@ static bool _vmm_split_pspace()
     _vmm_kernel_pdir = (pdir_t*)_vmm_alloc_kernel_block();
     _vmm_active_pdir = (pdir_t*)_vmm_kernel_pdir;
     memset((void*)_vmm_active_pdir, 0, sizeof(*_vmm_active_pdir)); // TODO problem for now
-    vmm_reserved_area_start_vaddr = zoner_new_zone(1 * MB).start; // TODO: will be deprecated!
 }
 
 /**
