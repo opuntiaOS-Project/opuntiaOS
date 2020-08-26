@@ -710,9 +710,10 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 
     for (uint32_t block_index = start_block_index; block_index <= end_block_index; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dentry, block_index);
-        _ext2_read_from_dev(dentry->dev, buf + already_read, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + read_offset, MIN(len, block_len - read_offset));
-        len -= MIN(len, block_len - read_offset);
-        already_read += MIN(len, block_len - read_offset);
+        uint32_t read_from_block = MIN(len, block_len - read_offset);
+        _ext2_read_from_dev(dentry->dev, buf + already_read, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + read_offset, read_from_block);
+        len -= read_from_block;
+        already_read += read_from_block;
         read_offset = 0;
     }
     if (len != 0) {
@@ -733,6 +734,7 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     uint32_t blocks_allocated = TO_EXT_BLOCK_SIZE(dentry->fsdata.sb, dentry->inode->blocks);
 
     for (uint32_t data_block_index, block_index = start_block_index; block_index <= end_block_index; block_index++) {
+        uint32_t write_to_block = MIN(to_write, block_len - write_offset);
 
         if (blocks_allocated <= block_index) {
             _ext2_allocate_block_for_inode(dentry, 0, &data_block_index);
@@ -740,9 +742,9 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
             data_block_index = _ext2_get_block_of_inode(dentry, block_index);
         }
 
-        _ext2_write_to_dev(dentry->dev, buf + already_written, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + write_offset, MIN(len, block_len - write_offset));
-        to_write -= MIN(to_write, block_len - write_offset);
-        already_written += MIN(to_write, block_len - write_offset);
+        _ext2_write_to_dev(dentry->dev, buf + already_written, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + write_offset, write_to_block);
+        to_write -= write_to_block;
+        already_written += write_to_block;
         write_offset = 0;
     }
 
