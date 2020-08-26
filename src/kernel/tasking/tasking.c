@@ -62,6 +62,13 @@ static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
     code_zone->type = ZONE_TYPE_CODE;
     code_zone->flags |= ZONE_READABLE | ZONE_EXECUTABLE;
 
+    /* THIS IS FOR BSS WHICH COULD BE IN THIS ZONE */
+    code_zone->flags |= ZONE_WRITABLE;
+
+    proc_zone_t* bss_zone = proc_new_random_zone(p, 1024);
+    bss_zone->type = ZONE_TYPE_DATA;
+    bss_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
+
     proc_zone_t* stack_zone = proc_new_random_zone_backward(p, VMM_PAGE_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;

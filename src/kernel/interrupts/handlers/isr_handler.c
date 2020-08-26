@@ -1,6 +1,7 @@
 #include <isr_handler.h>
 #include <mem/vmm/vmm.h>
 #include <tasking/tasking.h>
+#include <tasking/sched.h>
 #include <utils/kassert.h>
 #include <x86/common.h>
 
@@ -47,7 +48,13 @@ void isr_standart_handler(trapframe_t* tf)
 
     /* TODO: A thing to change */
     if (tf->int_no == 14) {
-        vmm_page_fault_handler(tf->err, read_cr2());
+        int res = vmm_page_fault_handler(tf->err, read_cr2());
+        if (res == SHOULD_CRASH) {
+            proc_t* p = tasking_get_active_proc();
+            kprintf("\nCrash %d\n", p->pid);
+            tasking_die(p);
+            presched();
+        }
     } else if (tf->int_no == 6) {
         kprintf("invalid opcode ");
         proc_t* proc = tasking_get_active_proc();
