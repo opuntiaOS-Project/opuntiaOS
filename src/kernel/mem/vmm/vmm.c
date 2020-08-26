@@ -56,7 +56,7 @@ inline static uint32_t _vmm_round_ceil_to_page(uint32_t value);
 inline static uint32_t _vmm_round_floor_to_page(uint32_t value);
 
 static bool _vmm_is_copy_on_write(uint32_t vaddr);
-static void _vmm_resolve_copy_on_write(uint32_t vaddr);
+static int _vmm_resolve_copy_on_write(uint32_t vaddr);
 static void _vmm_ensure_cow_for_page(uint32_t vaddr);
 static void _vmm_ensure_cow_for_range(uint32_t vaddr, uint32_t length);
 static int _vmm_copy_page_to_resolve_cow(uint32_t vaddr, ptable_t* src_ptable);
@@ -359,10 +359,15 @@ int vmm_allocate_ptable(uint32_t vaddr)
     uint32_t ptable_vaddr = (uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
 
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    table_desc_clear(ptable_desc);
     table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE | TABLE_DESC_USER);
     table_desc_set_frame(ptable_desc, FRAME(ptable_paddr));
 
-    return vmm_map_page(ptable_vaddr, ptable_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
+    int ret = vmm_map_page(ptable_vaddr, ptable_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
+    if (ret == 0) {
+        memset((void*)ptable_vaddr, 0, VMM_PAGE_SIZE);
+    }
+    return ret;
 }
 
 static int vmm_free_ptable(uint32_t ptable_indx)
@@ -482,7 +487,7 @@ static bool _vmm_is_copy_on_write(uint32_t vaddr)
 }
 
 // TODO handle delete of tables and dirs
-static void _vmm_resolve_copy_on_write(uint32_t vaddr)
+static int _vmm_resolve_copy_on_write(uint32_t vaddr)
 {
     table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
 
@@ -492,7 +497,11 @@ static void _vmm_resolve_copy_on_write(uint32_t vaddr)
     memcpy((uint8_t*)src_ptable, (uint8_t*)root_ptable, VMM_PAGE_SIZE);
 
     /* setting up new ptable */
-    vmm_allocate_ptable(vaddr);
+    int res = vmm_allocate_ptable(vaddr);
+    if (res != 0) {
+        return res;
+    }
+
     ptable_t* new_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
 
     /* FIXME: Currently we do that for all pages in the table. */
@@ -832,11 +841,18 @@ int vmm_free_page(page_desc_t* page)
 int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
 {
     if ((info & 0b11) == 0b11) {
+        bool visited = false;
         if (_vmm_is_copy_on_write(vaddr)) {
             _vmm_resolve_copy_on_write(vaddr);
+            visited = true;
         }
         if (_vmm_is_zeroing_on_demand(vaddr)) {
             _vmm_resolve_zeroing_on_demand(vaddr);
+            visited = true;
+        }
+        if (!visited) {
+            kprintf("\nWrite to not writable page");
+            return SHOULD_CRASH;
         }
     } else {
         if ((info & 1) == 0) {

@@ -8,6 +8,11 @@
 
 #include <mem/vmm/pde.h>
 
+void table_desc_clear(table_desc_t* pde)
+{
+    *pde = 0;
+}
+
 void table_desc_set_attrs(table_desc_t* pde, uint32_t attrs)
 {
     *pde |= attrs;

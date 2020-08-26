@@ -31,6 +31,7 @@ enum TABLE_DESC_PAGE_FLAGS {
     TABLE_DESC_ZEROING_ON_DEMAND = 0x800
 };
 
+void table_desc_clear(table_desc_t* pde);
 void table_desc_set_attrs(table_desc_t* pde, uint32_t attrs);
 void table_desc_del_attrs(table_desc_t* pde, uint32_t attrs);
 bool table_desc_has_attrs(table_desc_t pde, uint32_t attrs);
