@@ -36,7 +36,7 @@ void ringbuffer_free(ringbuffer_t* buf)
 
 uint32_t ringbuffer_space_to_read(ringbuffer_t* buf)
 {
-    if (buf->start < buf->end) {
+    if (buf->start <= buf->end) {
         return buf->end - buf->start;
     } else {
         return buf->zone.len - buf->start + buf->end;
