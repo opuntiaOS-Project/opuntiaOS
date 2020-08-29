@@ -17,5 +17,8 @@ int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t l
 bool local_socket_can_write(dentry_t* dentry);
 int local_socket_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 
+int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len);
+int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len);
+
 
 #endif /* __oneOS__IO__LOCAL_SOCKET_H */

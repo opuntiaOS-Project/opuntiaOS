@@ -96,7 +96,7 @@ struct proc {
     int exit_code;
     struct proc* joinee;
     struct proc* joiner;
-    dentry_t* blocker_dentry;
+    file_descriptor_t* blocker_fd;
 
     uint32_t signals_mask;
     uint32_t pending_signals_mask;
@@ -149,7 +149,7 @@ proc_zone_t* proc_find_zone(proc_t* p, uint32_t addr);
  */
 
 int init_join_blocker(proc_t* p);
-int init_read_blocker(proc_t* p, dentry_t* bd);
+int init_read_blocker(proc_t* p, file_descriptor_t* bfd);
 
 /**
  * DEBUG FUNCTIONS

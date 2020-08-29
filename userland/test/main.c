@@ -20,23 +20,17 @@ int main()
     arg[2] = (char*)0;
 
     int sock_fd = socket(PF_LOCAL, 0, 0);
-    
-    write(sock_fd, "ucmd> ", 5);
-    read(sock_fd, buf, 5);
-    write(1, buf, 5);
+    bind(sock_fd, "ke4.sock", 8);
+
+    int res = fork();
+    if (res == 0) {
+        execve("/bin/echo", arg, 0);
+        return -1;
+    }
 
     while (1) {
-        write(1, "ucmd> ", 5);
-        if (read(0, buf, 7) < 0) {
-            return -1;
-        }
-        int fork_res = fork();
-        if (fork_res == 0) {
-            execve("/bin/echo", arg, 0);
-            return 0;
-        } else {
-            wait(fork_res);
-        }
+        read(sock_fd, buf, 4);
+        write(1, buf, 4);
     }
     return 0;
 }

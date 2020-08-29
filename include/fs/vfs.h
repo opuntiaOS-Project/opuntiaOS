@@ -99,14 +99,6 @@ struct fs_ops {
 };
 typedef struct fs_ops fs_ops_t;
 
-struct socket {
-    int domain;
-    int type;
-    int protocol;
-    ringbuffer_t buffer;
-};
-typedef struct socket socket_t;
-
 enum FD_TYPE {
     FD_TYPE_FILE,
     FD_TYPE_SOCKET,
@@ -116,12 +108,21 @@ struct file_descriptor {
     uint32_t type;
     union {
         dentry_t* dentry; // type == FD_TYPE_FILE
-        socket_t* sock_entry; // type == FD_TYPE_SOCKET
+        struct socket* sock_entry; // type == FD_TYPE_SOCKET
     };
     uint32_t offset;
     file_ops_t* ops;
 };
 typedef struct file_descriptor file_descriptor_t;
+
+struct socket {
+    int domain;
+    int type;
+    int protocol;
+    ringbuffer_t buffer;
+    file_descriptor_t bind_file;
+};
+typedef struct socket socket_t;
 
 /**
  * DENTRIES

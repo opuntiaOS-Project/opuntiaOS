@@ -38,6 +38,8 @@ enum __sysid {
     SYSMMAP,
     SYSMUNMAP,
     SYSSOCKET,
+    SYSBIND,
+    SYSCONNECT,
 };
 typedef enum __sysid sysid_t;
 

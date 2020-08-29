@@ -50,6 +50,8 @@ void sys_handler(trapframe_t* tf)
         sys_mmap,
         sys_munmap,
         sys_socket,
+        sys_bind,
+        sys_connect,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
@@ -82,7 +84,7 @@ void sys_read(trapframe_t* tf)
 
     /* If we can't read right now, let's block until we can */
     if (!vfs_can_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3)) {
-        init_read_blocker(tasking_get_active_proc(), fd->dentry);
+        init_read_blocker(tasking_get_active_proc(), fd);
         presched();
     }
 
@@ -219,6 +221,44 @@ void sys_socket(trapframe_t* tf)
             return_with_val(res);
         }
     }
+}
+
+void sys_bind(trapframe_t* tf)
+{
+    proc_t* p = tasking_get_active_proc();
+    int sockfd = param1;
+    char* name = (char*)param2;
+    uint32_t len = (uint32_t)param3;
+
+    file_descriptor_t* sfd = proc_get_fd(p, sockfd);
+    if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
+        return_with_val(-EBADF);
+    }
+
+    if (sfd->sock_entry->domain == PF_LOCAL) {
+        return_with_val(local_socket_bind(sfd, name, len));
+    }
+    
+    return_with_val(0);
+}
+
+void sys_connect(trapframe_t* tf)
+{
+    proc_t* p = tasking_get_active_proc();
+    int sockfd = param1;
+    char* name = (char*)param2;
+    uint32_t len = (uint32_t)param3;
+
+    file_descriptor_t* sfd = proc_get_fd(p, sockfd);
+    if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
+        return_with_val(-EBADF);
+    }
+
+    if (sfd->sock_entry->domain == PF_LOCAL) {
+        return_with_val(local_socket_connect(sfd, name, len));
+    }
+
+    return_with_val(-EFAULT);
 }
 
 void sys_none(trapframe_t* tf) { }

@@ -21,5 +21,7 @@ int raise(int signo);
 int sigaction(int signo, void* callback);
 int mmap(mmap_params_t* params);
 int socket(int domain, int type, int protocol);
+int bind(int sockfd, char* name, int len);
+int connect(int sockfd, char* name, int len);
 
 #endif /* __oneOS__libsystem__SYSCALLS_H */

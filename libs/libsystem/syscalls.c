@@ -72,3 +72,13 @@ int socket(int domain, int type, int protocol)
 {
     return syscall(SYSSOCKET, (int)domain, (int)type, (int)protocol, 0, 0);
 }
+
+int bind(int sockfd, char* name, int len)
+{
+    return syscall(SYSBIND, (int)sockfd, (int)name, (int)len, 0, 0);
+}
+
+int connect(int sockfd, char* name, int len)
+{
+    return syscall(SYSCONNECT, (int)sockfd, (int)name, (int)len, 0, 0);
+}
