@@ -1,19 +1,20 @@
 # x86-32 building config
 # SET YOUR PATHS HERE
-I686_ELF_GCC = /home/nimelehin/build-i686-elf/linux/output/bin/i686-elf-gcc
-I686_ELF_LD = /home/nimelehin/build-i686-elf/linux/output/bin/i686-elf-ld
-I686_ELF_AR = /home/nimelehin/build-i686-elf/linux/output/bin/i686-elf-ar
+I686_ELF_GCC = i686-elf-gcc
+I686_ELF_LD = i686-elf-ld
+I686_ELF_AR = i686-elf-ar
 NASM = nasm
 
 # Sync config
 # SET YOUR PATHS HERE
 FUSE_EXT2 = fuse-ext2
 MKFS_LINUX = mkfs
+MKFS_MAC = /usr/local/opt/e2fsprogs/sbin/mkfs.ext2
 
 CC = ${I686_ELF_GCC}
 LD = ${I686_ELF_LD}
 AR = ${I686_ELF_AR}
 ASM = ${NASM}
-MKFS = ${MKFS_LINUX}
+MKFS = ${MKFS_MAC}
 
 MOUNT_EXT2 = ${FUSE_EXT2}
