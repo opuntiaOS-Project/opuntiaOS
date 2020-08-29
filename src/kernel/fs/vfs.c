@@ -190,6 +190,7 @@ int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
     /* Check if there is a file with the same name */
     dentry_t* tmp;
     if (vfs_lookup(dir, name, len, &tmp) == 0) {
+        dentry_put(tmp);
         return -EEXIST;
     }
 
@@ -268,6 +269,8 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
         cur_dent = dentry_get(root_fs_dev_id, 2);
         while (*path == '/')
             path++;
+    } else {
+        cur_dent = dentry;
     }
 
     while (*path != '\0') {
