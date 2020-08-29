@@ -19,6 +19,12 @@ int main()
     };
     arg[2] = (char*)0;
 
+    int sock_fd = socket(PF_LOCAL, 0, 0);
+    
+    write(sock_fd, "ucmd> ", 5);
+    read(sock_fd, buf, 5);
+    write(1, buf, 5);
+
     while (1) {
         write(1, "ucmd> ", 5);
         if (read(0, buf, 7) < 0) {

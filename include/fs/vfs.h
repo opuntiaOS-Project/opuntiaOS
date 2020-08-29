@@ -11,6 +11,7 @@
 
 #include <drivers/driver_manager.h>
 #include <fs/ext2/ext2.h>
+#include <algo/ringbuffer.h>
 
 #define VFS_MAX_FS_COUNT 5
 #define VFS_MAX_DEV_COUNT 5
@@ -98,11 +99,27 @@ struct fs_ops {
 };
 typedef struct fs_ops fs_ops_t;
 
+struct socket {
+    int domain;
+    int type;
+    int protocol;
+    ringbuffer_t buffer;
+};
+typedef struct socket socket_t;
+
+enum FD_TYPE {
+    FD_TYPE_FILE,
+    FD_TYPE_SOCKET,
+};
+
 struct file_descriptor {
-    dentry_t* dentry;
+    uint32_t type;
+    union {
+        dentry_t* dentry; // type == FD_TYPE_FILE
+        socket_t* sock_entry; // type == FD_TYPE_SOCKET
+    };
     uint32_t offset;
     file_ops_t* ops;
-    uint32_t padding;
 };
 typedef struct file_descriptor file_descriptor_t;
 

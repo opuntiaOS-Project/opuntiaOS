@@ -10,6 +10,7 @@
 #include <drivers/display.h>
 #include <errno.h>
 #include <fs/vfs.h>
+#include <io/sockets/socket.h>
 #include <mem/kmalloc.h>
 #include <utils/mem.h>
 
@@ -160,6 +161,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd)
         return -EFAULT;
     }
 
+    fd->type = FD_TYPE_FILE;
     fd->dentry = dentry_duplicate(file);
     fd->offset = 0;
     fd->ops = &file->ops->file;
@@ -172,7 +174,11 @@ int vfs_close(file_descriptor_t* fd)
         return -EFAULT;
     }
 
-    dentry_put(fd->dentry);
+    if (fd->type == FD_TYPE_FILE) {
+        dentry_put(fd->dentry);
+    } else {
+        socket_free(fd->sock_entry);
+    }
     fd->dentry = 0;
     fd->offset = 0;
     fd->ops = 0;

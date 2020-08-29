@@ -37,6 +37,7 @@ enum __sysid {
     SYSRAISE,
     SYSMMAP,
     SYSMUNMAP,
+    SYSSOCKET,
 };
 typedef enum __sysid sysid_t;
 
@@ -61,5 +62,32 @@ struct mmap_params {
     uint32_t offset;
 };
 typedef struct mmap_params mmap_params_t;
+
+/**
+ * SOCKETS
+ */
+
+enum SOCK_DOMAINS {
+    PF_LOCAL,
+    PF_INET,
+    PF_INET6,
+    PF_IPX,
+    PF_NETLINK,
+    PF_X25,
+    PF_AX25,
+    PF_ATMPVC,
+    PF_APPLETALK,
+    PF_PACKET,
+};
+
+enum SOCK_TYPES {
+    SOCK_STREAM,
+    SOCK_DGRAM,
+    SOCK_SEQPACKET,
+    SOCK_RAW,
+    SOCK_RDM,
+    SOCK_PACKET,
+};
+
 
 #endif /* __oneOS__API_H */

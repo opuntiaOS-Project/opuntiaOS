@@ -7,6 +7,7 @@
  */
 
 #include <errno.h>
+#include <io/sockets/local_socket.h>
 #include <sys_handler.h>
 #include <syscall_structs.h>
 #include <tasking/sched.h>
@@ -19,6 +20,8 @@
 
 /* From Linux 4.14.0 headers. */
 /* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
+
+#define return_with_val(val) (tf->eax = val);return
 
 static inline void set_return(trapframe_t* tf, uint32_t val)
 {
@@ -46,6 +49,7 @@ void sys_handler(trapframe_t* tf)
         sys_raise,
         sys_mmap,
         sys_munmap,
+        sys_socket,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
@@ -193,6 +197,28 @@ void sys_mmap(trapframe_t* tf)
 
 void sys_munmap(trapframe_t* tf)
 {
+}
+
+void sys_socket(trapframe_t* tf)
+{
+    proc_t* p = tasking_get_active_proc();
+    int domain = param1;
+    int type = param2;
+    int protocol = param3;
+
+    file_descriptor_t* fd = proc_get_free_fd(p);
+    if (!fd) {
+        return_with_val(-1);
+    }
+
+    if (domain == PF_LOCAL) {
+        int res = local_socket_create(type, protocol, fd);
+        if (!res) {
+            return_with_val(proc_get_fd_id(p, fd));
+        } else {
+            return_with_val(res);
+        }
+    }
 }
 
 void sys_none(trapframe_t* tf) { }

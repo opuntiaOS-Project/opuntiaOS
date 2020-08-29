@@ -20,5 +20,6 @@ int execve(char* path, char** argv, char** env);
 int raise(int signo);
 int sigaction(int signo, void* callback);
 int mmap(mmap_params_t* params);
+int socket(int domain, int type, int protocol);
 
 #endif /* __oneOS__libsystem__SYSCALLS_H */

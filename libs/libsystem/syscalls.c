@@ -67,3 +67,8 @@ int mmap(mmap_params_t* params)
 {
     return syscall(SYSMMAP, (int)params, 0, 0, 0, 0);
 }
+
+int socket(int domain, int type, int protocol)
+{
+    return syscall(SYSSOCKET, (int)domain, (int)type, (int)protocol, 0, 0);
+}
