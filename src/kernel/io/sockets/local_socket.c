@@ -74,7 +74,7 @@ int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
     }
 
     kprintf("Bind to %x", sock->sock_entry);
-    *(uint32_t*)sock->sock_entry->bind_file.dentry->inode->block = (uint32_t)sock->sock_entry;
+    sock->sock_entry->bind_file.dentry->sock = sock->sock_entry;
     return 0;
 }
 
@@ -93,8 +93,10 @@ int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
         return -ENOTSOCK;
     }
 
-    uint32_t sock_entry_addr = *(uint32_t*)bind_dentry->inode->block;
-    sock->sock_entry = ((socket_t*)sock_entry_addr);
-    kprintf("Connected to %x", sock_entry_addr);
+    if (!bind_dentry->sock) {
+        return -EBADF;
+    }
+    sock->sock_entry = bind_dentry->sock;
+    kprintf("Connected to %x", bind_dentry->sock);
     return 0;
 }

@@ -61,6 +61,8 @@ struct dentry {
 
     struct dentry* mountpoint;
     struct dentry* mounted_dentry;
+
+    struct socket* sock;
 };
 typedef struct dentry dentry_t;
 
