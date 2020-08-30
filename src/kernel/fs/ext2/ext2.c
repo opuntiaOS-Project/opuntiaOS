@@ -1015,7 +1015,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = ext2_write_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = get_fsdata;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = ext2_lookup;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT] = ext2_getdents;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = ext2_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = ext2_create;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = ext2_rm;
 

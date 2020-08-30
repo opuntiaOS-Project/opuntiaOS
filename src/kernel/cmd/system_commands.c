@@ -38,7 +38,7 @@ void _syscmd_ls(int argc, char* argv[])
     dentry_put(dir);
 
     dirent_t tmp;
-    // while (vfs_getdirent(&fd, &tmp) == 0) {
+    // while (vfs_getdents(&fd, &tmp) == 0) {
     //     kprintf(tmp.name);
     //     kprintf("\n");
     // }

@@ -229,36 +229,56 @@ int devfs_write_inode(dentry_t* dentry)
     return 0;
 }
 
-int devfs_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
+int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
     /* FIXME: Currently we leave, dir when offset is the max number. */
     if (*offset == 0xffffffff) {
-        return -1;
+        return 0;
     }
 
     /* Scanining dir from the start */
     if (*offset == 0) {
         if (!devfs_inode->first) {
-            return -EFAULT;
+            return 0;
         }
         *offset = (uint32_t)devfs_inode->first;
     }
 
-    devfs_inode_t* child_devfs_inode = (devfs_inode_t*)*offset;
-    res->inode_indx = child_devfs_inode->index;
+    dirent_t tmp;
+    tmp.name = 0;
 
-    uint32_t len = strlen(child_devfs_inode->name);
-    memcpy((void*)res->name, (void*)child_devfs_inode->name, len + 1);
+    int already_read = 0;
+    while (*offset != 0xffffffff) {
+        devfs_inode_t* child_devfs_inode = (devfs_inode_t*)*offset;
+        uint32_t name_len = strlen(child_devfs_inode->name);
+        int rec_len = 8 + name_len + 1;
 
-    if (child_devfs_inode->next) {
-        *offset = (uint32_t)child_devfs_inode->next;
-    } else {
-        *offset = 0xffffffff;
+        if (len < rec_len) {
+            if (already_read) {
+                return already_read;
+            } else {
+                return -EINVAL;
+            }
+        }
+
+        tmp.inode = child_devfs_inode->index;
+        tmp.rec_len = rec_len;
+        tmp.name_len = name_len;
+        memcpy(buf+already_read, (void*)&tmp, 8);
+        memcpy(buf+already_read+8, child_devfs_inode->name, name_len);
+        buf[already_read+rec_len-1] = '\0';
+        already_read += rec_len;
+        len -= rec_len;
+        if (child_devfs_inode->next) {
+            *offset = (uint32_t)child_devfs_inode->next;
+        } else {
+            *offset = 0xffffffff;
+        }
     }
 
-    return 0;
+    return already_read;
 }
 
 int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
@@ -346,7 +366,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = devfs_write_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = devfs_data;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = devfs_lookup;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT] = devfs_getdirent;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = devfs_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = 0;
     return fs_desc;

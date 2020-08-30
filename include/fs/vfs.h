@@ -35,8 +35,11 @@ typedef struct {
 } vfs_device_t;
 
 struct dirent {
-    uint32_t inode_indx;
-    char name[251];
+    uint32_t inode;
+    uint16_t rec_len;
+    uint8_t name_len;
+    uint8_t file_type;
+    char* name;
 };
 typedef struct dirent dirent_t;
 
@@ -75,7 +78,7 @@ struct file_ops {
     int (*read)(dentry_t*, uint8_t*, uint32_t, uint32_t);
     int (*write)(dentry_t*, uint8_t*, uint32_t, uint32_t);
     int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
-    int (*getdirent)(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
+    int (*getdents)(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
     int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
     int (*create)(dentry_t* dentry, const char* name, uint32_t len, mode_t mode);
     int (*rm)(dentry_t* dentry);

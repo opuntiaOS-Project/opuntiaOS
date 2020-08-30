@@ -135,7 +135,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.eject_device = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
 
     new_fs.file.mkdir = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
-    new_fs.file.getdirent = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT];
+    new_fs.file.getdents = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS];
     new_fs.file.lookup = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
     new_fs.file.can_read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
     new_fs.file.can_write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
@@ -254,7 +254,7 @@ int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len)
     if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
         return -ENOTDIR;
     }
-    int res = dir_fd->ops->getdirent(dir_fd->dentry, buf, &dir_fd->offset, len);
+    int res = dir_fd->ops->getdents(dir_fd->dentry, buf, &dir_fd->offset, len);
     return res;
 }
 

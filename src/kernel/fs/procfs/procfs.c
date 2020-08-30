@@ -22,18 +22,19 @@ fsdata_t procfs_data(dentry_t* dentry)
     return fsdata;
 }
 
-int procfs_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
+/* FIXME: New api */
+int procfs_getdents(dentry_t* dir, uint32_t* offset, dirent_t* res)
 {
-    if (*offset >= test_proc_num) {
-        return -1;
-    }
+    // if (*offset >= test_proc_num) {
+    //     return -1;
+    // }
 
-    res->inode_indx = *offset + 2;
-    char val = (*offset + (int)'0');
-    memcpy(res->name, "Proc", 4);
-    memcpy(res->name+4, &val, 1);
+    // res->inode = *offset + 2;
+    // char val = (*offset + (int)'0');
+    // memcpy(res->name, "Proc", 4);
+    // memcpy(res->name+4, &val, 1);
 
-    (*offset)++;
+    // (*offset)++;
     return 0;
 }
 
@@ -56,7 +57,7 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = procfs_write_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = procfs_data;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT] = procfs_getdirent;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = procfs_getdents;
     return fs_desc;
 }
 
