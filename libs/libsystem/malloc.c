@@ -55,7 +55,7 @@ void* malloc(size_t sz)
     // setup a new chunk, separeted from the firstfit chunk
     first_fit->free = false;
     first_fit->size = sz;
-    first_fit->next = (malloc_header_t*)(uint32_t)first_fit + sz + sizeof(malloc_header_t);
+    first_fit->next = (malloc_header_t*)((uint32_t)first_fit + sz + sizeof(malloc_header_t));
 
     // adjust the firstfit chunk
     first_fit->next->free = true;

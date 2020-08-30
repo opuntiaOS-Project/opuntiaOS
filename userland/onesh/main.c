@@ -95,9 +95,9 @@ bool _cmd_is_ascii(uint32_t key)
 
 int main()
 {
-    _cmd_app = malloc(32);
-    _cmd_buffer = malloc(32);
-    _cmd_parsed_buffer = malloc(32 * sizeof(char*));
+    _cmd_app = malloc(256);
+    _cmd_buffer = malloc(256);
+    _cmd_parsed_buffer = malloc(256 * sizeof(char*));
     memcpy(_cmd_app, "/bin/", 5);
     _cmd_loop();
     return 0;
