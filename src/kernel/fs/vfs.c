@@ -249,12 +249,13 @@ int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
     return dir->ops->file.mkdir(dir, name, len, mode | EXT2_S_IFDIR);
 }
 
-int vfs_getdirent(file_descriptor_t* dir_fd, dirent_t* res)
+int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len)
 {
     if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
         return -ENOTDIR;
     }
-    return dir_fd->ops->getdirent(dir_fd->dentry, &dir_fd->offset, res);
+    int res = dir_fd->ops->getdirent(dir_fd->dentry, buf, &dir_fd->offset, len);
+    return res;
 }
 
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result)

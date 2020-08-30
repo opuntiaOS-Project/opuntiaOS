@@ -24,7 +24,7 @@ int main()
 
     int res = fork();
     if (res == 0) {
-        execve("/bin/echo", arg, 0);
+        execve("/bin/ls", arg, 0);
         return -1;
     }
 

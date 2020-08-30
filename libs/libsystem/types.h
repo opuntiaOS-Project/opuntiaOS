@@ -16,4 +16,6 @@ typedef unsigned int   size_t;
 #define true  1
 #define false 0
 
+extern int errno;
+
 #endif /* __oneOS__libsystem__TYPES_H */

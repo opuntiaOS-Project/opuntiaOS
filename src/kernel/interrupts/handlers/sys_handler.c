@@ -52,6 +52,7 @@ void sys_handler(trapframe_t* tf)
         sys_socket,
         sys_bind,
         sys_connect,
+        sys_getdents,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
@@ -259,6 +260,14 @@ void sys_connect(trapframe_t* tf)
     }
 
     return_with_val(-EFAULT);
+}
+
+void sys_getdents(trapframe_t* tf)
+{
+    proc_t* p = tasking_get_active_proc();
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
+    int read = vfs_getdents(fd, (uint8_t*)param2, param3);
+    return_with_val(read);
 }
 
 void sys_none(trapframe_t* tf) { }

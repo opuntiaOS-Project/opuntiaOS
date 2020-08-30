@@ -40,6 +40,7 @@ enum __sysid {
     SYSSOCKET,
     SYSBIND,
     SYSCONNECT,
+    SYSGETDENTS,
 };
 typedef enum __sysid sysid_t;
 

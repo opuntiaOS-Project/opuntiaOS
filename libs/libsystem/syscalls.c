@@ -8,6 +8,8 @@
 
 #include "syscalls.h"
 
+int errno;
+
 static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
 {
     int ret;
@@ -81,4 +83,9 @@ int bind(int sockfd, char* name, int len)
 int connect(int sockfd, char* name, int len)
 {
     return syscall(SYSCONNECT, (int)sockfd, (int)name, (int)len, 0, 0);
+}
+
+int getdents(int fd, char* buf, int len)
+{
+    return syscall(SYSGETDENTS, (int)fd, (int)buf, (int)len, 0, 0);
 }

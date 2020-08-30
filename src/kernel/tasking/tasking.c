@@ -288,7 +288,7 @@ int tasking_exec(const char* path, const char** argv, const char** env)
     if (!str_validate_len(path, 128)) {
         return -EINVAL;
     }
-    kpath = kmem_bring_to_kernel(path, strlen(path));
+    kpath = kmem_bring_to_kernel(path, strlen(path) + 1);
 
     if (argv) {
         if (!ptrarr_validate_len(argv, 128)) {

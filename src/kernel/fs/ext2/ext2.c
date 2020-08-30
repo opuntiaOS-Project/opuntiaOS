@@ -17,7 +17,7 @@
 #define SUPERBLOCK _ext2_superblocks[dev->dev->id]
 #define GROUP_TABLES _ext2_group_table_info[dev->dev->id].table
 #define BLOCK_LEN(sb) (1024 << (sb->log_block_size))
-#define TO_EXT_BLOCK_SIZE(sb, x) (x / (2 << (sb->log_block_size)))
+#define TO_EXT_BLOCKS_CNT(sb, x) (x / (2 << (sb->log_block_size)))
 #define NORM_FILENAME(x) (x + ((4 - (x & 0b11)) & 0b11))
 
 static superblock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
@@ -334,7 +334,7 @@ static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
 static int _ext2_allocate_block_for_inode(dentry_t* dentry, uint32_t pref_group, uint32_t* block_index)
 {
     if (_ext2_allocate_block_index(dentry->dev, dentry->fsdata, block_index, pref_group) == 0) {
-        uint32_t blocks_per_inode = TO_EXT_BLOCK_SIZE(dentry->fsdata.sb, dentry->inode->blocks);
+        uint32_t blocks_per_inode = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
         if (_ext2_set_block_of_inode(dentry, blocks_per_inode, *block_index) == 0) {
             dentry->inode->blocks += BLOCK_LEN(dentry->fsdata.sb) / 512;
             dentry_set_flag(dentry, DENTRY_DIRTY);
@@ -416,7 +416,7 @@ static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t i
 
 static int _ext2_free_inode(dentry_t* dentry)
 {
-    uint32_t block_per_dir = TO_EXT_BLOCK_SIZE(dentry->fsdata.sb, dentry->inode->blocks);
+    uint32_t block_per_dir = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
 
     /* freeing all data blocks */
     for (int block_index = 0; block_index < block_per_dir; block_index++) {
@@ -500,6 +500,59 @@ static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t bl
         }
     }
     return -EFAULT;
+}
+
+/**
+ * _ext2_getdents_block puts dents into @buf from block with index @block_index.
+ * @block_index: index block to put from
+ * @buf: result buffer
+ * @len: len of the buffer @buf
+ * @inner_offset: offset of block, shows the start from where to start
+ * @scanned_bytes: keeps the result value how many bytes were scanned in this block.
+ * return: returns an error (if return < 0) or count of bytes written to @buf.
+ */
+static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint8_t* buf, uint32_t len, uint32_t inner_offset, uint32_t* scanned_bytes)
+{
+    if (block_index == 0) {
+        return -EINVAL;
+    }
+    const uint32_t block_len = BLOCK_LEN(fsdata.sb);
+    int already_read = 0;
+
+    uint8_t tmp_buf[MAX_BLOCK_LEN];
+    _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
+    for (;;) {
+        dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + inner_offset);
+        uint32_t record_name_len = NORM_FILENAME(start_of_entry->name_len);
+        uint32_t real_rec_len = 8 + record_name_len + 1; 
+
+        if (real_rec_len > len) {
+            /*  There is no space to put this element in the buffer.
+                If we havn't written anything, that means we can't fit
+                the elem in the buf, so, return an error */
+            if (already_read == 0) {
+                return -EINVAL;
+            }
+            return already_read;
+        }
+        
+        inner_offset += start_of_entry->rec_len;
+        *scanned_bytes += start_of_entry->rec_len;
+        if (start_of_entry->inode != 0) {
+            // Change it here, to have the correct copied data.
+            start_of_entry->rec_len = real_rec_len;
+            memcpy(buf+already_read, (uint8_t*)start_of_entry, real_rec_len);
+            buf[already_read+real_rec_len - 1] = '\0';
+            
+            already_read += real_rec_len;
+            len -= real_rec_len;
+        }
+
+        if (inner_offset >= block_len) {
+            return already_read;
+        }
+    }
+    return already_read;
 }
 
 static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len)
@@ -611,7 +664,7 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
 static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* name, int len)
 {
     uint32_t block_index;
-    uint32_t blocks_per_dir = TO_EXT_BLOCK_SIZE(dir->fsdata.sb, dir->inode->blocks);
+    uint32_t blocks_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
 
     for (int i = 0; i < blocks_per_dir; i++) {
         if (block_index = _ext2_get_block_of_inode(dir, i)) {
@@ -640,7 +693,7 @@ updated_inode:
 static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
 {
     uint32_t block_index;
-    uint32_t blocks_per_dir = TO_EXT_BLOCK_SIZE(dir->fsdata.sb, dir->inode->blocks);
+    uint32_t blocks_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
 
     for (int i = 0; i < blocks_per_dir; i++) {
         if (block_index = _ext2_get_block_of_inode(dir, i)) {
@@ -716,11 +769,8 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         already_read += read_from_block;
         read_offset = 0;
     }
-    if (len != 0) {
-        return -EFAULT;
-    }
-
-    return 0;
+    
+    return already_read;
 }
 
 int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
@@ -731,7 +781,7 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     uint32_t write_offset = start % block_len;
     uint32_t to_write = len;
     uint32_t already_written = start % block_len;
-    uint32_t blocks_allocated = TO_EXT_BLOCK_SIZE(dentry->fsdata.sb, dentry->inode->blocks);
+    uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
 
     for (uint32_t data_block_index, block_index = start_block_index; block_index <= end_block_index; block_index++) {
         uint32_t write_to_block = MIN(to_write, block_len - write_offset);
@@ -753,16 +803,12 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         dentry_set_flag(dentry, DENTRY_DIRTY);
     }
 
-    if (to_write != 0) {
-        return -EFAULT;
-    }
-
-    return 0;
+    return already_written;
 }
 
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
 {
-    uint32_t block_per_dir = TO_EXT_BLOCK_SIZE(dir->fsdata.sb, dir->inode->blocks);
+    uint32_t block_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
     for (int block_index = 0; block_index < block_per_dir; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
         if (_ext2_lookup_block(dir->dev, dir->fsdata, data_block_index, name, len, res_inode_indx) == 0) {
@@ -797,7 +843,7 @@ int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
 {
     const uint32_t block_len = BLOCK_LEN(dir->fsdata.sb);
-    uint32_t blocks_per_dir = TO_EXT_BLOCK_SIZE(dir->fsdata.sb, dir->inode->blocks);
+    uint32_t blocks_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
     if (*offset >= blocks_per_dir * block_len) {
         return -1;
     }
@@ -810,6 +856,32 @@ int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
     }
 
     return 0;
+}
+
+int ext2_getdents(dentry_t* dentry, uint8_t* buf, uint32_t* offset, uint32_t len)
+{
+    const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
+    uint32_t start_block_index = *offset / block_len;
+    uint32_t end_block_index = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
+    uint32_t read_offset = *offset % block_len;
+    uint32_t already_read = 0;
+
+    for (uint32_t block_index = start_block_index; block_index < end_block_index; block_index++) {
+        uint32_t data_block_index = _ext2_get_block_of_inode(dentry, block_index);
+        uint32_t read_from_block = MIN(len, block_len - read_offset);
+        int act_read = _ext2_getdents_block(dentry->dev, dentry->fsdata, data_block_index, buf+already_read, read_from_block, read_offset, offset);
+        if (act_read < 0) {
+            if (already_read == 0) {
+                return act_read;
+            }
+            return already_read;
+        }
+        len -= act_read;
+        already_read += act_read;
+        read_offset = 0;
+    }
+    
+    return already_read;
 }
 
 int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
@@ -943,7 +1015,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = ext2_write_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = get_fsdata;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = ext2_lookup;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT] = ext2_getdirent;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_GETDIRENT] = ext2_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = ext2_create;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = ext2_rm;
 
