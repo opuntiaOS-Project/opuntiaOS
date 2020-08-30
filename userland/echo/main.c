@@ -5,7 +5,10 @@ int main(int argc, char** argv)
     int res = fork();
 
     int sock_fd = socket(PF_LOCAL, 0, 0);
-    connect(sock_fd, "ke4.sock", 8);
+    res = connect(sock_fd, "ke4.sock", 8);
+    if (res < 0) {
+        return -1;
+    }
 
     while (1) {
         if (res)

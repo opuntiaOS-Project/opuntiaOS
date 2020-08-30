@@ -25,4 +25,4 @@ exec:
     jmp loop
     ; since that we launch a new prgram
 
-pathToLaunch:  db "/bin/test", 0
+pathToLaunch:  db "/bin/onesh", 0

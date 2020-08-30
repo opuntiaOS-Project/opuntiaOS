@@ -33,15 +33,15 @@ int tty_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     tty_entry_t* tty = _tty_get(dentry);
     uint32_t leno = ringbuffer_space_to_read(&tty->buffer);
-    ringbuffer_read(&tty->buffer, buf, leno);
+    int res = ringbuffer_read(&tty->buffer, buf, leno);
     tty->lines_avail--;
-    return leno;
+    return leno - 1; // the end is null-termination sign, we don't count
 }
 
 int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     kprintf("%s", buf);
-    return 0;
+    return len;
 }
 
 tty_entry_t* tty_new()

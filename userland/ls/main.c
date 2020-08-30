@@ -18,7 +18,16 @@ int main(int argc, char** argv)
     int bpos;
     char d_type;
 
-    fd = open("/bin", O_RDONLY | O_DIRECTORY);
+    if (argc > 1) {
+        fd = open(argv[1], O_RDONLY | O_DIRECTORY);
+    } else {
+        write(1, "No path\n", 8);
+        return -1;
+    }
+    if (fd < 0) {
+        write(1, "-fd\n", 4);
+        return -1;
+    }
     for(;;) {
         nread = getdents(fd, buf, BUF_SIZE);
         if (nread < 0) {

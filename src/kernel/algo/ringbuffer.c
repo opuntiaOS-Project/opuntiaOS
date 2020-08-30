@@ -101,7 +101,7 @@ uint32_t ringbuffer_write(ringbuffer_t* buf, const uint8_t* holder, uint32_t siz
 
 uint32_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data)
 {
-    if (buf->end != buf->start) {
+    if (buf->end + 1 != buf->start) {
         buf->zone.ptr[buf->end] = data;
         buf->end++;
         if (buf->end == buf->zone.len) {

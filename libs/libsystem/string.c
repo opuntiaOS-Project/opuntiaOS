@@ -36,3 +36,11 @@ int memcmp(const uint8_t* src1, const uint8_t* src2, uint32_t nbytes)
     }
     return 0;
 }
+
+uint32_t strlen(const char* s)
+{
+    uint32_t i = 0;
+    while (s[i] != '\0')
+        ++i;
+    return i;
+}

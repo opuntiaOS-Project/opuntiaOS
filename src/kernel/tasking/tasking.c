@@ -271,7 +271,9 @@ void tasking_fork(trapframe_t* tf)
 static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, char** env)
 {
     int res = _tasking_load(p, path);
-    proc_fill_up_stack(p, argc, argv, env);
+    if (res == 0) {
+        proc_fill_up_stack(p, argc, argv, env);
+    }
     return res;
 }
 
@@ -311,7 +313,6 @@ int tasking_exec(const char* path, const char** argv, const char** env)
         kargv = kmem_bring_to_kernel_ptrarr(argv, kargc);
     }
     
-
     /* Cleaning proc */
     dynamic_array_clear(&p->zones);
 
