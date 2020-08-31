@@ -60,9 +60,9 @@ void _cmd_input() {
     while (keycode != KEY_RETURN) {
         keycode = _cmd_getkeycode();
         if (_cmd_is_ascii(keycode) && _cmd_buffer_position < 255) {
-            char ascii_symbol = kbdriver_key_to_ascii(keycode);
-            print_char(ascii_symbol, WHITE_ON_BLACK, -1, -1);
-            _cmd_buffer[_cmd_buffer_position++] = ascii_symbol;
+            // char ascii_symbol = kbdriver_key_to_ascii(keycode);
+            // print_char(ascii_symbol, WHITE_ON_BLACK, -1, -1);
+            // _cmd_buffer[_cmd_buffer_position++] = ascii_symbol;
         }
         if (keycode == KEY_BACKSPACE && _cmd_buffer_position > 0) {
             delete_char(WHITE_ON_BLACK, -1, -1, 1);

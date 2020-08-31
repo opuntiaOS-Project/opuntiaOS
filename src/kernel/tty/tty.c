@@ -1,8 +1,8 @@
 #include <drivers/display.h>
 #include <drivers/keyboard.h>
 #include <fs/devfs/devfs.h>
-#include <mem/kmalloc.h>
 #include <fs/vfs.h>
+#include <mem/kmalloc.h>
 #include <tty/tty.h>
 
 static int next_tty = 0;
@@ -12,7 +12,7 @@ tty_entry_t ttys[TTY_MAX_COUNT];
 static tty_entry_t* _tty_get(dentry_t* dentry)
 {
     for (int i = 0; i < TTY_MAX_COUNT; i++) {
-        if (dentry->inode_indx == ttys[i].inode_indx){
+        if (dentry->inode_indx == ttys[i].inode_indx) {
             return &ttys[i];
         }
     }
@@ -64,16 +64,16 @@ tty_entry_t* tty_new()
     ttys[next_tty].lines_avail = 0;
     if (!ttys[next_tty].buffer.zone.start) {
         kprintf("Error: tty buffer allocation");
-        while(1) {}
+        while (1) { }
     }
     active_tty = &ttys[next_tty];
     next_tty++;
 
     dentry_put(mp);
-    return &ttys[next_tty-1];
+    return &ttys[next_tty - 1];
 }
 
-void tty_eat_key(char key)
+void tty_eat_key(key_t key)
 {
     tty_entry_t* tty = _tty_active();
     if (key == KEY_RETURN) {
@@ -82,12 +82,12 @@ void tty_eat_key(char key)
         ringbuffer_write_one(&tty->buffer, '\0');
         tty->lines_avail++;
     } else if (key == KEY_BACKSPACE) {
-        if (tty->buffer.end > tty->buffer.start) {
+        if (ringbuffer_space_to_read(&tty->buffer) > 0) {
             delete_char(WHITE_ON_BLACK, -1, -1, 1);
             tty->buffer.end--;
         }
     } else {
-        ringbuffer_write_one(&tty->buffer, key);
+        ringbuffer_write_one(&tty->buffer, (char)key);
         print_char(key, WHITE_ON_BLACK, -1, -1);
     }
 }

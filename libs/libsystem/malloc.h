@@ -11,7 +11,7 @@ extern int errno;
 
 struct __malloc_header {
     size_t size;
-    int free; /* Should be bool, but now it's int for an alignment */
+    bool free; /* Should be bool, but now it's int for an alignment */
     struct __malloc_header* next;
     struct __malloc_header* prev;
 };
