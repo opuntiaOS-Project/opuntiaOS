@@ -283,6 +283,10 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
         while (*path != '\0' && *path != '/')
             path++, len++;
 
+        if (len == 0) {
+            break;
+        }
+
         dentry_t* parent_dent = cur_dent;
         if (vfs_lookup(cur_dent, name, len, &cur_dent) < 0) {
             return -ENOENT;
