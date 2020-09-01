@@ -9,7 +9,7 @@
 #include <drivers/display.h>
 #include <drivers/driver_manager.h>
 #include <drivers/ide.h>
-#include <drivers/timer.h>
+#include <drivers/pit.h>
 
 #include <mem/kmalloc.h>
 #include <mem/pmm.h>
@@ -31,12 +31,14 @@
 
 /* If we stay our anythread alone it can't get keyboard input,
    so we will switch to idle_thread to fix it. */
-void idle_thread() {
-    while(1) {}
+void idle_thread()
+{
+    while (1) { }
 }
 
 // FIXME
-void launching() {
+void launching()
+{
     tasking_create_kernel_thread(idle_thread);
     tasking_start_init_proc();
     tasking_exit(0);
@@ -47,7 +49,7 @@ void stage3(mem_desc_t* mem_desc)
     clean_screen();
     gdt_setup();
     idt_setup();
-    init_timer();
+    pit_setup();
 
     // mem setup
     pmm_setup(mem_desc);
@@ -79,6 +81,5 @@ void stage3(mem_desc_t* mem_desc)
     tasking_create_kernel_thread(launching);
     presched_no_context(); /* Starting a scheduler */
 
-    while (1) {
-    }
+    while (1);
 }

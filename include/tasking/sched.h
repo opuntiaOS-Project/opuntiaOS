@@ -8,7 +8,7 @@
 
 #define CPU_CNT 1
 
-#define SCHED_INT 20
+#define SCHED_INT 100
 
 typedef struct {
     char *kstack;
