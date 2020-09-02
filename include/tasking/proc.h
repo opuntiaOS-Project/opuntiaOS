@@ -13,7 +13,7 @@
 #include <fs/vfs.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <tty/tty.h>
+#include <io/tty/tty.h>
 #include <types.h>
 #include <x86/idt.h>
 

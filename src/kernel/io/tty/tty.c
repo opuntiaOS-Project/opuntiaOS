@@ -3,7 +3,7 @@
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
-#include <tty/tty.h>
+#include <io/tty/tty.h>
 
 static int next_tty = 0;
 static tty_entry_t* active_tty = 0;

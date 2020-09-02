@@ -8,8 +8,9 @@
 
 #include <drivers/pit.h>
 #include <tasking/sched.h>
-#include <x86/common.h>
+#include <time/time_manager.h>
 #include <utils/kassert.h>
+#include <x86/common.h>
 
 static int ticks_to_sched = 0;
 static int _pit_set_frequency(uint16_t freq);
@@ -43,6 +44,7 @@ void pit_setup()
 
 void pit_handler()
 {
+    timeman_pit_tick();
     if (active_proc) {
         ticks_to_sched--;
         if (ticks_to_sched < 0) {

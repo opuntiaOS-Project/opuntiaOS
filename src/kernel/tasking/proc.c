@@ -10,7 +10,7 @@
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
-#include <tty/tty.h>
+#include <io/tty/tty.h>
 #include <x86/gdt.h>
 #include <x86/tss.h>
 

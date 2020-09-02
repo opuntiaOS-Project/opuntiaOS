@@ -1,5 +1,5 @@
 #include <drivers/keyboard.h>
-#include <tty/tty.h>
+#include <io/tty/tty.h>
 
 static key_t _scancodes[] = {
     KEY_UNKNOWN, //0

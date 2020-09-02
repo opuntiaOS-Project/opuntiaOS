@@ -19,7 +19,9 @@
 #include <fs/procfs/procfs.h>
 #include <fs/vfs.h>
 
-#include <tty/tty.h>
+#include <io/tty/tty.h>
+
+#include <time/time_manager.h>
 
 #include <cmd/cmd.h>
 #include <cmd/system_commands.h>
@@ -58,6 +60,8 @@ void stage3(mem_desc_t* mem_desc)
     // kernel self test
     kernel_self_test(true);
 
+    timeman_setup();
+
     // installing drivers
     driver_manager_init();
     pci_install();
@@ -81,5 +85,6 @@ void stage3(mem_desc_t* mem_desc)
     tasking_create_kernel_thread(launching);
     presched_no_context(); /* Starting a scheduler */
 
-    while (1);
+    while (1)
+        ;
 }

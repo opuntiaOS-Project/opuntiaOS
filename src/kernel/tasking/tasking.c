@@ -11,7 +11,7 @@
 #include <mem/kmalloc.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <tty/tty.h>
+#include <io/tty/tty.h>
 #include <x86/common.h>
 #include <x86/gdt.h>
 #include <x86/idt.h>
