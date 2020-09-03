@@ -82,3 +82,13 @@ void timeman_pit_tick()
         ticks = 0;
     }
 }
+
+time_t timeman_now()
+{
+    return time_since_epoch;
+}
+
+time_t timeman_seconds_since_boot()
+{
+    return time_since_boot;
+}

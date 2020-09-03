@@ -21,4 +21,7 @@ time_t timeman_to_seconds_since_epoch(uint8_t secs, uint8_t mins, uint8_t hrs, u
 int timeman_setup();
 void timeman_pit_tick();
 
+time_t timeman_now();
+time_t timeman_seconds_since_boot();
+
 #endif /* __oneOS__X86__TIME__TIME_MANAGER_H */

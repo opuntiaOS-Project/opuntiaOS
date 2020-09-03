@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
+#include <time/time_manager.h>
 #include <utils/kassert.h>
 
 #define MAX_BLOCK_LEN 1024
@@ -106,7 +107,7 @@ static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start,
     uint32_t sector = start / 512;
     uint32_t start_offset = start % 512;
     uint8_t tmp_buf[512];
-    
+
     while (len) {
         read(dev->dev, sector, tmp_buf);
         for (int i = 0; i < MIN(512 - start_offset, len); i++) {
@@ -524,7 +525,7 @@ static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t blo
     for (;;) {
         dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + inner_offset);
         uint32_t record_name_len = NORM_FILENAME(start_of_entry->name_len);
-        uint32_t real_rec_len = 8 + record_name_len + 1; 
+        uint32_t real_rec_len = 8 + record_name_len + 1;
 
         if (real_rec_len > len) {
             /*  There is no space to put this element in the buffer.
@@ -535,15 +536,15 @@ static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t blo
             }
             return already_read;
         }
-        
+
         inner_offset += start_of_entry->rec_len;
         *scanned_bytes += start_of_entry->rec_len;
         if (start_of_entry->inode != 0) {
             // Change it here, to have the correct copied data.
             start_of_entry->rec_len = real_rec_len;
-            memcpy(buf+already_read, (uint8_t*)start_of_entry, real_rec_len);
-            buf[already_read+real_rec_len - 1] = '\0';
-            
+            memcpy(buf + already_read, (uint8_t*)start_of_entry, real_rec_len);
+            buf[already_read + real_rec_len - 1] = '\0';
+
             already_read += real_rec_len;
             len -= real_rec_len;
         }
@@ -769,7 +770,7 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         already_read += read_from_block;
         read_offset = 0;
     }
-    
+
     return already_read;
 }
 
@@ -800,8 +801,9 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 
     if (dentry->inode->size != start + len) {
         dentry->inode->size = start + len;
-        dentry_set_flag(dentry, DENTRY_DIRTY);
     }
+    dentry->inode->mtime = (uint32_t)timeman_now();
+    dentry_set_flag(dentry, DENTRY_DIRTY);
 
     return already_written;
 }
@@ -869,7 +871,7 @@ int ext2_getdents(dentry_t* dentry, uint8_t* buf, uint32_t* offset, uint32_t len
     for (uint32_t block_index = start_block_index; block_index < end_block_index; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dentry, block_index);
         uint32_t read_from_block = MIN(len, block_len - read_offset);
-        int act_read = _ext2_getdents_block(dentry->dev, dentry->fsdata, data_block_index, buf+already_read, read_from_block, read_offset, offset);
+        int act_read = _ext2_getdents_block(dentry->dev, dentry->fsdata, data_block_index, buf + already_read, read_from_block, read_offset, offset);
         if (act_read < 0) {
             if (already_read == 0) {
                 return act_read;
@@ -880,7 +882,7 @@ int ext2_getdents(dentry_t* dentry, uint8_t* buf, uint32_t* offset, uint32_t len
         already_read += act_read;
         read_offset = 0;
     }
-    
+
     return already_read;
 }
 
