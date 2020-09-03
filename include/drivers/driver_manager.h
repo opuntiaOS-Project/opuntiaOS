@@ -86,10 +86,10 @@ enum DRIVER_FILE_SYSTEM_OPERTAION {
 typedef struct {
     uint8_t type;
     char name[DRIVER_NAME_LENGTH];
-    bool auto_start; // True if need to assign to a device
-    bool is_device_driver; // True if it's a dev driver (like ata driver or a mouse driver)
+    bool auto_start;
+    bool is_device_driver; // True if it's a dev driver (like ata driver)
     bool is_device_needed; // True if need to assign to a device
-    bool is_driver_needed; // True if need to assign to a device
+    bool is_driver_needed; // True if need to assign to a driver
     uint8_t type_of_needed_device;
     uint8_t type_of_needed_driver;
     uint8_t pci_serve_class;

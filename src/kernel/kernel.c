@@ -10,6 +10,7 @@
 #include <drivers/driver_manager.h>
 #include <drivers/ide.h>
 #include <drivers/pit.h>
+#include <drivers/mouse.h>
 
 #include <mem/kmalloc.h>
 #include <mem/pmm.h>
@@ -68,6 +69,7 @@ void stage3(mem_desc_t* mem_desc)
     ide_install();
     ata_install();
     kbdriver_install();
+    mouse_install();
     vfs_install();
     ext2_install();
     procfs_install();
