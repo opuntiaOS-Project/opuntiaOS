@@ -14,4 +14,7 @@ typedef char           bool;
 #define true  1
 #define false 0
 
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
 #endif

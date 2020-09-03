@@ -8,12 +8,14 @@
 
 #include <drivers/display.h>
 
-void kpanic(char *err_msg) {
+void kpanic(char* err_msg)
+{
     clean_screen();
     kprintf("*****\n");
     kprintf("Kernel Panic\n");
     kprintf("*****\n");
     kprintf(err_msg);
     kprintf("\n*****");
-    while (1) {}
+    asm volatile("cli\n");
+    asm volatile("hlt\n");
 }
