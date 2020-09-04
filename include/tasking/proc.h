@@ -81,6 +81,7 @@ struct proc {
     pdirectory_t* pdir;
     uint32_t pid;
     uint32_t status;
+    uint32_t prio;
 
     zone_t kstack;
     context_t* context; // context of kernel's registers

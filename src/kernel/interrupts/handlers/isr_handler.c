@@ -50,16 +50,16 @@ void isr_standart_handler(trapframe_t* tf)
     if (tf->int_no == 14) {
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
-            proc_t* p = tasking_get_active_proc();
+            proc_t* p = RUNNIG_PROC;
             kprintf("\nCrash %d\n", p->pid);
             tasking_die(p);
-            presched();
+            resched();
         }
     } else if (tf->int_no == 6) {
         kprintf("invalid opcode ");
-        proc_t* proc = tasking_get_active_proc();
+        proc_t* proc = RUNNIG_PROC;
         if (proc == 0) {
-            kpanic("in kernel\n");
+            kpanic("invalid opcode in kernel\n");
         } else {
             kprintf("in proc %d\n", proc->pid);
         }

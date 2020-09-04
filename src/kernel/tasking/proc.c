@@ -50,6 +50,8 @@ int proc_setup(proc_t* p)
         return -ENOMEM;
     }
 
+    p->prio = 6;
+
     return 0;
 }
 

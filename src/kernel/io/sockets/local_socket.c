@@ -57,7 +57,7 @@ int local_socket_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t 
 
 int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
 {
-    proc_t* p = tasking_get_active_proc();
+    proc_t* p = RUNNIG_PROC;
 
     uint32_t file_mode = EXT2_S_IFSOCK | EXT2_S_IRUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
     vfs_create(p->cwd, name, len, file_mode);
@@ -80,7 +80,7 @@ int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
 
 int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
 {
-    proc_t* p = tasking_get_active_proc();
+    proc_t* p = RUNNIG_PROC;
 
     dentry_t* bind_dentry;
     int res = vfs_resolve_path_start_from(p->cwd, name, &bind_dentry);

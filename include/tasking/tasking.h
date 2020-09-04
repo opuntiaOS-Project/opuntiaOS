@@ -16,16 +16,25 @@
 #include <types.h>
 #include <x86/idt.h>
 
+#define CPU_CNT 1
+#define THIS_CPU (&cpus[0])
+#define RUNNIG_PROC cpus[0].running_proc
 #define MAX_PROCESS_COUNT 1024
 #define MAX_DYING_PROCESS_COUNT 8
 #define MAX_OPENED_FILES 16
 #define SIGNALS_CNT 32
 
+typedef struct {
+    char* kstack;
+    context_t* scheduler; // context of sched's registers
+    proc_t* running_proc;
+} __attribute__((packed)) cpu_t;
+
+extern cpu_t cpus[CPU_CNT];
 extern proc_t proc[MAX_PROCESS_COUNT];
 extern uint32_t nxt_proc;
 extern uint32_t ended_proc;
 
-proc_t* tasking_get_active_proc();
 proc_t* tasking_get_proc(uint32_t pid);
 proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir);
 

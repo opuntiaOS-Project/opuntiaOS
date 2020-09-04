@@ -7,35 +7,38 @@
  */
 
 #include <tasking/proc.h>
+#include <tasking/sched.h>
 
-int should_unblock_join_block(proc_t* proc)
+int should_unblock_join_block(proc_t* p)
 {
     // TODO: Add more checks here.
-    if (proc->joinee->status == PROC_DEAD) {
+    if (p->joinee->status == PROC_DEAD) {
         return 1;
     }
     return 0;
 }
 
-int init_join_blocker(proc_t* proc)
+int init_join_blocker(proc_t* p)
 {
-    proc->status = PROC_BLOCKED;
-    proc->blocker.reason = BLOCKER_JOIN;
-    proc->blocker.should_unblock = should_unblock_join_block;
+    p->status = PROC_BLOCKED;
+    p->blocker.reason = BLOCKER_JOIN;
+    p->blocker.should_unblock = should_unblock_join_block;
+    sched_dequeue(p);
     return 0;
 }
 
 
-int should_unblock_read_block(proc_t* proc)
+int should_unblock_read_block(proc_t* p)
 {
-    return proc->blocker_fd->ops->can_read(proc->blocker_fd->dentry);
+    return p->blocker_fd->ops->can_read(p->blocker_fd->dentry);
 }
 
-int init_read_blocker(proc_t* proc, file_descriptor_t* bfd)
+int init_read_blocker(proc_t* p, file_descriptor_t* bfd)
 {
-    proc->blocker_fd = bfd;
-    proc->status = PROC_BLOCKED;
-    proc->blocker.reason = BLOCKER_JOIN;
-    proc->blocker.should_unblock = should_unblock_read_block;
+    p->blocker_fd = bfd;
+    p->status = PROC_BLOCKED;
+    p->blocker.reason = BLOCKER_JOIN;
+    p->blocker.should_unblock = should_unblock_read_block;
+    sched_dequeue(p);
     return 0;
 }

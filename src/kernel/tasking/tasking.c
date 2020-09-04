@@ -18,6 +18,8 @@
 #include <x86/tss.h>
 
 static int nxtpid = 1;
+
+cpu_t cpus[CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
 uint32_t nxt_proc;
 uint32_t ended_proc;
@@ -36,7 +38,7 @@ void switchuvm(proc_t* p)
     tss.esp0 = (uint32_t)(p->kstack.start + VMM_PAGE_SIZE);
     tss.ss0 = (SEG_KDATA << 3);
     // tss.iomap_offset = 0xffff;
-    active_proc = p;
+    RUNNIG_PROC = p;
     ltr(SEG_TSS << 3);
     vmm_switch_pdir(p->pdir);
 }
@@ -90,12 +92,12 @@ static int _tasking_load_bin(proc_t* p, file_descriptor_t* fd)
     return 0;
 }
 
-static int _tasking_load(proc_t* proc, const char* path)
+static int _tasking_load(proc_t* p, const char* path)
 {
     dentry_t* file;
     file_descriptor_t fd;
 
-    if (vfs_resolve_path_start_from(proc->cwd, path, &file) < 0) {
+    if (vfs_resolve_path_start_from(p->cwd, path, &file) < 0) {
         return -ENOENT;
     }
     if (vfs_open(file, &fd) < 0) {
@@ -104,14 +106,17 @@ static int _tasking_load(proc_t* proc, const char* path)
     }
 
     /* Put it back, since now we have a new cwd */
-    if (proc->cwd) {
-        dentry_put(proc->cwd);
+    if (p->cwd) {
+        dentry_put(p->cwd);
     }
 
-    int ret = _tasking_load_bin(proc, &fd);
+    int ret = _tasking_load_bin(p, &fd);
 
-    proc->cwd = dentry_get_parent(file);
-
+    if (!ret) {
+        p->cwd = dentry_get_parent(file);
+        sched_enqueue(p);
+    }
+    
     dentry_put(file);
     vfs_close(&fd);
     return ret;
@@ -119,29 +124,26 @@ static int _tasking_load(proc_t* proc, const char* path)
 
 static void _tasking_copy_proc(proc_t* new_proc)
 {
-    memcpy((void*)new_proc->tf, (void*)active_proc->tf, sizeof(trapframe_t));
-    new_proc->cwd = dentry_duplicate(active_proc->cwd);
-    new_proc->tty = active_proc->tty;
+    memcpy((void*)new_proc->tf, (void*)RUNNIG_PROC->tf, sizeof(trapframe_t));
+    new_proc->cwd = dentry_duplicate(RUNNIG_PROC->cwd);
+    new_proc->tty = RUNNIG_PROC->tty;
 
     /* TODO: change the size in advance */
-    for (int i = 0; i < active_proc->zones.size; i++) {
-        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&active_proc->zones, i);
+    for (int i = 0; i < RUNNIG_PROC->zones.size; i++) {
+        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&RUNNIG_PROC->zones, i);
         dynamic_array_push(&new_proc->zones, zone_to_copy);
     }
 
-    if (active_proc->fds) {
+    if (RUNNIG_PROC->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
-            if (active_proc->fds[i].dentry) {
+            if (RUNNIG_PROC->fds[i].dentry) {
                 file_descriptor_t* fd = &new_proc->fds[i];
-                vfs_open(active_proc->fds[i].dentry, fd);
+                vfs_open(RUNNIG_PROC->fds[i].dentry, fd);
             }
         }
     }
-}
 
-proc_t* tasking_get_active_proc()
-{
-    return active_proc;
+    sched_enqueue(new_proc);
 }
 
 proc_t* tasking_get_proc(uint32_t pid)
@@ -212,6 +214,7 @@ int tasking_create_kernel_thread(void* entry_point)
     proc_t* p = _tasking_alloc_kernel_thread(entry_point);
     p->pdir = vmm_get_kernel_pdir();
     p->status = PROC_RUNNING;
+    sched_enqueue(p);
     return 0;
 }
 
@@ -253,19 +256,19 @@ void tasking_fork(trapframe_t* tf)
 {
     proc_t* new_proc = _tasking_alloc_proc();
     new_proc->pdir = vmm_new_forked_user_pdir();
-    new_proc->status = active_proc->status;
+    new_proc->status = RUNNIG_PROC->status;
 
     /* copying data from proc to new proc */
     _tasking_copy_proc(new_proc);
 
     /* setting output */
     new_proc->tf->eax = 0;
-    active_proc->tf->eax = new_proc->pid;
+    RUNNIG_PROC->tf->eax = new_proc->pid;
 
     /*  After copying the task we need to flush tlb. To do that we need
         to reload cr3 register with a new pdir. To not waste our resources
         we will simply run other process and of course pdir will be refreshed. */
-    presched();
+    resched();
 }
 
 static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, char** env)
@@ -281,7 +284,7 @@ static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, 
 /* TODO: Posix & zeroing-on-demand */
 int tasking_exec(const char* path, const char** argv, const char** env)
 {
-    proc_t* p = tasking_get_active_proc();
+    proc_t* p = RUNNIG_PROC;
     char* kpath = 0;
     int kargc = 0;
     char** kargv = 0;
@@ -329,7 +332,7 @@ int tasking_exec(const char* path, const char** argv, const char** env)
 
 int tasking_waitpid(int pid)
 {
-    proc_t* proc = tasking_get_active_proc();
+    proc_t* proc = RUNNIG_PROC;
     proc_t* joinee_proc = tasking_get_proc(pid);
     if (!joinee_proc) {
         return -ESRCH;
@@ -337,15 +340,15 @@ int tasking_waitpid(int pid)
     proc->joinee = joinee_proc;
     joinee_proc->joiner = proc;
     init_join_blocker(proc);
-    presched();
+    resched();
     return 0;
 }
 
 /* Syscall */
 void tasking_exit(int exit_code)
 {
-    proc_t* proc = tasking_get_active_proc();
+    proc_t* proc = RUNNIG_PROC;
     proc->exit_code = exit_code;
     tasking_die(proc);
-    presched_no_context();
+    resched();
 }

@@ -85,8 +85,7 @@ void stage3(mem_desc_t* mem_desc)
     cli();
     clean_screen();
     tasking_create_kernel_thread(launching);
-    presched_no_context(); /* Starting a scheduler */
+    resched(); /* Starting a scheduler */
 
-    while (1)
-        ;
+    while (1);
 }
