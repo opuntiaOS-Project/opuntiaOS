@@ -6,39 +6,39 @@
  * Free Software Foundation.
  */
 
-#include <tasking/proc.h>
+#include <tasking/thread.h>
 #include <tasking/sched.h>
 
-int should_unblock_join_block(proc_t* p)
+int should_unblock_join_block(thread_t* thread)
 {
     // TODO: Add more checks here.
-    if (p->joinee->status == PROC_DEAD) {
+    if (thread->joinee->status == THREAD_DEAD) {
         return 1;
     }
     return 0;
 }
 
-int init_join_blocker(proc_t* p)
+int init_join_blocker(thread_t* thread)
 {
-    p->status = PROC_BLOCKED;
-    p->blocker.reason = BLOCKER_JOIN;
-    p->blocker.should_unblock = should_unblock_join_block;
-    sched_dequeue(p);
+    thread->status = THREAD_BLOCKED;
+    thread->blocker.reason = BLOCKER_JOIN;
+    thread->blocker.should_unblock = should_unblock_join_block;
+    sched_dequeue(thread);
     return 0;
 }
 
 
-int should_unblock_read_block(proc_t* p)
+int should_unblock_read_block(thread_t* thread)
 {
-    return p->blocker_fd->ops->can_read(p->blocker_fd->dentry);
+    return thread->blocker_fd->ops->can_read(thread->blocker_fd->dentry);
 }
 
-int init_read_blocker(proc_t* p, file_descriptor_t* bfd)
+int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 {
-    p->blocker_fd = bfd;
-    p->status = PROC_BLOCKED;
-    p->blocker.reason = BLOCKER_JOIN;
-    p->blocker.should_unblock = should_unblock_read_block;
-    sched_dequeue(p);
+    thread->blocker_fd = bfd;
+    thread->status = THREAD_BLOCKED;
+    thread->blocker.reason = BLOCKER_JOIN;
+    thread->blocker.should_unblock = should_unblock_read_block;
+    sched_dequeue(thread);
     return 0;
 }

@@ -33,7 +33,7 @@ static int _pit_set_frequency(uint16_t freq)
 
 void pit_setup()
 {
-    RUNNIG_PROC = 0; // TODO: Remove it from here 
+    RUNNIG_THREAD = 0; // TODO: Remove it from here 
     ticks_to_sched = SCHED_INT;
     int res = _pit_set_frequency(PIT_TICKS_PER_SECOND);
     if (res < 0) {
@@ -45,7 +45,7 @@ void pit_setup()
 void pit_handler()
 {
     timeman_pit_tick();
-    if (RUNNIG_PROC) {
+    if (RUNNIG_THREAD) {
         ticks_to_sched--;
         if (ticks_to_sched < 0) {
             ticks_to_sched = SCHED_INT;

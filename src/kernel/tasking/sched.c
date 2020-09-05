@@ -30,7 +30,7 @@ static void _init_cpus(cpu_t* cpu);
 static void _sched_init_buf(dynamic_array_t* buf);
 /* BUFFERS */
 static inline void _sched_swap_buffers();
-static inline proc_t* _master_buf_back();
+static inline thread_t* _master_buf_back();
 static inline void _sched_save_running_proc();
 /* DEBUG */
 static uint32_t _debug_count_of_proc_in_buf(dynamic_array_t* buf);
@@ -43,13 +43,13 @@ static void _init_cpus(cpu_t* cpu)
     cpu->scheduler = (context_t*)sp;
     memset((void*)cpu->scheduler, 0, sizeof(*cpu->scheduler));
     cpu->scheduler->eip = (uint32_t)sched;
-    cpu->running_proc = 0;
+    cpu->running_thread = 0;
 }
 
 static void _sched_init_buf(dynamic_array_t* buf)
 {
     for (int i = 0; i < PRIOS_COUNT; i++) {
-        dynamic_array_init_of_size(&buf[i], sizeof(proc_t*), 8);
+        dynamic_array_init_of_size(&buf[i], sizeof(thread_t*), 8);
     }
 }
 
@@ -61,14 +61,14 @@ static inline void _sched_swap_buffers()
     _buf_read_prio = 0;
 }
 
-static inline proc_t* _master_buf_back()
+static inline thread_t* _master_buf_back()
 {
-    return *((proc_t**)(dynamic_array_get(&_master_buf[_buf_read_prio], _master_buf[_buf_read_prio].size - 1)));
+    return *((thread_t**)(dynamic_array_get(&_master_buf[_buf_read_prio], _master_buf[_buf_read_prio].size - 1)));
 }
 
 static inline void _sched_save_running_proc()
 {
-    dynamic_array_push(&_slave_buf[RUNNIG_PROC->prio], &RUNNIG_PROC);
+    dynamic_array_push(&_slave_buf[RUNNIG_THREAD->process->prio], &RUNNIG_THREAD);
 }
 
 void scheduler_init()
@@ -86,13 +86,14 @@ void scheduler_init()
 
 void sched_unblock_procs()
 {
+    // TODO: Run each thread in proc
     proc_t* p;
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
-        if (p->status == PROC_BLOCKED && p->blocker.reason != BLOCKER_INVALID) {
-            if (p->blocker.should_unblock(p)) {
-                p->status = PROC_RUNNING;
-                sched_enqueue(p);
+        if (p->threads->status == THREAD_BLOCKED && p->threads->blocker.reason != BLOCKER_INVALID) {
+            if (p->threads->blocker.should_unblock(p->threads)) {
+                p->threads->status = THREAD_RUNNING;
+                sched_enqueue(p->threads);
             }
         }
     }
@@ -103,27 +104,28 @@ void resched()
 {
     tasking_kill_dying();
     sched_unblock_procs();
-    if (RUNNIG_PROC) {
+    if (RUNNIG_THREAD) {
         _sched_save_running_proc();
-        switch_contexts(&RUNNIG_PROC->context, THIS_CPU->scheduler);
+        switch_contexts(&RUNNIG_THREAD->context, THIS_CPU->scheduler);
     } else {
         switch_to_context(THIS_CPU->scheduler);
     }
 }
 
-void sched_enqueue(proc_t* p)
+void sched_enqueue(thread_t* thread)
 {
+    thread->status = THREAD_RUNNING;
 #ifdef SCHED_DEBUG
-    kprintf("enqueue %d\n", p->pid);
+    kprintf("enqueue %d\n", thread->tid);
 #endif
-    if (p->prio > MIN_PRIO) {
-        p->prio = MIN_PRIO;
+    if (thread->process->prio > MIN_PRIO) {
+        thread->process->prio = MIN_PRIO;
     }
 
-    dynamic_array_push(&_slave_buf[p->prio], &p);
+    dynamic_array_push(&_slave_buf[thread->process->prio], &thread);
 }
 
-void sched_dequeue(proc_t* p)
+void sched_dequeue(thread_t* p)
 {
 
 }
@@ -139,15 +141,16 @@ void sched()
             }
         }
 
-        proc_t* p = _master_buf_back();
+
+        thread_t* thread = _master_buf_back();
         dynamic_array_pop(&_master_buf[_buf_read_prio]);
 #ifdef SCHED_SHOW_STAT
         kprintf("%d", _debug_count_of_proc_in_buf(_master_buf));
 #endif
-        if (p->status == PROC_RUNNING) {
-            // kprintf("run %d\n", p->pid);
-            switchuvm(p);
-            switch_contexts(&THIS_CPU->scheduler, p->context);
+        if (thread->status == THREAD_RUNNING) {
+            // kprintf("run %d\n", thread->tid);
+            switchuvm(thread);
+            switch_contexts(&THIS_CPU->scheduler, thread->context);
         }
     }
 }

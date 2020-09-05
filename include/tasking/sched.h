@@ -24,7 +24,7 @@
 void scheduler_init();
 void resched();
 void sched();
-void sched_enqueue(proc_t* p);
-void sched_dequeue(proc_t* p);
+void sched_enqueue(thread_t* thread);
+void sched_dequeue(thread_t* thread);
 
 #endif // __oneOS__X86__TASKING__SCHED_H

@@ -77,7 +77,7 @@ void sys_fork(trapframe_t* tf)
 /* TODO: copying to/from user! */
 void sys_read(trapframe_t* tf)
 {
-    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_PROC, (int)param1);
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_THREAD->process, (int)param1);
     if (!fd) {
         set_return(tf, -1);
         return;
@@ -85,7 +85,7 @@ void sys_read(trapframe_t* tf)
 
     /* If we can't read right now, let's block until we can */
     if (!vfs_can_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3)) {
-        init_read_blocker(RUNNIG_PROC, fd);
+        init_read_blocker(RUNNIG_THREAD, fd);
         resched();
     }
 
@@ -96,7 +96,7 @@ void sys_read(trapframe_t* tf)
 /* TODO: copying to/from user! */
 void sys_write(trapframe_t* tf)
 {
-    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_PROC, (int)param1);
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_THREAD->process, (int)param1);
     if (!fd) {
         set_return(tf, -1);
         return;
@@ -108,7 +108,7 @@ void sys_write(trapframe_t* tf)
 
 void sys_open(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_PROC;
+    proc_t* p = RUNNIG_THREAD->process;
     file_descriptor_t* fd = proc_get_free_fd(p);
     dentry_t* file;
     if (vfs_resolve_path_start_from(p->cwd, (char*)param1, &file) < 0) {
@@ -126,7 +126,7 @@ void sys_open(trapframe_t* tf)
 
 void sys_close(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNIG_PROC, param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, param1);
     set_return(tf, vfs_close(fd));
 }
 
@@ -143,18 +143,18 @@ void sys_exec(trapframe_t* tf)
 
 void sys_sigaction(trapframe_t* tf)
 {
-    set_return(tf, signal_set_handler(RUNNIG_PROC, (int)param1, (void*)param2));
+    set_return(tf, signal_set_handler(RUNNIG_THREAD->process, (int)param1, (void*)param2));
 }
 
 void sys_sigreturn(trapframe_t* tf)
 {
-    signal_restore_proc_after_handling_signal(RUNNIG_PROC);
+    signal_restore_proc_after_handling_signal(RUNNIG_THREAD->process);
 }
 
 void sys_raise(trapframe_t* tf)
 {
-    signal_set_pending(RUNNIG_PROC, (int)param1);
-    signal_dispatch_pending(RUNNIG_PROC);
+    signal_set_pending(RUNNIG_THREAD->process, (int)param1);
+    signal_dispatch_pending(RUNNIG_THREAD->process);
 }
 
 void sys_mmap(trapframe_t* tf)
@@ -171,7 +171,7 @@ void sys_mmap(trapframe_t* tf)
     bool map_read = ((params->prot & PROT_READ) > 0);
     bool map_write = ((params->prot & PROT_WRITE) > 0);
 
-    proc_zone_t* zone = proc_new_random_zone(RUNNIG_PROC, params->size);
+    proc_zone_t* zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
     if (!zone) {
         set_return(tf, -ENOMEM);
         return;
@@ -204,7 +204,7 @@ void sys_munmap(trapframe_t* tf)
 
 void sys_socket(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_PROC;
+    proc_t* p = RUNNIG_THREAD->process;
     int domain = param1;
     int type = param2;
     int protocol = param3;
@@ -226,7 +226,7 @@ void sys_socket(trapframe_t* tf)
 
 void sys_bind(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_PROC;
+    proc_t* p = RUNNIG_THREAD->process;
     int sockfd = param1;
     char* name = (char*)param2;
     uint32_t len = (uint32_t)param3;
@@ -245,7 +245,7 @@ void sys_bind(trapframe_t* tf)
 
 void sys_connect(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_PROC;
+    proc_t* p = RUNNIG_THREAD->process;
     int sockfd = param1;
     char* name = (char*)param2;
     uint32_t len = (uint32_t)param3;
@@ -264,7 +264,7 @@ void sys_connect(trapframe_t* tf)
 
 void sys_getdents(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_PROC;
+    proc_t* p = RUNNIG_THREAD->process;
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
     int read = vfs_getdents(fd, (uint8_t*)param2, param3);
     return_with_val(read);

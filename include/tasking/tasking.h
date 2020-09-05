@@ -10,15 +10,16 @@
 #define __oneOS__X86__TASKING__TASKING_H
 
 #include <fs/vfs.h>
-#include <tasking/proc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
+#include <tasking/proc.h>
+#include <tasking/thread.h>
 #include <types.h>
 #include <x86/idt.h>
 
 #define CPU_CNT 1
 #define THIS_CPU (&cpus[0])
-#define RUNNIG_PROC cpus[0].running_proc
+#define RUNNIG_THREAD cpus[0].running_thread
 #define MAX_PROCESS_COUNT 1024
 #define MAX_DYING_PROCESS_COUNT 8
 #define MAX_OPENED_FILES 16
@@ -27,7 +28,7 @@
 typedef struct {
     char* kstack;
     context_t* scheduler; // context of sched's registers
-    proc_t* running_proc;
+    thread_t* running_thread;
 } __attribute__((packed)) cpu_t;
 
 extern cpu_t cpus[CPU_CNT];
@@ -42,7 +43,7 @@ proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir);
  * CPU FUNCTIONS
  */
 
-void switchuvm(proc_t* p);
+void switchuvm(thread_t* p);
 
 /**
  * TASK LOADING FUNCTIONS
@@ -56,7 +57,6 @@ int tasking_create_kernel_thread(void* entry_point);
  */
 
 void tasking_init();
-void tasking_die(proc_t* proc);
 void tasking_kill_dying();
 
 /**
