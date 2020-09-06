@@ -1,6 +1,6 @@
 #include <libsystem/syscalls.h>
 
-#define BUF_SIZE 32
+#define BUF_SIZE 1024
 
 struct linux_dirent {
     uint32_t inode;

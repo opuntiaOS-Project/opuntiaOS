@@ -79,12 +79,17 @@ typedef struct proc proc_t;
 /**
  * PROC FUNCTIONS
  */
-struct thread* proc_alloc_thread();
+uint32_t proc_alloc_pid();
 
 int proc_setup(proc_t* p);
 int proc_setup_tty(proc_t* p, tty_entry_t* tty);
 int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env);
 int proc_free(proc_t* p);
+
+struct thread* proc_alloc_thread();
+struct thread* proc_create_thread(proc_t* p);
+void proc_kill_all_threads(proc_t* p);
+void proc_kill_all_threads_except(proc_t* p, struct thread* gthread);
 
 /**
  * KTHREAD FUNCTIONS
@@ -97,7 +102,7 @@ int kthread_free(proc_t* p);
 
 
 int proc_load(proc_t* p, const char* path);
-int proc_copy_of(proc_t* new_proc, proc_t* from_proc);
+int proc_copy_of(proc_t* new_proc, struct thread* from_thread);
 
 int proc_die(proc_t* p);
 

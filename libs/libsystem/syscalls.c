@@ -89,3 +89,8 @@ int getdents(int fd, char* buf, int len)
 {
     return syscall(SYSGETDENTS, (int)fd, (int)buf, (int)len, 0, 0);
 }
+
+int system_pthread_create(thread_create_params_t* params)
+{
+    return syscall(SYSPTHREADCREATE, (int)params, 0, 0, 0, 0);
+}

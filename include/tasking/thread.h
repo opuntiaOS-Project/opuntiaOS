@@ -66,7 +66,7 @@ typedef struct thread thread_t;
  */
 
 int thread_setup_main(struct proc* p, thread_t* thread);
-int thread_setup(thread_t* thread);
+int thread_setup(struct proc* p, thread_t* thread);
 int thread_setup_kstack(thread_t* thread);
 
 void thread_set_stack(thread_t* thread, uint32_t ebp, uint32_t esp);

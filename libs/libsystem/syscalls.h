@@ -25,5 +25,6 @@ int socket(int domain, int type, int protocol);
 int bind(int sockfd, char* name, int len);
 int connect(int sockfd, char* name, int len);
 int getdents(int fd, char* buf, int len);
+int system_pthread_create(thread_create_params_t* params);
 
 #endif /* __oneOS__libsystem__SYSCALLS_H */

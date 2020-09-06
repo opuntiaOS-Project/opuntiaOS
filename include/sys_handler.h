@@ -26,6 +26,7 @@ void sys_socket(trapframe_t* tf);
 void sys_bind(trapframe_t* tf);
 void sys_connect(trapframe_t* tf);
 void sys_getdents(trapframe_t* tf);
+void sys_create_thread(trapframe_t* tf);
 
 void sys_none(trapframe_t* tf);
 

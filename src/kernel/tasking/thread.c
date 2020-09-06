@@ -76,6 +76,21 @@ int thread_setup_main(proc_t* p, thread_t* thread)
     return 0;
 }
 
+int thread_setup(proc_t* p, thread_t* thread)
+{
+    /* allocating kernel stack */
+    thread->kstack = zoner_new_zone(VMM_PAGE_SIZE);
+    if (!thread->kstack.start) {
+        return -ENOMEM;
+    }
+    
+    thread->process = p;
+    thread->tid = proc_alloc_pid();
+    _thread_setup_kstack(thread);
+    _thread_setup_segment_regs(thread);
+    return 0;
+}
+
 /**
  * STACK FUNCTIONS
  */

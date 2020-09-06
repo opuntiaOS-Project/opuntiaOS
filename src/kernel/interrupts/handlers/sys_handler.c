@@ -53,6 +53,7 @@ void sys_handler(trapframe_t* tf)
         sys_bind,
         sys_connect,
         sys_getdents,
+        sys_create_thread,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
@@ -171,7 +172,14 @@ void sys_mmap(trapframe_t* tf)
     bool map_read = ((params->prot & PROT_READ) > 0);
     bool map_write = ((params->prot & PROT_WRITE) > 0);
 
-    proc_zone_t* zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
+    proc_zone_t* zone;
+
+    if (map_stack) {
+        zone = proc_new_random_zone_backward(RUNNIG_THREAD->process, params->size);
+    } else {
+        zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
+    }
+    
     if (!zone) {
         set_return(tf, -ENOMEM);
         return;
@@ -268,6 +276,22 @@ void sys_getdents(trapframe_t* tf)
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
     int read = vfs_getdents(fd, (uint8_t*)param2, param3);
     return_with_val(read);
+}
+
+void sys_create_thread(trapframe_t* tf)
+{
+    proc_t* p = RUNNIG_THREAD->process;
+    thread_t* thread = proc_create_thread(p);
+    if (!thread) {
+        return_with_val(-EFAULT);
+    }
+
+    thread_create_params_t* params = (thread_create_params_t*)param1;
+    thread_set_eip(thread, params->entry_point);
+    uint32_t esp = params->stack_start + params->stack_size;
+    thread_set_stack(thread, esp, esp);
+
+    return_with_val(thread->tid);
 }
 
 void sys_none(trapframe_t* tf) { }

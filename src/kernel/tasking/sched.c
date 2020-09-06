@@ -19,8 +19,8 @@ dynamic_array_t buf1[PRIOS_COUNT];
 dynamic_array_t buf2[PRIOS_COUNT];
 
 static int _buf_read_prio;
-static dynamic_array_t* _master_buf;
-static dynamic_array_t* _slave_buf;
+static dynamic_array_t* _master_buf; // running threads
+static dynamic_array_t* _slave_buf; // running threads
 
 extern void switch_contexts(context_t** old, context_t* new);
 extern void switch_to_context(context_t* new);
@@ -101,7 +101,6 @@ void sched_unblock_threads()
     }
 }
 
-
 void resched()
 {
     tasking_kill_dying();
@@ -129,7 +128,6 @@ void sched_enqueue(thread_t* thread)
 
 void sched_dequeue(thread_t* p)
 {
-
 }
 
 void sched()
@@ -142,7 +140,6 @@ void sched()
                 _buf_read_prio++;
             }
         }
-
 
         thread_t* thread = _master_buf_back();
         dynamic_array_pop(&_master_buf[_buf_read_prio]);

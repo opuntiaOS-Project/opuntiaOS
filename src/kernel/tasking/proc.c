@@ -11,24 +11,39 @@
 #include <io/tty/tty.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
+#include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <x86/gdt.h>
 #include <x86/tss.h>
 
+static int proc_next_pid = 1;
+
 /* TODO: Will be removed */
 thread_t thread_storage[512];
 int threads_cnt = 0;
+
+/**
+ * HELPER FUNCTIONS
+ */
+
+#define FOREACH_THREAD(p)                               \
+    for (int i = 0; i < threads_cnt; i++) {             \
+        if (thread_storage[i].process->pid == p->pid) { \
+            thread_t* thread = &thread_storage[i];
+
+#define END_FOREACH \
+    }               \
+    }
 
 thread_t* proc_alloc_thread()
 {
     return &thread_storage[threads_cnt++];
 }
 
-#define FOREACH_THREAD(p) for (int i = 0; i < threads_cnt; i++) { \
-        if (thread_storage[i].process->pid == p->pid) {     \
-            thread_t* thread = &thread_storage[i];
-
-#define END_FOREACH } }
+uint32_t proc_alloc_pid()
+{
+    return proc_next_pid++;
+}
 
 /**
  * INIT FUNCTIONS
@@ -36,6 +51,7 @@ thread_t* proc_alloc_thread()
 
 int proc_setup(proc_t* p)
 {
+    p->pid = proc_alloc_pid();
     p->is_kthread = false;
 
     p->main_thread = proc_alloc_thread();
@@ -65,7 +81,7 @@ int proc_setup(proc_t* p)
     }
 
     p->status = PROC_ALIVE;
-    p->prio = 6;
+    p->prio = DEFAULT_PRIO;
 
     return 0;
 }
@@ -147,7 +163,6 @@ int proc_load(proc_t* p, const char* path)
 
     if (!ret) {
         p->cwd = dentry_get_parent(file);
-        // sched_enqueue(p);
     }
 
     dentry_put(file);
@@ -155,11 +170,10 @@ int proc_load(proc_t* p, const char* path)
     return ret;
 }
 
-int proc_copy_of(proc_t* new_proc, proc_t* from_proc)
+int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
 {
-    // FIXME!
-    /* Copying all threads here */
-    memcpy((void*)new_proc->main_thread->tf, (void*)from_proc->main_thread->tf, sizeof(trapframe_t));
+    proc_t* from_proc = from_thread->process;
+    memcpy((void*)new_proc->main_thread->tf, (void*)from_thread->tf, sizeof(trapframe_t));
 
     new_proc->cwd = dentry_duplicate(from_proc->cwd);
     new_proc->tty = from_proc->tty;
@@ -190,8 +204,6 @@ int proc_free(proc_t* p)
         return -ESRCH;
     }
 
-    p->pid = 0;
-
     /* closing opend fds */
     if (p->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
@@ -210,9 +222,8 @@ int proc_free(proc_t* p)
     dynamic_array_free(&p->zones);
 
     /* Key parts deletion. After that line you can't work with this process. */
-    FOREACH_THREAD(p) {
-        thread_free(thread);
-    } END_FOREACH
+    proc_kill_all_threads(p);
+    p->pid = 0;
 
     if (!p->is_kthread) {
         vmm_free_pdir(p->pdir);
@@ -228,6 +239,29 @@ int proc_die(proc_t* p)
     } END_FOREACH
     p->status = PROC_DYING;
     return 0;
+}
+
+thread_t* proc_create_thread(proc_t* p)
+{
+    thread_t* thread = proc_alloc_thread();
+    thread_setup(p, thread);
+    sched_enqueue(thread);
+    return thread;
+}
+
+void proc_kill_all_threads(proc_t* p)
+{
+    FOREACH_THREAD(p) {
+        thread_free(thread);
+    } END_FOREACH
+}
+
+void proc_kill_all_threads_except(proc_t* p, thread_t* gthread)
+{
+    FOREACH_THREAD(p) {
+        if (thread->tid != gthread->tid)
+            thread_free(thread);
+    } END_FOREACH
 }
 
 /**

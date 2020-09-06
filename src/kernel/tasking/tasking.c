@@ -18,8 +18,6 @@
 #include <x86/idt.h>
 #include <x86/tss.h>
 
-static int nxtpid = 1;
-
 cpu_t cpus[CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
 uint32_t nxt_proc;
@@ -93,7 +91,6 @@ proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
 static proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[nxt_proc++];
-    p->pid = nxtpid++;
     proc_setup(p);
     return p;
 }
@@ -101,7 +98,6 @@ static proc_t* _tasking_alloc_proc()
 static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
 {
     proc_t* p = &proc[nxt_proc++];
-    p->pid = nxtpid++;
     kthread_setup(p);
     kthread_setup_regs(p, entry_point);
     return p;
@@ -169,7 +165,7 @@ void tasking_fork(trapframe_t* tf)
     new_proc->pdir = vmm_new_forked_user_pdir();
 
     /* copying data from proc to new proc */
-    proc_copy_of(new_proc, RUNNIG_THREAD->process);
+    proc_copy_of(new_proc, RUNNIG_THREAD);
 
     /* setting output */
     new_proc->main_thread->tf->eax = 0;
@@ -196,6 +192,7 @@ static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, 
 /* TODO: Posix & zeroing-on-demand */
 int tasking_exec(const char* path, const char** argv, const char** env)
 {
+    thread_t* thread = RUNNIG_THREAD;
     proc_t* p = RUNNIG_THREAD->process;
     char* kpath = 0;
     int kargc = 0;
@@ -230,6 +227,9 @@ int tasking_exec(const char* path, const char** argv, const char** env)
 
     /* Cleaning proc */
     dynamic_array_clear(&p->zones);
+    proc_kill_all_threads_except(p, thread);
+    p->main_thread = thread;
+    p->pid = thread->tid;
 
     int ret = _tasking_do_exec(p, kpath, kargc, kargv, 0);
 

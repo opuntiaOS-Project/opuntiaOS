@@ -1,6 +1,7 @@
 #include <libsystem/malloc.h>
 #include <libsystem/string.h>
 #include <libsystem/syscalls.h>
+#include <libsystem/pthread.h>
 
 char* _cmd_app;
 char* _cmd_buffer;
