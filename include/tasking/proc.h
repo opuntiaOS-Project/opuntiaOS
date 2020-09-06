@@ -46,13 +46,21 @@ struct proc_zone {
 };
 typedef struct proc_zone proc_zone_t;
 
+enum PROC_STATUS {
+    PROC_INVALID = 0,
+    PROC_ALIVE,
+    PROC_DEAD,
+    PROC_DYING,
+};
+
 struct thread;
 struct proc {
     uint32_t sz;
     pdirectory_t* pdir;
     uint32_t pid;
     uint32_t prio;
-    struct thread* threads;
+    uint32_t status;
+    struct thread* main_thread;
 
     dynamic_array_t zones;
 

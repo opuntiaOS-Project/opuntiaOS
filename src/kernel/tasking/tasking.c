@@ -54,6 +54,18 @@ void _tasking_jumper()
  * TASK LOADING FUNCTIONS
  */
 
+extern thread_t thread_storage[512];
+extern int threads_cnt;
+thread_t* tasking_get_thread(uint32_t tid)
+{
+    for (int i = 0; i < threads_cnt; i++) {
+        if (thread_storage[i].tid == tid) {
+            return &thread_storage[i];
+        }
+    }
+    return 0;
+}
+
 proc_t* tasking_get_proc(uint32_t pid)
 {
     proc_t* p;
@@ -112,15 +124,15 @@ void tasking_start_init_proc()
         while (1) { }
     }
 
-    sched_enqueue(p->threads);
+    sched_enqueue(p->main_thread);
 }
 
 int tasking_create_kernel_thread(void* entry_point)
 {
     proc_t* p = _tasking_alloc_kernel_thread(entry_point);
     p->pdir = vmm_get_kernel_pdir();
-    p->threads->status = THREAD_RUNNING;
-    sched_enqueue(p->threads);
+    p->main_thread->status = THREAD_RUNNING;
+    sched_enqueue(p->main_thread);
     return 0;
 }
 
@@ -139,9 +151,9 @@ void tasking_kill_dying()
     proc_t* p;
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
-        if (p->threads->status == THREAD_DYING) {
+        if (p->status == PROC_DYING) {
             proc_free(p);
-            p->threads->status = THREAD_DEAD;
+            p->status = PROC_DEAD;
         }
     }
 }
@@ -160,14 +172,14 @@ void tasking_fork(trapframe_t* tf)
     proc_copy_of(new_proc, RUNNIG_THREAD->process);
 
     /* setting output */
-    new_proc->threads->tf->eax = 0;
+    new_proc->main_thread->tf->eax = 0;
     RUNNIG_THREAD->tf->eax = new_proc->pid;
 
     /*  After copying the task we need to flush tlb. To do that we need
         to reload cr3 register with a new pdir. To not waste our resources
         we will simply run other process and of course pdir will be refreshed. */
-    new_proc->threads->status = THREAD_RUNNING;
-    sched_enqueue(new_proc->threads);
+    new_proc->main_thread->status = THREAD_RUNNING;
+    sched_enqueue(new_proc->main_thread);
     resched();
 }
 
@@ -175,7 +187,7 @@ static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, 
 {
     int res = proc_load(p, path);
     if (res == 0) {
-        thread_fill_up_stack(p->threads, argc, argv, env);
+        thread_fill_up_stack(p->main_thread, argc, argv, env);
     }
     return res;
 }
@@ -233,11 +245,11 @@ int tasking_exec(const char* path, const char** argv, const char** env)
 int tasking_waitpid(int pid)
 {
     thread_t* thread = RUNNIG_THREAD;
-    proc_t* joinee_proc = tasking_get_proc(pid);
-    if (!joinee_proc) {
+    thread_t* joinee_thread = tasking_get_thread(pid);
+    if (!joinee_thread) {
         return -ESRCH;
     }
-    thread->joinee = joinee_proc->threads;
+    thread->joinee = joinee_thread;
     init_join_blocker(thread);
     resched();
     return 0;
@@ -247,7 +259,7 @@ int tasking_waitpid(int pid)
 void tasking_exit(int exit_code)
 {
     proc_t* proc = RUNNIG_THREAD->process;
-    proc->threads->exit_code = exit_code;
+    proc->main_thread->exit_code = exit_code;
     proc_die(proc);
     resched();
 }

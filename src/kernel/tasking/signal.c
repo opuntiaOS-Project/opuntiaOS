@@ -43,14 +43,14 @@ void signal_init()
 
 static inline void signal_push_to_user_stack(proc_t* proc, uint32_t value)
 {
-    proc->threads->tf->esp -= 4;
-    *((uint32_t*)proc->threads->tf->esp) = value;
+    proc->main_thread->tf->esp -= 4;
+    *((uint32_t*)proc->main_thread->tf->esp) = value;
 }
 
 static inline uint32_t signal_pop_from_user_stack(proc_t* proc)
 {
-    uint32_t val = *((uint32_t*)proc->threads->tf->esp);
-    proc->threads->tf->esp += 4;
+    uint32_t val = *((uint32_t*)proc->main_thread->tf->esp);
+    proc->main_thread->tf->esp += 4;
     return val;
 }
 
@@ -102,17 +102,17 @@ int signal_set_pending(proc_t* proc, int signo)
 
 static int signal_setup_stack_to_handle_signal(proc_t* proc, int signo)
 {
-    uint32_t old_esp = proc->threads->tf->esp;
-    signal_push_to_user_stack(proc, proc->threads->tf->eflags);
-    signal_push_to_user_stack(proc, proc->threads->tf->eip);
-    signal_push_to_user_stack(proc, proc->threads->tf->eax);
-    signal_push_to_user_stack(proc, proc->threads->tf->ebx);
-    signal_push_to_user_stack(proc, proc->threads->tf->ecx);
-    signal_push_to_user_stack(proc, proc->threads->tf->edx);
+    uint32_t old_esp = proc->main_thread->tf->esp;
+    signal_push_to_user_stack(proc, proc->main_thread->tf->eflags);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->eip);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->eax);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->ebx);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->ecx);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->edx);
     signal_push_to_user_stack(proc, old_esp);
-    signal_push_to_user_stack(proc, proc->threads->tf->ebp);
-    signal_push_to_user_stack(proc, proc->threads->tf->esi);
-    signal_push_to_user_stack(proc, proc->threads->tf->edi);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->ebp);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->esi);
+    signal_push_to_user_stack(proc, proc->main_thread->tf->edi);
     signal_push_to_user_stack(proc, (uint32_t)proc->signal_handlers[signo]);
     signal_push_to_user_stack(proc, (uint32_t)signo);
     signal_push_to_user_stack(proc, 0); /* fake return address */
@@ -121,21 +121,21 @@ static int signal_setup_stack_to_handle_signal(proc_t* proc, int signo)
 
 int signal_restore_proc_after_handling_signal(proc_t* proc)
 {
-    int ret = proc->threads->tf->ebx;
-    proc->threads->tf->esp += 12; /* cleaning 3 last pushes */
+    int ret = proc->main_thread->tf->ebx;
+    proc->main_thread->tf->esp += 12; /* cleaning 3 last pushes */
 
-    proc->threads->tf->edi = signal_pop_from_user_stack(proc);
-    proc->threads->tf->esi = signal_pop_from_user_stack(proc);
-    proc->threads->tf->ebp = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->edi = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->esi = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->ebp = signal_pop_from_user_stack(proc);
     uint32_t old_esp = signal_pop_from_user_stack(proc);
-    proc->threads->tf->edx = signal_pop_from_user_stack(proc);
-    proc->threads->tf->ecx = signal_pop_from_user_stack(proc);
-    proc->threads->tf->ebx = signal_pop_from_user_stack(proc);
-    proc->threads->tf->eax = signal_pop_from_user_stack(proc);
-    proc->threads->tf->eip = signal_pop_from_user_stack(proc);
-    proc->threads->tf->eflags = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->edx = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->ecx = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->ebx = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->eax = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->eip = signal_pop_from_user_stack(proc);
+    proc->main_thread->tf->eflags = signal_pop_from_user_stack(proc);
 
-    if (old_esp != proc->threads->tf->esp) {
+    if (old_esp != proc->main_thread->tf->esp) {
         kpanic("ESPs are diff after signal");
     }
 
@@ -153,7 +153,7 @@ static int signal_process(proc_t* proc, int signo)
 {
     if (proc->signal_handlers[signo]) {
         signal_setup_stack_to_handle_signal(proc, signo);
-        proc->threads->tf->eip = _signal_jumper_zone.start;
+        proc->main_thread->tf->eip = _signal_jumper_zone.start;
         return 0;
     } else {
         int result = signal_default_action(signo);

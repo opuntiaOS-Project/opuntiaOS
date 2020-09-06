@@ -23,15 +23,15 @@ int kthread_setup(proc_t* p)
 {
     p->is_kthread = true;
     /* allocating kernel stack */
-    p->threads = proc_alloc_thread();
-    p->threads->tid = p->pid;
-    p->threads->process = p;
+    p->main_thread = proc_alloc_thread();
+    p->main_thread->tid = p->pid;
+    p->main_thread->process = p;
 
-    p->threads->kstack = zoner_new_zone(VMM_PAGE_SIZE);
-    if (!p->threads->kstack.start) {
+    p->main_thread->kstack = zoner_new_zone(VMM_PAGE_SIZE);
+    if (!p->main_thread->kstack.start) {
         return -ENOMEM;
     }
-    _thread_setup_kstack(p->threads);
+    _thread_setup_kstack(p->main_thread);
 
     /* setting current work directory */
     p->cwd = 0;
@@ -54,19 +54,19 @@ int kthread_setup_regs(proc_t* p, void* entry_point)
     }
 
     kthread_setup_segment_regs(p);
-    p->threads->tf->ebp = (stack.start + VMM_PAGE_SIZE);
-    p->threads->tf->esp = p->threads->tf->ebp;
-    p->threads->tf->eip = (uint32_t)entry_point;
+    p->main_thread->tf->ebp = (stack.start + VMM_PAGE_SIZE);
+    p->main_thread->tf->esp = p->main_thread->tf->ebp;
+    p->main_thread->tf->eip = (uint32_t)entry_point;
     return 0;
 }
 
 void kthread_setup_segment_regs(proc_t* p)
 {
-    p->threads->tf->cs = (SEG_KCODE << 3);
-    p->threads->tf->ds = (SEG_KDATA << 3);
-    p->threads->tf->es = p->threads->tf->ds;
-    p->threads->tf->ss = p->threads->tf->ds;
-    p->threads->tf->eflags = FL_IF;
+    p->main_thread->tf->cs = (SEG_KCODE << 3);
+    p->main_thread->tf->ds = (SEG_KDATA << 3);
+    p->main_thread->tf->es = p->main_thread->tf->ds;
+    p->main_thread->tf->ss = p->main_thread->tf->ds;
+    p->main_thread->tf->eflags = FL_IF;
 }
 
 int kthread_free(proc_t* p)

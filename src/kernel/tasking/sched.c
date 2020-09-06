@@ -84,16 +84,18 @@ void scheduler_init()
     }
 }
 
-void sched_unblock_procs()
+extern thread_t thread_storage[512];
+extern int threads_cnt;
+void sched_unblock_threads()
 {
     // TODO: Run each thread in proc
-    proc_t* p;
-    for (int i = 0; i < nxt_proc; i++) {
-        p = &proc[i];
-        if (p->threads->status == THREAD_BLOCKED && p->threads->blocker.reason != BLOCKER_INVALID) {
-            if (p->threads->blocker.should_unblock(p->threads)) {
-                p->threads->status = THREAD_RUNNING;
-                sched_enqueue(p->threads);
+    thread_t* thread;
+    for (int i = 0; i < threads_cnt; i++) {
+        thread = &thread_storage[i];
+        if (thread->status == THREAD_BLOCKED && thread->blocker.reason != BLOCKER_INVALID) {
+            if (thread->blocker.should_unblock(thread)) {
+                thread->status = THREAD_RUNNING;
+                sched_enqueue(thread);
             }
         }
     }
@@ -103,7 +105,7 @@ void sched_unblock_procs()
 void resched()
 {
     tasking_kill_dying();
-    sched_unblock_procs();
+    sched_unblock_threads();
     if (RUNNIG_THREAD) {
         _sched_save_running_proc();
         switch_contexts(&RUNNIG_THREAD->context, THIS_CPU->scheduler);
