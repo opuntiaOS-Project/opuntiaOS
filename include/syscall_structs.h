@@ -35,15 +35,21 @@ enum __sysid {
     SYSSIGACTION,
     SYSSIGRETURN,
     SYSRAISE,
+    SYSGETPID,
     SYSMMAP,
     SYSMUNMAP,
     SYSSOCKET,
     SYSBIND,
     SYSCONNECT,
     SYSGETDENTS,
+    SYSIOCTL,
+    SYSSETPGID,
+    SYSGETPGID,
     SYSPTHREADCREATE,
 };
 typedef enum __sysid sysid_t;
+
+typedef uint32_t pid_t;
 
 #define MAP_SHARED 0x01
 #define MAP_PRIVATE 0x02
@@ -92,6 +98,14 @@ enum SOCK_TYPES {
     SOCK_RDM,
     SOCK_PACKET,
 };
+
+/**
+ * IOCTL
+ */
+
+/* TTY */
+#define TIOCGPGRP 0x0101
+#define TIOCSPGRP 0x0102
 
 /**
  * THREADS

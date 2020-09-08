@@ -143,6 +143,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.file.write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
     new_fs.file.create = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
     new_fs.file.rm = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RM];
+    new_fs.file.ioctl = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
 
     new_fs.dentry.write_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
     new_fs.dentry.read_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];

@@ -1,9 +1,12 @@
 #include <drivers/display.h>
 #include <drivers/keyboard.h>
+#include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
-#include <mem/kmalloc.h>
 #include <io/tty/tty.h>
+#include <mem/kmalloc.h>
+#include <syscall_structs.h>
+#include <tasking/signal.h>
 
 static int next_tty = 0;
 static tty_entry_t* active_tty = 0;
@@ -44,6 +47,21 @@ int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return len;
 }
 
+int tty_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+{
+    tty_entry_t* tty = _tty_get(dentry);
+
+    switch (cmd) {
+    case TIOCGPGRP:
+        return tty->pgid;
+    case TIOCSPGRP:
+        tty->pgid = arg;
+        return 0;
+    }
+    
+    return -EINVAL;
+}
+
 tty_entry_t* tty_new()
 {
     dentry_t* mp;
@@ -57,6 +75,7 @@ tty_entry_t* tty_new()
     fops.can_read = tty_can_read;
     fops.read = tty_read;
     fops.write = tty_write;
+    fops.ioctl = tty_ioctl;
     devfs_inode_t* res = devfs_register(mp, name, 4, 0, &fops);
     ttys[next_tty].id = next_tty;
     ttys[next_tty].inode_indx = res->index;
@@ -75,6 +94,12 @@ tty_entry_t* tty_new()
 
 void tty_eat_key(key_t key)
 {
+    if (key == KEY_LEFT) {
+        signal_set_pending(RUNNIG_THREAD->process, SIGNAL_ACTION_TERMINATE);
+        signal_dispatch_pending(RUNNIG_THREAD->process);
+        return;
+    }
+
     tty_entry_t* tty = _tty_active();
     if (key == KEY_RETURN) {
         print_char('\n', WHITE_ON_BLACK, -1, -1);

@@ -1021,6 +1021,8 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = ext2_create;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = ext2_rm;
 
+    fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = 0;
+
     return fs_desc;
 }
 

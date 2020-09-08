@@ -22,6 +22,7 @@ extern int _thread_setup_kstack(thread_t* thread);
 int kthread_setup(proc_t* p)
 {
     p->pid = proc_alloc_pid();
+    p->pgid = p->pid;
     p->is_kthread = true;
     /* allocating kernel stack */
     p->main_thread = proc_alloc_thread();

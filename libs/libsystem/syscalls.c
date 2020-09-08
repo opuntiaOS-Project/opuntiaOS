@@ -90,6 +90,25 @@ int getdents(int fd, char* buf, int len)
     return syscall(SYSGETDENTS, (int)fd, (int)buf, (int)len, 0, 0);
 }
 
+int ioctl(int fd, uint32_t cmd, uint32_t arg) {
+    return syscall(SYSIOCTL, (int)fd, (int)cmd, (int)arg, 0, 0);
+}
+
+pid_t getpid()
+{
+    return syscall(SYSGETPID, 0, 0, 0, 0, 0);
+}
+
+int setpgid(pid_t pid, pid_t pgid)
+{
+    return syscall(SYSSETPGID, (int)pid, (int)pgid, 0, 0, 0);
+}
+
+pid_t getpgid(pid_t pid)
+{
+    return syscall(SYSGETPGID, (int)pid, 0, 0, 0, 0);
+}
+
 int system_pthread_create(thread_create_params_t* params)
 {
     return syscall(SYSPTHREADCREATE, (int)params, 0, 0, 0, 0);

@@ -52,6 +52,7 @@ uint32_t proc_alloc_pid()
 int proc_setup(proc_t* p)
 {
     p->pid = proc_alloc_pid();
+    p->pgid = p->pid;
     p->is_kthread = false;
 
     p->main_thread = proc_alloc_thread();

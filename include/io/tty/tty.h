@@ -13,6 +13,7 @@ struct tty_entry {
     int inode_indx;
     ringbuffer_t buffer;
     int lines_avail;
+    uint32_t pgid;
 };
 typedef struct tty_entry tty_entry_t;
 

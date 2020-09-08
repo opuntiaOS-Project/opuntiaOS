@@ -21,7 +21,9 @@
 /* From Linux 4.14.0 headers. */
 /* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
 
-#define return_with_val(val) (tf->eax = val);return
+#define return_with_val(val) \
+    (tf->eax = val);         \
+    return
 
 static inline void set_return(trapframe_t* tf, uint32_t val)
 {
@@ -47,12 +49,16 @@ void sys_handler(trapframe_t* tf)
         sys_sigaction,
         sys_sigreturn, // When this is moved, change signal_caller.s for now.
         sys_raise,
+        sys_getpid,
         sys_mmap,
         sys_munmap,
         sys_socket,
         sys_bind,
         sys_connect,
         sys_getdents,
+        sys_ioctl,
+        sys_setpgid,
+        sys_getpgid,
         sys_create_thread,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
@@ -158,6 +164,11 @@ void sys_raise(trapframe_t* tf)
     signal_dispatch_pending(RUNNIG_THREAD->process);
 }
 
+void sys_getpid(trapframe_t* tf)
+{
+    return_with_val(RUNNIG_THREAD->tid);
+}
+
 void sys_mmap(trapframe_t* tf)
 {
     mmap_params_t* params = (mmap_params_t*)param1;
@@ -179,7 +190,7 @@ void sys_mmap(trapframe_t* tf)
     } else {
         zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
     }
-    
+
     if (!zone) {
         set_return(tf, -ENOMEM);
         return;
@@ -247,7 +258,7 @@ void sys_bind(trapframe_t* tf)
     if (sfd->sock_entry->domain == PF_LOCAL) {
         return_with_val(local_socket_bind(sfd, name, len));
     }
-    
+
     return_with_val(0);
 }
 
@@ -276,6 +287,48 @@ void sys_getdents(trapframe_t* tf)
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
     int read = vfs_getdents(fd, (uint8_t*)param2, param3);
     return_with_val(read);
+}
+
+void sys_ioctl(trapframe_t* tf)
+{
+    proc_t* p = RUNNIG_THREAD->process;
+    file_descriptor_t* fd = proc_get_fd(p, param1);
+
+    if (!fd->dentry) {
+        return_with_val(-EBADF);
+    }
+
+    if (fd->dentry->ops->file.ioctl) {
+        return_with_val(fd->dentry->ops->file.ioctl(fd->dentry, param2, param3));
+    } else {
+        return_with_val(-EACCES);
+    }
+}
+
+void sys_setpgid(trapframe_t* tf)
+{
+    uint32_t pid = param1;
+    uint32_t pgid = param2;
+
+    proc_t* p = tasking_get_proc(pid);
+    if (!p) {
+        return_with_val(-ESRCH);
+    }
+
+    p->pgid = pgid;
+    return_with_val(0);
+}
+
+void sys_getpgid(trapframe_t* tf)
+{
+    uint32_t pid = param1;
+
+    proc_t* p = tasking_get_proc(pid);
+    if (!p) {
+        return_with_val(-ESRCH);
+    }
+
+    return_with_val(p->pgid);
 }
 
 void sys_create_thread(trapframe_t* tf)

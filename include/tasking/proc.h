@@ -58,6 +58,7 @@ struct proc {
     uint32_t sz;
     pdirectory_t* pdir;
     uint32_t pid;
+    uint32_t pgid;
     uint32_t prio;
     uint32_t status;
     struct thread* main_thread;

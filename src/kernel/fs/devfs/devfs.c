@@ -341,6 +341,15 @@ int devfs_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return -EFAULT;
 }
 
+int devfs_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+{
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    if (devfs_inode->handlers.ioctl) {
+        return devfs_inode->handlers.ioctl(dentry, cmd, arg);
+    }
+    return -EFAULT;
+}
+
 /**
  * Driver install functions.
  */
@@ -369,6 +378,8 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = devfs_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = devfs_ioctl;
+
     return fs_desc;
 }
 

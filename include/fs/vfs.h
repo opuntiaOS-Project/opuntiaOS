@@ -83,6 +83,7 @@ struct file_ops {
     int (*getdents)(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
     int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
     int (*create)(dentry_t* dentry, const char* name, uint32_t len, mode_t mode);
+    int (*ioctl)(dentry_t* dentry, uint32_t cmd, uint32_t arg);
     int (*rm)(dentry_t* dentry);
 };
 typedef struct file_ops file_ops_t;

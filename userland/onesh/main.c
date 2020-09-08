@@ -80,7 +80,7 @@ void _cmd_processor()
 
 void _cmd_loop_start()
 {
-    write(1, "oneSh: ", 7);
+    write(1, "> ", 7);
 }
 
 void _cmd_loop_end()
@@ -96,6 +96,8 @@ bool _cmd_is_ascii(uint32_t key)
 
 int main()
 {
+    ioctl(0, TIOCSPGRP, getpgid(getpid()));
+    ioctl(0, TIOCGPGRP, 0);
     _cmd_app = malloc(256);
     _cmd_buffer = malloc(256);
     _cmd_parsed_buffer = malloc(256 * sizeof(char*));

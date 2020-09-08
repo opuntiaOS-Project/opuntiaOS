@@ -17,6 +17,7 @@ int write(int fd, const void *buf, size_t count);
 int fork();
 int wait(int pid);
 int execve(char* path, char** argv, char** env);
+pid_t getpid();
 
 int raise(int signo);
 int sigaction(int signo, void* callback);
@@ -25,6 +26,10 @@ int socket(int domain, int type, int protocol);
 int bind(int sockfd, char* name, int len);
 int connect(int sockfd, char* name, int len);
 int getdents(int fd, char* buf, int len);
+int ioctl(int fd, uint32_t cmd, uint32_t arg);
+int setpgid(pid_t cmd, pid_t arg);
+pid_t getpgid(pid_t arg);
+
 int system_pthread_create(thread_create_params_t* params);
 
 #endif /* __oneOS__libsystem__SYSCALLS_H */
