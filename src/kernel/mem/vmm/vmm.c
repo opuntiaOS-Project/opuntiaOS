@@ -660,6 +660,8 @@ int vmm_free_pdir(pdirectory_t* pdir)
         return -EINVAL;
     }
 
+    vmm_switch_pdir(pdir);
+
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         vmm_free_ptable(i);
     }
@@ -873,7 +875,11 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
                 vmm_load_page(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
             }
         } else {
-            kprintf("%x", vaddr);
+            proc_zone_t* zone = proc_find_zone(RUNNIG_THREAD->process, vaddr);
+            if (!zone) {
+                kprintf("No zone");
+            }
+            kprintf("%d %x %x %x %d", info, vaddr, vmm_get_active_pdir(), RUNNIG_THREAD->process->pdir, zone->type);
             while (1) {}
             kpanic("VMM: where are we?\n");
         }
