@@ -51,7 +51,7 @@ void isr_standart_handler(trapframe_t* tf)
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
             proc_t* p = RUNNIG_THREAD->process;
-            // kprintf("\nCrash %d\n", p->pid);
+            kprintf("\nCrash %d\n", p->pid);
             proc_die(p);
             resched();
         }

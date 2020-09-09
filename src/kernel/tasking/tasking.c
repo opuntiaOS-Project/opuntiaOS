@@ -149,7 +149,9 @@ void tasking_kill_dying()
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
         if (p->status == PROC_DYING) {
+            // kprintf("Kill dying %d", p->pid);
             proc_free(p);
+            // p->pid = 0;
             p->status = PROC_DEAD;
         }
     }
@@ -159,7 +161,6 @@ void tasking_kill_dying()
  * SYSCALL IMPLEMENTATION
  */
 
-/* Syscall */
 void tasking_fork(trapframe_t* tf)
 {
     proc_t* new_proc = _tasking_alloc_proc();
@@ -189,7 +190,6 @@ static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, 
     return res;
 }
 
-/* Syscall */
 /* TODO: Posix & zeroing-on-demand */
 int tasking_exec(const char* path, const char** argv, const char** env)
 {
@@ -256,11 +256,17 @@ int tasking_waitpid(int pid)
     return 0;
 }
 
-/* Syscall */
 void tasking_exit(int exit_code)
 {
     proc_t* proc = RUNNIG_THREAD->process;
     proc->main_thread->exit_code = exit_code;
     proc_die(proc);
     resched();
+}
+
+int tasking_kill(thread_t* thread, int signo)
+{
+    signal_set_pending(thread, signo);
+    signal_dispatch_pending(thread);
+    return 0;
 }

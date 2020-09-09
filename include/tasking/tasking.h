@@ -67,6 +67,7 @@ void tasking_fork(trapframe_t* tf);
 int tasking_exec(const char* path, const char** argv, const char** env);
 void tasking_exit(int exit_code);
 int tasking_waitpid(int pid);
+int tasking_kill(thread_t* thread, int signo);
 
 /**
  * SIGNALS
@@ -78,6 +79,7 @@ int signal_set_handler(thread_t* thread, int signo, void* handler);
 int signal_set_allow(thread_t* thread, int signo);
 int signal_set_private(thread_t* thread, int signo);
 int signal_set_pending(thread_t* thread, int signo);
+int signal_rem_pending(thread_t* thread, int signo);
 
 int signal_restore_thread_after_handling_signal(thread_t* thread);
 int signal_dispatch_pending(thread_t* thread);

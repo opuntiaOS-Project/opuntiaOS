@@ -12,7 +12,7 @@
 int should_unblock_join_block(thread_t* thread)
 {
     // TODO: Add more checks here.
-    if (thread->joinee->status == THREAD_DEAD) {
+    if (thread->joinee->status == THREAD_DYING || thread->joinee->status == THREAD_DEAD) {
         return 1;
     }
     return 0;

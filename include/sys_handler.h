@@ -21,6 +21,7 @@ void sys_sigaction(trapframe_t* tf);
 void sys_sigreturn(trapframe_t* tf);
 void sys_raise(trapframe_t* tf);
 void sys_getpid(trapframe_t* tf);
+void sys_kill(trapframe_t* tf);
 void sys_mmap(trapframe_t* tf);
 void sys_munmap(trapframe_t* tf);
 void sys_socket(trapframe_t* tf);

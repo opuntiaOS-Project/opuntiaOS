@@ -40,6 +40,16 @@ thread_t* proc_alloc_thread()
     return &thread_storage[threads_cnt++];
 }
 
+thread_t* thread_by_pid(uint32_t pid)
+{
+    for (int i = 0; i < threads_cnt; i++) {
+        if (thread_storage[i].tid == pid) {
+            return &thread_storage[i];
+        }
+    }
+    return 0;
+}
+
 uint32_t proc_alloc_pid()
 {
     return proc_next_pid++;

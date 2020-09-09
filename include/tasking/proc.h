@@ -76,6 +76,7 @@ typedef struct proc proc_t;
  * PROC FUNCTIONS
  */
 uint32_t proc_alloc_pid();
+struct thread* thread_by_pid(uint32_t pid);
 
 int proc_setup(proc_t* p);
 int proc_setup_tty(proc_t* p, tty_entry_t* tty);

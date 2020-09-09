@@ -100,7 +100,7 @@ tty_entry_t* tty_new()
 void tty_eat_key(key_t key)
 {
     tty_entry_t* tty = _tty_active();
-    if (key == KEY_LEFT) {
+    if (key == KEY_CTRLC) {
         proc_t* p = tasking_get_proc(tty->pgid);
         if (p) {
             signal_set_pending(p->main_thread, SIGINT);

@@ -65,6 +65,11 @@ int raise(int signo)
     return syscall(SYSRAISE, (int)signo, 0, 0, 0, 0);
 }
 
+int kill(pid_t pid, int signo)
+{
+    return syscall(SYSKILL, (int)pid, (int)signo, 0, 0, 0);
+}
+
 int mmap(mmap_params_t* params)
 {
     return syscall(SYSMMAP, (int)params, 0, 0, 0, 0);

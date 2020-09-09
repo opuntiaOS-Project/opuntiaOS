@@ -8,6 +8,7 @@ char* _cmd_buffer;
 char** _cmd_parsed_buffer;
 static int _cmd_buffer_position = 0;
 static int _cmd_parsed_buffer_position = 0;
+static int running_job = 0;
 
 void _cmd_buffer_clear();
 void _cmd_loop();
@@ -74,6 +75,7 @@ void _cmd_processor()
         execve(_cmd_app, _cmd_parsed_buffer, 0);
         return -1;
     } else {
+        running_job = res;
         wait(res);
     }
 }
@@ -96,7 +98,7 @@ bool _cmd_is_ascii(uint32_t key)
 
 int inter(int no)
 {
-    write(1, "ok\n", 3);
+    kill(running_job, 9);
     return 0;
 }
 

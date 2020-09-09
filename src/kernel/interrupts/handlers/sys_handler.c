@@ -50,6 +50,7 @@ void sys_handler(trapframe_t* tf)
         sys_sigreturn, // When this is moved, change signal_caller.s for now.
         sys_raise,
         sys_getpid,
+        sys_kill,
         sys_mmap,
         sys_munmap,
         sys_socket,
@@ -167,6 +168,12 @@ void sys_raise(trapframe_t* tf)
 void sys_getpid(trapframe_t* tf)
 {
     return_with_val(RUNNIG_THREAD->tid);
+}
+
+void sys_kill(trapframe_t* tf)
+{
+    thread_t* thread = thread_by_pid(param1);
+    return_with_val(tasking_kill(thread, param2));
 }
 
 void sys_mmap(trapframe_t* tf)

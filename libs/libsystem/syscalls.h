@@ -18,6 +18,7 @@ int fork();
 int wait(int pid);
 int execve(char* path, char** argv, char** env);
 pid_t getpid();
+int kill(pid_t pid, int signo);
 
 int raise(int signo);
 int sigaction(int signo, void* callback);
