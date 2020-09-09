@@ -19,6 +19,11 @@
 #define MAGIC_STATE_JUST_TF 0xfeed3eee
 #define MAGIC_STATE_NEW_STACK 0xea12002a
 
+enum {
+    UNBLOCK,
+    SKIP,
+};
+
 static zone_t _signal_jumper_zone;
 
 extern void signal_caller_start();
@@ -92,7 +97,7 @@ int signal_set_private(thread_t* thread, int signo)
     if (signo < 0 || signo >= SIGNALS_CNT) {
         return -EINVAL;
     }
-    thread->signals_mask &= ~(1 << signo);
+    thread->signals_mask &= ~((uint32_t)(1 << signo));
     return 0;
 }
 
@@ -102,6 +107,15 @@ int signal_set_pending(thread_t* thread, int signo)
         return -EINVAL;
     }
     thread->pending_signals_mask |= (1 << signo);
+    return 0;
+}
+
+int signal_rem_pending(thread_t* thread, int signo)
+{
+    if (signo < 0 || signo >= SIGNALS_CNT) {
+        return -EINVAL;
+    }
+    thread->pending_signals_mask &= ~((uint32_t)(1 << signo));
     return 0;
 }
 
@@ -229,17 +243,12 @@ static int signal_process(thread_t* thread, int signo)
     if (thread->signal_handlers[signo]) {
         signal_setup_stack_to_handle_signal(thread, signo);
         thread->tf->eip = _signal_jumper_zone.start;
-        if (thread->status == THREAD_BLOCKED) {
-            if (!thread->blocker.should_unblock_for_signal) {
-                return -1;
-            }
-            thread->status = THREAD_RUNNING;
-            sched_enqueue(thread);
-        }
+        return UNBLOCK;
     } else {
         int result = signal_default_action(signo);
         if (result == SIGNAL_ACTION_TERMINATE) {
             proc_die(thread->process);
+            return SKIP;
         }
     }
     return -EFAULT;
@@ -259,6 +268,23 @@ int signal_dispatch_pending(thread_t* thread)
             break;
         }
     }
+    
+    signal_rem_pending(thread, signo);
+    int ret = signal_process(thread, signo);
+    
+    if (ret < 0) {
+        return ret;
+    }
 
-    return signal_process(thread, signo);
+    if (ret == UNBLOCK) {
+        if (thread->status == THREAD_BLOCKED) {
+            if (!thread->blocker.should_unblock_for_signal) {
+                return -1;
+            }
+            thread->status = THREAD_RUNNING;
+            sched_enqueue(thread);
+        }
+    }
+    
+    return 0;
 }
