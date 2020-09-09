@@ -7,6 +7,7 @@
 #include <mem/kmalloc.h>
 #include <syscall_structs.h>
 #include <tasking/signal.h>
+#include <tasking/tasking.h>
 
 static int next_tty = 0;
 static tty_entry_t* active_tty = 0;
@@ -29,12 +30,16 @@ inline static tty_entry_t* _tty_active()
 
 bool tty_can_read(dentry_t* dentry)
 {
-    return _tty_get(dentry)->lines_avail != 0;
+    // kprintf("tty unblock %d %d\n", _tty_get(dentry)->lines_avail, (_tty_get(dentry)->lines_avail != 0));
+    return _tty_get(dentry)->lines_avail > 0;
 }
 
 int tty_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     tty_entry_t* tty = _tty_get(dentry);
+    if (tty->lines_avail <= 0) {
+        return -1;
+    }
     uint32_t leno = ringbuffer_space_to_read(&tty->buffer);
     int res = ringbuffer_read(&tty->buffer, buf, leno);
     tty->lines_avail--;
@@ -58,7 +63,7 @@ int tty_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
         tty->pgid = arg;
         return 0;
     }
-    
+
     return -EINVAL;
 }
 
@@ -94,13 +99,16 @@ tty_entry_t* tty_new()
 
 void tty_eat_key(key_t key)
 {
+    tty_entry_t* tty = _tty_active();
     if (key == KEY_LEFT) {
-        signal_set_pending(RUNNIG_THREAD->process, SIGNAL_ACTION_TERMINATE);
-        signal_dispatch_pending(RUNNIG_THREAD->process);
+        proc_t* p = tasking_get_proc(tty->pgid);
+        if (p) {
+            signal_set_pending(p->main_thread, SIGINT);
+            signal_dispatch_pending(p->main_thread);
+        }
         return;
     }
 
-    tty_entry_t* tty = _tty_active();
     if (key == KEY_RETURN) {
         print_char('\n', WHITE_ON_BLACK, -1, -1);
         ringbuffer_write_one(&tty->buffer, '\n');

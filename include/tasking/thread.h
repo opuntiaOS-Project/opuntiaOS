@@ -10,6 +10,7 @@
 #define __oneOS__X86__TASKING__THREAD_H
 
 #include <fs/vfs.h>
+#include <tasking/signal.h>
 #include <types.h>
 #include <x86/idt.h>
 
@@ -34,6 +35,7 @@ struct thread;
 struct blocker {
     int reason;
     int (*should_unblock)(struct thread* p);
+    bool should_unblock_for_signal;
 };
 typedef struct blocker blocker_t;
 
@@ -58,6 +60,10 @@ struct thread {
     int exit_code;
     struct thread* joinee;
     file_descriptor_t* blocker_fd;
+
+    uint32_t signals_mask;
+    uint32_t pending_signals_mask;
+    void* signal_handlers[SIGNALS_CNT];
 };
 typedef struct thread thread_t;
 

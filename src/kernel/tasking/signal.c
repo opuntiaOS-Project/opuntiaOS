@@ -9,10 +9,15 @@
 #include <errno.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <tasking/proc.h>
+#include <tasking/sched.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
+#include <tasking/thread.h>
 #include <utils/kassert.h>
+#include <x86/common.h>
+
+#define MAGIC_STATE_JUST_TF 0xfeed3eee
+#define MAGIC_STATE_NEW_STACK 0xea12002a
 
 static zone_t _signal_jumper_zone;
 
@@ -41,16 +46,16 @@ void signal_init()
  * HELPER STACK FUNCTIONS
  */
 
-static inline void signal_push_to_user_stack(proc_t* proc, uint32_t value)
+static inline void signal_push_to_user_stack(thread_t* thread, uint32_t value)
 {
-    proc->main_thread->tf->esp -= 4;
-    *((uint32_t*)proc->main_thread->tf->esp) = value;
+    thread->tf->esp -= 4;
+    *((uint32_t*)thread->tf->esp) = value;
 }
 
-static inline uint32_t signal_pop_from_user_stack(proc_t* proc)
+static inline uint32_t signal_pop_from_user_stack(thread_t* thread)
 {
-    uint32_t val = *((uint32_t*)proc->main_thread->tf->esp);
-    proc->main_thread->tf->esp += 4;
+    uint32_t val = *((uint32_t*)thread->tf->esp);
+    thread->tf->esp += 4;
     return val;
 }
 
@@ -58,85 +63,154 @@ static inline uint32_t signal_pop_from_user_stack(proc_t* proc)
  * HELPER FUNCTIONS
  */
 
-int signal_set_handler(proc_t* proc, int signo, void* handler)
+int signal_set_handler(thread_t* thread, int signo, void* handler)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
         return -EINVAL;
     }
-    proc->signal_handlers[signo] = handler;
+    thread->signal_handlers[signo] = handler;
     return 0;
 }
 
 /**
  * Makes signal allow to be called
  */
-int signal_set_allow(proc_t* proc, int signo)
+int signal_set_allow(thread_t* thread, int signo)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
         return -EINVAL;
     }
-    proc->signals_mask |= (1 << signo);
+    thread->signals_mask |= (1 << signo);
     return 0;
 }
 
 /**
  * Makes signal private. It can't be called.
  */
-int signal_set_private(proc_t* proc, int signo)
+int signal_set_private(thread_t* thread, int signo)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
         return -EINVAL;
     }
-    proc->signals_mask &= ~(1 << signo);
+    thread->signals_mask &= ~(1 << signo);
     return 0;
 }
 
-int signal_set_pending(proc_t* proc, int signo)
+int signal_set_pending(thread_t* thread, int signo)
 {
     if (signo < 0 || signo >= SIGNALS_CNT) {
         return -EINVAL;
     }
-    proc->pending_signals_mask |= (1 << signo);
+    thread->pending_signals_mask |= (1 << signo);
     return 0;
 }
 
-static int signal_setup_stack_to_handle_signal(proc_t* proc, int signo)
+extern int _thread_setup_kstack(thread_t* thread, uint32_t esp);
+static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
 {
-    uint32_t old_esp = proc->main_thread->tf->esp;
-    signal_push_to_user_stack(proc, proc->main_thread->tf->eflags);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->eip);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->eax);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->ebx);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->ecx);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->edx);
-    signal_push_to_user_stack(proc, old_esp);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->ebp);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->esi);
-    signal_push_to_user_stack(proc, proc->main_thread->tf->edi);
-    signal_push_to_user_stack(proc, (uint32_t)proc->signal_handlers[signo]);
-    signal_push_to_user_stack(proc, (uint32_t)signo);
-    signal_push_to_user_stack(proc, 0); /* fake return address */
+    cli();
+    pdirectory_t* prev_pdir = vmm_get_active_pdir();
+    vmm_switch_pdir(thread->process->pdir);
+
+    uint32_t old_esp = thread->tf->esp;
+    uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after sgnal to the right state */
+
+    /* TODO: Add support for SMP */
+    if (thread != RUNNIG_THREAD) {
+        /* 
+        If we are here that means that the thread was stopped while
+        being in kernel (because of scheduler or blocker). That means,
+        we need not corrupt it's kernel state, so we create a new state
+        to send signal.
+
+        We setup a new kernel state upper the previous one
+        Stack:
+            Trapframe
+            Function calls and local vars...
+            Context
+        ---- add after setup ----
+            Trapframe for signal
+            Context for signal
+        */
+
+        magic = MAGIC_STATE_NEW_STACK;
+        trapframe_t* old_tf = thread->tf;
+        context_t* old_ctx = thread->context;
+
+        _thread_setup_kstack(thread, (uint32_t)thread->context);
+        memcpy((void*)thread->tf, (void*)old_tf, sizeof(trapframe_t));
+
+        signal_push_to_user_stack(thread, (uint32_t)old_tf);
+        signal_push_to_user_stack(thread, (uint32_t)old_ctx);
+        signal_push_to_user_stack(thread, (uint32_t)old_tf ^ (uint32_t)old_ctx); // checksum
+    }
+    signal_push_to_user_stack(thread, thread->tf->eflags);
+    signal_push_to_user_stack(thread, thread->tf->eip);
+    signal_push_to_user_stack(thread, thread->tf->eax);
+    signal_push_to_user_stack(thread, thread->tf->ebx);
+    signal_push_to_user_stack(thread, thread->tf->ecx);
+    signal_push_to_user_stack(thread, thread->tf->edx);
+    signal_push_to_user_stack(thread, old_esp);
+    signal_push_to_user_stack(thread, thread->tf->ebp);
+    signal_push_to_user_stack(thread, thread->tf->esi);
+    signal_push_to_user_stack(thread, thread->tf->edi);
+    signal_push_to_user_stack(thread, magic);
+    signal_push_to_user_stack(thread, (uint32_t)thread->signal_handlers[signo]);
+    signal_push_to_user_stack(thread, (uint32_t)signo);
+    signal_push_to_user_stack(thread, 0); /* fake return address */
+
+    vmm_switch_pdir(prev_pdir);
+    sti();
     return 0;
 }
 
-int signal_restore_proc_after_handling_signal(proc_t* proc)
+int signal_restore_thread_after_handling_signal(thread_t* thread)
 {
-    int ret = proc->main_thread->tf->ebx;
-    proc->main_thread->tf->esp += 12; /* cleaning 3 last pushes */
+    int ret = thread->tf->ebx;
+    thread->tf->esp += 12; /* cleaning 3 last pushes */
 
-    proc->main_thread->tf->edi = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->esi = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->ebp = signal_pop_from_user_stack(proc);
-    uint32_t old_esp = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->edx = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->ecx = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->ebx = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->eax = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->eip = signal_pop_from_user_stack(proc);
-    proc->main_thread->tf->eflags = signal_pop_from_user_stack(proc);
+    uint32_t magic = signal_pop_from_user_stack(thread);
+    thread->tf->edi = signal_pop_from_user_stack(thread);
+    thread->tf->esi = signal_pop_from_user_stack(thread);
+    thread->tf->ebp = signal_pop_from_user_stack(thread);
+    uint32_t old_esp = signal_pop_from_user_stack(thread);
+    thread->tf->edx = signal_pop_from_user_stack(thread);
+    thread->tf->ecx = signal_pop_from_user_stack(thread);
+    thread->tf->ebx = signal_pop_from_user_stack(thread);
+    thread->tf->eax = signal_pop_from_user_stack(thread);
+    thread->tf->eip = signal_pop_from_user_stack(thread);
+    thread->tf->eflags = signal_pop_from_user_stack(thread);
+    if (magic == MAGIC_STATE_NEW_STACK) {
+        uint32_t checksum = signal_pop_from_user_stack(thread);
+        context_t* old_ctx = (context_t*)signal_pop_from_user_stack(thread);
+        trapframe_t* old_tf = (trapframe_t*)signal_pop_from_user_stack(thread);
 
-    if (old_esp != proc->main_thread->tf->esp) {
+        uint32_t calced_checksum = ((uint32_t)old_tf ^ (uint32_t)old_ctx);
+
+        if (checksum != calced_checksum) {
+            kprintf("Killed %d: wrong signal checksum\n", thread->process->pid);
+            proc_die(thread->process);
+            resched_dont_save_context();
+        }
+
+        thread->tf = old_tf;
+        thread->context = old_ctx;
+    }
+
+    if (old_esp != thread->tf->esp) {
         kpanic("ESPs are diff after signal");
+    }
+
+    /* If our thread was blocked, that means that it already has a context in stack, we need not ot overwrite it */
+    if (thread->blocker.reason != BLOCKER_INVALID) {
+        thread->status = THREAD_BLOCKED;
+        sched_dequeue(thread);
+        resched_dont_save_context();
+    }
+
+    /* Since we already have a context in stack, we need not ot overwrite it */
+    if (magic == MAGIC_STATE_NEW_STACK) {
+        resched_dont_save_context();
     }
 
     return ret;
@@ -149,24 +223,31 @@ static int signal_default_action(int signo)
     }
 }
 
-static int signal_process(proc_t* proc, int signo)
+/* FIXME: Don't allow to run a signal while other is in process */
+static int signal_process(thread_t* thread, int signo)
 {
-    if (proc->signal_handlers[signo]) {
-        signal_setup_stack_to_handle_signal(proc, signo);
-        proc->main_thread->tf->eip = _signal_jumper_zone.start;
-        return 0;
+    if (thread->signal_handlers[signo]) {
+        signal_setup_stack_to_handle_signal(thread, signo);
+        thread->tf->eip = _signal_jumper_zone.start;
+        if (thread->status == THREAD_BLOCKED) {
+            if (!thread->blocker.should_unblock_for_signal) {
+                return -1;
+            }
+            thread->status = THREAD_RUNNING;
+            sched_enqueue(thread);
+        }
     } else {
         int result = signal_default_action(signo);
         if (result == SIGNAL_ACTION_TERMINATE) {
-            proc_die(proc);
+            proc_die(thread->process);
         }
     }
     return -EFAULT;
 }
 
-int signal_dispatch_pending(proc_t* proc)
+int signal_dispatch_pending(thread_t* thread)
 {
-    uint32_t candidate_signals = proc->pending_signals_mask & proc->signals_mask;
+    uint32_t candidate_signals = thread->pending_signals_mask & thread->signals_mask;
 
     if (!candidate_signals) {
         return -EACCES;
@@ -178,5 +259,6 @@ int signal_dispatch_pending(proc_t* proc)
             break;
         }
     }
-    return signal_process(proc, signo);
+
+    return signal_process(thread, signo);
 }

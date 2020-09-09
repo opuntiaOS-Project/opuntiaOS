@@ -18,7 +18,7 @@
 extern void trap_return();
 extern void _tasking_jumper();
 
-extern int _thread_setup_kstack(thread_t* thread);
+extern int _thread_setup_kstack(thread_t* thread, uint32_t esp);
 int kthread_setup(proc_t* p)
 {
     p->pid = proc_alloc_pid();
@@ -33,7 +33,7 @@ int kthread_setup(proc_t* p)
     if (!p->main_thread->kstack.start) {
         return -ENOMEM;
     }
-    _thread_setup_kstack(p->main_thread);
+    _thread_setup_kstack(p->main_thread, p->main_thread->kstack.start + VMM_PAGE_SIZE);
 
     /* setting current work directory */
     p->cwd = 0;
@@ -41,9 +41,9 @@ int kthread_setup(proc_t* p)
     p->fds = 0;
 
     /* setting signal handlers to 0 */
-    p->signals_mask = 0x0; /* All signals are disabled. */
-    p->pending_signals_mask = 0x0;
-    memset((void*)p->signal_handlers, 0, sizeof(p->signal_handlers));
+    p->main_thread->signals_mask = 0x0; /* All signals are disabled. */
+    p->main_thread->pending_signals_mask = 0x0;
+    memset((void*)p->main_thread->signal_handlers, 0, sizeof(p->main_thread->signal_handlers));
 
     return 0;
 }

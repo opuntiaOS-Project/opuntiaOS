@@ -80,7 +80,7 @@ void _cmd_processor()
 
 void _cmd_loop_start()
 {
-    write(1, "> ", 7);
+    write(1, "> ", 2);
 }
 
 void _cmd_loop_end()
@@ -94,8 +94,15 @@ bool _cmd_is_ascii(uint32_t key)
     return 32 <= key && key <= 126;
 }
 
+int inter(int no)
+{
+    write(1, "ok\n", 3);
+    return 0;
+}
+
 int main()
 {
+    sigaction(3, inter);
     ioctl(0, TIOCSPGRP, getpgid(getpid()));
     ioctl(0, TIOCGPGRP, 0);
     _cmd_app = malloc(256);
@@ -103,5 +110,9 @@ int main()
     _cmd_parsed_buffer = malloc(256 * sizeof(char*));
     memcpy(_cmd_app, "/bin/", 5);
     _cmd_loop();
+    // while (1) {
+    //     _cmd_buffer_position = read(0, _cmd_buffer, 256);
+    //     _cmd_buffer[_cmd_buffer_position] = '\0';
+    // }
     return 0;
 }

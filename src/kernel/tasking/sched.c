@@ -11,6 +11,7 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
+#include <x86/common.h>
 
 // #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT
@@ -88,17 +89,27 @@ extern thread_t thread_storage[512];
 extern int threads_cnt;
 void sched_unblock_threads()
 {
-    // TODO: Run each thread in proc
     thread_t* thread;
     for (int i = 0; i < threads_cnt; i++) {
         thread = &thread_storage[i];
         if (thread->status == THREAD_BLOCKED && thread->blocker.reason != BLOCKER_INVALID) {
             if (thread->blocker.should_unblock(thread)) {
                 thread->status = THREAD_RUNNING;
+                thread->blocker.reason = BLOCKER_INVALID;
                 sched_enqueue(thread);
             }
         }
     }
+}
+
+void resched_dont_save_context()
+{
+    tasking_kill_dying();
+    sched_unblock_threads();
+    if (RUNNIG_THREAD) {
+        _sched_save_running_proc();
+    }
+    switch_to_context(THIS_CPU->scheduler);
 }
 
 void resched()
@@ -147,7 +158,6 @@ void sched()
         kprintf("%d", _debug_count_of_proc_in_buf(_master_buf));
 #endif
         if (thread->status == THREAD_RUNNING) {
-            // kprintf("run %d\n", thread->tid);
             switchuvm(thread);
             switch_contexts(&THIS_CPU->scheduler, thread->context);
         }

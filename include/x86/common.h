@@ -15,5 +15,6 @@ void cli();
 void sti();
 uint32_t read_cr2();
 uint32_t read_cr3();
+uint32_t read_esp();
 
 #endif /* __oneOS__X86__COMMON_H */

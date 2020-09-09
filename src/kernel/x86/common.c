@@ -42,3 +42,11 @@ uint32_t read_cr3()
                  : "=r"(val));
     return val;
 }
+
+uint32_t read_esp()
+{
+    uint32_t val;
+    asm volatile("movl %%esp,%0"
+                 : "=r"(val));
+    return val;
+}

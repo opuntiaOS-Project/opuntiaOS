@@ -22,6 +22,7 @@
 #define SCHED_INT 100
 
 void scheduler_init();
+void resched_dont_save_context();
 void resched();
 void sched();
 void sched_enqueue(thread_t* thread);

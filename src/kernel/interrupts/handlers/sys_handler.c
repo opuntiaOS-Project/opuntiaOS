@@ -150,18 +150,18 @@ void sys_exec(trapframe_t* tf)
 
 void sys_sigaction(trapframe_t* tf)
 {
-    set_return(tf, signal_set_handler(RUNNIG_THREAD->process, (int)param1, (void*)param2));
+    set_return(tf, signal_set_handler(RUNNIG_THREAD, (int)param1, (void*)param2));
 }
 
 void sys_sigreturn(trapframe_t* tf)
 {
-    signal_restore_proc_after_handling_signal(RUNNIG_THREAD->process);
+    signal_restore_thread_after_handling_signal(RUNNIG_THREAD);
 }
 
 void sys_raise(trapframe_t* tf)
 {
-    signal_set_pending(RUNNIG_THREAD->process, (int)param1);
-    signal_dispatch_pending(RUNNIG_THREAD->process);
+    signal_set_pending(RUNNIG_THREAD, (int)param1);
+    signal_dispatch_pending(RUNNIG_THREAD);
 }
 
 void sys_getpid(trapframe_t* tf)

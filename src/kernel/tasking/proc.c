@@ -71,11 +71,6 @@ int proc_setup(proc_t* p)
     }
     memset((void*)p->fds, 0, MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
-    /* setting signal handlers to 0 */
-    p->signals_mask = 0xffffffff; /* for now all signals are legal */
-    p->pending_signals_mask = 0;
-    memset((void*)p->signal_handlers, 0, sizeof(p->signal_handlers));
-
     /* setting up zones */
     if (dynamic_array_init_of_size(&p->zones, sizeof(proc_zone_t), 8) != 0) {
         return -ENOMEM;

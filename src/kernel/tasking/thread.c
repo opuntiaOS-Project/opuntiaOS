@@ -17,9 +17,9 @@
 extern void trap_return();
 extern void _tasking_jumper();
 
-int _thread_setup_kstack(thread_t* thread)
+int _thread_setup_kstack(thread_t* thread, uint32_t esp)
 {
-    char* sp = (char*)(thread->kstack.start + VMM_PAGE_SIZE);
+    char* sp = (char*)(esp);
 
     /* setting trapframe in kernel stack */
     sp -= sizeof(*thread->tf);
@@ -71,7 +71,13 @@ int thread_setup_main(proc_t* p, thread_t* thread)
     
     thread->process = p;
     thread->tid = p->pid;
-    _thread_setup_kstack(thread);
+
+    /* setting signal handlers to 0 */
+    thread->signals_mask = 0xffffffff; /* for now all signals are legal */
+    thread->pending_signals_mask = 0;
+    memset((void*)thread->signal_handlers, 0, sizeof(thread->signal_handlers));
+
+    _thread_setup_kstack(thread, thread->kstack.start + VMM_PAGE_SIZE);
     _thread_setup_segment_regs(thread);
     return 0;
 }
@@ -86,7 +92,13 @@ int thread_setup(proc_t* p, thread_t* thread)
     
     thread->process = p;
     thread->tid = proc_alloc_pid();
-    _thread_setup_kstack(thread);
+
+    /* setting signal handlers to 0 */
+    thread->signals_mask = 0xffffffff; /* for now all signals are legal */
+    thread->pending_signals_mask = 0;
+    memset((void*)thread->signal_handlers, 0, sizeof(thread->signal_handlers));
+
+    _thread_setup_kstack(thread, thread->kstack.start + VMM_PAGE_SIZE);
     _thread_setup_segment_regs(thread);
     return 0;
 }

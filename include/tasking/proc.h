@@ -19,7 +19,6 @@
 
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16
-#define SIGNALS_CNT 32
 
 /* Like Page Flags in vmm.h */
 enum ZONE_FLAGS {
@@ -68,10 +67,6 @@ struct proc {
     dentry_t* cwd;
     file_descriptor_t* fds;
     tty_entry_t* tty;
-
-    uint32_t signals_mask;
-    uint32_t pending_signals_mask;
-    void* signal_handlers[SIGNALS_CNT];
 
     bool is_kthread;
 };

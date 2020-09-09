@@ -74,12 +74,12 @@ int tasking_waitpid(int pid);
 
 void signal_init();
 
-int signal_set_handler(proc_t* proc, int signo, void* handler);
-int signal_set_allow(proc_t* proc, int signo);
-int signal_set_private(proc_t* proc, int signo);
-int signal_set_pending(proc_t* proc, int signo);
+int signal_set_handler(thread_t* thread, int signo, void* handler);
+int signal_set_allow(thread_t* thread, int signo);
+int signal_set_private(thread_t* thread, int signo);
+int signal_set_pending(thread_t* thread, int signo);
 
-int signal_restore_proc_after_handling_signal(proc_t* proc);
-int signal_dispatch_pending(proc_t* proc);
+int signal_restore_thread_after_handling_signal(thread_t* thread);
+int signal_dispatch_pending(thread_t* thread);
 
 #endif // __oneOS__X86__TASKING__TASKING_H

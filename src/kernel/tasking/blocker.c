@@ -23,6 +23,7 @@ int init_join_blocker(thread_t* thread)
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_JOIN;
     thread->blocker.should_unblock = should_unblock_join_block;
+    thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
     return 0;
 }
@@ -39,6 +40,7 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_JOIN;
     thread->blocker.should_unblock = should_unblock_read_block;
+    thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
     return 0;
 }

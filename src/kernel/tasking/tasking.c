@@ -30,7 +30,8 @@ uint32_t nxt_proc;
 void switchuvm(thread_t* thread)
 {
     gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
-    tss.esp0 = (uint32_t)(thread->kstack.start + VMM_PAGE_SIZE);
+    uint32_t esp0 = ((uint32_t)thread->tf + sizeof(trapframe_t));
+    tss.esp0 = esp0;
     tss.ss0 = (SEG_KDATA << 3);
     // tss.iomap_offset = 0xffff;
     RUNNIG_THREAD = thread;
