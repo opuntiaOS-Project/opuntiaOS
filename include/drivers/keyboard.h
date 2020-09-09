@@ -10,6 +10,7 @@ typedef uint32_t key_t;
 enum KEYCODE {
 
     // Alphanumeric keys ////////////////
+    KEY_CTRLC = '\003',
 
     KEY_SPACE = ' ',
     KEY_0 = '0',

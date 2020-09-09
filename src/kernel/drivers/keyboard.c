@@ -210,6 +210,13 @@ static driver_desc_t _keyboard_driver_info()
 
 static key_t _kbdriver_apply_modifiers(key_t key)
 {
+    if (_kbdriver_ctrl_enabled) {
+        if (key == 'c') {
+            key = KEY_CTRLC;
+        }
+        return key;
+    }
+
     if (_kbdriver_shift_enabled || _kbdriver_caps_enabled) {
         if (key >= 'a' && key <= 'z') {
             key -= 32;
