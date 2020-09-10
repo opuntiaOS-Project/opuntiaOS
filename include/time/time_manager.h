@@ -11,7 +11,8 @@
 
 #include <types.h>
 
-typedef long long int time_t;
+/* 32 bits is enough until 2106y */
+typedef unsigned int time_t;
 
 bool timeman_is_leap_year(uint32_t year);
 uint32_t timeman_days_in_years_since_epoch(uint32_t year);

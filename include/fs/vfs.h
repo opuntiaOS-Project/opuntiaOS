@@ -134,6 +134,8 @@ typedef struct socket socket_t;
  * DENTRIES
  */
 
+void dentry_flusher();
+
 void dentry_set_parent(dentry_t* to, dentry_t* parent);
 dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx);
 dentry_t* dentry_get_parent(dentry_t* dentry);

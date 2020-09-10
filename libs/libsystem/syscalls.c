@@ -32,7 +32,7 @@ int write(int fd, const void *buf, size_t count)
 
 void exit(int ret_code)
 {
-    syscall(SYSEXTT, ret_code, 0, 0, 0, 0);
+    syscall(SYSEXIT, ret_code, 0, 0, 0, 0);
 }
 
 int fork()

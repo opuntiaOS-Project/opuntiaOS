@@ -9,7 +9,6 @@
 #include <errno.h>
 #include <io/sockets/local_socket.h>
 #include <sys_handler.h>
-#include <syscall_structs.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <x86/common.h>
@@ -28,6 +27,22 @@
 static inline void set_return(trapframe_t* tf, uint32_t val)
 {
     tf->eax = val;
+}
+
+int ksyscall_impl(int sys_id, int a, int b, int c, int d)
+{
+    trapframe_t tf;
+    tf.eax = sys_id;
+    tf.ebx = a;
+    tf.ecx = b;
+    tf.edx = c;
+    sys_handler(&tf);
+    /* We simulating interrupts on/off as it's with real interrupt.
+       This hack has to be here, when a context switching happens
+       during a syscall (e.g. when block occurs). The hack will start
+       interrupts again after it has become a running thread. */
+    sti();
+    return tf.eax;
 }
 
 void sys_handler(trapframe_t* tf)
@@ -61,6 +76,7 @@ void sys_handler(trapframe_t* tf)
         sys_setpgid,
         sys_getpgid,
         sys_create_thread,
+        sys_sleep,
     };
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
@@ -352,6 +368,17 @@ void sys_create_thread(trapframe_t* tf)
     thread_set_stack(thread, esp, esp);
 
     return_with_val(thread->tid);
+}
+
+void sys_sleep(trapframe_t* tf)
+{
+    thread_t* p = RUNNIG_THREAD;
+    time_t time = param1;
+
+    init_sleep_blocker(RUNNIG_THREAD, time);
+    resched();
+
+    return_with_val(0);
 }
 
 void sys_none(trapframe_t* tf) { }

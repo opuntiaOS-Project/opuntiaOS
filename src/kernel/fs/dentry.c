@@ -10,6 +10,7 @@
 #include <drivers/display.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
+#include <sys_handler.h>
 #include <utils/mem.h>
 
 #define DENTRY_ALLOC_SIZE (4 * KB) /* Shows the size of list's parts. */
@@ -112,6 +113,7 @@ static inline void dentry_flush_inode(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_DIRTY)) {
         dentry->ops->dentry.write_inode(dentry);
+        dentry_rem_flag(dentry, DENTRY_DIRTY);
     }
 }
 
@@ -141,6 +143,10 @@ static void dentry_prefree(dentry_t* dentry)
 
 static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
 {
+    if (inode_indx == 0) {
+        return 0;
+    }
+
     dentry_t* dentry = dentry_cache_find_empty_entry();
 
     /* If inode_indx isn't 0, so we can say that we replace a valid dentry, which
@@ -154,7 +160,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     dentry->ops = dynamic_array_get(&_vfs_fses, dentry->dev->fs);
     dentry->inode_indx = inode_indx;
     dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
-    
+
     if (!already_allocated_inode) {
         dentry->inode = (inode_t*)kmalloc(INODE_LEN);
         stat_cached_inodes_area_size += INODE_LEN;
@@ -181,6 +187,26 @@ dentry_t* dentry_get_parent(dentry_t* dentry)
 }
 
 /**
+ * Is a thread enrty point. The function flushes all inodes to drive.
+ */
+void dentry_flusher()
+{
+    for (;;) {
+        dentry_cache_list_t* dentry_cache_block = dentry_cache;
+        while (dentry_cache_block) {
+            int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);
+            for (int i = 0; i < dentries_in_block; i++) {
+                if (dentry_cache_block->data[i].inode_indx != 0) {
+                    dentry_flush_inode(&dentry_cache_block->data[i]);
+                }
+            }
+            dentry_cache_block = dentry_cache_block->next;
+        }
+        ksys1(SYSSLEEP, 2);
+    }
+}
+
+/**
  * There are 3 cases for each entry in a cache array:
  * 1) We have a valid dentry which is held by someone.
  * 2) We have a valid dentry which isn'y held by someone and ready to swapped out.
@@ -194,7 +220,8 @@ dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx)
         int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);
         for (int i = 0; i < dentries_in_block; i++) {
             if (dentry_cache_block->data[i].dev_indx == dev_indx && dentry_cache_block->data[i].inode_indx == inode_indx) {
-                if (!dentry_cache_block->data[i].d_count) stat_cached_dentries++;
+                if (!dentry_cache_block->data[i].d_count)
+                    stat_cached_dentries++;
                 return dentry_duplicate(&dentry_cache_block->data[i]);
             }
         }

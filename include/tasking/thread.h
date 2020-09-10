@@ -13,6 +13,7 @@
 #include <tasking/signal.h>
 #include <types.h>
 #include <x86/idt.h>
+#include <time/time_manager.h>
 
 typedef struct {
     uint32_t edi;
@@ -43,6 +44,7 @@ enum BLOCKER_REASON {
     BLOCKER_INVALID,
     BLOCKER_JOIN,
     BLOCKER_READ,
+    BLOCKER_SLEEP,
 };
 
 struct proc;
@@ -60,6 +62,7 @@ struct thread {
     int exit_code;
     struct thread* joinee;
     file_descriptor_t* blocker_fd;
+    time_t unblock_time;
 
     uint32_t signals_mask;
     uint32_t pending_signals_mask;
@@ -89,6 +92,7 @@ int thread_die(thread_t* thread);
 
 int init_join_blocker(thread_t* p);
 int init_read_blocker(thread_t* p, file_descriptor_t* bfd);
+int init_sleep_blocker(thread_t* thread, uint32_t time);
 
 /**
  * DEBUG FUNCTIONS

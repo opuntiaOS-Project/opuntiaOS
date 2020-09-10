@@ -6,8 +6,9 @@
  * Free Software Foundation.
  */
 
-#include <tasking/thread.h>
 #include <tasking/sched.h>
+#include <tasking/thread.h>
+#include <time/time_manager.h>
 
 int should_unblock_join_block(thread_t* thread)
 {
@@ -28,7 +29,6 @@ int init_join_blocker(thread_t* thread)
     return 0;
 }
 
-
 int should_unblock_read_block(thread_t* thread)
 {
     return thread->blocker_fd->ops->can_read(thread->blocker_fd->dentry);
@@ -40,6 +40,22 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_JOIN;
     thread->blocker.should_unblock = should_unblock_read_block;
+    thread->blocker.should_unblock_for_signal = true;
+    sched_dequeue(thread);
+    return 0;
+}
+
+int should_unblock_sleep_block(thread_t* thread)
+{
+    return thread->unblock_time < timeman_now();
+}
+
+int init_sleep_blocker(thread_t* thread, uint32_t time)
+{
+    thread->unblock_time = timeman_now() + time;
+    thread->status = THREAD_BLOCKED;
+    thread->blocker.reason = BLOCKER_SLEEP;
+    thread->blocker.should_unblock = should_unblock_sleep_block;
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
     return 0;

@@ -21,7 +21,7 @@ typedef char           bool;
 
 enum __sysid {
     SYSPRINT = 0,
-    SYSEXTT,
+    SYSEXIT,
     SYSFORK,
     SYSREAD,
     SYSWRITE,
@@ -47,6 +47,7 @@ enum __sysid {
     SYSSETPGID,
     SYSGETPGID,
     SYSPTHREADCREATE,
+    SYSSLEEP,
 };
 typedef enum __sysid sysid_t;
 
