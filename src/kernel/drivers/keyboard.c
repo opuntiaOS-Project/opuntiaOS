@@ -331,6 +331,7 @@ void keyboard_handler()
 
     if (scancode & 0x80) {
         scancode -= 0x80;
+        key = _kbdriver_get_keycode(scancode);
         switch (key) {
         case KEY_LCTRL:
         case KEY_RCTRL:
