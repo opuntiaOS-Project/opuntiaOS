@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020 Nikita Melekhin
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License v2 as published by the
+ * Free Software Foundation.
+ */
+
 #include <x86/common.h>
 #include <x86/gdt.h>
 #include <x86/idt.h>
@@ -29,7 +37,7 @@
 
 #include <tasking/sched.h>
 
-#include <qemulog.h>
+#include <log.h>
 #include <utils/kernel_self_test.h>
 
 #include <sys_handler.h>
@@ -52,6 +60,7 @@ void launching()
 
 void stage3(mem_desc_t* mem_desc)
 {
+    logger_setup();
     clean_screen();
     gdt_setup();
     idt_setup();

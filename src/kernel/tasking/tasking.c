@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
@@ -17,6 +18,8 @@
 #include <x86/gdt.h>
 #include <x86/idt.h>
 #include <x86/tss.h>
+
+#define TASKING_DEBUG
 
 cpu_t cpus[CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
@@ -235,6 +238,12 @@ int tasking_exec(const char* path, const char** argv, const char** env)
     p->pid = thread->tid;
 
     int ret = _tasking_do_exec(p, kpath, kargc, kargv, 0);
+
+#ifdef TASKING_DEBUG
+    if (!ret) {
+        log("Exec %s : pid %d", kpath, p->pid);
+    }
+#endif
 
     kfree(kpath);
     for (int argi = 0; argi < kargc; argi++) {

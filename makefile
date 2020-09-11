@@ -197,7 +197,7 @@ products/os-image.bin: products/boot.bin products/stage2.bin
 	cat $^ > $@
 
 run: products/os-image.bin ${DISK}
-	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -serial stdio -rtc base=utc
+	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc
 
 debug: products/os-image.bin ${DISK}
 	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -S $(QEMUGDB)
