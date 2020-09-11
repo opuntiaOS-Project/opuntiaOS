@@ -50,13 +50,8 @@ int kthread_setup(proc_t* p)
 
 int kthread_setup_regs(proc_t* p, void* entry_point)
 {
-    zone_t stack = zoner_new_zone(VMM_PAGE_SIZE);
-    if (!stack.start) {
-        return -ENOMEM;
-    }
-
     kthread_setup_segment_regs(p);
-    p->main_thread->tf->ebp = (stack.start + VMM_PAGE_SIZE);
+    p->main_thread->tf->ebp = (p->main_thread->kstack.start + VMM_PAGE_SIZE);
     p->main_thread->tf->esp = p->main_thread->tf->ebp;
     p->main_thread->tf->eip = (uint32_t)entry_point;
     return 0;

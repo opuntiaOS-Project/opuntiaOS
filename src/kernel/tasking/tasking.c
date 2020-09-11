@@ -29,6 +29,7 @@ uint32_t nxt_proc;
 /* switching the page dir and tss to the current proc */
 void switchuvm(thread_t* thread)
 {
+    cli();
     gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
     uint32_t esp0 = ((uint32_t)thread->tf + sizeof(trapframe_t));
     tss.esp0 = esp0;
@@ -37,6 +38,7 @@ void switchuvm(thread_t* thread)
     RUNNIG_THREAD = thread;
     ltr(SEG_TSS << 3);
     vmm_switch_pdir(thread->process->pdir);
+    sti();
 }
 
 /**

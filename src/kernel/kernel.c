@@ -9,8 +9,8 @@
 #include <drivers/display.h>
 #include <drivers/driver_manager.h>
 #include <drivers/ide.h>
-#include <drivers/pit.h>
 #include <drivers/mouse.h>
+#include <drivers/pit.h>
 
 #include <mem/kmalloc.h>
 #include <mem/pmm.h>
@@ -38,7 +38,7 @@
    so we will switch to idle_thread to fix it. */
 void idle_thread()
 {
-    while (1) { }
+    while (1);
 }
 
 // FIXME

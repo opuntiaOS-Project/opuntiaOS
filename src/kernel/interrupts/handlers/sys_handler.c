@@ -24,31 +24,7 @@
     (tf->eax = val);         \
     return
 
-static inline void set_return(trapframe_t* tf, uint32_t val)
-{
-    tf->eax = val;
-}
-
-int ksyscall_impl(int sys_id, int a, int b, int c, int d)
-{
-    trapframe_t tf;
-    tf.eax = sys_id;
-    tf.ebx = a;
-    tf.ecx = b;
-    tf.edx = c;
-    sys_handler(&tf);
-    /* We simulating interrupts on/off as it's with real interrupt.
-       This hack has to be here, when a context switching happens
-       during a syscall (e.g. when block occurs). The hack will start
-       interrupts again after it has become a running thread. */
-    sti();
-    return tf.eax;
-}
-
-void sys_handler(trapframe_t* tf)
-{
-    cli();
-    const void* syscalls[] = {
+static const void* syscalls[] = {
         sys_restart_syscall,
         sys_exit,
         sys_fork,
@@ -78,9 +54,34 @@ void sys_handler(trapframe_t* tf)
         sys_create_thread,
         sys_sleep,
     };
+
+static inline void set_return(trapframe_t* tf, uint32_t val)
+{
+    tf->eax = val;
+}
+
+int ksyscall_impl(int sys_id, int a, int b, int c, int d)
+{
+    cli();
+    trapframe_t tf;
+    tf.eax = sys_id;
+    tf.ebx = a;
+    tf.ecx = b;
+    tf.edx = c;
+    sys_handler(&tf);
+    /* This hack has to be here, when a context switching happens
+       during a syscall (e.g. when block occurs). The hack will start
+       interrupts again after it has become a running thread. */
+    sti();
+    return tf.eax;
+}
+
+void sys_handler(trapframe_t* tf)
+{
+    cli();
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
-    sti();
+    sti_only_counter();
 }
 
 void sys_restart_syscall(trapframe_t* tf)

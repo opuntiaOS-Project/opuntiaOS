@@ -53,7 +53,7 @@ typedef struct {
     uint32_t esp;
     uint16_t ss;
     uint16_t padding6;
-} trapframe_t;
+} __attribute__((packed)) trapframe_t;
 
 
 extern struct idt_entry idt[IDT_ENTRIES];

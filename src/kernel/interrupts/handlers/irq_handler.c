@@ -13,8 +13,17 @@ void irq_handler(trapframe_t *tf) {
         port_byte_out(0xA0, 0x20);
     }
     port_byte_out(0x20, 0x20);
+
+    if (likely(RUNNIG_THREAD)) {
+        if (RUNNIG_THREAD->process->is_kthread) {
+            RUNNIG_THREAD->tf = tf;
+        }
+    }
+
     irq_redirect(tf->int_no);
-    sti();
+    /* We are leaving interrupt, and later interrupts will be on,
+       when flags are restored */
+    sti_only_counter();
 }
 
 void irq_empty_handler() {

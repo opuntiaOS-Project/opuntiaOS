@@ -26,6 +26,11 @@ void sti()
     }
 }
 
+void sti_only_counter()
+{
+    depth_counter--;
+}
+
 uint32_t read_cr2()
 {
     uint32_t val;
