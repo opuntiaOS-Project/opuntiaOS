@@ -67,6 +67,7 @@ void isr_handler(trapframe_t* tf)
         } else {
             log_warn("Crash: invalid opcode in %d tid\n", RUNNIG_THREAD->tid);
             proc_die(p);
+            resched();
         }
     } else {
         log_warn("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);

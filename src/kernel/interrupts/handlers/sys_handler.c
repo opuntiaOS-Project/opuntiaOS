@@ -8,6 +8,7 @@
 
 #include <errno.h>
 #include <io/sockets/local_socket.h>
+#include <log.h>
 #include <sys_handler.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
@@ -25,35 +26,36 @@
     return
 
 static const void* syscalls[] = {
-        sys_restart_syscall,
-        sys_exit,
-        sys_fork,
-        sys_read,
-        sys_write,
-        sys_open,
-        sys_close,
-        sys_waitpid,
-        sys_none, // sys_creat
-        sys_none, // sys_link
-        sys_none, // sys_unlink
-        sys_exec,
-        sys_sigaction,
-        sys_sigreturn, // When this is moved, change signal_caller.s for now.
-        sys_raise,
-        sys_getpid,
-        sys_kill,
-        sys_mmap,
-        sys_munmap,
-        sys_socket,
-        sys_bind,
-        sys_connect,
-        sys_getdents,
-        sys_ioctl,
-        sys_setpgid,
-        sys_getpgid,
-        sys_create_thread,
-        sys_sleep,
-    };
+    sys_restart_syscall,
+    sys_exit,
+    sys_fork,
+    sys_read,
+    sys_write,
+    sys_open,
+    sys_close,
+    sys_waitpid,
+    sys_none, // sys_creat
+    sys_none, // sys_link
+    sys_none, // sys_unlink
+    sys_exec,
+    sys_chdir,
+    sys_sigaction,
+    sys_sigreturn, // When this is moved, change signal_caller.s for now.
+    sys_raise,
+    sys_getpid,
+    sys_kill,
+    sys_mmap,
+    sys_munmap,
+    sys_socket,
+    sys_bind,
+    sys_connect,
+    sys_getdents,
+    sys_ioctl,
+    sys_setpgid,
+    sys_getpgid,
+    sys_create_thread,
+    sys_sleep,
+};
 
 static inline void set_return(trapframe_t* tf, uint32_t val)
 {
@@ -164,6 +166,13 @@ void sys_waitpid(trapframe_t* tf)
 void sys_exec(trapframe_t* tf)
 {
     set_return(tf, tasking_exec((char*)param1, (const char**)param2, (const char**)param3));
+}
+
+void sys_chdir(trapframe_t* tf)
+{
+    /* proc lock */
+    const char* path = (char*)param1;
+    return_with_val(proc_chdir(RUNNIG_THREAD->process, path));
 }
 
 void sys_sigaction(trapframe_t* tf)

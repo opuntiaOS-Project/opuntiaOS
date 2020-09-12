@@ -10,6 +10,7 @@ static int _cmd_buffer_position = 0;
 static int _cmd_parsed_buffer_position = 0;
 static int running_job = 0;
 
+uint32_t _is_cmd_internal();
 void _cmd_buffer_clear();
 void _cmd_loop();
 void _cmd_loop_start();
@@ -20,6 +21,27 @@ bool _cmd_is_ascii(uint32_t key);
 bool _cmd_cmp_command(const char*);
 int16_t _cmd_find_cmd_handler();
 uint32_t _cmd_getkeycode();
+
+enum internal_cmd_code {
+    CMD_NONE = 0,
+    CMD_CD,
+};
+
+uint32_t _is_cmd_internal()
+{
+    if (memcmp(_cmd_buffer, "cd", 3) == 0) {
+        return CMD_CD;
+    }
+    return CMD_NONE;
+}
+
+int _cmd_do_internal(uint32_t code)
+{
+    if (code == CMD_CD) {
+        return chdir(_cmd_parsed_buffer[1]);
+    }
+    return 0;
+}
 
 void _cmd_buffer_clear()
 {
@@ -67,16 +89,22 @@ void _cmd_processor()
     _cmd_buffer[_cmd_buffer_position] = '\0';
     _cmd_parsed_buffer[_cmd_parsed_buffer_position] = 0;
 
-    uint32_t namelen = strlen(_cmd_parsed_buffer[0]);
-    memcpy(_cmd_app+5, _cmd_buffer, namelen + 1);
+    /* We try to launch an app */
+    uint32_t cmd = _is_cmd_internal();
+    if (cmd == CMD_NONE) {
+        uint32_t namelen = strlen(_cmd_parsed_buffer[0]);
+        memcpy(_cmd_app+5, _cmd_buffer, namelen + 1);
 
-    int res = fork();
-    if (!res) {
-        execve(_cmd_app, _cmd_parsed_buffer, 0);
-        return -1;
+        int res = fork();
+        if (!res) {
+            execve(_cmd_app, _cmd_parsed_buffer, 0);
+            return -1;
+        } else {
+            running_job = res;
+            wait(res);
+        }
     } else {
-        running_job = res;
-        wait(res);
+        _cmd_do_internal(cmd);
     }
 }
 

@@ -17,6 +17,7 @@ int write(int fd, const void *buf, size_t count);
 int fork();
 int wait(int pid);
 int execve(char* path, char** argv, char** env);
+int chdir(char* path);
 pid_t getpid();
 int kill(pid_t pid, int signo);
 

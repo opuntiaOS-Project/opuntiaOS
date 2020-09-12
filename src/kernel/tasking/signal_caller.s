@@ -10,6 +10,6 @@ signal_caller_start:
     call ebx ; calling signal handler
     add esp, 8 ; cleaning stack
     mov ebx, eax
-    mov eax, 13 ; sigreturn syscall
+    mov eax, 14 ; sigreturn syscall
     int 0x80
 signal_caller_end:

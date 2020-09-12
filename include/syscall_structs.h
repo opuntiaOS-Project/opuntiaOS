@@ -32,6 +32,7 @@ enum __sysid {
     SYSLINK,
     SYSUNLINK,
     SYSEXEC,
+    SYSCHDIR,
     SYSSIGACTION,
     SYSSIGRETURN,
     SYSRAISE,

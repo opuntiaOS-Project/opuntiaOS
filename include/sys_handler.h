@@ -24,6 +24,7 @@ void sys_open(trapframe_t* tf);
 void sys_close(trapframe_t* tf);
 void sys_waitpid(trapframe_t* tf);
 void sys_exec(trapframe_t* tf);
+void sys_chdir(trapframe_t* tf);
 void sys_sigaction(trapframe_t* tf);
 void sys_sigreturn(trapframe_t* tf);
 void sys_raise(trapframe_t* tf);

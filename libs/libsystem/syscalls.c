@@ -50,6 +50,11 @@ int execve(char* path, char** argv, char** env)
     return syscall(SYSEXEC, (int)path, (int)argv, (int)env, 0, 0);
 }
 
+int chdir(char* path)
+{
+    return syscall(SYSCHDIR, (int)path, 0, 0, 0, 0);
+}
+
 int open(const char *pathname, int flags)
 {
     return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);

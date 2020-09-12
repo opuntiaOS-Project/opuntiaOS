@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>
@@ -110,6 +111,32 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     return 0;
 }
 
+int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
+{
+    proc_t* from_proc = from_thread->process;
+    memcpy((void*)new_proc->main_thread->tf, (void*)from_thread->tf, sizeof(trapframe_t));
+
+    new_proc->cwd = dentry_duplicate(from_proc->cwd);
+    new_proc->tty = from_proc->tty;
+
+    /* TODO: change the size in advance */
+    for (int i = 0; i < from_proc->zones.size; i++) {
+        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&from_proc->zones, i);
+        dynamic_array_push(&new_proc->zones, zone_to_copy);
+    }
+
+    if (from_proc->fds) {
+        for (int i = 0; i < MAX_OPENED_FILES; i++) {
+            if (from_proc->fds[i].dentry) {
+                file_descriptor_t* fd = &new_proc->fds[i];
+                vfs_open(from_proc->fds[i].dentry, fd);
+            }
+        }
+    }
+
+    return 0;
+}
+
 /**
  * LOAD FUNCTIONS
  */
@@ -160,15 +187,12 @@ int proc_load(proc_t* p, const char* path)
         return -ENOENT;
     }
 
-    /* Put it back, since now we have a new cwd */
-    if (p->cwd) {
-        dentry_put(p->cwd);
-    }
-
     int ret = _proc_load_bin(p, &fd);
 
     if (!ret) {
-        p->cwd = dentry_get_parent(file);
+        if (!p->cwd) {
+            p->cwd = dentry_get_parent(file);
+        }
     }
 
     dentry_put(file);
@@ -176,33 +200,9 @@ int proc_load(proc_t* p, const char* path)
     return ret;
 }
 
-int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
-{
-    proc_t* from_proc = from_thread->process;
-    memcpy((void*)new_proc->main_thread->tf, (void*)from_thread->tf, sizeof(trapframe_t));
-
-    new_proc->cwd = dentry_duplicate(from_proc->cwd);
-    new_proc->tty = from_proc->tty;
-
-    /* TODO: change the size in advance */
-    for (int i = 0; i < from_proc->zones.size; i++) {
-        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&from_proc->zones, i);
-        dynamic_array_push(&new_proc->zones, zone_to_copy);
-    }
-
-    if (from_proc->fds) {
-        for (int i = 0; i < MAX_OPENED_FILES; i++) {
-            if (from_proc->fds[i].dentry) {
-                file_descriptor_t* fd = &new_proc->fds[i];
-                vfs_open(from_proc->fds[i].dentry, fd);
-            }
-        }
-    }
-
-    return 0;
-
-    // sched_enqueue(new_proc);
-}
+/**
+ * PROC FREE FUNCTIONS
+ */
 
 int proc_free(proc_t* p)
 {
@@ -240,12 +240,18 @@ int proc_free(proc_t* p)
 
 int proc_die(proc_t* p)
 {
-    FOREACH_THREAD(p) {
+    FOREACH_THREAD(p)
+    {
         thread_die(thread);
-    } END_FOREACH
+    }
+    END_FOREACH
     p->status = PROC_DYING;
     return 0;
 }
+
+/**
+ * PROC THREAD FUNCTIONS
+ */
 
 thread_t* proc_create_thread(proc_t* p)
 {
@@ -257,27 +263,54 @@ thread_t* proc_create_thread(proc_t* p)
 
 void proc_kill_all_threads(proc_t* p)
 {
-    FOREACH_THREAD(p) {
+    FOREACH_THREAD(p)
+    {
         thread_free(thread);
-    } END_FOREACH
+    }
+    END_FOREACH
 }
 
 void proc_kill_all_threads_except(proc_t* p, thread_t* gthread)
 {
-    FOREACH_THREAD(p) {
+    FOREACH_THREAD(p)
+    {
         if (thread->tid != gthread->tid)
             thread_free(thread);
-    } END_FOREACH
+    }
+    END_FOREACH
 }
 
 /**
- * PROC FD FUNCTIONS
+ * PROC FS FUNCTIONS
  */
 
-int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd)
+int proc_chdir(proc_t* p, const char* path)
+{
+    char* kpath = 0;
+    if (!str_validate_len(path, 128)) {
+        return -EINVAL;
+    }
+    kpath = kmem_bring_to_kernel(path, strlen(path) + 1);
+    
+
+    dentry_t* new_cwd;
+    int ret = vfs_resolve_path_start_from(p->cwd, kpath, &new_cwd);
+    if (ret) {
+        return -ENOENT;
+    }
+
+    /* Put an old one back */
+    if (p->cwd) {
+        dentry_put(p->cwd);
+    }
+    p->cwd = new_cwd;
+    return 0;
+}
+
+int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
 {
     /* Calculating id with pointers */
-    uint32_t start = (uint32_t)proc->fds;
+    uint32_t start = (uint32_t)p->fds;
     uint32_t fd_ptr = (uint32_t)fd;
     fd_ptr -= start;
     int fd_res = fd_ptr / sizeof(file_descriptor_t);
@@ -287,24 +320,24 @@ int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd)
     return -1;
 }
 
-file_descriptor_t* proc_get_free_fd(proc_t* proc)
+file_descriptor_t* proc_get_free_fd(proc_t* p)
 {
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
-        if (!proc->fds[i].dentry) {
-            return &proc->fds[i];
+        if (!p->fds[i].dentry) {
+            return &p->fds[i];
         }
     }
 }
 
-file_descriptor_t* proc_get_fd(proc_t* proc, uint32_t index)
+file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
 {
     if (index >= MAX_OPENED_FILES) {
         return 0;
     }
 
-    if (!proc->fds[index].dentry) {
+    if (!p->fds[index].dentry) {
         return 0;
     }
 
-    return &proc->fds[index];
+    return &p->fds[index];
 }
