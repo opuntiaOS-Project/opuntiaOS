@@ -11,16 +11,15 @@
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/sockets/socket.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <utils/mem.h>
+
+// #define VFS_DEBUG
 
 vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
 dynamic_array_t _vfs_fses;
 int32_t root_fs_dev_id = -1;
-
-/**
- * DENTRY CACHES
- */
 
 driver_desc_t _vfs_driver_info()
 {
@@ -214,6 +213,26 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
         return -ENOTDIR;
     }
 
+    if (len == 1) {
+        if (name[0] == '.') {
+            *result = dentry_duplicate(dir);
+            return 0;
+        }
+    }
+
+    /* If dir is a mount point, vfs should find it's parent by itself */
+    if (dentry_test_flag(dir, DENTRY_MOUNTED)) {
+#ifdef VFS_DEBUG
+        log("[VFS] Lookup for mounted's parents %d %d : %d %d", dir->dev_indx, dir->inode_indx, dir->parent_dev_indx, dir->parent_inode_indx);
+#endif
+        if (len == 2) {
+            if (name[0] == '.' && name[1] == '.') {
+                *result = dentry_get(dir->parent_dev_indx, dir->parent_inode_indx);
+                return 0;
+            }
+        }
+    }
+
     uint32_t next_inode;
     if (dir->ops->file.lookup(dir, name, len, &next_inode) == 0) {
         *result = dentry_get(dir->dev_indx, next_inode);
@@ -303,7 +322,9 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
             cur_dent = dentry_duplicate(cur_dent);
         }
 
-        dentry_set_parent(cur_dent, parent_dent);
+        if (cur_dent != parent_dent) {
+            dentry_set_parent(cur_dent, parent_dent);
+        }
         dentry_put(parent_dent);
     }
 

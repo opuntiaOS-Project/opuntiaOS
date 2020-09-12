@@ -233,23 +233,73 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
-    /* FIXME: Currently we leave, dir when offset is the max number. */
+    /* Currently we leave, dir when offset is the max number. */
     if (*offset == 0xffffffff) {
         return 0;
     }
 
-    /* Scanining dir from the start */
+    int already_read = 0;
+    dirent_t tmp;
+    tmp.name = 0;
+
+    /* Return . */
     if (*offset == 0) {
+        int rec_len = 8 + 1 + 1;
+
+        if (len < rec_len) {
+            if (already_read) {
+                return already_read;
+            } else {
+                return -EINVAL;
+            }
+        }
+
+        tmp.inode = devfs_inode->index;
+        tmp.rec_len = rec_len;
+        tmp.name_len = 1;
+        memcpy(buf + already_read, (void*)&tmp, 8);
+        memcpy(buf + already_read + 8, ".", 1);
+        buf[already_read + rec_len - 1] = '\0';
+        already_read += rec_len;
+        len -= rec_len;
+        *offset = 1;
+    }
+
+    /* Return .. */
+    if (*offset == 1) {
+        int rec_len = 8 + 2 + 1;
+
+        if (len < rec_len) {
+            if (already_read) {
+                return already_read;
+            } else {
+                return -EINVAL;
+            }
+        }
+
+        if (devfs_inode->parent) {
+            tmp.inode = devfs_inode->parent->index;
+        } else {
+            tmp.inode = devfs_inode->index;
+        }
+        tmp.rec_len = rec_len;
+        tmp.name_len = 2;
+        memcpy(buf + already_read, (void*)&tmp, 8);
+        memcpy(buf + already_read + 8, "..", 2);
+        buf[already_read + rec_len - 1] = '\0';
+        already_read += rec_len;
+        len -= rec_len;
+        *offset = 2;
+    }
+
+    /* Scanining dir from the start */
+    if (*offset == 2) {
         if (!devfs_inode->first) {
             return 0;
         }
         *offset = (uint32_t)devfs_inode->first;
     }
 
-    dirent_t tmp;
-    tmp.name = 0;
-
-    int already_read = 0;
     while (*offset != 0xffffffff) {
         devfs_inode_t* child_devfs_inode = (devfs_inode_t*)*offset;
         uint32_t name_len = strlen(child_devfs_inode->name);
@@ -266,9 +316,9 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
         tmp.inode = child_devfs_inode->index;
         tmp.rec_len = rec_len;
         tmp.name_len = name_len;
-        memcpy(buf+already_read, (void*)&tmp, 8);
-        memcpy(buf+already_read+8, child_devfs_inode->name, name_len);
-        buf[already_read+rec_len-1] = '\0';
+        memcpy(buf + already_read, (void*)&tmp, 8);
+        memcpy(buf + already_read + 8, child_devfs_inode->name, name_len);
+        buf[already_read + rec_len - 1] = '\0';
         already_read += rec_len;
         len -= rec_len;
         if (child_devfs_inode->next) {
@@ -284,6 +334,20 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
+
+    if (len == 1) {
+        if (name[0] == '.') {
+            *res_inode_indx = devfs_inode->index;
+            return 0;
+        }
+    }
+
+    if (len == 2) {
+        if (name[0] == '.' && name[1] == '.') {
+            *res_inode_indx = devfs_inode->parent->index;
+            return 0;
+        }
+    }
 
     devfs_inode_t* child = devfs_inode->first;
     while (child) {
@@ -431,7 +495,7 @@ int devfs_mount()
     if (vfs_resolve_path("/dev", &mp) < 0) {
         return -ENOENT;
     }
-    vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
+    int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
     dentry_put(mp);
-    return 0;
+    return err;
 }
