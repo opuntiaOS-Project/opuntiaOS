@@ -9,8 +9,11 @@
 #include <drivers/display.h>
 #include <errno.h>
 #include <io/sockets/local_socket.h>
+#include <log.h>
 #include <tasking/proc.h>
 #include <tasking/tasking.h>
+
+#define LOCAL_SOCKET_DEBUG
 
 static file_ops_t local_socket_ops = {
     local_socket_can_read,
@@ -64,16 +67,21 @@ int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
     dentry_t* bind_dentry;
     int res = vfs_resolve_path_start_from(p->cwd, name, &bind_dentry);
     if (res < 0) {
-        kprintf("Bind: can't find path to file\n");
+#ifdef LOCAL_SOCKET_DEBUG
+        log_error("Bind: can't find path to file : %d pid\n", p->pid);
+#endif
         return res;
     }
     res = vfs_open(bind_dentry, &sock->sock_entry->bind_file);
     if (res < 0) {
-        kprintf("Bind: can't open file\n");
+#ifdef LOCAL_SOCKET_DEBUG
+        log_error("Bind: can't open file : %d pid\n", p->pid);
+#endif
         return res;
     }
-
-    kprintf("Bind to %x", sock->sock_entry);
+#ifdef LOCAL_SOCKET_DEBUG
+    log("Bind local socket at %x : %d pid", sock->sock_entry, p->pid);
+#endif
     sock->sock_entry->bind_file.dentry->sock = sock->sock_entry;
     return 0;
 }
@@ -85,11 +93,15 @@ int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
     dentry_t* bind_dentry;
     int res = vfs_resolve_path_start_from(p->cwd, name, &bind_dentry);
     if (res < 0) {
-        kprintf("Connect: can't find path to file\n");
+#ifdef LOCAL_SOCKET_DEBUG
+        log_error("Connect: can't find path to file : %d pid\n", p->pid);
+#endif
         return res;
     }
     if ((bind_dentry->inode->mode & EXT2_S_IFSOCK) == 0) {
-        kprintf("Connect: file not a socket\n");
+#ifdef LOCAL_SOCKET_DEBUG
+        log_error("Connect: file not a socket : %d pid\n", p->pid);
+#endif
         return -ENOTSOCK;
     }
 
@@ -97,6 +109,8 @@ int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
         return -EBADF;
     }
     sock->sock_entry = bind_dentry->sock;
-    kprintf("Connected to %x", bind_dentry->sock);
+#ifdef LOCAL_SOCKET_DEBUG
+    kprintf("Connected to local socket at %x : %d pid", bind_dentry->sock, p->pid);
+#endif
     return 0;
 }

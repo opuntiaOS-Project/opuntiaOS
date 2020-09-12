@@ -1,6 +1,7 @@
 #include <drivers/display.h>
 #include <drivers/pit.h>
 #include <drivers/rtc.h>
+#include <log.h>
 #include <time/time_manager.h>
 
 // #define TIME_MANAGER_DEBUG
@@ -68,7 +69,7 @@ int timeman_setup()
     rtc_load_time(&secs, &mins, &hrs, &day, &month, &year);
 
 #ifdef TIME_MANAGER_DEBUG
-    kprintf("Loaded date: %ds %dm %dh %dd %dm %dy", (uint32_t)secs, (uint32_t)mins, (uint32_t)hrs, (uint32_t)day, (uint32_t)month, (uint32_t)year);
+    log("Loaded date: %ds %dm %dh %dd %dm %dy", (uint32_t)secs, (uint32_t)mins, (uint32_t)hrs, (uint32_t)day, (uint32_t)month, (uint32_t)year);
 #endif
 
     time_since_epoch = timeman_to_seconds_since_epoch(secs, mins, hrs, day, month, year);
