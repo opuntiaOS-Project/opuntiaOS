@@ -1,0 +1,5 @@
+APPS += CAT
+
+CAT_NAME = cat
+CAT_LIBS = kernel
+CAT_INSTALL_PATH = bin/

@@ -106,8 +106,7 @@ void sys_read(trapframe_t* tf)
 {
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_THREAD->process, (int)param1);
     if (!fd) {
-        set_return(tf, -1);
-        return;
+        return_with_val(-EBADF);
     }
 
     /* If we can't read right now, let's block until we can */
@@ -116,8 +115,8 @@ void sys_read(trapframe_t* tf)
         resched();
     }
 
-    int res = vfs_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
-    set_return(tf, res);
+    int res = vfs_read(fd, (uint8_t*)param2, (uint32_t)param3);
+    return_with_val(res);
 }
 
 /* TODO: copying to/from user! */

@@ -124,7 +124,7 @@ void read(int argc, char* argv[])
 
     char data[512];
     memset(data, 0, sizeof(data));
-    vfs_read(&fd, (uint8_t*)&data, 0, fd.dentry->inode->size);
+    vfs_read(&fd, (uint8_t*)&data, fd.dentry->inode->size);
     kprintf(data);
     vfs_close(&fd);
 }

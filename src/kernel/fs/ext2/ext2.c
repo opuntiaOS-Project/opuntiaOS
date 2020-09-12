@@ -757,16 +757,23 @@ bool ext2_can_write(dentry_t* dentry)
 int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
+    uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
     uint32_t start_block_index = start / block_len;
-    uint32_t end_block_index = (start + len) / block_len;
+    uint32_t end_block_index = MIN((start + len) / block_len, blocks_allocated - 1);
+
+    if (start >= dentry->inode->size) {
+        return 0;
+    }
+
+    uint32_t have_to_read = MIN(len, dentry->inode->size - start);
     uint32_t read_offset = start % block_len;
     uint32_t already_read = 0;
 
     for (uint32_t block_index = start_block_index; block_index <= end_block_index; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dentry, block_index);
-        uint32_t read_from_block = MIN(len, block_len - read_offset);
+        uint32_t read_from_block = MIN(have_to_read, block_len - read_offset);
         _ext2_read_from_dev(dentry->dev, buf + already_read, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + read_offset, read_from_block);
-        len -= read_from_block;
+        have_to_read -= read_from_block;
         already_read += read_from_block;
         read_offset = 0;
     }
