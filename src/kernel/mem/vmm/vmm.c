@@ -9,6 +9,7 @@
 #include <drivers/display.h>
 #include <errno.h>
 #include <global.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
@@ -19,7 +20,7 @@
 #define pdir_t pdirectory_t
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
 #define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0x3ff)
-#define VMM_OFFSET_IN_PAGE(a) ((a) & 0xfff)
+#define VMM_OFFSET_IN_PAGE(a) ((a)&0xfff)
 #define FRAME(addr) (addr / VMM_PAGE_SIZE)
 
 #define VMM_KERNEL_TABLES_START 768
@@ -60,7 +61,6 @@ static int _vmm_resolve_copy_on_write(uint32_t vaddr);
 static void _vmm_ensure_cow_for_page(uint32_t vaddr);
 static void _vmm_ensure_cow_for_range(uint32_t vaddr, uint32_t length);
 static int _vmm_copy_page_to_resolve_cow(uint32_t vaddr, ptable_t* src_ptable);
-
 
 static bool _vmm_is_zeroing_on_demand(uint32_t vaddr);
 static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr);
@@ -298,7 +298,6 @@ int vmm_setup()
     _vmm_pspace_init();
     _vmm_init_switch_to_kernel_pdir();
     _vmm_map_kernel();
-    // _vmm_enable_write_protect();
     zoner_place_bitmap();
     kmalloc_init();
     if (_vmm_self_test() < 0) {
@@ -353,7 +352,7 @@ int vmm_allocate_ptable(uint32_t vaddr)
 
     uint32_t ptable_paddr = (uint32_t)pmm_alloc_block();
     if (!ptable_paddr) {
-        // TODO may be cleaner should be called here;
+        log_error(" vmm_allocate_ptable: No free space in pmm");
         return -VMM_ERR_NO_SPACE;
     }
     uint32_t ptable_vaddr = (uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
@@ -598,12 +597,8 @@ static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
 }
 
 /**
- * USER PDIR MANIPULATIONS FUNCTIONS
+ * USER PDIR FUNCTIONS
  */
-
-// creating user pdir
-// copy kernel's table to the table
-// TODO may not work because of PHYS address translation (Bug #3)
 
 /**
  * The function is supposed to create all new user's pdir.
@@ -627,7 +622,9 @@ pdirectory_t* vmm_new_user_pdir()
 }
 
 /**
- * The function is supposed to fork a new user's pdir from the active
+ * The function created a new user's pdir from the active pdir.
+ * After copying the task we need to flush tlb. To do that we have to
+ * to reload cr3 tlb entries. 
  */
 pdirectory_t* vmm_new_forked_user_pdir()
 {
@@ -640,16 +637,20 @@ pdirectory_t* vmm_new_forked_user_pdir()
     new_pdir->entities[VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)] = _vmm_pspace_gen();
 
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-        // COW: blocking current pdir
         table_desc_t* act_ptable_desc = &_vmm_active_pdir->entities[i];
-        table_desc_del_attrs(act_ptable_desc, TABLE_DESC_WRITABLE);
-        table_desc_set_attrs(act_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+        if (table_desc_has_attrs(*act_ptable_desc, TABLE_DESC_PRESENT)) {
+            // COW: blocking current pdir
+            table_desc_del_attrs(act_ptable_desc, TABLE_DESC_WRITABLE);
+            table_desc_set_attrs(act_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
 
-        // COW: blocking new pdir
-        table_desc_t* new_ptable_desc = &new_pdir->entities[i];
-        table_desc_del_attrs(new_ptable_desc, TABLE_DESC_WRITABLE);
-        table_desc_set_attrs(new_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+            // COW: blocking new pdir
+            table_desc_t* new_ptable_desc = &new_pdir->entities[i];
+            table_desc_del_attrs(new_ptable_desc, TABLE_DESC_WRITABLE);
+            table_desc_set_attrs(new_ptable_desc, TABLE_DESC_COPY_ON_WRITE);
+        }
     }
+
+    _vmm_flush_tlb();
 
     return new_pdir;
 }
@@ -658,6 +659,10 @@ int vmm_free_pdir(pdirectory_t* pdir)
 {
     if (!pdir) {
         return -EINVAL;
+    }
+
+    if (pdir == _vmm_kernel_pdir) {
+        return -EACCES;
     }
 
     vmm_switch_pdir(pdir);
@@ -670,27 +675,6 @@ int vmm_free_pdir(pdirectory_t* pdir)
     _vmm_free_pspace(pdir);
     kfree_aligned(pdir);
     return 0;
-}
-
-
-/** WILL BE DEPRECATED
- * The function is supposed to copy init program data into the pdir
- */
-void vmm_copy_program_data(pdirectory_t* dir, uint8_t* data, uint32_t data_size)
-{
-    if (data_size > 256) {
-        kpanic("Init proccess is too big");
-    }
-
-    uint8_t* tmp_block = kmalloc_page_aligned();
-
-    for (int i = 0; i < data_size; i++) {
-        tmp_block[i] = data[i];
-    }
-
-    vmm_switch_pdir(dir);
-    vmm_map_page(0x0, (uint32_t)_vmm_convert_vaddr2paddr((uint32_t)tmp_block), PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_USER);
-    vmm_switch_pdir(_vmm_kernel_pdir);
 }
 
 void* vmm_bring_to_kernel(uint8_t* src, uint32_t length)
@@ -810,7 +794,6 @@ int vmm_copy_page(uint32_t to_vaddr, uint32_t src_vaddr, ptable_t* src_ptable)
     uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page(old_page_vaddr, old_page_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
 
-
     memcpy((uint8_t*)to_vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
 
     /* Freeing */
@@ -858,7 +841,6 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
         }
     } else {
         if ((info & 1) == 0) {
-            /* TODO: Check if we load a page for a program, and set flags like in zone-container */
             if (PAGE_CHOOSE_OWNER(vaddr) == PAGE_USER && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
                 proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
                 if (!holder_proc) {
@@ -880,11 +862,11 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
                 kprintf("No zone");
             }
             kprintf("%d %x %x %x %d", info, vaddr, vmm_get_active_pdir(), RUNNIG_THREAD->process->pdir, zone->type);
-            while (1) {}
+            while (1) { }
             kpanic("VMM: where are we?\n");
         }
     }
-    
+
     return OK;
 }
 
