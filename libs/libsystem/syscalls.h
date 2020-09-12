@@ -14,6 +14,7 @@ extern int errno;
 int open(const char *pathname, int flags);
 int read(int fd, char *buf, size_t count);
 int write(int fd, const void *buf, size_t count);
+void exit(int ret_code);
 int fork();
 int wait(int pid);
 int execve(char* path, char** argv, char** env);

@@ -1,0 +1,5 @@
+APPS += UTESTER
+
+UTESTER_NAME = utester
+UTESTER_LIBS = kernel
+UTESTER_INSTALL_PATH = bin/

@@ -178,9 +178,6 @@ void tasking_fork(trapframe_t* tf)
     new_proc->main_thread->tf->eax = 0;
     RUNNIG_THREAD->tf->eax = new_proc->pid;
 
-    /*  After copying the task we need to flush tlb. To do that we need
-        to reload cr3 register with a new pdir. To not waste our resources
-        we will simply run other process and of course pdir will be refreshed. */
     new_proc->main_thread->status = THREAD_RUNNING;
     sched_enqueue(new_proc->main_thread);
     resched();
@@ -269,9 +266,9 @@ int tasking_waitpid(int pid)
 
 void tasking_exit(int exit_code)
 {
-    proc_t* proc = RUNNIG_THREAD->process;
-    proc->main_thread->exit_code = exit_code;
-    proc_die(proc);
+    proc_t* p = RUNNIG_THREAD->process;
+    p->main_thread->exit_code = exit_code;
+    proc_die(p);
     resched();
 }
 

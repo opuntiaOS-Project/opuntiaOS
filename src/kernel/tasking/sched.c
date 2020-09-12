@@ -7,6 +7,7 @@
  */
 
 #include <algo/dynamic_array.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
@@ -128,7 +129,7 @@ void sched_enqueue(thread_t* thread)
 {
     thread->status = THREAD_RUNNING;
 #ifdef SCHED_DEBUG
-    kprintf("enqueue %d\n", thread->tid);
+    log("enqueue task %d\n", thread->tid);
 #endif
     if (thread->process->prio > MIN_PRIO) {
         thread->process->prio = MIN_PRIO;
@@ -155,7 +156,7 @@ void sched()
         thread_t* thread = _master_buf_back();
         dynamic_array_pop(&_master_buf[_buf_read_prio]);
 #ifdef SCHED_SHOW_STAT
-        kprintf("%d", _debug_count_of_proc_in_buf(_master_buf));
+        log("[STAT] procs in buffer: %d", _debug_count_of_proc_in_buf(_master_buf));
 #endif
         if (thread->status == THREAD_RUNNING) {
             switchuvm(thread);
