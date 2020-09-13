@@ -229,6 +229,11 @@ int devfs_write_inode(dentry_t* dentry)
     return 0;
 }
 
+int devfs_free_inode(dentry_t* dentry)
+{
+    return 0;
+}
+
 int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
@@ -437,11 +442,12 @@ driver_desc_t _devfs_driver_info()
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = devfs_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = devfs_write_inode;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE] = devfs_free_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = devfs_data;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = devfs_lookup;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = devfs_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = devfs_ioctl;
 
     return fs_desc;

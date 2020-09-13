@@ -55,9 +55,24 @@ int chdir(char* path)
     return syscall(SYSCHDIR, (int)path, 0, 0, 0, 0);
 }
 
+int mkdir(char* path)
+{
+    return syscall(SYSMKDIR, (int)path, 0, 0, 0, 0);
+}
+
+int unlink(char* path)
+{
+    return syscall(SYSUNLINK, (int)path, 0, 0, 0, 0);
+}
+
 int open(const char *pathname, int flags)
 {
     return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);
+}
+
+int close(int fd)
+{
+    return syscall(SYSCLOSE, (int)fd, 0, 0, 0, 0);
 }
 
 int sigaction(int signo, void* callback)

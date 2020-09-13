@@ -38,6 +38,7 @@ enum __sysid {
     SYSRAISE,
     SYSGETPID,
     SYSKILL,
+    SYSMKDIR,
     SYSMMAP,
     SYSMUNMAP,
     SYSSOCKET,

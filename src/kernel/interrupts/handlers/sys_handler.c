@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <io/sockets/local_socket.h>
 #include <log.h>
+#include <mem/kmalloc.h>
 #include <sys_handler.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
@@ -36,7 +37,7 @@ static const void* syscalls[] = {
     sys_waitpid,
     sys_none, // sys_creat
     sys_none, // sys_link
-    sys_none, // sys_unlink
+    sys_unlink,
     sys_exec,
     sys_chdir,
     sys_sigaction,
@@ -44,6 +45,7 @@ static const void* syscalls[] = {
     sys_raise,
     sys_getpid,
     sys_kill,
+    sys_mkdir,
     sys_mmap,
     sys_munmap,
     sys_socket,
@@ -91,14 +93,34 @@ void sys_restart_syscall(trapframe_t* tf)
     kprintd(tf->ebx);
 }
 
-void sys_exit(trapframe_t* tf)
+/**
+ * FS SYSCALLS
+ */
+
+void sys_open(trapframe_t* tf)
 {
-    tasking_exit((int)param1);
+    proc_t* p = RUNNIG_THREAD->process;
+    file_descriptor_t* fd = proc_get_free_fd(p);
+    dentry_t* file;
+    if (vfs_resolve_path_start_from(p->cwd, (char*)param1, &file) < 0) {
+        return_with_val(-1);
+    }
+    int res = vfs_open(file, fd);
+    dentry_put(file);
+    if (!res) {
+        return_with_val(proc_get_fd_id(p, fd));
+    } else {
+        return_with_val(res);
+    }
 }
 
-void sys_fork(trapframe_t* tf)
+void sys_close(trapframe_t* tf)
 {
-    tasking_fork(tf);
+    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, param1);
+    if (!fd) {
+        return_with_val(-EBADF);
+    }
+    return_with_val(vfs_close(fd));
 }
 
 /* TODO: copying to/from user! */
@@ -124,36 +146,85 @@ void sys_write(trapframe_t* tf)
 {
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_THREAD->process, (int)param1);
     if (!fd) {
-        set_return(tf, -1);
-        return;
+        return_with_val(-1);
     }
 
     int res = vfs_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
     set_return(tf, res);
 }
 
-void sys_open(trapframe_t* tf)
+void sys_unlink(trapframe_t* tf)
 {
     proc_t* p = RUNNIG_THREAD->process;
-    file_descriptor_t* fd = proc_get_free_fd(p);
+    const char* path = (char*)param1;
+    char* kpath = 0;
+    if (!str_validate_len(path, 128)) {
+        return_with_val(-EINVAL);
+    }
+    int name_len = strlen(path);
+    kpath = kmem_bring_to_kernel(path, name_len + 1);
+
     dentry_t* file;
-    if (vfs_resolve_path_start_from(p->cwd, (char*)param1, &file) < 0) {
-        set_return(tf, -1);
-        return;
+    if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
+        return_with_val(-ENOENT);
     }
-    int res = vfs_open(file, fd);
+
+    int ret = vfs_unlink(file);
+
     dentry_put(file);
-    if (!res) {
-        set_return(tf, proc_get_fd_id(p, fd));
-    } else {
-        set_return(tf, res);
-    }
+    kfree(kpath);
+    return_with_val(ret);
 }
 
-void sys_close(trapframe_t* tf)
+void sys_mkdir(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, param1);
-    set_return(tf, vfs_close(fd));
+    proc_t* p = RUNNIG_THREAD->process;
+    const char* path = (char*)param1;
+    char* kpath = 0;
+    if (!str_validate_len(path, 128)) {
+        return_with_val(-EINVAL);
+    }
+    int name_len = strlen(path);
+    kpath = kmem_bring_to_kernel(path, name_len + 1);
+
+    // dentry_t* dir;
+    // if (vfs_resolve_path_start_from(p->cwd, &dir) < 0) {
+    //     return_with_val(-ENOENT);
+    // }
+
+    mode_t dir_mode = EXT2_S_IFDIR | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
+    int res = vfs_mkdir(p->cwd, kpath, name_len, dir_mode);
+    kfree(kpath);
+    return_with_val(res);
+}
+
+void sys_chdir(trapframe_t* tf)
+{
+    /* proc lock */
+    const char* path = (char*)param1;
+    return_with_val(proc_chdir(RUNNIG_THREAD->process, path));
+}
+
+void sys_getdents(trapframe_t* tf)
+{
+    proc_t* p = RUNNIG_THREAD->process;
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
+    int read = vfs_getdents(fd, (uint8_t*)param2, param3);
+    return_with_val(read);
+}
+
+/**
+ * TASKING SYSCALLS
+ */
+
+void sys_exit(trapframe_t* tf)
+{
+    tasking_exit((int)param1);
+}
+
+void sys_fork(trapframe_t* tf)
+{
+    tasking_fork(tf);
 }
 
 void sys_waitpid(trapframe_t* tf)
@@ -165,13 +236,6 @@ void sys_waitpid(trapframe_t* tf)
 void sys_exec(trapframe_t* tf)
 {
     set_return(tf, tasking_exec((char*)param1, (const char**)param2, (const char**)param3));
-}
-
-void sys_chdir(trapframe_t* tf)
-{
-    /* proc lock */
-    const char* path = (char*)param1;
-    return_with_val(proc_chdir(RUNNIG_THREAD->process, path));
 }
 
 void sys_sigaction(trapframe_t* tf)
@@ -200,6 +264,63 @@ void sys_kill(trapframe_t* tf)
     thread_t* thread = thread_by_pid(param1);
     return_with_val(tasking_kill(thread, param2));
 }
+
+void sys_setpgid(trapframe_t* tf)
+{
+    uint32_t pid = param1;
+    uint32_t pgid = param2;
+
+    proc_t* p = tasking_get_proc(pid);
+    if (!p) {
+        return_with_val(-ESRCH);
+    }
+
+    p->pgid = pgid;
+    return_with_val(0);
+}
+
+void sys_getpgid(trapframe_t* tf)
+{
+    uint32_t pid = param1;
+
+    proc_t* p = tasking_get_proc(pid);
+    if (!p) {
+        return_with_val(-ESRCH);
+    }
+
+    return_with_val(p->pgid);
+}
+
+void sys_create_thread(trapframe_t* tf)
+{
+    proc_t* p = RUNNIG_THREAD->process;
+    thread_t* thread = proc_create_thread(p);
+    if (!thread) {
+        return_with_val(-EFAULT);
+    }
+
+    thread_create_params_t* params = (thread_create_params_t*)param1;
+    thread_set_eip(thread, params->entry_point);
+    uint32_t esp = params->stack_start + params->stack_size;
+    thread_set_stack(thread, esp, esp);
+
+    return_with_val(thread->tid);
+}
+
+void sys_sleep(trapframe_t* tf)
+{
+    thread_t* p = RUNNIG_THREAD;
+    time_t time = param1;
+
+    init_sleep_blocker(RUNNIG_THREAD, time);
+    resched();
+
+    return_with_val(0);
+}
+
+/**
+ * MEMORY SYSCALLS
+ */
 
 void sys_mmap(trapframe_t* tf)
 {
@@ -252,6 +373,10 @@ void sys_mmap(trapframe_t* tf)
 void sys_munmap(trapframe_t* tf)
 {
 }
+
+/**
+ * IO SYSCALLS
+ */
 
 void sys_socket(trapframe_t* tf)
 {
@@ -313,14 +438,6 @@ void sys_connect(trapframe_t* tf)
     return_with_val(-EFAULT);
 }
 
-void sys_getdents(trapframe_t* tf)
-{
-    proc_t* p = RUNNIG_THREAD->process;
-    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
-    int read = vfs_getdents(fd, (uint8_t*)param2, param3);
-    return_with_val(read);
-}
-
 void sys_ioctl(trapframe_t* tf)
 {
     proc_t* p = RUNNIG_THREAD->process;
@@ -335,59 +452,6 @@ void sys_ioctl(trapframe_t* tf)
     } else {
         return_with_val(-EACCES);
     }
-}
-
-void sys_setpgid(trapframe_t* tf)
-{
-    uint32_t pid = param1;
-    uint32_t pgid = param2;
-
-    proc_t* p = tasking_get_proc(pid);
-    if (!p) {
-        return_with_val(-ESRCH);
-    }
-
-    p->pgid = pgid;
-    return_with_val(0);
-}
-
-void sys_getpgid(trapframe_t* tf)
-{
-    uint32_t pid = param1;
-
-    proc_t* p = tasking_get_proc(pid);
-    if (!p) {
-        return_with_val(-ESRCH);
-    }
-
-    return_with_val(p->pgid);
-}
-
-void sys_create_thread(trapframe_t* tf)
-{
-    proc_t* p = RUNNIG_THREAD->process;
-    thread_t* thread = proc_create_thread(p);
-    if (!thread) {
-        return_with_val(-EFAULT);
-    }
-
-    thread_create_params_t* params = (thread_create_params_t*)param1;
-    thread_set_eip(thread, params->entry_point);
-    uint32_t esp = params->stack_start + params->stack_size;
-    thread_set_stack(thread, esp, esp);
-
-    return_with_val(thread->tid);
-}
-
-void sys_sleep(trapframe_t* tf)
-{
-    thread_t* p = RUNNIG_THREAD;
-    time_t time = param1;
-
-    init_sleep_blocker(RUNNIG_THREAD, time);
-    resched();
-
-    return_with_val(0);
 }
 
 void sys_none(trapframe_t* tf) { }

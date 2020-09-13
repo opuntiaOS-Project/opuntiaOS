@@ -12,6 +12,7 @@
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <sys_handler.h>
+#include <utils/kassert.h>
 #include <utils/mem.h>
 #include <x86/common.h>
 
@@ -111,11 +112,33 @@ static dentry_t* dentry_cache_find_empty_entry()
     return &last->data[0];
 }
 
+static inline void dentry_delete_inode(dentry_t* dentry)
+{
+    ASSERT(dentry->d_count == 0 && dentry_test_flag(dentry, DENTRY_INODE_TO_BE_DELETED));
+    dentry->ops->dentry.free_inode(dentry);
+}
+
 static inline void dentry_flush_inode(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_DIRTY)) {
         dentry->ops->dentry.write_inode(dentry);
         dentry_rem_flag(dentry, DENTRY_DIRTY);
+    }
+}
+
+/**
+ * dentry_delete_from_cache compeletly deletes dentry from cache.
+ * In case when file was deleted and after that a new was created
+ * with the same inode_id, dentry can't recognize and could use old
+ * inode data. We need delete dentry from cache and free inode.
+ */
+static void dentry_delete_from_cache(dentry_t* dentry)
+{
+    dentry->inode_indx = 0;
+    kfree(dentry->inode);
+    stat_cached_inodes_area_size -= INODE_LEN;
+    if (!need_to_free_inode_cache()) {
+        can_stay_inode_cache = 1;
     }
 }
 
@@ -242,6 +265,16 @@ dentry_t* dentry_duplicate(dentry_t* dentry)
     return dentry;
 }
 
+static inline void dentry_put_impl(dentry_t* dentry)
+{
+    if (dentry_test_flag(dentry, DENTRY_INODE_TO_BE_DELETED)) {
+        dentry_delete_inode(dentry);
+        dentry_delete_from_cache(dentry);
+    }
+    dentry_flush_inode(dentry);
+    dentry_prefree(dentry);
+}
+
 void dentry_force_put(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_MOUNTPOINT)) {
@@ -249,8 +282,7 @@ void dentry_force_put(dentry_t* dentry)
     }
 
     dentry->d_count = 0;
-    dentry_flush_inode(dentry);
-    dentry_prefree(dentry);
+    dentry_put_impl(dentry);
 }
 
 void dentry_put(dentry_t* dentry)
@@ -258,8 +290,7 @@ void dentry_put(dentry_t* dentry)
     dentry->d_count--;
 
     if (dentry->d_count == 0) {
-        dentry_flush_inode(dentry);
-        dentry_prefree(dentry);
+        dentry_put_impl(dentry);
     }
 }
 

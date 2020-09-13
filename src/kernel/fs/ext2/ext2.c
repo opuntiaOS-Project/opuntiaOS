@@ -8,6 +8,7 @@
 
 #include <errno.h>
 #include <fs/vfs.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <time/time_manager.h>
 #include <utils/kassert.h>
@@ -62,11 +63,12 @@ static int _ext2_allocate_block_for_inode(dentry_t* dentry, uint32_t pref_group,
 /* INODE FUNCTIONS */
 int ext2_read_inode(dentry_t* dentry);
 int ext2_write_inode(dentry_t* dentry);
+int ext2_free_inode(dentry_t* dentry);
 
 static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t group_index);
 static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t pref_group);
 static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t inode_index);
-static int _ext2_free_inode(dentry_t* dentry);
+static int _ext2_decriment_links_count(dentry_t* dentry);
 
 /* DIR FUNCTIONS */
 static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index);
@@ -415,8 +417,9 @@ static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t i
     return 0;
 }
 
-static int _ext2_free_inode(dentry_t* dentry)
+int ext2_free_inode(dentry_t* dentry)
 {
+    ASSERT(dentry->d_count == 0 && dentry->inode->links_count == 0);
     uint32_t block_per_dir = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
 
     /* freeing all data blocks */
@@ -426,8 +429,12 @@ static int _ext2_free_inode(dentry_t* dentry)
     }
 
     _ext2_free_inode_index(dentry->dev, dentry->fsdata, dentry->inode_indx);
-    dentry_force_put(dentry);
     return 0;
+}
+
+static int _ext2_decriment_links_count(dentry_t* dentry)
+{
+    return (--dentry->inode->links_count) == 0;
 }
 
 /**
@@ -920,7 +927,6 @@ int ext2_rm(dentry_t* dentry)
     dentry_t* parent_dir = dentry_get_parent(dentry);
 
     if (!parent_dir) {
-        // Can't delete root
         return -EPERM;
     }
 
@@ -928,10 +934,7 @@ int ext2_rm(dentry_t* dentry)
         return -EFAULT;
     }
 
-    if (_ext2_free_inode(dentry) < 0) {
-        return -EFAULT;
-    }
-
+    log("free from ext2");
     return 0;
 }
 
@@ -1022,11 +1025,12 @@ driver_desc_t _ext2_driver_info()
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = ext2_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = ext2_write_inode;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE] = ext2_free_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = get_fsdata;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = ext2_lookup;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = ext2_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = ext2_create;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_RM] = ext2_rm;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = ext2_rm;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = 0;
 

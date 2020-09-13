@@ -111,7 +111,9 @@ int vfs_add_dev_with_fs(device_t* dev, int fs_id)
 // TODO: reuse unused slots
 void vfs_eject_device(device_t* dev)
 {
-    kprintf("Ejecting\n");
+#ifdef VFS_DEBUG
+    log("Ejecting\n");
+#endif
     int fs_id = _vfs_devices[dev->id].fs;
     fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)fs_id);
     if (fs->eject_device) {
@@ -141,11 +143,12 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.file.read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
     new_fs.file.write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
     new_fs.file.create = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
-    new_fs.file.rm = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RM];
+    new_fs.file.unlink = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
     new_fs.file.ioctl = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
 
     new_fs.dentry.write_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
     new_fs.dentry.read_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
+    new_fs.dentry.free_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE];
     new_fs.dentry.get_fsdata = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
 
     dynamic_array_push(&_vfs_fses, &new_fs);
@@ -197,14 +200,21 @@ int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
     return dir->ops->file.create(dir, name, len, mode);
 }
 
-int vfs_rm(dentry_t* file)
+int vfs_unlink(dentry_t* file)
 {
-    if (file->d_count != 1) {
-        kprintf("d_count isn't 1, but %d\n", file->d_count);
+    if (dentry_inode_test_flag(file, EXT2_S_IFDIR)) {
         return -EPERM;
     }
 
-    return file->ops->file.rm(file);
+    if (file->inode->links_count == 1) {
+        /* According to docs, we don't delete inode while it's opened somewhere. */
+        dentry_set_flag(file, DENTRY_INODE_TO_BE_DELETED);
+#ifdef VFS_DEBUG
+        log("[VFS] unlink: the file will be deleted");
+#endif
+    }
+
+    return file->ops->file.unlink(file);
 }
 
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
@@ -345,11 +355,15 @@ int vfs_resolve_path(const char* path, dentry_t** result)
 int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 {
     if (dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
-        kprintf("Already a mount point\n");
+#ifdef VFS_DEBUG
+        kprintf("[VFS] Already a mount point\n");
+#endif
         return -EBUSY;
     }
     if (!dentry_inode_test_flag(mountpoint, EXT2_S_IFDIR)) {
-        kprintf("Not a dir\n");
+#ifdef VFS_DEBUG
+        kprintf("[VFS] Not a dir\n");
+#endif
         return -ENOTDIR;
     }
 
@@ -370,14 +384,18 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 int vfs_umount(dentry_t* mounted_dentry)
 {
     if (!dentry_test_flag(mounted_dentry, DENTRY_MOUNTED)) {
-        kprintf("Not mounted\n");
+#ifdef VFS_DEBUG
+        log_warn("[VFS] Not mounted\n");
+#endif
         return -EPERM;
     }
 
     dentry_t* mountpoint = mounted_dentry->mountpoint;
 
     if (!dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
-        kprintf("Not a mountpoint\n");
+#ifdef VFS_DEBUG
+        log_warn("[VFS] Not a mountpoint\n");
+#endif
         return -EPERM;
     }
 

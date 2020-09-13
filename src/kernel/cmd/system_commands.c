@@ -203,7 +203,7 @@ void rm(int argc, char* argv[])
         dentry_put(file);
         return;
     }
-    if (vfs_rm(file) < 0) {
+    if (vfs_unlink(file) < 0) {
         kprintf("Doesn't del");
         return;
     }

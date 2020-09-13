@@ -14,6 +14,11 @@ int procfs_write_inode(dentry_t* dentry)
     return 0;
 }
 
+int procfs_free_inode(dentry_t* dentry)
+{
+    return 0;
+}
+
 fsdata_t procfs_data(dentry_t* dentry)
 {
     fsdata_t fsdata;
@@ -55,6 +60,7 @@ driver_desc_t _procfs_driver_info()
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = procfs_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = procfs_write_inode;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE] = procfs_free_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = procfs_data;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = procfs_getdents;

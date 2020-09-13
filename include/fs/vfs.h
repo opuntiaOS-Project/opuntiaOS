@@ -46,6 +46,7 @@ typedef struct dirent dirent_t;
 #define DENTRY_DIRTY 0x1
 #define DENTRY_MOUNTPOINT 0x2
 #define DENTRY_MOUNTED 0x4
+#define DENTRY_INODE_TO_BE_DELETED 0x8
 struct dentry {
     uint32_t d_count;
     uint32_t flags;
@@ -84,13 +85,14 @@ struct file_ops {
     int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
     int (*create)(dentry_t* dentry, const char* name, uint32_t len, mode_t mode);
     int (*ioctl)(dentry_t* dentry, uint32_t cmd, uint32_t arg);
-    int (*rm)(dentry_t* dentry);
+    int (*unlink)(dentry_t* dentry);
 };
 typedef struct file_ops file_ops_t;
 
 struct dentry_ops {
     int (*read_inode)(dentry_t* dentry);
     int (*write_inode)(dentry_t* dentry);
+    int (*free_inode)(dentry_t* dentry);
     fsdata_t (*get_fsdata)(dentry_t* dentry);
 };
 typedef struct dentry_ops dentry_ops_t;
@@ -167,7 +169,7 @@ int vfs_resolve_path(const char* path, dentry_t** result);
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result);
 
 int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
-int vfs_rm(dentry_t* file);
+int vfs_unlink(dentry_t* file);
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int vfs_open(dentry_t* file, file_descriptor_t* fd);
 int vfs_close(file_descriptor_t* fd);

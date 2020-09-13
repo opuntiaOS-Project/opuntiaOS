@@ -1,4 +1,5 @@
 #include <drivers/display.h>
+#include <drivers/uart.h>
 
 // prints
 
@@ -145,12 +146,12 @@ void clean_screen() {
 
 void scroll (unsigned char lines) {
     char* mem = VIDEO_MEMORY;
-    unsigned int mem_offset = lines * MAX_COLS;
-    unsigned int bytes_2_del = 2*(MAX_COLS*MAX_ROWS-mem_offset);
+    unsigned int mem_offset = (unsigned int)lines * MAX_COLS;
+    unsigned int bytes_2_del = 2 * (MAX_COLS * MAX_ROWS - mem_offset);
     char* src = (mem + mem_offset*2);
     memcpy(mem, src, bytes_2_del);
 
-    for (int i = bytes_2_del; i < 2 * MAX_COLS * MAX_ROWS; i+=2) {
+    for (unsigned int i = bytes_2_del; i < 2 * MAX_COLS * MAX_ROWS; i+=2) {
         mem[i] = ' ';
         mem[i + 1] = WHITE_ON_BLACK;
     }

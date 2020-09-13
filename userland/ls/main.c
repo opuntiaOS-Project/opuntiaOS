@@ -1,3 +1,4 @@
+#include <libsystem/string.h>
 #include <libsystem/syscalls.h>
 
 #define BUF_SIZE 1024
@@ -10,25 +11,57 @@ struct linux_dirent {
     char* name;
 };
 
+void print_int(int num)
+{
+    int id = 0;
+    char buf[32];
+    if (!num) {
+        write(1, "0", 1);
+    }
+    while (num) {
+        buf[id++] = (num % 10) + '0';
+        num /= 10;
+    }
+
+    for (int i = 0; i < id / 2; i++) {
+        char tmp = buf[i];
+        buf[i] = buf[id - i - 1];
+        buf[id - i - 1] = tmp;
+    }
+
+    buf[id] = '\0';
+    write(1, buf, id);
+}
+
 int main(int argc, char** argv)
 {
     int fd, nread;
     char buf[BUF_SIZE];
-    struct linux_dirent *d;
+    struct linux_dirent* d;
     int bpos;
     char d_type;
+    bool has_path = false;
+    bool show_inodes = false;
 
-    if (argc > 1) {
+    for (int i = 1; i < argc; i++) {
+        if (memcmp(argv[i], "-i", 3) == 0) {
+            show_inodes = true;
+        } else {
+            has_path = true;
+        }
+    }
+
+    if (has_path) {
         fd = open(argv[1], O_RDONLY | O_DIRECTORY);
     } else {
-        write(1, "No path\n", 8);
-        return -1;
+        fd = open(".", O_RDONLY | O_DIRECTORY);
     }
+    
     if (fd < 0) {
         write(1, "-fd\n", 4);
         return -1;
     }
-    for(;;) {
+    for (;;) {
         nread = getdents(fd, buf, BUF_SIZE);
         if (nread < 0) {
             write(1, "Err\n", 4);
@@ -39,8 +72,12 @@ int main(int argc, char** argv)
             break;
 
         for (bpos = 0; bpos < nread;) {
-            d = (struct linux_dirent *) (buf + bpos);
+            d = (struct linux_dirent*)(buf + bpos);
             write(1, &d->name, d->name_len + 1);
+            if (show_inodes) {
+                write(1, " ", 1);
+                print_int(d->inode);
+            }
             write(1, "\n", 1);
             // d_type = *(buf + bpos + d->d_reclen - 1);
             bpos += d->rec_len;
