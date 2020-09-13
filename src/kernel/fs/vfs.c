@@ -253,11 +253,17 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 
 bool vfs_can_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
 {
+    if (!fd->ops->can_read) {
+        return true;
+    }
     return fd->ops->can_read(fd->dentry);
 }
 
 bool vfs_can_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
 {
+    if (!fd->ops->can_write) {
+        return true;
+    }
     return fd->ops->can_write(fd->dentry);
 }
 

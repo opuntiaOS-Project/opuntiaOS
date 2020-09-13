@@ -30,8 +30,12 @@ inline static tty_entry_t* _tty_active()
 
 bool tty_can_read(dentry_t* dentry)
 {
-    // kprintf("tty unblock %d %d\n", _tty_get(dentry)->lines_avail, (_tty_get(dentry)->lines_avail != 0));
     return _tty_get(dentry)->lines_avail > 0;
+}
+
+bool tty_can_write(dentry_t* dentry)
+{
+    return true;
 }
 
 int tty_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
@@ -78,6 +82,7 @@ tty_entry_t* tty_new()
     name[3] = next_tty + '0';
     file_ops_t fops;
     fops.can_read = tty_can_read;
+    fops.can_write = tty_can_write;
     fops.read = tty_read;
     fops.write = tty_write;
     fops.ioctl = tty_ioctl;

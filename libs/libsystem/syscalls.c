@@ -65,6 +65,11 @@ int unlink(char* path)
     return syscall(SYSUNLINK, (int)path, 0, 0, 0, 0);
 }
 
+int creat(char* path, uint32_t mode)
+{
+    return syscall(SYSCREAT, (int)path, (int)mode, 0, 0, 0);
+}
+
 int open(const char *pathname, int flags)
 {
     return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);

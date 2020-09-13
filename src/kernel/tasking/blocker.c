@@ -38,8 +38,24 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 {
     thread->blocker_fd = bfd;
     thread->status = THREAD_BLOCKED;
-    thread->blocker.reason = BLOCKER_JOIN;
+    thread->blocker.reason = BLOCKER_READ;
     thread->blocker.should_unblock = should_unblock_read_block;
+    thread->blocker.should_unblock_for_signal = true;
+    sched_dequeue(thread);
+    return 0;
+}
+
+int should_unblock_write_block(thread_t* thread)
+{
+    return thread->blocker_fd->ops->can_write(thread->blocker_fd->dentry);
+}
+
+int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
+{
+    thread->blocker_fd = bfd;
+    thread->status = THREAD_BLOCKED;
+    thread->blocker.reason = BLOCKER_WRITE;
+    thread->blocker.should_unblock = should_unblock_write_block;
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
     return 0;

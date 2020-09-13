@@ -35,7 +35,7 @@ static const void* syscalls[] = {
     sys_open,
     sys_close,
     sys_waitpid,
-    sys_none, // sys_creat
+    sys_creat,
     sys_none, // sys_link
     sys_unlink,
     sys_exec,
@@ -126,7 +126,7 @@ void sys_close(trapframe_t* tf)
 /* TODO: copying to/from user! */
 void sys_read(trapframe_t* tf)
 {
-    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -144,13 +144,18 @@ void sys_read(trapframe_t* tf)
 /* TODO: copying to/from user! */
 void sys_write(trapframe_t* tf)
 {
-    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
     if (!fd) {
-        return_with_val(-1);
+        return_with_val(-EBADF);
+    }
+
+    if (!vfs_can_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3)) {
+        init_write_blocker(RUNNIG_THREAD, fd);
+        resched();
     }
 
     int res = vfs_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
-    set_return(tf, res);
+    return_with_val(res);
 }
 
 void sys_unlink(trapframe_t* tf)
@@ -174,6 +179,37 @@ void sys_unlink(trapframe_t* tf)
     dentry_put(file);
     kfree(kpath);
     return_with_val(ret);
+}
+
+void sys_creat(trapframe_t* tf)
+{
+    proc_t* p = RUNNIG_THREAD->process;
+    const char* path = (char*)param1;
+    mode_t mode = param2;
+    char* kpath = 0;
+    if (!str_validate_len(path, 128)) {
+        return_with_val(-EINVAL);
+    }
+    int name_len = strlen(path);
+    kpath = kmem_bring_to_kernel(path, name_len + 1);
+
+    int err = vfs_create(p->cwd, kpath, name_len, mode);
+    if (err) {
+        return_with_val(err);
+    }
+
+    /* Opening file */
+    file_descriptor_t* fd = proc_get_free_fd(p);
+    dentry_t* file;
+    if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
+        return_with_val(-1);
+    }
+    err = vfs_open(file, fd);
+    dentry_put(file);
+    if (err) {
+        return_with_val(err);
+    }
+    return_with_val(proc_get_fd_id(p, fd));
 }
 
 void sys_mkdir(trapframe_t* tf)

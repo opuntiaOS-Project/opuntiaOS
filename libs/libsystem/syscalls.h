@@ -22,6 +22,7 @@ int execve(char* path, char** argv, char** env);
 int chdir(char* path);
 int mkdir(char* path);
 int unlink(char* path);
+int creat(char* path, uint32_t mode);
 pid_t getpid();
 int kill(pid_t pid, int signo);
 

@@ -44,6 +44,7 @@ enum BLOCKER_REASON {
     BLOCKER_INVALID,
     BLOCKER_JOIN,
     BLOCKER_READ,
+    BLOCKER_WRITE,
     BLOCKER_SLEEP,
 };
 
@@ -92,6 +93,7 @@ int thread_die(thread_t* thread);
 
 int init_join_blocker(thread_t* p);
 int init_read_blocker(thread_t* p, file_descriptor_t* bfd);
+int init_write_blocker(thread_t* thread, file_descriptor_t* bfd);
 int init_sleep_blocker(thread_t* thread, uint32_t time);
 
 /**
