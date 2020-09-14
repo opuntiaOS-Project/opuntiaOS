@@ -46,6 +46,7 @@ static const void* syscalls[] = {
     sys_getpid,
     sys_kill,
     sys_mkdir,
+    sys_rmdir,
     sys_mmap,
     sys_munmap,
     sys_socket,
@@ -230,6 +231,27 @@ void sys_mkdir(trapframe_t* tf)
 
     mode_t dir_mode = EXT2_S_IFDIR | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
     int res = vfs_mkdir(p->cwd, kpath, name_len, dir_mode);
+    kfree(kpath);
+    return_with_val(res);
+}
+
+void sys_rmdir(trapframe_t* tf)
+{
+    proc_t* p = RUNNIG_THREAD->process;
+    const char* path = (char*)param1;
+    char* kpath = 0;
+    if (!str_validate_len(path, 128)) {
+        return_with_val(-EINVAL);
+    }
+    int name_len = strlen(path);
+    kpath = kmem_bring_to_kernel(path, name_len + 1);
+
+    dentry_t* dir;
+    if (vfs_resolve_path_start_from(p->cwd, kpath, &dir) < 0) {
+        return_with_val(-ENOENT);
+    }
+
+    int res = vfs_rmdir(dir);
     kfree(kpath);
     return_with_val(res);
 }

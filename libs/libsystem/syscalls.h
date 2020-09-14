@@ -21,6 +21,7 @@ int wait(int pid);
 int execve(char* path, char** argv, char** env);
 int chdir(char* path);
 int mkdir(char* path);
+int rmdir(char* path);
 int unlink(char* path);
 int creat(char* path, uint32_t mode);
 pid_t getpid();

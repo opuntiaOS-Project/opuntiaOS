@@ -136,6 +136,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.eject_device = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
 
     new_fs.file.mkdir = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
+    new_fs.file.rmdir = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RMDIR];
     new_fs.file.getdents = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS];
     new_fs.file.lookup = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
     new_fs.file.can_read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
@@ -287,6 +288,23 @@ int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
         return -ENOTDIR;
     }
     return dir->ops->file.mkdir(dir, name, len, mode | EXT2_S_IFDIR);
+}
+
+int vfs_rmdir(dentry_t* dir)
+{
+    if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
+        return -ENOTDIR;
+    }
+    if (dentry_test_flag(dir, DENTRY_MOUNTPOINT) || dentry_test_flag(dir, DENTRY_MOUNTED) || dir->d_count != 1) {
+        return -EBUSY;
+    }
+    
+    int err = dir->ops->file.rmdir(dir);
+    if (!err) {
+        log("Rmdir: will be deleted");
+        dentry_test_flag(dir, DENTRY_INODE_TO_BE_DELETED);
+    }
+    return err;
 }
 
 int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len)

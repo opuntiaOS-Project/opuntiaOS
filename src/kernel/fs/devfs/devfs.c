@@ -374,6 +374,11 @@ int devfs_mkdir_dummy(dentry_t* dir, const char* name, uint32_t len, mode_t mode
     return -1;
 }
 
+int devfs_rmdir_dummy(dentry_t* dir)
+{
+    return -1;
+}
+
 int devfs_can_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
@@ -438,6 +443,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = devfs_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = devfs_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = devfs_mkdir_dummy;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_RMDIR] = devfs_rmdir_dummy;
     fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = 0;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = devfs_read_inode;

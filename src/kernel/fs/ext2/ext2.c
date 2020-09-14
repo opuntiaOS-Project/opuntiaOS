@@ -73,6 +73,8 @@ static int _ext2_decriment_links_count(dentry_t* dentry);
 /* DIR FUNCTIONS */
 static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index);
 static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint32_t* offset, dirent_t* dirent);
+static int _ext2_get_dir_entries_count_in_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index);
+static bool _ext2_is_dir_empty(dentry_t* dir);
 static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len);
 static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len);
 static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry);
@@ -510,6 +512,50 @@ static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t bl
     return -EFAULT;
 }
 
+static int _ext2_get_dir_entries_count_in_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index)
+{
+    ASSERT(block_index != 0);
+
+    const uint32_t block_len = BLOCK_LEN(fsdata.sb);
+    uint32_t internal_offset = 0;
+    int result = 0;
+
+    uint8_t tmp_buf[MAX_BLOCK_LEN];
+    _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
+    for (;;) {
+        dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + internal_offset);
+        internal_offset += start_of_entry->rec_len;
+        
+        if (start_of_entry->inode != 0) {
+            result++;
+        }
+
+        if (internal_offset >= block_len) {
+            return result;
+        }
+    }
+    return result;
+}
+
+static bool _ext2_is_dir_empty(dentry_t* dir)
+{
+    const uint32_t block_len = BLOCK_LEN(dir->fsdata.sb);
+    uint32_t end_block_index = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
+    int result = 0;
+
+    for (uint32_t block_index = 0; block_index < end_block_index; block_index++) {
+        uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
+        result += _ext2_get_dir_entries_count_in_block(dir->dev, dir->fsdata, data_block_index);
+
+        /* 2 here is because don't count . and .. */
+        if (result > 2) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /**
  * _ext2_getdents_block puts dents into @buf from block with index @block_index.
  * @block_index: index block to put from
@@ -856,6 +902,25 @@ int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
     return 0;
 }
 
+int ext2_rmdir(dentry_t* dir)
+{
+    dentry_t* parent_dir = dentry_get_parent(dir);
+
+    if (!parent_dir) {
+        return -EPERM;
+    }
+
+    if (_ext2_is_dir_empty(dir)) {
+        if (_ext2_rm_child(parent_dir, dir) < 0) {
+            return -EFAULT;
+        }
+        parent_dir->inode->links_count--;
+        return 0;
+    }
+    
+    return -ENOTEMPTY;
+}
+
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
 {
     const uint32_t block_len = BLOCK_LEN(dir->fsdata.sb);
@@ -1021,6 +1086,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = ext2_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = ext2_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = ext2_mkdir;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_RMDIR] = ext2_rmdir;
     fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = ext2_save_state;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = ext2_read_inode;

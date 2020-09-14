@@ -1,0 +1,5 @@
+APPS += RMDIR
+
+RMDIR_NAME = rmdir
+RMDIR_LIBS = kernel
+RMDIR_INSTALL_PATH = bin/

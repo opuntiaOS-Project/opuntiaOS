@@ -24,6 +24,7 @@ static file_ops_t local_socket_ops = {
     0,
     0,
     0,
+    0,
     0
 };
 

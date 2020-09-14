@@ -80,12 +80,13 @@ struct file_ops {
     bool (*can_write)(dentry_t*);
     int (*read)(dentry_t*, uint8_t*, uint32_t, uint32_t);
     int (*write)(dentry_t*, uint8_t*, uint32_t, uint32_t);
-    int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
+    int (*create)(dentry_t* dentry, const char* name, uint32_t len, mode_t mode);
+    int (*unlink)(dentry_t* dentry);
     int (*getdents)(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
     int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
-    int (*create)(dentry_t* dentry, const char* name, uint32_t len, mode_t mode);
+    int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
+    int (*rmdir)(dentry_t* dir);
     int (*ioctl)(dentry_t* dentry, uint32_t cmd, uint32_t arg);
-    int (*unlink)(dentry_t* dentry);
 };
 typedef struct file_ops file_ops_t;
 
@@ -178,6 +179,7 @@ bool vfs_can_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t len);
 int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
+int vfs_rmdir(dentry_t* dir);
 int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len);
 
 int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
