@@ -4,17 +4,17 @@
 #ifndef __oneOS__TYPES_H
 #define __oneOS__TYPES_H
 
-typedef unsigned long  uint64_t;
-typedef unsigned int   uint32_t;
+typedef unsigned long uint64_t;
+typedef unsigned int uint32_t;
 typedef unsigned short uint16_t;
-typedef unsigned char  uint8_t;
-typedef long           int64_t;
-typedef int            int32_t;
-typedef short          int16_t;
-typedef char           int8_t;
-typedef char           bool;
+typedef unsigned char uint8_t;
+typedef long int64_t;
+typedef int int32_t;
+typedef short int16_t;
+typedef char int8_t;
+typedef char bool;
 
-#define true  1
+#define true 1
 #define false 0
 
 #endif
@@ -82,27 +82,42 @@ typedef struct mmap_params mmap_params_t;
  * FILES
  */
 
-#define EXT2_S_IFSOCK 0xC000
-#define EXT2_S_IFLNK 0xA000
-#define EXT2_S_IFREG 0x8000
-#define EXT2_S_IFBLK 0x6000
-#define EXT2_S_IFDIR 0x4000
-#define EXT2_S_IFCHR 0x2000
-#define EXT2_S_IFIFO 0x1000
+/* OPEN */
+#define O_RDONLY 0x1
+#define O_WRONLY 0x2
+#define O_RDWR 0x4
+#define O_DIRECTORY 0x8
+#define O_CREATE 0x10
 
-#define EXT2_S_ISUID 0x0800
-#define EXT2_S_ISGID 0x0400
-#define EXT2_S_ISVTX 0x0200
+/* MODES */
+#define S_IFSOCK 0xC000 /* [XSI] socket */
+#define S_IFLNK 0xA000 /* [XSI] symbolic link */
+#define S_IFREG 0x8000 /* [XSI] regular */
+#define S_IFBLK 0x6000 /* [XSI] block special */
+#define S_IFDIR 0x4000 /* [XSI] directory */
+#define S_IFCHR 0x2000 /* [XSI] character special */
+#define S_IFIFO 0x1000 /* [XSI] named pipe (fifo) */
 
-#define EXT2_S_IRUSR 0x0100
-#define EXT2_S_IWUSR 0x0080
-#define EXT2_S_IXUSR 0x0040
-#define EXT2_S_IRGRP 0x0020
-#define EXT2_S_IWGRP 0x0010
-#define EXT2_S_IXGRP 0x0008
-#define EXT2_S_IROTH 0x0004
-#define EXT2_S_IWOTH 0x0002
-#define EXT2_S_IXOTH 0x0001
+#define S_ISUID 0x0800
+#define S_ISGID 0x0400
+#define S_ISVTX 0x0200
+
+/* File mode */
+/* Read, write, execute/search by owner */
+#define S_IRWXU 0x01c0
+#define S_IRUSR 0x0100
+#define S_IWUSR 0x0080
+#define S_IXUSR 0x0040
+/* Read, write, execute/search by group */
+#define S_IRWXG 0x0038
+#define S_IRGRP 0x0020
+#define S_IWGRP 0x0010
+#define S_IXGRP 0x0008
+/* Read, write, execute/search by others */
+#define S_IRWXO 0x0007
+#define S_IROTH 0x0004
+#define S_IWOTH 0x0002
+#define S_IXOTH 0x0001
 
 typedef uint16_t mode_t;
 

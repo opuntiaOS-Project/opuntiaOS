@@ -16,7 +16,7 @@ void _syscmd_mkdir(int argc, char* argv[])
     }
 
     int name_len = strlen(argv[1]);
-    uint16_t dir_mode = EXT2_S_IFDIR | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
+    uint16_t dir_mode = S_IFDIR | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     vfs_mkdir(dir, argv[1], name_len, dir_mode);
 }
 
@@ -29,7 +29,7 @@ void _syscmd_ls(int argc, char* argv[])
         return;
     }
 
-    if (vfs_open(dir, &fd) < 0) {
+    if (vfs_open(dir, &fd, 0) < 0) {
         kprintf("Can't open");
         dentry_put(dir);
         return;
@@ -109,7 +109,7 @@ void read(int argc, char* argv[])
     if (vfs_resolve_path(argv[1], &file) < 0) {
         return;
     }
-    if (vfs_open(file, &fd) < 0) {
+    if (vfs_open(file, &fd, 0) < 0) {
         dentry_put(file);
         return;
     }
@@ -168,7 +168,7 @@ void touch(int argc, char* argv[])
     }
 
     int len = strlen(argv[2]);
-    mode_t mode = EXT2_S_IFREG | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
+    mode_t mode = S_IFREG | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 
     if (vfs_create(dir, argv[2], len, mode) < 0) {
         return;
@@ -183,14 +183,14 @@ void write(int argc, char* argv[])
         return;
     }
 
-    if (vfs_open(file, &fd) < 0) {
+    if (vfs_open(file, &fd, 0) < 0) {
         return;
     }
 
     int len = strlen(argv[2]);
-    if (vfs_write(&fd, argv[2], 0, len) < 0) {
-        return;
-    }
+    // if (vfs_write(&fd, argv[2], 0, len) < 0) {
+    //     return;
+    // }
 
     vfs_close(&fd);
 }

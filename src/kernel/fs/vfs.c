@@ -13,6 +13,7 @@
 #include <io/sockets/socket.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <syscall_structs.h>
 #include <utils/mem.h>
 
 // #define VFS_DEBUG
@@ -155,7 +156,7 @@ void vfs_add_fs(driver_t* new_driver)
     dynamic_array_push(&_vfs_fses, &new_fs);
 }
 
-int vfs_open(dentry_t* file, file_descriptor_t* fd)
+int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
 {
     if (!file) {
         return -EFAULT;
@@ -165,6 +166,11 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd)
         return -EFAULT;
     }
 
+    if (dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
+        return -EISDIR;
+    }
+
+    fd->flags = flags;
     fd->type = FD_TYPE_FILE;
     fd->dentry = dentry_duplicate(file);
     fd->offset = 0;
@@ -203,7 +209,7 @@ int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 
 int vfs_unlink(dentry_t* file)
 {
-    if (dentry_inode_test_flag(file, EXT2_S_IFDIR)) {
+    if (dentry_inode_test_flag(file, S_IFDIR)) {
         return -EPERM;
     }
 
@@ -220,7 +226,7 @@ int vfs_unlink(dentry_t* file)
 
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
-    if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
+    if (!dentry_inode_test_flag(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
 
@@ -277,28 +283,32 @@ int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t len)
     return read;
 }
 
-int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
+int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t len)
 {
-    return fd->ops->write(fd->dentry, buf, start, len);
+    int written = fd->ops->write(fd->dentry, buf, fd->offset, len);
+    if (written > 0) {
+        fd->offset += written;
+    }
+    return written;
 }
 
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 {
-    if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
+    if (!dentry_inode_test_flag(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
-    return dir->ops->file.mkdir(dir, name, len, mode | EXT2_S_IFDIR);
+    return dir->ops->file.mkdir(dir, name, len, mode | S_IFDIR);
 }
 
 int vfs_rmdir(dentry_t* dir)
 {
-    if (!dentry_inode_test_flag(dir, EXT2_S_IFDIR)) {
+    if (!dentry_inode_test_flag(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
     if (dentry_test_flag(dir, DENTRY_MOUNTPOINT) || dentry_test_flag(dir, DENTRY_MOUNTED) || dir->d_count != 1) {
         return -EBUSY;
     }
-    
+
     int err = dir->ops->file.rmdir(dir);
     if (!err) {
         log("Rmdir: will be deleted");
@@ -309,7 +319,7 @@ int vfs_rmdir(dentry_t* dir)
 
 int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len)
 {
-    if (!dentry_inode_test_flag(dir_fd->dentry, EXT2_S_IFDIR)) {
+    if (!dentry_inode_test_flag(dir_fd->dentry, S_IFDIR)) {
         return -ENOTDIR;
     }
     int res = dir_fd->ops->getdents(dir_fd->dentry, buf, &dir_fd->offset, len);
@@ -384,7 +394,7 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 #endif
         return -EBUSY;
     }
-    if (!dentry_inode_test_flag(mountpoint, EXT2_S_IFDIR)) {
+    if (!dentry_inode_test_flag(mountpoint, S_IFDIR)) {
 #ifdef VFS_DEBUG
         kprintf("[VFS] Not a dir\n");
 #endif

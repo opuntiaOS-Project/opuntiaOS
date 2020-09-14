@@ -105,8 +105,8 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     if (vfs_resolve_path(path_to_tty, &tty_dentry) < 0) {
         return -ENOENT;
     }
-    int res = vfs_open(tty_dentry, fd0);
-    res = vfs_open(tty_dentry, fd1);
+    int res = vfs_open(tty_dentry, fd0, O_RDWR);
+    res = vfs_open(tty_dentry, fd1, O_RDWR);
     dentry_put(tty_dentry);
     return 0;
 }
@@ -129,7 +129,7 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
             if (from_proc->fds[i].dentry) {
                 file_descriptor_t* fd = &new_proc->fds[i];
-                vfs_open(from_proc->fds[i].dentry, fd);
+                vfs_open(from_proc->fds[i].dentry, fd, from_proc->fds[i].flags);
             }
         }
     }
@@ -182,7 +182,7 @@ int proc_load(proc_t* p, const char* path)
     if (vfs_resolve_path_start_from(p->cwd, path, &file) < 0) {
         return -ENOENT;
     }
-    if (vfs_open(file, &fd) < 0) {
+    if (vfs_open(file, &fd, O_RDONLY) < 0) {
         dentry_put(file);
         return -ENOENT;
     }

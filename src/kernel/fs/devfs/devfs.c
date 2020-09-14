@@ -181,7 +181,7 @@ static int _devfs_setup_root()
     devfs_root = _devfs_new_entry();
     memset((void*)devfs_root, 0, DEVFS_INODE_LEN);
     devfs_root->index = 2;
-    devfs_root->mode = EXT2_S_IFDIR;
+    devfs_root->mode = S_IFDIR;
     return 0;
 }
 
@@ -478,7 +478,7 @@ devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len)
 
     dentry_set_flag(dir, DENTRY_DIRTY);
 
-    new_entry->mode = EXT2_S_IFDIR;
+    new_entry->mode = S_IFDIR;
     _devfs_set_name(new_entry, name, len);
 
     return new_entry;

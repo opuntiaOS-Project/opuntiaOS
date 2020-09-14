@@ -102,11 +102,26 @@ void sys_open(trapframe_t* tf)
 {
     proc_t* p = RUNNIG_THREAD->process;
     file_descriptor_t* fd = proc_get_free_fd(p);
-    dentry_t* file;
-    if (vfs_resolve_path_start_from(p->cwd, (char*)param1, &file) < 0) {
-        return_with_val(-1);
+    const char* path = (char*)param1;
+    char* kpath = 0;
+    if (!str_validate_len(path, 128)) {
+        return_with_val(-EINVAL);
     }
-    int res = vfs_open(file, fd);
+    int name_len = strlen(path);
+    kpath = kmem_bring_to_kernel(path, name_len + 1);
+    uint32_t flags = param2;
+    
+    mode_t mode = S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO;
+    dentry_t* file;
+    
+    if (flags & O_CREATE) {
+        vfs_create(p->cwd, kpath, name_len, mode);
+    }
+    
+    if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
+        return_with_val(-ENOENT);
+    }
+    int res = vfs_open(file, fd, param2);
     dentry_put(file);
     if (!res) {
         return_with_val(proc_get_fd_id(p, fd));
@@ -155,7 +170,7 @@ void sys_write(trapframe_t* tf)
         resched();
     }
 
-    int res = vfs_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3);
+    int res = vfs_write(fd, (uint8_t*)param2, (uint32_t)param3);
     return_with_val(res);
 }
 
@@ -205,7 +220,7 @@ void sys_creat(trapframe_t* tf)
     if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
         return_with_val(-1);
     }
-    err = vfs_open(file, fd);
+    err = vfs_open(file, fd, O_WRONLY);
     dentry_put(file);
     if (err) {
         return_with_val(err);
@@ -229,7 +244,7 @@ void sys_mkdir(trapframe_t* tf)
     //     return_with_val(-ENOENT);
     // }
 
-    mode_t dir_mode = EXT2_S_IFDIR | EXT2_S_IRUSR | EXT2_S_IWUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
+    mode_t dir_mode = S_IFDIR | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     int res = vfs_mkdir(p->cwd, kpath, name_len, dir_mode);
     kfree(kpath);
     return_with_val(res);

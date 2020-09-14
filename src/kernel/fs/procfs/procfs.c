@@ -5,7 +5,7 @@ static int test_proc_num = 8;
 
 int procfs_read_inode(dentry_t* dentry)
 {
-    dentry->inode->mode = EXT2_S_IFDIR;
+    dentry->inode->mode = S_IFDIR;
     return 0;
 }
 

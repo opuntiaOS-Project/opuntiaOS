@@ -9,9 +9,10 @@
 #ifndef __oneOS__FS__VFS_H
 #define __oneOS__FS__VFS_H
 
+#include <algo/ringbuffer.h>
 #include <drivers/driver_manager.h>
 #include <fs/ext2/ext2.h>
-#include <algo/ringbuffer.h>
+#include <syscall_structs.h>
 
 #define VFS_MAX_FS_COUNT 5
 #define VFS_MAX_DEV_COUNT 5
@@ -120,6 +121,7 @@ struct file_descriptor {
         struct socket* sock_entry; // type == FD_TYPE_SOCKET
     };
     uint32_t offset;
+    uint32_t flags;
     file_ops_t* ops;
 };
 typedef struct file_descriptor file_descriptor_t;
@@ -172,12 +174,12 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
 int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
 int vfs_unlink(dentry_t* file);
 int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
-int vfs_open(dentry_t* file, file_descriptor_t* fd);
+int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags);
 int vfs_close(file_descriptor_t* fd);
 bool vfs_can_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 bool vfs_can_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t len);
-int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len);
+int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
 int vfs_rmdir(dentry_t* dir);
 int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len);

@@ -841,7 +841,7 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     uint32_t end_block_index = (start + len) / block_len;
     uint32_t write_offset = start % block_len;
     uint32_t to_write = len;
-    uint32_t already_written = start % block_len;
+    uint32_t already_written = 0;
     uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
 
     for (uint32_t data_block_index, block_index = start_block_index; block_index <= end_block_index; block_index++) {

@@ -4,11 +4,6 @@
 #include "types.h"
 #include "../../include/syscall_structs.h"
 
-#define O_RDONLY 0x1
-#define O_WRONLY 0x2
-#define O_RDWR 0x4
-#define O_DIRECTORY 0x8
-
 extern int errno;
 
 int open(const char *pathname, int flags);

@@ -63,7 +63,7 @@ int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
 {
     proc_t* p = RUNNIG_THREAD->process;
 
-    uint32_t file_mode = EXT2_S_IFSOCK | EXT2_S_IRUSR | EXT2_S_IXUSR | EXT2_S_IRGRP | EXT2_S_IXGRP | EXT2_S_IROTH | EXT2_S_IXOTH;
+    uint32_t file_mode = S_IFSOCK | S_IRUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     vfs_create(p->cwd, name, len, file_mode);
     dentry_t* bind_dentry;
     int res = vfs_resolve_path_start_from(p->cwd, name, &bind_dentry);
@@ -73,7 +73,7 @@ int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
 #endif
         return res;
     }
-    res = vfs_open(bind_dentry, &sock->sock_entry->bind_file);
+    res = vfs_open(bind_dentry, &sock->sock_entry->bind_file, O_RDONLY);
     if (res < 0) {
 #ifdef LOCAL_SOCKET_DEBUG
         log_error("Bind: can't open file : %d pid\n", p->pid);
@@ -99,7 +99,7 @@ int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
 #endif
         return res;
     }
-    if ((bind_dentry->inode->mode & EXT2_S_IFSOCK) == 0) {
+    if ((bind_dentry->inode->mode & S_IFSOCK) == 0) {
 #ifdef LOCAL_SOCKET_DEBUG
         log_error("Connect: file not a socket : %d pid\n", p->pid);
 #endif
