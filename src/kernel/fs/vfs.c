@@ -311,8 +311,8 @@ int vfs_rmdir(dentry_t* dir)
 
     int err = dir->ops->file.rmdir(dir);
     if (!err) {
-        log("Rmdir: will be deleted");
-        dentry_test_flag(dir, DENTRY_INODE_TO_BE_DELETED);
+        log("Rmdir: will be deleted %d", dir->inode_indx);
+        dentry_set_flag(dir, DENTRY_INODE_TO_BE_DELETED);
     }
     return err;
 }
@@ -339,7 +339,7 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
         while (*path == '/')
             path++;
     } else {
-        cur_dent = dentry;
+        cur_dent = dentry_duplicate(dentry);
     }
 
     while (*path != '\0') {

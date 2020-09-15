@@ -16,6 +16,8 @@
 #include <utils/mem.h>
 #include <x86/common.h>
 
+// #define DENTRY_DEBUG
+
 #define DENTRY_ALLOC_SIZE (4 * KB) /* Shows the size of list's parts. */
 #define DENTRY_SWAP_THRESHOLD_FOR_INODE_CACHE (16 * KB)
 
@@ -192,7 +194,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     }
 
     if (dentry->ops->dentry.read_inode(dentry) < 0) {
-        kprintf("CANT READ INODE");
+        log_error("[Dentry ]Can't read inode %d %d (dev, ino)", dev_indx, inode_indx);
         return 0;
     }
 
@@ -268,9 +270,16 @@ dentry_t* dentry_duplicate(dentry_t* dentry)
 static inline void dentry_put_impl(dentry_t* dentry)
 {
     if (dentry_test_flag(dentry, DENTRY_INODE_TO_BE_DELETED)) {
+#ifdef DENTRY_DEBUG
+        log("Inode delete %d", dentry->inode_indx);
+#endif
         dentry_delete_inode(dentry);
         dentry_delete_from_cache(dentry);
+        return;
     }
+#ifdef DENTRY_DEBUG
+        log("Inode flushed %d", dentry->inode_indx);
+#endif
     dentry_flush_inode(dentry);
     dentry_prefree(dentry);
 }
@@ -287,6 +296,7 @@ void dentry_force_put(dentry_t* dentry)
 
 void dentry_put(dentry_t* dentry)
 {
+    ASSERT(dentry->d_count > 0);
     dentry->d_count--;
 
     if (dentry->d_count == 0) {

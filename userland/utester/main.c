@@ -1,6 +1,6 @@
 #include <libsystem/malloc.h>
-#include <libsystem/syscalls.h>
 #include <libsystem/string.h>
+#include <libsystem/syscalls.h>
 
 void exitwait(void)
 {
@@ -128,10 +128,47 @@ void fourfiles(void)
     write(1, "fourfiles ok\n", 13);
 }
 
+void dirfile(void)
+{
+    int fd;
+
+    write(1, "dir vs file\n", 12);
+
+    fd = open("dirfile", 0);
+    if (fd >= 0) {
+        write(1, "create dirfile succeeded!\n", 26);
+        exit(-1);
+    }
+    fd = open("dirfile", O_CREATE);
+    if (chdir("dirfile") == 0) {
+        write(1, "chdir dirfile succeeded!\n", 25);
+        exit(-1);
+    }
+    if (unlink("dirfile") != 0) {
+        write(1, "unlink dirfile failed!\n", 23);
+        exit(-1);
+    }
+
+    fd = open(".", O_RDWR);
+    if (fd >= 0) {
+        write(1, "open . for writing succeeded!\n", 30);
+        exit(-1);
+    }
+    fd = open(".", 0);
+    if (write(fd, "x", 1) > 0) {
+        write(1, "write . succeeded!\n", 19);
+        exit(-1);
+    }
+    close(fd);
+
+    write(1, "dir vs file OK\n", 15);
+}
+
 int main(int argc, char** argv)
 {
     mem();
     exitwait();
     fourfiles();
+    dirfile();
     return 0;
 }

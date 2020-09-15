@@ -915,6 +915,7 @@ int ext2_rmdir(dentry_t* dir)
             return -EFAULT;
         }
         parent_dir->inode->links_count--;
+        dir->inode->links_count--;
         return 0;
     }
     

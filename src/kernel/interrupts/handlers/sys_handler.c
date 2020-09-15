@@ -267,6 +267,7 @@ void sys_rmdir(trapframe_t* tf)
     }
 
     int res = vfs_rmdir(dir);
+    dentry_put(dir);
     kfree(kpath);
     return_with_val(res);
 }

@@ -11,6 +11,7 @@
 #include <io/tty/tty.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <syscall_structs.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>
 #include <tasking/thread.h>
@@ -291,12 +292,16 @@ int proc_chdir(proc_t* p, const char* path)
         return -EINVAL;
     }
     kpath = kmem_bring_to_kernel(path, strlen(path) + 1);
-    
 
     dentry_t* new_cwd;
     int ret = vfs_resolve_path_start_from(p->cwd, kpath, &new_cwd);
     if (ret) {
         return -ENOENT;
+    }
+
+    if (!dentry_inode_test_flag(new_cwd, S_IFDIR)) {
+        dentry_put(new_cwd);
+        return -ENOTDIR;
     }
 
     /* Put an old one back */
