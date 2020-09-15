@@ -36,6 +36,7 @@ enum __sysid {
     SYSSIGACTION,
     SYSSIGRETURN,
     SYSRAISE,
+    SYSLSEEK,
     SYSGETPID,
     SYSKILL,
     SYSMKDIR,
@@ -81,6 +82,10 @@ typedef struct mmap_params mmap_params_t;
 /**
  * FILES
  */
+
+#define SEEK_SET 0x1
+#define SEEK_CUR 0x2
+#define SEEK_END 0x3
 
 /* OPEN */
 #define O_RDONLY 0x1

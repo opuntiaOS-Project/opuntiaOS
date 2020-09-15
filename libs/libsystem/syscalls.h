@@ -19,6 +19,7 @@ int mkdir(char* path);
 int rmdir(char* path);
 int unlink(char* path);
 int creat(char* path, uint32_t mode);
+int lseek(int fd, uint32_t off, int whence);
 pid_t getpid();
 int kill(pid_t pid, int signo);
 

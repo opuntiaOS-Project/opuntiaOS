@@ -29,6 +29,7 @@ void sys_chdir(trapframe_t* tf);
 void sys_sigaction(trapframe_t* tf);
 void sys_sigreturn(trapframe_t* tf);
 void sys_raise(trapframe_t* tf);
+void sys_lseek(trapframe_t* tf);
 void sys_getpid(trapframe_t* tf);
 void sys_kill(trapframe_t* tf);
 void sys_mkdir(trapframe_t* tf);

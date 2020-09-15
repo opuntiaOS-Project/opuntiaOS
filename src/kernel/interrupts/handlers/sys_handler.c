@@ -43,6 +43,7 @@ static const void* syscalls[] = {
     sys_sigaction,
     sys_sigreturn, // When this is moved, change signal_caller.s for now.
     sys_raise,
+    sys_lseek,
     sys_getpid,
     sys_kill,
     sys_mkdir,
@@ -110,14 +111,14 @@ void sys_open(trapframe_t* tf)
     int name_len = strlen(path);
     kpath = kmem_bring_to_kernel(path, name_len + 1);
     uint32_t flags = param2;
-    
+
     mode_t mode = S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO;
     dentry_t* file;
-    
+
     if (flags & O_CREATE) {
         vfs_create(p->cwd, kpath, name_len, mode);
     }
-    
+
     if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
         return_with_val(-ENOENT);
     }
@@ -172,6 +173,36 @@ void sys_write(trapframe_t* tf)
 
     int res = vfs_write(fd, (uint8_t*)param2, (uint32_t)param3);
     return_with_val(res);
+}
+
+void sys_lseek(trapframe_t* tf)
+{
+    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    if (!fd) {
+        return_with_val(-EBADF);
+    }
+
+    int whence = param3;
+
+    switch (whence) {
+    case SEEK_SET:
+        fd->offset = param2;
+        break;
+    case SEEK_CUR:
+        fd->offset += param2;
+        break;
+    case SEEK_END:
+        fd->offset = fd->dentry->inode->size - param2;
+        break;
+    default:
+        return_with_val(-EINVAL);
+    }
+
+    if (fd->offset >= fd->dentry->inode->size) {
+        return_with_val(-EOVERFLOW);
+    }
+
+    return_with_val(0);
 }
 
 void sys_unlink(trapframe_t* tf)

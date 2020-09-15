@@ -125,8 +125,14 @@ int getdents(int fd, char* buf, int len)
     return syscall(SYSGETDENTS, (int)fd, (int)buf, (int)len, 0, 0);
 }
 
-int ioctl(int fd, uint32_t cmd, uint32_t arg) {
+int ioctl(int fd, uint32_t cmd, uint32_t arg)
+{
     return syscall(SYSIOCTL, (int)fd, (int)cmd, (int)arg, 0, 0);
+}
+
+int lseek(int fd, uint32_t off, int whence)
+{
+    return syscall(SYSLSEEK, (int)fd, (int)off, (int)whence, 0, 0);
 }
 
 pid_t getpid()
