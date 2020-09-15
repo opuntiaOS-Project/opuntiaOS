@@ -1,0 +1,5 @@
+APPS += EDIT
+
+EDIT_NAME = edit
+EDIT_LIBS = kernel
+EDIT_INSTALL_PATH = bin/
