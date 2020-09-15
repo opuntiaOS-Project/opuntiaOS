@@ -3,6 +3,7 @@
 
 #include <types.h>
 
+int stoi(char *str, int len);
 void htos(uint32_t hex, char str[]);
 void dtos(uint32_t dec, char str[]);
 void reverse(char s[]);

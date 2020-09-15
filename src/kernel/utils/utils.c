@@ -1,5 +1,21 @@
 #include <utils.h>
 
+int stoi(char *str, int len)
+{
+    if (len > 9) {
+        return 0;
+    }
+    int res = 0;
+    int mult = 1;
+    char *end = str + len - 1;
+    while (end >= str) {
+        res += (*end - '0') * mult;
+        mult *= 10;
+        end--;
+    }
+    return res;
+}
+
 void htos(uint32_t hex, char str[])
 {
     int i = 0;

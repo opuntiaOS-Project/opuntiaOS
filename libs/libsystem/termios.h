@@ -1,12 +1,8 @@
-#ifndef __oneOS__TTY__TTY_H
-#define __oneOS__TTY__TTY_H
+#ifndef __oneOS__libsystem__TERMIOS_H
+#define __oneOS__libsystem__TERMIOS_H
 
-#include <algo/ringbuffer.h>
-#include <drivers/keyboard.h>
-#include <types.h>
-
-#define TTY_MAX_COUNT 8
-#define TTY_BUFFER_SIZE 1024
+#include "../../include/syscall_structs.h"
+#include "types.h"
 
 typedef unsigned char cc_t;
 typedef unsigned int speed_t;
@@ -68,19 +64,7 @@ typedef struct termios termios_t;
 #define TCSADRAIN 1
 #define TCSAFLUSH 2
 
-struct tty_entry {
-    int id;
-    int inode_indx;
-    ringbuffer_t buffer;
-    int lines_avail;
-    uint32_t pgid;
-    termios_t termios;
-};
-typedef struct tty_entry tty_entry_t;
+int tcgetattr(int fd, termios_t* termios_p);
+int tcsetattr(int fd, int optional_actions, const termios_t* termios_p);
 
-extern tty_entry_t ttys[TTY_MAX_COUNT];
-
-tty_entry_t* tty_new();
-void tty_eat_key(key_t key);
-
-#endif // __oneOS__TTY__TTY_H
+#endif /* __oneOS__libsystem__TERMIOS_H */

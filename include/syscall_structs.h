@@ -159,6 +159,10 @@ enum SOCK_TYPES {
 /* TTY */
 #define TIOCGPGRP 0x0101
 #define TIOCSPGRP 0x0102
+#define TCGETS 0x0103
+#define TCSETS 0x0104
+#define TCSETSW 0x0105
+#define TCSETSF 0x0106
 
 /**
  * THREADS
