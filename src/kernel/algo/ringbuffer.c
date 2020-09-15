@@ -111,3 +111,9 @@ uint32_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data)
     }
     return 0;
 }
+
+void ringbuffer_clear(ringbuffer_t* buf)
+{
+    buf->start = 0;
+    buf->end = 0;
+}

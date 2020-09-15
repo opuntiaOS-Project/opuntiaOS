@@ -29,5 +29,6 @@ uint32_t ringbuffer_read(ringbuffer_t* buf, uint8_t*, uint32_t);
 uint32_t ringbuffer_write(ringbuffer_t* buf, const uint8_t*, uint32_t);
 uint32_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data);
 uint32_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data);
+void ringbuffer_clear(ringbuffer_t* buf);
 
 #endif //__oneOS__ALGO__RINGBUFFER_H
