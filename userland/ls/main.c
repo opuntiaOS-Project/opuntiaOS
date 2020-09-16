@@ -42,10 +42,13 @@ int main(int argc, char** argv)
     char d_type;
     bool has_path = false;
     bool show_inodes = false;
+    bool show_private = false;
 
     for (int i = 1; i < argc; i++) {
         if (memcmp(argv[i], "-i", 3) == 0) {
             show_inodes = true;
+        } else if (memcmp(argv[i], "-a", 3) == 0) {
+            show_private = true;
         } else {
             has_path = true;
         }
@@ -58,7 +61,7 @@ int main(int argc, char** argv)
     }
     
     if (fd < 0) {
-        write(1, "-fd\n", 4);
+        write(1, "ls: can't open file\n", 20);
         return -1;
     }
     for (;;) {
@@ -73,13 +76,14 @@ int main(int argc, char** argv)
 
         for (bpos = 0; bpos < nread;) {
             d = (struct linux_dirent*)(buf + bpos);
-            write(1, &d->name, d->name_len + 1);
-            if (show_inodes) {
-                write(1, " ", 1);
-                print_int(d->inode);
+            if (((char*)&d->name)[0] != '.' || show_private) {
+                write(1, &d->name, d->name_len + 1);
+                if (show_inodes) {
+                    write(1, " ", 1);
+                    print_int(d->inode);
+                }
+                write(1, "\n", 1);
             }
-            write(1, "\n", 1);
-            // d_type = *(buf + bpos + d->d_reclen - 1);
             bpos += d->rec_len;
         }
     }
