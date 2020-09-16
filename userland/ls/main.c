@@ -1,5 +1,5 @@
-#include <libsystem/string.h>
-#include <libsystem/syscalls.h>
+#include <string.h>
+#include <syscalls.h>
 
 #define BUF_SIZE 1024
 

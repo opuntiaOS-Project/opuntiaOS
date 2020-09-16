@@ -1,5 +1,5 @@
 APPS += ONESH
 
 ONESH_NAME = onesh
-ONESH_LIBS = kernel
+ONESH_LIBS = 
 ONESH_INSTALL_PATH = bin/

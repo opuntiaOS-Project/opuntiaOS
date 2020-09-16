@@ -1,5 +1,5 @@
 APPS += MKDIR
 
 MKDIR_NAME = mkdir
-MKDIR_LIBS = kernel
+MKDIR_LIBS = 
 MKDIR_INSTALL_PATH = bin/

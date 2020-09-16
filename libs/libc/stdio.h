@@ -1,10 +1,7 @@
 #ifndef __oneOS__LibC__STDIO_H
 #define __oneOS__LibC__STDIO_H
-#include "types.h"
 
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
+#include "types.h"
 
 #define MAX_OPENED_FILES 16
 #define STDIO_BUFFER_SIZE 16

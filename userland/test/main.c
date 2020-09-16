@@ -1,4 +1,4 @@
-#include <libsystem/syscalls.h>
+#include <syscalls.h>
 
 int acceptsig(int signo)
 {

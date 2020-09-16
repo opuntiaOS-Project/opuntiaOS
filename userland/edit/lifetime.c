@@ -1,5 +1,5 @@
 #include "lifetime.h"
-#ifndef oneOS
+#ifndef __oneOS__
 #include <stdlib.h>
 #endif
 

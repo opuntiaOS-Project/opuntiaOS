@@ -2,8 +2,8 @@
 #define __EDIT__MODE__
 
 #include "viewer.h"
-#ifdef oneOS
-#include <libsystem/types.h>
+#ifdef __oneOS__
+#include <types.h>
 #else
 #include <stdint.h>
 #endif

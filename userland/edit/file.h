@@ -1,8 +1,8 @@
 #ifndef __EDIT__FILE__
 #define __EDIT__FILE__
 
-#ifdef oneOS
-#include <libsystem/types.h>
+#ifdef __oneOS__
+#include <types.h>
 #else
 #include <stdint.h>
 #endif

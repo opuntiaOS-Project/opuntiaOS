@@ -3,9 +3,9 @@
 #include "menu.h"
 #include "mode.h"
 #include "viewer.h"
-#ifdef oneOS
-#include <libsystem/string.h>
-#include <libsystem/syscalls.h>
+#ifdef __oneOS__
+#include <string.h>
+#include <syscalls.h>
 #else
 #include <string.h>
 #include <unistd.h>

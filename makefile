@@ -120,19 +120,20 @@ ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 ARFLAGS = rcs
 
 LIB_PATH = ${BASE_DIR}/lib
-LIBSYSTEM = $(LIB_PATH)/libsystem.a
-LIBSYSTEM_PATH = libs/libsystem
-LIBSYSTEM_SRC=$(wildcard libs/libsystem/*.c)
-LIBSYSTEM_OBJ=$(patsubst %.c,%.o,$(LIBSYSTEM_SRC))
+LIBC = $(LIB_PATH)/libc.a
+LIBC_PATH = libs/libc
+LIBC_SRC=$(wildcard libs/libc/*.c)
+LIBC_SRC=$(shell find libs/libc/ -name "*.c")
+LIBC_OBJ=$(patsubst %.c,%.o,$(LIBC_SRC))
 
-LIBRARIES = $(LIBSYSTEM)
+LIBRARIES = $(LIBC)
 
-${LIBSYSTEM_PATH}/%.o: ${LIBSYSTEM_PATH}/%.c
+${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): CC $@"
 	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
 
-${LIBSYSTEM}: ${LIBSYSTEM_OBJ}
+${LIBC}: ${LIBC_OBJ}
 	${AR} ${ARFLAGS} $@ $^
 
 
@@ -145,7 +146,7 @@ libs/crt0.o: libs/crt0.s
 	
 # --- Apps ------------------------------------------------------------------ #
 
-C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/ -DoneOS
+C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/libc -D__oneOS__
 
 APPS_PATH = userland
 
@@ -158,6 +159,7 @@ $(1)_C_SOURCES =  $$(wildcard ${APPS_PATH}/$($(1)_NAME)/*.c) \
 $(1)_S_SOURCES = $$(wildcard ${APPS_PATH}/$($(1)_NAME)/*.s) \
 				$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*.s) \
 			   	$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*/*.s)
+$(1)_LIBSLIST = $$(addprefix -I./libs/lib, $$($(1)_LIBS))
 
 $(1)_C_OBJECTS = $$(patsubst %.c,%.o,$$($(1)_C_SOURCES))
 $(1)_S_OBJECTS = $$(patsubst %.s,%.o,$$($(1)_S_SOURCES))
@@ -171,7 +173,7 @@ $$($(1)_BINARY): $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) $$(LIBRARIES)
 # std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.c
 	@echo "$($(1)_NAME) [CC]  $$@"
-	$(QUIET) $$(CC) -c $$< -o $$@ $$(C_USERLAND_FLAGS)
+	$(QUIET) $$(CC) -c $$< -o $$@ $$(C_USERLAND_FLAGS) $$($(1)_LIBSLIST)
 
 # std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.s
@@ -188,6 +190,7 @@ $(foreach app, $(APPS), $(eval $(call APP_TEMPLATE,$(app))))
 # --- Others ---------------------------------------------------------------- #
 
 apps: $(APPS_BINARIES)
+	echo $(CAT_LIBSLIST)
 
 debug/kernel.dis: products/kernel.bin
 	ndisasm -b 32 $< > $@

@@ -1,5 +1,5 @@
-#ifndef __oneOS__libsystem__TERMIOS_H
-#define __oneOS__libsystem__TERMIOS_H
+#ifndef __oneOS__LibC__TERMIOS_H
+#define __oneOS__LibC__TERMIOS_H
 
 #include "../../include/syscall_structs.h"
 #include "types.h"
@@ -67,4 +67,4 @@ typedef struct termios termios_t;
 int tcgetattr(int fd, termios_t* termios_p);
 int tcsetattr(int fd, int optional_actions, const termios_t* termios_p);
 
-#endif /* __oneOS__libsystem__TERMIOS_H */
+#endif /* __oneOS__LibC__TERMIOS_H */

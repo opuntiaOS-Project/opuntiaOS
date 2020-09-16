@@ -1,5 +1,5 @@
-#ifndef __oneOS__libsystem__TYPES_H
-#define __oneOS__libsystem__TYPES_H
+#ifndef __oneOS__LibC__TYPES_H
+#define __oneOS__LibC__TYPES_H
 
 typedef unsigned long  uint64_t;
 typedef unsigned int   uint32_t;
@@ -18,4 +18,4 @@ typedef unsigned int   size_t;
 
 extern int errno;
 
-#endif /* __oneOS__libsystem__TYPES_H */
+#endif /* __oneOS__LibC__TYPES_H */

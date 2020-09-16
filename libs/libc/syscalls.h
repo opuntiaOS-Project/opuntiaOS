@@ -1,5 +1,5 @@
-#ifndef __oneOS__libsystem__SYSCALLS_H
-#define __oneOS__libsystem__SYSCALLS_H
+#ifndef __oneOS__LibC__SYSCALLS_H
+#define __oneOS__LibC__SYSCALLS_H
 
 #include "types.h"
 #include "../../include/syscall_structs.h"
@@ -36,4 +36,4 @@ pid_t getpgid(pid_t arg);
 
 int system_pthread_create(thread_create_params_t* params);
 
-#endif /* __oneOS__libsystem__SYSCALLS_H */
+#endif /* __oneOS__LibC__SYSCALLS_H */

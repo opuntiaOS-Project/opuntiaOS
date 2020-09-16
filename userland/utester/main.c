@@ -1,6 +1,6 @@
-#include <libsystem/malloc.h>
-#include <libsystem/string.h>
-#include <libsystem/syscalls.h>
+#include <malloc.h>
+#include <string.h>
+#include <syscalls.h>
 
 void exitwait(void)
 {

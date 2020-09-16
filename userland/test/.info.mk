@@ -1,5 +1,5 @@
 APPS += TEST
 
 TEST_NAME = test
-TEST_LIBS = kernel
+TEST_LIBS = 
 TEST_INSTALL_PATH = bin/

@@ -1,5 +1,5 @@
 APPS += TOUCH
 
 TOUCH_NAME = touch
-TOUCH_LIBS = kernel
+TOUCH_LIBS = 
 TOUCH_INSTALL_PATH = bin/

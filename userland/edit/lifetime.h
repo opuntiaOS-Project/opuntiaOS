@@ -2,8 +2,8 @@
 #define __EDIT__LT__
 
 #include "viewer.h"
-#ifdef oneOS
-#include <libsystem/termios.h>
+#ifdef __oneOS__
+#include <termios.h>
 #else
 #include <termios.h>
 #endif
