@@ -145,7 +145,7 @@ libs/crt0.o: libs/crt0.s
 	
 # --- Apps ------------------------------------------------------------------ #
 
-C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/
+C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/ -DoneOS
 
 APPS_PATH = userland
 
