@@ -14,6 +14,7 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
+#include <utils/kassert.h>
 #include <x86/common.h>
 #include <x86/gdt.h>
 #include <x86/idt.h>
@@ -87,6 +88,10 @@ proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
     proc_t* p;
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
+        if (p->status == PROC_DEAD || p->status == PROC_DYING || p->status == PROC_INVALID) {
+            continue;
+        }
+
         if (p->pdir == pdir) {
             return p;
         }

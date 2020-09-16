@@ -15,6 +15,7 @@
 #include <tasking/proc.h>
 #include <tasking/sched.h>
 #include <tasking/thread.h>
+#include <utils/kassert.h>
 #include <x86/gdt.h>
 #include <x86/tss.h>
 
@@ -152,7 +153,7 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     /* THIS IS FOR BSS WHICH COULD BE IN THIS ZONE */
     code_zone->flags |= ZONE_WRITABLE;
 
-    proc_zone_t* bss_zone = proc_new_random_zone(p, 1024);
+    proc_zone_t* bss_zone = proc_new_random_zone(p, 4096);
     bss_zone->type = ZONE_TYPE_DATA;
     bss_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
@@ -234,6 +235,7 @@ int proc_free(proc_t* p)
 
     if (!p->is_kthread) {
         vmm_free_pdir(p->pdir);
+        p->pdir = 0;
     }
 
     return 0;
@@ -314,6 +316,7 @@ int proc_chdir(proc_t* p, const char* path)
 
 int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
 {
+    ASSERT(p->fds);
     /* Calculating id with pointers */
     uint32_t start = (uint32_t)p->fds;
     uint32_t fd_ptr = (uint32_t)fd;
@@ -327,15 +330,21 @@ int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
 
 file_descriptor_t* proc_get_free_fd(proc_t* p)
 {
+    ASSERT(p->fds);
+
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
         if (!p->fds[i].dentry) {
             return &p->fds[i];
         }
     }
+
+    return 0;
 }
 
 file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
 {
+    ASSERT(p->fds);
+
     if (index >= MAX_OPENED_FILES) {
         return 0;
     }
