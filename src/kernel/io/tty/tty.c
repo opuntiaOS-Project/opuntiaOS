@@ -102,7 +102,7 @@ int _tty_process_esc_seq(uint8_t* buf)
             set_cursor_offset(get_offset(0, 0));
         }
         if (argc == 2) {
-            set_cursor_offset(get_offset(argv[0] - 1, argv[1] - 1));
+            set_cursor_offset(get_offset(argv[1] - 1, argv[0] - 1));
         }
         return id;
     }
