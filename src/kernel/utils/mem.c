@@ -15,6 +15,20 @@ void memcpy(uint8_t* dest, const uint8_t* src, uint32_t nbytes)
     }
 }
 
+void memmove(uint8_t* dest, const uint8_t* src, uint32_t nbytes)
+{
+    if (src > dest) {
+        for (int i = 0; i < nbytes; ++i) {
+            *(dest + i) = *(src + i);
+        }
+    } else {
+        for (int i = nbytes - 1; i >= 0; --i) {
+            *(dest + i) = *(src + i);
+        }
+    }
+}
+
+
 void memccpy(uint8_t* dest, const uint8_t* src, uint8_t stop, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
