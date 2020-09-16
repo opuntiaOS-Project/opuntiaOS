@@ -3,8 +3,14 @@
 #include "menu.h"
 #include "mode.h"
 #include "viewer.h"
+#ifdef oneOS
 #include <libsystem/string.h>
 #include <libsystem/syscalls.h>
+#else
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#endif
 
 #define STDIN 0
 #define STDOUT 1
@@ -16,16 +22,27 @@ void viewing_accept_key(char key)
 {
     if (key == ':') {
         menu_enter_mode();
-        return true;
+        return;
     }
     if (key == 'w') {
-        file_scroll_up(1);
-        return true;
+        viewer_cursor_up();
+        return;
     }
     if (key == 's') {
-        file_scroll_down(1);
-        return true;
+        viewer_cursor_down();
+        return;
     }
+    if (key == 'a') {
+        viewer_cursor_left();
+        return;
+    }
+    if (key == 'd') {
+        viewer_cursor_right();
+        return;
+    }
+    
+    
+    file_paste_char(key, viewer_get_cursor_offset_in_file());
 }
 
 char get_key()

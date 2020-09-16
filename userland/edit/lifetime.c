@@ -1,10 +1,13 @@
 #include "lifetime.h"
+#ifndef oneOS
+#include <stdlib.h>
+#endif
 
-termios_t orig_term;
+struct termios orig_term;
 
 void enable_raw_mode()
 {
-    termios_t raw;
+    struct termios raw;
     tcgetattr(STDIN, &raw);
     orig_term = raw;
     raw.c_lflag &= ~(ECHO | ICANON);

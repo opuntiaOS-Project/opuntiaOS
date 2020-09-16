@@ -2,9 +2,13 @@
 #define __EDIT__LT__
 
 #include "viewer.h"
+#ifdef oneOS
 #include <libsystem/termios.h>
+#else
+#include <termios.h>
+#endif
 
-extern termios_t orig_term;
+extern struct termios orig_term;
 
 void enable_raw_mode();
 void restore_termios();

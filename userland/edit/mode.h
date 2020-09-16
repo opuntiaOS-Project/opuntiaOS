@@ -2,7 +2,11 @@
 #define __EDIT__MODE__
 
 #include "viewer.h"
+#ifdef oneOS
 #include <libsystem/types.h>
+#else
+#include <stdint.h>
+#endif
 
 struct mode_disc {
     void (*enter_mode)();
