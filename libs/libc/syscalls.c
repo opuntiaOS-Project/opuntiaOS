@@ -6,7 +6,7 @@
  * Free Software Foundation.
  */
 
-#include "syscalls.h"
+#include <syscalls.h>
 
 int errno;
 

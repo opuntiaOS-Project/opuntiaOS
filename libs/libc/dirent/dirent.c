@@ -1,6 +1,6 @@
-#include "dirent.h"
-#include "../syscalls.h"
-#include "../../../include/errno.h"
+#include <dirent/dirent.h>
+#include <sys/errno.h>
+#include <syscalls.h>
 
 /* TODO: Will be replaced with malloc */
 DIR dirarr[8];
@@ -13,7 +13,7 @@ DIR* opendir(char* name)
         errno = -fd;
         return 0;
     }
-    
+
     /* TODO: Replace with malloc */
     dirarr[nxt].fd = fd;
     dirarr[nxt].size = 128;
@@ -36,5 +36,4 @@ int closedir(DIR* dir)
 /* TODO: Rewrite when malloc is available */
 // dirent_t readdir(DIR* dir)
 // {
-    
 // }

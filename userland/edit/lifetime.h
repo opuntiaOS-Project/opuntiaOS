@@ -2,11 +2,7 @@
 #define __EDIT__LT__
 
 #include "viewer.h"
-#ifdef __oneOS__
 #include <termios.h>
-#else
-#include <termios.h>
-#endif
 
 extern struct termios orig_term;
 

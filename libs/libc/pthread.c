@@ -1,5 +1,5 @@
-#include "pthread.h"
-#include "syscalls.h"
+#include <pthread.h>
+#include <syscalls.h>
 
 int pthread_create(void* func)
 {

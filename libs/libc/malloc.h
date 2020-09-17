@@ -1,7 +1,7 @@
 #ifndef __oneOS__LibC__MALLOC_H
 #define __oneOS__LibC__MALLOC_H
 
-#include "types.h"
+#include <sys/types.h>
 
 #define MALLOC_DEFAULT_BLOCK_SIZE 4096
 #define MALLOC_HEADER_SIZE 64

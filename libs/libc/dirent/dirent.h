@@ -1,8 +1,8 @@
 #ifndef __oneOS__LibC__DIRENT_H
 #define __oneOS__LibC__DIRENT_H
 
-#include "../../../include/syscall_structs.h"
-#include "../types.h"
+#include <sys/_structs.h>
+#include <sys/types.h>
 
 extern int errno;
 

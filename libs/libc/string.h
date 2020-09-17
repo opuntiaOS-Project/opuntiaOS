@@ -1,7 +1,7 @@
 #ifndef __oneOS__LibC__STRING_H
 #define __oneOS__LibC__STRING_H
 
-#include "types.h"
+#include <sys/types.h>
 
 extern int errno;
 

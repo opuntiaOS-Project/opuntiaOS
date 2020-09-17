@@ -3,7 +3,7 @@
 
 #include "viewer.h"
 #ifdef __oneOS__
-#include <types.h>
+#include <sys/types.h>
 #else
 #include <stdint.h>
 #endif

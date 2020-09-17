@@ -1,8 +1,8 @@
 #ifndef __oneOS__LibC__TERMIOS_H
 #define __oneOS__LibC__TERMIOS_H
 
-#include "../../include/syscall_structs.h"
-#include "types.h"
+#include <sys/_structs.h>
+#include <sys/types.h>
 
 typedef unsigned char cc_t;
 typedef unsigned int speed_t;

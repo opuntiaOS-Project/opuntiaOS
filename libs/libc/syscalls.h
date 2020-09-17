@@ -1,15 +1,15 @@
 #ifndef __oneOS__LibC__SYSCALLS_H
 #define __oneOS__LibC__SYSCALLS_H
 
-#include "types.h"
-#include "../../include/syscall_structs.h"
+#include <sys/_structs.h>
+#include <sys/types.h>
 
 extern int errno;
 
-int open(const char *pathname, int flags);
+int open(const char* pathname, int flags);
 int close(int fd);
-int read(int fd, char *buf, size_t count);
-int write(int fd, const void *buf, size_t count);
+int read(int fd, char* buf, size_t count);
+int write(int fd, const void* buf, size_t count);
 void exit(int ret_code);
 int fork();
 int wait(int pid);

@@ -1,5 +1,5 @@
-#include "termios.h"
-#include "syscalls.h"
+#include <termios.h>
+#include <syscalls.h>
 
 int tcgetpgrp(int fd)
 {

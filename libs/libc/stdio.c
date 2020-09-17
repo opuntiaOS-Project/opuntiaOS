@@ -1,5 +1,5 @@
-#include "stdio.h"
-#include "syscalls.h"
+#include <stdio.h>
+#include <syscalls.h>
 
 size_t _find_free_slot();
 

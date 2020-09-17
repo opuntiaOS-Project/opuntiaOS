@@ -1,7 +1,7 @@
 #ifndef __oneOS__LibC__STDIO_H
 #define __oneOS__LibC__STDIO_H
 
-#include "types.h"
+#include <sys/types.h>
 
 #define MAX_OPENED_FILES 16
 #define STDIO_BUFFER_SIZE 16

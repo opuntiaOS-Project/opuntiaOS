@@ -131,7 +131,7 @@ LIBRARIES = $(LIBC)
 ${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): CC $@"
-	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
+	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS} -I./${LIBC_PATH}
 
 ${LIBC}: ${LIBC_OBJ}
 	${AR} ${ARFLAGS} $@ $^

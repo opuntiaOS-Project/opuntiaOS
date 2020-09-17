@@ -1,6 +1,6 @@
-#include "malloc.h"
-#include "string.h"
-#include "syscalls.h"
+#include <malloc.h>
+#include <string.h>
+#include <syscalls.h>
 
 static void* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
 static uint8_t allocated_blocks;
