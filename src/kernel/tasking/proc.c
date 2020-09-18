@@ -189,17 +189,26 @@ int proc_load(proc_t* p, const char* path)
         return -ENOENT;
     }
 
-    int ret = _proc_load_bin(p, &fd);
+    pdirectory_t* old_pdir = p->pdir;
+    pdirectory_t* new_pdir = vmm_new_user_pdir();
+    vmm_switch_pdir(new_pdir);
+    p->pdir = new_pdir;
+    int err = _proc_load_bin(p, &fd);
 
-    if (!ret) {
+    if (!err) {
         if (!p->cwd) {
             p->cwd = dentry_get_parent(file);
         }
+        vmm_free_pdir(old_pdir);
+    } else {
+        p->pdir = old_pdir;
+        vmm_switch_pdir(old_pdir);
+        vmm_free_pdir(new_pdir);
     }
 
     dentry_put(file);
     vfs_close(&fd);
-    return ret;
+    return err;
 }
 
 /**

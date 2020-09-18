@@ -17,11 +17,14 @@
 #include <utils/kassert.h>
 #include <x86/common.h>
 
+// #define VMM_DEBUG
+
 #define pdir_t pdirectory_t
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 22) & 0x3ff)
 #define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0x3ff)
 #define VMM_OFFSET_IN_PAGE(a) ((a)&0xfff)
 #define FRAME(addr) (addr / VMM_PAGE_SIZE)
+#define PAGE_START(vaddr) ((vaddr >> 12) << 12)
 
 #define VMM_KERNEL_TABLES_START 768
 #define VMM_USER_TABLES_START 0
@@ -430,6 +433,10 @@ int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings)
         page_desc_set_attrs(page, PAGE_DESC_NOT_CACHEABLE);
     }
 
+#ifdef VMM_DEBUG
+    log("Page mapped %x in pdir: %x", vaddr, vmm_get_active_pdir());
+#endif
+
     _vmm_flush_tlb_entry(vaddr);
 
     return 0;
@@ -524,7 +531,7 @@ static void _vmm_ensure_cow_for_page(uint32_t vaddr)
 
 static void _vmm_ensure_cow_for_range(uint32_t vaddr, uint32_t length)
 {
-    uint32_t page_addr = ((vaddr >> 12) << 12); /* To page start */
+    uint32_t page_addr = PAGE_START(vaddr);
     while (page_addr < vaddr + length) {
         _vmm_ensure_cow_for_page(page_addr);
         page_addr += VMM_PAGE_SIZE;
@@ -665,13 +672,18 @@ int vmm_free_pdir(pdirectory_t* pdir)
         return -EACCES;
     }
 
+    pdirectory_t* cur_pdir = vmm_get_active_pdir();
     vmm_switch_pdir(pdir);
 
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         vmm_free_ptable(i);
     }
 
-    vmm_switch_pdir(_vmm_kernel_pdir);
+    if (cur_pdir == pdir) {
+        vmm_switch_pdir(_vmm_kernel_pdir);
+    } else {
+        vmm_switch_pdir(cur_pdir);
+    }
     _vmm_free_pspace(pdir);
     kfree_aligned(pdir);
     return 0;
