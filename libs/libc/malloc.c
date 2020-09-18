@@ -5,9 +5,9 @@
 static void* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
 static uint8_t allocated_blocks;
 
-static void __alloc_new_block(size_t sz);
+static int __alloc_new_block(size_t sz);
 
-static void __alloc_new_block(size_t sz)
+static int __alloc_new_block(size_t sz)
 {
     // this will reduce system calls for the small memory allocations
     size_t allocated_sz = sz > MALLOC_DEFAULT_BLOCK_SIZE ? sz : MALLOC_DEFAULT_BLOCK_SIZE;
@@ -15,16 +15,21 @@ static void __alloc_new_block(size_t sz)
     allocated_sz += sizeof(malloc_header_t);
 
     static mmap_params_t params;
-    params.flags = MAP_ANONYMOUS;
+    params.flags = MAP_ANONYMOUS | MAP_PRIVATE;
     params.size = allocated_sz;
     params.prot = PROT_READ | PROT_WRITE;
 
-    memory[allocated_blocks] = (void*)mmap(&params); // allocating a new block of memory
+    int ret = mmap(&params);
+    if (ret < 0) {
+        return -1;
+    }
+    memory[allocated_blocks] = (void*)ret; // allocating a new block of memory
     ((malloc_header_t*)memory[allocated_blocks])->free = true;
     ((malloc_header_t*)memory[allocated_blocks])->next = 0;
     ((malloc_header_t*)memory[allocated_blocks])->size = allocated_sz - sizeof(malloc_header_t);
 
     allocated_blocks++;
+    return 0;
 }
 
 void* malloc(size_t sz)
@@ -45,7 +50,11 @@ void* malloc(size_t sz)
     }
 
     if (!first_fit) {
-        __alloc_new_block(sz);
+        int err = __alloc_new_block(sz);
+        if (err) {
+            /* TODO: Write to log this */
+            return 0;
+        }
         first_fit = memory[allocated_blocks - 1];
     }
 

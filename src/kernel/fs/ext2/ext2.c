@@ -1100,6 +1100,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = ext2_rm;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = 0;
 
     return fs_desc;
 }

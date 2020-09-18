@@ -14,6 +14,7 @@
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <syscall_structs.h>
+#include <tasking/tasking.h>
 #include <utils/mem.h>
 
 // #define VFS_DEBUG
@@ -147,6 +148,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.file.create = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
     new_fs.file.unlink = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
     new_fs.file.ioctl = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
+    new_fs.file.mmap = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MMAP];
 
     new_fs.dentry.write_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
     new_fs.dentry.read_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
@@ -174,6 +176,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
     fd->type = FD_TYPE_FILE;
     fd->dentry = dentry_duplicate(file);
     fd->offset = 0;
+    fd->mapped_times = 0;
     fd->ops = &file->ops->file;
     return 0;
 }
@@ -182,6 +185,10 @@ int vfs_close(file_descriptor_t* fd)
 {
     if (!fd) {
         return -EFAULT;
+    }
+
+    if (fd->mapped_times) {
+        return -EIO;
     }
 
     if (fd->type == FD_TYPE_FILE) {
@@ -447,4 +454,37 @@ int vfs_umount(dentry_t* mounted_dentry)
     }
 
     return 0;
+}
+
+static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
+{
+    bool map_shared = ((params->flags & MAP_SHARED) > 0);
+    bool map_private = ((params->flags & MAP_PRIVATE) > 0);
+
+    proc_zone_t* zone;
+
+    if (map_private) {
+        zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
+        zone->type = ZONE_TYPE_MAPPED_FILE_PRIVATLY;
+        zone->fd = fd;
+        zone->offset = params->offset;
+    } else {
+        /* TODO */
+        return 0;
+    }
+
+    return zone;
+}
+
+proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
+{
+    fd->mapped_times++;
+    /* Check if we have a custom mmap for a dentry */
+    if (fd->dentry->ops->file.mmap) {
+        proc_zone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
+        if ((uint32_t)res != VFS_USE_STD_MMAP) {
+            return res;
+        }
+    }
+    return _vfs_do_mmap(fd, params);
 }

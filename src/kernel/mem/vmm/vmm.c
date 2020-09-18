@@ -863,9 +863,17 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
                 if (!zone) {
                     return SHOULD_CRASH;
                 }
+#ifdef VMM_DEBUG
+                log("Mmap page %x for %d pid: %x", vaddr, RUNNIG_THREAD->process->pid, zone->flags);
+#endif
                 vmm_load_page(vaddr, zone->flags);
+
+                if (zone->type == ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
+                    uint32_t offset_for_this_page = zone->offset + (PAGE_START(vaddr) - zone->start);
+                    vfs_read(zone->fd, (uint8_t*)PAGE_START(vaddr), VMM_PAGE_SIZE);
+                }
             } else {
-                // FIXME: Now we have a standard zone for kernel, but it's better to do the same thing as for user's
+                /* FIXME: Now we have a standard zone for kernel, but it's better to do the same thing as for user's pages */
                 vmm_load_page(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
             }
         } else {
@@ -873,7 +881,7 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
             if (!zone) {
                 kprintf("No zone");
             }
-            kprintf("%d %x %x %x %d", info, vaddr, vmm_get_active_pdir(), RUNNIG_THREAD->process->pdir, zone->type);
+            kprintf("%d %x %x %x %d", info, vaddr, vmm_get_active_pdir(), RUNNIG_THREAD->process->pdir, RUNNIG_THREAD->process->pid);
             while (1) { }
             kpanic("VMM: where are we?\n");
         }

@@ -34,7 +34,8 @@ enum ZONE_TYPES {
     ZONE_TYPE_CODE = 0x1,
     ZONE_TYPE_DATA = 0x2,
     ZONE_TYPE_STACK = 0x4,
-    ZONE_TYPE_MMAP = 0x8,
+    ZONE_TYPE_MAPPED_FILE_PRIVATLY = 0x8,
+    ZONE_TYPE_MAPPED_FILE_SHAREDLY = 0x10,
 };
 
 struct proc_zone {
@@ -42,6 +43,8 @@ struct proc_zone {
     uint32_t len;
     uint32_t type;
     uint32_t flags;
+    file_descriptor_t* fd;
+    uint32_t offset;
 };
 typedef struct proc_zone proc_zone_t;
 

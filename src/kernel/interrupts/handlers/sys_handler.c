@@ -429,6 +429,7 @@ void sys_sleep(trapframe_t* tf)
 
 void sys_mmap(trapframe_t* tf)
 {
+    proc_t* p = RUNNIG_THREAD->process;
     mmap_params_t* params = (mmap_params_t*)param1;
 
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
@@ -443,15 +444,28 @@ void sys_mmap(trapframe_t* tf)
 
     proc_zone_t* zone;
 
+    if (map_private && map_shared) {
+        return_with_val(-EINVAL);
+    }
+    if (!map_private && !map_shared) {
+        return_with_val(-EINVAL);
+    }
+
     if (map_stack) {
-        zone = proc_new_random_zone_backward(RUNNIG_THREAD->process, params->size);
+        zone = proc_new_random_zone_backward(p, params->size);
+    } else if (map_anonymous) {
+        zone = proc_new_random_zone(p, params->size);
     } else {
-        zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
+        file_descriptor_t* fd = proc_get_fd(p, params->fd);
+        /* TODO: Check for read access to the file */
+        if (!fd) {
+            return_with_val(-EBADFD);
+        }
+        zone = vfs_mmap(fd, params);
     }
 
     if (!zone) {
-        set_return(tf, -ENOMEM);
-        return;
+        return_with_val(-ENOMEM);
     }
 
     if (map_read) {
@@ -464,15 +478,7 @@ void sys_mmap(trapframe_t* tf)
         zone->flags |= ZONE_EXECUTABLE;
     }
 
-    if (map_anonymous) {
-
-    } else {
-        /* TODO: Add support for not MAP_ANONYMOUS. */
-        set_return(tf, -EFAULT);
-        return;
-    }
-
-    set_return(tf, zone->start);
+    return_with_val(zone->start);
 }
 
 void sys_munmap(trapframe_t* tf)

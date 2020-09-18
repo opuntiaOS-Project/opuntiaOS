@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <mem/kmalloc.h>
+#include <tasking/proc.h>
 
 #define DEVFS_ZONE_SIZE 32 * KB
 
@@ -424,6 +425,16 @@ int devfs_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
     return -EFAULT;
 }
 
+proc_zone_t* devfs_mmap(dentry_t* dentry, mmap_params_t* params)
+{
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    if (devfs_inode->handlers.mmap) {
+        return devfs_inode->handlers.mmap(dentry, params);
+    }
+    /* If we don't have a custom impl, let's used a std one */
+    return (proc_zone_t*)VFS_USE_STD_MMAP;
+}
+
 /**
  * Driver install functions.
  */
@@ -455,6 +466,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = devfs_ioctl;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = devfs_mmap;
 
     return fs_desc;
 }

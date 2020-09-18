@@ -19,6 +19,7 @@
 #define VFS_MAX_FILENAME 16
 #define VFS_MAX_FILENAME_EXT 4
 #define VFS_ATTR_NOTFILE 0xff
+#define VFS_USE_STD_MMAP 0xffffffff /* If custom mmap impl isn't support for such a file, you can return the flag and std impl will be used */
 
 typedef struct {
     uint32_t count;
@@ -88,6 +89,7 @@ struct file_ops {
     int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
     int (*rmdir)(dentry_t* dir);
     int (*ioctl)(dentry_t* dentry, uint32_t cmd, uint32_t arg);
+    struct proc_zone* (*mmap)(dentry_t* dentry, mmap_params_t* params);
 };
 typedef struct file_ops file_ops_t;
 
@@ -122,6 +124,7 @@ struct file_descriptor {
     };
     uint32_t offset;
     uint32_t flags;
+    uint32_t mapped_times;
     file_ops_t* ops;
 };
 typedef struct file_descriptor file_descriptor_t;
@@ -186,5 +189,7 @@ int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len);
 
 int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
 int vfs_umount(dentry_t* mountpoint);
+
+struct proc_zone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
 
 #endif // __oneOS__FS__VFS_H
