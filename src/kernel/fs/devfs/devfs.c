@@ -7,8 +7,10 @@
  */
 
 #include <algo/dynamic_array.h>
+#include <drivers/driver_manager.h>
 #include <errno.h>
 #include <fs/devfs/devfs.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 
@@ -93,13 +95,13 @@ static devfs_inode_t* _devfs_new_entry()
 
 static char* _devfs_new_name(int len)
 {
-    if (free_space_in_last_entry_zone < len + 1) {
+    if (free_space_in_last_name_zone < len + 1) {
         _devfs_alloc_name_zone();
     }
 
-    char* res = (char*)next_space_to_put_entry;
-    next_space_to_put_entry += len + 1;
-    free_space_in_last_entry_zone -= len + 1;
+    char* res = (char*)next_space_to_put_name;
+    next_space_to_put_name += len + 1;
+    free_space_in_last_name_zone -= len + 1;
     memset(res, 0, len + 1);
     return res;
 }
@@ -504,11 +506,10 @@ devfs_inode_t* devfs_register(dentry_t* dir, const char* name, uint32_t len, mod
         return 0;
     }
 
-    dentry_set_flag(dir, DENTRY_DIRTY);
-
     new_entry->mode = mode;
     _devfs_set_name(new_entry, name, len);
     memcpy((void*)&new_entry->handlers, (void*)handlers, sizeof(*handlers));
+    dentry_set_flag(dir, DENTRY_DIRTY);
 
     return new_entry;
 }
