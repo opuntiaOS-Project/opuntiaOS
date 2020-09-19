@@ -3,8 +3,10 @@
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <log.h>
-#include <x86/pci.h>
+#include <tasking/proc.h>
+#include <tasking/tasking.h>
 #include <utils/kassert.h>
+#include <x86/pci.h>
 
 #define VBE_DISPI_IOPORT_INDEX 0x01CE
 #define VBE_DISPI_IOPORT_DATA 0x01CF
@@ -26,6 +28,7 @@
 
 static uint16_t bga_screen_width, bga_screen_height;
 static uint32_t bga_screen_line_size, bga_screen_buffer_size;
+static uint32_t bga_buf_paddr;
 
 static inline void _bga_write_reg(uint16_t cmd, uint16_t data)
 {
@@ -51,7 +54,29 @@ static void _bga_set_resolution(uint16_t width, uint16_t height)
     _bga_write_reg(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
     _bga_write_reg(VBE_DISPI_INDEX_BANK, 0);
 
-    bga_screen_line_size = (uint32_t)width * 32;
+    bga_screen_line_size = (uint32_t)width * 4;
+}
+
+static proc_zone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
+{
+    bool map_shared = ((params->flags & MAP_SHARED) > 0);
+    
+    if (!map_shared) {
+        return 0;
+    }
+
+    proc_zone_t* zone = proc_new_random_zone(RUNNIG_THREAD->process, bga_screen_buffer_size);
+    if (!zone) {
+        return 0;
+    }
+
+    zone->flags |= ZONE_WRITABLE | ZONE_READABLE;
+
+    for (int offset = 0; offset < bga_screen_buffer_size; offset += VMM_PAGE_SIZE) {
+        vmm_map_page(zone->start+offset, bga_buf_paddr+offset, zone->flags);
+    }
+
+    return zone;
 }
 
 static void bga_recieve_notification(uint32_t msg, uint32_t param)
@@ -68,7 +93,7 @@ static void bga_recieve_notification(uint32_t msg, uint32_t param)
         fops.read = 0;
         fops.write = 0;
         fops.ioctl = 0;
-        fops.mmap = 0;
+        fops.mmap = _bga_mmap;
         devfs_inode_t* res = devfs_register(mp, "bga", 3, 0, &fops);
 
         dentry_put(mp);
@@ -100,13 +125,14 @@ void bga_install()
 
 void bga_init(device_t* dev)
 {
+    bga_buf_paddr = pci_read_bar(dev, 0);
     bga_set_resolution(1024, 768);
 }
 
 void bga_set_resolution(uint16_t width, uint16_t height)
 {
+    _bga_set_resolution(width, height);
     bga_screen_width = width;
     bga_screen_height = height;
     bga_screen_buffer_size = bga_screen_line_size * (uint32_t)height * 2;
-    _bga_set_resolution(width, height);
 }
