@@ -101,14 +101,20 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     file_descriptor_t* fd1 = &p->fds[1];
     p->tty = tty;
 
-    char* path_to_tty = "dev/tty ";
-    path_to_tty[7] = tty->id + '0';
+    char* path_to_tty = "/dev/tty ";
+    path_to_tty[8] = tty->id + '0';
     dentry_t* tty_dentry;
     if (vfs_resolve_path(path_to_tty, &tty_dentry) < 0) {
         return -ENOENT;
     }
-    int res = vfs_open(tty_dentry, fd0, O_RDWR);
-    res = vfs_open(tty_dentry, fd1, O_RDWR);
+    int err = vfs_open(tty_dentry, fd0, O_RDWR);
+    if (err) {
+        return err;
+    }
+    err = vfs_open(tty_dentry, fd1, O_RDWR);
+    if (err) {
+        return err;
+    }
     dentry_put(tty_dentry);
     return 0;
 }

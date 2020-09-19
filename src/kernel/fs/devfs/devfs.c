@@ -449,6 +449,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.is_device_driver = false;
     fs_desc.is_device_needed = false;
     fs_desc.is_driver_needed = false;
+    fs_desc.functions[DRIVER_NOTIFICATION] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = devfs_prepare_fs;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = devfs_can_read;
@@ -522,5 +523,8 @@ int devfs_mount()
     }
     int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
     dentry_put(mp);
+    if (!err) {
+        dm_send_notification(DM_NOTIFICATION_DEVFS_READY, 0);
+    }
     return err;
 }

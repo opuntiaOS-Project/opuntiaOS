@@ -57,7 +57,7 @@ void isr_handler(trapframe_t* tf)
     if (tf->int_no == 14) {
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
-            log_warn("Crash: pf err %d at %x: %d pid\n", tf->err, read_cr2(), p->pid);
+            log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, read_cr2(), p->pid, tf->eip);
             proc_die(p);
             resched();
         }

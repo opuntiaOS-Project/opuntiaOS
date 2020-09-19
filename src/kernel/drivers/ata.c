@@ -45,6 +45,7 @@ driver_desc_t _ata_driver_info()
     ata_desc.is_device_driver = true;
     ata_desc.is_device_needed = false;
     ata_desc.is_driver_needed = false;
+    ata_desc.functions[DRIVER_NOTIFICATION] = 0;
     ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = ata_add_new_device;
     ata_desc.functions[DRIVER_STORAGE_READ] = ata_read;
     ata_desc.functions[DRIVER_STORAGE_WRITE] = ata_write;

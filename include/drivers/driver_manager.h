@@ -8,6 +8,17 @@
 #define MAX_DRIVER_FUNCTION_COUNT 32
 #define DRIVER_NAME_LENGTH 8
 
+#define DM_FUNC_NOTIFY 0x0
+#define DM_FUNC_DEVICE_START 0x1
+#define DM_FUNC_DRIVER_START 0x1
+#define DM_FUNC_DRIVER_EMIT_DRIVER 0x1
+#define DM_FUNC_DRIVER_EMIT_DEVICE 0x2
+
+enum DRIVER_MAN_NOTIFICATIONS {
+    DM_NOTIFICATION_DEVFS_READY = 0,
+    DM_NOTIFICATION_STOP,
+};
+
 // Supported driver's types
 enum DRIVERS_TYPE {
     DRIVER_STORAGE_DEVICE,
@@ -33,9 +44,19 @@ enum DEVICES_TYPE {
     DEVICE_BAD_SIGN = 0xff
 };
 
+enum DRIVER_COMMON {
+    DRIVER_NOTIFICATION = 0x0,
+};
+
+// Api function of DRIVER_STORAGE type
+enum DRIVER_VIDEO_OPERTAION {
+    DRIVER_VIDEO_INIT = 0x1, // function called when a device is found
+    DRIVER_VIDEO_SET_RESOLUTION,
+};
+
 // Api function of DRIVER_STORAGE type
 enum DRIVER_STORAGE_OPERTAION {
-    DRIVER_STORAGE_ADD_DEVICE, // function called when a device is found
+    DRIVER_STORAGE_ADD_DEVICE = 0x1, // function called when a device is found
     DRIVER_STORAGE_READ,
     DRIVER_STORAGE_WRITE,
     DRIVER_STORAGE_FLUSH,
@@ -44,26 +65,26 @@ enum DRIVER_STORAGE_OPERTAION {
 
 // Api function of DRIVER_INPUT_SYSTEMS type
 enum DRIVER_INPUT_SYSTEMS_OPERTAION {
-    DRIVER_INPUT_SYSTEMS_ADD_DEVICE, // function called when a device is found
+    DRIVER_INPUT_SYSTEMS_ADD_DEVICE = 0x1, // function called when a device is found
     DRIVER_INPUT_SYSTEMS_GET_LAST_KEY,
     DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY
 };
 
 // Api function of DRIVER_CONTROLLER type
 enum DRIVER_BUS_CONTROLLER_OPERTAION {
-    DRIVER_BUS_CONTROLLER_FIND_DEVICE // function called when a device is found
+    DRIVER_BUS_CONTROLLER_FIND_DEVICE = 0x1, // function called when a device is found
 };
 
 // Api function of DRIVER_VIRTUAL_FILE_SYSTEM type
 enum DRIVER_VIRTUAL_FILE_SYSTEM_OPERTAION {
-    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER,
+    DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER = 0x1,
     DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE,
     DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE,
 };
 
 // Api function of DRIVER_FILE_SYSTEM type
 enum DRIVER_FILE_SYSTEM_OPERTAION {
-    DRIVER_FILE_SYSTEM_RECOGNIZE,
+    DRIVER_FILE_SYSTEM_RECOGNIZE = 0x1,
     DRIVER_FILE_SYSTEM_PREPARE_FS,
     DRIVER_FILE_SYSTEM_EJECT_DEVICE,
 
@@ -107,7 +128,7 @@ typedef struct {
 typedef struct {
     uint8_t id;
     bool is_active;
-    driver_desc_t driver_desc;
+    driver_desc_t desc;
 } driver_t; // driver
 
 typedef struct {
@@ -146,5 +167,6 @@ device_t get_device(uint8_t t_dev_type, uint8_t t_start);
 void pass_drivers_to_master_drivers();
 void pass_devices_to_master_drivers();
 device_t* new_virtual_device(uint8_t type);
+void dm_send_notification(uint32_t msg, uint32_t param);
 
 #endif // __oneOS__DRIVERS__DRIVERMANAGER_H

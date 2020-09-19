@@ -14,6 +14,7 @@
 #include <types.h>
 
 #include <drivers/ata.h>
+#include <drivers/bga.h>
 #include <drivers/display.h>
 #include <drivers/driver_manager.h>
 #include <drivers/ide.h>
@@ -80,16 +81,19 @@ void stage3(mem_desc_t* mem_desc)
     pci_install();
     ide_install();
     ata_install();
-    kbdriver_install();
-    mouse_install();
     vfs_install();
     ext2_install();
     procfs_install();
     devfs_install();
+    kbdriver_install();
+    mouse_install();
+    bga_install();
     drivers_run();
-
+    
+    // mounting filesystems
     devfs_mount();
 
+    // init scheduling
     tasking_init();
     scheduler_init();
 

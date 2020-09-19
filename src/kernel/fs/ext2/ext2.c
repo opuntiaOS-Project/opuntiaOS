@@ -106,7 +106,7 @@ int ext2_rm(dentry_t* dentry);
 
 static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, uint32_t len)
 {
-    void (*read)(device_t * d, uint32_t s, uint8_t * r) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_READ];
+    void (*read)(device_t * d, uint32_t s, uint8_t * r) = drivers[dev->dev->driver_id].desc.functions[DRIVER_STORAGE_READ];
     int already_read = 0;
     uint32_t sector = start / 512;
     uint32_t start_offset = start % 512;
@@ -125,8 +125,8 @@ static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start,
 
 static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, uint32_t len)
 {
-    void (*read)(device_t * d, uint32_t s, uint8_t * r) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_READ];
-    void (*write)(device_t * d, uint32_t s, uint8_t * r, uint32_t siz) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_WRITE];
+    void (*read)(device_t * d, uint32_t s, uint8_t * r) = drivers[dev->dev->driver_id].desc.functions[DRIVER_STORAGE_READ];
+    void (*write)(device_t * d, uint32_t s, uint8_t * r, uint32_t siz) = drivers[dev->dev->driver_id].desc.functions[DRIVER_STORAGE_WRITE];
     int already_written = 0;
     uint32_t sector = start / 512;
     uint32_t start_offset = start % 512;
@@ -147,7 +147,7 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
 
 static uint32_t _ext2_get_disk_size(vfs_device_t* dev)
 {
-    uint32_t (*get_size)(device_t * d) = drivers[dev->dev->driver_id].driver_desc.functions[DRIVER_STORAGE_CAPACITY];
+    uint32_t (*get_size)(device_t * d) = drivers[dev->dev->driver_id].desc.functions[DRIVER_STORAGE_CAPACITY];
     return get_size(dev->dev);
 }
 
@@ -1080,6 +1080,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.is_device_driver = false;
     fs_desc.is_device_needed = false;
     fs_desc.is_driver_needed = false;
+    fs_desc.functions[DRIVER_NOTIFICATION] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = ext2_recognize_drive;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = ext2_prepare_fs;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = ext2_can_read;

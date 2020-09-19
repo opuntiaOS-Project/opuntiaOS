@@ -554,7 +554,7 @@ void sys_ioctl(trapframe_t* tf)
     proc_t* p = RUNNIG_THREAD->process;
     file_descriptor_t* fd = proc_get_fd(p, param1);
 
-    if (!fd->dentry) {
+    if (!fd) {
         return_with_val(-EBADF);
     }
 

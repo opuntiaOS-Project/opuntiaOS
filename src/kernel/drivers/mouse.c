@@ -19,6 +19,7 @@ static driver_desc_t _mouse_driver_info()
     desc.is_device_driver = false;
     desc.is_device_needed = false;
     desc.is_driver_needed = false;
+    desc.functions[DRIVER_NOTIFICATION] = 0;
     desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = mouse_run;
     desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = 0;
     desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = 0;

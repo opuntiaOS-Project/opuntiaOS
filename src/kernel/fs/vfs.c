@@ -32,6 +32,7 @@ driver_desc_t _vfs_driver_info()
     vfs_desc.is_driver_needed = true;
     vfs_desc.type_of_needed_device = DEVICE_STORAGE;
     vfs_desc.type_of_needed_driver = DRIVER_FILE_SYSTEM;
+    vfs_desc.functions[DRIVER_NOTIFICATION] = 0;
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE] = vfs_add_dev;
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER] = vfs_add_fs;
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE] = vfs_eject_device;
@@ -127,33 +128,33 @@ void vfs_eject_device(device_t* dev)
 
 void vfs_add_fs(driver_t* new_driver)
 {
-    if (new_driver->driver_desc.type != DRIVER_FILE_SYSTEM) {
+    if (new_driver->desc.type != DRIVER_FILE_SYSTEM) {
         return;
     }
 
     fs_ops_t new_fs;
 
-    new_fs.recognize = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
-    new_fs.prepare_fs = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS];
-    new_fs.eject_device = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
+    new_fs.recognize = new_driver->desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
+    new_fs.prepare_fs = new_driver->desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS];
+    new_fs.eject_device = new_driver->desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
 
-    new_fs.file.mkdir = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
-    new_fs.file.rmdir = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_RMDIR];
-    new_fs.file.getdents = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS];
-    new_fs.file.lookup = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
-    new_fs.file.can_read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
-    new_fs.file.can_write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
-    new_fs.file.read = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ];
-    new_fs.file.write = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE];
-    new_fs.file.create = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_CREATE];
-    new_fs.file.unlink = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
-    new_fs.file.ioctl = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
-    new_fs.file.mmap = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_MMAP];
+    new_fs.file.mkdir = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
+    new_fs.file.rmdir = new_driver->desc.functions[DRIVER_FILE_SYSTEM_RMDIR];
+    new_fs.file.getdents = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GETDENTS];
+    new_fs.file.lookup = new_driver->desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
+    new_fs.file.can_read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
+    new_fs.file.can_write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
+    new_fs.file.read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ];
+    new_fs.file.write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+    new_fs.file.create = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CREATE];
+    new_fs.file.unlink = new_driver->desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
+    new_fs.file.ioctl = new_driver->desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
+    new_fs.file.mmap = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MMAP];
 
-    new_fs.dentry.write_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
-    new_fs.dentry.read_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
-    new_fs.dentry.free_inode = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE];
-    new_fs.dentry.get_fsdata = new_driver->driver_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
+    new_fs.dentry.write_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
+    new_fs.dentry.read_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
+    new_fs.dentry.free_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE];
+    new_fs.dentry.get_fsdata = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
 
     dynamic_array_push(&_vfs_fses, &new_fs);
 }
