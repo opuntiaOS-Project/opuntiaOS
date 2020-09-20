@@ -40,9 +40,9 @@ int main(int argc, char** argv)
     struct linux_dirent* d;
     int bpos;
     char d_type;
-    bool has_path = false;
-    bool show_inodes = false;
-    bool show_private = false;
+    char has_path = false;
+    char show_inodes = false;
+    char show_private = false;
 
     for (int i = 1; i < argc; i++) {
         if (memcmp(argv[i], "-i", 3) == 0) {

@@ -1,6 +1,7 @@
 # x86-32 building config
 # SET YOUR PATHS HERE
 I686_ELF_GCC = i686-elf-gcc
+I686_ELF_G++ = i686-elf-g++
 I686_ELF_LD = i686-elf-ld
 I686_ELF_AR = i686-elf-ar
 NASM = nasm
@@ -12,6 +13,7 @@ MKFS_LINUX = mkfs
 MKFS_MAC = /usr/local/opt/e2fsprogs/sbin/mkfs.ext2
 
 CC = ${I686_ELF_GCC}
+C++ = ${I686_ELF_G++}
 LD = ${I686_ELF_LD}
 AR = ${I686_ELF_AR}
 ASM = ${NASM}

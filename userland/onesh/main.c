@@ -17,8 +17,8 @@ void _cmd_loop_start();
 void _cmd_loop_end();
 void _cmd_input();
 void _cmd_processor();
-bool _cmd_is_ascii(uint32_t key);
-bool _cmd_cmp_command(const char*);
+char _cmd_is_ascii(uint32_t key);
+char _cmd_cmp_command(const char*);
 int16_t _cmd_find_cmd_handler();
 uint32_t _cmd_getkeycode();
 
@@ -68,7 +68,7 @@ void _cmd_processor()
 {
     _cmd_parsed_buffer_position = 0;
 
-    bool is_prev_space = true;
+    char is_prev_space = true;
 
     for (int i = 0; i < _cmd_buffer_position; i++) {
         if (_cmd_buffer[i] == ' ') {
@@ -119,7 +119,7 @@ void _cmd_loop_end()
     write(1, "\n", 1);
 }
 
-bool _cmd_is_ascii(uint32_t key)
+char _cmd_is_ascii(uint32_t key)
 {
     return 32 <= key && key <= 126;
 }

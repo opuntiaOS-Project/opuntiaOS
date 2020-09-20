@@ -1,5 +1,5 @@
 APPS += LS
 
 LS_NAME = ls
-LS_LIBS = 
+LS_LIBS = c
 LS_INSTALL_PATH = bin/

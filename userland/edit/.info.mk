@@ -1,5 +1,5 @@
 APPS += EDIT
 
 EDIT_NAME = edit
-EDIT_LIBS = 
+EDIT_LIBS = c
 EDIT_INSTALL_PATH = bin/

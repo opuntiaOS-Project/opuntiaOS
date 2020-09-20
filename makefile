@@ -120,12 +120,18 @@ ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 ARFLAGS = rcs
 
 LIB_PATH = ${BASE_DIR}/lib
+
 LIBC = $(LIB_PATH)/libc.a
 LIBC_PATH = libs/libc
-LIBC_SRC=$(wildcard libs/libc/*.c)
-LIBC_SRC=$(shell find libs/libc/ -name "*.c")
+LIBC_SRC=$(shell find libs/libc -name "*.c")
 LIBC_OBJ=$(patsubst %.c,%.o,$(LIBC_SRC))
 
+LIBCXX = $(LIB_PATH)/libcxx.a
+LIBCXX_PATH = libs/libcxx
+LIBCXX_SRC=$(shell find $(LIBCXX_PATH) -name "*.cpp")
+LIBCXX_OBJ=$(patsubst %.cpp,%.o,$(LIBCXX_SRC))
+
+LIBRARIES_ALL = $(LIBC) $(LIBCXX)
 LIBRARIES = $(LIBC)
 
 ${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
@@ -134,7 +140,18 @@ ${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
 	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS} -I./${LIBC_PATH}
 
 ${LIBC}: ${LIBC_OBJ}
-	${AR} ${ARFLAGS} $@ $^
+	@echo "$(notdir $(CURDIR)): [AR] $@"
+	${QUIET} ${AR} ${ARFLAGS} $@ $^
+
+
+${LIBCXX_PATH}/%.o: ${LIBCXX_PATH}/%.cpp
+	@mkdir -p $(LIB_PATH)
+	@echo "$(notdir $(CURDIR)): C++ $@"
+	${QUIET} ${C++} -c $< -o $@ ${C_FLAGS} -I.libs/
+
+${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ)
+	@echo "$(notdir $(CURDIR)): [AR] $@"
+	${QUIET} ${AR} -rcs $@ $^
 
 
 # --- CRTs ------------------------------------------------------------------- #
@@ -142,11 +159,32 @@ ${LIBC}: ${LIBC_OBJ}
 CRTS = libs/crt0.o \
 
 libs/crt0.o: libs/crt0.s
-	$(ASM) $< -f elf -o $@
+	${QUIET} $(ASM) $< -f elf -o $@
+
+
+# --- Servers ---------------------------------------------------------------- #
+
+SERVERS_PATH = ${BASE_DIR}/bin
+WINDOW_SERVER = $(SERVERS_PATH)/window_server
+WINDOW_SERVER_PATH = servers/window_server
+WINDOW_SERVER_SRC=$(shell find $(WINDOW_SERVER_PATH) -name "*.cpp")
+WINDOW_SERVER_OBJ=$(patsubst %.cpp,%.o,$(WINDOW_SERVER_SRC))
+
+SERVERS = $(WINDOW_SERVER)
+
+${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp
+	@mkdir -p $(WINDOW_SERVER_PATH)
+	@echo "$(notdir $(CURDIR)): C++ $@"
+	${QUIET} ${C++} -c $< -o $@ -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
+
+$(WINDOW_SERVER): $(WINDOW_SERVER_OBJ) $(CRTS) $(LIBRARIES_ALL)
+	@echo "Window Server [LD]  $@"
+	$(QUIET) $(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary $(LIBRARIES_ALL)
 	
 # --- Apps ------------------------------------------------------------------ #
 
 C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/libc -D__oneOS__
+CPP_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -fno-sized-deallocation -fno-rtti -fno-exceptions  -I./libs/libcxx -I./libs -D__oneOS__
 
 APPS_PATH = userland
 
@@ -159,21 +197,31 @@ $(1)_C_SOURCES =  $$(wildcard ${APPS_PATH}/$($(1)_NAME)/*.c) \
 $(1)_S_SOURCES = $$(wildcard ${APPS_PATH}/$($(1)_NAME)/*.s) \
 				$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*.s) \
 			   	$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*/*.s)
-$(1)_LIBSLIST = $$(addprefix -I./libs/lib, $$($(1)_LIBS))
+$(1)_CPP_SOURCES = $$(wildcard ${APPS_PATH}/$($(1)_NAME)/*.cpp) \
+				$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*.cpp) \
+			   	$$(wildcard ${APPS_PATH}/$($(1)_NAME)/*/*/*.cpp)
+$(1)_INC_LIBSLIST = $$(addprefix -I./libs/lib, $$($(1)_LIBS))
+$(1)_SRC_LIBSLIST = $$(addprefix $(LIB_PATH)/lib, $$(addsuffix .a, $$($(1)_LIBS)))
 
 $(1)_C_OBJECTS = $$(patsubst %.c,%.o,$$($(1)_C_SOURCES))
+$(1)_CPP_OBJECTS = $$(patsubst %.cpp,%.o,$$($(1)_CPP_SOURCES))
 $(1)_S_OBJECTS = $$(patsubst %.s,%.o,$$($(1)_S_SOURCES))
 
 # system apps
-$$($(1)_BINARY): $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) $$(LIBRARIES)
+$$($(1)_BINARY): $$($(1)_C_OBJECTS) $$($(1)_CPP_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) $$($(1)_SRC_LIBSLIST)
 	@mkdir -p $(BASE_DIR)/$($(1)_INSTALL_PATH)
 	@echo "$($(1)_NAME) [LD]  $$@"
-	$(QUIET) $$(LD) $$(CRTS) $$($(1)_C_OBJECTS) $$($(1)_S_OBJECTS) -Ttext 0x0 -o $$@ --oformat binary $$(LIBRARIES)
+	$(QUIET) $$(LD) $$(CRTS) $$($(1)_C_OBJECTS) $$($(1)_CPP_OBJECTS) $$($(1)_S_OBJECTS) -Ttext 0x0 -o $$@ --oformat binary $$($(1)_SRC_LIBSLIST)
 
 # std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.c
 	@echo "$($(1)_NAME) [CC]  $$@"
-	$(QUIET) $$(CC) -c $$< -o $$@ $$(C_USERLAND_FLAGS) $$($(1)_LIBSLIST)
+	$(QUIET) $$(CC) -c $$< -o $$@ $$(C_USERLAND_FLAGS) $$($(1)_INC_LIBSLIST)
+
+# std compiler
+${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.cpp
+	@echo "$($(1)_NAME) [C++] $$@"
+	$(QUIET) $$(C++) -c $$< -o $$@ $$(CPP_USERLAND_FLAGS) $$($(1)_INC_LIBSLIST)
 
 # std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.s
@@ -189,7 +237,7 @@ $(foreach app, $(APPS), $(eval $(call APP_TEMPLATE,$(app))))
 
 # --- Others ---------------------------------------------------------------- #
 
-apps: $(APPS_BINARIES)
+apps: $(APPS_BINARIES) $(SERVERS)
 	echo $(CAT_LIBSLIST)
 
 debug/kernel.dis: products/kernel.bin
@@ -220,6 +268,8 @@ clean:
 	rm -rf userland/*/*.o
 	rm -rf libs/*/*.o
 	rm -rf libs/*.o
+	rm -rf servers/*/*.o
+	rm -rf servers/*.o
 
 ${DISK}:
 	qemu-img create -f raw ${DISK} 16M

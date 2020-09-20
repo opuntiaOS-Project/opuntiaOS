@@ -1,0 +1,5 @@
+APPS += CPP
+
+CPP_NAME = cpp
+CPP_LIBS = cxx
+CPP_INSTALL_PATH = bin/

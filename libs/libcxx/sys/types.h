@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__TYPES_H
-#define __oneOS__LibC__TYPES_H
+#ifndef __oneOS__LibCXX__TYPES_H
+#define __oneOS__LibCXX__TYPES_H
 
 typedef unsigned long  uint64_t;
 typedef unsigned int   uint32_t;

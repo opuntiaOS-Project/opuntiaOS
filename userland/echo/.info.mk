@@ -1,5 +1,5 @@
 APPS += ECHO
 
 ECHO_NAME = echo
-ECHO_LIBS =
+ECHO_LIBS = c
 ECHO_INSTALL_PATH = bin/

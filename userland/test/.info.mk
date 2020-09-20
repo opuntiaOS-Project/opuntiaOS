@@ -1,5 +1,5 @@
 APPS += TEST
 
 TEST_NAME = test
-TEST_LIBS = 
+TEST_LIBS = c
 TEST_INSTALL_PATH = bin/
