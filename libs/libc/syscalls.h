@@ -27,7 +27,7 @@ int raise(int signo);
 int sigaction(int signo, void* callback);
 int mmap(mmap_params_t* params);
 int socket(int domain, int type, int protocol);
-int bind(int sockfd, char* name, int len);
+int bind(int sockfd, const char* name, int len);
 int connect(int sockfd, char* name, int len);
 int getdents(int fd, char* buf, int len);
 int ioctl(int fd, uint32_t cmd, uint32_t arg);
