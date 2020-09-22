@@ -37,7 +37,7 @@ public:
         return 0x6;
     }
 
-    Message* decode(const char* buf, size_t size, size_t& decoded_msg_len) override
+    unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
         int mes_magic = buf[0];
         if (mes_magic != magic()) {
@@ -77,7 +77,7 @@ public:
         return 0x7;
     }
 
-    Message* decode(const char* buf, size_t size, size_t& decoded_msg_len)
+    unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len)
     {
         int mes_magic = buf[size];
         if (mes_magic == magic()) {

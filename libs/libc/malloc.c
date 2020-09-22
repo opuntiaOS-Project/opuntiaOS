@@ -82,6 +82,10 @@ void* malloc(size_t sz)
 
 void free(void* mem)
 {
+    if (!mem) {
+        return;
+    }
+    
     malloc_header_t* mem_header = (malloc_header_t*)((uint32_t)mem - sizeof(malloc_header_t));
 
     mem_header->free = true;
