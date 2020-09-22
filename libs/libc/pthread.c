@@ -5,7 +5,7 @@ int pthread_create(void* func)
 {
     mmap_params_t stack_params;
     stack_params.size = 4096; // one page for now)
-    stack_params.flags = MAP_STACK;
+    stack_params.flags = MAP_STACK | MAP_PRIVATE;
     stack_params.prot = PROT_READ | PROT_WRITE | PROT_EXEC;
     uint32_t start = mmap(&stack_params);
 
