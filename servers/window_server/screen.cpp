@@ -1,4 +1,4 @@
-#include "screen.h"
+#include "Screen.h"
 
 static Screen* s_the;
 
