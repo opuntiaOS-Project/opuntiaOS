@@ -45,7 +45,6 @@ public:
         unique_ptr<T> tmp(moving.release());
         tmp.swap(*this);
     }
-
     template <typename U>
     unique_ptr& operator=(unique_ptr<U>&& moving)
     {
