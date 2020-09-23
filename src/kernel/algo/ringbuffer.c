@@ -43,6 +43,15 @@ uint32_t ringbuffer_space_to_read(ringbuffer_t* buf)
     }
 }
 
+uint32_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, uint32_t start)
+{
+    if (start <= buf->end) {
+        return buf->end - start;
+    } else {
+        return buf->zone.len - start + buf->end;
+    }
+}
+
 uint32_t ringbuffer_space_to_write(ringbuffer_t* buf)
 {
     if (buf->start > buf->end) {
@@ -65,6 +74,23 @@ uint32_t ringbuffer_read(ringbuffer_t* buf, uint8_t* holder, uint32_t siz)
     }
     for (; i < siz && buf->start < buf->end; i++, buf->start++) {
         holder[i] = buf->zone.ptr[buf->start];
+    }
+    return i;
+}
+
+uint32_t ringbuffer_read_with_start(ringbuffer_t* buf, uint32_t start, uint8_t* holder, uint32_t siz)
+{
+    uint32_t i = 0;
+    if (start > buf->end) {
+        for (; i < siz && start < buf->zone.len; i++, start++) {
+            holder[i] = buf->zone.ptr[start];
+        }
+        if (start == buf->zone.len) {
+            start = 0;
+        }
+    }
+    for (; i < siz && start < buf->end; i++, start++) {
+        holder[i] = buf->zone.ptr[start];
     }
     return i;
 }
