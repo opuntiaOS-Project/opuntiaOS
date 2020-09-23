@@ -148,3 +148,8 @@ void log_error(const char* format, ...)
         uart_write(COM1, '\n');
     }
 }
+
+void log_char(char c)
+{
+    uart_write(COM1, c);
+}
