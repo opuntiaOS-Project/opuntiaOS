@@ -878,12 +878,8 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
             }
         } else {
             proc_zone_t* zone = proc_find_zone(RUNNIG_THREAD->process, vaddr);
-            if (!zone) {
-                kprintf("No zone");
-            }
-            kprintf("%d %x %x %x %d", info, vaddr, vmm_get_active_pdir(), RUNNIG_THREAD->process->pdir, RUNNIG_THREAD->process->pid);
-            while (1) { }
-            kpanic("VMM: where are we?\n");
+            log_error("PF: info %d vaddr %x pdir %x pid %d", info, vaddr, vmm_get_active_pdir(), RUNNIG_THREAD->process->pid);
+            return SHOULD_CRASH;
         }
     }
 
