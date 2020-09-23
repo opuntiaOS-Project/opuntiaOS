@@ -45,7 +45,7 @@ int wait(int pid)
     return syscall(SYSWAITPID, pid, 0, 0, 0, 0);
 }
 
-int execve(char* path, char** argv, char** env)
+int execve(const char* path, char** argv, char** env)
 {
     return syscall(SYSEXEC, (int)path, (int)argv, (int)env, 0, 0);
 }
@@ -115,7 +115,7 @@ int bind(int sockfd, const char* name, int len)
     return syscall(SYSBIND, (int)sockfd, (int)name, (int)len, 0, 0);
 }
 
-int connect(int sockfd, char* name, int len)
+int connect(int sockfd, const char* name, int len)
 {
     return syscall(SYSCONNECT, (int)sockfd, (int)name, (int)len, 0, 0);
 }
