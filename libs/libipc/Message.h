@@ -9,9 +9,9 @@ public:
     Message() {}
     virtual ~Message() = default;
 
-    virtual int decoder_magic() const {}
-    virtual int id() const {}
-    virtual EncodedMessage encode() const {}
+    virtual int decoder_magic() const { return 0; }
+    virtual int id() const { return 0; }
+    virtual EncodedMessage encode() const { return Vector<uint8_t>(); }
 
 protected:
     
