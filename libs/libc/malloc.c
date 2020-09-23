@@ -5,9 +5,9 @@
 static void* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
 static uint8_t allocated_blocks;
 
-static int __alloc_new_block(size_t sz);
+static int _alloc_new_block(size_t sz);
 
-static int __alloc_new_block(size_t sz)
+static int _alloc_new_block(size_t sz)
 {
     // this will reduce system calls for the small memory allocations
     size_t allocated_sz = sz > MALLOC_DEFAULT_BLOCK_SIZE ? sz : MALLOC_DEFAULT_BLOCK_SIZE;
@@ -32,25 +32,35 @@ static int __alloc_new_block(size_t sz)
     return 0;
 }
 
+static inline char _malloc_need_to_divide_space(malloc_header_t* space, size_t alloc_size)
+{
+    return alloc_size + 32 <= space->size;
+}
+
+static inline char _malloc_can_fit_allocation(malloc_header_t* space, size_t alloc_size)
+{
+    uint32_t size = alloc_size + (sizeof(malloc_header_t) & _malloc_need_to_divide_space(space, alloc_size));
+    return space->size >= size;
+}
+
 void* malloc(size_t sz)
 {
     /* iterating over allocated by mmap blocks
-       and finding a first fit memory chunk
-    */
+       and finding a first fit memory chunk */
     malloc_header_t* first_fit = 0;
     for (size_t i = 0; i < allocated_blocks; i++) {
         malloc_header_t* cur_block = memory[i];
-        while (cur_block->next && cur_block->size < sz + sizeof(malloc_header_t)) {
+        while (cur_block->next && !(cur_block->free && _malloc_can_fit_allocation(cur_block, sz))) {
             cur_block = cur_block->next;
         }
-        if (cur_block->size + sizeof(malloc_header_t) >= sz) {
+        if (cur_block->free && _malloc_can_fit_allocation(cur_block, sz)) {
             first_fit = cur_block;
             break;
         }
     }
-
+    
     if (!first_fit) {
-        int err = __alloc_new_block(sz);
+        int err = _alloc_new_block(sz);
         if (err) {
             /* TODO: Write to log this */
             return 0;
@@ -61,20 +71,21 @@ void* malloc(size_t sz)
     malloc_header_t* copy_next = first_fit->next;
     size_t copy_size = first_fit->size;
 
-    // setup a new chunk, separeted from the firstfit chunk
     first_fit->free = false;
-    first_fit->size = sz;
-    first_fit->next = (malloc_header_t*)((uint32_t)first_fit + sz + sizeof(malloc_header_t));
+    if (_malloc_need_to_divide_space(first_fit, sz)) {
+        first_fit->size = sz;
+        first_fit->next = (malloc_header_t*)((size_t)first_fit + sz + sizeof(malloc_header_t));
 
-    // adjust the firstfit chunk
-    first_fit->next->free = true;
-    first_fit->next->size = copy_size - sz - sizeof(malloc_header_t);
-    first_fit->next->next = copy_next;
-    first_fit->next->prev = first_fit;
+        // adjust the firstfit chunk
+        first_fit->next->free = true;
+        first_fit->next->size = copy_size - sz - sizeof(malloc_header_t);
+        first_fit->next->next = copy_next;
+        first_fit->next->prev = first_fit;
 
-    // adjust a chunk placed next to the firstfit, if it exists
-    if (first_fit->next->next) {
-        first_fit->next->next->prev = first_fit->next;
+        // adjust a chunk placed next to the firstfit, if it exists
+        if (first_fit->next->next) {
+            first_fit->next->next->prev = first_fit->next;
+        }
     }
 
     return (void*)((uint32_t)first_fit + sizeof(malloc_header_t));
@@ -85,7 +96,7 @@ void free(void* mem)
     if (!mem) {
         return;
     }
-    
+
     malloc_header_t* mem_header = (malloc_header_t*)((uint32_t)mem - sizeof(malloc_header_t));
 
     mem_header->free = true;
