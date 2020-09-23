@@ -117,6 +117,8 @@ ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 
 # --- Lib ------------------------------------------------------------------- #
 
+CPP_LIB_FLAGS = ${C_COMPILE_FLAGS} -fno-sized-deallocation -fno-rtti -fno-exceptions  -I./libs/libcxx -I./libs -D__oneOS__
+
 ARFLAGS = rcs
 
 LIB_PATH = ${BASE_DIR}/lib
@@ -131,7 +133,12 @@ LIBCXX_PATH = libs/libcxx
 LIBCXX_SRC=$(shell find $(LIBCXX_PATH) -name "*.cpp")
 LIBCXX_OBJ=$(patsubst %.cpp,%.o,$(LIBCXX_SRC))
 
-LIBRARIES_ALL = $(LIBC) $(LIBCXX)
+LIBGUI = $(LIB_PATH)/libgui.a
+LIBGUI_PATH = libs/libgui
+LIBGUI_SRC=$(shell find $(LIBGUI_PATH) -name "*.cpp")
+LIBGUI_OBJ=$(patsubst %.cpp,%.o,$(LIBGUI_SRC))
+
+LIBRARIES_ALL = $(LIBC) $(LIBCXX) $(LIBGUI)
 LIBRARIES = $(LIBC)
 
 ${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
@@ -147,12 +154,21 @@ ${LIBC}: ${LIBC_OBJ}
 ${LIBCXX_PATH}/%.o: ${LIBCXX_PATH}/%.cpp
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ ${C_FLAGS} -I.libs/
+	${QUIET} ${C++} -c $< -o $@ ${C_FLAGS} -I./libs
 
 ${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
 	${QUIET} ${AR} -rcs $@ $^
 
+
+${LIBGUI_PATH}/%.o: ${LIBGUI_PATH}/%.cpp
+	@mkdir -p $(LIB_PATH)
+	@echo "$(notdir $(CURDIR)): C++ $@"
+	${QUIET} ${C++} -c $< -o $@ ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+
+${LIBGUI}: ${LIBGUI_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
+	@echo "$(notdir $(CURDIR)): [AR] $@"
+	${QUIET} ${AR} -rcs $@ $^
 
 # --- CRTs ------------------------------------------------------------------- #
 
@@ -270,6 +286,8 @@ clean:
 	rm -rf libs/*.o
 	rm -rf servers/*/*.o
 	rm -rf servers/*.o
+
+	rm -rf base/lib/*
 
 ${DISK}:
 	qemu-img create -f raw ${DISK} 16M
