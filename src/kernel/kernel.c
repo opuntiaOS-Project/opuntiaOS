@@ -87,7 +87,7 @@ void stage3(mem_desc_t* mem_desc)
     devfs_install();
     kbdriver_install();
     mouse_install();
-    // bga_install();
+    bga_install();
     drivers_run();
     
     // mounting filesystems
