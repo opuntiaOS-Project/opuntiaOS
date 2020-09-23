@@ -382,20 +382,20 @@ int devfs_rmdir_dummy(dentry_t* dir)
     return -1;
 }
 
-int devfs_can_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int devfs_can_read(dentry_t* dentry, uint32_t start)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers.can_read) {
-        return devfs_inode->handlers.can_read(dentry);
+        return devfs_inode->handlers.can_read(dentry, start);
     }
     return true;
 }
 
-int devfs_can_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int devfs_can_write(dentry_t* dentry, uint32_t start)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers.can_write) {
-        return devfs_inode->handlers.can_write(dentry);
+        return devfs_inode->handlers.can_write(dentry, start);
     }
     return true;
 }

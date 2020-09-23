@@ -36,7 +36,7 @@ inline static tty_entry_t* _tty_active()
     return active_tty;
 }
 
-bool tty_can_read(dentry_t* dentry)
+bool tty_can_read(dentry_t* dentry, uint32_t start)
 {
     tty_entry_t* tty = _tty_get(dentry);
     if (tty->termios.c_lflag & ICANON) {
@@ -45,7 +45,7 @@ bool tty_can_read(dentry_t* dentry)
     return ringbuffer_space_to_read(&tty->buffer) >= 1;
 }
 
-bool tty_can_write(dentry_t* dentry)
+bool tty_can_write(dentry_t* dentry, uint32_t start)
 {
     return true;
 }
@@ -114,6 +114,7 @@ int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         if (buf[i] == '\x1b') {
             i += _tty_process_esc_seq(&buf[i]);
         } else {
+            log_char(buf[i]);
             print_char(buf[i], WHITE_ON_BLACK, -1, -1);
         }
     }

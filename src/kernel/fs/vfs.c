@@ -266,20 +266,20 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
     return -ENOENT;
 }
 
-bool vfs_can_read(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
+bool vfs_can_read(file_descriptor_t* fd)
 {
     if (!fd->ops->can_read) {
         return true;
     }
-    return fd->ops->can_read(fd->dentry);
+    return fd->ops->can_read(fd->dentry, fd->offset);
 }
 
-bool vfs_can_write(file_descriptor_t* fd, uint8_t* buf, uint32_t start, uint32_t len)
+bool vfs_can_write(file_descriptor_t* fd)
 {
     if (!fd->ops->can_write) {
         return true;
     }
-    return fd->ops->can_write(fd->dentry);
+    return fd->ops->can_write(fd->dentry, fd->offset);
 }
 
 int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t len)

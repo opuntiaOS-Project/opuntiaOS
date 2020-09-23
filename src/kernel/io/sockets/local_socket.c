@@ -33,20 +33,20 @@ int local_socket_create(int type, int protocol, file_descriptor_t* fd)
     return socket_create(PF_LOCAL, type, protocol, fd, &local_socket_ops);
 }
 
-bool local_socket_can_read(dentry_t* dentry)
+bool local_socket_can_read(dentry_t* dentry, uint32_t start)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    return ringbuffer_space_to_read(&sock_entry->buffer) != 0;
+    return ringbuffer_space_to_read_with_custom_start(&sock_entry->buffer, start) != 0;
 }
 
 int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    uint32_t read = ringbuffer_read(&sock_entry->buffer, buf, len);
-    return !(read == len);
+    uint32_t read = ringbuffer_read_with_start(&sock_entry->buffer, start, buf, len);
+    return read;
 }
 
-bool local_socket_can_write(dentry_t* dentry)
+bool local_socket_can_write(dentry_t* dentry, uint32_t start)
 {
     socket_t* sock_entry = (socket_t*)dentry;
     return ringbuffer_space_to_write(&sock_entry->buffer) != 0;
@@ -54,9 +54,10 @@ bool local_socket_can_write(dentry_t* dentry)
 
 int local_socket_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
+
     socket_t* sock_entry = (socket_t*)dentry;
     uint32_t written = ringbuffer_write(&sock_entry->buffer, buf, len);
-    return !(written == len);
+    return 0;
 }
 
 int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
@@ -111,7 +112,7 @@ int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
     }
     sock->sock_entry = bind_dentry->sock;
 #ifdef LOCAL_SOCKET_DEBUG
-    kprintf("Connected to local socket at %x : %d pid", bind_dentry->sock, p->pid);
+    log("Connected to local socket at %x : %d pid", bind_dentry->sock, p->pid);
 #endif
     return 0;
 }

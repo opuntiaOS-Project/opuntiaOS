@@ -31,7 +31,7 @@ int init_join_blocker(thread_t* thread)
 
 int should_unblock_read_block(thread_t* thread)
 {
-    return thread->blocker_fd->ops->can_read(thread->blocker_fd->dentry);
+    return thread->blocker_fd->ops->can_read(thread->blocker_fd->dentry, thread->blocker_fd->offset);
 }
 
 int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
@@ -47,7 +47,7 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 
 int should_unblock_write_block(thread_t* thread)
 {
-    return thread->blocker_fd->ops->can_write(thread->blocker_fd->dentry);
+    return thread->blocker_fd->ops->can_write(thread->blocker_fd->dentry, thread->blocker_fd->offset);
 }
 
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)

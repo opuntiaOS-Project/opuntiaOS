@@ -149,7 +149,7 @@ void sys_read(trapframe_t* tf)
     }
 
     /* If we can't read right now, let's block until we can */
-    if (!vfs_can_read(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3)) {
+    if (!vfs_can_read(fd)) {
         init_read_blocker(RUNNIG_THREAD, fd);
         resched();
     }
@@ -166,7 +166,7 @@ void sys_write(trapframe_t* tf)
         return_with_val(-EBADF);
     }
 
-    if (!vfs_can_write(fd, (uint8_t*)param2, fd->offset, (uint32_t)param3)) {
+    if (!vfs_can_write(fd)) {
         init_write_blocker(RUNNIG_THREAD, fd);
         resched();
     }

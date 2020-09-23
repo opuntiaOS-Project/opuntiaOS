@@ -797,12 +797,12 @@ static int _ext2_setup_file(dentry_t* file, mode_t mode)
  * API FUNTIONS
  */
 
-bool ext2_can_read(dentry_t* dentry)
+bool ext2_can_read(dentry_t* dentry, uint32_t start)
 {
     return true;
 }
 
-bool ext2_can_write(dentry_t* dentry)
+bool ext2_can_write(dentry_t* dentry, uint32_t start)
 {
     return true;
 }
