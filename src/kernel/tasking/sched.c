@@ -146,7 +146,7 @@ void sched()
 {
     for (;;) {
         while (_master_buf[_buf_read_prio].size == 0) {
-            if (_buf_read_prio > MIN_PRIO) {
+            if (_buf_read_prio >= MIN_PRIO) {
                 _sched_swap_buffers();
             } else {
                 _buf_read_prio++;

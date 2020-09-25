@@ -110,7 +110,7 @@ products/stage3_entry.o: src/boot/x86/stage3_entry.s
 
 ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.c ${KERNEL_HEADERS}
 	@echo "$(notdir $(CURDIR)): CC $@"
-	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS}
+	${QUIET} ${CC} -c $< -o $@ -Os ${C_FLAGS}
 
 ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 	@echo "$(notdir $(CURDIR)): ASM $@"

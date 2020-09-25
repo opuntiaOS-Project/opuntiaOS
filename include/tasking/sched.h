@@ -19,7 +19,7 @@
 #define MIN_PRIO 10
 #define PRIOS_COUNT (MIN_PRIO - MAX_PRIO + 1)
 #define DEFAULT_PRIO 6
-#define SCHED_INT 30
+#define SCHED_INT 10
 
 void scheduler_init();
 void resched_dont_save_context();

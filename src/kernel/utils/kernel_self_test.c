@@ -81,7 +81,7 @@ bool kernel_self_test(bool throw_kernel_panic) {
 //     asm volatile("mov $0x60000000, %eax");
 //     asm volatile("call %eax"); // test interrupts
 //     uint32_t return_value;
-//     __asm__("mov %%eax, %%eax" : "=a" (return_value) :);
+//     asm volatile("mov %%eax, %%eax" : "=a" (return_value) :);
 
 //     kprintd(return_value);
 

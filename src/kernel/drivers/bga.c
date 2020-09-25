@@ -47,8 +47,9 @@ static void _bga_set_resolution(uint16_t width, uint16_t height)
     _bga_write_reg(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_DISABLED);
     _bga_write_reg(VBE_DISPI_INDEX_XRES, width);
     _bga_write_reg(VBE_DISPI_INDEX_YRES, height);
-    _bga_write_reg(VBE_DISPI_INDEX_BPP, 32);
     _bga_write_reg(VBE_DISPI_INDEX_VIRT_WIDTH, width);
+    _bga_write_reg(VBE_DISPI_INDEX_VIRT_HEIGHT, (uint16_t)height * 2);
+    _bga_write_reg(VBE_DISPI_INDEX_BPP, 32);
     _bga_write_reg(VBE_DISPI_INDEX_X_OFFSET, 0);
     _bga_write_reg(VBE_DISPI_INDEX_Y_OFFSET, 0);
     _bga_write_reg(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
@@ -106,7 +107,7 @@ static inline driver_desc_t _bga_driver_info()
     bga_desc.type = DRIVER_VIDEO_DEVICE;
     bga_desc.auto_start = false;
     bga_desc.is_device_driver = true;
-    bga_desc.is_device_needed = true;
+    bga_desc.is_device_needed = false;
     bga_desc.is_driver_needed = false;
     bga_desc.functions[DRIVER_NOTIFICATION] = bga_recieve_notification;
     bga_desc.functions[DRIVER_VIDEO_INIT] = bga_init;
