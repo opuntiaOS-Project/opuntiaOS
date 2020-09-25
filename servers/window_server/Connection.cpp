@@ -1,5 +1,4 @@
 #include "Connection.h"
-#include "ServerMessages.h"
 
 static Connection* s_the;
 

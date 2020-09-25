@@ -4,9 +4,10 @@
 #include <libcxx/std/vector.h>
 #include <syscalls.h>
 
+template<typename ServerDecoder, typename ClientDecoder>
 class ServerConnection {
 public:
-    ServerConnection(int sock_fd, MessageDecoder& server_decoder, MessageDecoder& client_decoder)
+    ServerConnection(int sock_fd, ServerDecoder& server_decoder, ClientDecoder& client_decoder)
         : m_connection_fd(sock_fd)
         , m_server_decoder(server_decoder)
         , m_client_decoder(client_decoder)
@@ -41,6 +42,6 @@ public:
 
 private:
     int m_connection_fd;
-    MessageDecoder& m_server_decoder;
-    MessageDecoder& m_client_decoder;
+    ServerDecoder& m_server_decoder;
+    ClientDecoder& m_client_decoder;
 };

@@ -4,10 +4,11 @@
 #include <libcxx/std/vector.h>
 #include <syscalls.h>
 
+template<typename ServerDecoder, typename ClientDecoder>
 class ClientConnection {
 public:
-    ClientConnection(int sock_fd, MessageDecoder& server_decoder, MessageDecoder& client_decoder)
-        : m_connectionFd(sock_fd)
+    ClientConnection(int sock_fd, ServerDecoder& server_decoder, ClientDecoder& client_decoder)
+        : m_connection_fd(sock_fd)
         , m_server_decoder(server_decoder)
         , m_client_decoder(client_decoder)
         , m_messages()
@@ -17,8 +18,8 @@ public:
     bool send_message(const Message& msg)
     {
         auto encoded_msg = msg.encode();
-        int wrote = write(m_connectionFd, encoded_msg.data(), encoded_msg.size());
-        return wrote = encoded_msg.size();
+        int wrote = write(m_connection_fd, encoded_msg.data(), encoded_msg.size());
+        return wrote == encoded_msg.size();
     }
 
     unique_ptr<Message> send_sync(const Message& msg)
@@ -42,7 +43,7 @@ public:
     void pump_messages()
     {
         char buf[512];
-        int read_cnt = read(m_connectionFd, buf, sizeof(buf));
+        int read_cnt = read(m_connection_fd, buf, sizeof(buf));
         if (!read_cnt) {
             return;
         }
@@ -58,8 +59,8 @@ public:
     }
 
 private:
-    int m_connectionFd;
+    int m_connection_fd;
     Vector<unique_ptr<Message>> m_messages;
-    MessageDecoder& m_server_decoder;
-    MessageDecoder& m_client_decoder;
+    ServerDecoder& m_server_decoder;
+    ClientDecoder& m_client_decoder;
 };

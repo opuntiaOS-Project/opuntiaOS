@@ -70,6 +70,7 @@ class Generator:
         self.out("private:")
         self.message_create_vars(msg)
         self.out("};")
+        self.out("")
 
     def decoder_decode_message(self, msg, offset = 0):
         params_str = ""
@@ -108,6 +109,33 @@ class Generator:
         self.out("return nullptr;", 3)
         self.out("}", 2)
         self.out("}", 1)
+        self.out("", 1)
+
+    def decoder_create_handle(self, decoder):
+        self.out("unique_ptr<Message> handle(const Message& msg) override", 1)
+        self.out("{", 1)
+        self.out("if (magic() != msg.decoder_magic()) {", 2)
+        self.out("return nullptr;", 3)
+        self.out("}", 2)
+
+        unique_msg_id = 1
+        self.out("", 2)
+        self.out("switch(msg.id()) {", 2)
+        for (name,params) in decoder.messages.items():
+            self.out("case {0}:".format(unique_msg_id), 2)
+            self.out("return handle(static_cast<const {0}&>(msg));".format(name), 3)
+            
+            unique_msg_id += 1
+            
+        self.out("default:", 2)
+        self.out("return nullptr;", 3)
+        self.out("}", 2)
+        self.out("}", 1)
+        self.out("", 1)
+
+    def decoder_create_virtual_handle(self, decoder):
+        for (accept,ret) in decoder.functions.items():
+            self.out("virtual unique_ptr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
 
     def generate_decoder(self, decoder):
         self.out("class {0} : public MessageDecoder {{".format(decoder.name))
@@ -115,7 +143,10 @@ class Generator:
         self.out("{0}() {{}}".format(decoder.name), 1)
         self.decoder_create_std_funcs(decoder)
         self.decoder_create_decode(decoder)
+        self.decoder_create_handle(decoder)
+        self.decoder_create_virtual_handle(decoder)
         self.out("};")
+        self.out("")
 
     def includes(self):
         self.out("#pragma once")
@@ -123,6 +154,7 @@ class Generator:
         self.out("#include <libipc/ClientConnection.h>")
         self.out("#include <libipc/ServerConnection.h>")
         self.out("#include <malloc.h>")
+        self.out("")
 
     def generate(self, filename, decoder):
         self.output = open(filename, "w+")

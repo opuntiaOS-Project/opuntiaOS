@@ -26,6 +26,7 @@ DISK = one.img
 
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUGDB = -s
+CONNECTION_COMPILER = utils/ConnectionCompiler
 
 QUIET = @
 
@@ -115,6 +116,30 @@ ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 	@echo "$(notdir $(CURDIR)): ASM $@"
 	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
+# --- Servers ---------------------------------------------------------------- #
+
+SERVERS_PATH = ${BASE_DIR}/bin
+WINDOW_SERVER = $(SERVERS_PATH)/window_server
+WINDOW_SERVER_PATH = servers/window_server
+WINDOW_SERVER_SRC=$(shell find $(WINDOW_SERVER_PATH) -name "*.cpp")
+WINDOW_SERVER_OBJ=$(patsubst %.cpp,%.o,$(WINDOW_SERVER_SRC))
+WINDOW_SERVER_IPC=$(WINDOW_SERVER_PATH)/WSConnection.h
+
+SERVERS = $(WINDOW_SERVER)
+
+$(WINDOW_SERVER_PATH)/WSConnection.h: $(WINDOW_SERVER_PATH)/ws_connection.ipc
+	@echo "$(notdir $(CURDIR)): CON $@"
+	${QUIET} ${PYTHON3} ${CONNECTION_COMPILER} $< $@
+
+${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp ${WINDOW_SERVER_IPC}
+	@mkdir -p $(WINDOW_SERVER_PATH)
+	@echo "$(notdir $(CURDIR)): C++ $@"
+	${QUIET} ${C++} -c $< -o $@ -Os -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
+
+$(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) $(LIBRARIES_ALL)
+	@echo "Window Server [LD]  $@"
+	$(QUIET) $(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary $(LIBRARIES_ALL)
+
 # --- Lib ------------------------------------------------------------------- #
 
 CPP_LIB_FLAGS = ${C_COMPILE_FLAGS} -fno-sized-deallocation -fno-rtti -fno-exceptions  -I./libs/libcxx -I./libs -D__oneOS__
@@ -144,7 +169,7 @@ LIBRARIES = $(LIBC)
 ${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): CC $@"
-	${QUIET} ${CC} -c $< -o $@ ${C_FLAGS} -I./${LIBC_PATH}
+	${QUIET} ${CC} -c $< -o $@ -Os ${C_FLAGS} -I./${LIBC_PATH}
 
 ${LIBC}: ${LIBC_OBJ}
 	@echo "$(notdir $(CURDIR)): [AR] $@"
@@ -154,17 +179,17 @@ ${LIBC}: ${LIBC_OBJ}
 ${LIBCXX_PATH}/%.o: ${LIBCXX_PATH}/%.cpp
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ ${C_FLAGS} -I./libs
+	${QUIET} ${C++} -c $< -o $@ -Os ${C_FLAGS} -I./libs
 
 ${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
 	${QUIET} ${AR} -rcs $@ $^
 
 
-${LIBGUI_PATH}/%.o: ${LIBGUI_PATH}/%.cpp
+${LIBGUI_PATH}/%.o: ${LIBGUI_PATH}/%.cpp ${WINDOW_SERVER_IPC}
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
 
 ${LIBGUI}: ${LIBGUI_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
@@ -177,25 +202,6 @@ CRTS = libs/crt0.o \
 libs/crt0.o: libs/crt0.s
 	${QUIET} $(ASM) $< -f elf -o $@
 
-
-# --- Servers ---------------------------------------------------------------- #
-
-SERVERS_PATH = ${BASE_DIR}/bin
-WINDOW_SERVER = $(SERVERS_PATH)/window_server
-WINDOW_SERVER_PATH = servers/window_server
-WINDOW_SERVER_SRC=$(shell find $(WINDOW_SERVER_PATH) -name "*.cpp")
-WINDOW_SERVER_OBJ=$(patsubst %.cpp,%.o,$(WINDOW_SERVER_SRC))
-
-SERVERS = $(WINDOW_SERVER)
-
-${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp
-	@mkdir -p $(WINDOW_SERVER_PATH)
-	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
-
-$(WINDOW_SERVER): $(WINDOW_SERVER_OBJ) $(CRTS) $(LIBRARIES_ALL)
-	@echo "Window Server [LD]  $@"
-	$(QUIET) $(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary $(LIBRARIES_ALL)
 	
 # --- Apps ------------------------------------------------------------------ #
 

@@ -21,8 +21,8 @@ WindowConnection::WindowConnection(int connection_fd)
 
 void WindowConnection::send_greeting()
 {
-    ServerGreetMessageReply* resp_message = (ServerGreetMessageReply*)m_connection_with_server.send_sync(ServerGreetMessage()).release();
-    char id = resp_message->client_id() + '0';
+    GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage()).release();
+    char id = resp_message->connection_id() + '0';
     write(1, &id, 1);
 }
 

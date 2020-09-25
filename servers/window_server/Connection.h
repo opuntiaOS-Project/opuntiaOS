@@ -1,5 +1,6 @@
 #pragma once
-#include "ServerMessages.h"
+#include "WSConnection.h"
+#include "WSServerDecoder.h"
 #include <libipc/ServerConnection.h>
 #include <syscalls.h>
 
@@ -17,7 +18,7 @@ public:
 
 private:
     int m_connection_fd;
-    ServerConnection m_connection_with_clients;
-    ServerMessageDecoder m_server_decoder;
-    ClientMessageDecoder m_client_decoder;
+    ServerConnection<WServerDecoder, WindowClientDecoder> m_connection_with_clients;
+    WServerDecoder m_server_decoder;
+    WindowClientDecoder m_client_decoder;
 };

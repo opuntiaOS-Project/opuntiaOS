@@ -1,0 +1,5 @@
+{
+    NAME: WindowServerDecoder
+    MAGIC: 130
+    GreetMessage() => GreetMessageReply(uint32_t connection_id)
+}
