@@ -11,6 +11,8 @@ typedef short          int16_t;
 typedef char           int8_t;
 typedef char           bool;
 
+typedef unsigned int   size_t;
+
 #define true  1
 #define false 0
 

@@ -51,6 +51,9 @@ enum __sysid {
     SYSGETPGID,
     SYSPTHREADCREATE,
     SYSSLEEP,
+    SYS_SHBUF_CREATE,
+    SYS_SHBUF_GET,
+    SYS_SHBUF_FREE,
 };
 typedef enum __sysid sysid_t;
 

@@ -30,6 +30,7 @@
 #include <fs/vfs.h>
 
 #include <io/tty/tty.h>
+#include <io/shared_buffer/shared_buffer.h>
 
 #include <time/time_manager.h>
 
@@ -92,6 +93,9 @@ void stage3(mem_desc_t* mem_desc)
     
     // mounting filesystems
     devfs_mount();
+    
+    // ipc
+    shared_buffer_init();
 
     // init scheduling
     tasking_init();

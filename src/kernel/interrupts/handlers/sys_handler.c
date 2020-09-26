@@ -7,6 +7,7 @@
  */
 
 #include <errno.h>
+#include <io/shared_buffer/shared_buffer.h>
 #include <io/sockets/local_socket.h>
 #include <log.h>
 #include <mem/kmalloc.h>
@@ -59,6 +60,9 @@ static const void* syscalls[] = {
     sys_getpgid,
     sys_create_thread,
     sys_sleep,
+    sys_shbuf_create,
+    sys_shbuf_get,
+    sys_shbuf_free,
 };
 
 static inline void set_return(trapframe_t* tf, uint32_t val)
@@ -563,6 +567,26 @@ void sys_ioctl(trapframe_t* tf)
     } else {
         return_with_val(-EACCES);
     }
+}
+
+void sys_shbuf_create(trapframe_t* tf)
+{
+    uint8_t** buffer = (uint8_t**)param1;
+    size_t size = param2;
+    return_with_val(shared_buffer_create(buffer, size));
+}
+
+void sys_shbuf_get(trapframe_t* tf)
+{
+    int id = param1;
+    uint8_t** buffer = (uint8_t**)param2;
+    return_with_val(shared_buffer_get(id, buffer));
+}
+
+void sys_shbuf_free(trapframe_t* tf)
+{
+    int id = param1;
+    return_with_val(shared_buffer_free(id));
 }
 
 void sys_none(trapframe_t* tf) { }

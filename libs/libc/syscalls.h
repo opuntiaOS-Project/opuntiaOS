@@ -36,4 +36,8 @@ pid_t getpgid(pid_t arg);
 
 int system_pthread_create(thread_create_params_t* params);
 
+int shared_buffer_create(uint8_t** buffer, size_t size);
+int shared_buffer_get(int id, uint8_t** buffer);
+int shared_buffer_free(int id);
+
 #endif /* __oneOS__LibC__SYSCALLS_H */

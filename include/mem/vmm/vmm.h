@@ -81,6 +81,7 @@ pdirectory_t* vmm_get_kernel_pdir();
 
 int vmm_load_page(uint32_t vaddr, uint32_t settings);
 int vmm_tune_page(uint32_t vaddr, uint32_t settings);
+int vmm_tune_pages(uint32_t vaddr, uint32_t length, uint32_t settings);
 
 int vmm_alloc_page(page_desc_t* page);
 int vmm_free_page(page_desc_t* page);

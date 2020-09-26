@@ -767,7 +767,19 @@ int vmm_tune_page(uint32_t vaddr, uint32_t settings)
     }
 
     _vmm_flush_tlb_entry(vaddr);
+    return 0;
 }
+
+int vmm_tune_pages(uint32_t vaddr, uint32_t length, uint32_t settings)
+{
+    uint32_t page_addr = PAGE_START(vaddr);
+    while (page_addr < vaddr + length) {
+        vmm_tune_page(page_addr, settings);
+        page_addr += VMM_PAGE_SIZE;
+    }
+    return 0;
+}
+
 
 int vmm_load_page(uint32_t vaddr, uint32_t settings)
 {

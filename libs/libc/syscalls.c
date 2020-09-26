@@ -154,3 +154,18 @@ int system_pthread_create(thread_create_params_t* params)
 {
     return syscall(SYSPTHREADCREATE, (int)params, 0, 0, 0, 0);
 }
+
+int shared_buffer_create(uint8_t** buffer, size_t size)
+{
+    return syscall(SYS_SHBUF_CREATE, (int)buffer, (int)size, 0, 0, 0);
+}
+
+int shared_buffer_get(int id, uint8_t** buffer)
+{
+    return syscall(SYS_SHBUF_GET, id, (int)buffer, 0, 0, 0);
+}
+
+int shared_buffer_free(int id)
+{
+    return syscall(SYS_SHBUF_FREE, (int)id, 0, 0, 0, 0);
+}
