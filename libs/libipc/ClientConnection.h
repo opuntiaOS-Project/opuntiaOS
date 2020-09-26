@@ -32,8 +32,8 @@ public:
     {
         for (;;) {
             for (int i = 0; i < m_messages.size(); i++) {
-                if (m_messages[i]->id() == 1 + msg.id()) {
-                    return move(m_messages[i]);
+                if (m_messages[i] && m_messages[i]->id() == 1 + msg.id() && m_messages[i]->id() % 2 == 0) {
+                    return m_messages[i].release();
                 }
             }
             pump_messages();

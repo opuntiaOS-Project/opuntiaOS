@@ -40,6 +40,77 @@ private:
     uint32_t m_connection_id;
 };
 
+class CreateWindowMessage : public Message {
+public:
+    CreateWindowMessage(uint32_t width,uint32_t height)
+        : m_width(width)
+        , m_height(height)
+    {
+    }
+    int id() const override { return 3; }
+    int decoder_magic() const override { return 130; }
+    uint32_t width() const { return m_width; }
+    uint32_t height() const { return m_height; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, m_width);
+        Encoder::append(buffer, m_height);
+        return buffer;
+    }
+private:
+    uint32_t m_width;
+    uint32_t m_height;
+};
+
+class CreateWindowMessageReply : public Message {
+public:
+    CreateWindowMessageReply(uint32_t window_id)
+        : m_window_id(window_id)
+    {
+    }
+    int id() const override { return 4; }
+    int decoder_magic() const override { return 130; }
+    uint32_t window_id() const { return m_window_id; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, m_window_id);
+        return buffer;
+    }
+private:
+    uint32_t m_window_id;
+};
+
+class SetBufferMessage : public Message {
+public:
+    SetBufferMessage(uint32_t windows_id,int buffer_id)
+        : m_windows_id(windows_id)
+        , m_buffer_id(buffer_id)
+    {
+    }
+    int id() const override { return 5; }
+    int decoder_magic() const override { return 130; }
+    uint32_t windows_id() const { return m_windows_id; }
+    int buffer_id() const { return m_buffer_id; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, m_windows_id);
+        Encoder::append(buffer, m_buffer_id);
+        return buffer;
+    }
+private:
+    uint32_t m_windows_id;
+    int m_buffer_id;
+};
+
 class WindowServerDecoder : public MessageDecoder {
 public:
     WindowServerDecoder() {}
@@ -60,6 +131,22 @@ public:
             uint32_t var_connection_id;
             Encoder::decode(buf, decoded_msg_len, var_connection_id);
             return new GreetMessageReply(var_connection_id);
+        case 3:
+            uint32_t var_width;
+            uint32_t var_height;
+            Encoder::decode(buf, decoded_msg_len, var_width);
+            Encoder::decode(buf, decoded_msg_len, var_height);
+            return new CreateWindowMessage(var_width, var_height);
+        case 4:
+            uint32_t var_window_id;
+            Encoder::decode(buf, decoded_msg_len, var_window_id);
+            return new CreateWindowMessageReply(var_window_id);
+        case 5:
+            uint32_t var_windows_id;
+            int var_buffer_id;
+            Encoder::decode(buf, decoded_msg_len, var_windows_id);
+            Encoder::decode(buf, decoded_msg_len, var_buffer_id);
+            return new SetBufferMessage(var_windows_id, var_buffer_id);
         default:
             return nullptr;
         }
@@ -74,14 +161,18 @@ public:
         switch(msg.id()) {
         case 1:
             return handle(static_cast<const GreetMessage&>(msg));
-        case 2:
-            return nullptr;
+        case 3:
+            return handle(static_cast<const CreateWindowMessage&>(msg));
+        case 5:
+            return handle(static_cast<const SetBufferMessage&>(msg));
         default:
             return nullptr;
         }
     }
     
     virtual unique_ptr<Message> handle(const GreetMessage& msg) { return nullptr; }
+    virtual unique_ptr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
+    virtual unique_ptr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
 };
 
 class WindowClientDecoder : public MessageDecoder {

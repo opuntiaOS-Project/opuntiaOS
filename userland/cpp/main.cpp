@@ -4,7 +4,8 @@
 
 int main(int argc, char** argv)
 {
-    auto res = Window::WindowConnection(socket(PF_LOCAL, 0, 0));
+    auto window = Window::Window();
+    window.run();
     while (1) {}
     return 0;
 }

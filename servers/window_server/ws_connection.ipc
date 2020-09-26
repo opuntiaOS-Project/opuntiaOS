@@ -2,4 +2,6 @@
     NAME: WindowServerDecoder
     MAGIC: 130
     GreetMessage() => GreetMessageReply(uint32_t connection_id)
+    CreateWindowMessage(uint32_t width, uint32_t height) => CreateWindowMessageReply(uint32_t window_id)
+    SetBufferMessage(uint32_t windows_id, int buffer_id)
 }

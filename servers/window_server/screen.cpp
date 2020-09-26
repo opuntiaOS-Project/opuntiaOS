@@ -1,4 +1,5 @@
 #include "Screen.h"
+#include "Compositor.h"
 
 static Screen* s_the;
 
@@ -21,18 +22,21 @@ Screen::Screen()
 
 void Screen::run()
 {
-    uint32_t clr = 0x000000;
-    char back = -1;
+    // uint32_t clr = 0x000000;
+    // char back = -1;
+    // for (;;) {
+    //     for (int i = 0; i < 1024 * 768; i++) {
+    //         m_screen_buffer[i] = 0x00000000 + clr;
+    //     }
+    //     if (clr == 0x0000FF) {
+    //         back = -1;
+    //     }
+    //     if (clr == 0x0) {
+    //         back = 1;
+    //     }
+    //     clr += back * 0x000001;
+    // }
     for (;;) {
-        for (int i = 0; i < 1024 * 768; i++) {
-            m_screen_buffer[i] = 0x00000000 + clr;
-        }
-        if (clr == 0x0000FF) {
-            back = -1;
-        }
-        if (clr == 0x0) {
-            back = 1;
-        }
-        clr += back * 0x000001;
+        Compositor::the().refresh();
     }
 }

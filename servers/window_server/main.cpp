@@ -1,3 +1,4 @@
+#include "Compositor.h"
 #include "Connection.h"
 #include "Screen.h"
 #include <malloc.h>
@@ -12,6 +13,7 @@ void event_loop()
 int main()
 {
     new Screen();
+    new Compositor();
     new Connection(socket(PF_LOCAL, 0, 0));
     pthread_create((void*)event_loop);
     Screen::the().run();
