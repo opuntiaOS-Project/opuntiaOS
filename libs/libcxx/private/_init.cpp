@@ -1,6 +1,6 @@
 extern "C" {
 
-#include "types.h"
+#include "../sys/types.h"
 
 void _init()
 {
