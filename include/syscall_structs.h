@@ -166,6 +166,9 @@ enum SOCK_TYPES {
 #define TCSETSW 0x0105
 #define TCSETSF 0x0106
 
+/* BGA */
+#define BGA_SWAP_BUFFERS 0x0101
+
 /**
  * THREADS
  */

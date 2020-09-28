@@ -20,7 +20,7 @@ BASE_DIR = base
 # OS RUN CONFIG
 KERNEL_STAGE2_POSITION = 0x1000
 KERNEL_STAGE3_POSITION = 0xc0000000
-QEMU_I386 = qemu-system-i386
+QEMU_I386 = /Users/nikitamelehin/Develop/qemu-4.2.1/i386-softmmu/qemu-system-i386
 QEMU = ${QEMU_I386}
 DISK = one.img
 
@@ -196,7 +196,7 @@ servers/window_server/WSConnection.h: servers/window_server/ws_connection.ipc
 ${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp ${WINDOW_SERVER_IPC}
 	@mkdir -p $(WINDOW_SERVER_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
+	${QUIET} ${C++} -c $< -o $@ -Os -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
 
 $(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) ${BASE_DIR}/lib/libcxx.a
 	@echo "Window Server [LD]  $@"
@@ -269,7 +269,7 @@ products/os-image.bin: products/boot.bin products/stage2.bin
 	cat $^ > $@
 
 run: products/os-image.bin ${DISK}
-	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc
+	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std -display sdl
 
 debug: products/os-image.bin ${DISK}
 	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -S $(QEMUGDB)

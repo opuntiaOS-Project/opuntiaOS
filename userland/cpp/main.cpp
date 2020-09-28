@@ -1,5 +1,4 @@
 #include <libgui/WindowConnection.h>
-#include <string.h>
 #include <syscalls.h>
 
 int main(int argc, char** argv)

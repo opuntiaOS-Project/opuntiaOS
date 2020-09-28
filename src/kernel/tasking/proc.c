@@ -152,6 +152,7 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
 static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
 {
     uint32_t code_size = fd->dentry->inode->size;
+    log("Load with size %x", code_size);
     proc_zone_t* code_zone = proc_new_random_zone(p, code_size);
     code_zone->type = ZONE_TYPE_CODE;
     code_zone->flags |= ZONE_READABLE | ZONE_EXECUTABLE;
@@ -159,7 +160,7 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     /* THIS IS FOR BSS WHICH COULD BE IN THIS ZONE */
     code_zone->flags |= ZONE_WRITABLE;
 
-    proc_zone_t* bss_zone = proc_new_random_zone(p, 4096);
+    proc_zone_t* bss_zone = proc_new_random_zone(p, 2 * 4096);
     bss_zone->type = ZONE_TYPE_DATA;
     bss_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
@@ -177,6 +178,9 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     thread_set_stack(main_thread, stack_zone->start + VMM_PAGE_SIZE, stack_zone->start + VMM_PAGE_SIZE);
     thread_set_eip(main_thread, code_zone->start);
 
+    if (code_size == 0x135C) {
+        thread_set_eip(main_thread, 0x80);
+    }
     kfree(prog);
 
     return 0;

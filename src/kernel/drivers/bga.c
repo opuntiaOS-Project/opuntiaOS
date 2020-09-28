@@ -1,5 +1,6 @@
 #include <drivers/bga.h>
 #include <drivers/driver_manager.h>
+#include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <log.h>
@@ -58,10 +59,27 @@ static void _bga_set_resolution(uint16_t width, uint16_t height)
     bga_screen_line_size = (uint32_t)width * 4;
 }
 
+
+static int _bga_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+{
+    uint32_t y_offset = 0;
+    switch (cmd) {
+    case 0x1:
+        log("%x", arg);
+        return 0;
+    case BGA_SWAP_BUFFERS:
+        y_offset = bga_screen_height * (arg & 1);
+        _bga_write_reg(VBE_DISPI_INDEX_Y_OFFSET, (uint16_t)y_offset);
+        return 0;
+    default:
+        return -EINVAL;
+    }
+}
+
 static proc_zone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
 {
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
-    
+
     if (!map_shared) {
         return 0;
     }
@@ -74,7 +92,7 @@ static proc_zone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
     zone->flags |= ZONE_WRITABLE | ZONE_READABLE;
 
     for (int offset = 0; offset < bga_screen_buffer_size; offset += VMM_PAGE_SIZE) {
-        vmm_map_page(zone->start+offset, bga_buf_paddr+offset, zone->flags);
+        vmm_map_page(zone->start + offset, bga_buf_paddr + offset, zone->flags);
     }
 
     return zone;
@@ -93,7 +111,7 @@ static void bga_recieve_notification(uint32_t msg, uint32_t param)
         fops.can_write = 0;
         fops.read = 0;
         fops.write = 0;
-        fops.ioctl = 0;
+        fops.ioctl = _bga_ioctl;
         fops.mmap = _bga_mmap;
         devfs_inode_t* res = devfs_register(mp, "bga", 3, 0, &fops);
 
@@ -136,4 +154,5 @@ void bga_set_resolution(uint16_t width, uint16_t height)
     bga_screen_width = width;
     bga_screen_height = height;
     bga_screen_buffer_size = bga_screen_line_size * (uint32_t)height * 2;
+    log("bga res: %x", bga_screen_buffer_size);
 }

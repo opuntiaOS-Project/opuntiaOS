@@ -21,13 +21,12 @@ void Compositor::add_window(Window&& window)
 void Compositor::refresh()
 {
     for (int i = 0; i < 1024 * 768; i++) {
-        Screen::the().buffer()[i] = 0x00FFFFFF; // background
+        Screen::the().write_buffer()[i] = 0x00FeeeeF; // background
     }
-
-    for (int i = 0; i < m_windows.size(); i++) {
-        for (int j = 0; j < m_windows[i].width() * m_windows[i].height(); j++) {
-            Screen::the().buffer()[j] = m_windows[i].buffer()[j]; // app screen
+    for (int win = 0; win < m_windows.size(); win++) {
+        for (int j = 0; j < m_windows[win].width() * m_windows[win].height(); j++) {
+            Screen::the().write_buffer()[j] = m_windows[win].buffer()[j];
         }
     }
-
+    Screen::the().swap_buffers();
 }

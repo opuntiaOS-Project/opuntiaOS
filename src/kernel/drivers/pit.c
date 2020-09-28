@@ -11,8 +11,10 @@
 #include <time/time_manager.h>
 #include <utils/kassert.h>
 #include <x86/common.h>
+#include <log.h>
 
 static int ticks_to_sched = 0;
+static int second = 1000;
 static int _pit_set_frequency(uint16_t freq);
 
 static int _pit_set_frequency(uint16_t freq)
@@ -47,6 +49,11 @@ void pit_handler()
     timeman_pit_tick();
     if (RUNNIG_THREAD) {
         ticks_to_sched--;
+        second--;
+        if (second < 0) {
+            second = 1000;
+            log("----- second -----");
+        }
         if (ticks_to_sched < 0) {
             ticks_to_sched = SCHED_INT;
             resched();

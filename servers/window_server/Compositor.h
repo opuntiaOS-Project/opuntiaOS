@@ -12,6 +12,7 @@ public:
 
     void add_window(Window&& window);
     Window& window(int id) { return m_windows[0]; } // FIXME!!!
+    Vector<Window>& windows() { return m_windows; } // FIXME!!!
     void refresh();
 private:
     Vector<Window>m_windows;

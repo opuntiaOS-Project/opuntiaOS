@@ -16,6 +16,8 @@ int main()
     new Compositor();
     new Connection(socket(PF_LOCAL, 0, 0));
     pthread_create((void*)event_loop);
-    Screen::the().run();
+    for (;;) {
+        Compositor::the().refresh();
+    }
     return 0;
 }
