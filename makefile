@@ -134,13 +134,20 @@ LIBCXX_PATH = libs/libcxx
 LIBCXX_SRC=$(shell find $(LIBCXX_PATH) -name "*.cpp" -not -path " -not -path "libs/libcxx/private/*"/*")
 LIBCXX_OBJ=$(patsubst %.cpp,%.o,$(LIBCXX_SRC))
 
-LIBGUI = $(LIB_PATH)/libgui.a
-LIBGUI_PATH = libs/libgui
-LIBGUI_SRC=$(shell find $(LIBGUI_PATH) -name "*.cpp")
-LIBGUI_OBJ=$(patsubst %.cpp,%.o,$(LIBGUI_SRC))
+LIBUI = $(LIB_PATH)/libui.a
+LIBUI_PATH = libs/libui
+LIBUI_SRC=$(shell find $(LIBUI_PATH) -name "*.cpp")
+LIBUI_OBJ=$(patsubst %.cpp,%.o,$(LIBUI_SRC))
 
-LIBRARIES_ALL = $(LIBC) $(LIBCXX) $(LIBGUI)
+LIBG = $(LIB_PATH)/libg.a
+LIBG_PATH = libs/libg
+LIBG_SRC=$(shell find $(LIBG_PATH) -name "*.cpp")
+LIBG_OBJ=$(patsubst %.cpp,%.o,$(LIBG_SRC))
+
+LIBRARIES_ALL = $(LIBC) $(LIBCXX) $(LIBUI) $(LIBG)
 LIBRARIES = $(LIBC)
+
+# LIB C
 
 ${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
 	@mkdir -p $(LIB_PATH)
@@ -151,6 +158,7 @@ ${LIBC}: ${LIBC_OBJ} libs/libc/private/_init.o
 	@echo "$(notdir $(CURDIR)): [AR] $@"
 	${QUIET} ${AR} ${ARFLAGS} $@ $^
 
+# LIB CXX
 
 ${LIBCXX_PATH}/%.o: ${LIBCXX_PATH}/%.cpp
 	@mkdir -p $(LIB_PATH)
@@ -161,13 +169,25 @@ ${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ) libs/libcxx/private/_init.o
 	@echo "$(notdir $(CURDIR)): [AR] $(LIBC_OBJ)"
 	${QUIET} ${AR} -rcs $@ $^ 
 
+# LIB UI
 
-${LIBGUI_PATH}/%.o: ${LIBGUI_PATH}/%.cpp servers/window_server/WSConnection.h
+${LIBUI_PATH}/%.o: ${LIBUI_PATH}/%.cpp servers/window_server/WSConnection.h
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
 	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
 
-${LIBGUI}: ${LIBGUI_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
+${LIBUI}: ${LIBUI_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
+	@echo "$(notdir $(CURDIR)): [AR] $@"
+	${QUIET} ${AR} -rcs $@ $^
+
+# LIB Graphics
+
+${LIBG_PATH}/%.o: ${LIBG_PATH}/%.cpp
+	@mkdir -p $(LIB_PATH)
+	@echo "$(notdir $(CURDIR)): C++ $@"
+	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+
+${LIBG}: ${LIBG_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
 	${QUIET} ${AR} -rcs $@ $^
 
@@ -186,6 +206,7 @@ WINDOW_SERVER_PATH = servers/window_server
 WINDOW_SERVER_SRC=$(shell find $(WINDOW_SERVER_PATH) -name "*.cpp")
 WINDOW_SERVER_OBJ=$(patsubst %.cpp,%.o,$(WINDOW_SERVER_SRC))
 WINDOW_SERVER_IPC=$(WINDOW_SERVER_PATH)/WSConnection.h
+WINDOW_SERVER_DEPENDENCIES = ${BASE_DIR}/lib/libcxx.a ${BASE_DIR}/lib/libg.a
 
 SERVERS = $(WINDOW_SERVER)
 
@@ -198,9 +219,9 @@ ${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp ${WINDOW_SERVER_IPC}
 	@echo "$(notdir $(CURDIR)): C++ $@"
 	${QUIET} ${C++} -c $< -o $@ -Os -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
 
-$(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) ${BASE_DIR}/lib/libcxx.a
+$(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) ${WINDOW_SERVER_DEPENDENCIES}
 	@echo "Window Server [LD]  $@"
-	$(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary ${BASE_DIR}/lib/libcxx.a
+	$(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary ${WINDOW_SERVER_DEPENDENCIES}
 	
 # --- Apps ------------------------------------------------------------------ #
 

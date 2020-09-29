@@ -1,5 +1,5 @@
 #include "Window.h"
-#include <libgui/WindowConnection.h>
+#include <libui/WindowConnection.h>
 #include <libipc/ClientConnection.h>
 #include <malloc.h>
 #include <memory.h>

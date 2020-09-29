@@ -154,5 +154,4 @@ void bga_set_resolution(uint16_t width, uint16_t height)
     bga_screen_width = width;
     bga_screen_height = height;
     bga_screen_buffer_size = bga_screen_line_size * (uint32_t)height * 2;
-    log("bga res: %x", bga_screen_buffer_size);
 }
