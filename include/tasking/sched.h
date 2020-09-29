@@ -21,6 +21,12 @@
 #define DEFAULT_PRIO 6
 #define SCHED_INT 10
 
+struct runqueue {
+    thread_t* head;
+    thread_t* tail;
+};
+typedef struct runqueue runqueue_t;
+
 void scheduler_init();
 void resched_dont_save_context();
 void resched();

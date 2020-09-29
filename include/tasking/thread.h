@@ -54,9 +54,14 @@ struct thread {
     uint32_t tid;
     uint32_t status;
 
+    /* Kernel data */
     zone_t kstack;
     context_t* context; // context of kernel's registers
     trapframe_t* tf;
+
+    /* Scheduler data */
+    struct thread* sched_prev;
+    struct thread* sched_next;
 
     /* Blocker data */
     blocker_t blocker;

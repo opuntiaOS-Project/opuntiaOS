@@ -11,10 +11,11 @@
 
 #include <drivers/display.h>
 #include <types.h>
+#include <log.h>
 
 #define ASSERT(x)                                                  \
     if (unlikely(!(x))) {                                                    \
-        kprintf("kassert at line %d in %s\n", __LINE__, __FILE__); \
+        log("kassert at line %d in %s\n", __LINE__, __FILE__); \
         asm volatile("cli\n");                                     \
         asm volatile("hlt\n");                                     \
     }

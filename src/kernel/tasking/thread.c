@@ -11,6 +11,7 @@
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
+#include <tasking/sched.h>
 #include <x86/gdt.h>
 #include <x86/tss.h>
 
@@ -186,6 +187,7 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
 int thread_free(thread_t* thread)
 {
     thread->status = THREAD_DEAD;
+    // Don't dequeue here, since thread_die has been already run.
     zoner_free_zone(thread->kstack);
     return 0;
 }
@@ -193,6 +195,7 @@ int thread_free(thread_t* thread)
 int thread_die(thread_t* thread)
 {
     thread->status = THREAD_DYING;
+    sched_dequeue(thread);
     return 0;
 }
 

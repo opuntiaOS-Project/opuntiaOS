@@ -17,25 +17,24 @@
 // #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT
 
-dynamic_array_t buf1[PRIOS_COUNT];
-dynamic_array_t buf2[PRIOS_COUNT];
+runqueue_t buf1[PRIOS_COUNT];
+runqueue_t buf2[PRIOS_COUNT];
 
 static int _buf_read_prio;
-static dynamic_array_t* _master_buf; // running threads
-static dynamic_array_t* _slave_buf; // running threads
+static runqueue_t* _master_buf;
+static runqueue_t* _slave_buf;
 
 extern void switch_contexts(context_t** old, context_t* new);
 extern void switch_to_context(context_t* new);
 
 /* INIT */
 static void _init_cpus(cpu_t* cpu);
-static void _sched_init_buf(dynamic_array_t* buf);
 /* BUFFERS */
 static inline void _sched_swap_buffers();
 static inline thread_t* _master_buf_back();
 static inline void _sched_save_running_proc();
 /* DEBUG */
-static uint32_t _debug_count_of_proc_in_buf(dynamic_array_t* buf);
+static void _debug_print_runqueue(runqueue_t* it);
 
 static void _init_cpus(cpu_t* cpu)
 {
@@ -48,35 +47,38 @@ static void _init_cpus(cpu_t* cpu)
     cpu->running_thread = 0;
 }
 
-static void _sched_init_buf(dynamic_array_t* buf)
-{
-    for (int i = 0; i < PRIOS_COUNT; i++) {
-        dynamic_array_init_of_size(&buf[i], sizeof(thread_t*), 8);
-    }
-}
-
 static inline void _sched_swap_buffers()
 {
-    dynamic_array_t* tmp = _master_buf;
+    runqueue_t* tmp = _master_buf;
     _master_buf = _slave_buf;
     _slave_buf = tmp;
     _buf_read_prio = 0;
 }
 
-static inline thread_t* _master_buf_back()
+static inline void _sched_add_to_start_of_runqueue(thread_t* thread)
 {
-    return *((thread_t**)(dynamic_array_get(&_master_buf[_buf_read_prio], _master_buf[_buf_read_prio].size - 1)));
+    thread->sched_next = _slave_buf[thread->process->prio].head;
+    if (thread->sched_next) {
+        thread->sched_next->sched_prev = thread;
+    } else {
+        _slave_buf[thread->process->prio].tail = thread;
+    }
+    _slave_buf[thread->process->prio].head = thread;
 }
 
-static inline void _sched_save_running_proc()
+static inline void _sched_add_to_end_of_runqueue(thread_t* thread)
 {
-    dynamic_array_push(&_slave_buf[RUNNIG_THREAD->process->prio], &RUNNIG_THREAD);
+    thread->sched_prev = _slave_buf[thread->process->prio].tail;
+    if (thread->sched_prev) {
+        thread->sched_prev->sched_next = thread;
+    } else {
+        _slave_buf[thread->process->prio].head = thread;
+    }
+    _slave_buf[thread->process->prio].tail = thread;
 }
 
 void scheduler_init()
 {
-    _sched_init_buf(buf1);
-    _sched_init_buf(buf2);
     _master_buf = buf1;
     _slave_buf = buf2;
     _buf_read_prio = 0;
@@ -105,20 +107,18 @@ void sched_unblock_threads()
 
 void resched_dont_save_context()
 {
-    tasking_kill_dying();
-    sched_unblock_threads();
-    if (RUNNIG_THREAD) {
-        _sched_save_running_proc();
+    if (RUNNIG_THREAD && RUNNIG_THREAD->status == THREAD_RUNNING) {
+        _sched_add_to_end_of_runqueue(RUNNIG_THREAD);
     }
     switch_to_context(THIS_CPU->scheduler);
 }
 
 void resched()
 {
-    tasking_kill_dying();
-    sched_unblock_threads();
     if (RUNNIG_THREAD) {
-        _sched_save_running_proc();
+        if (RUNNIG_THREAD->status == THREAD_RUNNING) {
+            _sched_add_to_end_of_runqueue(RUNNIG_THREAD);
+        }
         switch_contexts(&RUNNIG_THREAD->context, THIS_CPU->scheduler);
     } else {
         switch_to_context(THIS_CPU->scheduler);
@@ -135,41 +135,80 @@ void sched_enqueue(thread_t* thread)
         thread->process->prio = MIN_PRIO;
     }
 
-    dynamic_array_push(&_slave_buf[thread->process->prio], &thread);
+    _sched_add_to_start_of_runqueue(thread);
 }
 
-void sched_dequeue(thread_t* p)
+void sched_dequeue(thread_t* thread)
 {
+#ifdef SCHED_DEBUG
+    log("dequeue task %d\n", thread->tid);
+#endif
+    if (_slave_buf[thread->process->prio].tail == thread) {
+        _slave_buf[thread->process->prio].tail = thread->sched_prev;
+    }
+
+    if (_slave_buf[thread->process->prio].head == thread) {
+        _slave_buf[thread->process->prio].head = thread->sched_next;
+    }
+
+    if (_master_buf[thread->process->prio].tail == thread) {
+        _master_buf[thread->process->prio].tail = thread->sched_prev;
+    }
+
+    if (_master_buf[thread->process->prio].head == thread) {
+        _master_buf[thread->process->prio].head = thread->sched_next;
+    }
+
+    if (thread->sched_prev) {
+        thread->sched_prev->sched_next = thread->sched_next;
+    }
+
+    if (thread->sched_next) {
+        thread->sched_next->sched_prev = thread->sched_prev;
+    }
+
+    thread->sched_next = thread->sched_prev = 0;
 }
 
 void sched()
 {
     for (;;) {
-        while (_master_buf[_buf_read_prio].size == 0) {
+        while (!_master_buf[_buf_read_prio].head) {
             if (_buf_read_prio >= MIN_PRIO) {
+                tasking_kill_dying();
+                sched_unblock_threads(); 
                 _sched_swap_buffers();
             } else {
                 _buf_read_prio++;
             }
         }
 
-        thread_t* thread = _master_buf_back();
-        dynamic_array_pop(&_master_buf[_buf_read_prio]);
+        thread_t* thread = _master_buf[_buf_read_prio].head;
+        _master_buf[_buf_read_prio].head = thread->sched_next;
+        if (_master_buf[_buf_read_prio].tail == thread) {
+            _master_buf[_buf_read_prio].tail = 0;
+        }
+        thread->sched_next = thread->sched_prev = 0;
+#ifdef SCHED_DEBUG
+        log("next to run %d %x\n", thread->tid, thread->tf->eip);
+#endif
 #ifdef SCHED_SHOW_STAT
         log("[STAT] procs in buffer: %d", _debug_count_of_proc_in_buf(_master_buf));
 #endif
-        if (thread->status == THREAD_RUNNING) {
-            switchuvm(thread);
-            switch_contexts(&THIS_CPU->scheduler, thread->context);
-        }
+        ASSERT(thread->status == THREAD_RUNNING);
+        switchuvm(thread);
+        switch_contexts(&THIS_CPU->scheduler, thread->context);
     }
 }
 
-static uint32_t _debug_count_of_proc_in_buf(dynamic_array_t* buf)
+static void _debug_print_runqueue(runqueue_t* it)
 {
-    uint32_t res = 0;
     for (int i = 0; i < PRIOS_COUNT; i++) {
-        res += buf[i].size;
+        log(" Prio %d", i);
+        thread_t* tmp = it[i].head;
+        while (tmp) {
+            log("   %d ->", tmp->tid);
+            tmp = tmp->sched_next;
+        }
     }
-    return res;
 }
