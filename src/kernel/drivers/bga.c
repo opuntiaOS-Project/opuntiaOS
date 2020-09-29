@@ -144,7 +144,7 @@ void bga_install()
 
 void bga_init(device_t* dev)
 {
-    bga_buf_paddr = pci_read_bar(dev, 0);
+    bga_buf_paddr = pci_read_bar(dev, 0) & 0xfffffff0;
     bga_set_resolution(1024, 768);
 }
 

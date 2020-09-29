@@ -9,7 +9,6 @@ Window::Window()
     , m_buffer(size_t(m_width * m_height * 4))
 {
     m_id = WindowConnection::the().new_window(*this);
-    WindowConnection::the().set_buffer(*this);
 }
 
 Window::Window(uint32_t width, uint32_t height)
@@ -18,7 +17,6 @@ Window::Window(uint32_t width, uint32_t height)
     , m_buffer(size_t(m_width * m_height * 4))
 {
     m_id = WindowConnection::the().new_window(*this);
-    WindowConnection::the().set_buffer(*this);
 }
 
 // test

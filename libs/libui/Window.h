@@ -1,6 +1,7 @@
 #pragma once
 #include "../servers/window_server/WSConnection.h"
 #include <libcxx/sys/SharedBuffer.h>
+#include <libg/Color.h>
 #include <sys/types.h>
 
 namespace Window {
@@ -15,13 +16,14 @@ public:
     uint32_t height() const { return m_height; }
 
     void run();
-    SharedBuffer<uint32_t>& buffer() { return m_buffer; }
-    const SharedBuffer<uint32_t>& buffer() const { return m_buffer; }
+    SharedBuffer<LG::Color>& buffer() { return m_buffer; }
+    const SharedBuffer<LG::Color>& buffer() const { return m_buffer; }
+
 private:
     uint32_t m_id;
     uint32_t m_width;
     uint32_t m_height;
-    SharedBuffer<uint32_t> m_buffer;
+    SharedBuffer<LG::Color> m_buffer;
 };
 
 }

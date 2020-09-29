@@ -50,6 +50,7 @@ public:
 
         size_t msg_len = 0;
         for (size_t i = 0; i < read_cnt; i += msg_len) {
+            msg_len = 0;
             if (auto response = m_client_decoder.decode((buf + i), read_cnt - i, msg_len)) {
                 m_messages.push_back(move(response));
             } else if (auto response = m_server_decoder.decode((buf + i), read_cnt - i, msg_len)) {

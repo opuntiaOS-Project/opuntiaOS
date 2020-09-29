@@ -9,8 +9,9 @@ unique_ptr<Message> WServerDecoder::handle(const GreetMessage& msg)
 
 unique_ptr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
 {
-    Compositor::the().add_window(Window(msg));
-    return new CreateWindowMessageReply(0x1);
+    int win_id = Compositor::the().windows().size();
+    Compositor::the().add_window(Window(win_id, msg));
+    return new CreateWindowMessageReply(win_id);
 }
 
 unique_ptr<Message> WServerDecoder::handle(const SetBufferMessage& msg)

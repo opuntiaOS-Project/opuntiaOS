@@ -35,11 +35,13 @@ void WindowConnection::greeting()
 {
     GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage()).release();
     m_connection_id = resp_message->connection_id();
+    write(1, "Got greet", 9);
 }
 
 int WindowConnection::new_window(const Window& window)
 {
-    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(window.width(), window.height())).release();
+    write(1, "Sending msg", 11);
+    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(window.width(), window.height(), window.buffer().id())).release();
     return resp_message->window_id();
 }
 

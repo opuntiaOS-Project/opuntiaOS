@@ -3,6 +3,7 @@
 
 int main(int argc, char** argv)
 {
+    fork();
     auto window = Window::Window();
     window.run();
     while (1) {}

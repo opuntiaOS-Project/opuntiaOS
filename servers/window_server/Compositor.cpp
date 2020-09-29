@@ -1,5 +1,6 @@
 #include "Compositor.h"
 #include "Screen.h"
+#include <libg/Canvas.h>
 
 static Compositor* s_the;
 
@@ -20,13 +21,13 @@ void Compositor::add_window(Window&& window)
 
 void Compositor::refresh()
 {
+    auto our_canvas = LG::Canvas(LG::PixelBitmap(Screen::the().write_buffer(), Screen::the().width(), Screen::the().height()));
     for (int i = 0; i < 1024 * 768; i++) {
         Screen::the().write_buffer()[i] = 0x00FeeeeF; // background
     }
+
     for (int win = 0; win < m_windows.size(); win++) {
-        for (int j = 0; j < m_windows[win].width() * m_windows[win].height(); j++) {
-            Screen::the().write_buffer()[j] = m_windows[win].buffer()[j];
-        }
+        our_canvas.draw(m_windows[win].x(), m_windows[win].y(), m_windows[win].canvas());
     }
     Screen::the().swap_buffers();
 }

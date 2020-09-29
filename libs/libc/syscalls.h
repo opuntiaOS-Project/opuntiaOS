@@ -4,8 +4,6 @@
 #include <sys/_structs.h>
 #include <sys/types.h>
 
-extern int errno;
-
 int open(const char* pathname, int flags);
 int close(int fd);
 int read(int fd, char* buf, size_t count);

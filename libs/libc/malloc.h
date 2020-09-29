@@ -7,8 +7,6 @@
 #define MALLOC_HEADER_SIZE 64
 #define MALLOC_MAX_ALLOCATED_BLOCKS 64
 
-extern int errno;
-
 struct __malloc_header {
     size_t size;
     int free; /* Should be bool, but now it's int for an alignment */

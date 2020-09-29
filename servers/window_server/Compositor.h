@@ -11,9 +11,19 @@ public:
     Compositor();
 
     void add_window(Window&& window);
-    Window& window(int id) { return m_windows[0]; } // FIXME!!!
-    Vector<Window>& windows() { return m_windows; } // FIXME!!!
+    inline Window& window(int id)
+    {
+        for (int i = 0; i < windows().size(); i++) {
+            if (windows()[i].id() == id) {
+                return windows()[i];
+            }
+        }
+        return windows()[0];
+    }
+
+    inline Vector<Window>& windows() { return m_windows; } // FIXME!!!
     void refresh();
+
 private:
-    Vector<Window>m_windows;
+    Vector<Window> m_windows;
 };

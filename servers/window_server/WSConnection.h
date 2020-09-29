@@ -42,15 +42,17 @@ private:
 
 class CreateWindowMessage : public Message {
 public:
-    CreateWindowMessage(uint32_t width,uint32_t height)
+    CreateWindowMessage(uint32_t width,uint32_t height,int buffer_id)
         : m_width(width)
         , m_height(height)
+        , m_buffer_id(buffer_id)
     {
     }
     int id() const override { return 3; }
     int decoder_magic() const override { return 130; }
     uint32_t width() const { return m_width; }
     uint32_t height() const { return m_height; }
+    int buffer_id() const { return m_buffer_id; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -58,11 +60,13 @@ public:
         Encoder::append(buffer, id());
         Encoder::append(buffer, m_width);
         Encoder::append(buffer, m_height);
+        Encoder::append(buffer, m_buffer_id);
         return buffer;
     }
 private:
     uint32_t m_width;
     uint32_t m_height;
+    int m_buffer_id;
 };
 
 class CreateWindowMessageReply : public Message {
@@ -134,16 +138,17 @@ public:
         case 3:
             uint32_t var_width;
             uint32_t var_height;
+            int var_buffer_id;
             Encoder::decode(buf, decoded_msg_len, var_width);
             Encoder::decode(buf, decoded_msg_len, var_height);
-            return new CreateWindowMessage(var_width, var_height);
+            Encoder::decode(buf, decoded_msg_len, var_buffer_id);
+            return new CreateWindowMessage(var_width, var_height, var_buffer_id);
         case 4:
             uint32_t var_window_id;
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             return new CreateWindowMessageReply(var_window_id);
         case 5:
             uint32_t var_windows_id;
-            int var_buffer_id;
             Encoder::decode(buf, decoded_msg_len, var_windows_id);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
             return new SetBufferMessage(var_windows_id, var_buffer_id);

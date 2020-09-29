@@ -31,6 +31,7 @@ public:
 
         size_t msg_len = 0;
         for (int i = 0; i < read_cnt; i += msg_len) {
+            msg_len = 0;
             if (auto response = m_server_decoder.decode((buf + i), read_cnt - i, msg_len)) {
                 if (auto answer = m_server_decoder.handle(*response)) {
                     send_message(*answer);
