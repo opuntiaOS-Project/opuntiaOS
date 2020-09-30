@@ -1,10 +1,10 @@
 #pragma once
 #include "Message.h"
 #include "MessageDecoder.h"
-#include <libcxx/std/vector.h>
+#include <std/Vector.h>
 #include <syscalls.h>
 
-template<typename ServerDecoder, typename ClientDecoder>
+template <typename ServerDecoder, typename ClientDecoder>
 class ClientConnection {
 public:
     ClientConnection(int sock_fd, ServerDecoder& server_decoder, ClientDecoder& client_decoder)
@@ -22,13 +22,13 @@ public:
         return wrote == encoded_msg.size();
     }
 
-    unique_ptr<Message> send_sync(const Message& msg)
+    UniquePtr<Message> send_sync(const Message& msg)
     {
         bool status = send_message(msg);
         return wait_for_answer(msg);
     }
 
-    unique_ptr<Message> wait_for_answer(const Message& msg)
+    UniquePtr<Message> wait_for_answer(const Message& msg)
     {
         for (;;) {
             for (int i = 0; i < m_messages.size(); i++) {
@@ -61,7 +61,7 @@ public:
 
 private:
     int m_connection_fd;
-    Vector<unique_ptr<Message>> m_messages;
+    Vector<UniquePtr<Message>> m_messages;
     ServerDecoder& m_server_decoder;
     ClientDecoder& m_client_decoder;
 };

@@ -1,8 +1,9 @@
 #pragma once
-#include "../servers/window_server/WSConnection.h"
-#include <libcxx/sys/SharedBuffer.h>
-#include <libg/Canvas.h>
+#include "WSConnection.h"
+#include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
+#include <std/Utility.h>
+#include <sys/SharedBuffer.h>
 #include <sys/types.h>
 
 class Window {
@@ -18,7 +19,7 @@ public:
     inline size_t height() const { return m_height; }
 
     inline SharedBuffer<LG::Color>& buffer() { return m_buffer; }
-    inline const LG::Canvas& canvas() const { return m_canvas; }
+    inline const LG::PixelBitmap& bitmap() const { return m_bitmap; }
 
     LG::Rect bounds() const { return LG::Rect(m_x, m_y, m_width, m_height); }
 
@@ -28,6 +29,6 @@ private:
     int m_y { 0 };
     size_t m_width;
     size_t m_height;
-    LG::Canvas m_canvas;
+    LG::PixelBitmap m_bitmap;
     SharedBuffer<LG::Color> m_buffer;
 };

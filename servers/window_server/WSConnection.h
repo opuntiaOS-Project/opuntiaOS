@@ -119,7 +119,7 @@ class WindowServerDecoder : public MessageDecoder {
 public:
     WindowServerDecoder() {}
     int magic() const { return 130; }
-    unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
+    UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
         int msg_id, decoder_magic;
         Encoder::decode(buf, decoded_msg_len, decoder_magic);
@@ -157,7 +157,7 @@ public:
         }
     }
     
-    unique_ptr<Message> handle(const Message& msg) override
+    UniquePtr<Message> handle(const Message& msg) override
     {
         if (magic() != msg.decoder_magic()) {
             return nullptr;
@@ -175,9 +175,9 @@ public:
         }
     }
     
-    virtual unique_ptr<Message> handle(const GreetMessage& msg) { return nullptr; }
-    virtual unique_ptr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
-    virtual unique_ptr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const GreetMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
 };
 
 class WindowClientDecoder : public MessageDecoder {
@@ -190,7 +190,7 @@ public:
         return 0x7;
     }
 
-    unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len)
+    UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len)
     {
         int mes_magic = buf[size];
         if (mes_magic == magic()) {
@@ -200,7 +200,7 @@ public:
         return nullptr;
     }
 
-    unique_ptr<Message> handle(const Message& msg) override
+    UniquePtr<Message> handle(const Message& msg) override
     {
         return nullptr;
     }

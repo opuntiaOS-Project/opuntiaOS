@@ -88,7 +88,7 @@ class Generator:
         self.out("int magic() const {{ return {0}; }}".format(decoder.magic), 1)
 
     def decoder_create_decode(self, decoder):
-        self.out("unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override", 1)
+        self.out("UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override", 1)
         self.out("{", 1)
         self.out("int msg_id, decoder_magic;", 2)
         self.out("Encoder::decode(buf, decoded_msg_len, decoder_magic);", 2)
@@ -112,7 +112,7 @@ class Generator:
         self.out("", 1)
 
     def decoder_create_handle(self, decoder):
-        self.out("unique_ptr<Message> handle(const Message& msg) override", 1)
+        self.out("UniquePtr<Message> handle(const Message& msg) override", 1)
         self.out("{", 1)
         self.out("if (magic() != msg.decoder_magic()) {", 2)
         self.out("return nullptr;", 3)
@@ -135,7 +135,7 @@ class Generator:
 
     def decoder_create_virtual_handle(self, decoder):
         for (accept,ret) in decoder.functions.items():
-            self.out("virtual unique_ptr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
+            self.out("virtual UniquePtr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
 
     def generate_decoder(self, decoder):
         self.out("class {0} : public MessageDecoder {{".format(decoder.name))

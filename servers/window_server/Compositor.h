@@ -3,6 +3,7 @@
 #include "WSServerDecoder.h"
 #include "Window.h"
 #include <libipc/ServerConnection.h>
+#include <std/Vector.h>
 #include <syscalls.h>
 
 class Compositor {

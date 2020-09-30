@@ -1,54 +1,50 @@
 #pragma once
 
-template <typename T>
-inline T&& move(T& arg)
-{
-    return static_cast<T&&>(arg);
-}
+#include <libcxx/std/Utility.h>
 
 template <typename T>
-class unique_ptr {
+class UniquePtr {
 public:
-    unique_ptr()
+    UniquePtr()
         : m_data(nullptr)
     {
     }
 
-    unique_ptr(T* data)
+    UniquePtr(T* data)
         : m_data(data)
     {
     }
 
-    unique_ptr(typeof(nullptr))
+    UniquePtr(typeof(nullptr))
         : m_data(nullptr)
     {
     }
-    unique_ptr& operator=(typeof(nullptr))
+    UniquePtr& operator=(typeof(nullptr))
     {
         reset();
         return *this;
     }
 
-    unique_ptr(unique_ptr&& moving) noexcept
+    UniquePtr(UniquePtr&& moving) noexcept
     {
         moving.swap(*this);
     }
-    unique_ptr& operator=(unique_ptr&& moving) noexcept
+    UniquePtr& operator=(UniquePtr&& moving) noexcept
     {
         moving.swap(*this);
         return *this;
     }
 
     template <typename U>
-    unique_ptr(unique_ptr<U>&& moving)
+    UniquePtr(UniquePtr<U>&& moving)
     {
-        unique_ptr<T> tmp(moving.release());
+        UniquePtr<T> tmp(moving.release());
         tmp.swap(*this);
     }
     template <typename U>
-    unique_ptr& operator=(unique_ptr<U>&& moving)
+    UniquePtr& operator=(UniquePtr<U>&& moving)
     {
-        unique_ptr<T> tmp(moving.release());
+        UniquePtr<T> tmp(moving.release());
         tmp.swap(*this);
         return *this;
     }
@@ -60,7 +56,7 @@ public:
         return result;
     }
 
-    void swap(unique_ptr& src) noexcept
+    void swap(UniquePtr& src) noexcept
     {
         T* tmp_data = m_data;
         m_data = src.m_data;
@@ -73,13 +69,13 @@ public:
         delete tmp;
     }
 
-    ~unique_ptr()
+    ~UniquePtr()
     {
         delete m_data;
     }
 
-    unique_ptr(unique_ptr const&) = delete;
-    unique_ptr& operator=(unique_ptr const&) = delete;
+    UniquePtr(UniquePtr const&) = delete;
+    UniquePtr& operator=(UniquePtr const&) = delete;
 
     T* operator->() const { return m_data; }
     T& operator*() const { return *m_data; }

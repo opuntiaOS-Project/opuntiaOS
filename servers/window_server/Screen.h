@@ -1,5 +1,7 @@
 #pragma once
 #include <libg/Color.h>
+#include <libg/PixelBitmap.h>
+#include <memory.h>
 #include <syscalls.h>
 
 class Screen {
@@ -14,10 +16,10 @@ public:
     inline uint32_t height() const { return m_height; }
     inline uint32_t depth() const { return m_depth; }
 
-    inline LG::Color* write_buffer() { return m_write_buffer; }
-    inline const LG::Color* write_buffer() const { return m_write_buffer; }
-    inline LG::Color* display_buffer() { return m_display_buffer; }
-    inline const LG::Color* display_buffer() const { return m_display_buffer; }
+    inline LG::PixelBitmap& write_bitmap() { return *m_write_bitmap_ptr; }
+    inline const LG::PixelBitmap& write_bitmap() const { return *m_write_bitmap_ptr; }
+    inline LG::PixelBitmap& display_bitmap() { return *m_display_bitmap_ptr; }
+    inline const LG::PixelBitmap& display_bitmap() const { return *m_display_bitmap_ptr; }
 
 private:
     int m_screen_fd;
@@ -26,6 +28,10 @@ private:
     uint32_t m_depth;
 
     int m_active_buffer;
-    LG::Color* m_write_buffer; /* Buffer to write */
-    LG::Color* m_display_buffer; /* Buffer of the current shown display */
+
+    LG::PixelBitmap m_write_bitmap;
+    LG::PixelBitmap m_display_bitmap;
+
+    UniquePtr<LG::PixelBitmap> m_write_bitmap_ptr { nullptr };
+    UniquePtr<LG::PixelBitmap> m_display_bitmap_ptr { nullptr };
 };
