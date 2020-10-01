@@ -46,6 +46,7 @@ void sys_setpgid(trapframe_t* tf);
 void sys_getpgid(trapframe_t* tf);
 void sys_create_thread(trapframe_t* tf);
 void sys_sleep(trapframe_t* tf);
+void sys_select(trapframe_t* tf);
 void sys_shbuf_create(trapframe_t* tf);
 void sys_shbuf_get(trapframe_t* tf);
 void sys_shbuf_free(trapframe_t* tf);

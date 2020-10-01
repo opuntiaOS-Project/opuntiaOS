@@ -6,6 +6,7 @@
  * Free Software Foundation.
  */
 
+#include <sys/time.h>
 #include <syscalls.h>
 
 int errno;
@@ -20,12 +21,12 @@ static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
     return ret;
 }
 
-int read(int fd, char *buf, size_t count)
+int read(int fd, char* buf, size_t count)
 {
     return syscall(SYSREAD, (int)fd, (int)buf, (int)count, 0, 0);
 }
 
-int write(int fd, const void *buf, size_t count)
+int write(int fd, const void* buf, size_t count)
 {
     return syscall(SYSWRITE, (int)fd, (int)buf, (int)count, 0, 0);
 }
@@ -75,7 +76,7 @@ int creat(char* path, uint32_t mode)
     return syscall(SYSCREAT, (int)path, (int)mode, 0, 0, 0);
 }
 
-int open(const char *pathname, int flags)
+int open(const char* pathname, int flags)
 {
     return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);
 }
@@ -133,6 +134,11 @@ int ioctl(int fd, uint32_t cmd, uint32_t arg)
 int lseek(int fd, uint32_t off, int whence)
 {
     return syscall(SYSLSEEK, (int)fd, (int)off, (int)whence, 0, 0);
+}
+
+int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout)
+{
+    return syscall(SYSSELECT, (int)nfds, (int)readfds, (int)writefds, (int)exceptfds, (int)timeout);
 }
 
 pid_t getpid()

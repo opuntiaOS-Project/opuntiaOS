@@ -76,3 +76,58 @@ int init_sleep_blocker(thread_t* thread, uint32_t time)
     sched_dequeue(thread);
     return 0;
 }
+
+int should_unblock_select_block(thread_t* thread)
+{
+    if (thread->unblock_time != 0 && thread->unblock_time < timeman_now()) {
+        return true;
+    }
+
+    file_descriptor_t* fd;
+    for (int i = 0; i < thread->nfds; i++) {
+        if (FD_ISSET(i, &thread->readfds)) {
+            fd = proc_get_fd(thread->process, i);
+            if (fd->ops->can_read(fd->dentry, fd->offset)) {
+                return true;
+            }
+        }
+    }
+
+    for (int i = 0; i < thread->nfds; i++) {
+        if (FD_ISSET(i, &thread->writefds)) {
+            fd = proc_get_fd(thread->process, i);
+            if (fd->ops->can_write(fd->dentry, fd->offset)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout)
+{
+    FD_ZERO(&(thread->readfds));
+    FD_ZERO(&(thread->writefds));
+    FD_ZERO(&(thread->exceptfds));
+    thread->unblock_time = 0;
+
+    if (readfds) {
+        thread->readfds = *readfds;
+    }
+    if (writefds) {
+        thread->writefds = *writefds;
+    }
+    if (exceptfds) {
+        thread->exceptfds = *exceptfds;
+    }
+    if (timeout) {
+        thread->unblock_time = timeman_now() + timeout->tv_sec;
+    }
+    thread->nfds = nfds;
+    thread->status = THREAD_BLOCKED;
+    thread->blocker.reason = BLOCKER_SELECT;
+    thread->blocker.should_unblock = should_unblock_select_block;
+    thread->blocker.should_unblock_for_signal = true;
+    sched_dequeue(thread);
+    return 0;
+}

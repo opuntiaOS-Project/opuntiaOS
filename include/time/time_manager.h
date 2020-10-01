@@ -14,6 +14,12 @@
 /* 32 bits is enough until 2106y */
 typedef unsigned int time_t;
 
+struct timeval {
+    time_t tv_sec;
+    uint32_t tv_usec;
+};
+typedef struct timeval timeval_t;
+
 bool timeman_is_leap_year(uint32_t year);
 uint32_t timeman_days_in_years_since_epoch(uint32_t year);
 uint32_t timeman_days_in_months_since_soy(uint8_t month, uint32_t year);

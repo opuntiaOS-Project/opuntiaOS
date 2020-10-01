@@ -51,6 +51,7 @@ enum __sysid {
     SYSGETPGID,
     SYSPTHREADCREATE,
     SYSSLEEP,
+    SYSSELECT,
     SYS_SHBUF_CREATE,
     SYS_SHBUF_GET,
     SYS_SHBUF_FREE,
@@ -127,6 +128,20 @@ typedef struct mmap_params mmap_params_t;
 #define S_IXOTH 0x0001
 
 typedef uint16_t mode_t;
+
+/* Select */
+
+#define FD_SETSIZE 8
+
+struct fd_set {
+    uint8_t fds[FD_SETSIZE / 8];
+};
+typedef struct fd_set fd_set_t;
+
+#define FD_SET(fd, fd_set_ptr) ((fd_set_ptr)->fds[fd / 8] |= (1 << (fd % 8)))
+#define FD_CLR(fd, fd_set_ptr) ((fd_set_ptr)->fds[fd / 8] &= ~(1 << (fd % 8)))
+#define FD_ZERO(fd_set_ptr) (memset((uint8_t*)(fd_set_ptr), 0, sizeof(fd_set_t)))
+#define FD_ISSET(fd, fd_set_ptr) ((fd_set_ptr)->fds[fd / 8] & (1 << (fd % 8)))
 
 /**
  * SOCKETS

@@ -30,7 +30,7 @@ public:
         return windows()[0];
     }
 
-    inline Vector<Window>& windows() { return m_windows; } // FIXME!!!
+    inline Vector<Window>& windows() { return m_windows; }
     void refresh();
 
 private:

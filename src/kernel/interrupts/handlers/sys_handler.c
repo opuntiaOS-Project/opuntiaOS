@@ -19,6 +19,8 @@
 #define param1 (tf->ebx)
 #define param2 (tf->ecx)
 #define param3 (tf->edx)
+#define param4 (tf->esi)
+#define param5 (tf->edi)
 
 /* From Linux 4.14.0 headers. */
 /* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
@@ -60,6 +62,7 @@ static const void* syscalls[] = {
     sys_getpgid,
     sys_create_thread,
     sys_sleep,
+    sys_select,
     sys_shbuf_create,
     sys_shbuf_get,
     sys_shbuf_free,
@@ -320,6 +323,54 @@ void sys_getdents(trapframe_t* tf)
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
     int read = vfs_getdents(fd, (uint8_t*)param2, param3);
     return_with_val(read);
+}
+
+void sys_select(trapframe_t* tf)
+{
+    proc_t* p = RUNNIG_THREAD->process;
+    file_descriptor_t* fd;
+
+    int nfds = param1;
+    fd_set_t* readfds = (fd_set_t*)param2;
+    fd_set_t* writefds = (fd_set_t*)param3;
+    fd_set_t* exceptfds = (fd_set_t*)param4;
+    timeval_t* timeout = (timeval_t*)param5;
+    if (nfds < 0 || nfds > FD_SETSIZE) {
+        return_with_val(-EINVAL);
+    }
+
+    for (int i = 0; i < nfds; i++) {
+        if (FD_ISSET(i, readfds) || FD_ISSET(i, writefds) || FD_ISSET(i, exceptfds)) {
+            if (!proc_get_fd(p, i)) {
+                return_with_val(-EBADF);
+            }
+        }
+    }
+
+    init_select_blocker(RUNNIG_THREAD, nfds, readfds, writefds, exceptfds, timeout);
+    resched();
+
+    FD_ZERO(readfds);
+    FD_ZERO(writefds);
+    FD_ZERO(exceptfds);
+
+    for (int i = 0; i < nfds; i++) {
+        if (FD_ISSET(i, &(RUNNIG_THREAD->readfds))) {
+            fd = proc_get_fd(p, i);
+            if (fd->ops->can_read(fd->dentry, fd->offset)) {
+                FD_SET(i, readfds);
+            }
+        }
+
+        if (FD_ISSET(i, &(RUNNIG_THREAD->writefds))) {
+            fd = proc_get_fd(p, i);
+            if (fd->ops->can_write(fd->dentry, fd->offset)) {
+                FD_SET(i, writefds);
+            }
+        }
+    }
+
+    return_with_val(0);
 }
 
 /**
