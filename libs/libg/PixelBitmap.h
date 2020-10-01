@@ -15,11 +15,11 @@ public:
     ~PixelBitmap()
     {
         if (m_should_free) {
-            free(m_data);
+            delete m_data;
         }
     }
 
-    PixelBitmap& operator=(PixelBitmap&& moved_bitmap) noexcept
+    inline PixelBitmap& operator=(PixelBitmap&& moved_bitmap) noexcept
     {
         m_data = moved_bitmap.m_data;
         m_width = moved_bitmap.m_width;

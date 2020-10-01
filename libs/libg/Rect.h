@@ -1,22 +1,24 @@
 #pragma once
 
+#include <sys/types.h>
+
 namespace LG {
 
 class Rect {
 public:
-    Rect(int x, int y, int width, int height);
+    Rect(int x, int y, size_t width, size_t height);
     ~Rect() { }
 
-    int x() const { return m_x; }
-    int y() const { return m_y; }
-    int width() const { return m_width; }
-    int height() const { return m_height; }
+    inline int x() const { return m_x; }
+    inline int y() const { return m_y; }
+    inline size_t width() const { return m_width; }
+    inline size_t height() const { return m_height; }
 
 private:
     int m_x;
     int m_y;
-    int m_width;
-    int m_height;
+    size_t m_width;
+    size_t m_height;
 };
 
 }
