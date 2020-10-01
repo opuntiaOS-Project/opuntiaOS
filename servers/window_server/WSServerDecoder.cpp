@@ -7,8 +7,8 @@
  */
 
 #include "WSServerDecoder.h"
-#include "Compositor.h"
 #include "Window.h"
+#include "WindowManager.h"
 
 UniquePtr<Message> WServerDecoder::handle(const GreetMessage& msg)
 {
@@ -17,13 +17,14 @@ UniquePtr<Message> WServerDecoder::handle(const GreetMessage& msg)
 
 UniquePtr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
 {
-    int win_id = Compositor::the().windows().size();
-    Compositor::the().add_window(Window(win_id, msg));
+    auto& wm = WindowManager::the();
+    int win_id = wm.windows().size();
+    wm.add_window(Window(win_id, msg));
     return new CreateWindowMessageReply(win_id);
 }
 
 UniquePtr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
 {
-    Compositor::the().window(msg.windows_id()).set_buffer(msg.buffer_id());
+    WindowManager::the().window(msg.windows_id()).set_buffer(msg.buffer_id());
     return nullptr;
 }

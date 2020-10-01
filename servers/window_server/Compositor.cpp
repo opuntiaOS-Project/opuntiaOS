@@ -8,6 +8,7 @@
 
 #include "Compositor.h"
 #include "Screen.h"
+#include "WindowManager.h"
 #include <libg/PixelBitmap.h>
 
 static Compositor* s_the;
@@ -22,21 +23,17 @@ Compositor::Compositor()
     s_the = this;
 }
 
-void Compositor::add_window(Window&& window)
-{
-    m_windows.push_back(move(window));
-}
-
 void Compositor::refresh()
 {
     auto& screen = Screen::the();
+    auto& wm = WindowManager::the();
 
     for (int i = 0; i < 1024 * 768; i++) {
         screen.write_bitmap().data()[i] = 0x00FeeeeF; // background
     }
 
-    for (int win = 0; win < m_windows.size(); win++) {
-        screen.write_bitmap().draw(m_windows[win].x(), m_windows[win].y(), m_windows[win].bitmap());
+    for (int win = 0; win < wm.windows().size(); win++) {
+        screen.write_bitmap().draw(wm.windows()[win].x(), wm.windows()[win].y(), wm.windows()[win].bitmap());
     }
     screen.swap_buffers();
 }
