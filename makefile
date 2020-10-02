@@ -144,7 +144,12 @@ LIBG_PATH = libs/libg
 LIBG_SRC=$(shell find $(LIBG_PATH) -name "*.cpp")
 LIBG_OBJ=$(patsubst %.cpp,%.o,$(LIBG_SRC))
 
-LIBRARIES_ALL = $(LIBC) $(LIBCXX) $(LIBUI) $(LIBG)
+LIBFOUNDATION = $(LIB_PATH)/libfoundation.a
+LIBFOUNDATION_PATH = libs/libg
+LIBFOUNDATION_SRC=$(shell find $(LIBFOUNDATION_PATH) -name "*.cpp")
+LIBFOUNDATION_OBJ=$(patsubst %.cpp,%.o,$(LIBFOUNDATION_SRC))
+
+LIBRARIES_ALL = $(LIBC) $(LIBCXX) $(LIBUI) $(LIBG) $(LIBFOUNDATION)
 LIBRARIES = $(LIBC)
 
 # LIB C
@@ -191,6 +196,17 @@ ${LIBG}: ${LIBG_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
 	${QUIET} ${AR} -rcs $@ $^
 
+# LIB Foundation
+
+${LIBFOUNDATION_PATH}/%.o: ${LIBFOUNDATION_PATH}/%.cpp
+	@mkdir -p $(LIB_PATH)
+	@echo "$(notdir $(CURDIR)): C++ $@"
+	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+
+${LIBFOUNDATION}: ${LIBFOUNDATION_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
+	@echo "$(notdir $(CURDIR)): [AR] $@"
+	${QUIET} ${AR} -rcs $@ $^
+
 # --- CRTs ------------------------------------------------------------------- #
 
 CRTS = libs/crt0.o \
@@ -206,7 +222,7 @@ WINDOW_SERVER_PATH = servers/window_server
 WINDOW_SERVER_SRC=$(shell find $(WINDOW_SERVER_PATH) -name "*.cpp")
 WINDOW_SERVER_OBJ=$(patsubst %.cpp,%.o,$(WINDOW_SERVER_SRC))
 WINDOW_SERVER_IPC=$(WINDOW_SERVER_PATH)/WSConnection.h
-WINDOW_SERVER_DEPENDENCIES = ${BASE_DIR}/lib/libcxx.a ${BASE_DIR}/lib/libg.a
+WINDOW_SERVER_DEPENDENCIES = ${BASE_DIR}/lib/libcxx.a ${BASE_DIR}/lib/libg.a ${BASE_DIR}/lib/libfoundation.a
 
 SERVERS = $(WINDOW_SERVER)
 
