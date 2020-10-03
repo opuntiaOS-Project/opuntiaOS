@@ -7,6 +7,8 @@ namespace Algo {
 template <class T>
 class Vector {
 public:
+    typedef T* iterator;
+
     Vector()
     {
         grow(m_capacity);
@@ -25,7 +27,7 @@ public:
     inline void push_back(T&& el)
     {
         ensure_capacity(size() + 1);
-        m_data[m_size] = move(el);
+        new (end()) T(move(el));
         m_size++;
     }
 
@@ -36,12 +38,11 @@ public:
 
     inline const T& at(size_t i) const
     {
-        // ASSERT(i < m_size);
         return data()[i];
     }
+
     inline T& at(size_t i)
     {
-        // ASSERT(i < m_size);
         return data()[i];
     }
 
@@ -90,6 +91,8 @@ private:
         }
         m_capacity = capacity;
     }
+
+    inline T* end() { return m_data + m_size; }
 
     size_t m_size { 0 };
     size_t m_capacity { 16 };
