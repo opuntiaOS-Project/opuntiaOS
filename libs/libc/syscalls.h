@@ -2,6 +2,7 @@
 #define __oneOS__LibC__SYSCALLS_H
 
 #include <sys/_structs.h>
+#include <sys/time.h>
 #include <sys/types.h>
 
 int open(const char* pathname, int flags);
@@ -31,6 +32,7 @@ int getdents(int fd, char* buf, int len);
 int ioctl(int fd, uint32_t cmd, uint32_t arg);
 int setpgid(pid_t cmd, pid_t arg);
 pid_t getpgid(pid_t arg);
+int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout);
 
 int system_pthread_create(thread_create_params_t* params);
 

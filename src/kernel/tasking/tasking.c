@@ -265,7 +265,6 @@ int tasking_waitpid(int pid)
     }
     thread->joinee = joinee_thread;
     init_join_blocker(thread);
-    resched();
     return 0;
 }
 

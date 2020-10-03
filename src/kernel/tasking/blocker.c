@@ -9,6 +9,7 @@
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <time/time_manager.h>
+#include <log.h>
 
 int should_unblock_join_block(thread_t* thread)
 {
@@ -26,6 +27,7 @@ int init_join_blocker(thread_t* thread)
     thread->blocker.should_unblock = should_unblock_join_block;
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
+    resched();
     return 0;
 }
 
@@ -37,11 +39,17 @@ int should_unblock_read_block(thread_t* thread)
 int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 {
     thread->blocker_fd = bfd;
+
+    if (should_unblock_read_block(thread)) {
+        return 0;
+    }
+
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_READ;
     thread->blocker.should_unblock = should_unblock_read_block;
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
+    resched();
     return 0;
 }
 
@@ -53,33 +61,45 @@ int should_unblock_write_block(thread_t* thread)
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
 {
     thread->blocker_fd = bfd;
+
+    if (should_unblock_write_block(thread)) {
+        return 0;
+    }
+
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_WRITE;
     thread->blocker.should_unblock = should_unblock_write_block;
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
+    resched();
     return 0;
 }
 
 int should_unblock_sleep_block(thread_t* thread)
 {
-    return thread->unblock_time < timeman_now();
+    return thread->unblock_time <= timeman_now();
 }
 
 int init_sleep_blocker(thread_t* thread, uint32_t time)
 {
     thread->unblock_time = timeman_now() + time;
+
+    if (should_unblock_sleep_block(thread)) {
+        return 0;
+    }
+
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_SLEEP;
     thread->blocker.should_unblock = should_unblock_sleep_block;
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
+    resched();
     return 0;
 }
 
 int should_unblock_select_block(thread_t* thread)
 {
-    if (thread->unblock_time != 0 && thread->unblock_time < timeman_now()) {
+    if (thread->unblock_time != 0 && thread->unblock_time <= timeman_now()) {
         return true;
     }
 
@@ -124,10 +144,16 @@ int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t*
         thread->unblock_time = timeman_now() + timeout->tv_sec;
     }
     thread->nfds = nfds;
+
+    if (should_unblock_select_block(thread)) {
+        return 0;
+    }
+
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_SELECT;
     thread->blocker.should_unblock = should_unblock_select_block;
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
+    resched();
     return 0;
 }

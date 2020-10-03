@@ -145,7 +145,7 @@ LIBG_SRC=$(shell find $(LIBG_PATH) -name "*.cpp")
 LIBG_OBJ=$(patsubst %.cpp,%.o,$(LIBG_SRC))
 
 LIBFOUNDATION = $(LIB_PATH)/libfoundation.a
-LIBFOUNDATION_PATH = libs/libg
+LIBFOUNDATION_PATH = libs/libfoundation
 LIBFOUNDATION_SRC=$(shell find $(LIBFOUNDATION_PATH) -name "*.cpp")
 LIBFOUNDATION_OBJ=$(patsubst %.cpp,%.o,$(LIBFOUNDATION_SRC))
 

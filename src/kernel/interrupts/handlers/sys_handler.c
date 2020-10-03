@@ -158,7 +158,6 @@ void sys_read(trapframe_t* tf)
     /* If we can't read right now, let's block until we can */
     if (!vfs_can_read(fd)) {
         init_read_blocker(RUNNIG_THREAD, fd);
-        resched();
     }
 
     int res = vfs_read(fd, (uint8_t*)param2, (uint32_t)param3);
@@ -175,7 +174,6 @@ void sys_write(trapframe_t* tf)
 
     if (!vfs_can_write(fd)) {
         init_write_blocker(RUNNIG_THREAD, fd);
-        resched();
     }
 
     int res = vfs_write(fd, (uint8_t*)param2, (uint32_t)param3);
@@ -348,7 +346,6 @@ void sys_select(trapframe_t* tf)
     }
 
     init_select_blocker(RUNNIG_THREAD, nfds, readfds, writefds, exceptfds, timeout);
-    resched();
 
     FD_ZERO(readfds);
     FD_ZERO(writefds);
@@ -473,7 +470,6 @@ void sys_sleep(trapframe_t* tf)
     time_t time = param1;
 
     init_sleep_blocker(RUNNIG_THREAD, time);
-    resched();
 
     return_with_val(0);
 }
