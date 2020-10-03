@@ -10,6 +10,7 @@
 #include "Connection.h"
 #include "Screen.h"
 #include "WindowManager.h"
+#include <libfoundation/EventLoop.h>
 #include <malloc.h>
 #include <pthread.h>
 #include <syscalls.h>
@@ -21,13 +22,11 @@ void event_loop()
 
 int main()
 {
+    auto event_loop = new LFoundation::EventLoop();
     new Screen();
     new WindowManager();
     new Compositor();
     new Connection(socket(PF_LOCAL, 0, 0));
-    pthread_create((void*)event_loop);
-    for (;;) {
-        Compositor::the().refresh();
-    }
+    event_loop->run();
     return 0;
 }

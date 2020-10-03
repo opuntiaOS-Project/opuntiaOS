@@ -1,6 +1,5 @@
-#ifndef __oneOS__LibCXX__ERRNO_H
-#define __oneOS__LibCXX__ERRNO_H
+#pragma once
 
-#include "../../../include/errno.h"
-
-#endif
+extern "C" {
+#include <libc/sys/errno.h>
+}

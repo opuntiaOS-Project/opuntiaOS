@@ -17,11 +17,9 @@ public:
     static Connection& the();
     Connection(int connection_fd);
 
-    void listen()
+    inline void listen()
     {
-        while (1) {
-            m_connection_with_clients.pump_messages();
-        }
+        m_connection_with_clients.pump_messages();
     }
 
 private:

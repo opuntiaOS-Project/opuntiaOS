@@ -9,14 +9,18 @@
 #pragma once
 
 #include "Event.h"
+#include <memory.h>
+#include <syscalls.h>
 
 namespace LFoundation {
 
 class EventReceiver {
 public:
-    virtual void receive_event(UniquePtr<Event> event);
+    EventReceiver() { }
+    ~EventReceiver() { }
+    virtual void receive_event(UniquePtr<Event> event) {}
+
 private:
-    
 };
 
 }

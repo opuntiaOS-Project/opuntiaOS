@@ -7,6 +7,7 @@
  */
 
 #include "Connection.h"
+#include <libfoundation/EventLoop.h>
 
 static Connection* s_the;
 
@@ -23,4 +24,7 @@ Connection::Connection(int connection_fd)
 {
     s_the = this;
     bind(m_connection_fd, "/win.sock", 9);
+    LFoundation::EventLoop::the().add(m_connection_fd, [] {
+        Connection::the().listen();
+    }, nullptr);
 }

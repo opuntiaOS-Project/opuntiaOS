@@ -34,21 +34,32 @@ public:
     ~FDWaiterWriteEvent() { }
 };
 
-class FDWaiter : EventReceiver {
+class FDWaiter : public EventReceiver {
 public:
     friend class EventLoop;
-    FDWaiter(int fd, Function<void()> on_read, Function<void()> on_write)
-        : m_fd(fd)
+
+    FDWaiter(int fd, void (*on_read)(), void (*on_write)())
+        : EventReceiver()
+        , m_fd(fd)
         , m_on_read(on_read)
         , m_on_write(on_write)
     {
     }
 
     FDWaiter(FDWaiter&& fdw)
-        : m_fd(fdw.m_fd)
+        : EventReceiver()
+        , m_fd(fdw.m_fd)
         , m_on_read(fdw.m_on_read)
         , m_on_write(fdw.m_on_write)
     {
+    }
+
+    FDWaiter& operator=(const FDWaiter& fdw)
+    {
+        m_fd = fdw.m_fd;
+        m_on_read = fdw.m_on_read;
+        m_on_write = fdw.m_on_write;
+        return *this;
     }
 
     FDWaiter& operator=(FDWaiter&& fdw)
@@ -72,34 +83,89 @@ public:
 
 private:
     int m_fd;
-    Function<void()> m_on_read;
-    Function<void()> m_on_write;
+    void (*m_on_read)();
+    void (*m_on_write)();
+};
+
+class TimerEvent final : public Event {
+public:
+    TimerEvent()
+        : Event(Event::Type::DeferredInvoke)
+    {
+    }
+    ~TimerEvent() { }
+};
+
+
+class Timer : public EventReceiver {
+public:
+    friend class EventLoop;
+
+    Timer(void (*callback)())
+        : EventReceiver()
+        , m_callback(callback)
+    {
+    }
+
+    Timer(const Timer& fdw)
+        : EventReceiver()
+        , m_callback(fdw.m_callback)
+    {
+    }
+
+    Timer(Timer&& fdw)
+        : EventReceiver()
+        , m_callback(fdw.m_callback)
+    {
+    }
+
+    Timer& operator=(const Timer& fdw)
+    {
+        m_callback = fdw.m_callback;
+        return *this;
+    }
+
+    Timer& operator=(Timer&& fdw)
+    {
+        m_callback = fdw.m_callback;
+        return *this;
+    }
+
+    inline bool expired() { return true; } // FIXME
+    
+    void receive_event(UniquePtr<Event> event) override
+    {
+        m_callback();
+    }
+
+private:
+    void (*m_callback)();
 };
 
 class QueuedEvent {
 public:
     friend class EventLoop;
-    QueuedEvent(EventReceiver& rec, UniquePtr<Event>&& ptr)
-        : event(move(ptr))
+    QueuedEvent(EventReceiver& rec, Event* ptr)
+        : event(ptr)
         , receiver(rec)
     {
     }
 
     QueuedEvent(QueuedEvent&& qe)
-        : event(move(qe.event))
+        : event(qe.event)
         , receiver(qe.receiver)
     {
     }
 
     QueuedEvent& operator=(QueuedEvent&& qe)
     {
-        event = qe.event.release();
+        event = qe.event;
         receiver = qe.receiver;
         return *this;
     }
 
     EventReceiver& receiver;
-    UniquePtr<Event> event;
+    Event* event { nullptr };
 };
 
 class EventLoop {
@@ -107,22 +173,34 @@ public:
     static EventLoop& the();
     EventLoop();
 
-    inline void add(int fd, Function<void()> on_read, Function<void()> on_write)
+    inline void add(int fd, void (*on_read)(), void (*on_write)())
     {
         m_waiting_fds.push_back(FDWaiter(fd, on_read, on_write));
     }
 
-    inline void add(EventReceiver& rec, UniquePtr<Event>&& ptr)
+    inline void add(const Timer& timer)
     {
-        m_event_queue.push_back(QueuedEvent(rec, move(ptr)));
+        m_timers.push_back(timer);
+    }
+
+    inline void add(Timer&& timer)
+    {
+        m_timers.push_back(move(timer));
+    }
+
+    inline void add(EventReceiver& rec, Event* ptr)
+    {
+        m_event_queue.push_back(QueuedEvent(rec, ptr));
     }
 
     void check_fds();
+    void check_timers();
     void pump();
     void run();
 
 private:
     Vector<FDWaiter> m_waiting_fds;
+    Vector<Timer> m_timers;
     Vector<QueuedEvent> m_event_queue;
 };
 }

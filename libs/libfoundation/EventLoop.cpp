@@ -9,6 +9,7 @@
 #pragma once
 #include "EventLoop.h"
 #include <cstring.h>
+#include <memory.h>
 #include <sys/time.h>
 #include <syscalls.h>
 
@@ -66,12 +67,25 @@ void EventLoop::check_fds()
     }
 }
 
+void EventLoop::check_timers()
+{
+    for (int i = 0; i < m_timers.size(); i++) {
+        if (m_timers[i].expired()) {
+            m_event_queue.push_back(QueuedEvent(m_timers[i], new TimerEvent()));
+        }
+    }
+}
+
+// FIXME!
+static int watched = 0;
+
 void EventLoop::pump()
 {
     check_fds();
-    auto events_to_dispatch = move(m_event_queue);
-    for (int i = 0; i < events_to_dispatch.size(); i++) {
-        events_to_dispatch[i].receiver.receive_event(move(events_to_dispatch[i].event));
+    check_timers();
+    // auto events_to_dispatch = move(m_event_queue);
+    for (int i = watched; i < m_event_queue.size(); i++, watched++) {
+        m_event_queue[i].receiver.receive_event(m_event_queue[i].event);
     }
 }
 

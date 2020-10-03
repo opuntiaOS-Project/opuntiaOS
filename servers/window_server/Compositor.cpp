@@ -9,6 +9,7 @@
 #include "Compositor.h"
 #include "Screen.h"
 #include "WindowManager.h"
+#include <libfoundation/EventLoop.h>
 #include <libg/PixelBitmap.h>
 
 static Compositor* s_the;
@@ -21,6 +22,9 @@ Compositor& Compositor::the()
 Compositor::Compositor()
 {
     s_the = this;
+    LFoundation::EventLoop::the().add(LFoundation::Timer([] {
+        Compositor::the().refresh();
+    }));
 }
 
 void Compositor::refresh()
