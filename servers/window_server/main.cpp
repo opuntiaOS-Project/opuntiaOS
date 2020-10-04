@@ -8,6 +8,7 @@
 
 #include "Compositor.h"
 #include "Connection.h"
+#include "Devices.h"
 #include "Screen.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
@@ -26,6 +27,7 @@ int main()
     new Screen();
     new WindowManager();
     new Compositor();
+    new Devices();
     new Connection(socket(PF_LOCAL, 0, 0));
     event_loop->run();
     return 0;

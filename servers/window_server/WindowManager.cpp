@@ -7,6 +7,7 @@
  */
 
 #include "WindowManager.h"
+#include "Screen.h"
 
 static WindowManager* s_the;
 
@@ -16,6 +17,7 @@ WindowManager& WindowManager::the()
 }
 
 WindowManager::WindowManager()
+    : m_screen(Screen::the())
 {
     s_the = this;
 }

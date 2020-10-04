@@ -119,14 +119,11 @@ void mouse_handler()
     uint8_t x_overflow = (resp >> 6) & 1;
     uint8_t y_sign = (resp >> 5) & 1;
     uint8_t x_sign = (resp >> 4) & 1;
-    uint8_t is_mid_button_pressed = (resp >> 2) & 1;
-    uint8_t is_right_button_pressed = (resp >> 1) & 1;
-    uint8_t is_left_button_pressed = (resp >> 0) & 1;
 
     mouse_packet_t packet;
     packet.x_offset = xm;
     packet.y_offset = ym;
-    packet.button_states = 0;
+    packet.button_states = resp & 0b111;
 
     if (packet.x_offset && x_sign) {
         packet.x_offset -= 0x100;
@@ -138,10 +135,6 @@ void mouse_handler()
         packet.x_offset = 0;
         packet.y_offset = 0;
     }
-
-    packet.button_states |= (is_left_button_pressed);
-    packet.button_states |= (is_right_button_pressed << 1);
-    packet.button_states |= (is_mid_button_pressed << 2);
 
     ringbuffer_write(&mouse_buffer, (uint8_t*)&packet, sizeof(mouse_packet_t));
 

@@ -20,8 +20,8 @@ public:
     void swap_buffers();
     void run();
 
-    inline uint32_t width() const { return m_width; }
-    inline uint32_t height() const { return m_height; }
+    inline size_t width() const { return m_width; }
+    inline size_t height() const { return m_height; }
     inline uint32_t depth() const { return m_depth; }
 
     inline LG::PixelBitmap& write_bitmap() { return *m_write_bitmap_ptr; }
@@ -31,8 +31,8 @@ public:
 
 private:
     int m_screen_fd;
-    uint32_t m_width;
-    uint32_t m_height;
+    size_t m_width;
+    size_t m_height;
     uint32_t m_depth;
 
     int m_active_buffer;

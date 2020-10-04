@@ -39,5 +39,17 @@ void Compositor::refresh()
     for (int win = 0; win < wm.windows().size(); win++) {
         screen.write_bitmap().draw(wm.windows()[win].x(), wm.windows()[win].y(), wm.windows()[win].bitmap());
     }
+
+    int ox = wm.mouse_x();
+    int oy = wm.mouse_y();
+    for (int i = 0; i < wm.cursor_size(); i++) {
+        for (int j = 0; j < wm.cursor_size(); j++) {
+            if (!wm.is_cursor_pressed()) {
+                screen.write_bitmap()[oy+i][ox+j] = 0x0000B4AB; // background
+            } else {
+                screen.write_bitmap()[oy+i][ox+j] = 0x00ABB400;
+            }
+        }
+    }
     screen.swap_buffers();
 }
