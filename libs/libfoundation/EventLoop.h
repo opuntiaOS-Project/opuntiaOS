@@ -10,7 +10,6 @@
 #include "Event.h"
 #include "EventReceiver.h"
 #include <memory.h>
-#include <std/Function.h>
 #include <std/Vector.h>
 #include <syscalls.h>
 
