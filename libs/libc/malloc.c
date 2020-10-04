@@ -101,10 +101,10 @@ void free(void* mem)
 
     mem_header->free = true;
 
-    // trying to glue freed chunk with its neigbors
+    // Trying to glue the freed chunk with its neighbours.
     if (mem_header->next && mem_header->next->free) {
-        mem_header->next = mem_header->next->next;
         mem_header->size += mem_header->next->size + sizeof(malloc_header_t);
+        mem_header->next = mem_header->next->next;
     } else if (mem_header->prev && mem_header->prev->free) {
         mem_header->prev->size += mem_header->size + sizeof(malloc_header_t);
         mem_header->prev->next = mem_header->next;
