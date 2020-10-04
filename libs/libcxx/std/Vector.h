@@ -19,9 +19,47 @@ public:
         grow(capacity);
     }
 
+    Vector(const Vector& v)
+    {
+        grow(v.m_capacity);
+        m_size = v.m_size;
+        copy(m_data, v.m_data, m_size);
+    }
+
+    Vector(Vector&& v)
+    {
+        m_size = v.m_size;
+        m_capacity = v.m_capacity;
+        m_data = v.m_data;
+        v.m_size = v.m_capacity = 0;
+        v.m_data = nullptr;
+    }
+
     ~Vector()
     {
         clear();
+    }
+
+    Vector& operator=(const Vector& v)
+    {
+        grow(v.m_capacity);
+        m_size = v.m_size;
+        copy(m_data, v.m_data, m_size);
+        return *this;
+    }
+
+    Vector& operator=(Vector&& v)
+    {
+        if (this != &v) {
+            clear();
+            m_size = v.m_size;
+            m_capacity = v.m_capacity;
+            m_data = v.m_data;
+            v.m_size = 0;
+            v.m_capacity = 0;
+            v.m_data = nullptr;
+        }
+        return *this;
     }
 
     inline void push_back(T&& el)
@@ -76,20 +114,37 @@ public:
 private:
     inline void ensure_capacity(size_t new_size)
     {
-        if (new_size > m_capacity) {
+        if (m_capacity == 0) {
+            grow(16);
+        } else if (new_size > m_capacity) {
             grow(m_capacity * 2);
         }
     }
 
     void grow(size_t capacity)
     {
-        T* old_ptr = m_data;
-        if (!old_ptr) {
+        if (!m_data) {
             m_data = (T*)malloc(capacity * sizeof(T));
         } else {
-            m_data = (T*)realloc((void*)old_ptr, capacity * sizeof(T));
+            auto new_buf = (T*)malloc(capacity * sizeof(T));
+
+            for (size_t i = 0; i < m_size; i++) {
+                new (&new_buf[i]) T(move(at(i)));
+                at(i).~T();
+            }
+            free(m_data);
+            m_data = new_buf;
         }
         m_capacity = capacity;
+    }
+
+    void copy(T* to, T* from, size_t len)
+    {
+        for (size_t i = 0; i < len; i++) {
+            new (to) T(*from);
+            to++;
+            from++;
+        }
     }
 
     inline T* end() { return m_data + m_size; }
