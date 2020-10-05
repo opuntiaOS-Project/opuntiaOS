@@ -456,6 +456,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE] = devfs_can_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = devfs_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = devfs_write;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = devfs_mkdir_dummy;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RMDIR] = devfs_rmdir_dummy;
     fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = 0;

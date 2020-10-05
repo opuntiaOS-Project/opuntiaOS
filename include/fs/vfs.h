@@ -82,6 +82,7 @@ struct file_ops {
     bool (*can_write)(dentry_t*, uint32_t start);
     int (*read)(dentry_t*, uint8_t*, uint32_t, uint32_t);
     int (*write)(dentry_t*, uint8_t*, uint32_t, uint32_t);
+    int (*truncate)(dentry_t*, uint32_t);
     int (*create)(dentry_t* dentry, const char* name, uint32_t len, mode_t mode);
     int (*unlink)(dentry_t* dentry);
     int (*getdents)(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);

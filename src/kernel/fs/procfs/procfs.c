@@ -56,6 +56,7 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = 0;
 

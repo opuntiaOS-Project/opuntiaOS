@@ -146,6 +146,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.file.can_write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
     new_fs.file.read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ];
     new_fs.file.write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+    new_fs.file.truncate = new_driver->desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE];
     new_fs.file.create = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CREATE];
     new_fs.file.unlink = new_driver->desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
     new_fs.file.ioctl = new_driver->desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
@@ -297,6 +298,13 @@ int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t len)
     if (written > 0) {
         fd->offset += written;
     }
+
+    if (fd->flags & O_TRUNC) {
+        if (fd->ops->truncate) {
+            fd->ops->truncate(fd->dentry, fd->offset);
+        }
+    }
+
     return written;
 }
 

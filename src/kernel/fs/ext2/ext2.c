@@ -94,6 +94,7 @@ fsdata_t get_fsdata(dentry_t* dentry);
 
 int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+int ext2_truncate(dentry_t* dentry, uint32_t len);
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx);
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
@@ -525,7 +526,7 @@ static int _ext2_get_dir_entries_count_in_block(vfs_device_t* dev, fsdata_t fsda
     for (;;) {
         dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + internal_offset);
         internal_offset += start_of_entry->rec_len;
-        
+
         if (start_of_entry->inode != 0) {
             result++;
         }
@@ -822,8 +823,8 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     uint32_t read_offset = start % block_len;
     uint32_t already_read = 0;
 
-    for (uint32_t block_index = start_block_index; block_index <= end_block_index; block_index++) {
-        uint32_t data_block_index = _ext2_get_block_of_inode(dentry, block_index);
+    for (uint32_t virt_block_index = start_block_index; virt_block_index <= end_block_index; virt_block_index++) {
+        uint32_t data_block_index = _ext2_get_block_of_inode(dentry, virt_block_index);
         uint32_t read_from_block = MIN(have_to_read, block_len - read_offset);
         _ext2_read_from_dev(dentry->dev, buf + already_read, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + read_offset, read_from_block);
         have_to_read -= read_from_block;
@@ -844,13 +845,13 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     uint32_t already_written = 0;
     uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
 
-    for (uint32_t data_block_index, block_index = start_block_index; block_index <= end_block_index; block_index++) {
+    for (uint32_t data_block_index, virt_block_index = start_block_index; virt_block_index <= end_block_index; virt_block_index++) {
         uint32_t write_to_block = MIN(to_write, block_len - write_offset);
 
-        if (blocks_allocated <= block_index) {
+        if (blocks_allocated <= virt_block_index) {
             _ext2_allocate_block_for_inode(dentry, 0, &data_block_index);
         } else {
-            data_block_index = _ext2_get_block_of_inode(dentry, block_index);
+            data_block_index = _ext2_get_block_of_inode(dentry, virt_block_index);
         }
 
         _ext2_write_to_dev(dentry->dev, buf + already_written, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + write_offset, write_to_block);
@@ -859,13 +860,36 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         write_offset = 0;
     }
 
-    if (dentry->inode->size != start + len) {
+    if (dentry->inode->size < start + len) {
         dentry->inode->size = start + len;
     }
     dentry->inode->mtime = (uint32_t)timeman_now();
     dentry_set_flag(dentry, DENTRY_DIRTY);
 
     return already_written;
+}
+
+int ext2_truncate(dentry_t* dentry, uint32_t len)
+{
+    if (dentry->inode->size <= len) {
+        return 0;
+    }
+
+    const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
+    const uint32_t last_written_byte = len - 1;
+    uint32_t last_written_block_index = last_written_byte / block_len;
+    uint32_t start_block_index = last_written_block_index + 1;
+    uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
+
+    for (uint32_t block_index, virt_block_index = start_block_index; virt_block_index < blocks_allocated; virt_block_index++) {
+        block_index = _ext2_get_block_of_inode(dentry, virt_block_index);
+        _ext2_free_block_index(dentry->dev, dentry->fsdata, block_index);
+    }
+    
+    dentry->inode->size = len;
+    dentry->inode->mtime = (uint32_t)timeman_now();
+    dentry_set_flag(dentry, DENTRY_DIRTY);
+    return 0;
 }
 
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
@@ -918,7 +942,7 @@ int ext2_rmdir(dentry_t* dir)
         dir->inode->links_count--;
         return 0;
     }
-    
+
     return -ENOTEMPTY;
 }
 
@@ -1087,6 +1111,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE] = ext2_can_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = ext2_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = ext2_write;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = ext2_truncate;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = ext2_mkdir;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RMDIR] = ext2_rmdir;
     fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = ext2_save_state;
