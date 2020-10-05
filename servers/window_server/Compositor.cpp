@@ -45,7 +45,7 @@ void Compositor::refresh()
     for (int i = 0; i < wm.cursor_size(); i++) {
         for (int j = 0; j < wm.cursor_size(); j++) {
             if (!wm.is_cursor_pressed()) {
-                screen.write_bitmap()[oy+i][ox+j] = 0x0000B4AB; // background
+                screen.write_bitmap()[oy+i][ox+j] = 0x0000B4AB;
             } else {
                 screen.write_bitmap()[oy+i][ox+j] = 0x00ABB400;
             }

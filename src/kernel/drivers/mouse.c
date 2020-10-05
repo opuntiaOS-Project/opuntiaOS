@@ -111,6 +111,10 @@ static inline void _mouse_enable_aux()
 
 void mouse_handler()
 {
+    uint8_t status = port_8bit_in(0x64);
+    if ((status & 0x1) == 0 || (status & 0x20) != 0x20) {
+        return;
+    }
     uint8_t resp = port_8bit_in(0x60);
     uint8_t xm = port_8bit_in(0x60);
     uint8_t ym = port_8bit_in(0x60);
