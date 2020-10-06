@@ -35,28 +35,7 @@ public:
 
     inline Vector<Window>& windows() { return m_windows; }
 
-    void receive_event(UniquePtr<LFoundation::Event> event) override
-    {
-        if (event->type() == WSEvent::Type::MouseEvent) {
-            auto mouse_event = reinterpret_cast<MouseEvent*>(event.release());
-            m_mouse_x += mouse_event->packet().x_offset;
-            m_mouse_y -= mouse_event->packet().y_offset;
-            if (m_mouse_x < 0) {
-                m_mouse_x = 0;
-            }
-            if (m_mouse_y < 0) {
-                m_mouse_y = 0;
-            }
-            if (m_mouse_x >= m_screen.width() - cursor_size()) {
-                m_mouse_x = m_screen.width() - cursor_size();
-            }
-            if (m_mouse_y >= m_screen.height() - cursor_size()) {
-                m_mouse_y = m_screen.height() - cursor_size();
-            }
-            
-            m_is_pressed = (mouse_event->packet().button_states & 1);
-        }
-    }
+    void receive_event(UniquePtr<LFoundation::Event> event) override;
 
     inline int mouse_x() const { return m_mouse_x; }
     inline int mouse_y() const { return m_mouse_y; }
@@ -64,9 +43,17 @@ public:
     constexpr int cursor_size() const { return 14; }
 
 private:
+
+    void start_window_move(Window& window);
+    bool continue_window_move(MouseEvent* mouse_event);
+    
+    void receive_mouse_event(UniquePtr<LFoundation::Event> event);
+
     int m_mouse_x { 0 };
     int m_mouse_y { 0 };
     bool m_is_pressed { false };
     Vector<Window> m_windows;
     Screen& m_screen;
+    
+    WeakPtr<Window> m_movable_window;
 };
