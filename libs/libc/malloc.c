@@ -2,8 +2,8 @@
 #include <string.h>
 #include <syscalls.h>
 
-static void* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
-static uint8_t allocated_blocks;
+static malloc_header_t* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
+static size_t allocated_blocks;
 
 static int _alloc_new_block(size_t sz);
 
@@ -24,9 +24,10 @@ static int _alloc_new_block(size_t sz)
         return -1;
     }
     memory[allocated_blocks] = (void*)ret; // allocating a new block of memory
-    ((malloc_header_t*)memory[allocated_blocks])->free = true;
-    ((malloc_header_t*)memory[allocated_blocks])->next = 0;
-    ((malloc_header_t*)memory[allocated_blocks])->size = allocated_sz - sizeof(malloc_header_t);
+    memory[allocated_blocks]->free = true;
+    memory[allocated_blocks]->next = 0;
+    memory[allocated_blocks]->prev = 0;
+    memory[allocated_blocks]->size = allocated_sz - sizeof(malloc_header_t);
 
     allocated_blocks++;
     return 0;
@@ -39,8 +40,8 @@ static inline char _malloc_need_to_divide_space(malloc_header_t* space, size_t a
 
 static inline char _malloc_can_fit_allocation(malloc_header_t* space, size_t alloc_size)
 {
-    uint32_t size = alloc_size + (sizeof(malloc_header_t) & _malloc_need_to_divide_space(space, alloc_size));
-    return space->size >= size;
+    uint32_t add[] = { 0, sizeof(malloc_header_t) };
+    return space->size >= (alloc_size + add[_malloc_need_to_divide_space(space, alloc_size)]);
 }
 
 void* malloc(size_t sz)
@@ -58,7 +59,7 @@ void* malloc(size_t sz)
             break;
         }
     }
-    
+
     if (!first_fit) {
         int err = _alloc_new_block(sz);
         if (err) {
@@ -104,9 +105,17 @@ void free(void* mem)
     // Trying to glue the freed chunk with its neighbours.
     if (mem_header->next && mem_header->next->free) {
         mem_header->size += mem_header->next->size + sizeof(malloc_header_t);
+
+        if (mem_header->next->next) {
+            mem_header->next->next->prev = mem_header;
+        }
         mem_header->next = mem_header->next->next;
     } else if (mem_header->prev && mem_header->prev->free) {
         mem_header->prev->size += mem_header->size + sizeof(malloc_header_t);
+
+        if (mem_header->next) {
+            mem_header->next->prev = mem_header->prev;
+        }
         mem_header->prev->next = mem_header->next;
     }
 }
