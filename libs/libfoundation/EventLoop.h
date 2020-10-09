@@ -95,7 +95,6 @@ public:
     ~TimerEvent() { }
 };
 
-
 class Timer : public EventReceiver {
 public:
     friend class EventLoop;
@@ -131,7 +130,7 @@ public:
     }
 
     inline bool expired() { return true; } // FIXME
-    
+
     void receive_event(UniquePtr<Event> event) override
     {
         m_callback();
@@ -151,20 +150,22 @@ public:
     }
 
     QueuedEvent(QueuedEvent&& qe)
-        : event(qe.event)
+        : event(move(qe.event))
         , receiver(qe.receiver)
     {
     }
 
     QueuedEvent& operator=(QueuedEvent&& qe)
     {
-        event = qe.event;
+        event = move(qe.event);
         receiver = qe.receiver;
         return *this;
     }
 
+    ~QueuedEvent() { }
+
     EventReceiver& receiver;
-    Event* event { nullptr };
+    UniquePtr<Event> event { nullptr };
 };
 
 class EventLoop {

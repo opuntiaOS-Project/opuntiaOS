@@ -82,7 +82,7 @@ void EventLoop::pump()
     check_timers();
     Vector<QueuedEvent> events_to_dispatch(move(m_event_queue));
     for (int i = 0; i < events_to_dispatch.size(); i++) {
-        events_to_dispatch[i].receiver.receive_event(events_to_dispatch[i].event);
+        events_to_dispatch[i].receiver.receive_event(move(events_to_dispatch[i].event));
     }
 }
 

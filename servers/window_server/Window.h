@@ -22,8 +22,8 @@ public:
     void set_buffer(int buffer_id);
 
     inline int id() const { return m_id; }
-    inline int x() const { return m_bounds.x() + 500 * m_id; } // REMOVE
-    inline int y() const { return m_bounds.y() + 200 * m_id; } // REMOVE
+    inline int x() const { return m_bounds.x(); } // REMOVE
+    inline int y() const { return m_bounds.y(); } // REMOVE
     inline size_t width() const { return m_bounds.width(); } // REMOVE
     inline size_t height() const { return m_bounds.height(); } // REMOVE
 

@@ -48,9 +48,10 @@ bool WindowManager::continue_window_move(MouseEvent* mouse_event)
 
 void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
 {
-    auto mouse_event = reinterpret_cast<MouseEvent*>(event.release());
+    auto* mouse_event = (MouseEvent*)event.release();
 
     if (continue_window_move(mouse_event)) {
+        delete mouse_event;
         return;
     }
 
@@ -80,6 +81,7 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
             }
         }
     }
+    delete mouse_event;
 }
 
 void WindowManager::receive_event(UniquePtr<LFoundation::Event> event)
