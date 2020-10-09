@@ -84,5 +84,5 @@ public:
     explicit operator bool() const { return m_data; }
 
 private:
-    T* m_data;
+    T* m_data { nullptr };
 };

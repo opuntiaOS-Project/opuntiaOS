@@ -22,7 +22,7 @@ public:
     const T* ptr() const { return m_ptr; }
 
 private:
-    T* m_ptr;
+    T* m_ptr { nullptr };
 };
 
 template <typename T>
@@ -60,7 +60,7 @@ private:
     {
     }
 
-    WeakLink<T>* m_data;
+    WeakLink<T>* m_data { nullptr };
 };
 
 template <typename T>
