@@ -112,5 +112,6 @@ int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t*
  */
 
 int thread_dump_frame(thread_t* thread);
+int thread_print_backtrace();
 
 #endif /* __oneOS__X86__TASKING__THREAD_H */

@@ -8,10 +8,11 @@
 
 #include <errno.h>
 #include <fs/vfs.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
-#include <tasking/thread.h>
 #include <tasking/sched.h>
+#include <tasking/thread.h>
 #include <x86/gdt.h>
 #include <x86/tss.h>
 
@@ -69,7 +70,7 @@ int thread_setup_main(proc_t* p, thread_t* thread)
     if (!thread->kstack.start) {
         return -ENOMEM;
     }
-    
+
     thread->process = p;
     thread->tid = p->pid;
 
@@ -90,7 +91,7 @@ int thread_setup(proc_t* p, thread_t* thread)
     if (!thread->kstack.start) {
         return -ENOMEM;
     }
-    
+
     thread->process = p;
     thread->tid = proc_alloc_pid();
 
@@ -209,5 +210,18 @@ int thread_dump_frame(thread_t* thread)
         uint8_t byte = *(uint8_t*)i;
         uint32_t b32 = (uint32_t)byte;
         kprintf("%x - %x\n", i, b32);
+    }
+}
+
+int thread_print_backtrace()
+{
+    int id = 1;
+    log("# %d : %x", id++, RUNNIG_THREAD->tf->eip);
+    uint32_t* stack = (uint32_t*)RUNNIG_THREAD->tf->ebp;
+    for (; (uint32_t)stack > 0 && (uint32_t)stack <= 0xc0000000; stack = (uint32_t*)*stack) {
+        log("# %d : %x", id++, stack[1]);
+        if (stack[1] < 0xa) { // for now it's ok)
+            break;
+        }
     }
 }
