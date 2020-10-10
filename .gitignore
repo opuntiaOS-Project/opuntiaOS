@@ -1,4 +1,5 @@
 *.log
+*.map
 *.img
 products/
 *.o

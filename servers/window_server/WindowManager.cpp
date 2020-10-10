@@ -75,7 +75,7 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
     // FIXME!
     if (m_is_pressed) {
         for (int i = 0; i < m_windows.size(); i++) {
-            if (m_windows[i].bounds().contains(m_mouse_x, m_mouse_y)) {
+            if (m_windows[i].frame().bounds().contains(m_mouse_x, m_mouse_y)) {
                 start_window_move(m_windows[i]);
                 break;
             }

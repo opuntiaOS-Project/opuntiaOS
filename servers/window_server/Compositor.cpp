@@ -36,8 +36,13 @@ void Compositor::refresh()
         screen.write_bitmap().data()[i] = 0x00FeeeeF; // background
     }
 
+    auto draw_window = [&](Window& window) {
+        window.frame().draw(screen.write_bitmap());
+        screen.write_bitmap().draw(window.content_x(), window.content_y(), window.content_bitmap());
+    };
+
     for (int win = 0; win < wm.windows().size(); win++) {
-        screen.write_bitmap().draw(wm.windows()[win].x(), wm.windows()[win].y(), wm.windows()[win].bitmap());
+        draw_window(wm.windows()[win]);
     }
 
     int ox = wm.mouse_x();

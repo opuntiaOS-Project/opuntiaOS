@@ -40,4 +40,18 @@ void PixelBitmap::draw(int x, int y, const PixelBitmap& bitmap)
     }
 }
 
+void PixelBitmap::draw(int x, int y, const Rect& rect)
+{
+    for (size_t i = 0; i < rect.height(); i++) {
+        for (size_t j = 0; j < rect.width(); j++) {
+            int y_pos = y + i;
+            int x_pos = x + j;
+            if (x_pos < width() && y_pos < height()) {
+                (*this)[y_pos][x_pos] = 0x0; // black for now)
+            }
+        }
+    }
+}
+
+
 }

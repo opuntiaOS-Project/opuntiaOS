@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Color.h"
+#include "Rect.h"
 #include <libcxx/malloc.h>
 #include <libcxx/sys/types.h>
 
@@ -37,6 +38,7 @@ public:
     inline const Color* operator[](size_t i) const { return line(i); }
 
     void draw(int x, int y, const PixelBitmap& bitmap);
+    void draw(int x, int y, const Rect& rect);
 
 private:
     Color* m_data { nullptr };

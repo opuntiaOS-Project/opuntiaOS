@@ -6,7 +6,6 @@
  * Free Software Foundation.
  */
 
-#pragma once
 #include "EventLoop.h"
 #include <cstring.h>
 #include <memory.h>
