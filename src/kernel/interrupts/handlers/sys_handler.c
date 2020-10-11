@@ -155,10 +155,7 @@ void sys_read(trapframe_t* tf)
         return_with_val(-EBADF);
     }
 
-    /* If we can't read right now, let's block until we can */
-    if (!vfs_can_read(fd)) {
-        init_read_blocker(RUNNIG_THREAD, fd);
-    }
+    init_read_blocker(RUNNIG_THREAD, fd);
 
     int res = vfs_read(fd, (uint8_t*)param2, (uint32_t)param3);
     return_with_val(res);
@@ -172,9 +169,7 @@ void sys_write(trapframe_t* tf)
         return_with_val(-EBADF);
     }
 
-    if (!vfs_can_write(fd)) {
-        init_write_blocker(RUNNIG_THREAD, fd);
-    }
+    init_write_blocker(RUNNIG_THREAD, fd);
 
     int res = vfs_write(fd, (uint8_t*)param2, (uint32_t)param3);
     return_with_val(res);

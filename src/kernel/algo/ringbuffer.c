@@ -45,6 +45,7 @@ uint32_t ringbuffer_space_to_read(ringbuffer_t* buf)
 
 uint32_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, uint32_t start)
 {
+    start %= buf->zone.len;
     if (start <= buf->end) {
         return buf->end - start;
     } else {
@@ -81,6 +82,7 @@ uint32_t ringbuffer_read(ringbuffer_t* buf, uint8_t* holder, uint32_t siz)
 uint32_t ringbuffer_read_with_start(ringbuffer_t* buf, uint32_t start, uint8_t* holder, uint32_t siz)
 {
     uint32_t i = 0;
+    start %= buf->zone.len;
     if (start > buf->end) {
         for (; i < siz && start < buf->zone.len; i++, start++) {
             holder[i] = buf->zone.ptr[start];
@@ -121,6 +123,18 @@ uint32_t ringbuffer_write(ringbuffer_t* buf, const uint8_t* holder, uint32_t siz
     }
     for (; i < siz && buf->end < buf->start; i++, buf->end++) {
         buf->zone.ptr[buf->end] = holder[i];
+    }
+    return i;
+}
+
+uint32_t ringbuffer_write_ignore_bounds(ringbuffer_t* buf, const uint8_t* holder, uint32_t siz)
+{
+    uint32_t i = 0;
+    for (; i < siz; i++) {
+        buf->zone.ptr[buf->end++] = holder[i];
+        if (buf->end == buf->zone.len) {
+            buf->end = 0;
+        }
     }
     return i;
 }

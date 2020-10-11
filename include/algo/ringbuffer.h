@@ -29,6 +29,7 @@ uint32_t ringbuffer_space_to_write(ringbuffer_t* buf);
 uint32_t ringbuffer_read(ringbuffer_t* buf, uint8_t*, uint32_t);
 uint32_t ringbuffer_read_with_start(ringbuffer_t* buf, uint32_t start, uint8_t* holder, uint32_t siz);
 uint32_t ringbuffer_write(ringbuffer_t* buf, const uint8_t*, uint32_t);
+uint32_t ringbuffer_write_ignore_bounds(ringbuffer_t* buf, const uint8_t* holder, uint32_t siz);
 uint32_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data);
 uint32_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data);
 void ringbuffer_clear(ringbuffer_t* buf);

@@ -45,9 +45,10 @@ public:
 
     void pump_messages()
     {
-        char buf[512];
+        char buf[1024]; // TODO: Add vector to read more than 1024 bytes
+
         int read_cnt = read(m_connection_fd, buf, sizeof(buf));
-        if (!read_cnt) {
+        if (read_cnt <= 0) {
             return;
         }
 

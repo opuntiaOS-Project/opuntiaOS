@@ -48,15 +48,13 @@ int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t l
 
 bool local_socket_can_write(dentry_t* dentry, uint32_t start)
 {
-    socket_t* sock_entry = (socket_t*)dentry;
-    return ringbuffer_space_to_write(&sock_entry->buffer) != 0;
+    return true;
 }
 
 int local_socket_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
-
     socket_t* sock_entry = (socket_t*)dentry;
-    uint32_t written = ringbuffer_write(&sock_entry->buffer, buf, len);
+    uint32_t written = ringbuffer_write_ignore_bounds(&sock_entry->buffer, buf, len);
     return 0;
 }
 
