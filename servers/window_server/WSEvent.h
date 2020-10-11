@@ -9,6 +9,7 @@
 #pragma once
 
 #include <libfoundation/Event.h>
+#include <libipc/Message.h>
 #include <sys/types.h>
 
 class WSEvent : public LFoundation::Event {
@@ -16,6 +17,7 @@ public:
     enum Type {
         Invalid = 0x1000,
         MouseEvent,
+        SendEvent,
         Other,
     };
 
@@ -48,4 +50,22 @@ public:
 
 private:
     MousePacket m_packet;
+};
+
+class SendEvent : public WSEvent {
+public:
+    SendEvent(Message* msg)
+        : WSEvent(WSEvent::Type::SendEvent)
+        , m_message(msg)
+    {
+    }
+
+    ~SendEvent() { }
+
+    const UniquePtr<Message>& message() const { return m_message; }
+    UniquePtr<Message>& message() { return m_message; }
+
+private:
+    MousePacket m_packet;
+    UniquePtr<Message> m_message;
 };

@@ -17,7 +17,7 @@ def run(input_f, output_f):
     parser = Parser()
     gen = Generator()
     parser.set_code_lines(code)
-    gen.generate(output_f, parser.parse()[0])
+    gen.generate(output_f, parser.parse())
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

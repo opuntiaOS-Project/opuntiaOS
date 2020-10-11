@@ -174,17 +174,6 @@ ${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ) libs/libcxx/private/_init.o
 	@echo "$(notdir $(CURDIR)): [AR] $(LIBC_OBJ)"
 	${QUIET} ${AR} -rcs $@ $^ 
 
-# LIB UI
-
-${LIBUI_PATH}/%.o: ${LIBUI_PATH}/%.cpp servers/window_server/WSConnection.h
-	@mkdir -p $(LIB_PATH)
-	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
-
-${LIBUI}: ${LIBUI_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
-	@echo "$(notdir $(CURDIR)): [AR] $@"
-	${QUIET} ${AR} -rcs $@ $^
-
 # LIB Graphics
 
 ${LIBG_PATH}/%.o: ${LIBG_PATH}/%.cpp
@@ -204,6 +193,17 @@ ${LIBFOUNDATION_PATH}/%.o: ${LIBFOUNDATION_PATH}/%.cpp
 	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
 
 ${LIBFOUNDATION}: ${LIBFOUNDATION_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
+	@echo "$(notdir $(CURDIR)): [AR] $@"
+	${QUIET} ${AR} -rcs $@ $^
+
+# LIB UI
+
+${LIBUI_PATH}/%.o: ${LIBUI_PATH}/%.cpp servers/window_server/WSConnection.h
+	@mkdir -p $(LIB_PATH)
+	@echo "$(notdir $(CURDIR)): C++ $@"
+	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+
+${LIBUI}: ${LIBUI_OBJ} ${LIBG_OBJ} ${LIBFOUNDATION_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
 	${QUIET} ${AR} -rcs $@ $^
 
@@ -237,7 +237,7 @@ ${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp ${WINDOW_SERVER_IPC}
 
 $(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) ${WINDOW_SERVER_DEPENDENCIES}
 	@echo "Window Server [LD]  $@"
-	$(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary ${WINDOW_SERVER_DEPENDENCIES}
+	$(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary ${WINDOW_SERVER_DEPENDENCIES} -Map ws.map
 	
 # --- Apps ------------------------------------------------------------------ #
 

@@ -7,11 +7,13 @@
  */
 
 #pragma once
+#include "Connection.h"
 #include "Screen.h"
 #include "WSConnection.h"
 #include "WSEvent.h"
 #include "WSServerDecoder.h"
 #include "Window.h"
+#include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
 #include <std/Vector.h>
@@ -43,10 +45,9 @@ public:
     constexpr int cursor_size() const { return 14; }
 
 private:
-
     void start_window_move(Window& window);
     bool continue_window_move(MouseEvent* mouse_event);
-    
+
     void receive_mouse_event(UniquePtr<LFoundation::Event> event);
 
     int m_mouse_x { 0 };
@@ -54,6 +55,8 @@ private:
     bool m_is_pressed { false };
     Vector<Window> m_windows;
     Screen& m_screen;
-    
+    Connection& m_connection;
+    LFoundation::EventLoop& m_event_loop;
+
     WeakPtr<Window> m_movable_window;
 };

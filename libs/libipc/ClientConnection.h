@@ -1,11 +1,14 @@
 #pragma once
 #include "Message.h"
 #include "MessageDecoder.h"
+#include <libfoundation/Event.h>
+#include <libfoundation/EventLoop.h>
+#include <libfoundation/EventReceiver.h>
 #include <std/Vector.h>
 #include <syscalls.h>
 
 template <typename ServerDecoder, typename ClientDecoder>
-class ClientConnection {
+class ClientConnection : public LFoundation::EventReceiver {
 public:
     ClientConnection(int sock_fd, ServerDecoder& server_decoder, ClientDecoder& client_decoder)
         : m_connection_fd(sock_fd)
@@ -55,6 +58,26 @@ public:
                 m_messages.push_back(move(response));
             } else if (auto response = m_server_decoder.decode((buf + i), read_cnt - i, msg_len)) {
                 m_messages.push_back(move(response));
+            }
+        }
+
+        if (m_messages.size() > 0) {
+            // Note: We send an event to ourselves and use CallEvent to recognize the
+            // event as sign to start processing of messages.
+            LFoundation::EventLoop::the().add(*this, new LFoundation::CallEvent(0));
+        }
+    }
+
+    void receive_event(UniquePtr<LFoundation::Event> event) override
+    {
+        if (event->type() == LFoundation::Event::Type::DeferredInvoke) {
+            // Note: The event was sent from pump_messages() and callback of CallEvent is 0!
+            // Do NOT call callback here!
+            auto msg = move(m_messages);
+            for (int i = 0; i < msg.size(); i++) {
+                if (msg[i] && msg[i]->decoder_magic() == m_client_decoder.magic()) {
+                    m_client_decoder.handle(*msg[i]);
+                }
             }
         }
     }

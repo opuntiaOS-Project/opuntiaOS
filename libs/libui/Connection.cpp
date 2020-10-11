@@ -1,24 +1,24 @@
 #include "Window.h"
-#include <libui/WindowConnection.h>
+#include <libui/Connection.h>
 #include <libipc/ClientConnection.h>
 #include <malloc.h>
 #include <memory.h>
 #include <syscalls.h>
 
-namespace Window {
+namespace UI {
 
-static WindowConnection* s_the = 0;
+static Connection* s_the = 0;
 
-WindowConnection& WindowConnection::the()
+Connection& Connection::the()
 {
     // FIXME: Thread-safe method to be applied
     if (!s_the) {
-        new WindowConnection(socket(PF_LOCAL, 0, 0));
+        new Connection(socket(PF_LOCAL, 0, 0));
     }
     return *s_the;
 }
 
-WindowConnection::WindowConnection(int connection_fd)
+Connection::Connection(int connection_fd)
     : m_connection_fd(connection_fd)
     , m_server_decoder()
     , m_client_decoder()
@@ -29,23 +29,26 @@ WindowConnection::WindowConnection(int connection_fd)
         connect(m_connection_fd, "/win.sock", 9);
     }
     greeting();
+    LFoundation::EventLoop::the().add(m_connection_fd, [] {
+        Connection::the().listen();
+    }, nullptr);
 }
 
-void WindowConnection::greeting()
+void Connection::greeting()
 {
     GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage()).release();
     m_connection_id = resp_message->connection_id();
     write(1, "Got greet", 9);
 }
 
-int WindowConnection::new_window(const Window& window)
+int Connection::new_window(const Window& window)
 {
     write(1, "Sending msg", 11);
     CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(window.width(), window.height(), window.buffer().id())).release();
     return resp_message->window_id();
 }
 
-void WindowConnection::set_buffer(const Window& window)
+void Connection::set_buffer(const Window& window)
 {
     m_connection_with_server.send_message(SetBufferMessage(window.id(), window.buffer().id()));
 }

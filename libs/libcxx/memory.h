@@ -38,13 +38,13 @@ public:
     template <typename U>
     UniquePtr(UniquePtr<U>&& moving)
     {
-        UniquePtr<T> tmp(moving.release());
+        UniquePtr<T> tmp((T*)moving.release());
         tmp.swap(*this);
     }
     template <typename U>
     UniquePtr& operator=(UniquePtr<U>&& moving)
     {
-        UniquePtr<T> tmp(moving.release());
+        UniquePtr<T> tmp((T*)moving.release());
         tmp.swap(*this);
         return *this;
     }

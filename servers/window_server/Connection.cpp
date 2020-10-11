@@ -24,7 +24,17 @@ Connection::Connection(int connection_fd)
 {
     s_the = this;
     bind(m_connection_fd, "/win.sock", 9);
-    LFoundation::EventLoop::the().add(m_connection_fd, [] {
-        Connection::the().listen();
-    }, nullptr);
+    LFoundation::EventLoop::the().add(
+        m_connection_fd, [] {
+            Connection::the().listen();
+        },
+        nullptr);
+}
+
+void Connection::receive_event(UniquePtr<LFoundation::Event> event)
+{
+    if (event->type() == WSEvent::Type::SendEvent) {
+        UniquePtr<SendEvent> send_event = move(event);
+        m_connection_with_clients.send_message(*send_event->message());
+    }
 }

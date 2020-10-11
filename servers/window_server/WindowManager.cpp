@@ -18,6 +18,8 @@ WindowManager& WindowManager::the()
 
 WindowManager::WindowManager()
     : m_screen(Screen::the())
+    , m_connection(Connection::the())
+    , m_event_loop(LFoundation::EventLoop::the())
 {
     s_the = this;
 }
@@ -73,12 +75,15 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
     m_is_pressed = (mouse_event->packet().button_states & 1);
 
     // FIXME!
-    if (m_is_pressed) {
-        for (int i = 0; i < m_windows.size(); i++) {
-            if (m_windows[i].frame().bounds().contains(m_mouse_x, m_mouse_y)) {
+    
+    for (int i = 0; i < m_windows.size(); i++) {
+        if (m_windows[i].frame().bounds().contains(m_mouse_x, m_mouse_y)) {
+            if (m_is_pressed) {
                 start_window_move(m_windows[i]);
                 break;
             }
+        } else if (m_windows[i].bounds().contains(m_mouse_x, m_mouse_y)) {
+            m_event_loop.add(m_connection, new SendEvent(new MouseMessage(m_windows[i].id(), m_mouse_x, m_mouse_y)));
         }
     }
     delete mouse_event;

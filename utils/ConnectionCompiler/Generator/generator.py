@@ -122,8 +122,10 @@ class Generator:
         self.out("", 2)
         self.out("switch(msg.id()) {", 2)
         for (name,params) in decoder.messages.items():
-            self.out("case {0}:".format(unique_msg_id), 2)
-            self.out("return handle(static_cast<const {0}&>(msg));".format(name), 3)
+            ret = decoder.functions.get(name, None)
+            if ret is not None:
+                self.out("case {0}:".format(unique_msg_id), 2)
+                self.out("return handle(static_cast<const {0}&>(msg));".format(name), 3)
             
             unique_msg_id += 1
             
@@ -135,7 +137,8 @@ class Generator:
 
     def decoder_create_virtual_handle(self, decoder):
         for (accept,ret) in decoder.functions.items():
-            self.out("virtual UniquePtr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
+            if ret is not None:
+                self.out("virtual UniquePtr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
 
     def generate_decoder(self, decoder):
         self.out("class {0} : public MessageDecoder {{".format(decoder.name))
@@ -156,14 +159,15 @@ class Generator:
         self.out("#include <malloc.h>")
         self.out("")
 
-    def generate(self, filename, decoder):
+    def generate(self, filename, decoders):
         self.output = open(filename, "w+")
         self.includes()
-        unique_msg_id = 1
-        for (name,params) in decoder.messages.items():
-            self.generate_message(Message(name, unique_msg_id, decoder.magic, params))
-            unique_msg_id += 1
+        for decoder in decoders:
+            unique_msg_id = 1
+            for (name,params) in decoder.messages.items():
+                self.generate_message(Message(name, unique_msg_id, decoder.magic, params))
+                unique_msg_id += 1
 
-        self.generate_decoder(decoder)
+            self.generate_decoder(decoder)
         self.output.close()
         

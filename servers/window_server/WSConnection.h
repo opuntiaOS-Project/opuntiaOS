@@ -122,9 +122,11 @@ public:
     UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
         int msg_id, decoder_magic;
+        size_t saved_dml = decoded_msg_len;
         Encoder::decode(buf, decoded_msg_len, decoder_magic);
         Encoder::decode(buf, decoded_msg_len, msg_id);
         if (magic() != decoder_magic) {
+            decoded_msg_len = saved_dml;
             return nullptr;
         }
         
@@ -153,6 +155,7 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
             return new SetBufferMessage(var_windows_id, var_buffer_id);
         default:
+            decoded_msg_len = saved_dml;
             return nullptr;
         }
     }
@@ -180,28 +183,80 @@ public:
     virtual UniquePtr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
 };
 
+class MouseMessage : public Message {
+public:
+    MouseMessage(int win_id,uint32_t x,uint32_t y)
+        : m_win_id(win_id)
+        , m_x(x)
+        , m_y(y)
+    {
+    }
+    int id() const override { return 1; }
+    int decoder_magic() const override { return 592; }
+    int win_id() const { return m_win_id; }
+    uint32_t x() const { return m_x; }
+    uint32_t y() const { return m_y; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, m_win_id);
+        Encoder::append(buffer, m_x);
+        Encoder::append(buffer, m_y);
+        return buffer;
+    }
+private:
+    int m_win_id;
+    uint32_t m_x;
+    uint32_t m_y;
+};
+
 class WindowClientDecoder : public MessageDecoder {
 public:
-    WindowClientDecoder() { }
-    ~WindowClientDecoder() { }
-
-    int magic() override
+    WindowClientDecoder() {}
+    int magic() const { return 592; }
+    UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
-        return 0x7;
-    }
-
-    UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len)
-    {
-        int mes_magic = buf[size];
-        if (mes_magic == magic()) {
-            decoded_msg_len = 0;
+        int msg_id, decoder_magic;
+        size_t saved_dml = decoded_msg_len;
+        Encoder::decode(buf, decoded_msg_len, decoder_magic);
+        Encoder::decode(buf, decoded_msg_len, msg_id);
+        if (magic() != decoder_magic) {
+            decoded_msg_len = saved_dml;
             return nullptr;
         }
-        return nullptr;
+        
+        switch(msg_id) {
+        case 1:
+            int var_win_id;
+            uint32_t var_x;
+            uint32_t var_y;
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
+            Encoder::decode(buf, decoded_msg_len, var_x);
+            Encoder::decode(buf, decoded_msg_len, var_y);
+            return new MouseMessage(var_win_id, var_x, var_y);
+        default:
+            decoded_msg_len = saved_dml;
+            return nullptr;
+        }
     }
-
+    
     UniquePtr<Message> handle(const Message& msg) override
     {
-        return nullptr;
+        if (magic() != msg.decoder_magic()) {
+            return nullptr;
+        }
+
+        switch(msg.id()) {
+        case 1:
+            return handle(static_cast<const MouseMessage&>(msg));
+        default:
+            return nullptr;
+        }
     }
+
+    virtual UniquePtr<Message> handle(const MouseMessage& msg) { return nullptr; }
+    
 };
+

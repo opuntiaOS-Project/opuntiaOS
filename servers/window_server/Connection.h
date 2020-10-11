@@ -9,10 +9,11 @@
 #pragma once
 #include "WSConnection.h"
 #include "WSServerDecoder.h"
+#include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
 #include <syscalls.h>
 
-class Connection {
+class Connection : public LFoundation::EventReceiver {
 public:
     static Connection& the();
     Connection(int connection_fd);
@@ -21,6 +22,8 @@ public:
     {
         m_connection_with_clients.pump_messages();
     }
+
+    void receive_event(UniquePtr<LFoundation::Event> event) override;
 
 private:
     int m_connection_fd;
