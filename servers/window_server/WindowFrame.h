@@ -9,7 +9,7 @@
 #pragma once
 #include "WSEvent.h"
 #include <libfoundation/EventReceiver.h>
-#include <libg/PixelBitmap.h>
+#include <libg/Context.h>
 
 class Window;
 
@@ -18,7 +18,7 @@ public:
     WindowFrame(Window& window);
     ~WindowFrame() { }
 
-    void draw(LG::PixelBitmap&);
+    void draw(LG::Context&);
     constexpr size_t top_border_size() const { return 20; }
     constexpr size_t bottom_border_size() const { return 2; }
     constexpr size_t left_border_size() const { return 2; }

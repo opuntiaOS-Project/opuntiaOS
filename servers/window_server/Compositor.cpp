@@ -10,7 +10,7 @@
 #include "Screen.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
-#include <libg/PixelBitmap.h>
+#include <libg/Context.h>
 
 static Compositor* s_the;
 
@@ -31,30 +31,24 @@ void Compositor::refresh()
 {
     auto& screen = Screen::the();
     auto& wm = WindowManager::the();
+    LG::Context ctx(screen.write_bitmap());
 
     for (int i = 0; i < 1024 * 768; i++) {
         screen.write_bitmap().data()[i] = 0x00FeeeeF; // background
     }
 
     auto draw_window = [&](Window& window) {
-        window.frame().draw(screen.write_bitmap());
-        screen.write_bitmap().draw(window.content_x(), window.content_y(), window.content_bitmap());
+        ctx.add_clip(window.bounds());
+        window.frame().draw(ctx);
+        ctx.draw({window.content_x(), window.content_y()}, window.content_bitmap());
+        ctx.reset_clip();
     };
 
     for (int win = 0; win < wm.windows().size(); win++) {
         draw_window(wm.windows()[win]);
     }
 
-    int ox = wm.mouse_x();
-    int oy = wm.mouse_y();
-    for (int i = 0; i < wm.cursor_size(); i++) {
-        for (int j = 0; j < wm.cursor_size(); j++) {
-            if (!wm.is_cursor_pressed()) {
-                screen.write_bitmap()[oy+i][ox+j] = 0x0000B4AB;
-            } else {
-                screen.write_bitmap()[oy+i][ox+j] = 0x00ABB400;
-            }
-        }
-    }
+    ctx.fill(LG::Rect(wm.mouse_x(), wm.mouse_y(), wm.cursor_size(), wm.cursor_size()));
+
     screen.swap_buffers();
 }

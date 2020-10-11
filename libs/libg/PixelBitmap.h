@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020 Nikita Melekhin
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License v2 as published by the
+ * Free Software Foundation.
+ */
+
 #pragma once
 
 #include "Color.h"
@@ -36,9 +44,6 @@ public:
     inline const Color* line(size_t i) const { return m_data + i * width(); }
     inline Color* operator[](size_t i) { return line(i); }
     inline const Color* operator[](size_t i) const { return line(i); }
-
-    void draw(int x, int y, const PixelBitmap& bitmap);
-    void draw(int x, int y, const Rect& rect);
 
 private:
     Color* m_data { nullptr };

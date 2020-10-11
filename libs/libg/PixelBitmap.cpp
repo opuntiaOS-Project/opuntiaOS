@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020 Nikita Melekhin
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License v2 as published by the
+ * Free Software Foundation.
+ */
+
 #include "PixelBitmap.h"
 #include <libcxx/syscalls.h>
 
@@ -26,32 +34,5 @@ PixelBitmap::PixelBitmap(PixelBitmap&& moved_bitmap)
     , m_should_free(moved_bitmap.m_should_free)
 {
 }
-
-void PixelBitmap::draw(int x, int y, const PixelBitmap& bitmap)
-{
-    for (size_t i = 0; i < bitmap.height(); i++) {
-        for (size_t j = 0; j < bitmap.width(); j++) {
-            int y_pos = y + i;
-            int x_pos = x + j;
-            if (x_pos < width() && y_pos < height()) {
-                (*this)[y_pos][x_pos] = bitmap[i][j];
-            }
-        }
-    }
-}
-
-void PixelBitmap::draw(int x, int y, const Rect& rect)
-{
-    for (size_t i = 0; i < rect.height(); i++) {
-        for (size_t j = 0; j < rect.width(); j++) {
-            int y_pos = y + i;
-            int x_pos = x + j;
-            if (x_pos < width() && y_pos < height()) {
-                (*this)[y_pos][x_pos] = 0x0; // black for now)
-            }
-        }
-    }
-}
-
 
 }
