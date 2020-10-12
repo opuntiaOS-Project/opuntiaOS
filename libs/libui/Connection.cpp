@@ -44,7 +44,7 @@ void Connection::greeting()
 int Connection::new_window(const Window& window)
 {
     write(1, "Sending msg", 11);
-    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(window.width(), window.height(), window.buffer().id())).release();
+    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(window.bounds().width(), window.bounds().height(), window.buffer().id())).release();
     return resp_message->window_id();
 }
 

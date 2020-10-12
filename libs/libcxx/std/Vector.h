@@ -110,6 +110,7 @@ public:
     inline T& back() { return at(size() - 1); }
 
     inline T* data() { return m_data; }
+    inline const T* data() const { return m_data; }
 
 private:
     inline void ensure_capacity(size_t new_size)

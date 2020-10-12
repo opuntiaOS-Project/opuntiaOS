@@ -14,18 +14,16 @@
 namespace UI {
 
 Window::Window()
-    : m_width(400)
-    , m_height(300)
-    , m_buffer(size_t(m_width * m_height * 4))
+    : m_bounds(0, 0, 400, 300)
+    , m_buffer(size_t(400 * 300 * 4))
 {
     m_id = Connection::the().new_window(*this);
     App::the().set_window(this);
 }
 
 Window::Window(uint32_t width, uint32_t height)
-    : m_width(width)
-    , m_height(height)
-    , m_buffer(size_t(m_width * m_height * 4))
+    : m_bounds(0, 0, width, height)
+    , m_buffer(size_t(width * height * 4))
 {
     m_id = Connection::the().new_window(*this);
     App::the().set_window(this);
@@ -34,13 +32,19 @@ Window::Window(uint32_t width, uint32_t height)
 // test
 void Window::run()
 {
-    for (int i = 0; i < m_width * m_height; i++) {
+    int n = bounds().height() * bounds().width();
+    for (int i = 0; i < n; i++) {
         m_buffer[i] = 0x00ffffff;
     }
 }
 
 void Window::receive_event(UniquePtr<LFoundation::Event> event)
 {
+    if (m_superview) {
+        UniquePtr<MouseEvent> mouse_event((MouseEvent*)event.release());
+        auto view = m_superview->hit_test({ mouse_event->x(), mouse_event->y() });
+        view->receive_mouse_event(move(mouse_event));
+    }
     // write(1, "Recieve mouse event\n", 20);
 }
 

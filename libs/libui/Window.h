@@ -8,6 +8,7 @@
 
 #pragma once
 #include "../servers/window_server/WSConnection.h"
+#include "View.h"
 #include <libcxx/sys/SharedBuffer.h>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
@@ -22,19 +23,23 @@ public:
     Window(uint32_t width, uint32_t height);
 
     int id() const { return m_id; }
-    uint32_t width() const { return m_width; }
-    uint32_t height() const { return m_height; }
 
     void run();
     SharedBuffer<LG::Color>& buffer() { return m_buffer; }
     const SharedBuffer<LG::Color>& buffer() const { return m_buffer; }
 
     void receive_event(UniquePtr<LFoundation::Event> event) override;
+
+    inline void set_superview(View* superview) { m_superview = superview; }
+    inline View* superview() const { return m_superview; }
+
+    inline const LG::Rect& bounds() const { return m_bounds; }
+
 private:
     uint32_t m_id;
-    uint32_t m_width;
-    uint32_t m_height;
+    LG::Rect m_bounds;
     SharedBuffer<LG::Color> m_buffer;
+    View* m_superview;
 };
 
 }
