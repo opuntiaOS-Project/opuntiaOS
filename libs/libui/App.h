@@ -26,6 +26,8 @@ public:
     inline Window& window() { return *m_window; }
     inline const Window& window() const { return *m_window; }
 
+    inline const Connection& connection() const { return m_server_connection; }
+
 private:
     LFoundation::EventLoop m_event_loop;
     Connection m_server_connection;

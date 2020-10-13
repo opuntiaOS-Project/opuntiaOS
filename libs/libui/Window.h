@@ -13,6 +13,7 @@
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
 #include <libg/Color.h>
+#include <libg/PixelBitmap.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -28,9 +29,16 @@ public:
     SharedBuffer<LG::Color>& buffer() { return m_buffer; }
     const SharedBuffer<LG::Color>& buffer() const { return m_buffer; }
 
+    LG::PixelBitmap& bitmap() { return m_bitmap; }
+    const LG::PixelBitmap& bitmap() const { return m_bitmap; }
+
     void receive_event(UniquePtr<LFoundation::Event> event) override;
 
-    inline void set_superview(View* superview) { m_superview = superview; }
+    inline void set_superview(View* superview) 
+    {
+        superview->set_window(this);
+        m_superview = superview; 
+    }
     inline View* superview() const { return m_superview; }
 
     inline const LG::Rect& bounds() const { return m_bounds; }
@@ -38,6 +46,7 @@ public:
 private:
     uint32_t m_id;
     LG::Rect m_bounds;
+    LG::PixelBitmap m_bitmap;
     SharedBuffer<LG::Color> m_buffer;
     View* m_superview;
 };

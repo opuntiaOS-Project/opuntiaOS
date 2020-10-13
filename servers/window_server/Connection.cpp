@@ -7,6 +7,7 @@
  */
 
 #include "Connection.h"
+#include "WSEvent.h"
 #include <libfoundation/EventLoop.h>
 
 static Connection* s_the;

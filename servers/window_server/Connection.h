@@ -23,6 +23,7 @@ public:
         m_connection_with_clients.pump_messages();
     }
 
+    inline bool send_async_message(const Message& msg) const { return m_connection_with_clients.send_message(msg); }
     void receive_event(UniquePtr<LFoundation::Event> event) override;
 
 private:

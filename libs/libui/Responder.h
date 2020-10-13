@@ -9,22 +9,20 @@
 #pragma once
 #include "Event.h"
 #include <libfoundation/EventReceiver.h>
+#include <libg/Rect.h>
 
 namespace UI {
 
 class Responder : public LFoundation::EventReceiver {
 public:
-    void receive_event(UniquePtr<LFoundation::Event> event) override
-    {
-        if (event->type() == Event::Type::MouseEvent) {
-            receive_mouse_event(move(event));
-        }
-    }
+    bool send_invalidate_message(const LG::Rect& rect);
 
-    virtual void receive_mouse_event(UniquePtr<MouseEvent>) { }
+    void receive_event(UniquePtr<LFoundation::Event> event) override;
+    virtual void receive_mouse_event(MouseEvent&) { }
+    virtual void receive_display_event(DisplayEvent&) { }
 
 protected:
-    Responder() {}
+    Responder() { }
 };
 
 }

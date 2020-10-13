@@ -9,6 +9,7 @@
 #pragma once
 
 #include <libfoundation/Event.h>
+#include <libg/Rect.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -18,6 +19,7 @@ public:
     enum Type {
         Invalid = 0x2000,
         MouseEvent,
+        DisplayEvent,
         Other,
     };
 
@@ -47,4 +49,22 @@ private:
     uint32_t m_x;
     uint32_t m_y;
 };
+
+class DisplayEvent : public Event {
+public:
+    DisplayEvent(const LG::Rect& rect)
+        : Event(Event::Type::DisplayEvent)
+        , m_display_bounds(rect)
+    {
+    }
+
+    ~DisplayEvent() { }
+
+    LG::Rect& bounds() { return m_display_bounds; }
+    const LG::Rect& bounds() const { return m_display_bounds; }
+
+private:
+    LG::Rect m_display_bounds;
+};
+
 }

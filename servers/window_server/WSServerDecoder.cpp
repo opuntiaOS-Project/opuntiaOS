@@ -25,6 +25,16 @@ UniquePtr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
 
 UniquePtr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
 {
-    WindowManager::the().window(msg.windows_id()).set_buffer(msg.buffer_id());
+    WindowManager::the().window(msg.window_id()).set_buffer(msg.buffer_id());
+    return nullptr;
+}
+
+UniquePtr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
+{
+    // FIXME: Here hust for test :*)
+    write(1, "invalidate", 10);
+    if (msg.rect().height() == 300) {
+        write(1, " ok\n", 4);
+    }
     return nullptr;
 }

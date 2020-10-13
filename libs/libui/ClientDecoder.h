@@ -21,6 +21,7 @@ public:
 
     using WindowClientDecoder::handle;
     virtual UniquePtr<Message> handle(const MouseMessage& msg) override;
+    virtual UniquePtr<Message> handle(const DisplayMessage& msg) override;
 
 private:
     LFoundation::EventLoop& m_event_loop;

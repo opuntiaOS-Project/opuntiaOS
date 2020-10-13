@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#include "WSConnection.h"
+#include "Connection.h"
 #include "WindowFrame.h"
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
@@ -39,6 +39,12 @@ public:
 
     inline WindowFrame& frame() { return m_frame; }
     inline const WindowFrame& frame() const { return m_frame; }
+
+    inline void set_needs_display(const LG::Rect& rect)
+    {
+        DisplayMessage msg(rect);
+        Connection::the().send_async_message(msg);
+    }
 
 private:
     int m_id { -1 };

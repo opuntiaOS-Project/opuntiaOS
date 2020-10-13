@@ -9,7 +9,6 @@
 #pragma once
 #include "WSConnection.h"
 #include "WSServerDecoder.h"
-#include "Window.h"
 #include <libipc/ServerConnection.h>
 #include <std/Vector.h>
 #include <syscalls.h>

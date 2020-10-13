@@ -8,6 +8,7 @@
 
 #include "Compositor.h"
 #include "Screen.h"
+#include "Window.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <libg/Context.h>
@@ -40,7 +41,7 @@ void Compositor::refresh()
     auto draw_window = [&](Window& window) {
         ctx.add_clip(window.bounds());
         window.frame().draw(ctx);
-        ctx.draw({window.content_x(), window.content_y()}, window.content_bitmap());
+        ctx.draw({ window.content_x(), window.content_y() }, window.content_bitmap());
         ctx.reset_clip();
     };
 
@@ -48,6 +49,10 @@ void Compositor::refresh()
         draw_window(wm.windows()[win]);
     }
 
+    // FIXME: Remove this
+    wm.windows()[0].set_needs_display({0, 0, 400, 300});
+
+    ctx.set_fill_color(LG::Color::Green);
     ctx.fill(LG::Rect(wm.mouse_x(), wm.mouse_y(), wm.cursor_size(), wm.cursor_size()));
 
     screen.swap_buffers();

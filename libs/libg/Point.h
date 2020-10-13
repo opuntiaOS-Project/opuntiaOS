@@ -9,12 +9,17 @@
 #pragma once
 
 #include <libcxx/sys/types.h>
+#include <libipc/Decodable.h>
+#include <libipc/Encodable.h>
+#include <libipc/Encoder.h>
 
 namespace LG {
 
 template <typename T>
-class Point {
+class Point : public Encodable<Point<T>>, public Decodable<Point<T>> {
 public:
+    Point() = default;
+
     Point(T x, T y)
         : m_x(x)
         , m_y(y)
@@ -48,9 +53,21 @@ public:
     }
     Point operator+(const Point& p) const { return { m_x + p.m_x, m_y + p.m_y }; }
 
+    void encode(EncodedMessage& buf) const override
+    {
+        Encoder::append(buf, m_x);
+        Encoder::append(buf, m_y);
+    }
+
+    void decode(const char* buf, size_t& offset) override
+    {
+        Encoder::decode(buf, offset, m_x);
+        Encoder::decode(buf, offset, m_y);
+    }
+
 private:
-    T m_x;
-    T m_y;
+    T m_x {};
+    T m_y {};
 };
 
 }

@@ -15,8 +15,12 @@
 
 namespace UI {
 
+class Window;
+
 class View : public Responder {
 public:
+    friend class Window;
+
     View(const LG::Rect&);
 
     void add_subview(View* subview);
@@ -46,17 +50,29 @@ public:
 
     inline const LG::Rect& frame() const { return m_frame; }
     inline const LG::Rect& bounds() const { return m_bounds; }
+    LG::Rect frame_in_window();
 
-    View* superview() { return m_superview; }
+    inline Window* window() { return m_window; }
+    inline bool has_superview() { return m_superview; }
+    inline View* superview() { return m_superview; }
     inline Vector<View*>& subviews() { return m_subviews; }
     inline const Vector<View*>& subviews() const { return m_subviews; }
 
-    virtual void receive_mouse_event(UniquePtr<MouseEvent>) override;
+    void set_needs_display(const LG::Rect&);
+    inline void set_needs_display() { set_needs_display(bounds()); }
+
+    virtual void display(const LG::Rect& rect);
+    virtual void did_display(const LG::Rect& rect);
+    
+    virtual void receive_mouse_event(MouseEvent&) override;
+    virtual void receive_display_event(DisplayEvent&) override;
 
 private:
+    void set_window(Window* window) { m_window = window; }
     void set_superview(View* superview) { m_superview = superview; }
 
     View* m_superview { nullptr };
+    Window* m_window { nullptr };
     Vector<View*> m_subviews;
     LG::Rect m_frame;
     LG::Rect m_bounds;

@@ -1,6 +1,7 @@
+#include "Connection.h"
 #include "Window.h"
-#include <libui/Connection.h>
 #include <libipc/ClientConnection.h>
+#include <libui/Connection.h>
 #include <malloc.h>
 #include <memory.h>
 #include <syscalls.h>
@@ -29,9 +30,11 @@ Connection::Connection(int connection_fd)
         connect(m_connection_fd, "/win.sock", 9);
     }
     greeting();
-    LFoundation::EventLoop::the().add(m_connection_fd, [] {
-        Connection::the().listen();
-    }, nullptr);
+    LFoundation::EventLoop::the().add(
+        m_connection_fd, [] {
+            Connection::the().listen();
+        },
+        nullptr);
 }
 
 void Connection::greeting()
@@ -50,7 +53,7 @@ int Connection::new_window(const Window& window)
 
 void Connection::set_buffer(const Window& window)
 {
-    m_connection_with_server.send_message(SetBufferMessage(window.id(), window.buffer().id()));
+    send_async_message(SetBufferMessage(window.id(), window.buffer().id()));
 }
 
 }

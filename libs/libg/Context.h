@@ -19,6 +19,7 @@ namespace LG {
 
 class Context {
 public:
+    
     Context(PixelBitmap&);
     ~Context() { }
 
@@ -28,10 +29,15 @@ public:
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
     void fill(const Rect& rect);
 
+    void set_fill_color(const Color& clr) { m_color = clr; }
+
+    const Color& fill_color() const { return m_color; }
+
 private:
     PixelBitmap& m_bitmap;
     Rect m_clip;
     const Rect m_origin_clip;
+    Color m_color;
 };
 
 }

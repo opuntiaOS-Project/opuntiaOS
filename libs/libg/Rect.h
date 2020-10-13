@@ -9,14 +9,17 @@
 #pragma once
 
 #include "Point.h"
+#include <libipc/Decodable.h>
+#include <libipc/Encodable.h>
+#include <libipc/Encoder.h>
 #include <std/Utility.h>
 #include <sys/types.h>
 
 namespace LG {
 
-class Rect {
+class Rect : public Encodable<Rect>, public Decodable<Rect> {
 public:
-    inline Rect() = default;
+    Rect() = default;
     inline Rect(int x, int y, size_t width, size_t height)
         : m_origin(x, y)
         , m_width(width)
@@ -50,6 +53,10 @@ public:
     inline const Point<int>& origin() const { return m_origin; }
 
     void intersect(const Rect& other);
+    bool intersects(const Rect& other);
+
+    void encode(EncodedMessage& buf) const override;
+    void decode(const char* buf, size_t& offset) override;
 
 private:
     Point<int> m_origin;

@@ -26,4 +26,10 @@ UniquePtr<Message> ClientDecoder::handle(const MouseMessage& msg)
     return nullptr;
 }
 
+UniquePtr<Message> ClientDecoder::handle(const DisplayMessage& msg)
+{
+    m_event_loop.add(App::the().window(), new DisplayEvent(msg.rect()));
+    return nullptr;
+}
+
 }
