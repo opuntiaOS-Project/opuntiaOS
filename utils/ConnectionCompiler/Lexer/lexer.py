@@ -56,7 +56,10 @@ class Lexer():
     def read_word(self):
         type = Type.Word
         result = ""
-        while self.current_char is not None and (self.current_char.isalpha() or self.current_char.isdigit() or self.current_char == '_'):
+        while self.current_char is not None and (self.current_char.isalpha() or self.current_char.isdigit() or self.current_char == '_' or (self.current_char == ':' and self.lookup(1) == ':')):
+            if (self.current_char == ':'):
+                result += self.current_char
+                self.advance()
             result += self.current_char
             self.advance()
 
