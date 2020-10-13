@@ -14,7 +14,7 @@ public:
     {
     }
 
-    bool send_message(const Message& msg)
+    bool send_message(const Message& msg) const
     {
         auto encoded_msg = msg.encode();
         int wrote = write(m_connection_fd, encoded_msg.data(), encoded_msg.size());
