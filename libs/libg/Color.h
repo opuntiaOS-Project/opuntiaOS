@@ -14,6 +14,14 @@ namespace LG {
 
 class Color {
 public:
+    enum Colors {
+        Red,
+        Blue,
+        Green,
+    };
+
+    Color() = default;
+    Color(Colors);
     Color(uint32_t color)
         : m_opacity((color & 0xFF000000) >> 24)
         , m_b((color & 0x00FF0000) >> 16)
@@ -21,6 +29,7 @@ public:
         , m_r((color & 0x000000FF) >> 0)
     {
     }
+
     ~Color() { }
 
     Color& operator=(const Color& c)
@@ -42,10 +51,10 @@ public:
     }
 
 private:
-    uint8_t m_r;
-    uint8_t m_g;
-    uint8_t m_b;
-    uint8_t m_opacity;
+    uint8_t m_b { 0 };
+    uint8_t m_g { 0 };
+    uint8_t m_r { 0 };
+    uint8_t m_opacity { 0 };
 };
 
 }
