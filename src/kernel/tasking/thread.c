@@ -40,6 +40,10 @@ int _thread_setup_kstack(thread_t* thread, uint32_t esp)
     thread->context->eip = (uint32_t)_tasking_jumper;
     memset((void*)thread->tf, 0, sizeof(*thread->tf));
 
+    /* setting fpu */
+    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
+    fpu_reset_state(thread->fpu_state);
+
     return 0;
 }
 

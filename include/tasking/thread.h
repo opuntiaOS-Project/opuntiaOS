@@ -9,11 +9,12 @@
 #ifndef __oneOS__X86__TASKING__THREAD_H
 #define __oneOS__X86__TASKING__THREAD_H
 
+#include <drivers/fpu.h>
 #include <fs/vfs.h>
 #include <tasking/signal.h>
+#include <time/time_manager.h>
 #include <types.h>
 #include <x86/idt.h>
-#include <time/time_manager.h>
 
 typedef struct {
     uint32_t edi;
@@ -59,6 +60,7 @@ struct thread {
     zone_t kstack;
     context_t* context; // context of kernel's registers
     trapframe_t* tf;
+    fpu_state_t* fpu_state;
 
     /* Scheduler data */
     struct thread* sched_prev;

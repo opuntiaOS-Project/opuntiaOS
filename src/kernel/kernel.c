@@ -17,6 +17,7 @@
 #include <drivers/bga.h>
 #include <drivers/display.h>
 #include <drivers/driver_manager.h>
+#include <drivers/fpu.h>
 #include <drivers/ide.h>
 #include <drivers/mouse.h>
 #include <drivers/pit.h>
@@ -29,8 +30,8 @@
 #include <fs/procfs/procfs.h>
 #include <fs/vfs.h>
 
-#include <io/tty/tty.h>
 #include <io/shared_buffer/shared_buffer.h>
+#include <io/tty/tty.h>
 
 #include <time/time_manager.h>
 
@@ -67,6 +68,7 @@ void stage3(mem_desc_t* mem_desc)
     gdt_setup();
     idt_setup();
     pit_setup();
+    fpu_init();
 
     // mem setup
     pmm_setup(mem_desc);
@@ -90,10 +92,10 @@ void stage3(mem_desc_t* mem_desc)
     mouse_install();
     bga_install();
     drivers_run();
-    
+
     // mounting filesystems
     devfs_mount();
-    
+
     // ipc
     shared_buffer_init();
 
@@ -107,5 +109,6 @@ void stage3(mem_desc_t* mem_desc)
     tasking_create_kernel_thread(launching);
     resched(); /* Starting a scheduler */
 
-    while (1);
+    while (1)
+        ;
 }

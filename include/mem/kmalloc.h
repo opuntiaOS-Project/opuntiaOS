@@ -17,6 +17,7 @@
 
 void kmalloc_init();
 void* kmalloc(uint32_t size);
+void* kmalloc_aligned(uint32_t size, uint32_t alignment);
 void* kmalloc_page_aligned();
 void kfree(void* ptr);
 void kfree_aligned(void* ptr);

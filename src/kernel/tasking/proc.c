@@ -122,7 +122,8 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
 int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
 {
     proc_t* from_proc = from_thread->process;
-    memcpy((void*)new_proc->main_thread->tf, (void*)from_thread->tf, sizeof(trapframe_t));
+    memcpy((uint8_t*)new_proc->main_thread->tf, (uint8_t*)from_thread->tf, sizeof(trapframe_t));
+    memcpy((uint8_t*)new_proc->main_thread->fpu_state, (uint8_t*)from_thread->fpu_state, sizeof(fpu_state_t));
 
     new_proc->cwd = dentry_duplicate(from_proc->cwd);
     new_proc->tty = from_proc->tty;
