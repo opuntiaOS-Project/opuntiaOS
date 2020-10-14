@@ -29,5 +29,7 @@ public:
     void receive_mouse_event(UniquePtr<MouseEvent> event);
 
 private:
+    void draw_text(LG::Context& ctx, LG::Point<int>pt, const char* text);
+    
     Window& m_window;
 };

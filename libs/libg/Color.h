@@ -18,6 +18,8 @@ public:
         Red,
         Blue,
         Green,
+        White,
+        Black,
     };
 
     Color() = default;

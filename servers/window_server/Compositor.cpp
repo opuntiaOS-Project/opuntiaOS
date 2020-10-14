@@ -39,6 +39,7 @@ void Compositor::refresh()
     }
 
     auto draw_window = [&](Window& window) {
+        ctx.set_fill_color(LG::Color::Black);
         ctx.add_clip(window.bounds());
         window.frame().draw(ctx);
         ctx.draw({ window.content_x(), window.content_y() }, window.content_bitmap());

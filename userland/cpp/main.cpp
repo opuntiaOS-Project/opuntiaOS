@@ -10,5 +10,7 @@ int main(int argc, char** argv)
     auto* window_ptr = new UI::Window();
     window_ptr->run();
     window_ptr->set_superview(new UI::View(window_ptr->bounds()));
+    window_ptr->superview()->add_subview(new UI::View({10, 10, 50, 50}));
+    window_ptr->superview()->set_needs_display();
     return UI::App::the().run();
 }

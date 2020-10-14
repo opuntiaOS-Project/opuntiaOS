@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Color.h"
+#include "Font.h"
 #include "PixelBitmap.h"
 #include "Point.h"
 #include "Rect.h"
@@ -19,7 +20,6 @@ namespace LG {
 
 class Context {
 public:
-    
     Context(PixelBitmap&);
     ~Context() { }
 
@@ -27,6 +27,7 @@ public:
     void reset_clip();
 
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
+    void draw(const Point<int>& start, const GlyphBitmap& bitmap);
     void fill(const Rect& rect);
 
     void set_fill_color(const Color& clr) { m_color = clr; }
@@ -37,7 +38,7 @@ private:
     PixelBitmap& m_bitmap;
     Rect m_clip;
     const Rect m_origin_clip;
-    Color m_color;
+    Color m_color {};
 };
 
 }

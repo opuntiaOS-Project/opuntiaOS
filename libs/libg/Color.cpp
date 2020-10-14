@@ -28,6 +28,12 @@ Color::Color(Colors clr)
     case Green:
         rgb_color = { 0, 255, 0 };
         break;
+    case White:
+        rgb_color = { 255, 255, 255 };
+        break;
+    case Black:
+        rgb_color = { 0, 0, 0 };
+        break;
     default:
         break;
     }
