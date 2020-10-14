@@ -6,7 +6,7 @@ SECTIONS
 
 	.text BLOCK(4K) : AT (ADDR(.text) - 0xc0000000 + 1M)
 	{
-		*(.multiboot)
+		*(.oneos_kernel_boot)
 		*(.text)
 	}
 
