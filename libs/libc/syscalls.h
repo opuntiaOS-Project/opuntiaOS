@@ -33,6 +33,7 @@ int ioctl(int fd, uint32_t cmd, uint32_t arg);
 int setpgid(pid_t cmd, pid_t arg);
 pid_t getpgid(pid_t arg);
 int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout);
+int fstat(int nfds, fstat_t* stat);
 
 int system_pthread_create(thread_create_params_t* params);
 

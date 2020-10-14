@@ -52,6 +52,7 @@ enum __sysid {
     SYSPTHREADCREATE,
     SYSSLEEP,
     SYSSELECT,
+    SYSFSTAT,
     SYS_SHBUF_CREATE,
     SYS_SHBUF_GET,
     SYS_SHBUF_FREE,
@@ -129,6 +130,13 @@ typedef struct mmap_params mmap_params_t;
 #define S_IXOTH 0x0001
 
 typedef uint16_t mode_t;
+
+/* Fstat */
+
+struct fstat {
+    uint32_t size;
+};
+typedef struct fstat fstat_t;
 
 /* Select */
 

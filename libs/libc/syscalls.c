@@ -141,6 +141,11 @@ int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds,
     return syscall(SYSSELECT, (int)nfds, (int)readfds, (int)writefds, (int)exceptfds, (int)timeout);
 }
 
+int fstat(int nfds, fstat_t* stat)
+{
+    return syscall(SYSFSTAT, (int)nfds, (int)stat, 0, 0, 0);
+}
+
 pid_t getpid()
 {
     return syscall(SYSGETPID, 0, 0, 0, 0, 0);

@@ -63,6 +63,7 @@ static const void* syscalls[] = {
     sys_create_thread,
     sys_sleep,
     sys_select,
+    sys_fstat,
     sys_shbuf_create,
     sys_shbuf_get,
     sys_shbuf_free,
@@ -257,6 +258,20 @@ void sys_creat(trapframe_t* tf)
         return_with_val(err);
     }
     return_with_val(proc_get_fd_id(p, fd));
+}
+
+void sys_fstat(trapframe_t* tf)
+{
+    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    fstat_t* stat = (fstat_t*)param2;
+    if (!fd) {
+        return_with_val(-EBADF);
+    }
+    if (!stat) {
+        return_with_val(-EINVAL);
+    }
+    stat->size = fd->dentry->inode->size;
+    return_with_val(0);
 }
 
 void sys_mkdir(trapframe_t* tf)
