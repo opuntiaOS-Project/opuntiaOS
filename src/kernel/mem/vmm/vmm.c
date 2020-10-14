@@ -881,7 +881,7 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
                 vmm_load_page(vaddr, zone->flags);
 
                 if (zone->type == ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
-                    uint32_t offset_for_this_page = zone->offset + (PAGE_START(vaddr) - zone->start);
+                    zone->fd->offset = PAGE_START(vaddr) - zone->start;
                     vfs_read(zone->fd, (uint8_t*)PAGE_START(vaddr), VMM_PAGE_SIZE);
                 }
             } else {

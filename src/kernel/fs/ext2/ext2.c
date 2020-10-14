@@ -813,7 +813,7 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
     uint32_t start_block_index = start / block_len;
-    uint32_t end_block_index = MIN((start + len) / block_len, blocks_allocated - 1);
+    uint32_t end_block_index = MIN((start + len - 1) / block_len, blocks_allocated - 1);
 
     if (start >= dentry->inode->size) {
         return 0;
