@@ -29,10 +29,11 @@ public:
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const GlyphBitmap& bitmap);
     void fill(const Rect& rect);
+    void add_ellipse(const Rect& rect);
 
     void set_fill_color(const Color& clr) { m_color = clr; }
 
-    const Color& fill_color() const { return m_color; }
+    inline const Color& fill_color() const { return m_color; }
 
 private:
     PixelBitmap& m_bitmap;

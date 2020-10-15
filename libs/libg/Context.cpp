@@ -97,4 +97,57 @@ void Context::fill(const Rect& rect)
     }
 }
 
+void Context::add_ellipse(const Rect& rect)
+{
+    int rx = rect.width() / 2;
+    int ry = rect.height() / 2;
+    int xc = rect.mid_x();
+    int yc = rect.mid_y();
+
+    double dx, dy, d1, d2, x, y;
+    double tmp_d1, tmp_d2;
+    x = 0;
+    y = ry;
+
+    d1 = (ry * ry) - (rx * rx * ry) + (0.25 * rx * rx);
+    dx = 2 * ry * ry * x;
+    dy = 2 * rx * rx * y;
+
+    while (dx < dy) {
+        m_bitmap[y + yc][(int)x + xc] = fill_color();
+        m_bitmap[y + yc][(int)-x + xc] = fill_color();
+        m_bitmap[-y + yc][(int)x + xc] = fill_color();
+        m_bitmap[-y + yc][(int)-x + xc] = fill_color();
+
+        x++;
+        dx += 2 * ry * ry;
+        tmp_d1 = d1;
+        d1 += dx + (ry * ry);
+        if (tmp_d1 >= 0) {
+            y--;
+            dy -= 2 * rx * rx;
+            d1 -= dy;
+        }
+    }
+
+    d2 = ((ry * ry) * ((x + 0.5) * (x + 0.5))) + ((rx * rx) * ((y - 1) * (y - 1))) - (rx * rx * ry * ry);
+
+    while (y >= 0) {
+        m_bitmap[y + yc][(int)x + xc] = fill_color();
+        m_bitmap[y + yc][(int)-x + xc] = fill_color();
+        m_bitmap[-y + yc][(int)x + xc] = fill_color();
+        m_bitmap[-y + yc][(int)-x + xc] = fill_color();
+
+        y--;
+        dy -= 2 * rx * rx;
+        tmp_d2 = d2;
+        d2 += rx * rx - dy;
+        if (tmp_d2 <= 0) {
+            x++;
+            dx += 2 * ry * ry;
+            d2 += dx;
+        }
+    }
+}
+
 }
