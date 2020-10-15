@@ -52,6 +52,7 @@ public:
     ~Font() { }
 
     static Font& system_font();
+    static Font& system_bold_font();
     static Font* load_from_file(const char* path);
     static Font* load_from_mem(uint8_t* path);
 

@@ -36,6 +36,16 @@ Font& Font::system_font()
     return *s_system_font_ptr;
 }
 
+Font& Font::system_bold_font()
+{
+    static Font* s_system_bold_font_ptr;
+    static char* s_system_bold_font_path = "/res/systembold.font";
+    if (!s_system_bold_font_ptr) {
+        s_system_bold_font_ptr = Font::load_from_file(s_system_bold_font_path);
+    }
+    return *s_system_bold_font_ptr;
+}
+
 Font::Font(uint32_t* raw_data, uint8_t* width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width)
     : m_raw_data(raw_data)
     , m_width_data(width_data)
