@@ -67,7 +67,7 @@ void View::display(const LG::Rect& rect)
     if (has_superview()) {
         ctx.set_fill_color(LG::Color::Red);
     } else {
-        ctx.set_fill_color(LG::Color::Blue);
+        ctx.set_fill_color(LG::Color::White);
     }
 
     ctx.fill(rect);

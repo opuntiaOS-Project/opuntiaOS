@@ -19,17 +19,17 @@ public:
     ~WindowFrame() { }
 
     void draw(LG::Context&);
-    constexpr size_t top_border_size() const { return 20; }
-    constexpr size_t bottom_border_size() const { return 2; }
-    constexpr size_t left_border_size() const { return 2; }
-    constexpr size_t right_border_size() const { return 2; }
+    constexpr size_t top_border_size() const { return 26; }
+    constexpr size_t bottom_border_size() const { return 1; }
+    constexpr size_t left_border_size() const { return 1; }
+    constexpr size_t right_border_size() const { return 1; }
+    constexpr uint32_t std_frame_color() const { return 0x00342d2d; }
 
     const LG::Rect bounds() const;
 
     void receive_mouse_event(UniquePtr<MouseEvent> event);
 
 private:
-    void draw_text(LG::Context& ctx, LG::Point<int>pt, const char* text);
-    
+    int draw_text(LG::Context& ctx, LG::Point<int>pt, const char* text, LG::Font& font);
     Window& m_window;
 };

@@ -24,6 +24,14 @@ class Font;
 class GlyphBitmap {
 public:
     friend class Font;
+    GlyphBitmap() = default;
+    GlyphBitmap(const uint32_t* rows, uint8_t width, uint8_t height)
+        : m_rows(rows)
+        , m_width(width)
+        , m_height(height)
+    {
+    }
+
     ~GlyphBitmap() { }
 
     inline bool bit_at(int x, int y) const { return row(y) & (1 << x); }
@@ -32,15 +40,9 @@ public:
 
     inline const uint32_t* rows() const { return m_rows; }
     inline uint32_t row(uint32_t index) const { return m_rows[index]; }
+    inline bool empty() { return !m_rows || !m_width || !m_height; }
 
 private:
-    GlyphBitmap(const uint32_t* rows, uint8_t width, uint8_t height)
-        : m_rows(rows)
-        , m_width(width)
-        , m_height(height)
-    {
-    }
-
     const uint32_t* m_rows { nullptr };
     uint8_t m_width { 0 };
     uint8_t m_height { 0 };
