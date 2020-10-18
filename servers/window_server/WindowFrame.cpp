@@ -55,17 +55,40 @@ static const uint32_t s_minimise_button_glyph_data[10] = {
 
 WindowFrame::WindowFrame(Window& window)
     : m_window(window)
+    , m_window_control_buttons()
+    , m_control_panel_buttons()
+{
+    auto* close = new Button();
+    close->set_icon(LG::GlyphBitmap(s_close_button_glyph_data, 10, 10));
+    auto* maximize = new Button();
+    maximize->set_icon(LG::GlyphBitmap(s_maximise_button_glyph_data, 10, 10));
+    auto* minimize = new Button();
+    minimize->set_icon(LG::GlyphBitmap(s_minimise_button_glyph_data, 10, 10));
+    
+    m_window_control_buttons.push_back(close);
+    m_window_control_buttons.push_back(maximize);
+    m_window_control_buttons.push_back(minimize);
+}
+
+WindowFrame::WindowFrame(Window& window, Vector<Button*>&& control_panel_buttons, Vector<Button*>&& window_control_buttons)
+    : m_window(window)
+    , m_window_control_buttons(move(window_control_buttons))
+    , m_control_panel_buttons(move(control_panel_buttons))
 {
 }
 
-int WindowFrame::draw_text(LG::Context& ctx, LG::Point<int> pt, const char* text, LG::Font& font)
+void WindowFrame::set_app_name(const String& title)
 {
-    while (*text != 0) {
-        ctx.draw(pt, font.glyph_bitmap(*text));
-        pt.offset_by(font.glyph_width(*text) + 2, 0);
-        text++;
-    }
-    return pt.x();
+    auto* new_control = new Button();
+    new_control->set_title(title);
+    m_control_panel_buttons.push_back(new_control);
+}
+
+void WindowFrame::add_control(const String& title)
+{
+    auto* new_control = new Button();
+    new_control->set_title(title);
+    m_control_panel_buttons.push_back(new_control);
 }
 
 void WindowFrame::draw(LG::Context& ctx)
@@ -87,24 +110,17 @@ void WindowFrame::draw(LG::Context& ctx)
 
     ctx.set_fill_color(LG::Color::White);
 
-    // FIXME: Just for demo)
-    
-    Button close;
-    close.set_icon(LG::GlyphBitmap(s_close_button_glyph_data, 10, 10));
-    int start_buttons = right_x - 8 - close.bounds().width();
-    close.display(ctx, { start_buttons, y + 8 });
-    Button maximize;
-    maximize.set_icon(LG::GlyphBitmap(s_maximise_button_glyph_data, 10, 10));
-    start_buttons += - 8 - maximize.bounds().width();
-    maximize.display(ctx, { start_buttons, y + 8 });
-    Button minimize;
-    minimize.set_icon(LG::GlyphBitmap(s_minimise_button_glyph_data, 10, 10));
-    start_buttons += - 8 - minimize.bounds().width();
-    minimize.display(ctx, { start_buttons, y + 8 });
+    int start_controls = x + 8;
+    for (int i = 0; i < m_control_panel_buttons.size(); i++) {
+        m_control_panel_buttons[i]->display(ctx, { start_controls, y + 8 });
+        start_controls += 8 + m_control_panel_buttons[i]->bounds().width();
+    }
 
-    int start = draw_text(ctx, { x + 8, y + 8 }, "About", LG::Font::system_bold_font());
-    start = draw_text(ctx, { start + 8, y + 8 }, "Menu", LG::Font::system_font());
-    start = draw_text(ctx, { start + 8, y + 8 }, "Edit", LG::Font::system_font());
+    int start_buttons = right_x - 8 - m_window_control_buttons[0]->bounds().width();
+    for (int i = 0; i < m_window_control_buttons.size(); i++) {
+        m_window_control_buttons[i]->display(ctx, { start_buttons, y + 8 });
+        start_buttons += - 8 - m_window_control_buttons[i]->bounds().width();
+    }
 }
 
 void WindowFrame::receive_mouse_event(UniquePtr<MouseEvent> event)

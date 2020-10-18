@@ -20,6 +20,7 @@ UniquePtr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
     auto& wm = WindowManager::the();
     int win_id = wm.windows().size();
     wm.add_window(Window(win_id, msg));
+    wm.window(win_id).frame().set_app_name("Window");
     return new CreateWindowMessageReply(win_id);
 }
 

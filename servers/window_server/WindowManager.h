@@ -36,6 +36,7 @@ public:
     }
 
     inline Vector<Window>& windows() { return m_windows; }
+    inline const Vector<Window>& windows() const { return m_windows; }
 
     void receive_event(UniquePtr<LFoundation::Event> event) override;
 
