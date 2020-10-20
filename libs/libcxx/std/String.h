@@ -62,7 +62,16 @@ public:
     {
         ensure_capacity(size() + s.size());
         memcpy((uint8_t*)end(), (uint8_t*)s.m_str, s.size());
+        m_size = s.size();
         return *this;
+    }
+
+    inline void push_back(char c)
+    {
+        ensure_capacity(size() + 2);
+        *end() = c;
+        m_size++;
+        *end() = '\0';
     }
 
     inline const char& at(size_t i) const
