@@ -28,13 +28,10 @@ Window::Window(uint32_t width, uint32_t height)
     App::the().set_window(this);
 }
 
-// test
-void Window::run()
+bool Window::set_title(const LG::String& title)
 {
-    int n = bounds().height() * bounds().width();
-    for (int i = 0; i < n; i++) {
-        buffer()[i] = 0x00ffffff;
-    }
+    SetTitleMessage msg(id(), title);
+    return App::the().connection().send_async_message(msg);
 }
 
 void Window::receive_event(UniquePtr<LFoundation::Event> event)

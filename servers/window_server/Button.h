@@ -22,14 +22,13 @@ public:
     void set_title(String&& title) { m_title = move(title), recalc_width(); }
     const String& title() const { return m_title; }
 
-    // void set_font(const LG::Font& font) { m_is_font_set = true, m_font = font, recalc_width(); }
+    void set_font(const LG::Font& font) { m_font = font, recalc_width(); }
     void set_icon(const LG::GlyphBitmap& icon) { m_is_icon_set = true, m_icon = icon, recalc_width(); }
 
     void set_title_color(const LG::Color& color) { m_title_color = color; }
     const LG::Color& title_color() const { return m_title_color; }
 
-    // const LG::Font& font() const { return m_is_font_set ? m_font : LG::Font::system_font(); }
-    inline const LG::Font& font() const { return LG::Font::system_font(); }
+    inline const LG::Font& font() const { return m_font; }
 
     inline LG::Rect& bounds() { return m_bounds; }
     inline const LG::Rect& bounds() const { return m_bounds; }
@@ -42,10 +41,9 @@ private:
 
     LG::Rect m_bounds {};
     String m_title {};
-    // LG::Font m_font;
+    LG::Font m_font { LG::Font::system_font() };
     LG::Color m_title_color;
     LG::GlyphBitmap m_icon;
 
-    bool m_is_font_set { false };
     bool m_is_icon_set { false };
 };

@@ -14,6 +14,7 @@
 #include <libfoundation/EventReceiver.h>
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
+#include <libg/String.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -25,7 +26,6 @@ public:
 
     int id() const { return m_id; }
 
-    void run();
     SharedBuffer<LG::Color>& buffer() { return m_buffer; }
     const SharedBuffer<LG::Color>& buffer() const { return m_buffer; }
 
@@ -34,14 +34,16 @@ public:
 
     void receive_event(UniquePtr<LFoundation::Event> event) override;
 
-    inline void set_superview(View* superview) 
+    inline void set_superview(View* superview)
     {
         superview->set_window(this);
-        m_superview = superview; 
+        m_superview = superview;
     }
     inline View* superview() const { return m_superview; }
 
     inline const LG::Rect& bounds() const { return m_bounds; }
+
+    bool set_title(const LG::String& title);
 
 private:
     uint32_t m_id;

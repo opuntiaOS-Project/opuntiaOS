@@ -39,3 +39,10 @@ UniquePtr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
     }
     return nullptr;
 }
+
+UniquePtr<Message> WServerDecoder::handle(const SetTitleMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    wm.window(msg.window_id()).frame().set_app_name(msg.title());
+    return nullptr;
+}

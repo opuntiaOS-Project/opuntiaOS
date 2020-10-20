@@ -32,6 +32,7 @@ public:
     void receive_mouse_event(UniquePtr<MouseEvent> event);
     
     void set_app_name(const String& title);
+    void set_app_name(String&& title);
     void add_control(const String& title);
 
     inline Vector<Button*>& window_control_buttons() { return m_window_control_buttons; }

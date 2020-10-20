@@ -79,9 +79,24 @@ WindowFrame::WindowFrame(Window& window, Vector<Button*>&& control_panel_buttons
 
 void WindowFrame::set_app_name(const String& title)
 {
-    auto* new_control = new Button();
-    new_control->set_title(title);
-    m_control_panel_buttons.push_back(new_control);
+    if (m_control_panel_buttons.size() > 0) {
+        m_control_panel_buttons[0]->set_title(title);
+    } else {
+        auto* new_control = new Button();
+        new_control->set_title(title);
+        m_control_panel_buttons.push_back(new_control);
+    }
+}
+
+void WindowFrame::set_app_name(String&& title)
+{
+    if (m_control_panel_buttons.size() > 0) {
+        m_control_panel_buttons[0]->set_title(title);
+    } else {
+        auto* new_control = new Button();
+        new_control->set_title(title);
+        m_control_panel_buttons.push_back(new_control);
+    }
 }
 
 void WindowFrame::add_control(const String& title)

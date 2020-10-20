@@ -17,6 +17,7 @@ public:
     using WindowServerDecoder::handle;
     virtual UniquePtr<Message> handle(const GreetMessage& msg) override;
     virtual UniquePtr<Message> handle(const CreateWindowMessage& msg) override;
+    virtual UniquePtr<Message> handle(const SetTitleMessage& msg) override;
     virtual UniquePtr<Message> handle(const SetBufferMessage& msg) override;
     virtual UniquePtr<Message> handle(const InvalidateMessage& msg) override;
 };
