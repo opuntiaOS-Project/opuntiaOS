@@ -9,10 +9,10 @@ static int _alloc_new_block(size_t sz);
 
 static int _alloc_new_block(size_t sz)
 {
+    sz += sizeof(malloc_header_t);
+    
     // this will reduce system calls for the small memory allocations
     size_t allocated_sz = sz > MALLOC_DEFAULT_BLOCK_SIZE ? sz : MALLOC_DEFAULT_BLOCK_SIZE;
-
-    allocated_sz += sizeof(malloc_header_t);
 
     static mmap_params_t params;
     params.flags = MAP_ANONYMOUS | MAP_PRIVATE;
@@ -82,8 +82,7 @@ void* malloc(size_t sz)
         first_fit->next->size = copy_size - sz - sizeof(malloc_header_t);
         first_fit->next->next = copy_next;
         first_fit->next->prev = first_fit;
-
-        // adjust a chunk placed next to the firstfit, if it exists
+        
         if (first_fit->next->next) {
             first_fit->next->next->prev = first_fit->next;
         }
@@ -101,6 +100,9 @@ void free(void* mem)
     malloc_header_t* mem_header = (malloc_header_t*)((uint32_t)mem - sizeof(malloc_header_t));
 
     mem_header->free = true;
+    if (mem_header->prev && mem_header->prev->free) {
+        mem_header =  mem_header->prev;
+    }
 
     // Trying to glue the freed chunk with its neighbours.
     if (mem_header->next && mem_header->next->free) {
@@ -110,13 +112,6 @@ void free(void* mem)
             mem_header->next->next->prev = mem_header;
         }
         mem_header->next = mem_header->next->next;
-    } else if (mem_header->prev && mem_header->prev->free) {
-        mem_header->prev->size += mem_header->size + sizeof(malloc_header_t);
-
-        if (mem_header->next) {
-            mem_header->next->prev = mem_header->prev;
-        }
-        mem_header->prev->next = mem_header->next;
     }
 }
 
