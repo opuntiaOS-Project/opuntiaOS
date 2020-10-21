@@ -1,6 +1,7 @@
 #pragma once
 
 #include <libcxx/std/Utility.h>
+#include <libcxx/syscalls.h>
 
 template <typename T>
 class UniquePtr {
@@ -26,6 +27,7 @@ public:
     }
 
     UniquePtr(UniquePtr&& moving) noexcept
+        : m_data(nullptr)
     {
         moving.swap(*this);
     }

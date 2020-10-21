@@ -11,6 +11,7 @@
 #include <libfoundation/Event.h>
 #include <libipc/Message.h>
 #include <sys/types.h>
+#include <syscalls.h>
 
 class WSEvent : public LFoundation::Event {
 public:
@@ -60,12 +61,25 @@ public:
     {
     }
 
-    ~SendEvent() { }
+    SendEvent(SendEvent&& ev)
+        : WSEvent(WSEvent::Type::SendEvent)
+        , m_message(move(ev.m_message))
+    {
+    }
+
+    SendEvent& operator=(SendEvent&& ev)
+    {
+        m_message = move(ev.m_message);
+        return *this;
+    }
+
+    ~SendEvent()
+    {
+    }
 
     const UniquePtr<Message>& message() const { return m_message; }
     UniquePtr<Message>& message() { return m_message; }
 
 private:
-    MousePacket m_packet;
     UniquePtr<Message> m_message;
 };

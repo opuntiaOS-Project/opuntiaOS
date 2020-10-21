@@ -51,7 +51,9 @@ void Compositor::refresh()
     }
 
     // FIXME: Remove this
-    wm.windows()[0].set_needs_display({0, 0, 400, 300});
+    if (wm.windows().size()) {
+        wm.windows()[0].set_needs_display({0, 0, 400, 300});
+    }
 
     ctx.set_fill_color(LG::Color::Green);
     ctx.fill(LG::Rect(wm.mouse_x(), wm.mouse_y(), wm.cursor_size(), wm.cursor_size()));
