@@ -10,7 +10,7 @@ static int _alloc_new_block(size_t sz);
 static int _alloc_new_block(size_t sz)
 {
     sz += sizeof(malloc_header_t);
-    
+
     // this will reduce system calls for the small memory allocations
     size_t allocated_sz = sz > MALLOC_DEFAULT_BLOCK_SIZE ? sz : MALLOC_DEFAULT_BLOCK_SIZE;
 
@@ -82,7 +82,7 @@ void* malloc(size_t sz)
         first_fit->next->size = copy_size - sz - sizeof(malloc_header_t);
         first_fit->next->next = copy_next;
         first_fit->next->prev = first_fit;
-        
+
         if (first_fit->next->next) {
             first_fit->next->next->prev = first_fit->next;
         }
@@ -101,7 +101,7 @@ void free(void* mem)
 
     mem_header->free = true;
     if (mem_header->prev && mem_header->prev->free) {
-        mem_header =  mem_header->prev;
+        mem_header = mem_header->prev;
     }
 
     // Trying to glue the freed chunk with its neighbours.
@@ -125,7 +125,11 @@ void* calloc(size_t num, size_t size)
 
 void* realloc(void* ptr, size_t new_size)
 {
-    uint32_t old_size = ((malloc_header_t*)ptr)[-1].size;
+    if (!ptr) {
+        return malloc(new_size);
+    }
+
+    size_t old_size = ((malloc_header_t*)ptr)[-1].size;
     if (old_size == new_size) {
         return ptr;
     }
@@ -135,7 +139,7 @@ void* realloc(void* ptr, size_t new_size)
         return 0;
     }
 
-    memcpy(new_area, ptr, new_size > old_size ? new_size : old_size);
+    memcpy(new_area, ptr, new_size < old_size ? new_size : old_size);
     free(ptr);
 
     return new_area;

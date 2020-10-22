@@ -69,9 +69,8 @@ public:
     inline void push_back(char c)
     {
         ensure_capacity(size() + 2);
-        *end() = c;
-        m_size++;
-        *end() = '\0';
+        m_str[m_size++] = c;
+        m_str[m_size] = '\0';
     }
 
     inline const char& at(size_t i) const
@@ -100,7 +99,8 @@ public:
     inline const char& back() const { return at(size() - 1); }
     inline char& back() { return at(size() - 1); }
 
-    inline const char* c_str() { return m_str; }
+    // This function is frozen for now, need to add /0 to the end always
+    // inline const char* c_str() { return m_str; } 
 
 private:
     inline void ensure_capacity(size_t new_size)
@@ -112,6 +112,10 @@ private:
 
     void grow(size_t capacity)
     {
+        if (capacity < m_capacity) {
+            return;
+        }
+
         if (!m_str) {
             m_str = (char*)malloc(capacity);
         } else {
