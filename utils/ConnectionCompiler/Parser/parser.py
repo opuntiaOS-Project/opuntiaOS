@@ -64,6 +64,12 @@ class Parser:
         self.next_token()
         return res
 
+    def eat_protected(self):
+        if (self.is_next(Type.Reserved.KeyProtected)):
+            self.next_token()
+            return True
+        return False
+
     def eat_magic(self):
         self.must_next(Type.Reserved.Magic)
         self.next_token()
@@ -119,7 +125,8 @@ class Parser:
     def eat_decoder(self):
         self.must_next(Type.Reserved.Begin)
         self.next_token()
-        decoder = Connection(self.eat_name(), self.eat_magic())
+        is_protected = self.eat_protected()
+        decoder = Connection(self.eat_name(), self.eat_magic(), is_protected)
         while not self.is_next(Type.Reserved.End):
             print(self.eat_function(decoder))
         self.must_next(Type.Reserved.End)

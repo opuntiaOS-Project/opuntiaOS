@@ -33,6 +33,7 @@ class Type:
         Return = 'RETURN'
         Name = 'NAME'
         Magic = 'MAGIC'
+        KeyProtected = 'KEYP'
 
     class Special:
         EOF = 'EOF'

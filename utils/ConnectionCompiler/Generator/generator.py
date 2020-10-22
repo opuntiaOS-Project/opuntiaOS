@@ -1,9 +1,11 @@
 class Message:
-    def __init__(self, name, id, decoder_magic, params):
+    def __init__(self, name, id, reply_id, decoder_magic, params, protected=False):
         self.name = name
         self.id = id
+        self.reply_id = reply_id
         self.decoder_magic = decoder_magic
         self.params = params
+        self.protected = protected
 
 class Generator:
 
@@ -26,20 +28,28 @@ class Generator:
 
     def message_create_std_funcs(self, msg):
         self.out("int id() const override {{ return {0}; }}".format(msg.id), 1)
+        self.out("int reply_id() const override {{ return {0}; }}".format(msg.reply_id), 1)
+        if msg.protected:
+            self.out("int key() const override { return m_key; }", 1)
         self.out("int decoder_magic() const override {{ return {0}; }}".format(msg.decoder_magic), 1)
         for i in msg.params:
             self.out("{0} {1}() const {{ return m_{1}; }}".format(i[0], i[1]), 1)
 
     def message_create_vars(self, msg):
+        if msg.protected:
+            self.out("message_key_t m_key;", 1)
         for i in msg.params:
             self.out("{0} m_{1};".format(i[0], i[1]), 1)
 
     def message_create_constructor(self, msg):
-        res = "{0}({1})".format(msg.name, self.params_readable(msg.params))
-        if len(msg.params) > 0:
+        params = msg.params
+        if msg.protected:
+            params = [('message_key_t', 'key')] + msg.params
+        res = "{0}({1})".format(msg.name, self.params_readable(params))
+        if len(params) > 0:
             self.out(res, 1)
             sign = ':'
-            for i in msg.params:
+            for i in params:
                 self.out("{0} m_{1}({1})".format(sign, i[1]), 2)
                 sign = ','
         
@@ -55,6 +65,8 @@ class Generator:
         self.out("EncodedMessage buffer;", 2)
         self.out("Encoder::append(buffer, decoder_magic());", 2)
         self.out("Encoder::append(buffer, id());", 2)
+        if msg.protected:
+            self.out("Encoder::append(buffer, key());", 2)
         for i in msg.params:
             self.out("Encoder::append(buffer, m_{0});".format(i[1]), 2)
 
@@ -83,10 +95,12 @@ class Generator:
 
     def decoder_decode_message(self, msg, offset = 0):
         params_str = ""
+        if msg.protected:
+            params_str = "secret_key, "
         for i in msg.params:
             params_str += "var_{0}, ".format(i[1])
 
-        if len(msg.params) > 0:
+        if len(params_str) > 0:
             params_str = params_str[:-2]
         for i in msg.params:
             self.out("Encoder::decode(buf, decoded_msg_len, var_{0});".format(i[1]), offset)
@@ -107,6 +121,11 @@ class Generator:
         self.out("return nullptr;", 3)
         self.out("}", 2)
 
+        if decoder.protected:
+            self.out("message_key_t secret_key;", 2)
+            self.out("Encoder::decode(buf, decoded_msg_len, secret_key);", 2)
+            self.out("", 0)
+
         self.decoder_create_vars(decoder.messages, 2)
 
         unique_msg_id = 1
@@ -114,7 +133,8 @@ class Generator:
         self.out("switch(msg_id) {", 2)
         for (name,params) in decoder.messages.items():
             self.out("case {0}:".format(unique_msg_id), 2)
-            self.decoder_decode_message(Message(name, unique_msg_id, decoder.magic, params), 3)
+            # Here it doen't need to know the real reply_id, so we can put 0 here.
+            self.decoder_decode_message(Message(name, unique_msg_id, 0, decoder.magic, params, decoder.protected), 3)
             unique_msg_id += 1
             
         self.out("default:", 2)
@@ -168,6 +188,7 @@ class Generator:
         self.out("#include <libipc/ClientConnection.h>")
         self.out("#include <libipc/ServerConnection.h>")
         self.out("#include <libg/Rect.h>")
+        self.out("#include <libg/String.h>")
         self.out("#include <malloc.h>")
         self.out("")
 
@@ -175,10 +196,18 @@ class Generator:
         self.output = open(filename, "w+")
         self.includes()
         for decoder in decoders:
+            msgd = {}
             unique_msg_id = 1
             for (name,params) in decoder.messages.items():
-                self.generate_message(Message(name, unique_msg_id, decoder.magic, params))
+                msgd[name] = unique_msg_id
                 unique_msg_id += 1
+
+            for (name,params) in decoder.messages.items():
+                reply_name = decoder.functions.get(name, None)
+                reply_id = -1
+                if reply_name is not None:
+                    reply_id = msgd[reply_name]
+                self.generate_message(Message(name, msgd[name], reply_id, decoder.magic, params, decoder.protected))
 
             self.generate_decoder(decoder)
         self.output.close()

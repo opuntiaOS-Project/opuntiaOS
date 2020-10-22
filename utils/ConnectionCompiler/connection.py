@@ -1,7 +1,8 @@
 class Connection:
-    def __init__(self, name, magic):
+    def __init__(self, name, magic, protected=False):
         self.name = name
         self.magic = magic
+        self.protected = protected
         self.messages = {}
         self.functions = {}
 

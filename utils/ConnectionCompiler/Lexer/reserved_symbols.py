@@ -17,6 +17,7 @@ reserved_symbols = {
 reserved_words = {
     'NAME': Type.Reserved.Name,
     'MAGIC': Type.Reserved.Magic,
+    'KEYPROTECTED': Type.Reserved.KeyProtected,
 }
 
 available_var_types = [Type.Number.Integer, Type.Number.Real, Type.Number.Boolean]
