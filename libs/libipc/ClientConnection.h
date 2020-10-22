@@ -18,6 +18,8 @@ public:
     {
     }
 
+    void set_accepted_key(int key) { m_accepted_key = key; }
+
     bool send_message(const Message& msg) const
     {
         auto encoded_msg = msg.encode();
@@ -35,7 +37,7 @@ public:
     {
         for (;;) {
             for (int i = 0; i < m_messages.size(); i++) {
-                if (m_messages[i] && m_messages[i]->id() == 1 + msg.id() && m_messages[i]->id() % 2 == 0) {
+                if (m_messages[i] && m_messages[i]->key() == msg.key() && m_messages[i]->id() == msg.reply_id()) {
                     return m_messages[i].release();
                 }
             }
@@ -76,7 +78,7 @@ public:
             // Do NOT call callback here!
             auto msg = move(m_messages);
             for (int i = 0; i < msg.size(); i++) {
-                if (msg[i] && msg[i]->decoder_magic() == m_client_decoder.magic()) {
+                if (msg[i] && msg[i]->decoder_magic() == m_client_decoder.magic() && msg[i]->key() == m_accepted_key) {
                     m_client_decoder.handle(*msg[i]);
                 }
             }
@@ -84,6 +86,7 @@ public:
     }
 
 private:
+    int m_accepted_key { -1 };
     int m_connection_fd;
     Vector<UniquePtr<Message>> m_messages;
     ServerDecoder& m_server_decoder;

@@ -1,34 +1,43 @@
 #pragma once
+#include <libipc/Encoder.h>
+#include <libipc/ClientConnection.h>
+#include <libipc/ServerConnection.h>
 #include <libg/Rect.h>
 #include <libg/String.h>
-#include <libipc/ClientConnection.h>
-#include <libipc/Encoder.h>
-#include <libipc/ServerConnection.h>
 #include <malloc.h>
 
 class GreetMessage : public Message {
 public:
-    GreetMessage() { }
+    GreetMessage(message_key_t key)
+        : m_key(key)
+    {
+    }
     int id() const override { return 1; }
+    int reply_id() const override { return 2; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         return buffer;
     }
-
 private:
+    message_key_t m_key;
 };
 
 class GreetMessageReply : public Message {
 public:
-    GreetMessageReply(uint32_t connection_id)
-        : m_connection_id(connection_id)
+    GreetMessageReply(message_key_t key,uint32_t connection_id)
+        : m_key(key)
+        , m_connection_id(connection_id)
     {
     }
     int id() const override { return 2; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t connection_id() const { return m_connection_id; }
     EncodedMessage encode() const override
@@ -36,23 +45,27 @@ public:
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_connection_id);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     uint32_t m_connection_id;
 };
 
 class CreateWindowMessage : public Message {
 public:
-    CreateWindowMessage(uint32_t width, uint32_t height, int buffer_id)
-        : m_width(width)
+    CreateWindowMessage(message_key_t key,uint32_t width,uint32_t height,int buffer_id)
+        : m_key(key)
+        , m_width(width)
         , m_height(height)
         , m_buffer_id(buffer_id)
     {
     }
     int id() const override { return 3; }
+    int reply_id() const override { return 4; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t width() const { return m_width; }
     uint32_t height() const { return m_height; }
@@ -62,13 +75,14 @@ public:
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_width);
         Encoder::append(buffer, m_height);
         Encoder::append(buffer, m_buffer_id);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     uint32_t m_width;
     uint32_t m_height;
     int m_buffer_id;
@@ -76,11 +90,14 @@ private:
 
 class CreateWindowMessageReply : public Message {
 public:
-    CreateWindowMessageReply(uint32_t window_id)
-        : m_window_id(window_id)
+    CreateWindowMessageReply(message_key_t key,uint32_t window_id)
+        : m_key(key)
+        , m_window_id(window_id)
     {
     }
     int id() const override { return 4; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
     EncodedMessage encode() const override
@@ -88,22 +105,26 @@ public:
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_window_id);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     uint32_t m_window_id;
 };
 
 class SetBufferMessage : public Message {
 public:
-    SetBufferMessage(uint32_t window_id, int buffer_id)
-        : m_window_id(window_id)
+    SetBufferMessage(message_key_t key,uint32_t window_id,int buffer_id)
+        : m_key(key)
+        , m_window_id(window_id)
         , m_buffer_id(buffer_id)
     {
     }
     int id() const override { return 5; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
     int buffer_id() const { return m_buffer_id; }
@@ -112,54 +133,62 @@ public:
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_window_id);
         Encoder::append(buffer, m_buffer_id);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     uint32_t m_window_id;
     int m_buffer_id;
 };
 
 class SetBarStyleMessage : public Message {
 public:
-    SetBarStyleMessage(uint32_t window_id, uint32_t color, int style)
-        : m_window_id(window_id)
+    SetBarStyleMessage(message_key_t key,uint32_t window_id,uint32_t color,int text_style)
+        : m_key(key)
+        , m_window_id(window_id)
         , m_color(color)
-        , m_style(style)
+        , m_text_style(text_style)
     {
     }
     int id() const override { return 6; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
     uint32_t color() const { return m_color; }
-    int style() const { return m_style; }
+    int text_style() const { return m_text_style; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_window_id);
         Encoder::append(buffer, m_color);
-        Encoder::append(buffer, m_style);
+        Encoder::append(buffer, m_text_style);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     uint32_t m_window_id;
     uint32_t m_color;
-    int m_style;
+    int m_text_style;
 };
 
 class SetTitleMessage : public Message {
 public:
-    SetTitleMessage(uint32_t window_id, LG::String title)
-        : m_window_id(window_id)
+    SetTitleMessage(message_key_t key,uint32_t window_id,LG::String title)
+        : m_key(key)
+        , m_window_id(window_id)
         , m_title(title)
     {
     }
     int id() const override { return 7; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
     LG::String title() const { return m_title; }
@@ -168,54 +197,28 @@ public:
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_window_id);
         Encoder::append(buffer, m_title);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     uint32_t m_window_id;
     LG::String m_title;
 };
 
-class AddBarMessage : public Message {
-public:
-    AddBarMessage(uint32_t window_id, uint32_t color, int style)
-        : m_window_id(window_id)
-        , m_color(color)
-        , m_style(style)
-    {
-    }
-    int id() const override { return 8; }
-    int decoder_magic() const override { return 320; }
-    uint32_t window_id() const { return m_window_id; }
-    uint32_t color() const { return m_color; }
-    int style() const { return m_style; }
-    EncodedMessage encode() const override
-    {
-        EncodedMessage buffer;
-        Encoder::append(buffer, decoder_magic());
-        Encoder::append(buffer, id());
-        Encoder::append(buffer, m_window_id);
-        Encoder::append(buffer, m_color);
-        Encoder::append(buffer, m_style);
-        return buffer;
-    }
-
-private:
-    uint32_t m_window_id;
-    uint32_t m_color;
-    int m_style;
-};
-
 class InvalidateMessage : public Message {
 public:
-    InvalidateMessage(uint32_t window_id, LG::Rect rect)
-        : m_window_id(window_id)
+    InvalidateMessage(message_key_t key,uint32_t window_id,LG::Rect rect)
+        : m_key(key)
+        , m_window_id(window_id)
         , m_rect(rect)
     {
     }
-    int id() const override { return 9; }
+    int id() const override { return 8; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
     LG::Rect rect() const { return m_rect; }
@@ -224,19 +227,20 @@ public:
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_window_id);
         Encoder::append(buffer, m_rect);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     uint32_t m_window_id;
     LG::Rect m_rect;
 };
 
 class WindowServerDecoder : public MessageDecoder {
 public:
-    WindowServerDecoder() { }
+    WindowServerDecoder() {}
     int magic() const { return 320; }
     UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
@@ -248,65 +252,63 @@ public:
             decoded_msg_len = saved_dml;
             return nullptr;
         }
+        message_key_t secret_key;
+        Encoder::decode(buf, decoded_msg_len, secret_key);
+
         uint32_t var_connection_id;
         uint32_t var_width;
         uint32_t var_height;
         int var_buffer_id;
         uint32_t var_window_id;
         uint32_t var_color;
-        int var_style;
+        int var_text_style;
         LG::String var_title;
         LG::Rect var_rect;
-
-        switch (msg_id) {
+        
+        switch(msg_id) {
         case 1:
-            return new GreetMessage();
+            return new GreetMessage(secret_key);
         case 2:
             Encoder::decode(buf, decoded_msg_len, var_connection_id);
-            return new GreetMessageReply(var_connection_id);
+            return new GreetMessageReply(secret_key, var_connection_id);
         case 3:
             Encoder::decode(buf, decoded_msg_len, var_width);
             Encoder::decode(buf, decoded_msg_len, var_height);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
-            return new CreateWindowMessage(var_width, var_height, var_buffer_id);
+            return new CreateWindowMessage(secret_key, var_width, var_height, var_buffer_id);
         case 4:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
-            return new CreateWindowMessageReply(var_window_id);
+            return new CreateWindowMessageReply(secret_key, var_window_id);
         case 5:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
-            return new SetBufferMessage(var_window_id, var_buffer_id);
+            return new SetBufferMessage(secret_key, var_window_id, var_buffer_id);
         case 6:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_color);
-            Encoder::decode(buf, decoded_msg_len, var_style);
-            return new SetBarStyleMessage(var_window_id, var_color, var_style);
+            Encoder::decode(buf, decoded_msg_len, var_text_style);
+            return new SetBarStyleMessage(secret_key, var_window_id, var_color, var_text_style);
         case 7:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_title);
-            return new SetTitleMessage(var_window_id, var_title);
+            return new SetTitleMessage(secret_key, var_window_id, var_title);
         case 8:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
-            Encoder::decode(buf, decoded_msg_len, var_color);
-            Encoder::decode(buf, decoded_msg_len, var_style);
-            return new AddBarMessage(var_window_id, var_color, var_style);
-        case 9:
-            Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_rect);
-            return new InvalidateMessage(var_window_id, var_rect);
+            return new InvalidateMessage(secret_key, var_window_id, var_rect);
         default:
             decoded_msg_len = saved_dml;
             return nullptr;
         }
     }
-
+    
     UniquePtr<Message> handle(const Message& msg) override
     {
         if (magic() != msg.decoder_magic()) {
             return nullptr;
         }
-
-        switch (msg.id()) {
+        
+        switch(msg.id()) {
         case 1:
             return handle(static_cast<const GreetMessage&>(msg));
         case 3:
@@ -318,33 +320,33 @@ public:
         case 7:
             return handle(static_cast<const SetTitleMessage&>(msg));
         case 8:
-            return handle(static_cast<const AddBarMessage&>(msg));
-        case 9:
             return handle(static_cast<const InvalidateMessage&>(msg));
         default:
             return nullptr;
         }
     }
-
+    
     virtual UniquePtr<Message> handle(const GreetMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const SetBarStyleMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const SetTitleMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const AddBarMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const InvalidateMessage& msg) { return nullptr; }
 };
 
 class MouseMessage : public Message {
 public:
-    MouseMessage(int win_id, uint32_t x, uint32_t y)
-        : m_win_id(win_id)
+    MouseMessage(message_key_t key,int win_id,uint32_t x,uint32_t y)
+        : m_key(key)
+        , m_win_id(win_id)
         , m_x(x)
         , m_y(y)
     {
     }
     int id() const override { return 1; }
-    int decoder_magic() const override { return 737; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 738; }
     int win_id() const { return m_win_id; }
     uint32_t x() const { return m_x; }
     uint32_t y() const { return m_y; }
@@ -353,13 +355,14 @@ public:
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_win_id);
         Encoder::append(buffer, m_x);
         Encoder::append(buffer, m_y);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     int m_win_id;
     uint32_t m_x;
     uint32_t m_y;
@@ -367,30 +370,60 @@ private:
 
 class DisplayMessage : public Message {
 public:
-    DisplayMessage(LG::Rect rect)
-        : m_rect(rect)
+    DisplayMessage(message_key_t key,LG::Rect rect)
+        : m_key(key)
+        , m_rect(rect)
     {
     }
     int id() const override { return 2; }
-    int decoder_magic() const override { return 737; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 738; }
     LG::Rect rect() const { return m_rect; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
         Encoder::append(buffer, m_rect);
         return buffer;
     }
-
 private:
+    message_key_t m_key;
     LG::Rect m_rect;
+};
+
+class DisconnectMessage : public Message {
+public:
+    DisconnectMessage(message_key_t key,int reason)
+        : m_key(key)
+        , m_reason(reason)
+    {
+    }
+    int id() const override { return 3; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 738; }
+    int reason() const { return m_reason; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_reason);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    int m_reason;
 };
 
 class WindowClientDecoder : public MessageDecoder {
 public:
-    WindowClientDecoder() { }
-    int magic() const { return 737; }
+    WindowClientDecoder() {}
+    int magic() const { return 738; }
     UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
         int msg_id, decoder_magic;
@@ -401,42 +434,53 @@ public:
             decoded_msg_len = saved_dml;
             return nullptr;
         }
+        message_key_t secret_key;
+        Encoder::decode(buf, decoded_msg_len, secret_key);
+
         int var_win_id;
         uint32_t var_x;
         uint32_t var_y;
         LG::Rect var_rect;
-
-        switch (msg_id) {
+        int var_reason;
+        
+        switch(msg_id) {
         case 1:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_x);
             Encoder::decode(buf, decoded_msg_len, var_y);
-            return new MouseMessage(var_win_id, var_x, var_y);
+            return new MouseMessage(secret_key, var_win_id, var_x, var_y);
         case 2:
             Encoder::decode(buf, decoded_msg_len, var_rect);
-            return new DisplayMessage(var_rect);
+            return new DisplayMessage(secret_key, var_rect);
+        case 3:
+            Encoder::decode(buf, decoded_msg_len, var_reason);
+            return new DisconnectMessage(secret_key, var_reason);
         default:
             decoded_msg_len = saved_dml;
             return nullptr;
         }
     }
-
+    
     UniquePtr<Message> handle(const Message& msg) override
     {
         if (magic() != msg.decoder_magic()) {
             return nullptr;
         }
-
-        switch (msg.id()) {
+        
+        switch(msg.id()) {
         case 1:
             return handle(static_cast<const MouseMessage&>(msg));
         case 2:
             return handle(static_cast<const DisplayMessage&>(msg));
+        case 3:
+            return handle(static_cast<const DisconnectMessage&>(msg));
         default:
             return nullptr;
         }
     }
-
+    
     virtual UniquePtr<Message> handle(const MouseMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
 };
+

@@ -13,8 +13,9 @@ namespace UI {
 
 bool Responder::send_invalidate_message(const LG::Rect& rect)
 {
-    InvalidateMessage msg(App::the().window().id(), rect);
-    return App::the().connection().send_async_message(msg);
+    auto& app = App::the();
+    InvalidateMessage msg(Connection::the().key(), app.window().id(), rect);
+    return app.connection().send_async_message(msg);
 }
 
 void Responder::receive_event(UniquePtr<LFoundation::Event> event)

@@ -83,7 +83,7 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
                 break;
             }
         } else if (m_windows[i].bounds().contains(m_mouse_x, m_mouse_y)) {
-            m_event_loop.add(m_connection, new SendEvent(new MouseMessage(m_windows[i].id(), m_mouse_x, m_mouse_y)));
+            m_event_loop.add(m_connection, new SendEvent(new MouseMessage(0x1, m_windows[i].id(), m_mouse_x, m_mouse_y)));
         }
     }
     delete mouse_event;

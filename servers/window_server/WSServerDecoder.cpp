@@ -12,7 +12,7 @@
 
 UniquePtr<Message> WServerDecoder::handle(const GreetMessage& msg)
 {
-    return new GreetMessageReply(0x1);
+    return new GreetMessageReply(msg.key(), 0x1);
 }
 
 UniquePtr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
@@ -21,7 +21,7 @@ UniquePtr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
     int win_id = wm.windows().size();
     wm.add_window(Window(win_id, msg));
     wm.window(win_id).frame().set_app_name("Window");
-    return new CreateWindowMessageReply(win_id);
+    return new CreateWindowMessageReply(msg.key(), win_id);
 }
 
 UniquePtr<Message> WServerDecoder::handle(const SetBufferMessage& msg)

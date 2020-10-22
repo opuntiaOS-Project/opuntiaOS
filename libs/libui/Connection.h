@@ -19,6 +19,9 @@ public:
     inline bool send_async_message(const Message& msg) const { return m_connection_with_server.send_message(msg); }
     inline void listen() { m_connection_with_server.pump_messages(); }
 
+    // We use connection id as an unique key.
+    inline int key() const { return m_connection_id; }
+
 private:
     int m_connection_fd;
     int m_connection_id;

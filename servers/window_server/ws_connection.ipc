@@ -1,17 +1,19 @@
 {
+    KEYPROTECTED
     NAME: WindowServerDecoder
     MAGIC: 320
     GreetMessage() => GreetMessageReply(uint32_t connection_id)
     CreateWindowMessage(uint32_t width, uint32_t height, int buffer_id) => CreateWindowMessageReply(uint32_t window_id)
     SetBufferMessage(uint32_t window_id, int buffer_id)
-    SetBarStyleMessage(uint32_t window_id, uint32_t color, int style)
+    SetBarStyleMessage(uint32_t window_id, uint32_t color, int text_style)
     SetTitleMessage(uint32_t window_id, LG::String title)
-    AddBarMessage(uint32_t window_id, uint32_t color, int style)
     InvalidateMessage(uint32_t window_id, LG::Rect rect)
 }
 {
+    KEYPROTECTED
     NAME: WindowClientDecoder
-    MAGIC: 737
+    MAGIC: 738
     MouseMessage(int win_id, uint32_t x, uint32_t y)
     DisplayMessage(LG::Rect rect)
+    DisconnectMessage(int reason)
 }

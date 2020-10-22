@@ -11,6 +11,6 @@ int main(int argc, char** argv)
     window_ptr->set_superview(new UI::View(window_ptr->bounds()));
     window_ptr->superview()->add_subview(new UI::View({10, 10, 50, 50}));
     window_ptr->superview()->set_needs_display();
-    window_ptr->set_title("My title");
+    window_ptr->set_title("App");
     return UI::App::the().run();
 }

@@ -16,14 +16,9 @@
 #include <pthread.h>
 #include <syscalls.h>
 
-void event_loop()
-{
-    Connection::the().listen();
-}
-
 int main()
 {
-    auto event_loop = new LFoundation::EventLoop();
+    auto* event_loop = new LFoundation::EventLoop();
     new Screen();
     new Connection(socket(PF_LOCAL, 0, 0));
     new WindowManager();

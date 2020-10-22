@@ -39,21 +39,21 @@ Connection::Connection(int connection_fd)
 
 void Connection::greeting()
 {
-    GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage()).release();
+    GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage(0)).release();
     m_connection_id = resp_message->connection_id();
+    m_connection_with_server.set_accepted_key(m_connection_id);
     write(1, "Got greet", 9);
 }
 
 int Connection::new_window(const Window& window)
 {
-    write(1, "Sending msg", 11);
-    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(window.bounds().width(), window.bounds().height(), window.buffer().id())).release();
+    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(key(), window.bounds().width(), window.bounds().height(), window.buffer().id())).release();
     return resp_message->window_id();
 }
 
 void Connection::set_buffer(const Window& window)
 {
-    send_async_message(SetBufferMessage(window.id(), window.buffer().id()));
+    send_async_message(SetBufferMessage(key(), window.id(), window.buffer().id()));
 }
 
 }

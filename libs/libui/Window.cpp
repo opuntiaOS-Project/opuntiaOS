@@ -30,7 +30,7 @@ Window::Window(uint32_t width, uint32_t height)
 
 bool Window::set_title(const LG::String& title)
 {
-    SetTitleMessage msg(id(), title);
+    SetTitleMessage msg(Connection::the().key(), id(), title);
     return App::the().connection().send_async_message(msg);
 }
 

@@ -42,7 +42,7 @@ public:
 
     inline void set_needs_display(const LG::Rect& rect)
     {
-        DisplayMessage msg(rect);
+        DisplayMessage msg(0x1, rect);
         Connection::the().send_async_message(msg);
     }
 
