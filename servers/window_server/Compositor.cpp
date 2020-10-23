@@ -23,6 +23,7 @@ Compositor& Compositor::the()
 Compositor::Compositor()
 {
     s_the = this;
+    invalidate(Screen::the().bounds());
     LFoundation::EventLoop::the().add(LFoundation::Timer([] {
         Compositor::the().refresh();
     }));
@@ -30,29 +31,65 @@ Compositor::Compositor()
 
 void Compositor::refresh()
 {
+    if (m_invalidated_areas.size() == 0 && m_prev_invalidated_areas.size() == 0) {
+        return;
+    }
+
+    auto invalidated_areas = move(m_invalidated_areas);
+    auto prev_invalidated_areas = move(m_prev_invalidated_areas);
     auto& screen = Screen::the();
     auto& wm = WindowManager::the();
     LG::Context ctx(screen.write_bitmap());
 
-    for (int i = 0; i < 1024 * 768; i++) {
-        screen.write_bitmap().data()[i] = 0x00FeeeeF; // background
-    }
+    auto is_window_area_invalidated = [&](const Vector<LG::Rect>& areas, const LG::Rect& area) -> bool {
+        for (int i = 0; i < areas.size(); i++) {
+            if (area.intersects(areas[i])) {
+                return true;
+            }
+        }
+        return false;
+    };
 
-    auto draw_window = [&](Window& window) {
+    auto draw_wallpaper_for_area = [&](const LG::Rect& area) {
+        ctx.add_clip(area);
+        ctx.set_fill_color(LG::Color(0x00FeeeeF));
+        ctx.fill(LG::Rect(0, 0, 1024, 768));
+        ctx.reset_clip();
+    };
+
+    auto draw_window = [&](Window& window, const LG::Rect& area) {
         ctx.set_fill_color(LG::Color::Black);
+        ctx.add_clip(area);
         ctx.add_clip(window.bounds());
         window.frame().draw(ctx);
         ctx.draw({ window.content_x(), window.content_y() }, window.content_bitmap());
         ctx.reset_clip();
     };
 
+    auto process_invalid_areas = [&](const Vector<LG::Rect>& areas) {
+        for (int i = 0; i < areas.size(); i++) {
+            draw_wallpaper_for_area(areas[i]);
+        }
+        for (int win = 0; win < wm.windows().size(); win++) {
+            auto& window = wm.windows()[win];
+            if (is_window_area_invalidated(areas, window.bounds())) {
+                for (int i = 0; i < areas.size(); i++) {
+                    draw_window(window, areas[i]);
+                }
+            }
+        }
+    };
+
+    process_invalid_areas(prev_invalidated_areas);
+    process_invalid_areas(invalidated_areas);
+
     for (int win = 0; win < wm.windows().size(); win++) {
-        draw_window(wm.windows()[win]);
         wm.windows()[win].set_needs_display({0, 0, 400, 300});
     }
 
     ctx.set_fill_color(LG::Color::Green);
     ctx.fill(LG::Rect(wm.mouse_x(), wm.mouse_y(), wm.cursor_size(), wm.cursor_size()));
 
+    m_prev_invalidated_areas = move(invalidated_areas);
     screen.swap_buffers();
-}
+}   

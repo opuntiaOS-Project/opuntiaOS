@@ -19,6 +19,7 @@ WindowManager& WindowManager::the()
 WindowManager::WindowManager()
     : m_screen(Screen::the())
     , m_connection(Connection::the())
+    , m_compositor(Compositor::the())
     , m_event_loop(LFoundation::EventLoop::the())
 {
     s_the = this;
@@ -43,8 +44,12 @@ bool WindowManager::continue_window_move(MouseEvent* mouse_event)
         m_movable_window = nullptr;
         return true;
     }
-
+    
+    auto bounds = m_movable_window->bounds();
+    m_compositor.invalidate(m_movable_window->bounds());
     m_movable_window->bounds().offset_by(mouse_event->packet().x_offset, -mouse_event->packet().y_offset);
+    bounds.unite(m_movable_window->bounds());
+    m_compositor.invalidate(bounds);
     return true;
 }
 
@@ -57,6 +62,7 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
         return;
     }
 
+    m_compositor.invalidate(LG::Rect(m_mouse_x, m_mouse_y, cursor_size(), cursor_size()));
     m_mouse_x += mouse_event->packet().x_offset;
     m_mouse_y -= mouse_event->packet().y_offset;
     if (m_mouse_x < 0) {
@@ -71,11 +77,10 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
     if (m_mouse_y >= m_screen.height() - cursor_size()) {
         m_mouse_y = m_screen.height() - cursor_size();
     }
+    m_compositor.invalidate(LG::Rect(m_mouse_x, m_mouse_y, cursor_size(), cursor_size()));
 
     m_is_pressed = (mouse_event->packet().button_states & 1);
 
-    // FIXME!
-    
     for (int i = 0; i < m_windows.size(); i++) {
         if (m_windows[i].frame().bounds().contains(m_mouse_x, m_mouse_y)) {
             if (m_is_pressed) {

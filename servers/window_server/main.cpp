@@ -21,8 +21,8 @@ int main()
     auto* event_loop = new LFoundation::EventLoop();
     new Screen();
     new Connection(socket(PF_LOCAL, 0, 0));
-    new WindowManager();
     new Compositor();
+    new WindowManager();
     new Devices();
     event_loop->run();
     return 0;

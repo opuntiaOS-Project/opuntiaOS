@@ -19,8 +19,7 @@ Screen& Screen::the()
 }
 
 Screen::Screen()
-    : m_width(1024)
-    , m_height(768)
+    : m_bounds(0, 0, 1024, 768)
     , m_depth(4)
     , m_write_bitmap()
     , m_display_bitmap()
@@ -51,8 +50,4 @@ void Screen::swap_buffers()
     m_write_bitmap_ptr.swap(m_display_bitmap_ptr);
     m_active_buffer ^= 1;
     ioctl(m_screen_fd, BGA_SWAP_BUFFERS, m_active_buffer);
-}
-
-void Screen::run()
-{
 }

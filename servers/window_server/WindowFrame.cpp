@@ -97,6 +97,7 @@ void WindowFrame::set_app_name(String&& title)
         new_control->set_title(title);
         m_control_panel_buttons.push_back(new_control);
     }
+    Compositor::the().invalidate(bounds());
 }
 
 void WindowFrame::add_control(const String& title)
@@ -104,6 +105,7 @@ void WindowFrame::add_control(const String& title)
     auto* new_control = new Button();
     new_control->set_title(title);
     m_control_panel_buttons.push_back(new_control);
+    Compositor::the().invalidate(bounds());
 }
 
 void WindowFrame::draw(LG::Context& ctx)

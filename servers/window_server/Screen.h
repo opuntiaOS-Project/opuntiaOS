@@ -18,10 +18,11 @@ public:
     Screen();
 
     void swap_buffers();
-    void run();
 
-    inline size_t width() const { return m_width; }
-    inline size_t height() const { return m_height; }
+    inline size_t width() { return m_bounds.width(); }
+    inline size_t height() const { return m_bounds.height(); }
+    inline LG::Rect& bounds() { return m_bounds; }
+    inline const LG::Rect& bounds() const { return m_bounds; }
     inline uint32_t depth() const { return m_depth; }
 
     inline LG::PixelBitmap& write_bitmap() { return *m_write_bitmap_ptr; }
@@ -31,8 +32,7 @@ public:
 
 private:
     int m_screen_fd;
-    size_t m_width;
-    size_t m_height;
+    LG::Rect m_bounds;
     uint32_t m_depth;
 
     int m_active_buffer;

@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include "Compositor.h"
 #include "Connection.h"
 #include "Screen.h"
 #include "WSConnection.h"
@@ -24,7 +25,12 @@ public:
     static WindowManager& the();
     WindowManager();
 
-    inline void add_window(Window&& window) { m_windows.push_back(move(window)); }
+    inline void add_window(Window&& window)
+    {
+        m_compositor.invalidate(window.bounds());
+        m_windows.push_back(move(window));
+    }
+    
     inline Window& window(int id)
     {
         for (int i = 0; i < windows().size(); i++) {
@@ -57,6 +63,7 @@ private:
     Vector<Window> m_windows;
     Screen& m_screen;
     Connection& m_connection;
+    Compositor& m_compositor;
     LFoundation::EventLoop& m_event_loop;
 
     WeakPtr<Window> m_movable_window;
