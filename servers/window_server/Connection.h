@@ -24,10 +24,12 @@ public:
     }
 
     inline bool send_async_message(const Message& msg) const { return m_connection_with_clients.send_message(msg); }
+    inline int alloc_connection() { return ++m_connections_number; }
     void receive_event(UniquePtr<LFoundation::Event> event) override;
 
 private:
     int m_connection_fd;
+    int m_connections_number { 0 };
     ServerConnection<WServerDecoder, WindowClientDecoder> m_connection_with_clients;
     WServerDecoder m_server_decoder;
     WindowClientDecoder m_client_decoder;

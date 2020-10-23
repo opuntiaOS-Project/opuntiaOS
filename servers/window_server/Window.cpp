@@ -9,8 +9,9 @@
 #include "Window.h"
 #include <std/Utility.h>
 
-Window::Window(int id, const CreateWindowMessage& msg)
+Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
     : m_id(id)
+    , m_connection_id(connection_id)
     , m_buffer(msg.buffer_id())
     , m_frame(*this)
     , m_content_bitmap()
@@ -24,6 +25,7 @@ Window::Window(int id, const CreateWindowMessage& msg)
 
 Window::Window(Window&& win)
     : m_id(win.m_id)
+    , m_connection_id(win.m_connection_id)
     , m_buffer(win.m_buffer)
     , m_frame(*this, move(win.m_frame.control_panel_buttons()), move(win.m_frame.window_control_buttons()))
     , m_content_bitmap(move(win.m_content_bitmap))

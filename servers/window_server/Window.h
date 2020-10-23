@@ -18,7 +18,7 @@
 
 class Window : public Weakable<Window> {
 public:
-    Window(int id, const CreateWindowMessage& msg);
+    Window(int connection_id, int id, const CreateWindowMessage& msg);
     Window(Window&& win);
 
     void set_buffer(int buffer_id);
@@ -40,14 +40,17 @@ public:
     inline WindowFrame& frame() { return m_frame; }
     inline const WindowFrame& frame() const { return m_frame; }
 
-    inline void set_needs_display(const LG::Rect& rect)
+    inline void set_needs_display(const LG::Rect& rect) const
     {
-        DisplayMessage msg(0x1, rect);
+        DisplayMessage msg(connection_id(), rect);
         Connection::the().send_async_message(msg);
     }
 
+    inline int connection_id() const { return m_connection_id; }
+
 private:
     int m_id { -1 };
+    int m_connection_id { -1 };
     LG::Rect m_bounds;
     LG::Rect m_content_bounds;
     LG::PixelBitmap m_content_bitmap;

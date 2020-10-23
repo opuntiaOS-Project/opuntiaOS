@@ -39,7 +39,7 @@ Connection::Connection(int connection_fd)
 
 void Connection::greeting()
 {
-    GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage(0)).release();
+    GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage(getpid())).release();
     m_connection_id = resp_message->connection_id();
     m_connection_with_server.set_accepted_key(m_connection_id);
     write(1, "Got greet", 9);

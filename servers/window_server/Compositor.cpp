@@ -48,11 +48,7 @@ void Compositor::refresh()
 
     for (int win = 0; win < wm.windows().size(); win++) {
         draw_window(wm.windows()[win]);
-    }
-
-    // FIXME: Remove this
-    if (wm.windows().size()) {
-        wm.windows()[0].set_needs_display({0, 0, 400, 300});
+        wm.windows()[win].set_needs_display({0, 0, 400, 300});
     }
 
     ctx.set_fill_color(LG::Color::Green);
