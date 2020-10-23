@@ -31,6 +31,7 @@ public:
 
     inline size_t width() const { return m_width; }
     inline size_t height() const { return m_height; }
+    inline size_t square() const { return width() * height(); }
     inline int min_x() const { return m_origin.x(); }
     inline int mid_x() const { return m_origin.x() + width() / 2; }
     inline int max_x() const { return m_origin.x() + width() - 1; }
@@ -52,8 +53,11 @@ public:
     inline Point<int>& origin() { return m_origin; }
     inline const Point<int>& origin() const { return m_origin; }
 
+    void unite(const Rect& other);
+    LG::Rect union_of(const Rect& other) const;
     void intersect(const Rect& other);
-    bool intersects(const Rect& other);
+    bool intersects(const Rect& other) const;
+    LG::Rect intersection(const Rect& other) const;
 
     void encode(EncodedMessage& buf) const override;
     void decode(const char* buf, size_t& offset) override;

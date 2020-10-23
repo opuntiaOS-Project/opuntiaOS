@@ -122,7 +122,7 @@ void Context::add_ellipse(const Rect& rect)
         x++;
         dx += 2 * ry * ry;
         tmp_d1 = d1;
-        d1 += dx + (ry * ry);
+        d1 += ry * ry + dx;
         if (tmp_d1 >= 0) {
             y--;
             dy -= 2 * rx * rx;
