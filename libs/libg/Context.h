@@ -31,6 +31,7 @@ public:
     void fill(const Rect& rect);
     void add_ellipse(const Rect& rect);
 
+    void set_draw_offset(const Point<int>& offset) { m_draw_offset = offset; }
     void set_fill_color(const Color& clr) { m_color = clr; }
 
     inline const Color& fill_color() const { return m_color; }
@@ -39,6 +40,7 @@ private:
     PixelBitmap& m_bitmap;
     Rect m_clip;
     const Rect m_origin_clip;
+    Point<int> m_draw_offset {0, 0};
     Color m_color {};
 };
 

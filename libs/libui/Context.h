@@ -22,7 +22,9 @@ public:
     Context(View& view)
         : Context(view.window()->bitmap())
     {
-        add_clip(view.frame_in_window());
+        auto frame = view.frame_in_window();
+        add_clip(frame);
+        set_draw_offset(frame.origin());
     }
 };
 }

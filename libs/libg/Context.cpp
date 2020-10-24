@@ -31,7 +31,7 @@ void Context::reset_clip()
 
 void Context::draw(const Point<int>& start, const PixelBitmap& bitmap)
 {
-    Rect draw_bounds(start.x(), start.y(), bitmap.width(), bitmap.height());
+    Rect draw_bounds(start.x() + m_draw_offset.x(), start.y() + m_draw_offset.y(), bitmap.width(), bitmap.height());
     draw_bounds.intersect(m_clip);
     if (draw_bounds.empty()) {
         return;
@@ -54,7 +54,7 @@ void Context::draw(const Point<int>& start, const PixelBitmap& bitmap)
 
 void Context::draw(const Point<int>& start, const GlyphBitmap& bitmap)
 {
-    Rect draw_bounds(start.x(), start.y(), bitmap.width(), bitmap.height());
+    Rect draw_bounds(start.x() + m_draw_offset.x(), start.y() + m_draw_offset.y(), bitmap.width(), bitmap.height());
     draw_bounds.intersect(m_clip);
     if (draw_bounds.empty()) {
         return;
@@ -80,6 +80,7 @@ void Context::draw(const Point<int>& start, const GlyphBitmap& bitmap)
 void Context::fill(const Rect& rect)
 {
     auto draw_bounds = rect;
+    draw_bounds.offset_by(m_draw_offset);
     draw_bounds.intersect(m_clip);
 
     if (draw_bounds.empty()) {
