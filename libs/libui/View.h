@@ -71,11 +71,15 @@ public:
 
     virtual void click_began(const LG::Point<int>& location);
     virtual void click_ended();
-    
+
     virtual void receive_mouse_move_event(MouseEvent&) override;
     virtual void receive_mouse_action_event(MouseActionEvent&) override;
     virtual void receive_mouse_leave_event(MouseLeaveEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
+
+protected:
+    inline LG::Rect& frame() { return m_frame; }
+    inline LG::Rect& bounds() { return m_bounds; }
 
 private:
     void set_window(Window* window) { m_window = window; }

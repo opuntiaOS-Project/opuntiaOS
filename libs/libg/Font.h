@@ -59,6 +59,7 @@ public:
     static Font* load_from_mem(uint8_t* path);
 
     uint8_t glyph_width(size_t ch) const { return m_dynamic_width ? m_width_data[ch] : m_width; }
+    uint8_t glyph_height() const { return m_height; }
     GlyphBitmap glyph_bitmap(size_t ch) const;
 
 private:
