@@ -8,6 +8,7 @@
 
 #include "View.h"
 #include "Context.h"
+#include <libfoundation/EventLoop.h>
 #include <libg/Color.h>
 #include <syscalls.h>
 
@@ -57,7 +58,7 @@ void View::set_needs_display(const LG::Rect& rect)
         display_rect.offset_by(frame().origin());
         superview()->set_needs_display(display_rect);
     } else {
-        bool success = send_invalidate_message(display_rect);
+        LFoundation::EventLoop::the().add(*window(), new DisplayEvent(display_rect));
     }
 }
 
@@ -65,9 +66,21 @@ void View::display(const LG::Rect& rect)
 {
     Context ctx(*this);
     if (has_superview()) {
-        ctx.set_fill_color(LG::Color::Red);
+        if (m_active) {
+            ctx.set_fill_color(LG::Color::White);
+        } else if (m_hovered) {
+            ctx.set_fill_color(LG::Color::Red);
+        } else {
+            ctx.set_fill_color(LG::Color::Blue);
+        }
     } else {
-        ctx.set_fill_color(LG::Color::White);
+        if (m_active) {
+            ctx.set_fill_color(LG::Color::Blue);
+        } else if (m_hovered) {
+            ctx.set_fill_color(LG::Color::Red);
+        } else {
+            ctx.set_fill_color(LG::Color::White);
+        }
     }
 
     ctx.fill(rect);
@@ -77,8 +90,77 @@ void View::did_display(const LG::Rect& rect)
 {
 }
 
-void View::receive_mouse_event(MouseEvent&)
+void View::hover_begin(const LG::Point<int>& location)
 {
+    set_needs_display();
+}
+
+void View::hover_end()
+{
+    set_needs_display();
+}
+
+void View::click_began(const LG::Point<int>& location)
+{
+    
+}
+
+void View::click_ended()
+{
+    
+}
+
+void View::receive_mouse_move_event(MouseEvent& event)
+{
+    if (!is_hovered()) {
+        m_hovered = true;
+        hover_begin(LG::Point<int>(event.x(), event.y()));
+    }
+
+    foreach_subview([&](View& subview) -> bool {
+        if (subview.is_hovered() && !subview.frame().contains(event.x(), event.y())) {
+            LG::Point<int> point(event.x(), event.y());
+            point.offset_by(-subview.frame().origin());
+            MouseLeaveEvent mle(point.x(), point.y());
+            subview.receive_mouse_leave_event(mle);
+        } else if (!subview.is_hovered() && subview.frame().contains(event.x(), event.y())) {
+            LG::Point<int> point(event.x(), event.y());
+            point.offset_by(-subview.frame().origin());
+            MouseEvent me(point.x(), point.y());
+            subview.receive_mouse_move_event(me);
+        }
+        return true;
+    });
+}
+
+void View::receive_mouse_action_event(MouseActionEvent& event)
+{
+    if (event.type() == MouseActionType::ClickBegan) {
+        m_active = true;
+    } else if (event.type() == MouseActionType::ClickEnded) {
+        m_active = false;
+    }
+    set_needs_display();
+}
+
+void View::receive_mouse_leave_event(MouseLeaveEvent& event)
+{
+    if (!is_hovered()) {
+        return;
+    }
+
+    foreach_subview([&](View& subview) -> bool {
+        if (subview.is_hovered()) {
+            LG::Point<int> point(event.x(), event.y());
+            point.offset_by(-subview.frame().origin());
+            MouseLeaveEvent mle(point.x(), point.y());
+            subview.receive_mouse_leave_event(mle);
+        }
+        return true;
+    });
+
+    m_hovered = false;
+    hover_end();
 }
 
 void View::receive_display_event(DisplayEvent& event)
@@ -95,6 +177,10 @@ void View::receive_display_event(DisplayEvent& event)
         return true;
     });
     did_display(event.bounds());
+
+    if (!has_superview()) {
+        bool success = send_invalidate_message(event.bounds());
+    }
 }
 
 }

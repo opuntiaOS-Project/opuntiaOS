@@ -18,10 +18,26 @@ ClientDecoder::ClientDecoder()
 {
 }
 
-UniquePtr<Message> ClientDecoder::handle(const MouseMessage& msg)
+UniquePtr<Message> ClientDecoder::handle(const MouseMoveMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
         m_event_loop.add(App::the().window(), new MouseEvent(msg.x(), msg.y()));
+    }
+    return nullptr;
+}
+
+UniquePtr<Message> ClientDecoder::handle(const MouseActionMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the().window(), new MouseActionEvent((MouseActionType)msg.type(), msg.x(), msg.y()));
+    }
+    return nullptr;
+}
+
+UniquePtr<Message> ClientDecoder::handle(const MouseLeaveMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the().window(), new MouseLeaveEvent(msg.x(), msg.y()));
     }
     return nullptr;
 }

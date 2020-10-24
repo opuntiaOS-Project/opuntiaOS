@@ -39,8 +39,22 @@ void Window::receive_event(UniquePtr<LFoundation::Event> event)
     if (event->type() == Event::Type::MouseEvent) {
         if (m_superview) {
             MouseEvent& own_event = *(MouseEvent*)event.get();
-            auto view = m_superview->hit_test({ own_event.x(), own_event.y() });
-            view->receive_mouse_event(own_event);
+            m_superview->receive_mouse_move_event(own_event);
+        }
+    }
+
+    if (event->type() == Event::Type::MouseActionEvent) {
+        if (m_superview) {
+            MouseActionEvent& own_event = *(MouseActionEvent*)event.get();
+            auto* view = m_superview->hit_test({own_event.x(), own_event.y()});
+            view->receive_mouse_action_event(own_event);
+        }
+    }
+
+    if (event->type() == Event::Type::MouseLeaveEvent) {
+        if (m_superview) {
+            MouseLeaveEvent& own_event = *(MouseLeaveEvent*)event.get();
+            m_superview->receive_mouse_leave_event(own_event);
         }
     }
 
@@ -50,7 +64,6 @@ void Window::receive_event(UniquePtr<LFoundation::Event> event)
             m_superview->receive_display_event(own_event);
         }
     }
-    // write(1, "Recieve mouse event\n", 20);
 }
 
 }

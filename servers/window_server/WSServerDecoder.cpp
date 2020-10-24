@@ -32,11 +32,12 @@ UniquePtr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
 
 UniquePtr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
 {
-    // FIXME: Here hust for test :*)
-    write(1, "invalidate", 10);
-    if (msg.rect().height() == 300) {
-        write(1, " ok\n", 4);
-    }
+    auto& wm = WindowManager::the();
+    auto& window = wm.window(msg.window_id());
+    auto rect = msg.rect();
+    rect.offset_by(window.content_bounds().origin());
+    rect.intersect(window.content_bounds());
+    Compositor::the().invalidate(rect);
     return nullptr;
 }
 

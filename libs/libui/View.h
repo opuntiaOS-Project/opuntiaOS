@@ -61,10 +61,20 @@ public:
     void set_needs_display(const LG::Rect&);
     inline void set_needs_display() { set_needs_display(bounds()); }
 
+    inline bool is_hovered() { return m_hovered; }
+
     virtual void display(const LG::Rect& rect);
     virtual void did_display(const LG::Rect& rect);
+
+    virtual void hover_begin(const LG::Point<int>& location);
+    virtual void hover_end();
+
+    virtual void click_began(const LG::Point<int>& location);
+    virtual void click_ended();
     
-    virtual void receive_mouse_event(MouseEvent&) override;
+    virtual void receive_mouse_move_event(MouseEvent&) override;
+    virtual void receive_mouse_action_event(MouseActionEvent&) override;
+    virtual void receive_mouse_leave_event(MouseLeaveEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
 
 private:
@@ -76,6 +86,9 @@ private:
     Vector<View*> m_subviews;
     LG::Rect m_frame;
     LG::Rect m_bounds;
+
+    bool m_active { false };
+    bool m_hovered { false };
 };
 
 }

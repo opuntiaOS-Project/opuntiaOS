@@ -20,7 +20,9 @@ public:
     ~ClientDecoder() { }
 
     using WindowClientDecoder::handle;
-    virtual UniquePtr<Message> handle(const MouseMessage& msg) override;
+    virtual UniquePtr<Message> handle(const MouseMoveMessage& msg) override;
+    virtual UniquePtr<Message> handle(const MouseActionMessage& msg) override;
+    virtual UniquePtr<Message> handle(const MouseLeaveMessage& msg) override;
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) override;
 
 private:

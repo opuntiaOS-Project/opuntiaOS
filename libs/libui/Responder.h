@@ -18,7 +18,9 @@ public:
     bool send_invalidate_message(const LG::Rect& rect);
 
     void receive_event(UniquePtr<LFoundation::Event> event) override;
-    virtual void receive_mouse_event(MouseEvent&) { }
+    virtual void receive_mouse_move_event(MouseEvent&) { }
+    virtual void receive_mouse_action_event(MouseActionEvent&) { }
+    virtual void receive_mouse_leave_event(MouseLeaveEvent&) { }
     virtual void receive_display_event(DisplayEvent&) { }
 
 protected:

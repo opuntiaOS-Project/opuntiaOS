@@ -30,7 +30,7 @@ public:
         m_compositor.invalidate(window.bounds());
         m_windows.push_back(move(window));
     }
-    
+
     inline Window& window(int id)
     {
         for (int i = 0; i < windows().size(); i++) {
@@ -48,18 +48,19 @@ public:
 
     inline int mouse_x() const { return m_mouse_x; }
     inline int mouse_y() const { return m_mouse_y; }
-    inline bool is_cursor_pressed() const { return m_is_pressed; }
+    inline bool is_mouse_left_button_pressed() const { return m_mouse_left_button_pressed; }
     constexpr int cursor_size() const { return 14; }
 
 private:
     void start_window_move(Window& window);
     bool continue_window_move(MouseEvent* mouse_event);
 
+    void update_mouse_position(MouseEvent* mouse_event);
     void receive_mouse_event(UniquePtr<LFoundation::Event> event);
 
-    int m_mouse_x { 0 };
-    int m_mouse_y { 0 };
-    bool m_is_pressed { false };
+    bool has_hovered_window() { return m_hovered_window_id != -1; }
+    Window& hovered_window() { return window(m_hovered_window_id); }
+
     Vector<Window> m_windows;
     Screen& m_screen;
     Connection& m_connection;
@@ -67,4 +68,10 @@ private:
     LFoundation::EventLoop& m_event_loop;
 
     WeakPtr<Window> m_movable_window;
+    int m_hovered_window_id { -1 };
+    
+    int m_mouse_x { 0 };
+    int m_mouse_y { 0 };
+    bool m_mouse_left_button_pressed { false };
+    bool m_mouse_changed_button_status { false };
 };

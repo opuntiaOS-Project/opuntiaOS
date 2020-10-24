@@ -25,8 +25,8 @@ public:
 
     inline int id() const { return m_id; }
 
-    inline int content_x() { return m_bounds.min_x() + m_content_bounds.min_x(); }
-    inline int content_y() { return m_bounds.min_y() + m_content_bounds.min_y(); }
+    inline int content_x() { return m_content_bounds.min_x(); }
+    inline int content_y() { return m_content_bounds.min_y(); }
 
     inline SharedBuffer<LG::Color>& buffer() { return m_buffer; }
     inline const LG::PixelBitmap& content_bitmap() const { return m_content_bitmap; }

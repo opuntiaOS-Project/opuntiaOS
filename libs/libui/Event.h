@@ -19,6 +19,8 @@ public:
     enum Type {
         Invalid = 0x2000,
         MouseEvent,
+        MouseActionEvent,
+        MouseLeaveEvent,
         DisplayEvent,
         Other,
     };
@@ -41,6 +43,52 @@ public:
     }
 
     ~MouseEvent() { }
+
+    uint32_t x() const { return m_x; }
+    uint32_t y() const { return m_y; }
+
+private:
+    uint32_t m_x;
+    uint32_t m_y;
+};
+
+enum MouseActionType {
+    ClickBegan,
+    ClickEnded,
+};
+
+class MouseActionEvent : public Event {
+public:
+    MouseActionEvent(MouseActionType type, uint32_t x, uint32_t y)
+        : Event(Event::Type::MouseActionEvent)
+        , m_type(type)
+        , m_x(x)
+        , m_y(y)
+    {
+    }
+
+    ~MouseActionEvent() { }
+
+    MouseActionType type() const { return m_type; }
+    uint32_t x() const { return m_x; }
+    uint32_t y() const { return m_y; }
+
+private:
+    MouseActionType m_type;
+    uint32_t m_x;
+    uint32_t m_y;
+};
+
+class MouseLeaveEvent : public Event {
+public:
+    MouseLeaveEvent(uint32_t x, uint32_t y)
+        : Event(Event::Type::MouseLeaveEvent)
+        , m_x(x)
+        , m_y(y)
+    {
+    }
+
+    ~MouseLeaveEvent() { }
 
     uint32_t x() const { return m_x; }
     uint32_t y() const { return m_y; }

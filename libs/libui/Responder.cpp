@@ -22,7 +22,7 @@ void Responder::receive_event(UniquePtr<LFoundation::Event> event)
 {
     if (event->type() == Event::Type::MouseEvent) {
         MouseEvent& own_event = *(MouseEvent*)event.get();
-        receive_mouse_event(own_event);
+        receive_mouse_move_event(own_event);
     }
     if (event->type() == Event::Type::DisplayEvent) {
         DisplayEvent& own_event = *(DisplayEvent*)event.get();
