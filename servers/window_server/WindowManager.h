@@ -58,7 +58,8 @@ private:
     void update_mouse_position(MouseEvent* mouse_event);
     void receive_mouse_event(UniquePtr<LFoundation::Event> event);
 
-    bool has_hovered_window() { return m_hovered_window_id != -1; }
+    bool has_hovered_window() const { return m_hovered_window_id != -1; }
+    void set_hovered_window(int hw) { m_hovered_window_id = hw; }
     Window& hovered_window() { return window(m_hovered_window_id); }
 
     Vector<Window> m_windows;
