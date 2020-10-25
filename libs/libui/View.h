@@ -50,6 +50,9 @@ public:
 
     inline const LG::Rect& frame() const { return m_frame; }
     inline const LG::Rect& bounds() const { return m_bounds; }
+    inline void set_width(size_t x) { m_frame.set_width(x), m_bounds.set_width(x), set_needs_display(); }
+    inline void set_height(size_t x) { m_frame.set_height(x), m_bounds.set_height(x), set_needs_display(); }
+    
     LG::Rect frame_in_window();
 
     inline Window* window() { return m_window; }
@@ -76,10 +79,6 @@ public:
     virtual void receive_mouse_action_event(MouseActionEvent&) override;
     virtual void receive_mouse_leave_event(MouseLeaveEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
-
-protected:
-    inline LG::Rect& frame() { return m_frame; }
-    inline LG::Rect& bounds() { return m_bounds; }
 
 private:
     void set_window(Window* window) { m_window = window; }

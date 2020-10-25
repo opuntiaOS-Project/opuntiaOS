@@ -8,14 +8,25 @@
 
 #include "Responder.h"
 #include "App.h"
+#include "Window.h"
+#include <libfoundation/EventLoop.h>
 
 namespace UI {
 
-bool Responder::send_invalidate_message(const LG::Rect& rect)
+bool Responder::send_invalidate_message_to_server(const LG::Rect& rect) const
 {
     auto& app = App::the();
     InvalidateMessage msg(Connection::the().key(), app.window().id(), rect);
     return app.connection().send_async_message(msg);
+}
+
+void Responder::send_display_message_to_self(Window& win, const LG::Rect& display_rect)
+{
+    if (!m_display_message_sent || m_prev_display_message != display_rect) {
+        LFoundation::EventLoop::the().add(win, new DisplayEvent(display_rect));
+        m_display_message_sent = true;
+        m_prev_display_message = display_rect;
+    }
 }
 
 void Responder::receive_event(UniquePtr<LFoundation::Event> event)

@@ -52,13 +52,9 @@ void Button::recalc_bounds()
 {
     size_t new_width = text_width() + content_edge_insets().left() + content_edge_insets().right();
     size_t new_height = text_height() + content_edge_insets().top() + content_edge_insets().bottom();
-    bounds().set_width(new_width);
-    bounds().set_height(new_height);
-    frame().set_width(new_width);
-    frame().set_height(new_height);
+    set_width(new_width);
+    set_height(new_height);
 }
-
-
 
 size_t Button::text_width()
 {

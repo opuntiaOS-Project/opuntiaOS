@@ -58,7 +58,7 @@ void View::set_needs_display(const LG::Rect& rect)
         display_rect.offset_by(frame().origin());
         superview()->set_needs_display(display_rect);
     } else {
-        LFoundation::EventLoop::the().add(*window(), new DisplayEvent(display_rect));
+        send_display_message_to_self(*window(), display_rect);
     }
 }
 
@@ -131,6 +131,8 @@ void View::receive_mouse_move_event(MouseEvent& event)
         }
         return true;
     });
+
+    Responder::receive_mouse_move_event(event);
 }
 
 void View::receive_mouse_action_event(MouseActionEvent& event)
@@ -141,6 +143,8 @@ void View::receive_mouse_action_event(MouseActionEvent& event)
         m_active = false;
     }
     set_needs_display();
+
+    Responder::receive_mouse_action_event(event);
 }
 
 void View::receive_mouse_leave_event(MouseLeaveEvent& event)
@@ -160,7 +164,10 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
     });
 
     m_hovered = false;
+    m_active = false;
     hover_end();
+
+    Responder::receive_mouse_leave_event(event);
 }
 
 void View::receive_display_event(DisplayEvent& event)
@@ -179,8 +186,10 @@ void View::receive_display_event(DisplayEvent& event)
     did_display(event.bounds());
 
     if (!has_superview()) {
-        bool success = send_invalidate_message(event.bounds());
+        bool success = send_invalidate_message_to_server(event.bounds());
     }
+
+    Responder::receive_display_event(event);
 }
 
 }
