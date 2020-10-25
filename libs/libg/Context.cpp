@@ -41,8 +41,8 @@ void Context::draw(const Point<int>& start, const PixelBitmap& bitmap)
     int min_y = draw_bounds.min_y();
     int max_x = draw_bounds.max_x();
     int max_y = draw_bounds.max_y();
-    int offset_x = -start.x();
-    int offset_y = -start.y();
+    int offset_x = -start.x() - m_draw_offset.x();
+    int offset_y = -start.y() - m_draw_offset.y();
     for (int y = min_y; y <= max_y; y++) {
         for (int x = min_x; x <= max_x; x++) {
             int bitmap_x = x + offset_x;
@@ -64,8 +64,8 @@ void Context::draw(const Point<int>& start, const GlyphBitmap& bitmap)
     int min_y = draw_bounds.min_y();
     int max_x = draw_bounds.max_x();
     int max_y = draw_bounds.max_y();
-    int offset_x = -start.x();
-    int offset_y = -start.y();
+    int offset_x = -start.x() - m_draw_offset.x();
+    int offset_y = -start.y() - m_draw_offset.y();
     for (int y = min_y; y <= max_y; y++) {
         for (int x = min_x; x <= max_x; x++) {
             int bitmap_x = x + offset_x;

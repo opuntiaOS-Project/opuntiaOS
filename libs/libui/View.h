@@ -30,7 +30,7 @@ public:
     void foreach_subview(Callback callback) const
     {
         for (int i = 0; i < m_subviews.size(); i++) {
-            if (callback(*m_subviews[i])) {
+            if (!callback(*m_subviews[i])) {
                 return;
             }
         }
