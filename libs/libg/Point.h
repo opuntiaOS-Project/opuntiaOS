@@ -53,6 +53,16 @@ public:
     }
     Point operator+(const Point& p) const { return { m_x + p.m_x, m_y + p.m_y }; }
 
+    bool operator==(const Point& p) const
+    {
+        return m_x == p.m_x && m_y == p.m_y;
+    }
+
+    bool operator!=(const Point& p) const
+    {
+        return !(*this == p);
+    }
+
     void encode(EncodedMessage& buf) const override
     {
         Encoder::append(buf, m_x);

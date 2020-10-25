@@ -62,6 +62,16 @@ public:
     void encode(EncodedMessage& buf) const override;
     void decode(const char* buf, size_t& offset) override;
 
+    bool operator==(const Rect& r) const
+    {
+        return m_width == r.m_width && m_height == r.m_height && m_origin == r.m_origin;
+    }
+
+    bool operator!=(const Rect& r) const
+    {
+        return !(*this == r);
+    }
+
 private:
     Point<int> m_origin;
     size_t m_width { 0 };
