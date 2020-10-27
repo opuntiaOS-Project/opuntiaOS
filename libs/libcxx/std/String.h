@@ -12,8 +12,9 @@ public:
     String(const char* str)
     {
         m_size = strlen(str);
-        ensure_capacity(m_size);
+        ensure_capacity(m_size+1);
         memcpy((uint8_t*)m_str, (uint8_t*)str, m_size);
+        m_str[m_size] = '\0';
     }
 
     String(const String& s)
@@ -21,6 +22,7 @@ public:
         grow(s.m_capacity);
         m_size = s.m_size;
         memcpy((uint8_t*)m_str, (uint8_t*)s.m_str, m_size);
+        m_str[m_size] = '\0';
     }
 
     String(String&& s)
@@ -42,6 +44,7 @@ public:
         grow(s.m_capacity);
         m_size = s.m_size;
         memcpy((uint8_t*)m_str, (uint8_t*)s.m_str, m_size);
+        m_str[m_size] = '\0';
         return *this;
     }
 
@@ -60,9 +63,10 @@ public:
 
     String& operator+=(const String& s)
     {
-        ensure_capacity(size() + s.size());
+        ensure_capacity(size() + s.size() + 1);
         memcpy((uint8_t*)end(), (uint8_t*)s.m_str, s.size());
-        m_size = s.size();
+        m_size += s.size();
+        m_str[m_size] = '\0';
         return *this;
     }
 
@@ -99,8 +103,8 @@ public:
     inline const char& back() const { return at(size() - 1); }
     inline char& back() { return at(size() - 1); }
 
-    // This function is frozen for now, need to add /0 to the end always
-    // inline const char* c_str() { return m_str; } 
+    inline const char* c_str() const { return m_str; } 
+    inline const char* data() const { return m_str; } 
 
 private:
     inline void ensure_capacity(size_t new_size)

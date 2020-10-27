@@ -168,7 +168,7 @@ ${LIBC}: ${LIBC_OBJ} libs/libc/private/_init.o
 ${LIBCXX_PATH}/%.o: ${LIBCXX_PATH}/%.cpp
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -Os ${C_FLAGS} -I./libs
+	${QUIET} ${C++} -c $< -o $@ -Os ${C_FLAGS} -I./libs -I./libs/libcxx
 
 ${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ) libs/libcxx/private/_init.o
 	@echo "$(notdir $(CURDIR)): [AR] $(LIBC_OBJ)"
