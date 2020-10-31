@@ -47,7 +47,7 @@ void Context::draw(const Point<int>& start, const PixelBitmap& bitmap)
         for (int x = min_x; x <= max_x; x++) {
             int bitmap_x = x + offset_x;
             int bitmap_y = y + offset_y;
-            m_bitmap[y][x] = bitmap[bitmap_y][bitmap_x];
+            m_bitmap[y][x].mix_with(bitmap[bitmap_y][bitmap_x]);
         }
     }
 }

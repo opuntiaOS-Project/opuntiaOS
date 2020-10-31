@@ -12,6 +12,9 @@
 
 namespace LG {
 
+// We keep opacity as an opposite to alpha.
+// This is used for capability with BGA driver
+// and probably should be fixed.
 class Color {
 public:
     enum Colors {
@@ -29,6 +32,14 @@ public:
         , m_b((color & 0x00FF0000) >> 16)
         , m_g((color & 0x0000FF00) >> 8)
         , m_r((color & 0x000000FF) >> 0)
+    {
+    }
+
+    Color(uint8_t r, uint8_t g, uint8_t b, uint8_t alpha = 255)
+        : m_opacity(255 - alpha)
+        , m_b(b)
+        , m_g(g)
+        , m_r(r)
     {
     }
 
@@ -50,6 +61,29 @@ public:
         m_g = c.m_g;
         m_b = c.m_b;
         return *this;
+    }
+
+    inline uint8_t alpha() const { return 255 - m_opacity; }
+    inline bool is_opaque() const { return m_opacity == 255; }
+
+    inline uint8_t red() const { return m_r; }
+    inline uint8_t green() const { return m_g; }
+    inline uint8_t blue() const { return m_b; }
+
+    inline void mix_with(const Color& clr)
+    {
+        if (clr.is_opaque() || !alpha()) {
+            return;
+        }
+
+        int alpha_c = 256 * (alpha() + clr.alpha()) - alpha() * clr.alpha();
+        int alpha_of_me = alpha() * (255 - clr.alpha());
+        int alpha_of_it = 256 * clr.alpha();
+
+        m_r = (red() * alpha_of_me + clr.red() * alpha_of_it) / alpha_c;
+        m_g = (green() * alpha_of_me + clr.green() * alpha_of_it) / alpha_c;
+        m_b = (blue() * alpha_of_me + clr.blue() * alpha_of_it) / alpha_c;
+        m_opacity = 255 - (alpha_c / 256);
     }
 
 private:
