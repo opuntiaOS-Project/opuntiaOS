@@ -118,7 +118,7 @@ ${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
 
 # --- Lib ------------------------------------------------------------------- #
 
-CPP_LIB_FLAGS = ${C_COMPILE_FLAGS} -fno-sized-deallocation -fno-rtti -fno-exceptions  -I./libs/libcxx -I./libs -D__oneOS__
+CXX_LIB_FLAGS = ${C_COMPILE_FLAGS} ${C_WARNING_FLAGS} -std=c++17 -fno-sized-deallocation -fno-rtti -fno-exceptions  -I./libs/libcxx -I./libs -D__oneOS__
 
 ARFLAGS = rcs
 
@@ -126,8 +126,11 @@ LIB_PATH = ${BASE_DIR}/lib
 
 LIBC = $(LIB_PATH)/libc.a
 LIBC_PATH = libs/libc
-LIBC_SRC=$(shell find libs/libc -name "*.c" -not -path "libs/libc/private/*")
-LIBC_OBJ=$(patsubst %.c,%.o,$(LIBC_SRC))
+LIBC_C_SRC=$(shell find libs/libc -name "*.c" -not -path "libs/libc/private/*")
+LIBC_S_SRC=$(shell find libs/libc -name "*.s" -not -path "libs/libc/private/*")
+LIBC_C_OBJ=$(patsubst %.c,%.o,$(LIBC_C_SRC))
+LIBC_S_OBJ=$(patsubst %.s,%.o,$(LIBC_S_SRC))
+LIBC_OBJ = $(LIBC_S_OBJ) $(LIBC_C_OBJ)
 
 LIBCXX = $(LIB_PATH)/libcxx.a
 LIBCXX_PATH = libs/libcxx
@@ -146,13 +149,21 @@ LIBG_OBJ=$(patsubst %.cpp,%.o,$(LIBG_SRC))
 
 LIBFOUNDATION = $(LIB_PATH)/libfoundation.a
 LIBFOUNDATION_PATH = libs/libfoundation
-LIBFOUNDATION_SRC=$(shell find $(LIBFOUNDATION_PATH) -name "*.cpp")
-LIBFOUNDATION_OBJ=$(patsubst %.cpp,%.o,$(LIBFOUNDATION_SRC))
+LIBFOUNDATION_C_SRC=$(shell find $(LIBFOUNDATION_PATH) -name "*.c")
+LIBFOUNDATION_CPP_SRC=$(shell find $(LIBFOUNDATION_PATH) -name "*.cpp")
+LIBFOUNDATION_C_OBJ=$(patsubst %.c,%.o,$(LIBFOUNDATION_C_SRC))
+LIBFOUNDATION_CPP_OBJ=$(patsubst %.cpp,%.o,$(LIBFOUNDATION_CPP_SRC))
+LIBFOUNDATION_OBJ = $(LIBFOUNDATION_C_OBJ) $(LIBFOUNDATION_CPP_OBJ) 
 
 LIBRARIES_ALL = $(LIBC) $(LIBCXX) $(LIBUI) $(LIBG) $(LIBFOUNDATION)
 LIBRARIES = $(LIBC)
 
 # LIB C
+
+${LIBC_PATH}/%.o: ${LIBC_PATH}/%.s
+	@mkdir -p $(LIB_PATH)
+	@echo "$(notdir $(CURDIR)): ASM $@"
+	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
 
 ${LIBC_PATH}/%.o: ${LIBC_PATH}/%.c
 	@mkdir -p $(LIB_PATH)
@@ -168,7 +179,7 @@ ${LIBC}: ${LIBC_OBJ} libs/libc/private/_init.o
 ${LIBCXX_PATH}/%.o: ${LIBCXX_PATH}/%.cpp
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -Os ${C_FLAGS} -I./libs -I./libs/libcxx
+	${QUIET} ${C++} -c $< -o $@ -Os ${CXX_LIB_FLAGS} -I./libs -I./libs/libcxx
 
 ${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ) libs/libcxx/private/_init.o
 	@echo "$(notdir $(CURDIR)): [AR] $(LIBC_OBJ)"
@@ -179,7 +190,7 @@ ${LIBCXX}: ${LIBCXX_OBJ} $(LIBC_OBJ) libs/libcxx/private/_init.o
 ${LIBG_PATH}/%.o: ${LIBG_PATH}/%.cpp
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+	${QUIET} ${C++} -c $< -o $@ -Os ${CXX_LIB_FLAGS} -I./libs -I./libs/libcxx
 
 ${LIBG}: ${LIBG_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
@@ -187,10 +198,15 @@ ${LIBG}: ${LIBG_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 
 # LIB Foundation
 
+${LIBFOUNDATION_PATH}/%.o: ${LIBFOUNDATION_PATH}/%.c
+	@mkdir -p $(LIB_PATH)
+	@echo "$(notdir $(CURDIR)): CC $@"
+	${QUIET} ${CC} -c $< -o $@ -Os ${C_FLAGS} -I./libs/libc
+
 ${LIBFOUNDATION_PATH}/%.o: ${LIBFOUNDATION_PATH}/%.cpp
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+	${QUIET} ${C++} -c $< -o $@ -Os ${CXX_LIB_FLAGS} -I./libs -I./libs/libcxx
 
 ${LIBFOUNDATION}: ${LIBFOUNDATION_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
@@ -201,7 +217,7 @@ ${LIBFOUNDATION}: ${LIBFOUNDATION_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 ${LIBUI_PATH}/%.o: ${LIBUI_PATH}/%.cpp servers/window_server/WSConnection.h
 	@mkdir -p $(LIB_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -Os ${CPP_LIB_FLAGS} -I./libs -I./libs/libcxx
+	${QUIET} ${C++} -c $< -o $@ -Os ${CXX_LIB_FLAGS} -I./libs -I./libs/libcxx
 
 ${LIBUI}: ${LIBUI_OBJ} ${LIBG_OBJ} ${LIBFOUNDATION_OBJ} ${LIBCXX_OBJ} $(LIBC_OBJ)
 	@echo "$(notdir $(CURDIR)): [AR] $@"
@@ -233,7 +249,7 @@ servers/window_server/WSConnection.h: servers/window_server/ws_connection.ipc
 ${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp ${WINDOW_SERVER_IPC}
 	@mkdir -p $(WINDOW_SERVER_PATH)
 	@echo "$(notdir $(CURDIR)): C++ $@"
-	${QUIET} ${C++} -c $< -o $@ -Os -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
+	${QUIET} ${C++} -c $< -o $@ -Os -std=c++17 -fno-sized-deallocation -fno-rtti -fno-exceptions ${C_FLAGS} -I./${LIBCXX_PATH} -I./libs/
 
 $(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) ${WINDOW_SERVER_DEPENDENCIES}
 	@echo "Window Server [LD]  $@"
@@ -242,7 +258,7 @@ $(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) ${WINDOW_SER
 # --- Apps ------------------------------------------------------------------ #
 
 C_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -I./libs/libc -D__oneOS__
-CPP_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -fno-sized-deallocation -fno-rtti -fno-exceptions  -I./libs/libcxx -I./libs -D__oneOS__
+CXX_USERLAND_FLAGS = ${C_COMPILE_FLAGS} -std=c++17 -fno-sized-deallocation -fno-rtti -fno-exceptions  -I./libs/libcxx -I./libs -D__oneOS__
 
 APPS_PATH = userland
 
@@ -279,7 +295,7 @@ ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.c
 # std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.cpp
 	@echo "$($(1)_NAME) [C++] $$@"
-	$(QUIET) $$(C++) -c $$< -o $$@ $$(CPP_USERLAND_FLAGS) $$($(1)_INC_LIBSLIST)
+	$(QUIET) $$(C++) -c $$< -o $$@ $$(CXX_USERLAND_FLAGS) $$($(1)_INC_LIBSLIST)
 
 # std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.s
