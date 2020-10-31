@@ -8,6 +8,7 @@
 
 #include "Compositor.h"
 #include "Connection.h"
+#include "CursorManager.h"
 #include "Devices.h"
 #include "Screen.h"
 #include "WindowManager.h"
@@ -21,6 +22,7 @@ int main()
     auto* event_loop = new LFoundation::EventLoop();
     new Screen();
     new Connection(socket(PF_LOCAL, 0, 0));
+    new CursorManager();
     new Compositor();
     new WindowManager();
     new Devices();

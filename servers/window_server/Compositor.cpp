@@ -7,6 +7,7 @@
  */
 
 #include "Compositor.h"
+#include "CursorManager.h"
 #include "Screen.h"
 #include "Window.h"
 #include "WindowManager.h"
@@ -21,6 +22,7 @@ Compositor& Compositor::the()
 }
 
 Compositor::Compositor()
+    : m_cursor_manager(CursorManager::the())
 {
     s_the = this;
     invalidate(Screen::the().bounds());
@@ -83,9 +85,8 @@ void Compositor::refresh()
     process_invalid_areas(prev_invalidated_areas);
     process_invalid_areas(invalidated_areas);
 
-    ctx.set_fill_color(LG::Color::Green);
-    ctx.fill(LG::Rect(wm.mouse_x(), wm.mouse_y(), wm.cursor_size(), wm.cursor_size()));
+    ctx.draw(m_cursor_manager.draw_position(wm.mouse_x(), wm.mouse_y()), m_cursor_manager.current_cursor());
 
     m_prev_invalidated_areas = move(invalidated_areas);
     screen.swap_buffers();
-}   
+}

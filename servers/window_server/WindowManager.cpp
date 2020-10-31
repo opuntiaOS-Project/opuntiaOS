@@ -8,6 +8,7 @@
 
 #include "WindowManager.h"
 #include "Screen.h"
+#include "CursorManager.h"
 
 static WindowManager* s_the;
 
@@ -54,7 +55,9 @@ bool WindowManager::continue_window_move(MouseEvent* mouse_event)
 
 void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 {
-    m_compositor.invalidate(LG::Rect(m_mouse_x, m_mouse_y, cursor_size(), cursor_size()));
+    auto invalidate_bounds = m_compositor.cursor_manager().current_cursor().bounds();
+    invalidate_bounds.origin().set(m_compositor.cursor_manager().draw_position(m_mouse_x, m_mouse_y));
+    m_compositor.invalidate(invalidate_bounds);
 
     m_mouse_x += mouse_event->packet().x_offset;
     m_mouse_y -= mouse_event->packet().y_offset;
@@ -71,7 +74,8 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
         m_mouse_y = m_screen.height() - 1;
     }
 
-    m_compositor.invalidate(LG::Rect(m_mouse_x, m_mouse_y, cursor_size(), cursor_size()));
+    invalidate_bounds.origin().set(m_compositor.cursor_manager().draw_position(m_mouse_x, m_mouse_y));
+    m_compositor.invalidate(invalidate_bounds);
 
     m_mouse_changed_button_status = false;
     if (m_mouse_left_button_pressed != (mouse_event->packet().button_states & 1)) {

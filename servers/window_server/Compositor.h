@@ -13,6 +13,8 @@
 #include <std/Vector.h>
 #include <syscalls.h>
 
+class CursorManager;
+
 class Compositor {
 public:
     static Compositor& the();
@@ -39,8 +41,11 @@ public:
     }
 
     inline void invalidate(const LG::Rect& area) { optimized_invalidate_insert(m_invalidated_areas, area); }
+    inline CursorManager& cursor_manager() { return m_cursor_manager; }
+    inline const CursorManager& cursor_manager() const { return m_cursor_manager; }
 
 private:
+    CursorManager& m_cursor_manager;
     Vector<LG::Rect> m_invalidated_areas;
     Vector<LG::Rect> m_prev_invalidated_areas;
 };
