@@ -16,11 +16,11 @@ public:
     {
     }
 
-    UniquePtr(typeof(nullptr))
+    UniquePtr(nullptr_t)
         : m_data(nullptr)
     {
     }
-    UniquePtr& operator=(typeof(nullptr))
+    UniquePtr& operator=(nullptr_t)
     {
         reset();
         return *this;

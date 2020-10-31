@@ -25,3 +25,8 @@ inline void swap(T& a, U& b)
     a = (T &&) move(b);
     b = move(tmp);
 }
+
+inline constexpr int abs(int i)
+{
+    return i < 0 ? -i : i;
+}

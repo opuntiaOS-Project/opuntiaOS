@@ -35,7 +35,7 @@ public:
     {
     }
 
-    WeakPtr& operator=(typeof(nullptr))
+    WeakPtr& operator=(nullptr_t)
     {
         m_data = nullptr;
         return *this;
