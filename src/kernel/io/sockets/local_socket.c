@@ -46,6 +46,9 @@ int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t l
     return read;
 }
 
+/* Each process has it's own start when reading from a local socket.
+   We ignore their offsets and write always, hope all readers could
+   read all needed data. */
 bool local_socket_can_write(dentry_t* dentry, uint32_t start)
 {
     return true;

@@ -4,12 +4,12 @@
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <syscall_structs.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
 #include <utils.h>
-#include <log.h>
 
 static int next_tty = 0;
 static tty_entry_t* active_tty = 0;
@@ -77,7 +77,7 @@ int _tty_process_esc_seq(uint8_t* buf)
         id++;
         for (;;) {
             int len = 0;
-            while ('0' <= buf[id + len] && buf[id +len] <= '9') {
+            while ('0' <= buf[id + len] && buf[id + len] <= '9') {
                 len++;
             }
             argv[argc++] = stoi(&buf[id], len);
