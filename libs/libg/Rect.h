@@ -20,12 +20,7 @@ namespace LG {
 class Rect : public Encodable<Rect>, public Decodable<Rect> {
 public:
     Rect() = default;
-    inline Rect(int x, int y, size_t width, size_t height)
-        : m_origin(x, y)
-        , m_width(width)
-        , m_height(height)
-    {
-    }
+    Rect(int x, int y, size_t width, size_t height);
 
     ~Rect() { }
 

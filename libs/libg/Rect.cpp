@@ -10,6 +10,13 @@
 
 namespace LG {
 
+Rect::Rect(int x, int y, size_t width, size_t height)
+    : m_origin(x, y)
+    , m_width(width)
+    , m_height(height)
+{
+}
+
 void Rect::unite(const Rect& other)
 {
     // (a, b) - top left corner
