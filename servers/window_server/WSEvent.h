@@ -18,6 +18,7 @@ public:
     enum Type {
         Invalid = 0x1000,
         MouseEvent,
+        KeyboardEvent,
         SendEvent,
         Other,
     };
@@ -36,6 +37,10 @@ struct MousePacket {
     uint32_t button_states;
 };
 
+struct KeyboardPacket {
+    uint32_t key;
+};
+
 class MouseEvent : public WSEvent {
 public:
     MouseEvent(const MousePacket& packet)
@@ -51,6 +56,23 @@ public:
 
 private:
     MousePacket m_packet;
+};
+
+class KeyboardEvent : public WSEvent {
+public:
+    KeyboardEvent(const KeyboardPacket& packet)
+        : WSEvent(WSEvent::Type::KeyboardEvent)
+        , m_packet(packet)
+    {
+    }
+
+    ~KeyboardEvent() { }
+
+    const KeyboardPacket& packet() const { return m_packet; }
+    KeyboardPacket& packet() { return m_packet; }
+
+private:
+    KeyboardPacket m_packet;
 };
 
 class SendEvent : public WSEvent {

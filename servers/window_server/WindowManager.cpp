@@ -7,8 +7,9 @@
  */
 
 #include "WindowManager.h"
-#include "Screen.h"
 #include "CursorManager.h"
+#include "Screen.h"
+#include <libfoundation/KeyboardMapping.h>
 
 static WindowManager* s_the;
 
@@ -87,7 +88,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 
 void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
 {
-    auto* mouse_event = (MouseEvent*)event.release();
+    MouseEvent* mouse_event = (MouseEvent*)event.release();
     int new_hovered_window_id = -1;
 
     if (continue_window_move(mouse_event)) {
@@ -104,7 +105,7 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
                 if (is_mouse_left_button_pressed()) {
                     start_window_move(window);
                 }
-            } else if (window.content_bounds().contains(m_mouse_x, m_mouse_y)) {    
+            } else if (window.content_bounds().contains(m_mouse_x, m_mouse_y)) {
                 LG::Point<int> point(m_mouse_x, m_mouse_y);
                 point.offset_by(-window.content_bounds().origin());
                 m_event_loop.add(m_connection, new SendEvent(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y())));
@@ -132,9 +133,18 @@ end:
     delete mouse_event;
 }
 
+void WindowManager::receive_keyboard_event(UniquePtr<LFoundation::Event> event)
+{
+    KeyboardEvent* keyboard_event = (KeyboardEvent*)event.release();
+    delete keyboard_event;
+}
+
 void WindowManager::receive_event(UniquePtr<LFoundation::Event> event)
 {
     if (event->type() == WSEvent::Type::MouseEvent) {
         receive_mouse_event(move(event));
+    }
+    if (event->type() == WSEvent::Type::KeyboardEvent) {
+        receive_keyboard_event(move(event));
     }
 }
