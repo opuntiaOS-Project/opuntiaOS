@@ -1,5 +1,9 @@
+#include <algo/ringbuffer.h>
 #include <drivers/keyboard.h>
+#include <fs/devfs/devfs.h>
+#include <fs/vfs.h>
 #include <io/tty/tty.h>
+#include <utils/kassert.h>
 
 static key_t _scancodes[] = {
     KEY_UNKNOWN, //0
@@ -171,12 +175,12 @@ static key_t _scancodes_upper[] = {
     KEY_DOWN, //0x50
     KEY_PAGEDOWN, //0x51
     KEY_INSERT, //0x52
-	KEY_DELETE //0x53
+    KEY_DELETE //0x53
 };
 
 static key_t _kbdriver_get_keycode(uint32_t scancode)
 {
-	key_t* lookup_table[] = {_scancodes, _scancodes_upper};
+    key_t* lookup_table[] = { _scancodes, _scancodes_upper };
     return lookup_table[(scancode >> 8) & 1][scancode & ~((uint32_t)0x100)];
 }
 
@@ -190,6 +194,44 @@ static uint32_t _kbdriver_last_scancode = KEY_UNKNOWN;
 static driver_desc_t _keyboard_driver_info();
 static key_t _kbdriver_apply_modifiers(key_t key);
 
+static ringbuffer_t kbd_buffer;
+
+static bool _kbdriver_can_read(dentry_t* dentry, uint32_t start)
+{
+    return ringbuffer_space_to_read(&kbd_buffer) >= 1;
+}
+
+static int _kbdriver_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+{
+    uint32_t leno = ringbuffer_space_to_read(&kbd_buffer);
+    if (leno > len) {
+        leno = len;
+    }
+    int res = ringbuffer_read(&kbd_buffer, buf, leno);
+    return leno;
+}
+
+static void _kbdriver_notification(uint32_t msg, uint32_t param)
+{
+    if (msg == DM_NOTIFICATION_DEVFS_READY) {
+        dentry_t* mp;
+        if (vfs_resolve_path("/dev", &mp) < 0) {
+            kpanic("Can't init mouse in /dev");
+        }
+
+        file_ops_t fops;
+        fops.can_read = _kbdriver_can_read;
+        fops.can_write = 0;
+        fops.read = _kbdriver_read;
+        fops.write = 0;
+        fops.ioctl = 0;
+        fops.mmap = 0;
+        devfs_inode_t* res = devfs_register(mp, "kbd", 3, 0, &fops);
+
+        dentry_put(mp);
+    }
+}
+
 static driver_desc_t _keyboard_driver_info()
 {
     driver_desc_t kbd_desc;
@@ -198,7 +240,7 @@ static driver_desc_t _keyboard_driver_info()
     kbd_desc.is_device_driver = false;
     kbd_desc.is_device_needed = false;
     kbd_desc.is_driver_needed = false;
-    kbd_desc.functions[DRIVER_NOTIFICATION] = 0;
+    kbd_desc.functions[DRIVER_NOTIFICATION] = _kbdriver_notification;
     kbd_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = kbdriver_run;
     kbd_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = kbdriver_get_last_key;
     kbd_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = kbdriver_discard_last_key;
@@ -313,9 +355,10 @@ bool kbdriver_install()
 void kbdriver_run()
 {
     set_irq_handler(IRQ1, keyboard_handler);
+    kbd_buffer = ringbuffer_create_std();
 }
 
-// keyboard interrupt handler
+/* Keyboard interrupt handler */
 void keyboard_handler()
 {
     uint32_t scancode = (uint32_t)port_byte_in(0x60);
@@ -323,16 +366,18 @@ void keyboard_handler()
         _kbdriver_has_prefix_e0 = true;
         return;
     }
-	if (_kbdriver_has_prefix_e0) {
-		scancode |= 0x100;
-		_kbdriver_has_prefix_e0 = false;
-	}
-    
-	key_t key = _kbdriver_get_keycode(scancode);
+    if (_kbdriver_has_prefix_e0) {
+        scancode |= 0x100;
+        _kbdriver_has_prefix_e0 = false;
+    }
+
+    key_t key;
+    kbd_packet_t packet;
 
     if (scancode & 0x80) {
         scancode -= 0x80;
         key = _kbdriver_get_keycode(scancode);
+        packet.key = key | (1 << 31);
         switch (key) {
         case KEY_LCTRL:
         case KEY_RCTRL:
@@ -349,9 +394,14 @@ void keyboard_handler()
         case KEY_RALT:
             _kbdriver_alt_enabled = false;
             break;
+        default:
+            key = _kbdriver_apply_modifiers(key);
+            packet.key = key | (1 << 31);
         }
     } else {
         _kbdriver_last_scancode = scancode;
+        key = _kbdriver_get_keycode(scancode);
+        packet.key = key;
         switch (key) {
         case KEY_LCTRL:
         case KEY_RCTRL:
@@ -368,9 +418,14 @@ void keyboard_handler()
             _kbdriver_alt_enabled = true;
             break;
         default:
-            tty_eat_key(_kbdriver_apply_modifiers(key));
+            key = _kbdriver_apply_modifiers(key);
+            packet.key = key;
+            /* FIXME: ifdef here to support console mode */
+            /* tty_eat_key(key); */
         }
     }
+
+    ringbuffer_write(&kbd_buffer, (uint8_t*)&packet, sizeof(kbd_packet_t));
 }
 
 uint32_t kbdriver_get_last_key()

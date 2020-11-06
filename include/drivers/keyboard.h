@@ -7,6 +7,12 @@
 
 typedef uint32_t key_t;
 
+/* The keyboard packet should be aligned to 4 bytes */
+struct kbd_packet {
+    key_t key;
+};
+typedef struct kbd_packet kbd_packet_t;
+
 enum KEYCODE {
 
     // Alphanumeric keys ////////////////
