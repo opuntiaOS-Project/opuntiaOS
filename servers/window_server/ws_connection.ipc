@@ -12,10 +12,11 @@
 {
     KEYPROTECTED
     NAME: WindowClientDecoder
-    MAGIC: 738
+    MAGIC: 737
     MouseMoveMessage(int win_id, uint32_t x, uint32_t y)
     MouseActionMessage(int win_id, int type, uint32_t x, uint32_t y)
     MouseLeaveMessage(int win_id, uint32_t x, uint32_t y)
+    KeyboardMessage(int win_id, uint32_t kbd_key)
     DisplayMessage(LG::Rect rect)
     DisconnectMessage(int reason)
 }

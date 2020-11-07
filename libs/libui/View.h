@@ -52,7 +52,7 @@ public:
     inline const LG::Rect& bounds() const { return m_bounds; }
     inline void set_width(size_t x) { m_frame.set_width(x), m_bounds.set_width(x), set_needs_display(); }
     inline void set_height(size_t x) { m_frame.set_height(x), m_bounds.set_height(x), set_needs_display(); }
-    
+
     LG::Rect frame_in_window();
 
     inline Window* window() { return m_window; }
@@ -64,7 +64,10 @@ public:
     void set_needs_display(const LG::Rect&);
     inline void set_needs_display() { set_needs_display(bounds()); }
 
-    inline bool is_hovered() { return m_hovered; }
+    inline bool is_hovered() const { return m_hovered; }
+
+    inline void set_focusable(bool val) { m_focusable = val; }
+    inline bool is_focusable() const { return m_focusable; }
 
     virtual void display(const LG::Rect& rect);
     virtual void did_display(const LG::Rect& rect);
@@ -78,6 +81,8 @@ public:
     virtual void receive_mouse_move_event(MouseEvent&) override;
     virtual void receive_mouse_action_event(MouseActionEvent&) override;
     virtual void receive_mouse_leave_event(MouseLeaveEvent&) override;
+    virtual void receive_keyup_event(KeyUpEvent&) override;
+    virtual void receive_keydown_event(KeyDownEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
 
 private:
@@ -92,6 +97,7 @@ private:
 
     bool m_active { false };
     bool m_hovered { false };
+    bool m_focusable { false };
 };
 
 }

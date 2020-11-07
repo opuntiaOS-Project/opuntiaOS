@@ -42,6 +42,19 @@ UniquePtr<Message> ClientDecoder::handle(const MouseLeaveMessage& msg)
     return nullptr;
 }
 
+UniquePtr<Message> ClientDecoder::handle(const KeyboardMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        // Checking if the key is down or up
+        if (msg.kbd_key() >> 31) {
+            m_event_loop.add(App::the().window(), new KeyUpEvent(msg.key()));
+        } else {
+            m_event_loop.add(App::the().window(), new KeyDownEvent(msg.key()));
+        }
+    }
+    return nullptr;
+}
+
 UniquePtr<Message> ClientDecoder::handle(const DisplayMessage& msg)
 {
     m_event_loop.add(App::the().window(), new DisplayEvent(msg.rect()));

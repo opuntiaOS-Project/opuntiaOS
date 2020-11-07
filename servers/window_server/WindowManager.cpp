@@ -117,6 +117,7 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
                 }
             }
 
+            m_active_window_id = window.id();
             break;
         }
     }
@@ -136,6 +137,10 @@ end:
 void WindowManager::receive_keyboard_event(UniquePtr<LFoundation::Event> event)
 {
     KeyboardEvent* keyboard_event = (KeyboardEvent*)event.release();
+    if (has_active_window()) {
+        auto& window = active_window();
+        m_event_loop.add(m_connection, new SendEvent(new KeyboardMessage(window.connection_id(), window.id(), keyboard_event->packet().key)));
+    }
     delete keyboard_event;
 }
 

@@ -21,6 +21,8 @@ public:
         MouseEvent,
         MouseActionEvent,
         MouseLeaveEvent,
+        KeyUpEvent,
+        KeyDownEvent,
         DisplayEvent,
         Other,
     };
@@ -96,6 +98,39 @@ public:
 private:
     uint32_t m_x;
     uint32_t m_y;
+};
+
+typedef uint32_t key_t;
+class KeyUpEvent : public Event {
+public:
+    KeyUpEvent(key_t key)
+        : Event(Event::Type::KeyUpEvent)
+        , m_key(key)
+    {
+    }
+
+    ~KeyUpEvent() { }
+
+    key_t key() const { return m_key; }
+
+private:
+    key_t m_key;
+};
+
+class KeyDownEvent : public Event {
+public:
+    KeyDownEvent(key_t key)
+        : Event(Event::Type::KeyDownEvent)
+        , m_key(key)
+    {
+    }
+
+    ~KeyDownEvent() { }
+
+    key_t key() const { return m_key; }
+
+private:
+    key_t m_key;
 };
 
 class DisplayEvent : public Event {

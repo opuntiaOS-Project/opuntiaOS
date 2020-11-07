@@ -346,7 +346,7 @@ public:
     int id() const override { return 1; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
-    int decoder_magic() const override { return 738; }
+    int decoder_magic() const override { return 737; }
     int win_id() const { return m_win_id; }
     uint32_t x() const { return m_x; }
     uint32_t y() const { return m_y; }
@@ -381,7 +381,7 @@ public:
     int id() const override { return 2; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
-    int decoder_magic() const override { return 738; }
+    int decoder_magic() const override { return 737; }
     int win_id() const { return m_win_id; }
     int type() const { return m_type; }
     uint32_t x() const { return m_x; }
@@ -418,7 +418,7 @@ public:
     int id() const override { return 3; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
-    int decoder_magic() const override { return 738; }
+    int decoder_magic() const override { return 737; }
     int win_id() const { return m_win_id; }
     uint32_t x() const { return m_x; }
     uint32_t y() const { return m_y; }
@@ -440,6 +440,36 @@ private:
     uint32_t m_y;
 };
 
+class KeyboardMessage : public Message {
+public:
+    KeyboardMessage(message_key_t key,int win_id,uint32_t kbd_key)
+        : m_key(key)
+        , m_win_id(win_id)
+        , m_kbd_key(kbd_key)
+    {
+    }
+    int id() const override { return 4; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 737; }
+    int win_id() const { return m_win_id; }
+    uint32_t kbd_key() const { return m_kbd_key; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_win_id);
+        Encoder::append(buffer, m_kbd_key);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    int m_win_id;
+    uint32_t m_kbd_key;
+};
+
 class DisplayMessage : public Message {
 public:
     DisplayMessage(message_key_t key,LG::Rect rect)
@@ -447,10 +477,10 @@ public:
         , m_rect(rect)
     {
     }
-    int id() const override { return 4; }
+    int id() const override { return 5; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
-    int decoder_magic() const override { return 738; }
+    int decoder_magic() const override { return 737; }
     LG::Rect rect() const { return m_rect; }
     EncodedMessage encode() const override
     {
@@ -473,10 +503,10 @@ public:
         , m_reason(reason)
     {
     }
-    int id() const override { return 5; }
+    int id() const override { return 6; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
-    int decoder_magic() const override { return 738; }
+    int decoder_magic() const override { return 737; }
     int reason() const { return m_reason; }
     EncodedMessage encode() const override
     {
@@ -495,7 +525,7 @@ private:
 class WindowClientDecoder : public MessageDecoder {
 public:
     WindowClientDecoder() {}
-    int magic() const { return 738; }
+    int magic() const { return 737; }
     UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
         int msg_id, decoder_magic;
@@ -513,6 +543,7 @@ public:
         uint32_t var_x;
         uint32_t var_y;
         int var_type;
+        uint32_t var_kbd_key;
         LG::Rect var_rect;
         int var_reason;
         
@@ -534,9 +565,13 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_y);
             return new MouseLeaveMessage(secret_key, var_win_id, var_x, var_y);
         case 4:
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
+            Encoder::decode(buf, decoded_msg_len, var_kbd_key);
+            return new KeyboardMessage(secret_key, var_win_id, var_kbd_key);
+        case 5:
             Encoder::decode(buf, decoded_msg_len, var_rect);
             return new DisplayMessage(secret_key, var_rect);
-        case 5:
+        case 6:
             Encoder::decode(buf, decoded_msg_len, var_reason);
             return new DisconnectMessage(secret_key, var_reason);
         default:
@@ -559,8 +594,10 @@ public:
         case 3:
             return handle(static_cast<const MouseLeaveMessage&>(msg));
         case 4:
-            return handle(static_cast<const DisplayMessage&>(msg));
+            return handle(static_cast<const KeyboardMessage&>(msg));
         case 5:
+            return handle(static_cast<const DisplayMessage&>(msg));
+        case 6:
             return handle(static_cast<const DisconnectMessage&>(msg));
         default:
             return nullptr;
@@ -570,6 +607,7 @@ public:
     virtual UniquePtr<Message> handle(const MouseMoveMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const MouseActionMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const MouseLeaveMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const KeyboardMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
 };

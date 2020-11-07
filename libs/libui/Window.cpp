@@ -58,6 +58,20 @@ void Window::receive_event(UniquePtr<LFoundation::Event> event)
         }
     }
 
+    if (event->type() == Event::Type::KeyUpEvent) {
+        if (m_focused_view) {
+            KeyUpEvent& own_event = *(KeyUpEvent*)event.get();
+            m_focused_view->receive_keyup_event(own_event);
+        }
+    }
+
+    if (event->type() == Event::Type::KeyDownEvent) {
+        if (m_focused_view) {
+            KeyDownEvent& own_event = *(KeyDownEvent*)event.get();
+            m_focused_view->receive_keydown_event(own_event);
+        }
+    }
+
     if (event->type() == Event::Type::DisplayEvent) {
         if (m_superview) {
             DisplayEvent& own_event = *(DisplayEvent*)event.get();

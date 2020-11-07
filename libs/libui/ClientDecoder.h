@@ -23,6 +23,7 @@ public:
     virtual UniquePtr<Message> handle(const MouseMoveMessage& msg) override;
     virtual UniquePtr<Message> handle(const MouseActionMessage& msg) override;
     virtual UniquePtr<Message> handle(const MouseLeaveMessage& msg) override;
+    virtual UniquePtr<Message> handle(const KeyboardMessage& msg) override;
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) override;
 
 private:

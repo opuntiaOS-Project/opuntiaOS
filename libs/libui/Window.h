@@ -51,6 +51,7 @@ private:
     LG::PixelBitmap m_bitmap;
     SharedBuffer<LG::Color> m_buffer;
     View* m_superview;
+    View* m_focused_view;
 };
 
 }

@@ -59,9 +59,11 @@ private:
     void receive_mouse_event(UniquePtr<LFoundation::Event> event);
     void receive_keyboard_event(UniquePtr<LFoundation::Event> event);
 
-    bool has_hovered_window() const { return m_hovered_window_id != -1; }
-    void set_hovered_window(int hw) { m_hovered_window_id = hw; }
-    Window& hovered_window() { return window(m_hovered_window_id); }
+    inline bool has_hovered_window() const { return m_hovered_window_id != -1; }
+    inline void set_hovered_window(int hw) { m_hovered_window_id = hw; }
+    inline Window& hovered_window() { return window(m_hovered_window_id); }
+    inline bool has_active_window() const { return m_active_window_id != -1; }
+    inline Window& active_window() { return window(m_active_window_id); }
 
     Vector<Window> m_windows;
     Screen& m_screen;
@@ -70,6 +72,7 @@ private:
     LFoundation::EventLoop& m_event_loop;
 
     WeakPtr<Window> m_movable_window;
+    int m_active_window_id { -1 };
     int m_hovered_window_id { -1 };
     
     int m_mouse_x { 0 };

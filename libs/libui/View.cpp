@@ -10,7 +10,7 @@
 #include "Context.h"
 #include <libfoundation/EventLoop.h>
 #include <libg/Color.h>
-#include <syscalls.h>
+#include <std/Dbg.h>
 
 namespace UI {
 
@@ -102,12 +102,10 @@ void View::hover_end()
 
 void View::click_began(const LG::Point<int>& location)
 {
-    
 }
 
 void View::click_ended()
 {
-    
 }
 
 void View::receive_mouse_move_event(MouseEvent& event)
@@ -168,6 +166,16 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
     hover_end();
 
     Responder::receive_mouse_leave_event(event);
+}
+
+void View::receive_keyup_event(KeyUpEvent&)
+{
+    Dbg() << "up\n";
+}
+
+void View::receive_keydown_event(KeyDownEvent&)
+{
+    Dbg() << "down\n";
 }
 
 void View::receive_display_event(DisplayEvent& event)
