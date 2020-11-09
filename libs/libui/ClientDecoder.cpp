@@ -47,9 +47,11 @@ UniquePtr<Message> ClientDecoder::handle(const KeyboardMessage& msg)
     if (App::the().window().id() == msg.win_id()) {
         // Checking if the key is down or up
         if (msg.kbd_key() >> 31) {
-            m_event_loop.add(App::the().window(), new KeyUpEvent(msg.key()));
+            uint32_t key = msg.kbd_key();
+            key &= 0xEFFFFFFF;
+            m_event_loop.add(App::the().window(), new KeyUpEvent(key));
         } else {
-            m_event_loop.add(App::the().window(), new KeyDownEvent(msg.key()));
+            m_event_loop.add(App::the().window(), new KeyDownEvent(msg.kbd_key()));
         }
     }
     return nullptr;

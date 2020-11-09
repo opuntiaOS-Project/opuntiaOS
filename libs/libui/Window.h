@@ -41,6 +41,9 @@ public:
     }
     inline View* superview() const { return m_superview; }
 
+    inline void set_focused_view(View* view) { m_focused_view = view; }
+    inline View* focused_view() { return m_focused_view; }
+
     inline const LG::Rect& bounds() const { return m_bounds; }
 
     bool set_title(const LG::String& title);
@@ -50,8 +53,8 @@ private:
     LG::Rect m_bounds;
     LG::PixelBitmap m_bitmap;
     SharedBuffer<LG::Color> m_buffer;
-    View* m_superview;
-    View* m_focused_view;
+    View* m_superview { nullptr };
+    View* m_focused_view { nullptr };
 };
 
 }

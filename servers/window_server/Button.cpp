@@ -42,6 +42,4 @@ void Button::display(LG::Context& ctx, LG::Point<int> pt)
         ctx.draw(pt, f.glyph_bitmap(m_title[i]));
         pt.offset_by(f.glyph_width(m_title[i]) + 2, 0);
     }
-
-
 }
