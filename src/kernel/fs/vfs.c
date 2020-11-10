@@ -142,6 +142,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.file.rmdir = new_driver->desc.functions[DRIVER_FILE_SYSTEM_RMDIR];
     new_fs.file.getdents = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GETDENTS];
     new_fs.file.lookup = new_driver->desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
+    new_fs.file.open = new_driver->desc.functions[DRIVER_FILE_SYSTEM_OPEN];
     new_fs.file.can_read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
     new_fs.file.can_write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
     new_fs.file.read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ];
@@ -172,6 +173,15 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
 
     if (dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
         return -EISDIR;
+    }
+
+    /* If it has custom open, let's use it */
+    if (file->ops->file.open) {
+        int res = file->ops->file.open(file, fd, flags);
+        /* Devfs can't find the right one and returns ENOEXEC in this case. */
+        if (res != -ENOEXEC) {
+            return res;
+        }
     }
 
     fd->flags = flags;

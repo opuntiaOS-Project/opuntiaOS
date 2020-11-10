@@ -163,6 +163,7 @@ tty_entry_t* tty_new()
     char* name = "tty ";
     name[3] = next_tty + '0';
     file_ops_t fops;
+    fops.open = 0;
     fops.can_read = tty_can_read;
     fops.can_write = tty_can_write;
     fops.read = tty_read;

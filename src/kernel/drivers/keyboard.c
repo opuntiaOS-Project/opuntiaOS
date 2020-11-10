@@ -220,6 +220,7 @@ static void _kbdriver_notification(uint32_t msg, uint32_t param)
         }
 
         file_ops_t fops;
+        fops.open = 0;
         fops.can_read = _kbdriver_can_read;
         fops.can_write = 0;
         fops.read = _kbdriver_read;

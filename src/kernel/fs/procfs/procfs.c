@@ -54,6 +54,7 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_NOTIFICATION] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = 0; /* No custom open, vfs will use its code */
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = 0;

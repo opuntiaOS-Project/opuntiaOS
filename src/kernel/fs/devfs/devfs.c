@@ -382,6 +382,17 @@ int devfs_rmdir_dummy(dentry_t* dir)
     return -1;
 }
 
+int devfs_open(dentry_t* dentry, file_descriptor_t* fd, uint32_t flags)
+{
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    if (devfs_inode->handlers.open) {
+        return devfs_inode->handlers.open(dentry, fd, flags);
+    }
+    /*  The device doesn't have custom open, so returns ENOEXEC in this case 
+        according to vfs. */
+    return -ENOEXEC;
+}
+
 int devfs_can_read(dentry_t* dentry, uint32_t start)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
@@ -454,6 +465,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = devfs_prepare_fs;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = devfs_can_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE] = devfs_can_write;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = devfs_open;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = devfs_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = devfs_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = 0;
