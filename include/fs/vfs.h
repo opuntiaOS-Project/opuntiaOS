@@ -49,6 +49,7 @@ typedef struct dirent dirent_t;
 #define DENTRY_MOUNTPOINT 0x2
 #define DENTRY_MOUNTED 0x4
 #define DENTRY_INODE_TO_BE_DELETED 0x8
+#define DENTRY_PRIVATE 0x10 /* This dentry can't be opened so can't be copied */
 struct dentry {
     uint32_t d_count;
     uint32_t flags;

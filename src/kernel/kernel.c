@@ -31,6 +31,7 @@
 #include <fs/vfs.h>
 
 #include <io/shared_buffer/shared_buffer.h>
+#include <io/tty/ptmx.h>
 #include <io/tty/tty.h>
 
 #include <time/time_manager.h>
@@ -49,7 +50,7 @@
    so we will switch to idle_thread to fix it. */
 void idle_thread()
 {
-    while (1);
+    while (1) { }
 }
 
 // FIXME
@@ -99,6 +100,9 @@ void stage3(mem_desc_t* mem_desc)
     // ipc
     shared_buffer_init();
 
+    // pty
+    ptmx_install();
+
     // init scheduling
     tasking_init();
     scheduler_init();
@@ -109,6 +113,5 @@ void stage3(mem_desc_t* mem_desc)
     tasking_create_kernel_thread(launching);
     resched(); /* Starting a scheduler */
 
-    while (1)
-        ;
+    while (1) { }
 }

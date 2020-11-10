@@ -171,6 +171,10 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
         return -EFAULT;
     }
 
+    if (dentry_test_flag(file, DENTRY_PRIVATE)) {
+        return -EPERM;
+    }
+
     if (dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
         return -EISDIR;
     }
