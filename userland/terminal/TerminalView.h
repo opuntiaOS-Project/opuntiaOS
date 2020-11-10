@@ -1,10 +1,11 @@
 #pragma once
 #include <libg/Font.h>
 #include <libui/View.h>
+#include <std/String.h>
 
 class TerminalView : public UI::View {
 public:
-    TerminalView(const LG::Rect&);
+    TerminalView(const LG::Rect&, int ptmx);
 
     const LG::Color& font_color() const { return m_font_color; }
     const LG::Color& background_color() const { return m_background_color; }
@@ -20,6 +21,8 @@ public:
     void receive_keyup_event(UI::KeyUpEvent&) override;
     void receive_keydown_event(UI::KeyDownEvent&) override;
 
+    int ptmx() const { return m_ptmx; }
+
 private:
     void scroll_line();
     void new_line();
@@ -27,10 +30,14 @@ private:
 
     void recalc_dimensions(const LG::Rect&);
     void add_char(char c);
+    void send_input();
 
     LG::Color m_background_color { LG::Color::Black };
     LG::Color m_font_color { LG::Color::White };
     LG::Font* m_font_ptr { LG::Font::load_from_file("/res/LizaRegular8x10.font") };
+
+    int m_ptmx { -1 };
+    String m_input {};
 
     size_t m_max_cols { 0 };
     size_t m_max_rows { 0 };

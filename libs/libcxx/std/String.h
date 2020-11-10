@@ -89,6 +89,8 @@ public:
 
     void clear()
     {
+        m_size = 0;
+        m_capacity = 0;
         if (m_str) {
             free(m_str);
             m_str = nullptr;

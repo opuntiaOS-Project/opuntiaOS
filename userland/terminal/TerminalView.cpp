@@ -1,11 +1,26 @@
 #include "TerminalView.h"
+#include <libfoundation/EventLoop.h>
+#include <libfoundation/KeyboardMapping.h>
 #include <libg/Color.h>
 #include <libui/Context.h>
 #include <std/Dbg.h>
 
-TerminalView::TerminalView(const LG::Rect& frame)
+static TerminalView* this_view;
+
+TerminalView::TerminalView(const LG::Rect& frame, int ptmx)
     : View(frame)
+    , m_ptmx(ptmx)
 {
+    this_view = this;
+    LFoundation::EventLoop::the().add(
+        ptmx, [] {
+            char text[256];
+            int cnt = read(this_view->ptmx(), text, 256);
+            for (int i = 0; i < cnt; i++) {
+                this_view->add_char(text[i]);
+            }
+        },
+        nullptr);
     recalc_dimensions(frame);
 }
 
@@ -70,10 +85,20 @@ void TerminalView::increment_counter()
 
 void TerminalView::add_char(char c)
 {
+    if (c == '\n') {
+        new_line();
+        return;
+    }
     auto pt = pos_on_screen();
     set_needs_display(LG::Rect(pt.x(), pt.y(), glyph_width(), glyph_height()));
     m_display_data[pos_in_data()] = c;
     increment_counter();
+}
+
+void TerminalView::send_input()
+{
+    write(ptmx(), m_input.c_str(), m_input.size());
+    m_input.clear();
 }
 
 void TerminalView::receive_keyup_event(UI::KeyUpEvent&)
@@ -84,6 +109,11 @@ void TerminalView::receive_keydown_event(UI::KeyDownEvent& event)
 {
     // FIXME: More symbols and static size of font
     if (event.key() < 128) {
+        m_input.push_back(char(event.key()));
         add_char(char(event.key()));
+    }
+    if (event.key() == LFoundation::Keycode::KEY_RETURN) {
+        add_char('\n');
+        send_input();
     }
 }
