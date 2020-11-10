@@ -11,8 +11,8 @@ TerminalView::TerminalView(const LG::Rect& frame)
 
 void TerminalView::recalc_dimensions(const LG::Rect& frame)
 {
-    m_max_rows = frame.height() / font().glyph_height();
-    m_max_cols = frame.width() / 10;
+    m_max_rows = frame.height() / glyph_height();
+    m_max_cols = frame.width() / glyph_width();
     // FIXME: Add copy and resize on window resize.
     m_display_data = (char*)malloc(m_max_rows * m_max_cols);
     memset((uint8_t*)m_display_data, 0, m_max_rows * m_max_cols);
@@ -33,13 +33,11 @@ void TerminalView::display(const LG::Rect& rect)
     for (int i = 0; i < m_max_rows; i++) {
         for (int j = 0; j < m_max_cols; j++) {
             int idx = i * m_max_cols + j;
-            if (m_display_data[idx] >= 'a' && m_display_data[idx] <= 'z') {
-                ctx.draw(text_start, f.glyph_bitmap(m_display_data[idx]));
-            }
-            text_start.offset_by(10, 0);
+            ctx.draw(text_start, f.glyph_bitmap(m_display_data[idx]));
+            text_start.offset_by(glyph_width(), 0);
         }
         text_start.set_x(0);
-        text_start.offset_by(0, font().glyph_height());
+        text_start.offset_by(0, glyph_height());
     }
 }
 
@@ -73,7 +71,7 @@ void TerminalView::increment_counter()
 void TerminalView::add_char(char c)
 {
     auto pt = pos_on_screen();
-    set_needs_display(LG::Rect(pt.x(), pt.y(), 10, font().glyph_height()));
+    set_needs_display(LG::Rect(pt.x(), pt.y(), glyph_width(), glyph_height()));
     m_display_data[pos_in_data()] = c;
     increment_counter();
 }
@@ -85,7 +83,7 @@ void TerminalView::receive_keyup_event(UI::KeyUpEvent&)
 void TerminalView::receive_keydown_event(UI::KeyDownEvent& event)
 {
     // FIXME: More symbols and static size of font
-    if (('a' <= event.key() && event.key() <= 'z') || ('A' <= event.key() && event.key() <= 'Z')) {
+    if (event.key() < 128) {
         add_char(char(event.key()));
     }
 }
