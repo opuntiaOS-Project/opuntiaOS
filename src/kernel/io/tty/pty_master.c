@@ -12,23 +12,38 @@
  */
 pty_master_entry_t pty_masters[PTYS_COUNT];
 
+int _pty_master_free_dentry_data(dentry_t* dentry);
 bool pty_master_can_read(dentry_t* dentry, uint32_t start);
 bool pty_master_can_write(dentry_t* dentry, uint32_t start);
 int pty_master_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int pty_master_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 
-static file_ops_t pty_master_ops = {
-    pty_master_can_read,
-    pty_master_can_write,
-    pty_master_read,
-    pty_master_write,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+static fs_ops_t pty_master_ops = {
+    .recognize = 0,
+    .prepare_fs = 0,
+    .eject_device = 0,
+    .dentry = {
+        .read_inode = 0,
+        .write_inode = 0,
+        .free_inode = _pty_master_free_dentry_data,
+        .get_fsdata = 0,
+    },
+    .file = {
+        .can_read = pty_master_can_read,
+        .can_write = pty_master_can_write,
+        .read = pty_master_read,
+        .write = pty_master_write,
+        .open = 0,
+        .truncate = 0,
+        .create = 0,
+        .unlink = 0,
+        .getdents = 0,
+        .lookup = 0,
+        .mkdir = 0,
+        .rmdir = 0,
+        .ioctl = 0,
+        .mmap = 0,
+    }
 };
 
 static pty_master_entry_t* _ptm_get(dentry_t* dentry)
@@ -38,6 +53,11 @@ static pty_master_entry_t* _ptm_get(dentry_t* dentry)
             return &pty_masters[i];
         }
     }
+    return 0;
+}
+
+int _pty_master_free_dentry_data(dentry_t* dentry)
+{
     return 0;
 }
 
@@ -91,13 +111,23 @@ int pty_master_alloc(file_descriptor_t* fd)
         return -EBUSY;
     }
 
-    /* VFS will jump right into functions from ops starts */
-    // d->ops = &pty_master_ops;
-
+    /* 
+       DENTRY_CUSTOM is set for the dentry, since it's not a cache of
+       a file (or a dir). We also set a required function for this
+       type of dentries free_inode, which is called when dentry is
+       freed.
+       
+       DENTRY_PRIVATE shows that dentry and fd, shouldn't be copied
+       when a new process is forked.
+    */
+    ptm->dentry.d_count = 1;
     ptm->dentry.flags = 0;
     dentry_set_flag(&ptm->dentry, DENTRY_PRIVATE);
+    dentry_set_flag(&ptm->dentry, DENTRY_CUSTOM);
+    ptm->dentry.ops = &pty_master_ops;
+
     fd->dentry = &ptm->dentry;
-    fd->ops = &pty_master_ops;
+    fd->ops = &pty_master_ops.file;
     fd->mapped_times = 0;
     fd->flags = 0;
     fd->offset = 0;

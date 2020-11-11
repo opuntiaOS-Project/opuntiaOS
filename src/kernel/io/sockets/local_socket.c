@@ -13,20 +13,23 @@
 #include <tasking/proc.h>
 #include <tasking/tasking.h>
 
-#define LOCAL_SOCKET_DEBUG
+// #define LOCAL_SOCKET_DEBUG
 
 static file_ops_t local_socket_ops = {
-    local_socket_can_read,
-    local_socket_can_write,
-    local_socket_read,
-    local_socket_write,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+    .can_read = local_socket_can_read,
+    .can_write = local_socket_can_write,
+    .read = local_socket_read,
+    .write = local_socket_write,
+    .open = 0,
+    .truncate = 0,
+    .create = 0,
+    .unlink = 0,
+    .getdents = 0,
+    .lookup = 0,
+    .mkdir = 0,
+    .rmdir = 0,
+    .ioctl = 0,
+    .mmap = 0,
 };
 
 int local_socket_create(int type, int protocol, file_descriptor_t* fd)

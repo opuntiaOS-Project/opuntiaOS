@@ -25,7 +25,7 @@ extern vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
 extern dynamic_array_t _vfs_fses;
 extern uint32_t root_fs_dev_id;
 
-static bool can_stay_inode_cache = 1; /* If we can stay inode cache. */
+static bool can_cache_inodes = 1; /* If we can cache inodes. */
 static uint32_t stat_cached_dentries = 0; /* Count of dentries which are held. */
 static uint32_t stat_cached_inodes_area_size = 0; /* Sum of all areas which is used for holding inodes. */
 static dentry_cache_list_t* dentry_cache;
@@ -53,7 +53,7 @@ static inline bool free_inode_cache()
     }
 
     if (need_to_free_inode_cache()) {
-        can_stay_inode_cache = 0;
+        can_cache_inodes = 0;
     }
 }
 
@@ -136,11 +136,14 @@ static inline void dentry_flush_inode(dentry_t* dentry)
  */
 static void dentry_delete_from_cache(dentry_t* dentry)
 {
+    /* This marks the dentry as deleted. */
     dentry->inode_indx = 0;
-    kfree(dentry->inode);
+    if (dentry->inode) {
+        kfree(dentry->inode);
+    }
     stat_cached_inodes_area_size -= INODE_LEN;
     if (!need_to_free_inode_cache()) {
-        can_stay_inode_cache = 1;
+        can_cache_inodes = 1;
     }
 }
 
@@ -152,14 +155,8 @@ static void dentry_delete_from_cache(dentry_t* dentry)
  */
 static void dentry_prefree(dentry_t* dentry)
 {
-    /* This marks the dentry as deleted. */
-    if (!can_stay_inode_cache) {
-        dentry->inode_indx = 0;
-        kfree(dentry->inode);
-        stat_cached_inodes_area_size -= INODE_LEN;
-        if (!need_to_free_inode_cache()) {
-            can_stay_inode_cache = 1;
-        }
+    if (!can_cache_inodes) {
+        dentry_delete_from_cache(dentry);
     } else {
         if (need_to_free_inode_cache()) {
             free_inode_cache();
@@ -194,7 +191,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     }
 
     if (dentry->ops->dentry.read_inode(dentry) < 0) {
-        log_error("[Dentry ]Can't read inode %d %d (dev, ino)", dev_indx, inode_indx);
+        log_error("[Dentry] Can't read inode %d %d (dev, ino)", dev_indx, inode_indx);
         return 0;
     }
 
@@ -269,6 +266,14 @@ dentry_t* dentry_duplicate(dentry_t* dentry)
 
 static inline void dentry_put_impl(dentry_t* dentry)
 {
+    if (dentry_test_flag(dentry, DENTRY_CUSTOM)) {
+        dentry->inode_indx = 0;
+        if (dentry->ops->dentry.free_inode) {
+            dentry->ops->dentry.free_inode(dentry);
+        }
+        return;
+    }
+
     if (dentry_test_flag(dentry, DENTRY_INODE_TO_BE_DELETED)) {
 #ifdef DENTRY_DEBUG
         log("Inode delete %d", dentry->inode_indx);
