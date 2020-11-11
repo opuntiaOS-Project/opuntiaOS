@@ -45,7 +45,8 @@ public:
     inline const CursorManager& cursor_manager() const { return m_cursor_manager; }
 
 private:
+    void copy_changes_to_second_buffer(const Vector<LG::Rect>& areas);
+
     CursorManager& m_cursor_manager;
     Vector<LG::Rect> m_invalidated_areas;
-    Vector<LG::Rect> m_prev_invalidated_areas;
 };

@@ -74,7 +74,7 @@ private:
     WeakPtr<Window> m_movable_window;
     int m_active_window_id { -1 };
     int m_hovered_window_id { -1 };
-    
+
     int m_mouse_x { 0 };
     int m_mouse_y { 0 };
     bool m_mouse_left_button_pressed { false };

@@ -13,6 +13,7 @@
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <libg/Context.h>
+#include <std/Memory.h>
 
 static Compositor* s_the;
 
@@ -31,16 +32,31 @@ Compositor::Compositor()
     }));
 }
 
+void Compositor::copy_changes_to_second_buffer(const Vector<LG::Rect>& areas)
+{
+    auto& screen = Screen::the();
+
+    for (int i = 0; i < areas.size(); i++) {
+        auto bounds = areas[i].intersection(screen.bounds());
+        uint32_t* buf1_ptr = (uint32_t*)&screen.display_bitmap()[bounds.min_y()][bounds.min_x()];
+        uint32_t* buf2_ptr = (uint32_t*)&screen.write_bitmap()[bounds.min_y()][bounds.min_x()];
+        for (int j = 0; j < bounds.height(); j++) {
+            fast_copy(buf2_ptr, buf1_ptr, bounds.width());
+            buf1_ptr += screen.width();
+            buf2_ptr += screen.width();
+        }
+    }
+}
+
 void Compositor::refresh()
 {
-    if (m_invalidated_areas.size() == 0 && m_prev_invalidated_areas.size() == 0) {
+    if (m_invalidated_areas.size() == 0) {
         return;
     }
 
-    auto invalidated_areas = move(m_invalidated_areas);
-    auto prev_invalidated_areas = move(m_prev_invalidated_areas);
     auto& screen = Screen::the();
     auto& wm = WindowManager::the();
+    auto invalidated_areas = move(m_invalidated_areas);
     LG::Context ctx(screen.write_bitmap());
 
     auto is_window_area_invalidated = [&](const Vector<LG::Rect>& areas, const LG::Rect& area) -> bool {
@@ -68,25 +84,27 @@ void Compositor::refresh()
         ctx.reset_clip();
     };
 
-    auto process_invalid_areas = [&](const Vector<LG::Rect>& areas) {
-        for (int i = 0; i < areas.size(); i++) {
-            draw_wallpaper_for_area(areas[i]);
-        }
-        for (int win = 0; win < wm.windows().size(); win++) {
-            auto& window = wm.windows()[win];
-            if (is_window_area_invalidated(areas, window.bounds())) {
-                for (int i = 0; i < areas.size(); i++) {
-                    draw_window(window, areas[i]);
-                }
+    for (int i = 0; i < invalidated_areas.size(); i++) {
+        draw_wallpaper_for_area(invalidated_areas[i]);
+    }
+
+    for (int win = 0; win < wm.windows().size(); win++) {
+        auto& window = wm.windows()[win];
+        if (is_window_area_invalidated(invalidated_areas, window.bounds())) {
+            for (int i = 0; i < invalidated_areas.size(); i++) {
+                draw_window(window, invalidated_areas[i]);
             }
         }
-    };
+    }
 
-    process_invalid_areas(prev_invalidated_areas);
-    process_invalid_areas(invalidated_areas);
+    auto mouse_draw_position = m_cursor_manager.draw_position(wm.mouse_x(), wm.mouse_y());
+    auto& current_mouse_bitmap = m_cursor_manager.current_cursor();
+    for (int i = 0; i < invalidated_areas.size(); i++) {
+        ctx.add_clip(invalidated_areas[i]);
+        ctx.draw(mouse_draw_position, current_mouse_bitmap);
+        ctx.reset_clip();
+    }
 
-    ctx.draw(m_cursor_manager.draw_position(wm.mouse_x(), wm.mouse_y()), m_cursor_manager.current_cursor());
-
-    m_prev_invalidated_areas = move(invalidated_areas);
     screen.swap_buffers();
+    copy_changes_to_second_buffer(invalidated_areas);
 }
