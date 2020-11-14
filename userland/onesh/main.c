@@ -98,7 +98,7 @@ void _cmd_processor()
         int res = fork();
         if (!res) {
             execve(_cmd_app, _cmd_parsed_buffer, 0);
-            return -1;
+            exit(-1);
         } else {
             running_job = res;
             wait(res);
