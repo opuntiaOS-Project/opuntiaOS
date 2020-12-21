@@ -2,7 +2,7 @@
 #include "Message.h"
 #include "MessageDecoder.h"
 #include <std/Vector.h>
-#include <syscalls.h>
+#include <std/Dbg.h>
 
 template <typename ServerDecoder, typename ClientDecoder>
 class ServerConnection {

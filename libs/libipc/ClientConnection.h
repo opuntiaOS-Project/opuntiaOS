@@ -1,6 +1,7 @@
 #pragma once
 #include "Message.h"
 #include "MessageDecoder.h"
+#include <cassert.h>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
@@ -47,20 +48,34 @@ public:
 
     void pump_messages()
     {
-        char buf[1024]; // TODO: Add vector to read more than 1024 bytes
+        Vector<char> buf;
 
-        int read_cnt = read(m_connection_fd, buf, sizeof(buf));
-        if (read_cnt <= 0) {
-            return;
+        char tmpbuf[1024]; // TODO: Add vector to read more than 1024 bytes
+
+        int read_cnt;
+        while (read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf))) {
+            if (read_cnt <= 0) {
+                Dbg() << getpid() << " :: ClientConnection read error\n";
+                return;
+            }
+            size_t buf_size = buf.size();
+            buf.resize(buf_size + read_cnt);
+            memcpy((uint8_t*)&buf.data()[buf_size], (uint8_t*)tmpbuf, read_cnt);
+            if (read_cnt < sizeof(tmpbuf)) {
+                break;
+            }
         }
 
         size_t msg_len = 0;
-        for (size_t i = 0; i < read_cnt; i += msg_len) {
+        size_t buf_size = buf.size();
+        for (size_t i = 0; i < buf_size; i += msg_len) {
             msg_len = 0;
-            if (auto response = m_client_decoder.decode((buf + i), read_cnt - i, msg_len)) {
+            if (auto response = m_client_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
                 m_messages.push_back(move(response));
-            } else if (auto response = m_server_decoder.decode((buf + i), read_cnt - i, msg_len)) {
+            } else if (auto response = m_server_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
                 m_messages.push_back(move(response));
+            } else {
+                ASSERT_NOT_REACHED();
             }
         }
 
