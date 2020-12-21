@@ -101,6 +101,12 @@ public:
         m_size = 0;
     }
 
+    inline void resize(size_t new_size)
+    {
+        ensure_capacity(new_size);
+        m_size = new_size;
+    }
+
     inline size_t size() const { return m_size; }
 
     inline const T& operator[](size_t i) const { return at(i); }
@@ -115,11 +121,11 @@ public:
 private:
     inline void ensure_capacity(size_t new_size)
     {
-        if (m_capacity == 0) {
-            grow(16);
-        } else if (new_size > m_capacity) {
-            grow(m_capacity * 2);
+        int capacity = 16;
+        while (new_size > capacity) {
+            capacity *= 2;
         }
+        grow(capacity);
     }
 
     void grow(size_t capacity)
