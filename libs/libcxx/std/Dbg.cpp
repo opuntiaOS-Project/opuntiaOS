@@ -10,7 +10,7 @@ static void print_dec(int fd, uint32_t dec)
 {
     int nxt = 0;
     char buf[16];
-    
+
     while (dec > 0) {
         buf[nxt++] = (dec % 10) + '0';
         dec /= 10;
@@ -48,3 +48,32 @@ const Dbg& operator<<(const Dbg& stream, size_t value)
 }
 
 
+// DbgPid
+
+const DbgPid& operator<<(const DbgPid& stream, const String& value)
+{
+    if (getpid() == stream.pid())
+        Dbg() << value;
+    return stream;
+}
+
+const DbgPid& operator<<(const DbgPid& stream, int value)
+{
+    if (getpid() == stream.pid())
+        Dbg() << value;
+    return stream;
+}
+
+const DbgPid& operator<<(const DbgPid& stream, uint32_t value)
+{
+    if (getpid() == stream.pid())
+        Dbg() << value;
+    return stream;
+}
+
+const DbgPid& operator<<(const DbgPid& stream, size_t value)
+{
+    if (getpid() == stream.pid())
+        Dbg() << value;
+    return stream;
+}

@@ -10,6 +10,7 @@
 #include "App.h"
 #include "Window.h"
 #include <libfoundation/EventLoop.h>
+#include <std/Dbg.h>
 
 namespace UI {
 

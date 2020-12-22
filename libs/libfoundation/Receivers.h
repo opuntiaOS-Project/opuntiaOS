@@ -10,6 +10,7 @@
 #include "Event.h"
 #include "EventReceiver.h"
 #include <memory.h>
+#include <std/Dbg.h>
 #include <std/Vector.h>
 #include <syscalls.h>
 
@@ -148,6 +149,7 @@ public:
     {
     }
     ~CallEvent() { }
+
 private:
     void (*m_callback)();
 };
@@ -164,7 +166,7 @@ private:
 //     void receive_event(UniquePtr<Event> event) override
 //     {
 //         if (event->type() == Event::Type::DeferredInvoke) {
-               
+
 //         }
 //     }
 // };
