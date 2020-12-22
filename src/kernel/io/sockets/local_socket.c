@@ -116,6 +116,7 @@ int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
         return -EBADF;
     }
     sock->sock_entry = bind_dentry->sock;
+    sock->offset = bind_dentry->sock->buffer.end; /* Starting to read from the end */
 #ifdef LOCAL_SOCKET_DEBUG
     log("Connected to local socket at %x : %d pid", bind_dentry->sock, p->pid);
 #endif
