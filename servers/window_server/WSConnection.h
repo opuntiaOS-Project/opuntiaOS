@@ -1,3 +1,6 @@
+// Auto generated with utils/ConnectionCompiler
+// See .ipc file
+
 #pragma once
 #include <libipc/Encoder.h>
 #include <libipc/ClientConnection.h>

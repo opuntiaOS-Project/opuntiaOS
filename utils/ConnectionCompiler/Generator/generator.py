@@ -183,6 +183,9 @@ class Generator:
         self.out("")
 
     def includes(self):
+        self.out("// Auto generated with utils/ConnectionCompiler")
+        self.out("// See .ipc file")
+        self.out("")
         self.out("#pragma once")
         self.out("#include <libipc/Encoder.h>")
         self.out("#include <libipc/ClientConnection.h>")
