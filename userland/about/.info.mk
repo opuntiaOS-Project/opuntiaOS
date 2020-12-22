@@ -1,0 +1,5 @@
+APPS += ABOUT
+
+ABOUT_NAME = about
+ABOUT_LIBS = cxx ui
+ABOUT_INSTALL_PATH = bin/

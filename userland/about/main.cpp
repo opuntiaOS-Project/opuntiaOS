@@ -7,10 +7,6 @@
 
 int main(int argc, char** argv)
 {
-    int res = fork();
-    if (res) {
-        execve("/bin/terminal", 0, 0);
-    }
     new UI::App();
     auto* window_ptr = new UI::Window(165, 140);
     window_ptr->set_superview(new UI::View(window_ptr->bounds()));
