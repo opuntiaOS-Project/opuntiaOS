@@ -135,6 +135,7 @@ private:
     bool read_chunk(PixelBitmap& bitmap);
     void read_IHDR(ChunkHeader& header, PixelBitmap& bitmap);
     void read_TEXT(ChunkHeader& header, PixelBitmap& bitmap);
+    void read_PHYS(ChunkHeader& header, PixelBitmap& bitmap);
     void read_IDAT(ChunkHeader& header, PixelBitmap& bitmap);
 
     uint8_t paeth_predictor(int a, int b, int c);

@@ -58,7 +58,7 @@ void PNGLoader::read_IHDR(ChunkHeader& header, PixelBitmap& bitmap)
 
     bitmap.resize(m_ihdr_chunk.width, m_ihdr_chunk.height);
 
-    Dbg() << "D: " << m_ihdr_chunk.compression_method << " " << m_ihdr_chunk.filter_method << " " << m_ihdr_chunk.color_type << "\n";
+    Dbg() << "IHDR: " << m_ihdr_chunk.width << " " <<  m_ihdr_chunk.depth << " " << m_ihdr_chunk.compression_method << " " << m_ihdr_chunk.filter_method << " " << m_ihdr_chunk.color_type << "\n";
 }
 
 void PNGLoader::read_TEXT(ChunkHeader& header, PixelBitmap& bitmap)
@@ -66,17 +66,42 @@ void PNGLoader::read_TEXT(ChunkHeader& header, PixelBitmap& bitmap)
     streamer().skip(header.len);
 }
 
+void PNGLoader::read_PHYS(ChunkHeader& header, PixelBitmap& bitmap)
+{
+    streamer().skip(header.len);
+}
+
 // TODO: Currently support only comprssion type 0
 void PNGLoader::read_IDAT(ChunkHeader& header, PixelBitmap& bitmap)
 {
-    if (m_ihdr_chunk.color_type == 6) {
-        size_t destlen = 0;
-        int ret = puff(0, &destlen, streamer().ptr() + 2, &header.len);
-        uint8_t* unzipped_data = (uint8_t*)malloc(destlen);
-        puff(unzipped_data, &destlen, streamer().ptr() + 2, &header.len);
+    size_t destlen = 0;
+    int ret = puff(0, &destlen, streamer().ptr() + 2, &header.len);
+    Dbg() << "Image len " << destlen << " "<< ret << "\n";
+    uint8_t* unzipped_data = (uint8_t*)malloc(destlen);
+    
+    puff(unzipped_data, &destlen, streamer().ptr() + 2, &header.len);
+    DataStreamer local_streamer(unzipped_data);
+    Dbg() << "Image len " << destlen << "\n";
+    
+    if (m_ihdr_chunk.color_type == 2) {
+        if (m_ihdr_chunk.depth == 8) {
+            for (int i = 0; i < m_ihdr_chunk.height; i++) {
+                uint8_t scanline_filter;
+                local_streamer.read(scanline_filter);
 
-        DataStreamer local_streamer(unzipped_data);
+                m_scanline_keeper.init(unzipped_data, 3);
+                if (scanline_filter > 4) {
+                    Dbg() << "Invalid PNG filter: " << scanline_filter;
+                } else {
+                    // Dbg() << "r";
+                }
 
+                size_t len_of_scanline = (3 * m_ihdr_chunk.width * m_ihdr_chunk.depth + 7) / 8;
+                m_scanline_keeper.add(Scanline(scanline_filter, local_streamer.ptr()));
+                local_streamer.skip(len_of_scanline);
+            }
+        }
+    } else if (m_ihdr_chunk.color_type == 6) {
         if (m_ihdr_chunk.depth == 8) {
             for (int i = 0; i < m_ihdr_chunk.height; i++) {
                 uint8_t scanline_filter;
@@ -116,7 +141,7 @@ uint8_t PNGLoader::paeth_predictor(int a, int b, int c)
 void PNGLoader::unfilter_scanlines()
 {
     for (int i = 0; i < m_ihdr_chunk.height; i++) {
-        if (m_scanline_keeper.scanlines()[i].filter_type() == 1) {
+        if (m_scanline_keeper.scanlines()[i].filter_type() == 1) { // Sub
             int width = m_ihdr_chunk.width * m_scanline_keeper.color_length();
             for (int j = 0; j < width; j++) {
                 int prev = 0;
@@ -125,7 +150,7 @@ void PNGLoader::unfilter_scanlines()
                 }
                 m_scanline_keeper.scanlines()[i].data()[j] += prev;
             }
-        } else if (m_scanline_keeper.scanlines()[i].filter_type() == 2) {
+        } else if (m_scanline_keeper.scanlines()[i].filter_type() == 2) { // Up
             int width = m_ihdr_chunk.width * m_scanline_keeper.color_length();
             for (int j = 0; j < width; j++) {
                 int prev = 0;
@@ -134,7 +159,20 @@ void PNGLoader::unfilter_scanlines()
                 }
                 m_scanline_keeper.scanlines()[i].data()[j] += prev;
             }
-        } else if (m_scanline_keeper.scanlines()[i].filter_type() == 4) {
+        } else if (m_scanline_keeper.scanlines()[i].filter_type() == 3) { // Average
+            int width = m_ihdr_chunk.width * m_scanline_keeper.color_length();
+            for (int j = 0; j < width; j++) {
+                int prev = 0;
+                int prior = 0;
+                if (i > 0) {
+                    prior = m_scanline_keeper.scanlines()[i - 1].data()[j];
+                }
+                if (j >= m_scanline_keeper.color_length()) {
+                    prev = m_scanline_keeper.scanlines()[i].data()[j - m_scanline_keeper.color_length()];
+                }
+                m_scanline_keeper.scanlines()[i].data()[j] += (prev + prior) / 2;
+            }
+        } else if (m_scanline_keeper.scanlines()[i].filter_type() == 4) { // Paeth
             int width = m_ihdr_chunk.width * m_scanline_keeper.color_length();
             for (int j = 0; j < width; j++) {
                 int a = 0;
@@ -157,14 +195,28 @@ void PNGLoader::unfilter_scanlines()
 
 void PNGLoader::copy_scanlines_to_bitmap(PixelBitmap& bitmap)
 {
-    for (int i = 0; i < m_ihdr_chunk.height; i++) {
-        auto& scanline = m_scanline_keeper.scanlines()[i];
-        for (int j = 0, bit = 0; j < m_ihdr_chunk.width; j++) {
-            int r = scanline.data()[bit++];
-            int g = scanline.data()[bit++];
-            int b = scanline.data()[bit++];
-            int alpha = scanline.data()[bit++];
-            bitmap[i][j] = Color(r, g, b, alpha);
+    if (m_ihdr_chunk.color_type == 2) {
+        for (int i = 0; i < m_ihdr_chunk.height; i++) {
+            auto& scanline = m_scanline_keeper.scanlines()[i];
+            for (int j = 0, bit = 0; j < m_ihdr_chunk.width; j++) {
+                int r = scanline.data()[bit++];
+                int g = scanline.data()[bit++];
+                int b = scanline.data()[bit++];
+                int alpha = 255;
+                bitmap[i][j] = Color(r, g, b, alpha);
+            }
+        }
+    }
+    if (m_ihdr_chunk.color_type == 6) {
+        for (int i = 0; i < m_ihdr_chunk.height; i++) {
+            auto& scanline = m_scanline_keeper.scanlines()[i];
+            for (int j = 0, bit = 0; j < m_ihdr_chunk.width; j++) {
+                int r = scanline.data()[bit++];
+                int g = scanline.data()[bit++];
+                int b = scanline.data()[bit++];
+                int alpha = scanline.data()[bit++];
+                bitmap[i][j] = Color(r, g, b, alpha);
+            }
         }
     }
 }
@@ -179,12 +231,16 @@ bool PNGLoader::read_chunk(PixelBitmap& bitmap)
         read_IHDR(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"tEXt", 4) == 0) {
         read_TEXT(header, bitmap);
+    } else if (memcmp(header.type, (uint8_t*)"zTXt", 4) == 0) {
+        read_TEXT(header, bitmap);
+    } else if (memcmp(header.type, (uint8_t*)"pHYs", 4) == 0) {
+        read_PHYS(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"IDAT", 4) == 0) {
         read_IDAT(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"IEND", 4) == 0) {
         return false;
     } else {
-        Dbg() << "PNGLoader: Unexpected header type\n";
+        Dbg() << "PNGLoader: Unexpected header type: " << (char*)header.type << "\n";
         return false;
     }
 
