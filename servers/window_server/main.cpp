@@ -9,6 +9,7 @@
 #include "Compositor.h"
 #include "Connection.h"
 #include "CursorManager.h"
+#include "ResourceManager.h"
 #include "Devices.h"
 #include "Screen.h"
 #include "WindowManager.h"
@@ -23,6 +24,7 @@ int main()
     new Screen();
     new Connection(socket(PF_LOCAL, 0, 0));
     new CursorManager();
+    new ResourceManager();
     new Compositor();
     new WindowManager();
     new Devices();

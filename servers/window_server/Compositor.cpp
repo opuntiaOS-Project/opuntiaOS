@@ -8,6 +8,7 @@
 
 #include "Compositor.h"
 #include "CursorManager.h"
+#include "ResourceManager.h"
 #include "Screen.h"
 #include "Window.h"
 #include "WindowManager.h"
@@ -24,6 +25,7 @@ Compositor& Compositor::the()
 
 Compositor::Compositor()
     : m_cursor_manager(CursorManager::the())
+    , m_resource_manager(ResourceManager::the())
 {
     s_the = this;
     invalidate(Screen::the().bounds());
@@ -70,8 +72,7 @@ void Compositor::refresh()
 
     auto draw_wallpaper_for_area = [&](const LG::Rect& area) {
         ctx.add_clip(area);
-        ctx.set_fill_color(LG::Color(0x00FeeeeF));
-        ctx.fill(LG::Rect(0, 0, 1024, 768));
+        ctx.draw({ 0, 0 }, m_resource_manager.background());
         ctx.reset_clip();
     };
 
