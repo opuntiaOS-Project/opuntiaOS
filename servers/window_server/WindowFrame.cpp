@@ -118,7 +118,7 @@ void WindowFrame::draw(LG::Context& ctx)
     int right_x = x + width - right_border_size();
     int bottom_y = y + height - bottom_border_size();
 
-    ctx.set_fill_color(LG::Color(std_frame_color()));
+    ctx.set_fill_color(color());
     ctx.fill(LG::Rect(x, y, width, top_border_size()));
     ctx.fill(LG::Rect(x, y, left_border_size(), height));
 

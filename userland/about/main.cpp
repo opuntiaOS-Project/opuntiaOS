@@ -5,6 +5,9 @@
 #include <libui/Window.h>
 #include <syscalls.h>
 
+#define FRAME_COLOR 0x003DFF
+#define BODY_COLOR 0x819EFA
+
 int main(int argc, char** argv)
 {
     new UI::App();
@@ -17,11 +20,12 @@ int main(int argc, char** argv)
 
     auto* label = new UI::Label({ 35, 45, 10, 10 });
     window_ptr->superview()->add_subview(label);
-    label->set_text_color(LG::Color::Black);
+    label->set_text_color(LG::Color::White);
     label->set_text("Alive in oneOS!");
     label->set_width(label->preferred_width());
 
     window_ptr->superview()->set_needs_display();
     window_ptr->set_title("About");
+    window_ptr->set_frame_style(LG::Color(FRAME_COLOR));
     return UI::App::the().run();
 }

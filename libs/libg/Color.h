@@ -70,6 +70,15 @@ public:
     inline uint8_t green() const { return m_g; }
     inline uint8_t blue() const { return m_b; }
 
+    uint32_t u32() const
+    {
+        uint32_t clr = (m_opacity << 24)
+            | (m_b << 16)
+            | (m_g << 8)
+            | (m_r << 0);
+        return clr;
+    }
+
     inline void mix_with(const Color& clr)
     {
         if (clr.is_opaque() || !alpha()) {

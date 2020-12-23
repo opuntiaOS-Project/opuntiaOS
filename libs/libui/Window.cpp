@@ -34,6 +34,12 @@ bool Window::set_title(const LG::String& title)
     return App::the().connection().send_async_message(msg);
 }
 
+bool Window::set_frame_style(const LG::Color& color)
+{
+    SetBarStyleMessage msg(Connection::the().key(), id(), color.u32(), 0);
+    return App::the().connection().send_async_message(msg);
+}
+
 void Window::receive_event(UniquePtr<LFoundation::Event> event)
 {
     if (event->type() == Event::Type::MouseEvent) {

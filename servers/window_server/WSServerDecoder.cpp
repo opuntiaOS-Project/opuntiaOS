@@ -47,3 +47,10 @@ UniquePtr<Message> WServerDecoder::handle(const SetTitleMessage& msg)
     wm.window(msg.window_id()).frame().set_app_name(msg.title());
     return nullptr;
 }
+
+UniquePtr<Message> WServerDecoder::handle(const SetBarStyleMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    wm.window(msg.window_id()).frame().set_color(LG::Color(msg.color()));
+    return nullptr;
+}

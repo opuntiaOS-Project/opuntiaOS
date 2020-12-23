@@ -65,24 +65,13 @@ void View::set_needs_display(const LG::Rect& rect)
 void View::display(const LG::Rect& rect)
 {
     Context ctx(*this);
-    if (has_superview()) {
-        if (m_active) {
-            ctx.set_fill_color(LG::Color::White);
-        } else if (m_hovered) {
-            ctx.set_fill_color(LG::Color::Red);
-        } else {
-            ctx.set_fill_color(LG::Color::Blue);
-        }
+    if (m_active) {
+        ctx.set_fill_color(LG::Color::Blue);
+    } else if (m_hovered) {
+        ctx.set_fill_color(LG::Color::Red);
     } else {
-        if (m_active) {
-            ctx.set_fill_color(LG::Color::Blue);
-        } else if (m_hovered) {
-            ctx.set_fill_color(LG::Color::Red);
-        } else {
-            ctx.set_fill_color(LG::Color::White);
-        }
+        ctx.set_fill_color(LG::Color::White);
     }
-
     ctx.fill(rect);
 }
 
@@ -170,12 +159,10 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
 
 void View::receive_keyup_event(KeyUpEvent&)
 {
-    Dbg() << "up\n";
 }
 
 void View::receive_keydown_event(KeyDownEvent&)
 {
-    Dbg() << "down\n";
 }
 
 void View::receive_display_event(DisplayEvent& event)

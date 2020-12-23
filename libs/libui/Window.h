@@ -47,6 +47,7 @@ public:
     inline const LG::Rect& bounds() const { return m_bounds; }
 
     bool set_title(const LG::String& title);
+    bool set_frame_style(const LG::Color& color);
 
 private:
     uint32_t m_id;
