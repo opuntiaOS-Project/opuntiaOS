@@ -50,7 +50,7 @@ void Compositor::copy_changes_to_second_buffer(const Vector<LG::Rect>& areas)
     }
 }
 
-void Compositor::refresh()
+__attribute__((flatten)) void Compositor::refresh()
 {
     if (m_invalidated_areas.size() == 0) {
         return;
@@ -77,7 +77,6 @@ void Compositor::refresh()
     };
 
     auto draw_window = [&](Window& window, const LG::Rect& area) {
-        ctx.set_fill_color(LG::Color::Black);
         ctx.add_clip(area);
         ctx.add_clip(window.bounds());
         window.frame().draw(ctx);

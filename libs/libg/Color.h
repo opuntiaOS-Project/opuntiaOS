@@ -79,7 +79,7 @@ public:
         return clr;
     }
 
-    inline void mix_with(const Color& clr)
+    [[gnu::always_inline]] inline void mix_with(const Color& clr)
     {
         if (clr.is_opaque() || !alpha()) {
             return;
