@@ -9,10 +9,15 @@
 #include "WindowFrame.h"
 #include "Button.h"
 #include "Window.h"
+#include "WindowManager.h"
 #include <libg/Font.h>
 #include <libg/Rect.h>
 #include <std/Utility.h>
 #include <syscalls.h>
+
+#define CONTROL_PANEL_CLOSE 0x0
+#define CONTROL_PANEL_MAXIMIZE 0x1
+#define CONTROL_PANEL_MINIMIZE 0x2
 
 static const uint32_t s_close_button_glyph_data[10] = {
     0b1100000011,
@@ -64,7 +69,7 @@ WindowFrame::WindowFrame(Window& window)
     maximize->set_icon(LG::GlyphBitmap(s_maximise_button_glyph_data, 10, 10));
     auto* minimize = new Button();
     minimize->set_icon(LG::GlyphBitmap(s_minimise_button_glyph_data, 10, 10));
-    
+
     m_window_control_buttons.push_back(close);
     m_window_control_buttons.push_back(maximize);
     m_window_control_buttons.push_back(minimize);
@@ -136,7 +141,7 @@ void WindowFrame::draw(LG::Context& ctx)
     int start_buttons = right_x - 8 - m_window_control_buttons[0]->bounds().width();
     for (int i = 0; i < m_window_control_buttons.size(); i++) {
         m_window_control_buttons[i]->display(ctx, { start_buttons, y + 8 });
-        start_buttons += - 8 - m_window_control_buttons[i]->bounds().width();
+        start_buttons += -8 - m_window_control_buttons[i]->bounds().width();
     }
 }
 
@@ -148,4 +153,16 @@ const LG::Rect WindowFrame::bounds() const
 {
     const auto& bounds = m_window.bounds();
     return LG::Rect(bounds.min_x(), bounds.min_y(), bounds.width(), top_border_size());
+}
+
+void WindowFrame::handle_control_panel_tap(int button_id)
+{
+    // auto& wm = WindowManager::the();
+    // switch (button_id) {
+    // case CONTROL_PANEL_CLOSE:
+    //     wm.close_window(m_window);
+    //     break;
+    // default:
+    //     break;
+    // }
 }

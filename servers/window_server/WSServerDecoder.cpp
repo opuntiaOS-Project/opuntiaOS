@@ -18,25 +18,33 @@ UniquePtr<Message> WServerDecoder::handle(const GreetMessage& msg)
 UniquePtr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
-    int win_id = wm.windows().size();
-    wm.add_window(Window(msg.key(), win_id, msg));
-    wm.window(win_id).frame().set_app_name("Window");
+    int win_id = wm.next_win_id();
+    auto* window = new Window(msg.key(), win_id, msg);
+    window->frame().set_app_name("No name");
+    wm.add_window(window);
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
 
 UniquePtr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
 {
-    WindowManager::the().window(msg.window_id()).set_buffer(msg.buffer_id());
+    auto* window = WindowManager::the().window(msg.window_id());
+    if (!window) {
+        return nullptr;
+    }
+    window->set_buffer(msg.buffer_id());
     return nullptr;
 }
 
 UniquePtr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
 {
     auto& wm = WindowManager::the();
-    auto& window = wm.window(msg.window_id());
+    auto* window = wm.window(msg.window_id());
+    if (!window) {
+        return nullptr;
+    }
     auto rect = msg.rect();
-    rect.offset_by(window.content_bounds().origin());
-    rect.intersect(window.content_bounds());
+    rect.offset_by(window->content_bounds().origin());
+    rect.intersect(window->content_bounds());
     Compositor::the().invalidate(rect);
     return nullptr;
 }
@@ -44,13 +52,21 @@ UniquePtr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
 UniquePtr<Message> WServerDecoder::handle(const SetTitleMessage& msg)
 {
     auto& wm = WindowManager::the();
-    wm.window(msg.window_id()).frame().set_app_name(msg.title());
+    auto* window = wm.window(msg.window_id());
+    if (!window) {
+        return nullptr;
+    }
+    window->frame().set_app_name(msg.title());
     return nullptr;
 }
 
 UniquePtr<Message> WServerDecoder::handle(const SetBarStyleMessage& msg)
 {
     auto& wm = WindowManager::the();
-    wm.window(msg.window_id()).frame().set_color(LG::Color(msg.color()));
+    auto* window = wm.window(msg.window_id());
+    if (!window) {
+        return nullptr;
+    }
+    window->frame().set_color(LG::Color(msg.color()));
     return nullptr;
 }

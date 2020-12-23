@@ -39,6 +39,7 @@ public:
 
     inline Vector<Button*>& control_panel_buttons() { return m_control_panel_buttons; }
     inline const Vector<Button*>& control_panel_buttons() const { return m_control_panel_buttons; }
+    void handle_control_panel_tap(int button_id);
 
     inline LG::Color& color() { return m_color; }
     inline const LG::Color& color() const { return m_color; }

@@ -89,13 +89,15 @@ void Compositor::refresh()
         draw_wallpaper_for_area(invalidated_areas[i]);
     }
 
-    for (int win = 0; win < wm.windows().size(); win++) {
-        auto& window = wm.windows()[win];
+    auto* window_ptr = wm.windows().tail();
+    while (window_ptr) {
+        auto& window = *window_ptr;
         if (is_window_area_invalidated(invalidated_areas, window.bounds())) {
             for (int i = 0; i < invalidated_areas.size(); i++) {
                 draw_window(window, invalidated_areas[i]);
             }
         }
+        window_ptr = window_ptr->prev();
     }
 
     auto mouse_draw_position = m_cursor_manager.draw_position(wm.mouse_x(), wm.mouse_y());

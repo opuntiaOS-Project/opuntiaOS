@@ -7,6 +7,7 @@
  */
 
 #include "Window.h"
+#include "WindowManager.h"
 #include <std/Utility.h>
 
 Window::Window(int connection_id, int id, const CreateWindowMessage& msg)

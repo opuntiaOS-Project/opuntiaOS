@@ -92,17 +92,21 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
     int new_hovered_window_id = -1;
 
     if (continue_window_move(mouse_event)) {
-        delete mouse_event;
-        return;
+        goto end;
     }
 
     update_mouse_position(mouse_event);
 
-    for (int i = m_windows.size() - 1; i >= 0; i--) {
-        auto& window = m_windows[i];
+    for (auto& window : m_windows) {
         if (window.bounds().contains(m_mouse_x, m_mouse_y)) {
             if (window.frame().bounds().contains(m_mouse_x, m_mouse_y)) {
                 if (is_mouse_left_button_pressed()) {
+                    auto& control_panel = window.frame().control_panel_buttons();
+                    for (int btn_id = 0; btn_id < control_panel.size(); btn_id++) {
+                        if (control_panel[btn_id]->bounds().contains(m_mouse_x, m_mouse_y)) {
+                            window.frame().handle_control_panel_tap(btn_id);
+                        }
+                    }
                     start_window_move(window);
                 }
             } else if (window.content_bounds().contains(m_mouse_x, m_mouse_y)) {
@@ -117,7 +121,11 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
                 }
             }
 
-            m_active_window_id = window.id();
+            if (is_mouse_left_button_pressed() && m_active_window_id != window.id()) {
+                bring_to_front(window);
+                m_active_window_id = window.id();
+            }
+
             break;
         }
     }

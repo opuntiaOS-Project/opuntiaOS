@@ -11,12 +11,13 @@
 #include "WindowFrame.h"
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
+#include <std/LinkedList.h>
 #include <std/Utility.h>
 #include <std/WeakPtr.h>
 #include <sys/SharedBuffer.h>
 #include <sys/types.h>
 
-class Window : public Weakable<Window> {
+class Window : public Weakable<Window>, public LinkedListNode<Window> {
 public:
     Window(int connection_id, int id, const CreateWindowMessage& msg);
     Window(Window&& win);
@@ -44,6 +45,12 @@ public:
     }
 
     inline int connection_id() const { return m_connection_id; }
+
+    void will_be_closed();
+    void will_be_minimized();
+    void was_minimized();
+    void will_be_maximized();
+    void was_maximized();
 
 private:
     int m_id { -1 };

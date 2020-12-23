@@ -17,6 +17,7 @@
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
+#include <std/LinkedList.h>
 #include <std/Vector.h>
 #include <syscalls.h>
 
@@ -25,24 +26,40 @@ public:
     static WindowManager& the();
     WindowManager();
 
-    inline void add_window(Window&& window)
+    inline void add_window(Window* window)
     {
-        m_compositor.invalidate(window.bounds());
-        m_windows.push_back(move(window));
+        m_compositor.invalidate(window->bounds());
+        m_windows.push_front(window);
     }
 
-    inline Window& window(int id)
+    void close_window(Window& window)
     {
-        for (int i = 0; i < windows().size(); i++) {
-            if (windows()[i].id() == id) {
-                return windows()[i];
+        // window->will_be_closed();
+        // for (int i = 0; i < windows().size(); i++) {
+        // }
+    }
+
+    inline Window* window(int id)
+    {
+        for (auto& window : m_windows) {
+            if (window.id() == id) {
+                return &window;
             }
         }
-        return windows()[0];
+        return nullptr;
     }
 
-    inline Vector<Window>& windows() { return m_windows; }
-    inline const Vector<Window>& windows() const { return m_windows; }
+    inline void bring_to_front(Window& window)
+    {
+        auto* window_ptr = &window;
+        m_windows.remove(window_ptr);
+        m_windows.push_front(window_ptr);
+        m_compositor.invalidate(window.bounds());
+    }
+
+    inline LinkedList<Window>& windows() { return m_windows; }
+    inline const LinkedList<Window>& windows() const { return m_windows; }
+    inline int next_win_id() { return ++m_next_win_id; }
 
     void receive_event(UniquePtr<LFoundation::Event> event) override;
 
@@ -61,11 +78,12 @@ private:
 
     inline bool has_hovered_window() const { return m_hovered_window_id != -1; }
     inline void set_hovered_window(int hw) { m_hovered_window_id = hw; }
-    inline Window& hovered_window() { return window(m_hovered_window_id); }
+    inline Window& hovered_window() { return *window(m_hovered_window_id); }
     inline bool has_active_window() const { return m_active_window_id != -1; }
-    inline Window& active_window() { return window(m_active_window_id); }
+    inline Window& active_window() { return *window(m_active_window_id); }
 
-    Vector<Window> m_windows;
+    LinkedList<Window> m_windows;
+
     Screen& m_screen;
     Connection& m_connection;
     Compositor& m_compositor;
@@ -74,6 +92,7 @@ private:
     WeakPtr<Window> m_movable_window;
     int m_active_window_id { -1 };
     int m_hovered_window_id { -1 };
+    int m_next_win_id { 0 };
 
     int m_mouse_x { 0 };
     int m_mouse_y { 0 };
