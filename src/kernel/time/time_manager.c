@@ -6,7 +6,7 @@
 
 // #define TIME_MANAGER_DEBUG
 
-static uint32_t ticks;
+static time_t ticks;
 static time_t time_since_boot = 0;
 static time_t time_since_epoch = 0;
 
@@ -92,4 +92,9 @@ time_t timeman_now()
 time_t timeman_seconds_since_boot()
 {
     return time_since_boot;
+}
+
+time_t timeman_get_ticks_from_last_second()
+{
+    return ticks;
 }
