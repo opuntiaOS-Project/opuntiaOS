@@ -26,6 +26,7 @@ public:
     void add_clip(const Rect& rect);
     void reset_clip();
 
+    void set(const Point<int>& start, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const GlyphBitmap& bitmap);
     void fill(const Rect& rect);
