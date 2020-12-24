@@ -50,7 +50,7 @@ public:
     {
         Vector<char> buf;
 
-        char tmpbuf[1024]; // TODO: Add vector to read more than 1024 bytes
+        char tmpbuf[1024];
 
         int read_cnt;
         while (read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf))) {

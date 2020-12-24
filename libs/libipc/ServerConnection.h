@@ -23,20 +23,32 @@ public:
 
     void pump_messages()
     {
-        char buf[1024]; // TODO: Add vector to read more than 1024 bytes
-        int read_cnt = read(m_connection_fd, buf, sizeof(buf));
-        if (read_cnt <= 0) {
-            return;
+        Vector<char> buf;
+
+        char tmpbuf[1024];
+
+        int read_cnt;
+        while (read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf))) {
+            if (read_cnt <= 0) {
+                Dbg() << getpid() << " :: ServerConnection read error\n";
+                return;
+            }
+            size_t buf_size = buf.size();
+            buf.resize(buf_size + read_cnt);
+            memcpy((uint8_t*)&buf.data()[buf_size], (uint8_t*)tmpbuf, read_cnt);
+            if (read_cnt < sizeof(tmpbuf)) {
+                break;
+            }
         }
 
         size_t msg_len = 0;
         for (int i = 0; i < read_cnt; i += msg_len) {
             msg_len = 0;
-            if (auto response = m_server_decoder.decode((buf + i), read_cnt - i, msg_len)) {
+            if (auto response = m_server_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
                 if (auto answer = m_server_decoder.handle(*response)) {
                     send_message(*answer);
                 }
-            } else if (auto response = m_client_decoder.decode((buf + i), read_cnt - i, msg_len)) {
+            } else if (auto response = m_client_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
             }
         }
     }
