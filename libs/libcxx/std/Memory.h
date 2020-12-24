@@ -10,3 +10,12 @@
         : "S"(src), "D"(dest), "c"(count)
         : "memory");
 }
+
+[[gnu::always_inline]] inline void fast_set(uint32_t* dest, uint32_t val, size_t count)
+{
+    asm volatile(
+        "rep stosl\n"
+        : "=D"(dest), "=c"(count)
+        : "D"(dest), "c"(count), "a"(val)
+        : "memory");
+}

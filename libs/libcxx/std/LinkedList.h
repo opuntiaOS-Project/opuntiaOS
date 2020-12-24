@@ -19,7 +19,7 @@ public:
     }
     T& operator*() { return *m_node; }
     T* operator->() { return m_node; }
-    bool is_end() const { return !m_node; }
+    inline bool is_end() const { return !m_node; }
     static LinkedListIterator null() { return LinkedListIterator(nullptr); }
 
 private:
@@ -36,10 +36,10 @@ class LinkedListNode {
 public:
     LinkedListNode() = default;
 
-    T* next() const { return m_next; }
-    T* prev() const { return m_prev; }
-    void set_prev(T* prev) { m_prev = prev; };
-    void set_next(T* next) { m_next = next; };
+    inline T* next() const { return m_next; }
+    inline T* prev() const { return m_prev; }
+    inline void set_prev(T* prev) { m_prev = prev; };
+    inline void set_next(T* next) { m_next = next; };
 
 private:
     T* m_prev { nullptr };
