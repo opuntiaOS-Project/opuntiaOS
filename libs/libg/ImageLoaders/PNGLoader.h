@@ -97,20 +97,23 @@ private:
 class ScanlineKeeper {
 public:
     ScanlineKeeper() = default;
-    ~ScanlineKeeper() { }
+    ~ScanlineKeeper() { invalidate(); }
 
-    void init(void* ptr, uint8_t color_length) { m_ptr = ptr, m_color_length = color_length; }
+    inline void init(void* ptr) { m_ptr = ptr; }
+    inline void init(void* ptr, uint8_t color_length) { m_ptr = ptr, m_color_length = color_length; }
+
     void invalidate()
     {
         free(m_ptr);
         m_data.clear();
     }
 
-    void add(Scanline&& el) { m_data.push_back(move(el)); }
-    uint8_t color_length() const { return m_color_length; }
+    inline void add(Scanline&& el) { m_data.push_back(move(el)); }
+    inline void set_color_length(uint8_t color_length) { m_color_length = color_length; }
+    inline uint8_t color_length() const { return m_color_length; }
 
-    Vector<Scanline>& scanlines() { return m_data; }
-    const Vector<Scanline>& scanlines() const { return m_data; }
+    inline Vector<Scanline>& scanlines() { return m_data; }
+    inline const Vector<Scanline>& scanlines() const { return m_data; }
 
 private:
     uint8_t m_color_length { 0 };

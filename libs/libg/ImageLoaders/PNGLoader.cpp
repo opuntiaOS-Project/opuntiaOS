@@ -76,43 +76,41 @@ void PNGLoader::read_IDAT(ChunkHeader& header, PixelBitmap& bitmap)
 {
     size_t destlen = 0;
     int ret = puff(0, &destlen, streamer().ptr() + 2, &header.len);
-    Dbg() << "Image len " << destlen << " "<< ret << "\n";
     uint8_t* unzipped_data = (uint8_t*)malloc(destlen);
-    
     puff(unzipped_data, &destlen, streamer().ptr() + 2, &header.len);
     DataStreamer local_streamer(unzipped_data);
-    Dbg() << "Image len " << destlen << "\n";
+    m_scanline_keeper.init(unzipped_data);
     
     if (m_ihdr_chunk.color_type == 2) {
+        m_scanline_keeper.set_color_length(3);
         if (m_ihdr_chunk.depth == 8) {
             for (int i = 0; i < m_ihdr_chunk.height; i++) {
                 uint8_t scanline_filter;
                 local_streamer.read(scanline_filter);
 
-                m_scanline_keeper.init(unzipped_data, 3);
                 if (scanline_filter > 4) {
                     Dbg() << "Invalid PNG filter: " << scanline_filter;
-                } else {
-                    // Dbg() << "r";
-                }
+                    continue;
+                } 
 
-                size_t len_of_scanline = (3 * m_ihdr_chunk.width * m_ihdr_chunk.depth + 7) / 8;
+                size_t len_of_scanline = (m_scanline_keeper.color_length() * m_ihdr_chunk.width * m_ihdr_chunk.depth + 7) / 8;
                 m_scanline_keeper.add(Scanline(scanline_filter, local_streamer.ptr()));
                 local_streamer.skip(len_of_scanline);
             }
         }
     } else if (m_ihdr_chunk.color_type == 6) {
+        m_scanline_keeper.set_color_length(4);
         if (m_ihdr_chunk.depth == 8) {
             for (int i = 0; i < m_ihdr_chunk.height; i++) {
                 uint8_t scanline_filter;
                 local_streamer.read(scanline_filter);
 
-                m_scanline_keeper.init(unzipped_data, 4);
                 if (scanline_filter > 4) {
                     Dbg() << "Invalid PNG filter: " << scanline_filter;
+                    continue;
                 }
 
-                size_t len_of_scanline = (4 * m_ihdr_chunk.width * m_ihdr_chunk.depth + 7) / 8;
+                size_t len_of_scanline = (m_scanline_keeper.color_length() * m_ihdr_chunk.width * m_ihdr_chunk.depth + 7) / 8;
                 m_scanline_keeper.add(Scanline(scanline_filter, local_streamer.ptr()));
                 local_streamer.skip(len_of_scanline);
             }
@@ -196,6 +194,7 @@ void PNGLoader::unfilter_scanlines()
 void PNGLoader::copy_scanlines_to_bitmap(PixelBitmap& bitmap)
 {
     if (m_ihdr_chunk.color_type == 2) {
+        bitmap.set_format(PixelBitmapFormat::RGB);
         for (int i = 0; i < m_ihdr_chunk.height; i++) {
             auto& scanline = m_scanline_keeper.scanlines()[i];
             for (int j = 0, bit = 0; j < m_ihdr_chunk.width; j++) {
@@ -208,6 +207,7 @@ void PNGLoader::copy_scanlines_to_bitmap(PixelBitmap& bitmap)
         }
     }
     if (m_ihdr_chunk.color_type == 6) {
+        bitmap.set_format(PixelBitmapFormat::RGBA);
         for (int i = 0; i < m_ihdr_chunk.height; i++) {
             auto& scanline = m_scanline_keeper.scanlines()[i];
             for (int j = 0, bit = 0; j < m_ihdr_chunk.width; j++) {
