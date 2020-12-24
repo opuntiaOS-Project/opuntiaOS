@@ -11,17 +11,19 @@
 
 namespace LG {
 
-PixelBitmap::PixelBitmap(Color* buffer, size_t width, size_t height)
+PixelBitmap::PixelBitmap(Color* buffer, size_t width, size_t height, PixelBitmapFormat format)
     : m_data(buffer)
     , m_bounds(0, 0, width, height)
     , m_should_free(false)
+    , m_format(format)
 {
 }
 
-PixelBitmap::PixelBitmap(size_t width, size_t height)
+PixelBitmap::PixelBitmap(size_t width, size_t height, PixelBitmapFormat format)
     : m_bounds(0, 0, width, height)
     , m_data((Color*)malloc(sizeof(Color) * width * height))
     , m_should_free(true)
+    , m_format(format)
 {
 }
 
@@ -30,6 +32,7 @@ PixelBitmap::PixelBitmap(PixelBitmap& bitmap)
     : m_data(nullptr)
     , m_bounds(bitmap.m_bounds)
     , m_should_free(bitmap.m_should_free)
+    , m_format(bitmap.m_format)
 {
     if (m_should_free) {
         size_t len = width() * height() * sizeof(Color);
@@ -44,6 +47,7 @@ PixelBitmap::PixelBitmap(PixelBitmap&& moved_bitmap)
     : m_data(moved_bitmap.m_data)
     , m_bounds(moved_bitmap.m_bounds)
     , m_should_free(moved_bitmap.m_should_free)
+    , m_format(moved_bitmap.m_format)
 {
     moved_bitmap.m_data = nullptr;
     moved_bitmap.bounds().set_width(0);

@@ -16,11 +16,16 @@
 
 namespace LG {
 
+enum PixelBitmapFormat {
+    RGB,
+    RGBA,
+};
+
 class PixelBitmap {
 public:
     PixelBitmap() = default;
-    PixelBitmap(size_t width, size_t height);
-    PixelBitmap(Color* buffer, size_t width, size_t height);
+    PixelBitmap(size_t width, size_t height, PixelBitmapFormat format = RGB);
+    PixelBitmap(Color* buffer, size_t width, size_t height, PixelBitmapFormat format = RGB);
     PixelBitmap(PixelBitmap& bitmap);
     PixelBitmap(PixelBitmap&& moved_bitmap) noexcept;
     ~PixelBitmap()
@@ -34,6 +39,7 @@ public:
     {
         m_bounds = bitmap.bounds();
         m_should_free = bitmap.m_should_free;
+        m_format = bitmap.m_format;
         if (m_should_free) {
             size_t len = width() * height() * sizeof(Color);
             m_data = (Color*)malloc(len);
@@ -44,11 +50,12 @@ public:
         return *this;
     }
 
-    inline PixelBitmap& operator=(PixelBitmap&& moved_bitmap) noexcept
+    PixelBitmap& operator=(PixelBitmap&& moved_bitmap) noexcept
     {
         m_data = moved_bitmap.m_data;
         m_bounds = moved_bitmap.bounds();
         m_should_free = moved_bitmap.m_should_free;
+        m_format = moved_bitmap.m_format;
         moved_bitmap.m_data = nullptr;
         moved_bitmap.bounds().set_width(0);
         moved_bitmap.bounds().set_height(0);
@@ -67,10 +74,15 @@ public:
     inline const Color* operator[](size_t i) const { return line(i); }
     void resize(size_t width, size_t height);
 
+    inline void set_format(PixelBitmapFormat format) { m_format = format; }
+    inline PixelBitmapFormat format() const { return m_format; }
+    inline bool has_alpha_channel() const { return m_format == RGBA; }
+
 private:
     Color* m_data { nullptr };
     LG::Rect m_bounds { 0, 0, 0, 0 };
     bool m_should_free { false };
+    PixelBitmapFormat m_format { RGB };
 };
 
 }
