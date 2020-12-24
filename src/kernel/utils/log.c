@@ -153,3 +153,29 @@ void log_char(char c)
 {
     uart_write(COM1, c);
 }
+
+void log_not_formatted(const char* format, ...)
+{
+    char* ptr_to_next_arg = (char*)((uint32_t)&format + sizeof(void*));
+    while (*format) {
+        if (*format == '%') {
+            format++;
+            if (*format == 'x') {
+                uint32_t* arg = (uint32_t*)ptr_to_next_arg;
+                ptr_to_next_arg += sizeof(uint32_t);
+                _log_hex(*arg);
+            } else if (*format == 'd') {
+                uint32_t* arg = (uint32_t*)ptr_to_next_arg;
+                ptr_to_next_arg += sizeof(uint32_t);
+                _log_dec(*arg);
+            } else if (*format == 's') {
+                char** arg = (char**)ptr_to_next_arg;
+                ptr_to_next_arg += sizeof(char**);
+                _log_string(*arg);
+            }
+        } else {
+            uart_write(COM1, *format);
+        }
+        format++;
+    }
+}

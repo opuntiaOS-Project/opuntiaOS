@@ -1,5 +1,6 @@
 #include <drivers/display.h>
 #include <drivers/keyboard.h>
+#include <drivers/pit.h>
 #include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
@@ -10,6 +11,8 @@
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
 #include <utils.h>
+
+// #define TTY_DEBUG_TIME
 
 static int next_tty = 0;
 static tty_entry_t* active_tty = 0;
@@ -110,6 +113,16 @@ int _tty_process_esc_seq(uint8_t* buf)
 
 int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
+#ifdef TTY_DEBUG_TIME
+    time_t cur_time = timeman_now();
+    int secs = cur_time % 60;
+    cur_time /= 60;
+    int mins = cur_time % 60;
+    cur_time /= 60;
+    int hrs = cur_time % 24;
+    time_t ticks = timeman_get_ticks_from_last_second();
+    log_not_formatted("[%d:%d:%d.%d] ", hrs, mins, secs, ticks);
+#endif
     for (int i = 0; i < len; i++) {
         if (buf[i] == '\x1b') {
             i += _tty_process_esc_seq(&buf[i]);
