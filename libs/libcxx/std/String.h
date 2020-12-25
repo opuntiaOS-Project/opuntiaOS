@@ -12,7 +12,7 @@ public:
     String(const char* str)
     {
         m_size = strlen(str);
-        ensure_capacity(m_size+1);
+        ensure_capacity(m_size + 1);
         memcpy((uint8_t*)m_str, (uint8_t*)str, m_size);
         m_str[m_size] = '\0';
     }
@@ -70,11 +70,30 @@ public:
         return *this;
     }
 
+    String operator+(const String& s) const
+    {
+        String res(*this);
+        res += s;
+        return res;
+    }
+
+    String operator+(const char* s) const
+    {
+        String res(*this);
+        res += String(s);
+        return res;
+    }
+
     inline void push_back(char c)
     {
         ensure_capacity(size() + 2);
         m_str[m_size++] = c;
         m_str[m_size] = '\0';
+    }
+
+    inline void pop_back()
+    {
+        m_str[m_size--] = '\0';
     }
 
     inline const char& at(size_t i) const
@@ -105,8 +124,8 @@ public:
     inline const char& back() const { return at(size() - 1); }
     inline char& back() { return at(size() - 1); }
 
-    inline const char* c_str() const { return m_str; } 
-    inline const char* data() const { return m_str; } 
+    inline const char* c_str() const { return m_str; }
+    inline const char* data() const { return m_str; }
 
 private:
     inline void ensure_capacity(size_t new_size)
