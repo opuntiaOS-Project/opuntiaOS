@@ -17,7 +17,7 @@ TerminalView::TerminalView(const LG::Rect& frame, int ptmx)
             char text[256];
             int cnt = read(this_view->ptmx(), text, 256);
             for (int i = 0; i < cnt; i++) {
-                this_view->add_char(text[i]);
+                this_view->push_back_char(text[i]);
             }
         },
         nullptr);
@@ -83,15 +83,28 @@ void TerminalView::increment_counter()
     }
 }
 
-void TerminalView::add_char(char c)
+void TerminalView::decrement_counter()
+{
+    m_col--;
+    if (m_col == 0) {
+        m_row--;
+    }
+}
+
+void TerminalView::put_char(char c)
+{
+    auto pt = pos_on_screen();
+    set_needs_display(LG::Rect(pt.x(), pt.y(), glyph_width(), glyph_height()));
+    m_display_data[pos_in_data()] = c;
+}
+
+void TerminalView::push_back_char(char c)
 {
     if (c == '\n') {
         new_line();
         return;
     }
-    auto pt = pos_on_screen();
-    set_needs_display(LG::Rect(pt.x(), pt.y(), glyph_width(), glyph_height()));
-    m_display_data[pos_in_data()] = c;
+    put_char(c);
     increment_counter();
 }
 
@@ -108,12 +121,17 @@ void TerminalView::receive_keyup_event(UI::KeyUpEvent&)
 void TerminalView::receive_keydown_event(UI::KeyDownEvent& event)
 {
     // FIXME: More symbols and static size of font
-    if (event.key() < 128) {
-        m_input.push_back(char(event.key()));
-        add_char(char(event.key()));
-    }
-    if (event.key() == LFoundation::Keycode::KEY_RETURN) {
-        add_char('\n');
+    if (event.key() == LFoundation::Keycode::KEY_BACKSPACE) {
+        if (m_input.size()) {
+            m_input.pop_back();
+            decrement_counter();
+            put_char(' ');
+        }
+    } else if (event.key() == LFoundation::Keycode::KEY_RETURN) {
+        push_back_char('\n');
         send_input();
+    } else if (event.key() < 128) {
+        m_input.push_back(char(event.key()));
+        push_back_char(char(event.key()));
     }
 }

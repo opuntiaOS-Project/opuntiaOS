@@ -27,12 +27,14 @@ private:
     void scroll_line();
     void new_line();
     void increment_counter();
+    void decrement_counter();
 
     void recalc_dimensions(const LG::Rect&);
-    void add_char(char c);
+    void put_char(char c);
+    void push_back_char(char c);
     void send_input();
 
-    LG::Color m_background_color { LG::Color::Black };
+    LG::Color m_background_color { 0x292929 };
     LG::Color m_font_color { LG::Color::White };
     LG::Font* m_font_ptr { LG::Font::load_from_file("/res/LizaRegular8x10.font") };
 

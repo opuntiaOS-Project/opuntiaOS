@@ -11,11 +11,13 @@
 int main(int argc, char** argv)
 {
     new UI::App();
-    auto* window_ptr = new UI::Window(165, 140);
+    auto* window_ptr = new UI::Window(165, 140, "/res/icons/apps/about.icon");
     window_ptr->set_superview(new UI::View(window_ptr->bounds()));
+    window_ptr->superview()->set_background_color(LG::Color(BODY_COLOR));
 
     auto* button = new UI::Button({ 35, 75, 10, 10 });
     window_ptr->superview()->add_subview(button);
+    button->set_background_color(LG::Color(FRAME_COLOR));
     button->set_title("Just Button");
 
     auto* label = new UI::Label({ 35, 45, 10, 10 });
