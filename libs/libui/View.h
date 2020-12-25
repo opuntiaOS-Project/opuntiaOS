@@ -8,6 +8,7 @@
 
 #pragma once
 #include "Responder.h"
+#include <libg/Color.h>
 #include <libg/Point.h>
 #include <libg/Rect.h>
 #include <std/Vector.h>
@@ -22,6 +23,7 @@ public:
     friend class Window;
 
     View(const LG::Rect&);
+    View(const LG::Rect&, const LG::Color&);
 
     void add_subview(View* subview);
     void remove_from_superview();
@@ -85,6 +87,10 @@ public:
     virtual void receive_keydown_event(KeyDownEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
 
+    inline LG::Color& background_color() { return m_background_color; }
+    inline const LG::Color& background_color() const { return m_background_color; }
+    virtual inline void set_background_color(const LG::Color& background_color) { m_background_color = background_color; set_needs_display(); }
+
 private:
     void set_window(Window* window) { m_window = window; }
     void set_superview(View* superview) { m_superview = superview; }
@@ -98,6 +104,8 @@ private:
     bool m_active { false };
     bool m_hovered { false };
     bool m_focusable { false };
+
+    LG::Color m_background_color { LG::Color::White };
 };
 
 }

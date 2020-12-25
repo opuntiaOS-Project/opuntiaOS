@@ -24,7 +24,6 @@ public:
 
     void set_title_color(const LG::Color& color) { m_title_color = color; }
     const LG::Color& title_color() const { return m_title_color; }
-    const LG::Color& background_color() const { return m_background_color; }
 
     void set_content_edge_insets(const EdgeInsect& ei) { m_content_edge_insets = ei; }
     const EdgeInsect& content_edge_insets() const { return m_content_edge_insets; }
@@ -40,10 +39,8 @@ private:
     size_t text_height();
     size_t text_width();
 
-    constexpr uint32_t std_background_color() { return 0x00eda024; }
-    constexpr uint32_t std_hovered_background_color() { return 0x00ca8311; }
-
-    LG::Color m_background_color { std_background_color() };
+    static constexpr uint32_t std_background_color() { return 0x00eda024; }
+    static constexpr uint32_t std_hovered_background_color() { return 0x00ca8311; }
 
     String m_title {};
     LG::Color m_title_color { LG::Color::White };

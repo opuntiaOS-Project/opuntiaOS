@@ -15,7 +15,7 @@
 namespace UI {
 
 Button::Button(const LG::Rect& frame)
-    : View(frame)
+    : View(frame, std_background_color())
 {
 }
 
@@ -38,14 +38,12 @@ void Button::display(const LG::Rect& rect)
 
 void Button::hover_begin(const LG::Point<int>& location)
 {
-    m_background_color = std_hovered_background_color();
-    set_needs_display();
+    set_background_color(std_hovered_background_color());
 }
 
 void Button::hover_end()
 {
-    m_background_color = std_background_color();
-    set_needs_display();
+    set_background_color(std_background_color());
 }
 
 void Button::recalc_bounds()

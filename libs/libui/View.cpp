@@ -20,6 +20,13 @@ View::View(const LG::Rect& frame)
 {
 }
 
+View::View(const LG::Rect& frame, const LG::Color& bc)
+    : m_frame(frame)
+    , m_bounds(0, 0, frame.width(), frame.height())
+    , m_background_color(bc)
+{
+}
+
 void View::add_subview(View* subview)
 {
     subview->set_window(window());
@@ -65,13 +72,7 @@ void View::set_needs_display(const LG::Rect& rect)
 void View::display(const LG::Rect& rect)
 {
     Context ctx(*this);
-    if (m_active) {
-        ctx.set_fill_color(LG::Color::Blue);
-    } else if (m_hovered) {
-        ctx.set_fill_color(LG::Color::Red);
-    } else {
-        ctx.set_fill_color(LG::Color::White);
-    }
+    ctx.set_fill_color(background_color());
     ctx.fill(rect);
 }
 
@@ -81,12 +82,10 @@ void View::did_display(const LG::Rect& rect)
 
 void View::hover_begin(const LG::Point<int>& location)
 {
-    set_needs_display();
 }
 
 void View::hover_end()
 {
-    set_needs_display();
 }
 
 void View::click_began(const LG::Point<int>& location)
