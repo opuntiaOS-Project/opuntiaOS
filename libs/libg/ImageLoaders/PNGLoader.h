@@ -126,7 +126,7 @@ public:
     PNGLoader() = default;
     ~PNGLoader() { }
 
-    PixelBitmap load_from_file(const String& path);
+    PixelBitmap load_from_file(const Algo::String& path);
     PixelBitmap load_from_mem(const uint8_t* ptr);
 
     inline DataStreamer& streamer() { return m_streamer; }

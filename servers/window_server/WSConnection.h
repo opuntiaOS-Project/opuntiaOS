@@ -59,11 +59,12 @@ private:
 
 class CreateWindowMessage : public Message {
 public:
-    CreateWindowMessage(message_key_t key,uint32_t width,uint32_t height,int buffer_id)
+    CreateWindowMessage(message_key_t key,uint32_t width,uint32_t height,int buffer_id,LG::String icon_path)
         : m_key(key)
         , m_width(width)
         , m_height(height)
         , m_buffer_id(buffer_id)
+        , m_icon_path(icon_path)
     {
     }
     int id() const override { return 3; }
@@ -73,6 +74,7 @@ public:
     uint32_t width() const { return m_width; }
     uint32_t height() const { return m_height; }
     int buffer_id() const { return m_buffer_id; }
+    LG::String icon_path() const { return m_icon_path; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -82,6 +84,7 @@ public:
         Encoder::append(buffer, m_width);
         Encoder::append(buffer, m_height);
         Encoder::append(buffer, m_buffer_id);
+        Encoder::append(buffer, m_icon_path);
         return buffer;
     }
 private:
@@ -89,6 +92,7 @@ private:
     uint32_t m_width;
     uint32_t m_height;
     int m_buffer_id;
+    LG::String m_icon_path;
 };
 
 class CreateWindowMessageReply : public Message {
@@ -262,6 +266,7 @@ public:
         uint32_t var_width;
         uint32_t var_height;
         int var_buffer_id;
+        LG::String var_icon_path;
         uint32_t var_window_id;
         uint32_t var_color;
         int var_text_style;
@@ -278,7 +283,8 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_width);
             Encoder::decode(buf, decoded_msg_len, var_height);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
-            return new CreateWindowMessage(secret_key, var_width, var_height, var_buffer_id);
+            Encoder::decode(buf, decoded_msg_len, var_icon_path);
+            return new CreateWindowMessage(secret_key, var_width, var_height, var_buffer_id, var_icon_path);
         case 4:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             return new CreateWindowMessageReply(secret_key, var_window_id);

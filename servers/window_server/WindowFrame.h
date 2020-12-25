@@ -11,6 +11,7 @@
 #include "WSEvent.h"
 #include <libfoundation/EventReceiver.h>
 #include <libg/Context.h>
+#include <libg/PixelBitmap.h>
 
 class Window;
 
@@ -45,10 +46,14 @@ public:
     inline const LG::Color& color() const { return m_color; }
     inline void set_color(const LG::Color& clr) { m_color = clr; }
 
+    void reload_icon();
+    const LG::PixelBitmap& icon() const { return m_icon; }
+
 private:
     int draw_text(LG::Context& ctx, LG::Point<int> pt, const char* text, LG::Font& font);
     Window& m_window;
     Vector<Button*> m_window_control_buttons;
     Vector<Button*> m_control_panel_buttons;
     LG::Color m_color { 0x00342d2d };
+    LG::PixelBitmap m_icon {};
 };

@@ -4,7 +4,10 @@
 #include <libui/Connection.h>
 #include <malloc.h>
 #include <memory.h>
+#include <std/Dbg.h>
 #include <syscalls.h>
+
+// #define DEBUG_CONNECTION
 
 namespace UI {
 
@@ -42,12 +45,18 @@ void Connection::greeting()
     GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage(getpid())).release();
     m_connection_id = resp_message->connection_id();
     m_connection_with_server.set_accepted_key(m_connection_id);
-    write(1, "Got greet", 9);
+#ifdef DEBUG_CONNECTION
+    Dbg() << "Got greet with server\n";
+#endif
 }
 
 int Connection::new_window(const Window& window)
 {
-    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(CreateWindowMessage(key(), window.bounds().width(), window.bounds().height(), window.buffer().id())).release();
+    auto message = CreateWindowMessage(key(), window.bounds().width(), window.bounds().height(), window.buffer().id(), window.icon_path());
+    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(message).release();
+#ifdef DEBUG_CONNECTION
+    Dbg() << "New window created\n";
+#endif
     return resp_message->window_id();
 }
 

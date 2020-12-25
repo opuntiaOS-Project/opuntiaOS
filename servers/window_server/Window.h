@@ -46,6 +46,20 @@ public:
 
     inline int connection_id() const { return m_connection_id; }
 
+    inline void set_icon(String&& name)
+    {
+        m_icon_path = move(name);
+        m_frame.reload_icon();
+    }
+
+    inline void set_icon(const String& name)
+    {
+        m_icon_path = name;
+        m_frame.reload_icon();
+    }    
+
+    inline const String& icon_path() const { return m_icon_path; }
+
     void will_be_closed();
     void will_be_minimized();
     void was_minimized();
@@ -60,4 +74,5 @@ private:
     LG::PixelBitmap m_content_bitmap;
     SharedBuffer<LG::Color> m_buffer;
     WindowFrame m_frame;
+    String m_icon_path {};
 };

@@ -11,6 +11,7 @@
 #include "Window.h"
 #include "WindowManager.h"
 #include <libg/Font.h>
+#include <libg/ImageLoaders/PNGLoader.h>
 #include <libg/Rect.h>
 #include <std/Utility.h>
 #include <syscalls.h>
@@ -132,9 +133,11 @@ void WindowFrame::draw(LG::Context& ctx)
 
     ctx.set_fill_color(LG::Color::White);
 
-    int start_controls = x + 8;
+    ctx.draw({ x + 7, y + 7 }, icon());
+
+    int start_controls = x + 8 + 12 + 8;
     for (int i = 0; i < m_control_panel_buttons.size(); i++) {
-        m_control_panel_buttons[i]->display(ctx, { start_controls, y + 8 });
+        m_control_panel_buttons[i]->display(ctx, { start_controls, y + 9 });
         start_controls += 8 + m_control_panel_buttons[i]->bounds().width();
     }
 
@@ -165,4 +168,10 @@ void WindowFrame::handle_control_panel_tap(int button_id)
     // default:
     //     break;
     // }
+}
+
+void WindowFrame::reload_icon()
+{
+    LG::PNG::PNGLoader loader;
+    m_icon = loader.load_from_file(m_window.icon_path() + "/12x12.png");
 }

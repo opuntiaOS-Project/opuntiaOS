@@ -23,6 +23,7 @@ class Window : public LFoundation::EventReceiver {
 public:
     Window();
     Window(uint32_t width, uint32_t height);
+    Window(uint32_t width, uint32_t height, const LG::String& path);
 
     int id() const { return m_id; }
 
@@ -38,6 +39,7 @@ public:
     {
         superview->set_window(this);
         m_superview = superview;
+        m_superview->set_needs_display();
     }
     inline View* superview() const { return m_superview; }
 
@@ -49,6 +51,8 @@ public:
     bool set_title(const LG::String& title);
     bool set_frame_style(const LG::Color& color);
 
+    inline const LG::String& icon_path() const { return m_icon_path; }
+
 private:
     uint32_t m_id;
     LG::Rect m_bounds;
@@ -56,6 +60,7 @@ private:
     SharedBuffer<LG::Color> m_buffer;
     View* m_superview { nullptr };
     View* m_focused_view { nullptr };
+    LG::String m_icon_path { "/res/icons/apps/missing.icon" };
 };
 
 }

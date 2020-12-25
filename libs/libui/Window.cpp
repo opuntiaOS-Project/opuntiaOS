@@ -28,6 +28,17 @@ Window::Window(uint32_t width, uint32_t height)
     App::the().set_window(this);
 }
 
+Window::Window(uint32_t width, uint32_t height, const LG::String& icon_path)
+    : m_bounds(0, 0, width, height)
+    , m_buffer(size_t(width * height * 4))
+    , m_bitmap()
+    , m_icon_path(icon_path)
+{
+    m_id = Connection::the().new_window(*this);
+    m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
+    App::the().set_window(this);
+}
+
 bool Window::set_title(const LG::String& title)
 {
     SetTitleMessage msg(Connection::the().key(), id(), title);
