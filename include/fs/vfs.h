@@ -135,6 +135,7 @@ struct file_descriptor {
 typedef struct file_descriptor file_descriptor_t;
 
 struct socket {
+    uint32_t d_count;
     int domain;
     int type;
     int protocol;

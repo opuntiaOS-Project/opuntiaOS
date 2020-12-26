@@ -9,8 +9,8 @@
 #ifndef __oneOS__ALGO__RINGBUFFER_H
 #define __oneOS__ALGO__RINGBUFFER_H
 
-#include <types.h>
 #include <mem/vmm/zoner.h>
+#include <types.h>
 
 struct __ringbuffer {
     zone_t zone;

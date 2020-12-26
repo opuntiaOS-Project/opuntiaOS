@@ -210,7 +210,7 @@ int vfs_close(file_descriptor_t* fd)
     if (fd->type == FD_TYPE_FILE) {
         dentry_put(fd->dentry);
     } else {
-        socket_free(fd->sock_entry);
+        socket_put(fd->sock_entry);
     }
     fd->dentry = 0;
     fd->offset = 0;

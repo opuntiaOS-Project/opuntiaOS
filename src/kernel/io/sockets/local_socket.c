@@ -89,7 +89,7 @@ int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len)
 #ifdef LOCAL_SOCKET_DEBUG
     log("Bind local socket at %x : %d pid", sock->sock_entry, p->pid);
 #endif
-    sock->sock_entry->bind_file.dentry->sock = sock->sock_entry;
+    sock->sock_entry->bind_file.dentry->sock = socket_duplicate(sock->sock_entry);
     return 0;
 }
 
@@ -115,7 +115,7 @@ int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len)
     if (!bind_dentry->sock) {
         return -EBADF;
     }
-    sock->sock_entry = bind_dentry->sock;
+    sock->sock_entry = socket_duplicate(bind_dentry->sock);
     sock->offset = bind_dentry->sock->buffer.end; /* Starting to read from the end */
 #ifdef LOCAL_SOCKET_DEBUG
     log("Connected to local socket at %x : %d pid", bind_dentry->sock, p->pid);

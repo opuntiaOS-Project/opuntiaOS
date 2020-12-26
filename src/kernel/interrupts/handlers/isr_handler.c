@@ -68,6 +68,7 @@ void isr_handler(trapframe_t* tf)
             kpanic("invalid opcode in kernel");
         } else {
             log_warn("Crash: invalid opcode in %d tid\n", RUNNIG_THREAD->tid);
+            thread_print_backtrace();
             proc_die(p);
             resched();
         }

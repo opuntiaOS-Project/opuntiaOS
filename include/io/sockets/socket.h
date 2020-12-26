@@ -16,6 +16,7 @@
 #define MAX_SOCKET_COUNT 16
 
 int socket_create(int domain, int type, int protocol, file_descriptor_t* fd, file_ops_t* ops);
-int socket_free(socket_t* sock);
+socket_t* socket_duplicate(socket_t* sock);
+int socket_put(socket_t* sock);
 
 #endif /* __oneOS__IO__SOCKET_H */
