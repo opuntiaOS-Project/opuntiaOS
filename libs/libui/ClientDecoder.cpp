@@ -63,4 +63,13 @@ UniquePtr<Message> ClientDecoder::handle(const DisplayMessage& msg)
     return nullptr;
 }
 
+UniquePtr<Message> ClientDecoder::handle(const WindowCloseRequestMessage& msg)
+{
+    // TODO: Currently we support only 1 window per app.
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the(), new WindowCloseRequestEvent(msg.win_id()));
+    }
+    return nullptr;
+}
+
 }

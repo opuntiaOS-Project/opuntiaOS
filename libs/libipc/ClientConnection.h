@@ -34,7 +34,7 @@ public:
         return wait_for_answer(msg);
     }
 
-    UniquePtr<Message> wait_for_answer(const Message& msg)
+    UniquePtr<Message> wait_for_answer(const Message& msg) 
     {
         for (;;) {
             for (int i = 0; i < m_messages.size(); i++) {
@@ -75,6 +75,7 @@ public:
             } else if (auto response = m_server_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
                 m_messages.push_back(move(response));
             } else {
+                Dbg() << getpid() << " :: ClientConnection read error\n";
                 ASSERT_NOT_REACHED();
             }
         }

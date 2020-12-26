@@ -69,12 +69,15 @@ public:
         m_event_queue.push_back(QueuedEvent(rec, ptr));
     }
 
+    inline void stop(int exit_code) { m_exit_code = exit_code, m_stop_flag = true; }
     void check_fds();
     void check_timers();
     void pump();
-    void run();
+    int run();
 
 private:
+    bool m_stop_flag { false };
+    int m_exit_code { 0 };
     Vector<FDWaiter> m_waiting_fds;
     Vector<Timer> m_timers;
     Vector<QueuedEvent> m_event_queue;

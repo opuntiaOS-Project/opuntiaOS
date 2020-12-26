@@ -7,6 +7,7 @@
  */
 
 #include "App.h"
+#include <std/Dbg.h>
 
 namespace UI {
 
@@ -24,10 +25,15 @@ App::App()
     s_the = this;
 }
 
-int App::run()
+void App::receive_event(UniquePtr<LFoundation::Event> event)
 {
-    m_event_loop.run();
-    return 0;
+    if (event->type() == Event::Type::WindowCloseRequestEvent) {
+        // TODO: Only 1 window is supported for now
+        WindowCloseRequestEvent& own_event = *(WindowCloseRequestEvent*)event.get();
+        auto message = DestroyWindowMessage(m_server_connection.key(), own_event.window_id());
+        auto reply = m_server_connection.send_sync_message<DestroyWindowMessageReply>(message);
+        m_event_loop.stop(reply->status());
+    }
 }
 
 }

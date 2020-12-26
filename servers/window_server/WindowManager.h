@@ -32,11 +32,25 @@ public:
         m_windows.push_front(window);
     }
 
+    inline void remove_window(Window* window)
+    {
+        if (movable_window().ptr() == window) {
+            m_movable_window = nullptr;
+        }
+        if (active_window().ptr() == window) {
+            m_active_window = nullptr;
+        }
+        if (hovered_window().ptr() == window) {
+            m_hovered_window = nullptr;
+        }
+        m_windows.remove(window);
+        m_compositor.invalidate(window->bounds());
+        delete window;
+    }
+
     void close_window(Window& window)
     {
-        // window->will_be_closed();
-        // for (int i = 0; i < windows().size(); i++) {
-        // }
+        m_event_loop.add(m_connection, new SendEvent(new WindowCloseRequestMessage(window.connection_id(), window.id())));
     }
 
     inline Window* window(int id)
@@ -76,11 +90,12 @@ private:
     void receive_mouse_event(UniquePtr<LFoundation::Event> event);
     void receive_keyboard_event(UniquePtr<LFoundation::Event> event);
 
-    inline bool has_hovered_window() const { return m_hovered_window_id != -1; }
-    inline void set_hovered_window(int hw) { m_hovered_window_id = hw; }
-    inline Window& hovered_window() { return *window(m_hovered_window_id); }
-    inline bool has_active_window() const { return m_active_window_id != -1; }
-    inline Window& active_window() { return *window(m_active_window_id); }
+    inline WeakPtr<Window>& movable_window() { return m_movable_window; }
+    inline const WeakPtr<Window>& movable_window() const { return m_movable_window; }
+    inline WeakPtr<Window>& hovered_window() { return m_hovered_window; }
+    inline const WeakPtr<Window>& hovered_window() const { return m_hovered_window; }
+    inline WeakPtr<Window>& active_window() { return m_active_window; }
+    inline const WeakPtr<Window>& active_window() const { return m_active_window; }
 
     LinkedList<Window> m_windows;
 
@@ -90,8 +105,8 @@ private:
     LFoundation::EventLoop& m_event_loop;
 
     WeakPtr<Window> m_movable_window;
-    int m_active_window_id { -1 };
-    int m_hovered_window_id { -1 };
+    WeakPtr<Window> m_active_window;
+    WeakPtr<Window> m_hovered_window;
     int m_next_win_id { 0 };
 
     int m_mouse_x { 0 };

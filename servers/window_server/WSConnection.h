@@ -121,6 +121,58 @@ private:
     uint32_t m_window_id;
 };
 
+class DestroyWindowMessage : public Message {
+public:
+    DestroyWindowMessage(message_key_t key,uint32_t window_id)
+        : m_key(key)
+        , m_window_id(window_id)
+    {
+    }
+    int id() const override { return 5; }
+    int reply_id() const override { return 6; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 320; }
+    uint32_t window_id() const { return m_window_id; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_window_id);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    uint32_t m_window_id;
+};
+
+class DestroyWindowMessageReply : public Message {
+public:
+    DestroyWindowMessageReply(message_key_t key,uint32_t status)
+        : m_key(key)
+        , m_status(status)
+    {
+    }
+    int id() const override { return 6; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 320; }
+    uint32_t status() const { return m_status; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_status);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    uint32_t m_status;
+};
+
 class SetBufferMessage : public Message {
 public:
     SetBufferMessage(message_key_t key,uint32_t window_id,int buffer_id)
@@ -129,7 +181,7 @@ public:
         , m_buffer_id(buffer_id)
     {
     }
-    int id() const override { return 5; }
+    int id() const override { return 7; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
@@ -160,7 +212,7 @@ public:
         , m_text_style(text_style)
     {
     }
-    int id() const override { return 6; }
+    int id() const override { return 8; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
@@ -193,7 +245,7 @@ public:
         , m_title(title)
     {
     }
-    int id() const override { return 7; }
+    int id() const override { return 9; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
@@ -223,7 +275,7 @@ public:
         , m_rect(rect)
     {
     }
-    int id() const override { return 8; }
+    int id() const override { return 10; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
@@ -268,6 +320,7 @@ public:
         int var_buffer_id;
         LG::String var_icon_path;
         uint32_t var_window_id;
+        uint32_t var_status;
         uint32_t var_color;
         int var_text_style;
         LG::String var_title;
@@ -290,18 +343,24 @@ public:
             return new CreateWindowMessageReply(secret_key, var_window_id);
         case 5:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
+            return new DestroyWindowMessage(secret_key, var_window_id);
+        case 6:
+            Encoder::decode(buf, decoded_msg_len, var_status);
+            return new DestroyWindowMessageReply(secret_key, var_status);
+        case 7:
+            Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
             return new SetBufferMessage(secret_key, var_window_id, var_buffer_id);
-        case 6:
+        case 8:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_color);
             Encoder::decode(buf, decoded_msg_len, var_text_style);
             return new SetBarStyleMessage(secret_key, var_window_id, var_color, var_text_style);
-        case 7:
+        case 9:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_title);
             return new SetTitleMessage(secret_key, var_window_id, var_title);
-        case 8:
+        case 10:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_rect);
             return new InvalidateMessage(secret_key, var_window_id, var_rect);
@@ -323,12 +382,14 @@ public:
         case 3:
             return handle(static_cast<const CreateWindowMessage&>(msg));
         case 5:
-            return handle(static_cast<const SetBufferMessage&>(msg));
-        case 6:
-            return handle(static_cast<const SetBarStyleMessage&>(msg));
+            return handle(static_cast<const DestroyWindowMessage&>(msg));
         case 7:
-            return handle(static_cast<const SetTitleMessage&>(msg));
+            return handle(static_cast<const SetBufferMessage&>(msg));
         case 8:
+            return handle(static_cast<const SetBarStyleMessage&>(msg));
+        case 9:
+            return handle(static_cast<const SetTitleMessage&>(msg));
+        case 10:
             return handle(static_cast<const InvalidateMessage&>(msg));
         default:
             return nullptr;
@@ -337,6 +398,7 @@ public:
     
     virtual UniquePtr<Message> handle(const GreetMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const DestroyWindowMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const SetBarStyleMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const SetTitleMessage& msg) { return nullptr; }
@@ -505,6 +567,32 @@ private:
     LG::Rect m_rect;
 };
 
+class WindowCloseRequestMessage : public Message {
+public:
+    WindowCloseRequestMessage(message_key_t key,int win_id)
+        : m_key(key)
+        , m_win_id(win_id)
+    {
+    }
+    int id() const override { return 6; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 737; }
+    int win_id() const { return m_win_id; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_win_id);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    int m_win_id;
+};
+
 class DisconnectMessage : public Message {
 public:
     DisconnectMessage(message_key_t key,int reason)
@@ -512,7 +600,7 @@ public:
         , m_reason(reason)
     {
     }
-    int id() const override { return 6; }
+    int id() const override { return 7; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -581,6 +669,9 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_rect);
             return new DisplayMessage(secret_key, var_rect);
         case 6:
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
+            return new WindowCloseRequestMessage(secret_key, var_win_id);
+        case 7:
             Encoder::decode(buf, decoded_msg_len, var_reason);
             return new DisconnectMessage(secret_key, var_reason);
         default:
@@ -607,6 +698,8 @@ public:
         case 5:
             return handle(static_cast<const DisplayMessage&>(msg));
         case 6:
+            return handle(static_cast<const WindowCloseRequestMessage&>(msg));
+        case 7:
             return handle(static_cast<const DisconnectMessage&>(msg));
         default:
             return nullptr;
@@ -618,6 +711,7 @@ public:
     virtual UniquePtr<Message> handle(const MouseLeaveMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const KeyboardMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const WindowCloseRequestMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
 };
 

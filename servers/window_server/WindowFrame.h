@@ -29,7 +29,7 @@ public:
 
     const LG::Rect bounds() const;
 
-    void receive_mouse_event(UniquePtr<MouseEvent> event);
+    void receive_tap_event(const LG::Point<int>& tap);
 
     void set_app_name(const String& title);
     void set_app_name(String&& title);
@@ -48,6 +48,12 @@ public:
 
     void reload_icon();
     const LG::PixelBitmap& icon() const { return m_icon; }
+
+    static constexpr int spacing() { return 8; }
+    static constexpr int icon_y_offset() { return 7; }
+    static constexpr int text_y_offset() { return 9; }
+    static constexpr int button_y_offset() { return 8; }
+    static constexpr int icon_width() { return 12; }
 
 private:
     int draw_text(LG::Context& ctx, LG::Point<int> pt, const char* text, LG::Font& font);

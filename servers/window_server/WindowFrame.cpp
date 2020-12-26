@@ -124,32 +124,47 @@ void WindowFrame::draw(LG::Context& ctx)
     int right_x = x + width - right_border_size();
     int bottom_y = y + height - bottom_border_size();
 
+    // Drawing frame
     ctx.set_fill_color(color());
     ctx.fill(LG::Rect(x, y, width, top_border_size()));
     ctx.fill(LG::Rect(x, y, left_border_size(), height));
-
     ctx.fill(LG::Rect(right_x, y, right_border_size(), height));
     ctx.fill(LG::Rect(x, bottom_y, width, bottom_border_size()));
 
+    // Drawing labels, icons.
+    // Drawing positions are calculated using a start of the frame.
     ctx.set_fill_color(LG::Color::White);
+    ctx.draw({ x + spacing(), y + icon_y_offset() }, icon());
 
-    ctx.draw({ x + 7, y + 7 }, icon());
-
-    int start_controls = x + 8 + 12 + 8;
+    constexpr int start_controls_offset = icon_width() + 2 * spacing();
+    int start_controls = x + start_controls_offset;
     for (int i = 0; i < m_control_panel_buttons.size(); i++) {
-        m_control_panel_buttons[i]->display(ctx, { start_controls, y + 9 });
-        start_controls += 8 + m_control_panel_buttons[i]->bounds().width();
+        m_control_panel_buttons[i]->display(ctx, { start_controls, y + text_y_offset() });
+        start_controls += spacing() + m_control_panel_buttons[i]->bounds().width();
     }
 
-    int start_buttons = right_x - 8 - m_window_control_buttons[0]->bounds().width();
+    int start_buttons = right_x - spacing() - m_window_control_buttons[0]->bounds().width();
     for (int i = 0; i < m_window_control_buttons.size(); i++) {
-        m_window_control_buttons[i]->display(ctx, { start_buttons, y + 8 });
-        start_buttons += -8 - m_window_control_buttons[i]->bounds().width();
+        m_window_control_buttons[i]->display(ctx, { start_buttons, y + button_y_offset() });
+        start_buttons += -spacing() - m_window_control_buttons[i]->bounds().width();
     }
 }
 
-void WindowFrame::receive_mouse_event(UniquePtr<MouseEvent> event)
+void WindowFrame::receive_tap_event(const LG::Point<int>& tap)
 {
+    // Calculating buttons' positions
+    size_t width = m_window.bounds().width();
+    int right_x = width - right_border_size();
+    int start_buttons = right_x - spacing() - m_window_control_buttons[0]->bounds().width();
+    for (int button_id = 0; button_id < m_window_control_buttons.size(); button_id++) {
+        auto button_frame = m_window_control_buttons[button_id]->bounds();
+        button_frame.offset_by(start_buttons, button_y_offset());
+        if (button_frame.contains(tap)) {
+            handle_control_panel_tap(button_id);
+            return;
+        }
+        start_buttons += -spacing() - button_frame.width();
+    }
 }
 
 const LG::Rect WindowFrame::bounds() const
@@ -160,14 +175,14 @@ const LG::Rect WindowFrame::bounds() const
 
 void WindowFrame::handle_control_panel_tap(int button_id)
 {
-    // auto& wm = WindowManager::the();
-    // switch (button_id) {
-    // case CONTROL_PANEL_CLOSE:
-    //     wm.close_window(m_window);
-    //     break;
-    // default:
-    //     break;
-    // }
+    auto& wm = WindowManager::the();
+    switch (button_id) {
+    case CONTROL_PANEL_CLOSE:
+        wm.close_window(m_window);
+        break;
+    default:
+        break;
+    }
 }
 
 void WindowFrame::reload_icon()

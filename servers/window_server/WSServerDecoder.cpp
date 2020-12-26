@@ -36,6 +36,17 @@ UniquePtr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
     return nullptr;
 }
 
+UniquePtr<Message> WServerDecoder::handle(const DestroyWindowMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    auto* window = wm.window(msg.window_id());
+    if (window->connection_id() != msg.key()) {
+        // TODO: security violation
+    }
+    wm.remove_window(window);
+    return new DestroyWindowMessageReply(msg.key(), 0);
+}
+
 UniquePtr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
 {
     auto& wm = WindowManager::the();

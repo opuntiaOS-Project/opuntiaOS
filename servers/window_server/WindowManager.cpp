@@ -34,7 +34,7 @@ void WindowManager::start_window_move(Window& window)
 
 bool WindowManager::continue_window_move(MouseEvent* mouse_event)
 {
-    if (!m_movable_window) {
+    if (!movable_window()) {
         return false;
     }
 
@@ -45,11 +45,11 @@ bool WindowManager::continue_window_move(MouseEvent* mouse_event)
         return true;
     }
 
-    auto bounds = m_movable_window->bounds();
-    m_compositor.invalidate(m_movable_window->bounds());
-    m_movable_window->bounds().offset_by(mouse_event->packet().x_offset, -mouse_event->packet().y_offset);
-    m_movable_window->content_bounds().offset_by(mouse_event->packet().x_offset, -mouse_event->packet().y_offset);
-    bounds.unite(m_movable_window->bounds());
+    auto bounds = movable_window()->bounds();
+    m_compositor.invalidate(movable_window()->bounds());
+    movable_window()->bounds().offset_by(mouse_event->packet().x_offset, -mouse_event->packet().y_offset);
+    movable_window()->content_bounds().offset_by(mouse_event->packet().x_offset, -mouse_event->packet().y_offset);
+    bounds.unite(movable_window()->bounds());
     m_compositor.invalidate(bounds);
     return true;
 }
@@ -89,7 +89,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
 {
     MouseEvent* mouse_event = (MouseEvent*)event.release();
-    int new_hovered_window_id = -1;
+    auto new_hovered_window = WeakPtr<Window>();
 
     if (continue_window_move(mouse_event)) {
         goto end;
@@ -101,19 +101,15 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
         if (window.bounds().contains(m_mouse_x, m_mouse_y)) {
             if (window.frame().bounds().contains(m_mouse_x, m_mouse_y)) {
                 if (is_mouse_left_button_pressed()) {
-                    auto& control_panel = window.frame().control_panel_buttons();
-                    for (int btn_id = 0; btn_id < control_panel.size(); btn_id++) {
-                        if (control_panel[btn_id]->bounds().contains(m_mouse_x, m_mouse_y)) {
-                            window.frame().handle_control_panel_tap(btn_id);
-                        }
-                    }
+                    auto tap_point = LG::Point<int>(m_mouse_x - window.frame().bounds().min_x(), m_mouse_y - window.frame().bounds().min_y());
+                    window.frame().receive_tap_event(tap_point);
                     start_window_move(window);
                 }
             } else if (window.content_bounds().contains(m_mouse_x, m_mouse_y)) {
                 LG::Point<int> point(m_mouse_x, m_mouse_y);
                 point.offset_by(-window.content_bounds().origin());
                 m_event_loop.add(m_connection, new SendEvent(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y())));
-                new_hovered_window_id = window.id();
+                new_hovered_window = window.weak_ptr();
 
                 if (m_mouse_changed_button_status) {
                     // FIXME: only left button for now!
@@ -121,22 +117,23 @@ void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
                 }
             }
 
-            if (is_mouse_left_button_pressed() && m_active_window_id != window.id()) {
+            if (is_mouse_left_button_pressed() && m_active_window.ptr() != &window) {
                 bring_to_front(window);
-                m_active_window_id = window.id();
+                m_active_window = window.weak_ptr();
             }
 
             break;
         }
     }
 
-    if (has_hovered_window()) {
-        auto& window = hovered_window();
-        if (window.id() != new_hovered_window_id) {
-            m_event_loop.add(m_connection, new SendEvent(new MouseLeaveMessage(window.connection_id(), window.id(), 0, 0)));
+    if (hovered_window()) {
+        auto window = hovered_window();
+        if (window->id() != new_hovered_window->id()) {
+            m_event_loop.add(m_connection, new SendEvent(new MouseLeaveMessage(window->connection_id(), window->id(), 0, 0)));
         }
     }
-    set_hovered_window(new_hovered_window_id);
+
+    m_hovered_window = new_hovered_window;
 
 end:
     delete mouse_event;
@@ -145,9 +142,9 @@ end:
 void WindowManager::receive_keyboard_event(UniquePtr<LFoundation::Event> event)
 {
     KeyboardEvent* keyboard_event = (KeyboardEvent*)event.release();
-    if (has_active_window()) {
-        auto& window = active_window();
-        m_event_loop.add(m_connection, new SendEvent(new KeyboardMessage(window.connection_id(), window.id(), keyboard_event->packet().key)));
+    if (active_window()) {
+        auto window = active_window();
+        m_event_loop.add(m_connection, new SendEvent(new KeyboardMessage(window->connection_id(), window->id(), keyboard_event->packet().key)));
     }
     delete keyboard_event;
 }

@@ -45,7 +45,7 @@ void EventLoop::check_fds()
         }
     }
 
-    // For now, that means, that we don't for an fds, just go out
+    // For now, that means, that we don't wait for fds.
     timeval_t timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
@@ -85,11 +85,12 @@ void EventLoop::pump()
     }
 }
 
-void EventLoop::run()
+int EventLoop::run()
 {
-    for (;;) {
+    while (!m_stop_flag) {
         pump();
     }
+    return m_exit_code;
 }
 
 }

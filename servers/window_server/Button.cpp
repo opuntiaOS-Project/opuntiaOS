@@ -8,16 +8,19 @@
 
 #include "Button.h"
 
-void Button::recalc_width()
+void Button::recalc_dims()
 {
     size_t new_width = 0;
+    size_t new_height = 0;
     if (m_is_icon_set) {
+        new_height = m_icon.height();
         new_width += m_icon.width();
         if (m_title.size()) {
             new_width += 4;  
         }
     }
-    bounds().set_width(new_width);
+    bounds().set_width(new_width + text_width());
+    bounds().set_height(max(new_height, text_height()));
 }
 
 size_t Button::text_width()

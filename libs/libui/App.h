@@ -16,17 +16,18 @@
 
 namespace UI {
 
-class App {
+class App : public LFoundation::EventReceiver {
 public:
     static App& the();
     App();
 
-    int run();
+    inline int run() { return m_event_loop.run(); }
     void set_window(Window* window) { m_window = window; }
     inline Window& window() { return *m_window; }
     inline const Window& window() const { return *m_window; }
 
     inline const Connection& connection() const { return m_server_connection; }
+    void receive_event(UniquePtr<LFoundation::Event> event) override;
 
 private:
     LFoundation::EventLoop m_event_loop;

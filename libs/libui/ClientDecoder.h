@@ -25,6 +25,7 @@ public:
     virtual UniquePtr<Message> handle(const MouseLeaveMessage& msg) override;
     virtual UniquePtr<Message> handle(const KeyboardMessage& msg) override;
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) override;
+    virtual UniquePtr<Message> handle(const WindowCloseRequestMessage& msg) override;
 
 private:
     LFoundation::EventLoop& m_event_loop;

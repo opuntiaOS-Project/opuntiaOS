@@ -42,7 +42,7 @@ Connection::Connection(int connection_fd)
 
 void Connection::greeting()
 {
-    GreetMessageReply* resp_message = (GreetMessageReply*)m_connection_with_server.send_sync(GreetMessage(getpid())).release();
+    auto resp_message = send_sync_message<GreetMessageReply>(GreetMessage(getpid()));
     m_connection_id = resp_message->connection_id();
     m_connection_with_server.set_accepted_key(m_connection_id);
 #ifdef DEBUG_CONNECTION
@@ -53,7 +53,7 @@ void Connection::greeting()
 int Connection::new_window(const Window& window)
 {
     auto message = CreateWindowMessage(key(), window.bounds().width(), window.bounds().height(), window.buffer().id(), window.icon_path());
-    CreateWindowMessageReply* resp_message = (CreateWindowMessageReply*)m_connection_with_server.send_sync(message).release();
+    auto resp_message = send_sync_message<CreateWindowMessageReply>(message);
 #ifdef DEBUG_CONNECTION
     Dbg() << "New window created\n";
 #endif

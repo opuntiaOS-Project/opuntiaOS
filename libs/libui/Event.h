@@ -24,6 +24,7 @@ public:
         KeyUpEvent,
         KeyDownEvent,
         DisplayEvent,
+        WindowCloseRequestEvent,
         Other,
     };
 
@@ -148,6 +149,21 @@ public:
 
 private:
     LG::Rect m_display_bounds;
+};
+
+class WindowCloseRequestEvent : public Event {
+public:
+    WindowCloseRequestEvent(uint32_t window_id)
+        : Event(Event::Type::WindowCloseRequestEvent)
+        , m_window_id(window_id)
+    {
+    }
+
+    ~WindowCloseRequestEvent() { }
+    uint32_t window_id() { return m_window_id; }
+
+private:
+    uint32_t m_window_id;
 };
 
 }
