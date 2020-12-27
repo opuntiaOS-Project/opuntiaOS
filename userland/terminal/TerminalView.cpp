@@ -110,7 +110,8 @@ void TerminalView::push_back_char(char c)
 
 void TerminalView::send_input()
 {
-    write(ptmx(), m_input.c_str(), m_input.size());
+    // Send string with /0.
+    write(ptmx(), m_input.c_str(), m_input.size() + 1);
     m_input.clear();
 }
 

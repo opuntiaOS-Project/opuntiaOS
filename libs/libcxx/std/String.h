@@ -93,7 +93,7 @@ public:
 
     inline void pop_back()
     {
-        m_str[m_size--] = '\0';
+        m_str[--m_size] = '\0';
     }
 
     inline const char& at(size_t i) const
