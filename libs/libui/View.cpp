@@ -27,13 +27,6 @@ View::View(const LG::Rect& frame, const LG::Color& bc)
 {
 }
 
-void View::add_subview(View* subview)
-{
-    subview->set_window(window());
-    subview->set_superview(this);
-    m_subviews.push_back(subview);
-}
-
 void View::remove_from_superview()
 {
 }

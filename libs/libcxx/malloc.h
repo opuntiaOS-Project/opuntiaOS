@@ -1,7 +1,7 @@
 #pragma once
 
 extern "C" {
-    #include <libc/malloc.h>
+#include <libc/malloc.h>
 }
 
 typedef unsigned long size_t;
@@ -44,4 +44,11 @@ inline void* operator new(size_t, void* ptr)
 inline void* operator new[](size_t, void* ptr)
 {
     return ptr;
+}
+
+template <class T, class... Args>
+inline T& create(Args&&... args)
+{
+    T* newobject = new T(args...);
+    return *newobject;
 }

@@ -24,11 +24,11 @@ int main(int argc, char** argv)
 {
     int ptmx = setup_shell();
     new UI::App();
-    auto* window_ptr = new UI::Window(400, 300, "/res/icons/apps/terminal.icon");
-    auto* terminal_view = new TerminalView(window_ptr->bounds(), ptmx);
-    window_ptr->set_superview(terminal_view);
-    window_ptr->set_focused_view(terminal_view);
-    window_ptr->set_frame_style(LG::Color(0x181818));
-    window_ptr->set_title("Terminal");
-    return UI::App::the().run();
+    auto& app = create<UI::App>();
+    auto& window = create<UI::Window>(400, 300, "/res/icons/apps/terminal.icon");
+    auto& terminal_view = window.create_superview<TerminalView>(ptmx);
+    window.set_focused_view(terminal_view);
+    window.set_frame_style(LG::Color(0x181818));
+    window.set_title("Terminal");
+    return app.run();
 }

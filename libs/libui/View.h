@@ -25,7 +25,16 @@ public:
     View(const LG::Rect&);
     View(const LG::Rect&, const LG::Color&);
 
-    void add_subview(View* subview);
+    template <class T, class... Args>
+    T& add_subview(Args&&... args)
+    {
+        T* subview = new T(args...);
+        subview->set_window(window());
+        subview->set_superview(this);
+        m_subviews.push_back(subview);
+        return *subview;
+    }
+
     void remove_from_superview();
 
     template <typename Callback>
@@ -89,7 +98,11 @@ public:
 
     inline LG::Color& background_color() { return m_background_color; }
     inline const LG::Color& background_color() const { return m_background_color; }
-    virtual inline void set_background_color(const LG::Color& background_color) { m_background_color = background_color; set_needs_display(); }
+    virtual inline void set_background_color(const LG::Color& background_color)
+    {
+        m_background_color = background_color;
+        set_needs_display();
+    }
 
 private:
     void set_window(Window* window) { m_window = window; }

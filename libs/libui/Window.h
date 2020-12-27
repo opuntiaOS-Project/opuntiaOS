@@ -35,15 +35,19 @@ public:
 
     void receive_event(UniquePtr<LFoundation::Event> event) override;
 
-    inline void set_superview(View* superview)
+    template <class T, class... Args>
+    inline T& create_superview(Args&&... args)
     {
-        superview->set_window(this);
-        m_superview = superview;
+        T* new_view = new T(bounds(), args...);
+        new_view->set_window(this);
+        m_superview = new_view;
         m_superview->set_needs_display();
+        return *new_view;
     }
+
     inline View* superview() const { return m_superview; }
 
-    inline void set_focused_view(View* view) { m_focused_view = view; }
+    inline void set_focused_view(View& view) { m_focused_view = &view; }
     inline View* focused_view() { return m_focused_view; }
 
     inline const LG::Rect& bounds() const { return m_bounds; }
