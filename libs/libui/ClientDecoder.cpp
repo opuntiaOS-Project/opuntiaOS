@@ -72,4 +72,21 @@ UniquePtr<Message> ClientDecoder::handle(const WindowCloseRequestMessage& msg)
     return nullptr;
 }
 
+// Notifiers
+UniquePtr<Message> ClientDecoder::handle(const NotifyWindowStatusChangedMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the().window(), new NotifyWindowStatusChangedEvent(msg.changed_window_id(), msg.type()));
+    }
+    return nullptr;
+}
+
+UniquePtr<Message> ClientDecoder::handle(const NotifyWindowIconChangedMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the().window(), new NotifyWindowIconChangedEvent(msg.changed_window_id(), msg.icon_path()));
+    }
+    return nullptr;
+}
+
 }

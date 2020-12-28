@@ -59,8 +59,9 @@ private:
 
 class CreateWindowMessage : public Message {
 public:
-    CreateWindowMessage(message_key_t key,uint32_t width,uint32_t height,int buffer_id,LG::String icon_path)
+    CreateWindowMessage(message_key_t key,int type,uint32_t width,uint32_t height,int buffer_id,LG::String icon_path)
         : m_key(key)
+        , m_type(type)
         , m_width(width)
         , m_height(height)
         , m_buffer_id(buffer_id)
@@ -71,6 +72,7 @@ public:
     int reply_id() const override { return 4; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
+    int type() const { return m_type; }
     uint32_t width() const { return m_width; }
     uint32_t height() const { return m_height; }
     int buffer_id() const { return m_buffer_id; }
@@ -81,6 +83,7 @@ public:
         Encoder::append(buffer, decoder_magic());
         Encoder::append(buffer, id());
         Encoder::append(buffer, key());
+        Encoder::append(buffer, m_type);
         Encoder::append(buffer, m_width);
         Encoder::append(buffer, m_height);
         Encoder::append(buffer, m_buffer_id);
@@ -89,6 +92,7 @@ public:
     }
 private:
     message_key_t m_key;
+    int m_type;
     uint32_t m_width;
     uint32_t m_height;
     int m_buffer_id;
@@ -315,6 +319,7 @@ public:
         Encoder::decode(buf, decoded_msg_len, secret_key);
 
         uint32_t var_connection_id;
+        int var_type;
         uint32_t var_width;
         uint32_t var_height;
         int var_buffer_id;
@@ -333,11 +338,12 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_connection_id);
             return new GreetMessageReply(secret_key, var_connection_id);
         case 3:
+            Encoder::decode(buf, decoded_msg_len, var_type);
             Encoder::decode(buf, decoded_msg_len, var_width);
             Encoder::decode(buf, decoded_msg_len, var_height);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
             Encoder::decode(buf, decoded_msg_len, var_icon_path);
-            return new CreateWindowMessage(secret_key, var_width, var_height, var_buffer_id, var_icon_path);
+            return new CreateWindowMessage(secret_key, var_type, var_width, var_height, var_buffer_id, var_icon_path);
         case 4:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             return new CreateWindowMessageReply(secret_key, var_window_id);
@@ -619,6 +625,74 @@ private:
     int m_reason;
 };
 
+class NotifyWindowStatusChangedMessage : public Message {
+public:
+    NotifyWindowStatusChangedMessage(message_key_t key,int win_id,int changed_window_id,int type)
+        : m_key(key)
+        , m_win_id(win_id)
+        , m_changed_window_id(changed_window_id)
+        , m_type(type)
+    {
+    }
+    int id() const override { return 8; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 737; }
+    int win_id() const { return m_win_id; }
+    int changed_window_id() const { return m_changed_window_id; }
+    int type() const { return m_type; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_win_id);
+        Encoder::append(buffer, m_changed_window_id);
+        Encoder::append(buffer, m_type);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    int m_win_id;
+    int m_changed_window_id;
+    int m_type;
+};
+
+class NotifyWindowIconChangedMessage : public Message {
+public:
+    NotifyWindowIconChangedMessage(message_key_t key,int win_id,int changed_window_id,LG::String icon_path)
+        : m_key(key)
+        , m_win_id(win_id)
+        , m_changed_window_id(changed_window_id)
+        , m_icon_path(icon_path)
+    {
+    }
+    int id() const override { return 9; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 737; }
+    int win_id() const { return m_win_id; }
+    int changed_window_id() const { return m_changed_window_id; }
+    LG::String icon_path() const { return m_icon_path; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_win_id);
+        Encoder::append(buffer, m_changed_window_id);
+        Encoder::append(buffer, m_icon_path);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    int m_win_id;
+    int m_changed_window_id;
+    LG::String m_icon_path;
+};
+
 class WindowClientDecoder : public MessageDecoder {
 public:
     WindowClientDecoder() {}
@@ -643,6 +717,8 @@ public:
         uint32_t var_kbd_key;
         LG::Rect var_rect;
         int var_reason;
+        int var_changed_window_id;
+        LG::String var_icon_path;
         
         switch(msg_id) {
         case 1:
@@ -674,6 +750,16 @@ public:
         case 7:
             Encoder::decode(buf, decoded_msg_len, var_reason);
             return new DisconnectMessage(secret_key, var_reason);
+        case 8:
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
+            Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
+            Encoder::decode(buf, decoded_msg_len, var_type);
+            return new NotifyWindowStatusChangedMessage(secret_key, var_win_id, var_changed_window_id, var_type);
+        case 9:
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
+            Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
+            Encoder::decode(buf, decoded_msg_len, var_icon_path);
+            return new NotifyWindowIconChangedMessage(secret_key, var_win_id, var_changed_window_id, var_icon_path);
         default:
             decoded_msg_len = saved_dml;
             return nullptr;
@@ -701,6 +787,10 @@ public:
             return handle(static_cast<const WindowCloseRequestMessage&>(msg));
         case 7:
             return handle(static_cast<const DisconnectMessage&>(msg));
+        case 8:
+            return handle(static_cast<const NotifyWindowStatusChangedMessage&>(msg));
+        case 9:
+            return handle(static_cast<const NotifyWindowIconChangedMessage&>(msg));
         default:
             return nullptr;
         }
@@ -713,5 +803,7 @@ public:
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const WindowCloseRequestMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const NotifyWindowStatusChangedMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const NotifyWindowIconChangedMessage& msg) { return nullptr; }
 };
 

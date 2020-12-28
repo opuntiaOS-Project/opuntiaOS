@@ -1,5 +1,0 @@
-APPS += DISCO
-
-DISCO_NAME = disco
-DISCO_LIBS = c
-DISCO_INSTALL_PATH = bin/

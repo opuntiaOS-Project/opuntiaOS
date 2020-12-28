@@ -30,13 +30,22 @@ public:
     PixelBitmap(PixelBitmap&& moved_bitmap) noexcept;
     ~PixelBitmap()
     {
+        clear();
+    }
+
+    void clear()
+    {
         if (m_should_free) {
             delete m_data;
         }
+        m_data = nullptr;
+        m_bounds.set_width(0);
+        m_bounds.set_height(0);
     }
 
     PixelBitmap& operator=(PixelBitmap& bitmap)
     {
+        clear();
         m_bounds = bitmap.bounds();
         m_should_free = bitmap.m_should_free;
         m_format = bitmap.m_format;

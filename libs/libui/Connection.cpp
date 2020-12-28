@@ -52,7 +52,7 @@ void Connection::greeting()
 
 int Connection::new_window(const Window& window)
 {
-    auto message = CreateWindowMessage(key(), window.bounds().width(), window.bounds().height(), window.buffer().id(), window.icon_path());
+    auto message = CreateWindowMessage(key(), window.type(), window.bounds().width(), window.bounds().height(), window.buffer().id(), window.icon_path());
     auto resp_message = send_sync_message<CreateWindowMessageReply>(message);
 #ifdef DEBUG_CONNECTION
     Dbg() << "New window created\n";

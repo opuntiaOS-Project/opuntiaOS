@@ -28,8 +28,12 @@ public:
 
     inline void add_window(Window* window)
     {
-        m_compositor.invalidate(window->bounds());
-        m_windows.push_front(window);
+        if (window->type() == WindowType::Dock) {
+           setup_dock(window);
+        }
+        m_windows.push_back(window);
+        bring_to_front(*window);
+        notify_window_status_changed(window->id(), WindowStatusUpdateType::Created);
     }
 
     inline void remove_window(Window* window)
@@ -45,6 +49,7 @@ public:
         }
         m_windows.remove(window);
         m_compositor.invalidate(window->bounds());
+        notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
         delete window;
     }
 
@@ -63,11 +68,19 @@ public:
         return nullptr;
     }
 
-    inline void bring_to_front(Window& window)
+    inline void do_bring_to_front(Window& window)
     {
         auto* window_ptr = &window;
         m_windows.remove(window_ptr);
         m_windows.push_front(window_ptr);
+    }
+
+    void bring_to_front(Window& window)
+    {
+        do_bring_to_front(window);
+        if (m_dock_window) {
+            do_bring_to_front(*m_dock_window);
+        }
         m_compositor.invalidate(window.bounds());
     }
 
@@ -81,6 +94,15 @@ public:
     inline int mouse_y() const { return m_mouse_y; }
     inline bool is_mouse_left_button_pressed() const { return m_mouse_left_button_pressed; }
     constexpr int cursor_size() const { return 14; }
+
+    void setup_dock(Window* window);
+
+    // Notifiers
+    bool notify_listner_about_window_status(const Window& window, int changed_window_id, WindowStatusUpdateType type);
+    bool notify_listner_about_changed_icon(const Window&, int changed_window_id);
+
+    void notify_window_status_changed(int changed_window_id, WindowStatusUpdateType type);
+    void notify_window_icon_changed(int changed_window_id);
 
 private:
     void start_window_move(Window& window);
@@ -104,9 +126,10 @@ private:
     Compositor& m_compositor;
     LFoundation::EventLoop& m_event_loop;
 
-    WeakPtr<Window> m_movable_window;
-    WeakPtr<Window> m_active_window;
-    WeakPtr<Window> m_hovered_window;
+    WeakPtr<Window> m_dock_window {}; // TODO: may be remove it from here?
+    WeakPtr<Window> m_movable_window {};
+    WeakPtr<Window> m_active_window {};
+    WeakPtr<Window> m_hovered_window {};
     int m_next_win_id { 0 };
 
     int m_mouse_x { 0 };

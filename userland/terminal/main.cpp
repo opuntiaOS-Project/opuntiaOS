@@ -23,7 +23,6 @@ int setup_shell()
 int main(int argc, char** argv)
 {
     int ptmx = setup_shell();
-    new UI::App();
     auto& app = create<UI::App>();
     auto& window = create<UI::Window>(400, 300, "/res/icons/apps/terminal.icon");
     auto& terminal_view = window.create_superview<TerminalView>(ptmx);

@@ -12,6 +12,8 @@
 #include <memory.h>
 #include <std/Dbg.h>
 
+// #define PNGLOADER_DEGUG
+
 namespace LG::PNG {
 
 constexpr int png_header_size = 8;
@@ -58,7 +60,9 @@ void PNGLoader::read_IHDR(ChunkHeader& header, PixelBitmap& bitmap)
 
     bitmap.resize(m_ihdr_chunk.width, m_ihdr_chunk.height);
 
-    Dbg() << "IHDR: " << m_ihdr_chunk.width << " " <<  m_ihdr_chunk.depth << " " << m_ihdr_chunk.compression_method << " " << m_ihdr_chunk.filter_method << " " << m_ihdr_chunk.color_type << "\n";
+#ifdef PNGLOADER_DEGUG
+    Dbg() << "IHDR: " << m_ihdr_chunk.width << " " << m_ihdr_chunk.depth << " " << m_ihdr_chunk.compression_method << " " << m_ihdr_chunk.filter_method << " " << m_ihdr_chunk.color_type << "\n";
+#endif
 }
 
 void PNGLoader::read_TEXT(ChunkHeader& header, PixelBitmap& bitmap)
@@ -80,7 +84,7 @@ void PNGLoader::read_IDAT(ChunkHeader& header, PixelBitmap& bitmap)
     puff(unzipped_data, &destlen, streamer().ptr() + 2, &header.len);
     DataStreamer local_streamer(unzipped_data);
     m_scanline_keeper.init(unzipped_data);
-    
+
     if (m_ihdr_chunk.color_type == 2) {
         m_scanline_keeper.set_color_length(3);
         if (m_ihdr_chunk.depth == 8) {
@@ -91,7 +95,7 @@ void PNGLoader::read_IDAT(ChunkHeader& header, PixelBitmap& bitmap)
                 if (scanline_filter > 4) {
                     Dbg() << "Invalid PNG filter: " << scanline_filter;
                     continue;
-                } 
+                }
 
                 size_t len_of_scanline = (m_scanline_keeper.color_length() * m_ihdr_chunk.width * m_ihdr_chunk.depth + 7) / 8;
                 m_scanline_keeper.add(Scanline(scanline_filter, local_streamer.ptr()));
@@ -258,7 +262,7 @@ void PNGLoader::proccess_stream(PixelBitmap& bitmap)
 
 PixelBitmap PNGLoader::load_from_mem(const uint8_t* ptr)
 {
-    PixelBitmap bitmap;
+    auto bitmap = PixelBitmap();
     if (!ptr) {
         Dbg() << "PNGLoader: nullptr\n";
         return bitmap;

@@ -9,8 +9,8 @@
 #include "Compositor.h"
 #include "Connection.h"
 #include "CursorManager.h"
-#include "ResourceManager.h"
 #include "Devices.h"
+#include "ResourceManager.h"
 #include "Screen.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
@@ -18,8 +18,17 @@
 #include <pthread.h>
 #include <syscalls.h>
 
+void start_dock()
+{
+    if (fork()) {
+        execve("/bin/dock", 0, 0);
+        ASSERT_NOT_REACHED();
+    }
+}
+
 int main()
 {
+    start_dock();
     auto* event_loop = new LFoundation::EventLoop();
     new Screen();
     new Connection(socket(PF_LOCAL, 0, 0));

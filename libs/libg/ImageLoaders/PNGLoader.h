@@ -104,8 +104,11 @@ public:
 
     void invalidate()
     {
-        free(m_ptr);
-        m_data.clear();
+        if (m_ptr) {
+            free(m_ptr);
+            m_data.clear();
+            m_ptr = nullptr;
+        }
     }
 
     inline void add(Scanline&& el) { m_data.push_back(move(el)); }

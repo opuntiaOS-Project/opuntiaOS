@@ -17,6 +17,23 @@
 #include <sys/SharedBuffer.h>
 #include <sys/types.h>
 
+enum WindowType : int {
+    Standard = 0,
+    Dock = 1,
+};
+
+enum WindowStatusUpdateType : int {
+    Created,
+    Changed,
+    Removed,
+};
+
+typedef uint32_t WindowEventMask;
+enum WindowEvent {
+    WindowStatus = (1 << 0),
+    IconChange = (1 << 1),
+};
+
 class Window : public Weakable<Window>, public LinkedListNode<Window> {
 public:
     Window(int connection_id, int id, const CreateWindowMessage& msg);
@@ -25,6 +42,10 @@ public:
     void set_buffer(int buffer_id);
 
     inline int id() const { return m_id; }
+    inline int connection_id() const { return m_connection_id; }
+    inline WindowType type() const { return m_type; }
+    inline WindowEventMask event_mask() const { return m_event_mask; }
+    inline void set_event_mask(WindowEventMask mask) { m_event_mask = mask; }
 
     inline SharedBuffer<LG::Color>& buffer() { return m_buffer; }
     inline const LG::PixelBitmap& content_bitmap() const { return m_content_bitmap; }
@@ -44,21 +65,22 @@ public:
         Connection::the().send_async_message(msg);
     }
 
-    inline int connection_id() const { return m_connection_id; }
+    void make_frame();
+    void make_frameless();
 
-    inline void set_icon(String&& name)
+    inline void set_icon(LG::String&& name)
     {
         m_icon_path = move(name);
         m_frame.reload_icon();
     }
 
-    inline void set_icon(const String& name)
+    inline void set_icon(const LG::String& name)
     {
         m_icon_path = name;
         m_frame.reload_icon();
-    }    
+    }
 
-    inline const String& icon_path() const { return m_icon_path; }
+    inline const LG::String& icon_path() const { return m_icon_path; }
 
     void will_be_closed();
     void will_be_minimized();
@@ -69,10 +91,12 @@ public:
 private:
     int m_id { -1 };
     int m_connection_id { -1 };
+    WindowType m_type { WindowType::Standard };
+    WindowEventMask m_event_mask { 0 };
     LG::Rect m_bounds;
     LG::Rect m_content_bounds;
     LG::PixelBitmap m_content_bitmap;
     SharedBuffer<LG::Color> m_buffer;
     WindowFrame m_frame;
-    String m_icon_path {};
+    LG::String m_icon_path {};
 };

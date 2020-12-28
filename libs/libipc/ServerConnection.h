@@ -1,8 +1,8 @@
 #pragma once
 #include "Message.h"
 #include "MessageDecoder.h"
-#include <std/Vector.h>
 #include <std/Dbg.h>
+#include <std/Vector.h>
 
 template <typename ServerDecoder, typename ClientDecoder>
 class ServerConnection {
@@ -49,7 +49,7 @@ public:
                     send_message(*answer);
                 }
             } else if (auto response = m_client_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
-            
+
             } else {
                 ASSERT_NOT_REACHED();
             }

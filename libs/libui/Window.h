@@ -19,13 +19,19 @@
 
 namespace UI {
 
+enum WindowType {
+    Standard = 0,
+    Dock = 1,
+};
+
 class Window : public LFoundation::EventReceiver {
 public:
     Window();
-    Window(uint32_t width, uint32_t height);
+    Window(uint32_t width, uint32_t height, WindowType type = WindowType::Standard);
     Window(uint32_t width, uint32_t height, const LG::String& path);
 
     int id() const { return m_id; }
+    inline WindowType type() const { return m_type; }
 
     SharedBuffer<LG::Color>& buffer() { return m_buffer; }
     const SharedBuffer<LG::Color>& buffer() const { return m_buffer; }
@@ -59,6 +65,7 @@ public:
 
 private:
     uint32_t m_id;
+    WindowType m_type { WindowType::Standard };
     LG::Rect m_bounds;
     LG::PixelBitmap m_bitmap;
     SharedBuffer<LG::Color> m_buffer;

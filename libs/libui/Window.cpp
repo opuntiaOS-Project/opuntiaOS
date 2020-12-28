@@ -18,10 +18,11 @@ Window::Window()
 {
 }
 
-Window::Window(uint32_t width, uint32_t height)
+Window::Window(uint32_t width, uint32_t height, WindowType type)
     : m_bounds(0, 0, width, height)
     , m_buffer(size_t(width * height * 4))
     , m_bitmap()
+    , m_type(type)
 {
     m_id = Connection::the().new_window(*this);
     m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());

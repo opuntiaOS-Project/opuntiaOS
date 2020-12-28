@@ -340,6 +340,7 @@ clean:
 	rm -rf src/boot/x86/stage2/*/*/*/*.bin src/boot/x86/stage2/*/*/*/*.o
 
 	rm -rf userland/*/*.o
+	rm -rf libs/*/*/*.o
 	rm -rf libs/*/*.o
 	rm -rf libs/*.o
 	rm -rf servers/*/*.o

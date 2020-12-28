@@ -11,6 +11,8 @@
 #include "Screen.h"
 #include <libfoundation/KeyboardMapping.h>
 
+#define WM_DEBUG
+
 static WindowManager* s_the;
 
 WindowManager& WindowManager::the()
@@ -30,6 +32,15 @@ WindowManager::WindowManager()
 void WindowManager::start_window_move(Window& window)
 {
     m_movable_window = window.weak_ptr();
+}
+
+void WindowManager::setup_dock(Window* window)
+{
+    window->make_frameless();
+    window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height());
+    window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height());
+    window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
+    m_dock_window = window->weak_ptr();
 }
 
 bool WindowManager::continue_window_move(MouseEvent* mouse_event)
@@ -156,5 +167,47 @@ void WindowManager::receive_event(UniquePtr<LFoundation::Event> event)
     }
     if (event->type() == WSEvent::Type::KeyboardEvent) {
         receive_keyboard_event(move(event));
+    }
+}
+
+// Notifiers
+
+bool WindowManager::notify_listner_about_window_status(const Window& win, int changed_window_id, WindowStatusUpdateType type)
+{
+#ifdef WM_DEBUG
+    Dbg() << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << "\n";
+#endif
+    m_event_loop.add(m_connection, new SendEvent(new NotifyWindowStatusChangedMessage(win.connection_id(), win.id(), changed_window_id, (int)type)));
+    return true;
+}
+
+bool WindowManager::notify_listner_about_changed_icon(const Window& win, int changed_window_id)
+{
+#ifdef WM_DEBUG
+    Dbg() << "notify_listner_about_changed_icon " << win.id() << " that " << changed_window_id << "\n";
+#endif
+    auto* changed_window_ptr = window(changed_window_id);
+    if (!changed_window_ptr) {
+        return false;
+    }
+    m_event_loop.add(m_connection, new SendEvent(new NotifyWindowIconChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->icon_path())));
+    return true;
+}
+
+void WindowManager::notify_window_status_changed(int changed_window_id, WindowStatusUpdateType type)
+{
+    for (auto& window : m_windows) {
+        if (window.event_mask() & WindowEvent::WindowStatus) {
+            notify_listner_about_window_status(window, changed_window_id, type);
+        }
+    }
+}
+
+void WindowManager::notify_window_icon_changed(int changed_window_id)
+{
+    for (auto& window : m_windows) {
+        if (window.event_mask() & WindowEvent::IconChange) {
+            notify_listner_about_changed_icon(window, changed_window_id);
+        }
     }
 }

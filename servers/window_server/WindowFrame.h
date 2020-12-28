@@ -22,10 +22,14 @@ public:
     ~WindowFrame() { }
 
     void draw(LG::Context&);
-    constexpr size_t top_border_size() const { return 26; }
-    constexpr size_t bottom_border_size() const { return 1; }
-    constexpr size_t left_border_size() const { return 1; }
-    constexpr size_t right_border_size() const { return 1; }
+    constexpr size_t std_top_border_size() const { return 26; }
+    constexpr size_t std_bottom_border_size() const { return 1; }
+    constexpr size_t std_left_border_size() const { return 1; }
+    constexpr size_t std_right_border_size() const { return 1; }
+    inline size_t top_border_size() const { return m_top_border_size; }
+    inline size_t bottom_border_size() const { return std_bottom_border_size(); }
+    inline size_t left_border_size() const { return std_left_border_size(); }
+    inline size_t right_border_size() const { return std_right_border_size(); }
 
     const LG::Rect bounds() const;
 
@@ -46,6 +50,14 @@ public:
     inline const LG::Color& color() const { return m_color; }
     inline void set_color(const LG::Color& clr) { m_color = clr; }
 
+    void set_visible(bool visible)
+    {
+        m_top_border_size = visible ? std_top_border_size() : 0;
+        m_visible = visible;
+    }
+
+    bool visible() const { return m_visible; }
+
     void reload_icon();
     const LG::PixelBitmap& icon() const { return m_icon; }
 
@@ -62,4 +74,6 @@ private:
     Vector<Button*> m_control_panel_buttons;
     LG::Color m_color { 0x00342d2d };
     LG::PixelBitmap m_icon {};
+    size_t m_top_border_size { std_top_border_size() };
+    bool m_visible { true };
 };

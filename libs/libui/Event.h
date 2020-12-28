@@ -10,6 +10,7 @@
 
 #include <libfoundation/Event.h>
 #include <libg/Rect.h>
+#include <libg/String.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -25,6 +26,9 @@ public:
         KeyDownEvent,
         DisplayEvent,
         WindowCloseRequestEvent,
+
+        NotifyWindowStatusChangedEvent,
+        NotifyWindowIconChangedEvent,
         Other,
     };
 
@@ -160,10 +164,54 @@ public:
     }
 
     ~WindowCloseRequestEvent() { }
-    uint32_t window_id() { return m_window_id; }
+    uint32_t window_id() const { return m_window_id; }
 
 private:
     uint32_t m_window_id;
+};
+
+// Notifiers
+class NotifyWindowStatusChangedEvent : public Event {
+public:
+    NotifyWindowStatusChangedEvent(uint32_t changed_window_id, int type)
+        : Event(Event::Type::NotifyWindowStatusChangedEvent)
+        , m_changed_window_id(changed_window_id)
+        , m_type(type)
+    {
+    }
+
+    ~NotifyWindowStatusChangedEvent() { }
+    uint32_t changed_window_id() const { return m_changed_window_id; }
+    int type() const { return m_type; }
+
+private:
+    uint32_t m_changed_window_id;
+    int m_type;
+};
+
+class NotifyWindowIconChangedEvent : public Event {
+public:
+    NotifyWindowIconChangedEvent(uint32_t changed_window_id, const LG::String& path)
+        : Event(Event::Type::NotifyWindowIconChangedEvent)
+        , m_changed_window_id(changed_window_id)
+        , m_icon_path(path)
+    {
+    }
+
+    NotifyWindowIconChangedEvent(uint32_t changed_window_id, LG::String&& path)
+        : Event(Event::Type::NotifyWindowIconChangedEvent)
+        , m_changed_window_id(changed_window_id)
+        , m_icon_path(move(path))
+    {
+    }
+
+    ~NotifyWindowIconChangedEvent() { }
+    uint32_t changed_window_id() const { return m_changed_window_id; }
+    const LG::String& icon_path() const { return m_icon_path; }
+
+private:
+    uint32_t m_changed_window_id;
+    LG::String m_icon_path;
 };
 
 }

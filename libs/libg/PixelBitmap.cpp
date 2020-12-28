@@ -57,10 +57,7 @@ PixelBitmap::PixelBitmap(PixelBitmap&& moved_bitmap)
 
 void PixelBitmap::resize(size_t width, size_t height)
 {
-    if (m_should_free) {
-        free(m_data);
-    }
-
+    clear();
     bounds().set_width(width);
     bounds().set_height(height);
     m_data = (Color*)malloc(sizeof(Color) * width * height);

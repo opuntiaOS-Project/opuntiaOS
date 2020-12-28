@@ -27,6 +27,10 @@ public:
     virtual UniquePtr<Message> handle(const DisplayMessage& msg) override;
     virtual UniquePtr<Message> handle(const WindowCloseRequestMessage& msg) override;
 
+    // Notifiers
+    virtual UniquePtr<Message> handle(const NotifyWindowStatusChangedMessage& msg) override;
+    virtual UniquePtr<Message> handle(const NotifyWindowIconChangedMessage& msg) override;
+
 private:
     LFoundation::EventLoop& m_event_loop;
 };

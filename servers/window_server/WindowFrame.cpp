@@ -116,6 +116,9 @@ void WindowFrame::add_control(const String& title)
 
 void WindowFrame::draw(LG::Context& ctx)
 {
+    if (!visible()) {
+        return;
+    }
     int x = m_window.bounds().min_x();
     int y = m_window.bounds().min_y();
     size_t width = m_window.bounds().width();

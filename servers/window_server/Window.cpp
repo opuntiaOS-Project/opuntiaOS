@@ -13,6 +13,7 @@
 Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
     : m_id(id)
     , m_connection_id(connection_id)
+    , m_type((WindowType)msg.type())
     , m_buffer(msg.buffer_id())
     , m_frame(*this)
     , m_content_bitmap()
@@ -38,4 +39,26 @@ Window::Window(Window&& win)
 void Window::set_buffer(int buffer_id)
 {
     m_buffer.open(buffer_id);
+}
+
+void Window::make_frame()
+{
+    uint32_t x = m_bounds.min_x();
+    uint32_t y = m_bounds.min_y();
+    uint32_t content_width = m_content_bounds.width();
+    uint32_t content_height = m_content_bounds.height();
+    m_bounds = LG::Rect(x, y, content_width + frame().left_border_size() + frame().right_border_size(), content_height + frame().top_border_size() + frame().bottom_border_size());
+    m_content_bounds = LG::Rect(x + m_frame.left_border_size(), y + m_frame.top_border_size(), content_width, content_height);
+    m_frame.set_visible(true);
+}
+
+void Window::make_frameless()
+{
+    uint32_t x = m_bounds.min_x();
+    uint32_t y = m_bounds.min_y();
+    uint32_t content_width = m_content_bounds.width();
+    uint32_t content_height = m_content_bounds.height();
+    m_bounds = LG::Rect(x, y, content_width, content_height);
+    m_content_bounds = LG::Rect(x, y, content_width, content_height);
+    m_frame.set_visible(false);
 }
