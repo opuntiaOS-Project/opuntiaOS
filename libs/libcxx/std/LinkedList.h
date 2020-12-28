@@ -1,4 +1,5 @@
 #pragma once
+#include <libcxx/cassert.h>
 #include <libcxx/malloc.h>
 #include <libcxx/memory.h>
 

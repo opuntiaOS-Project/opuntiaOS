@@ -14,7 +14,7 @@
 #define ASSERT(x)                                                          \
     if (!(x)) {                                                            \
         Dbg() << "assert at line" << __LINE__ << " in " __FILE__ << ".\n"; \
-        exit(1);                                                          \
+        exit(1);                                                           \
     }
 
 #define ASSERT_NOT_REACHED() ASSERT(false)
