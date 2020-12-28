@@ -283,7 +283,7 @@ static inline void dentry_put_impl(dentry_t* dentry)
         return;
     }
 #ifdef DENTRY_DEBUG
-        log("Inode flushed %d", dentry->inode_indx);
+    log("Inode flushed %d", dentry->inode_indx);
 #endif
     dentry_flush_inode(dentry);
     dentry_prefree(dentry);

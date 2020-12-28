@@ -189,6 +189,11 @@ void tasking_fork(trapframe_t* tf)
     RUNNIG_THREAD->tf->eax = new_proc->pid;
 
     new_proc->main_thread->status = THREAD_RUNNING;
+
+#ifdef TASKING_DEBUG
+    log("Fork %d to pid %d", RUNNIG_THREAD->tid, new_proc->pid);
+#endif
+
     sched_enqueue(new_proc->main_thread);
     resched();
 }

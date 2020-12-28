@@ -357,21 +357,22 @@ void sys_select(trapframe_t* tf)
 
     init_select_blocker(RUNNIG_THREAD, nfds, readfds, writefds, exceptfds, timeout);
 
-    FD_ZERO(readfds);
-    FD_ZERO(writefds);
-    FD_ZERO(exceptfds);
+    if (readfds)
+        FD_ZERO(readfds);
+    if (writefds)
+        FD_ZERO(writefds);
+    if (exceptfds)
+        FD_ZERO(exceptfds);
 
     for (int i = 0; i < nfds; i++) {
-        if (FD_ISSET(i, &(RUNNIG_THREAD->readfds))) {
-            fd = proc_get_fd(p, i);
-            if (fd->ops->can_read(fd->dentry, fd->offset)) {
+        fd = proc_get_fd(p, i);
+        if (readfds && FD_ISSET(i, &(RUNNIG_THREAD->readfds))) {
+            if (fd->ops->can_read && fd->ops->can_read(fd->dentry, fd->offset)) {
                 FD_SET(i, readfds);
             }
         }
-
-        if (FD_ISSET(i, &(RUNNIG_THREAD->writefds))) {
-            fd = proc_get_fd(p, i);
-            if (fd->ops->can_write(fd->dentry, fd->offset)) {
+        if (writefds && FD_ISSET(i, &(RUNNIG_THREAD->writefds))) {
+            if (fd->ops->can_write && fd->ops->can_write(fd->dentry, fd->offset)) {
                 FD_SET(i, writefds);
             }
         }

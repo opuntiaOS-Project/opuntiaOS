@@ -221,6 +221,9 @@ int thread_print_backtrace()
 {
     int id = 1;
     log("# %d : %x", id++, RUNNIG_THREAD->tf->eip);
+    if (RUNNIG_THREAD->tf->eip <= 0xa) { // for now it's ok)
+        return 0;
+    }
     uint32_t* stack = (uint32_t*)RUNNIG_THREAD->tf->ebp;
     for (; (uint32_t)stack > 0 && (uint32_t)stack <= 0xc0000000; stack = (uint32_t*)*stack) {
         log("# %d : %x", id++, stack[1]);
@@ -228,4 +231,5 @@ int thread_print_backtrace()
             break;
         }
     }
+    return 0;
 }

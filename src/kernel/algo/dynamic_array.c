@@ -11,9 +11,9 @@
 #include <drivers/display.h>
 #include <mem/kmalloc.h>
 
-static inline int _dynamic_array_resize(dynamic_array_t* v, uint32_t new_capacity)
+static inline int _dynamic_array_resize(dynamic_array_t* v, uint32_t new_capacity, uint32_t element_size)
 {
-    uint32_t* new_darray_area = krealloc(v->data, new_capacity);
+    uint32_t* new_darray_area = krealloc(v->data, new_capacity * element_size);
     if (new_darray_area == 0) {
         return -1;
     }
@@ -25,7 +25,7 @@ static inline int _dynamic_array_resize(dynamic_array_t* v, uint32_t new_capacit
 static inline int _dynamic_array_grow(dynamic_array_t* v)
 {
     if (v->capacity) {
-        if (_dynamic_array_resize(v, (2 * v->capacity) * v->element_size) != 0) {
+        if (_dynamic_array_resize(v, 2 * v->capacity, v->element_size) != 0) {
             return -1;
         }
     } else {
