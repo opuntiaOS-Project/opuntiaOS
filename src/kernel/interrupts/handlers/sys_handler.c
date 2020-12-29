@@ -64,6 +64,7 @@ static const void* syscalls[] = {
     sys_sleep,
     sys_select,
     sys_fstat,
+    sys_sched_yield,
     sys_shbuf_create,
     sys_shbuf_get,
     sys_shbuf_free,
@@ -645,6 +646,15 @@ void sys_shbuf_free(trapframe_t* tf)
 {
     int id = param1;
     return_with_val(shared_buffer_free(id));
+}
+
+/**
+ * Scheduler
+ */
+
+void sys_sched_yield(trapframe_t* tf)
+{
+    resched();
 }
 
 void sys_none(trapframe_t* tf) { }

@@ -180,3 +180,8 @@ int shared_buffer_free(int id)
 {
     return syscall(SYS_SHBUF_FREE, (int)id, 0, 0, 0, 0);
 }
+
+void sched_yield()
+{
+    syscall(SYSSCHEDYIELD, 0, 0, 0, 0, 0);
+}

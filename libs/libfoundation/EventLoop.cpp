@@ -83,6 +83,9 @@ void EventLoop::pump()
     for (int i = 0; i < events_to_dispatch.size(); i++) {
         events_to_dispatch[i].receiver.receive_event(move(events_to_dispatch[i].event));
     }
+    if (!events_to_dispatch.size()) {
+        sched_yield();
+    }
 }
 
 int EventLoop::run()

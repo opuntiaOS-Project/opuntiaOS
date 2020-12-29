@@ -53,6 +53,7 @@ enum __sysid {
     SYSSLEEP,
     SYSSELECT,
     SYSFSTAT,
+    SYSSCHEDYIELD,
     SYS_SHBUF_CREATE,
     SYS_SHBUF_GET,
     SYS_SHBUF_FREE,
