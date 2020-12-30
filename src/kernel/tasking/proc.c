@@ -138,8 +138,11 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
             if (from_proc->fds[i].dentry) {
                 file_descriptor_t* fd = &new_proc->fds[i];
-                vfs_open(from_proc->fds[i].dentry, fd, from_proc->fds[i].flags);
+                if (from_proc->fds[i].type == FD_TYPE_FILE) {
+                    vfs_open(from_proc->fds[i].dentry, fd, from_proc->fds[i].flags);
+                }
             }
+            
         }
     }
 
