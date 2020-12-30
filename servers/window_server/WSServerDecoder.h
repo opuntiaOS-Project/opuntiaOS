@@ -22,4 +22,5 @@ public:
     virtual UniquePtr<Message> handle(const SetTitleMessage& msg) override;
     virtual UniquePtr<Message> handle(const SetBufferMessage& msg) override;
     virtual UniquePtr<Message> handle(const InvalidateMessage& msg) override;
+    virtual UniquePtr<Message> handle(const AskBringToFrontMessage& msg) override;
 };

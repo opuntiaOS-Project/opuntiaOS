@@ -179,10 +179,11 @@ private:
 
 class SetBufferMessage : public Message {
 public:
-    SetBufferMessage(message_key_t key,uint32_t window_id,int buffer_id)
+    SetBufferMessage(message_key_t key,uint32_t window_id,int buffer_id,int format)
         : m_key(key)
         , m_window_id(window_id)
         , m_buffer_id(buffer_id)
+        , m_format(format)
     {
     }
     int id() const override { return 7; }
@@ -191,6 +192,7 @@ public:
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
     int buffer_id() const { return m_buffer_id; }
+    int format() const { return m_format; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -199,12 +201,14 @@ public:
         Encoder::append(buffer, key());
         Encoder::append(buffer, m_window_id);
         Encoder::append(buffer, m_buffer_id);
+        Encoder::append(buffer, m_format);
         return buffer;
     }
 private:
     message_key_t m_key;
     uint32_t m_window_id;
     int m_buffer_id;
+    int m_format;
 };
 
 class SetBarStyleMessage : public Message {
@@ -301,6 +305,36 @@ private:
     LG::Rect m_rect;
 };
 
+class AskBringToFrontMessage : public Message {
+public:
+    AskBringToFrontMessage(message_key_t key,uint32_t window_id,uint32_t target_window_id)
+        : m_key(key)
+        , m_window_id(window_id)
+        , m_target_window_id(target_window_id)
+    {
+    }
+    int id() const override { return 11; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 320; }
+    uint32_t window_id() const { return m_window_id; }
+    uint32_t target_window_id() const { return m_target_window_id; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_window_id);
+        Encoder::append(buffer, m_target_window_id);
+        return buffer;
+    }
+private:
+    message_key_t m_key;
+    uint32_t m_window_id;
+    uint32_t m_target_window_id;
+};
+
 class WindowServerDecoder : public MessageDecoder {
 public:
     WindowServerDecoder() {}
@@ -326,10 +360,12 @@ public:
         LG::String var_icon_path;
         uint32_t var_window_id;
         uint32_t var_status;
+        int var_format;
         uint32_t var_color;
         int var_text_style;
         LG::String var_title;
         LG::Rect var_rect;
+        uint32_t var_target_window_id;
         
         switch(msg_id) {
         case 1:
@@ -356,7 +392,8 @@ public:
         case 7:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
-            return new SetBufferMessage(secret_key, var_window_id, var_buffer_id);
+            Encoder::decode(buf, decoded_msg_len, var_format);
+            return new SetBufferMessage(secret_key, var_window_id, var_buffer_id, var_format);
         case 8:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_color);
@@ -370,6 +407,10 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_rect);
             return new InvalidateMessage(secret_key, var_window_id, var_rect);
+        case 11:
+            Encoder::decode(buf, decoded_msg_len, var_window_id);
+            Encoder::decode(buf, decoded_msg_len, var_target_window_id);
+            return new AskBringToFrontMessage(secret_key, var_window_id, var_target_window_id);
         default:
             decoded_msg_len = saved_dml;
             return nullptr;
@@ -397,6 +438,8 @@ public:
             return handle(static_cast<const SetTitleMessage&>(msg));
         case 10:
             return handle(static_cast<const InvalidateMessage&>(msg));
+        case 11:
+            return handle(static_cast<const AskBringToFrontMessage&>(msg));
         default:
             return nullptr;
         }
@@ -409,6 +452,7 @@ public:
     virtual UniquePtr<Message> handle(const SetBarStyleMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const SetTitleMessage& msg) { return nullptr; }
     virtual UniquePtr<Message> handle(const InvalidateMessage& msg) { return nullptr; }
+    virtual UniquePtr<Message> handle(const AskBringToFrontMessage& msg) { return nullptr; }
 };
 
 class MouseMoveMessage : public Message {

@@ -34,6 +34,7 @@ UniquePtr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
         return nullptr;
     }
     window->set_buffer(msg.buffer_id());
+    window->content_bitmap().set_format(LG::PixelBitmapFormat(msg.format()));
     return nullptr;
 }
 
@@ -81,5 +82,20 @@ UniquePtr<Message> WServerDecoder::handle(const SetBarStyleMessage& msg)
         return nullptr;
     }
     window->frame().set_color(LG::Color(msg.color()));
+    return nullptr;
+}
+
+UniquePtr<Message> WServerDecoder::handle(const AskBringToFrontMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    auto* window = wm.window(msg.window_id());
+    auto* target_window = wm.window(msg.target_window_id());
+    if (!window || !target_window) {
+        return nullptr;
+    }
+    if (window->type() == WindowType::Dock) {
+        // Only dock can ask for that now.
+        wm.bring_to_front(*target_window);
+    }
     return nullptr;
 }

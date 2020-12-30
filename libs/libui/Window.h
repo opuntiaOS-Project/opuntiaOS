@@ -51,6 +51,8 @@ public:
         return *new_view;
     }
 
+    inline void set_bitmap_format(LG::PixelBitmapFormat format) { m_bitmap.set_format(format), did_format_change(); }
+
     inline View* superview() const { return m_superview; }
 
     inline void set_focused_view(View& view) { m_focused_view = &view; }
@@ -60,6 +62,7 @@ public:
 
     bool set_title(const LG::String& title);
     bool set_frame_style(const LG::Color& color);
+    bool did_format_change();
 
     inline const LG::String& icon_path() const { return m_icon_path; }
 

@@ -48,6 +48,7 @@ public:
     inline void set_event_mask(WindowEventMask mask) { m_event_mask = mask; }
 
     inline SharedBuffer<LG::Color>& buffer() { return m_buffer; }
+    inline LG::PixelBitmap& content_bitmap() { return m_content_bitmap; }
     inline const LG::PixelBitmap& content_bitmap() const { return m_content_bitmap; }
 
     inline LG::Rect& content_bounds() { return m_content_bounds; }

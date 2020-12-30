@@ -52,6 +52,12 @@ bool Window::set_frame_style(const LG::Color& color)
     return App::the().connection().send_async_message(msg);
 }
 
+bool Window::did_format_change()
+{
+    SetBufferMessage msg(Connection::the().key(), id(), buffer().id(), bitmap().format());
+    return App::the().connection().send_async_message(msg);
+}
+
 void Window::receive_event(UniquePtr<LFoundation::Event> event)
 {
     if (event->type() == Event::Type::MouseEvent) {

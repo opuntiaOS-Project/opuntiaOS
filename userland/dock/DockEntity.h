@@ -4,6 +4,8 @@
 
 class DockEntity : public LinkedListNode<DockEntity> {
 public:
+    DockEntity() = default;
+
     DockEntity(int window_id)
         : m_window_id(window_id)
     {
@@ -14,7 +16,7 @@ public:
     const LG::PixelBitmap& icon() const { return m_icon; }
 
 private:
-    int m_window_id;
+    int m_window_id { 0 };
     LG::PixelBitmap m_icon;
-    int m_window_status;
+    int m_window_status { 0 };
 };

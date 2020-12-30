@@ -37,8 +37,8 @@ void WindowManager::start_window_move(Window& window)
 void WindowManager::setup_dock(Window* window)
 {
     window->make_frameless();
-    window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height());
-    window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height());
+    window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
+    window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
     window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
     m_dock_window = window->weak_ptr();
 }

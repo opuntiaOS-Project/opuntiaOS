@@ -83,10 +83,14 @@ void View::hover_end()
 
 void View::click_began(const LG::Point<int>& location)
 {
+    m_active = true;
+    set_needs_display();
 }
 
 void View::click_ended()
 {
+    m_active = true;
+    set_needs_display();
 }
 
 void View::receive_mouse_move_event(MouseEvent& event)
@@ -117,11 +121,10 @@ void View::receive_mouse_move_event(MouseEvent& event)
 void View::receive_mouse_action_event(MouseActionEvent& event)
 {
     if (event.type() == MouseActionType::ClickBegan) {
-        m_active = true;
+        click_began(LG::Point<int>(event.x(), event.y()));
     } else if (event.type() == MouseActionType::ClickEnded) {
-        m_active = false;
+        click_ended();
     }
-    set_needs_display();
 
     Responder::receive_mouse_action_event(event);
 }

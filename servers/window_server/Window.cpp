@@ -38,7 +38,9 @@ Window::Window(Window&& win)
 
 void Window::set_buffer(int buffer_id)
 {
-    m_buffer.open(buffer_id);
+    if (m_buffer.id() != buffer_id) {
+        m_buffer.open(buffer_id);
+    }
 }
 
 void Window::make_frame()

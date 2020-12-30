@@ -59,10 +59,4 @@ int Connection::new_window(const Window& window)
 #endif
     return resp_message->window_id();
 }
-
-void Connection::set_buffer(const Window& window)
-{
-    send_async_message(SetBufferMessage(key(), window.id(), window.buffer().id()));
-}
-
 }
