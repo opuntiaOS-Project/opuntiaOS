@@ -8,6 +8,7 @@ public:
     TerminalView(const LG::Rect&, int ptmx);
 
     const LG::Color& font_color() const { return m_font_color; }
+    const LG::Color& cursor_color() const { return LG::Color(200, 200, 200, 255); }
     const LG::Color& background_color() const { return m_background_color; }
     inline const LG::Font& font() const { return *m_font_ptr; }
 
@@ -23,6 +24,8 @@ public:
 
     int ptmx() const { return m_ptmx; }
 
+    constexpr int cursor_width() { return 5; }
+
 private:
     void scroll_line();
     void new_line();
@@ -33,6 +36,18 @@ private:
     void put_char(char c);
     void push_back_char(char c);
     void send_input();
+
+    inline void will_move_cursor()
+    {
+        auto pt = pos_on_screen();
+        set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + 2, glyph_height()));
+    }
+
+    inline void did_move_cursor()
+    {
+        auto pt = pos_on_screen();
+        set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + 2, glyph_height()));
+    }
 
     LG::Color m_background_color { 0x292929 };
     LG::Color m_font_color { LG::Color::White };

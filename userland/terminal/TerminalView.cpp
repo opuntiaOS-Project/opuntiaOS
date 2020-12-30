@@ -54,6 +54,10 @@ void TerminalView::display(const LG::Rect& rect)
         text_start.set_x(0);
         text_start.offset_by(0, glyph_height());
     }
+
+    ctx.set_fill_color(cursor_color());
+    auto cursor_left_corner = pos_on_screen();
+    ctx.fill(LG::Rect(cursor_left_corner.x() + 2, cursor_left_corner.y(), cursor_width(), glyph_height()));
 }
 
 void TerminalView::scroll_line()
@@ -62,33 +66,39 @@ void TerminalView::scroll_line()
     char* data_end_minus_line = m_display_data + (m_max_rows - 1) * m_max_cols;
     memmove((uint8_t*)m_display_data, (uint8_t*)data_plus_line, (m_max_rows - 1) * m_max_cols);
     memset((uint8_t*)data_end_minus_line, 0, m_max_cols);
-    set_needs_display(bounds());
+    set_needs_display();
 }
 
 void TerminalView::new_line()
 {
+    will_move_cursor();
     m_col = 0;
     m_row++;
     if (m_row == m_max_rows) {
         scroll_line();
         m_row--;
     }
+    did_move_cursor();
 }
 
 void TerminalView::increment_counter()
 {
+    will_move_cursor();
     m_col++;
     if (m_col == m_max_cols) {
         new_line();
     }
+    did_move_cursor();
 }
 
 void TerminalView::decrement_counter()
 {
+    will_move_cursor();
     m_col--;
     if (m_col == 0) {
         m_row--;
     }
+    did_move_cursor();
 }
 
 void TerminalView::put_char(char c)
