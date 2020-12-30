@@ -14,15 +14,9 @@ C_WARNING_FLAGS += -Werror -Wno-address-of-packed-member
 ASM_KERNEL_FLAGS = -f elf
 LD_KERNEL_FLAGS = -T link.ld --oformat elf32-i386
 
-# FS CONFIG
-BASE_DIR = base
-
 # OS RUN CONFIG
 KERNEL_STAGE2_POSITION = 0x1000
 KERNEL_STAGE3_POSITION = 0xc0000000
-QEMU_I386 = /Users/nikitamelehin/Develop/qemu-4.2.1/i386-softmmu/qemu-system-i386
-QEMU = ${QEMU_I386}
-DISK = one.img
 
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUGDB = -s
