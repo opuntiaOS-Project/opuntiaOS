@@ -7,7 +7,6 @@
  */
 
 #include <algo/bitmap.h>
-#include <drivers/x86/display.h>
 #include <errno.h>
 #include <mem/kmalloc.h>
 

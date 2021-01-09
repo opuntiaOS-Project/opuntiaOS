@@ -12,14 +12,14 @@
 #include <io/tty/tty.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <platform/x86/gdt.h>
+#include <platform/x86/idt.h>
+#include <platform/x86/system.h>
+#include <platform/x86/tss.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 #include <utils/kassert.h>
-#include <platform/x86/registers.h>
-#include <platform/x86/gdt.h>
-#include <platform/x86/idt.h>
-#include <platform/x86/tss.h>
 
 #define TASKING_DEBUG
 
@@ -34,7 +34,7 @@ uint32_t nxt_proc;
 /* switching the page dir and tss to the current proc */
 void switchuvm(thread_t* thread)
 {
-    disable_intrs();
+    system_disable_interrupts();
     if (RUNNIG_THREAD) {
         fpu_save(RUNNIG_THREAD->fpu_state);
     }
@@ -47,7 +47,7 @@ void switchuvm(thread_t* thread)
     fpu_restore(thread->fpu_state);
     ltr(SEG_TSS << 3);
     vmm_switch_pdir(thread->process->pdir);
-    enable_intrs();
+    system_enable_interrupts();
 }
 
 /**
@@ -56,7 +56,7 @@ void switchuvm(thread_t* thread)
  */
 void _tasking_jumper()
 {
-    enable_intrs();
+    system_enable_interrupts();
     return;
 }
 

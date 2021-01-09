@@ -1,11 +1,12 @@
-#include <platform/x86/isr_handler.h>
+#include <log.h>
 #include <mem/vmm/vmm.h>
+#include <platform/x86/isr_handler.h>
+#include <platform/x86/registers.h>
+#include <platform/x86/system.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 #include <utils/kassert.h>
-#include <platform/x86/registers.h>
-#include <log.h>
 
 static const char* exception_messages[32] = {
     "Division by zero",
@@ -44,9 +45,9 @@ static const char* exception_messages[32] = {
 
 void isr_handler(trapframe_t* tf)
 {
-    disable_intrs();
-    
-    proc_t* p = 0; 
+    system_disable_interrupts();
+
+    proc_t* p = 0;
     if (likely(RUNNIG_THREAD)) {
         p = RUNNIG_THREAD->process;
         if (RUNNIG_THREAD->process->is_kthread) {
@@ -78,5 +79,5 @@ void isr_handler(trapframe_t* tf)
 
     /* We are leaving interrupt, and later interrupts will be on,
        when flags are restored */
-    enable_intrs_only_counter();
+    system_enable_interrupts_only_counter();
 }

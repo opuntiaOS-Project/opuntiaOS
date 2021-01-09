@@ -6,14 +6,13 @@
  * Free Software Foundation.
  */
 
-#include <drivers/x86/display.h>
 #include <errno.h>
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/x86/memmap.h>
-#include <platform/x86/registers.h>
+#include <platform/x86/system.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
 
@@ -67,11 +66,6 @@ static int _vmm_copy_page_to_resolve_cow(uint32_t vaddr, ptable_t* src_ptable);
 
 static bool _vmm_is_zeroing_on_demand(uint32_t vaddr);
 static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr);
-
-inline static void _vmm_flush_tlb();
-inline static void _vmm_flush_tlb_entry(uint32_t vaddr);
-inline static void _vmm_enable_write_protect();
-inline static void _vmm_disable_write_protect();
 
 static int _vmm_self_test();
 
@@ -224,12 +218,10 @@ inline static void* _vmm_alloc_kernel_block()
 static bool _vmm_init_switch_to_kernel_pdir()
 {
     _vmm_active_pdir = _vmm_kernel_pdir;
-    disable_intrs();
+    system_disable_interrupts();
     /* Should have :Memory here? */
-    asm volatile("mov %%eax, %%cr3"
-                 :
-                 : "a"((uint32_t)_vmm_kernel_convert_vaddr2paddr((uint32_t)_vmm_active_pdir)));
-    enable_intrs();
+    system_set_pdir((uint32_t)_vmm_kernel_convert_vaddr2paddr((uint32_t)_vmm_active_pdir));
+    system_enable_interrupts();
     return true;
 }
 
@@ -437,7 +429,7 @@ int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings)
     log("Page mapped %x in pdir: %x", vaddr, vmm_get_active_pdir());
 #endif
 
-    _vmm_flush_tlb_entry(vaddr);
+    system_flush_tlb_entry(vaddr);
 
     return 0;
 }
@@ -458,7 +450,7 @@ int vmm_unmap_page(uint32_t vaddr)
     page_desc_del_attrs(page, PAGE_DESC_PRESENT);
     page_desc_del_attrs(page, PAGE_DESC_WRITABLE);
     page_desc_del_frame(page);
-    _vmm_flush_tlb_entry(vaddr);
+    system_flush_tlb_entry(vaddr);
 
     return 0;
 }
@@ -657,7 +649,7 @@ pdirectory_t* vmm_new_forked_user_pdir()
         }
     }
 
-    _vmm_flush_tlb();
+    system_flush_whole_tlb();
 
     return new_pdir;
 }
@@ -766,7 +758,7 @@ int vmm_tune_page(uint32_t vaddr, uint32_t settings)
         vmm_load_page(vaddr, settings);
     }
 
-    _vmm_flush_tlb_entry(vaddr);
+    system_flush_tlb_entry(vaddr);
     return 0;
 }
 
@@ -859,7 +851,7 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
             visited = true;
         }
         if (!visited) {
-            kprintf("\nWrite to not writable page");
+            log_error("Write to not writable page");
             return SHOULD_CRASH;
         }
     } else {
@@ -901,64 +893,31 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
  * CPU BASED FUNCTIONS
  */
 
-inline static void _vmm_flush_tlb()
-{
-    asm volatile("mov %%eax, %%cr3"
-                 :
-                 : "a"((uint32_t)_vmm_convert_vaddr2paddr((uint32_t)_vmm_active_pdir)));
-}
-
-inline static void _vmm_flush_tlb_entry(uint32_t vaddr)
-{
-    asm volatile("invlpg (%0)" ::"r"(vaddr)
-                 : "memory");
-}
-
-inline static void _vmm_enable_write_protect()
-{
-    asm volatile("mov %cr0, %eax");
-    asm volatile("or $0x10000, %eax");
-    asm volatile("mov %eax, %cr0");
-}
-
-inline static void _vmm_disable_write_protect()
-{
-    asm volatile("mov %cr0, %eax");
-    asm volatile("and $0xFFFEFFFF, %eax");
-    asm volatile("mov %eax, %cr0");
-}
-
 int vmm_switch_pdir(pdirectory_t* pdir)
 {
     if (((uint32_t)pdir & (VMM_PAGE_SIZE - 1)) != 0) {
         kpanic("vmm_switch_pdir: wrong pdir");
     }
 
-    disable_intrs();
+    system_disable_interrupts();
     if (_vmm_active_pdir == pdir) {
-        enable_intrs();
+        system_enable_interrupts();
         return 0;
     }
     _vmm_active_pdir = pdir;
-    asm volatile("mov %%eax, %%cr3"
-                 :
-                 : "a"((uint32_t)_vmm_convert_vaddr2paddr((uint32_t)pdir)));
-    enable_intrs();
+    system_set_pdir((uint32_t)_vmm_convert_vaddr2paddr((uint32_t)pdir));
+    system_enable_interrupts();
     return 0;
 }
 
 void vmm_enable_paging()
 {
-    asm volatile("mov %cr0, %eax");
-    asm volatile("or $0x80000000, %eax");
-    asm volatile("mov %eax, %cr0");
+    system_enable_paging();
 }
 
 void vmm_disable_paging()
 {
-    asm volatile("mov %cr0, %eax");
-    asm volatile("and $0x7FFFFFFF, %eax");
-    asm volatile("mov %eax, %cr0");
+    system_disable_paging();
 }
 
 /**

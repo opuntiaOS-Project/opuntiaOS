@@ -6,16 +6,10 @@
  * Free Software Foundation.
  */
 
-#include <drivers/x86/display.h>
+#include <utils/kassert.h>
 
 void kpanic(char* err_msg)
 {
-    clean_screen();
-    kprintf("*****\n");
-    kprintf("Kernel Panic\n");
-    kprintf("*****\n");
-    kprintf(err_msg);
-    kprintf("\n*****");
-    asm volatile("cli\n");
-    asm volatile("hlt\n");
+    log_error("Kpanic occured %s", err_msg);
+    system_stop();
 }

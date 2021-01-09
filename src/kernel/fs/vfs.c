@@ -7,7 +7,6 @@
  */
 
 #include <algo/dynamic_array.h>
-#include <drivers/x86/display.h>
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/sockets/socket.h>
@@ -420,13 +419,13 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 {
     if (dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
 #ifdef VFS_DEBUG
-        kprintf("[VFS] Already a mount point\n");
+        log("[VFS] Already a mount point\n");
 #endif
         return -EBUSY;
     }
     if (!dentry_inode_test_flag(mountpoint, S_IFDIR)) {
 #ifdef VFS_DEBUG
-        kprintf("[VFS] Not a dir\n");
+        log("[VFS] Not a dir\n");
 #endif
         return -ENOTDIR;
     }

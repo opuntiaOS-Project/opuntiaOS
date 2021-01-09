@@ -14,7 +14,7 @@
 #include <sys_handler.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <platform/x86/registers.h>
+#include <platform/x86/system.h>
 
 #define param1 (tf->ebx)
 #define param2 (tf->ecx)
@@ -77,7 +77,7 @@ static inline void set_return(trapframe_t* tf, uint32_t val)
 
 int ksyscall_impl(int sys_id, int a, int b, int c, int d)
 {
-    disable_intrs();
+    system_disable_interrupts();
     trapframe_t tf;
     tf.eax = sys_id;
     tf.ebx = a;
@@ -87,16 +87,16 @@ int ksyscall_impl(int sys_id, int a, int b, int c, int d)
     /* This hack has to be here, when a context switching happens
        during a syscall (e.g. when block occurs). The hack will start
        interrupts again after it has become a running thread. */
-    enable_intrs();
+    system_enable_interrupts();
     return tf.eax;
 }
 
 void sys_handler(trapframe_t* tf)
 {
-    disable_intrs();
+    system_disable_interrupts();
     void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
     callee(tf);
-    enable_intrs_only_counter();
+    system_enable_interrupts_only_counter();
 }
 
 void sys_restart_syscall(trapframe_t* tf)

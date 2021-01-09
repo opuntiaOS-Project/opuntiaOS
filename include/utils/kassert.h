@@ -9,23 +9,15 @@
 #ifndef __oneOS__UTILS__KASSERT_H
 #define __oneOS__UTILS__KASSERT_H
 
-#include <drivers/x86/display.h>
-#include <types.h>
 #include <log.h>
+#include <platform/x86/system.h>
+#include <types.h>
 
-#define ASSERT(x)                                                  \
-    if (unlikely(!(x))) {                                                    \
+#define ASSERT(x)                                              \
+    if (unlikely(!(x))) {                                      \
         log("kassert at line %d in %s\n", __LINE__, __FILE__); \
-        asm volatile("cli\n");                                     \
-        asm volatile("hlt\n");                                     \
+        system_stop();                                         \
     }
-
-#define BUG()                    \
-    asm volatile("ud2\n"         \
-                 "\t.word %c0\n" \
-                 "\t.long %c1\n" \
-                 :               \
-                 : "i"(__LINE__), "i"(__FILE__))
 
 void kpanic(char* msg);
 

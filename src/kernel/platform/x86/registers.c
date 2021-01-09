@@ -10,27 +10,6 @@
 
 #include <platform/x86/registers.h>
 
-static int depth_counter = 0;
-
-void disable_intrs()
-{
-    depth_counter++;
-    asm volatile("cli");
-}
-
-void enable_intrs()
-{
-    depth_counter--;
-    if (depth_counter == 0) {
-        asm volatile("sti");
-    }
-}
-
-void enable_intrs_only_counter()
-{
-    depth_counter--;
-}
-
 uint32_t read_cr2()
 {
     uint32_t val;

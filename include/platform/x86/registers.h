@@ -6,16 +6,13 @@
  * Free Software Foundation.
  */
 
-#ifndef __oneOS__X86__COMMON_H
-#define __oneOS__X86__COMMON_H
+#ifndef __oneOS__X86__REGS_H
+#define __oneOS__X86__REGS_H
 
 #include <types.h>
 
-void disable_intrs();
-void enable_intrs();
-void enable_intrs_only_counter();
 uint32_t read_cr2();
 uint32_t read_cr3();
 uint32_t read_esp();
 
-#endif /* __oneOS__X86__COMMON_H */
+#endif /* __oneOS__X86__REGS_H */
