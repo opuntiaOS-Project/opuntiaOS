@@ -8,14 +8,14 @@
 
 #include <drivers/x86/display.h>
 #include <errno.h>
-#include <platform/x86/memmap.h>
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
+#include <platform/x86/memmap.h>
+#include <platform/x86/registers.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
-#include <platform/x86/registers.h>
 
 // #define VMM_DEBUG
 
@@ -779,7 +779,6 @@ int vmm_tune_pages(uint32_t vaddr, uint32_t length, uint32_t settings)
     }
     return 0;
 }
-
 
 int vmm_load_page(uint32_t vaddr, uint32_t settings)
 {

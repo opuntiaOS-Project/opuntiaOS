@@ -9,10 +9,10 @@
 #ifndef __oneOS__MEM__VMM__VMM_H
 #define __oneOS__MEM__VMM__VMM_H
 
-#include <types.h>
 #include <mem/pmm.h>
-#include <mem/vmm/pte.h>
-#include <mem/vmm/pde.h>
+#include <platform/x86/vmm/pde.h>
+#include <platform/x86/vmm/pte.h>
+#include <types.h>
 
 #define KB (1024)
 #define MB (1024 * 1024)
@@ -61,8 +61,8 @@ enum VMM_PF_HANDLER {
 
 int vmm_setup();
 
-table_desc_t* vmm_pdirectory_lookup(pdirectory_t *t_pdir, uint32_t t_addr);
-page_desc_t* vmm_ptable_lookup(ptable_t *t_ptable, uint32_t t_addr);
+table_desc_t* vmm_pdirectory_lookup(pdirectory_t* t_pdir, uint32_t t_addr);
+page_desc_t* vmm_ptable_lookup(ptable_t* t_ptable, uint32_t t_addr);
 int vmm_allocate_ptable(uint32_t vaddr);
 int vmm_free_pdir(pdirectory_t* pdir);
 
@@ -87,7 +87,7 @@ int vmm_alloc_page(page_desc_t* page);
 int vmm_free_page(page_desc_t* page);
 int vmm_page_fault_handler(uint8_t info, uint32_t vaddr);
 
-int vmm_switch_pdir(pdirectory_t *pdir);
+int vmm_switch_pdir(pdirectory_t* pdir);
 void vmm_enable_paging();
 void vmm_disable_paging();
 

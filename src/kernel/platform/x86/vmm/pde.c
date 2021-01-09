@@ -6,7 +6,7 @@
  * Free Software Foundation.
  */
 
-#include <mem/vmm/pde.h>
+#include <platform/x86/vmm/pde.h>
 
 void table_desc_clear(table_desc_t* pde)
 {
