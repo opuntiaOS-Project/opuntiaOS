@@ -3,7 +3,7 @@
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/tasking.h>
-#include <platform/x86/tss.h>
+#include <platform/x86/tasking/tss.h>
 
 void _syscmd_init_vfs();
 

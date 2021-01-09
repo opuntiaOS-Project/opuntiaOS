@@ -12,10 +12,9 @@
 #include <io/tty/tty.h>
 #include <log.h>
 #include <mem/kmalloc.h>
-#include <platform/x86/gdt.h>
 #include <platform/x86/idt.h>
 #include <platform/x86/system.h>
-#include <platform/x86/tss.h>
+#include <platform/x86/tasking/switchvm.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
@@ -26,29 +25,6 @@
 cpu_t cpus[CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
 uint32_t nxt_proc;
-
-/**
- * CPU FUNCTIONS
- */
-
-/* switching the page dir and tss to the current proc */
-void switchuvm(thread_t* thread)
-{
-    system_disable_interrupts();
-    if (RUNNIG_THREAD) {
-        fpu_save(RUNNIG_THREAD->fpu_state);
-    }
-    gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
-    uint32_t esp0 = ((uint32_t)thread->tf + sizeof(trapframe_t));
-    tss.esp0 = esp0;
-    tss.ss0 = (SEG_KDATA << 3);
-    // tss.iomap_offset = 0xffff;
-    RUNNIG_THREAD = thread;
-    fpu_restore(thread->fpu_state);
-    ltr(SEG_TSS << 3);
-    vmm_switch_pdir(thread->process->pdir);
-    system_enable_interrupts();
-}
 
 /**
  * used to jump to trapend
@@ -132,7 +108,7 @@ void tasking_start_init_proc()
     p->pdir = vmm_new_user_pdir();
 
     if (proc_load(p, "/boot/init") < 0) {
-        kprintf("Failed to load init proc");
+        log_error("Failed to load init proc");
         while (1) { }
     }
 
@@ -164,9 +140,7 @@ void tasking_kill_dying()
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
         if (p->status == PROC_DYING) {
-            // kprintf("Kill dying %d", p->pid);
             proc_free(p);
-            // p->pid = 0;
             p->status = PROC_DEAD;
         }
     }
@@ -185,8 +159,8 @@ void tasking_fork(trapframe_t* tf)
     proc_copy_of(new_proc, RUNNIG_THREAD);
 
     /* setting output */
-    new_proc->main_thread->tf->eax = 0;
-    RUNNIG_THREAD->tf->eax = new_proc->pid;
+    set_syscall_result(new_proc->main_thread->tf, 0);
+    set_syscall_result(RUNNIG_THREAD->tf, new_proc->pid);
 
     new_proc->main_thread->status = THREAD_RUNNING;
 

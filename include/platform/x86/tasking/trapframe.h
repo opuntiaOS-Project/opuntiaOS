@@ -38,4 +38,34 @@ typedef struct {
     uint16_t padding6;
 } __attribute__((packed)) trapframe_t;
 
+static inline uint32_t get_stack_pointer(trapframe_t* tf)
+{
+    return tf->esp;
+}
+
+static inline uint32_t set_stack_pointer(trapframe_t* tf, uint32_t sp)
+{
+    tf->esp = sp;
+}
+
+static inline uint32_t get_instruction_pointer(trapframe_t* tf)
+{
+    return tf->eip;
+}
+
+static inline uint32_t set_instruction_pointer(trapframe_t* tf, uint32_t ip)
+{
+    tf->eip = ip;
+}
+
+static inline uint32_t get_syscall_result(trapframe_t* tf)
+{
+    return tf->eax;
+}
+
+static inline uint32_t set_syscall_result(trapframe_t* tf, uint32_t val)
+{
+    tf->eax = val;
+}
+
 #endif

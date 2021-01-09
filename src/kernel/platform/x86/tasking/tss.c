@@ -1,4 +1,4 @@
-#include <platform/x86/tss.h>
+#include <platform/x86/tasking/tss.h>
 #include <platform/x86/gdt.h>
 #include <mem/vmm/vmm.h>
 #include <mem/kmalloc.h>

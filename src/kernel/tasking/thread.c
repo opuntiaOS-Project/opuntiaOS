@@ -14,7 +14,7 @@
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <platform/x86/gdt.h>
-#include <platform/x86/tss.h>
+#include <platform/x86/tasking/tss.h>
 
 extern void trap_return();
 extern void _tasking_jumper();
@@ -161,7 +161,7 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
     int* tmp_buf_argv_ptr = (int*)((char*)tmp_buf_array_ptr - sizeof(char*));
     int* tmp_buf_argc_ptr = (int*)((char*)tmp_buf_argv_ptr - sizeof(int));
 
-    uint32_t data_esp = thread->tf->esp - argv_data_size;
+    uint32_t data_esp = get_stack_pointer(thread->tf) - argv_data_size;
     uint32_t array_esp = data_esp - (argc + 1) * sizeof(char*);
     uint32_t argv_esp = array_esp - 4;
     uint32_t argc_esp = argv_esp - 4;
@@ -173,16 +173,16 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
         memcpy(tmp_buf_ptr, argv[i], len);
         tmp_buf_ptr[len] = 0;
 
-        tmp_buf_array_ptr[i] = thread->tf->esp;
+        tmp_buf_array_ptr[i] = get_stack_pointer(thread->tf);
     }
     tmp_buf_array_ptr[argc] = 0;
 
     *tmp_buf_argv_ptr = array_esp;
     *tmp_buf_argc_ptr = argc;
 
-    thread->tf->esp = argc_esp;
+    set_stack_pointer(thread->tf, argc_esp);
 
-    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, thread->tf->esp, size_in_stack);
+    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, get_stack_pointer(thread->tf), size_in_stack);
 
     kfree(tmp_buf);
 
@@ -213,18 +213,18 @@ int thread_dump_frame(thread_t* thread)
     for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
         uint8_t byte = *(uint8_t*)i;
         uint32_t b32 = (uint32_t)byte;
-        kprintf("%x - %x\n", i, b32);
+        log("%x - %x\n", i, b32);
     }
 }
 
 int thread_print_backtrace()
 {
     int id = 1;
-    log("# %d : %x", id++, RUNNIG_THREAD->tf->eip);
-    if (RUNNIG_THREAD->tf->eip <= 0xa) { // for now it's ok)
+    log("# %d : %x", id++, get_instruction_pointer(RUNNIG_THREAD->tf));
+    if (get_instruction_pointer(RUNNIG_THREAD->tf) <= 0xa) { // for now it's ok)
         return 0;
     }
-    uint32_t* stack = (uint32_t*)RUNNIG_THREAD->tf->ebp;
+    uint32_t* stack = (uint32_t*)get_stack_pointer(RUNNIG_THREAD->tf);
     for (; (uint32_t)stack > 0 && (uint32_t)stack <= 0xc0000000; stack = (uint32_t*)*stack) {
         log("# %d : %x", id++, stack[1]);
         if (stack[1] <= 0xa) { // for now it's ok)

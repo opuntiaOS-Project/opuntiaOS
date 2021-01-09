@@ -3,7 +3,7 @@
 
 #include <platform/x86/pic.h>
 #include <platform/x86/port.h>
-#include <platform/x86/trapframe.h>
+#include <platform/x86/tasking/trapframe.h>
 #include <types.h>
 
 #define INIT_CODE_SEG 0x08
