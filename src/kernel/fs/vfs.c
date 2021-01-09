@@ -7,7 +7,7 @@
  */
 
 #include <algo/dynamic_array.h>
-#include <drivers/display.h>
+#include <drivers/x86/display.h>
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/sockets/socket.h>

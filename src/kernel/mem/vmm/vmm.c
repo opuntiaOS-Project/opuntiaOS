@@ -6,16 +6,16 @@
  * Free Software Foundation.
  */
 
-#include <drivers/display.h>
+#include <drivers/x86/display.h>
 #include <errno.h>
-#include <global.h>
+#include <platform/x86/memmap.h>
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
-#include <x86/common.h>
+#include <platform/x86/registers.h>
 
 // #define VMM_DEBUG
 
@@ -224,12 +224,12 @@ inline static void* _vmm_alloc_kernel_block()
 static bool _vmm_init_switch_to_kernel_pdir()
 {
     _vmm_active_pdir = _vmm_kernel_pdir;
-    cli();
+    disable_intrs();
     /* Should have :Memory here? */
     asm volatile("mov %%eax, %%cr3"
                  :
                  : "a"((uint32_t)_vmm_kernel_convert_vaddr2paddr((uint32_t)_vmm_active_pdir)));
-    sti();
+    enable_intrs();
     return true;
 }
 
@@ -935,16 +935,16 @@ int vmm_switch_pdir(pdirectory_t* pdir)
         kpanic("vmm_switch_pdir: wrong pdir");
     }
 
-    cli();
+    disable_intrs();
     if (_vmm_active_pdir == pdir) {
-        sti();
+        enable_intrs();
         return 0;
     }
     _vmm_active_pdir = pdir;
     asm volatile("mov %%eax, %%cr3"
                  :
                  : "a"((uint32_t)_vmm_convert_vaddr2paddr((uint32_t)pdir)));
-    sti();
+    enable_intrs();
     return 0;
 }
 

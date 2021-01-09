@@ -1,6 +1,6 @@
-#include <drivers/display.h>
-#include <drivers/pit.h>
-#include <drivers/rtc.h>
+#include <drivers/x86/display.h>
+#include <drivers/x86/pit.h>
+#include <drivers/x86/rtc.h>
 #include <log.h>
 #include <time/time_manager.h>
 

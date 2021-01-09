@@ -6,7 +6,7 @@
  * Free Software Foundation.
  */
 
-#include <drivers/display.h>
+#include <drivers/x86/display.h>
 
 void kpanic(char* err_msg)
 {

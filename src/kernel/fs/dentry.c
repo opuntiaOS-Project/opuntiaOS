@@ -7,14 +7,14 @@
  */
 
 #include <algo/dynamic_array.h>
-#include <drivers/display.h>
+#include <drivers/x86/display.h>
 #include <fs/vfs.h>
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <sys_handler.h>
 #include <utils/kassert.h>
 #include <utils/mem.h>
-#include <x86/common.h>
+#include <platform/x86/registers.h>
 
 // #define DENTRY_DEBUG
 
@@ -221,9 +221,9 @@ void dentry_flusher()
             int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);
             for (int i = 0; i < dentries_in_block; i++) {
                 if (dentry_cache_block->data[i].inode_indx != 0) {
-                    cli();
+                    disable_intrs();
                     dentry_flush_inode(&dentry_cache_block->data[i]);
-                    sti();
+                    enable_intrs();
                 }
             }
             dentry_cache_block = dentry_cache_block->next;

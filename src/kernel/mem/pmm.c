@@ -1,5 +1,5 @@
 #include <mem/pmm.h>
-#include <global.h>
+#include <platform/x86/memmap.h>
 
 // [Privates Prototypes]
 uint32_t _pmm_round_floor(uint32_t t_value);

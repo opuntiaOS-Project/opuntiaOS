@@ -16,8 +16,8 @@
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <utils/kassert.h>
-#include <x86/gdt.h>
-#include <x86/tss.h>
+#include <platform/x86/gdt.h>
+#include <platform/x86/tss.h>
 
 static int proc_next_pid = 1;
 

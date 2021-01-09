@@ -6,7 +6,7 @@
  * Free Software Foundation.
  */
 
-#include <drivers/display.h>
+#include <drivers/x86/display.h>
 #include <errno.h>
 #include <io/sockets/local_socket.h>
 #include <log.h>

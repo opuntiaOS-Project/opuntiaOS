@@ -1,4 +1,4 @@
-#include <drivers/uart.h>
+#include <drivers/x86/uart.h>
 #include <log.h>
 
 static void _log_string(const char* str)

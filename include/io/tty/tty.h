@@ -2,7 +2,7 @@
 #define __oneOS__TTY__TTY_H
 
 #include <algo/ringbuffer.h>
-#include <drivers/keyboard.h>
+#include <drivers/x86/keyboard.h>
 #include <types.h>
 
 #define TTY_MAX_COUNT 8

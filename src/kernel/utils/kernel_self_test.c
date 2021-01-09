@@ -1,5 +1,5 @@
 #include <utils/kernel_self_test.h>
-#include <drivers/display.h>
+#include <drivers/x86/display.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 

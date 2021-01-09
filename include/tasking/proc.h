@@ -15,7 +15,7 @@
 #include <mem/vmm/zoner.h>
 #include <io/tty/tty.h>
 #include <types.h>
-#include <x86/idt.h>
+#include <platform/x86/idt.h>
 
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16

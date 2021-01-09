@@ -6,21 +6,21 @@
  * Free Software Foundation.
  */
 
-#include <x86/common.h>
-#include <x86/gdt.h>
-#include <x86/idt.h>
-#include <x86/pci.h>
+#include <platform/x86/registers.h>
+#include <platform/x86/gdt.h>
+#include <platform/x86/idt.h>
+#include <drivers/x86/pci.h>
 
 #include <types.h>
 
-#include <drivers/ata.h>
-#include <drivers/bga.h>
-#include <drivers/display.h>
+#include <drivers/x86/ata.h>
+#include <drivers/x86/bga.h>
+#include <drivers/x86/display.h>
 #include <drivers/driver_manager.h>
-#include <drivers/fpu.h>
-#include <drivers/ide.h>
-#include <drivers/mouse.h>
-#include <drivers/pit.h>
+#include <drivers/x86/fpu.h>
+#include <drivers/x86/ide.h>
+#include <drivers/x86/mouse.h>
+#include <drivers/x86/pit.h>
 
 #include <mem/kmalloc.h>
 #include <mem/pmm.h>
@@ -108,7 +108,7 @@ void stage3(mem_desc_t* mem_desc)
     scheduler_init();
 
     syscmd_init();
-    cli();
+    disable_intrs();
     clean_screen();
     tasking_create_kernel_thread(launching);
     resched(); /* Starting a scheduler */

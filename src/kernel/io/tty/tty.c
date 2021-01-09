@@ -1,6 +1,6 @@
-#include <drivers/display.h>
-#include <drivers/keyboard.h>
-#include <drivers/pit.h>
+#include <drivers/x86/display.h>
+#include <drivers/x86/keyboard.h>
+#include <drivers/x86/pit.h>
 #include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>

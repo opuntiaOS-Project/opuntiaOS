@@ -14,7 +14,7 @@
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 #include <utils/kassert.h>
-#include <x86/common.h>
+#include <platform/x86/registers.h>
 
 #define MAGIC_STATE_JUST_TF 0xfeed3eee
 #define MAGIC_STATE_NEW_STACK 0xea12002a
@@ -122,7 +122,7 @@ int signal_rem_pending(thread_t* thread, int signo)
 extern int _thread_setup_kstack(thread_t* thread, uint32_t esp);
 static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
 {
-    cli();
+    disable_intrs();
     pdirectory_t* prev_pdir = vmm_get_active_pdir();
     vmm_switch_pdir(thread->process->pdir);
 
@@ -174,7 +174,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     signal_push_to_user_stack(thread, 0); /* fake return address */
 
     vmm_switch_pdir(prev_pdir);
-    sti();
+    enable_intrs();
     return 0;
 }
 

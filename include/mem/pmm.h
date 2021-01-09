@@ -2,8 +2,8 @@
 #define __oneOS__MEM__PMM_H
 
 #include <types.h>
-#include <global.h>
-#include <drivers/display.h>
+#include <platform/x86/memmap.h>
+#include <drivers/x86/display.h>
 
 #define MEMORY_MAP_REGION 0xA00
 #define PMM_BLOCK_SIZE (4096)

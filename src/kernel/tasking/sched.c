@@ -12,7 +12,7 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <utils/kassert.h>
-#include <x86/common.h>
+#include <platform/x86/registers.h>
 
 // #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT

@@ -15,7 +15,7 @@
 #include <tasking/proc.h>
 #include <tasking/thread.h>
 #include <types.h>
-#include <x86/idt.h>
+#include <platform/x86/idt.h>
 
 #define CPU_CNT 1
 #define THIS_CPU (&cpus[0])

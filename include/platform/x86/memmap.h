@@ -1,0 +1,9 @@
+#ifndef __oneOS__X86__MEMMAP_H
+#define __oneOS__X86__MEMMAP_H
+
+#define KERNEL_PM_BASE 0x100000
+#define KERNEL_BASE 0xc0000000
+#define BIOS_SETTING_BASE 0xffc00000
+#define KMALLOC_BASE (KERNEL_BASE + 0x400000)
+
+#endif // __oneOS__X86__MEMMAP_H

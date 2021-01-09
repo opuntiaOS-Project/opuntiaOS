@@ -9,7 +9,7 @@
 #ifndef __oneOS__UTILS__KASSERT_H
 #define __oneOS__UTILS__KASSERT_H
 
-#include <drivers/display.h>
+#include <drivers/x86/display.h>
 #include <types.h>
 #include <log.h>
 

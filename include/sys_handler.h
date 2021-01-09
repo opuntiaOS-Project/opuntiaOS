@@ -1,10 +1,9 @@
 #ifndef __oneOS__INTERRUPTS__SYS_HANDLER_H
 #define __oneOS__INTERRUPTS__SYS_HANDLER_H
 
-#include <drivers/display.h>
 #include <syscall_structs.h>
 #include <types.h>
-#include <x86/idt.h>
+#include <platform/x86/idt.h>
 
 #define SYSCALL 0x80
 

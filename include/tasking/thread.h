@@ -9,12 +9,12 @@
 #ifndef __oneOS__X86__TASKING__THREAD_H
 #define __oneOS__X86__TASKING__THREAD_H
 
-#include <drivers/fpu.h>
+#include <drivers/x86/fpu.h>
 #include <fs/vfs.h>
 #include <tasking/signal.h>
 #include <time/time_manager.h>
 #include <types.h>
-#include <x86/idt.h>
+#include <platform/x86/idt.h>
 
 typedef struct {
     uint32_t edi;

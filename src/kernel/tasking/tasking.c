@@ -6,7 +6,7 @@
  * Free Software Foundation.
  */
 
-#include <drivers/fpu.h>
+#include <drivers/x86/fpu.h>
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
@@ -16,10 +16,10 @@
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 #include <utils/kassert.h>
-#include <x86/common.h>
-#include <x86/gdt.h>
-#include <x86/idt.h>
-#include <x86/tss.h>
+#include <platform/x86/registers.h>
+#include <platform/x86/gdt.h>
+#include <platform/x86/idt.h>
+#include <platform/x86/tss.h>
 
 #define TASKING_DEBUG
 
@@ -34,7 +34,7 @@ uint32_t nxt_proc;
 /* switching the page dir and tss to the current proc */
 void switchuvm(thread_t* thread)
 {
-    cli();
+    disable_intrs();
     if (RUNNIG_THREAD) {
         fpu_save(RUNNIG_THREAD->fpu_state);
     }
@@ -47,7 +47,7 @@ void switchuvm(thread_t* thread)
     fpu_restore(thread->fpu_state);
     ltr(SEG_TSS << 3);
     vmm_switch_pdir(thread->process->pdir);
-    sti();
+    enable_intrs();
 }
 
 /**
@@ -56,7 +56,7 @@ void switchuvm(thread_t* thread)
  */
 void _tasking_jumper()
 {
-    sti();
+    enable_intrs();
     return;
 }
 

@@ -12,8 +12,8 @@
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
-#include <x86/gdt.h>
-#include <x86/tss.h>
+#include <platform/x86/gdt.h>
+#include <platform/x86/tss.h>
 
 extern void trap_return();
 extern void _tasking_jumper();
