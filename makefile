@@ -4,19 +4,14 @@
 
 # --- Init ------------------------------------------------------------------ #
 
-include makefile.configs
+PLATFORM = ${ONEOS_TARGET}
+MAKEFILES = build/${PLATFORM}
 PYTHON3 = python3
 
-C_COMPILE_FLAGS += -ffreestanding
-C_INCLUDES += -I./include 
-C_DEBUG_FLAGS += -ggdb
-C_WARNING_FLAGS += -Werror -Wno-address-of-packed-member
-ASM_KERNEL_FLAGS = -f elf
-LD_KERNEL_FLAGS = -T link.ld --oformat elf32-i386
+include ${MAKEFILES}/${PLATFORM}.configs
+include build/makefile.configs
 
-# OS RUN CONFIG
-KERNEL_STAGE2_POSITION = 0x1000
-KERNEL_STAGE3_POSITION = 0xc0000000
+include ${MAKEFILES}/consts.make
 
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
 QEMUGDB = -s
@@ -24,91 +19,11 @@ CONNECTION_COMPILER = utils/ConnectionCompiler
 
 QUIET = @
 
-all: products/os-image.bin products/kernel.bin apps
+all: kernel apps
+run: run_${PLATFORM}
+debug: debug_${PLATFORM}
 
-# --- Stage1 ---------------------------------------------------------------- #
-
-products/boot.bin: src/boot/x86/stage1/boot.s
-	@mkdir -p products
-	${ASM} $< -f bin -o $@
-
-# --- Stage2 ---------------------------------------------------------------- #
-
-STAGE2_PATH = src/boot/x86/stage2
-
-STAGE2_C_SRC = $(wildcard \
-					src/boot/x86/stage2/*.c \
-					src/boot/x86/stage2/*/*.c \
-					src/boot/x86/stage2/*/*/*.c \
-					src/boot/x86/stage2/*/*/*/*.c )
-STAGE2_S_SRC = $(wildcard \
-					src/boot/x86/stage2/*.s \
-					src/boot/x86/stage2/*/*.s \
-					src/boot/x86/stage2/*/*/*.s \
-					src/boot/x86/stage2/*/*/*/*.s )
-
-STAGE2_HEADERS = $(wildcard include/*.h)
-STAGE2_C_OBJ = ${STAGE2_C_SRC:.c=.o}
-STAGE2_S_OBJ = ${STAGE2_S_SRC:.s=.o}
-STAGE2_C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS}
-
-products/stage2.bin: products/stage2_entry.o ${STAGE2_C_OBJ} ${STAGE2_S_OBJ}
-	@mkdir -p products
-	@echo "$(notdir $(CURDIR)): LD_S2 $@"
-	${QUIET} ${LD} -o $@ -Ttext ${KERNEL_STAGE2_POSITION} $^ --oformat binary
-
-products/stage2_entry.o: src/boot/x86/stage2_entry.s
-	@mkdir -p products
-	@echo "$(notdir $(CURDIR)): S2_ENTRY_ASM $@"
-	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
-
-${STAGE2_PATH}/%.o: ${STAGE2_PATH}/%.c
-	@echo "$(notdir $(CURDIR)): CC2 $<"
-	${QUIET} ${CC}  -c $< -o $@ ${STAGE2_C_FLAGS}
-
-${STAGE2_PATH}/%.o: ${STAGE2_PATH}/%.s
-	@echo "$(notdir $(CURDIR)): ASM2 $@"
-	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
-
-# --- Kernel ---------------------------------------------------------------- #
-
-KERNEL_PATH = src/kernel
-
-KERNEL_C_SRC = $(wildcard \
-					src/kernel/*.c \
-					src/kernel/*/*.c \
-					src/kernel/*/*/*.c \
-					src/kernel/*/*/*/*.c )
-KERNEL_S_SRC = $(wildcard \
-					src/kernel/*.s \
-					src/kernel/*/*.s \
-					src/kernel/*/*/*.s \
-					src/kernel/*/*/*/*.s )
-
-
-KERNEL_HEADERS = $(shell find include -name "*.h")
-KERNEL_C_OBJ = ${KERNEL_C_SRC:.c=.o}
-KERNEL_S_OBJ = ${KERNEL_S_SRC:.s=.o}
-
-C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS} ${C_INCLUDES}
-
-products/kernel.bin: products/stage3_entry.o ${KERNEL_C_OBJ} ${KERNEL_S_OBJ}
-	@mkdir -p products
-	@echo "$(notdir $(CURDIR)): LD $@"
-	${QUIET} ${LD} -o $@ $^ ${LD_KERNEL_FLAGS}
-
-products/stage3_entry.o: src/boot/x86/stage3_entry.s
-	@mkdir -p products
-	@echo "$(notdir $(CURDIR)): S3_ENTRY_ASM $@"
-	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
-
-${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.c ${KERNEL_HEADERS}
-	@echo "$(notdir $(CURDIR)): CC $@"
-	${QUIET} ${CC} -c $< -o $@ -Os ${C_FLAGS}
-
-${KERNEL_PATH}/%.o: ${KERNEL_PATH}/%.s
-	@echo "$(notdir $(CURDIR)): ASM $@"
-	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
+include ${MAKEFILES}/kernel.make
 
 # --- Lib ------------------------------------------------------------------- #
 
@@ -308,18 +223,17 @@ $(foreach app, $(APPS), $(eval $(call APP_TEMPLATE,$(app))))
 apps: $(APPS_BINARIES) $(SERVERS)
 	echo $(CAT_LIBSLIST)
 
-debug/kernel.dis: products/kernel.bin
-	ndisasm -b 32 $< > $@
+run_x86: products/os-image.bin ${DISK}
+	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=${DISK},if=none -device ide-drive,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std
 
-products/os-image.bin: products/boot.bin products/stage2.bin
-	@mkdir -p products
-	cat $^ > $@
+debug_x86: products/os-image.bin ${DISK}
+	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=${DISK},if=none -device ide-drive,drive=disk,bus=ide.0 -S $(QEMUGDB) -serial mon:stdio -rtc base=utc -vga std
 
-run: products/os-image.bin ${DISK}
-	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std
+run_aarch32: ${DISK}
+	${QEMU} -M vexpress-a15 -cpu cortex-a15 -kernel products/kernel.bin -serial mon:stdio -vga std -sd ${DISK}
 
-debug: products/os-image.bin ${DISK}
-	${QEMU} -m 256M -fda $< -device piix3-ide,id=ide -drive id=disk,file=one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -S $(QEMUGDB) -serial mon:stdio -rtc base=utc -vga std
+debug_aarch32: ${DISK}
+	${QEMU} -M vexpress-a15 -cpu cortex-a15 -kernel products/kernel.bin -serial mon:stdio -vga std -sd ${DISK} -S $(QEMUGDB)
 
 clean:
 	rm -rf products/*.bin products/*.o debug/*.dis

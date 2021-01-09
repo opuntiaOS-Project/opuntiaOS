@@ -1,0 +1,11 @@
+# Sync config
+# SET YOUR PATHS HERE
+FUSE_EXT2 = fuse-ext2
+MKFS_LINUX = mkfs
+MKFS_MAC = /usr/local/opt/e2fsprogs/sbin/mkfs.ext2
+MKFS = ${MKFS_MAC}
+MOUNT_EXT2 = ${FUSE_EXT2}
+
+# oneOS boot config
+DISK = one.img
+BASE_DIR = base

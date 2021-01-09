@@ -1,0 +1,14 @@
+I686_ELF_GCC = i686-elf-gcc
+I686_ELF_G++ = i686-elf-g++
+I686_ELF_LD = i686-elf-ld
+I686_ELF_AR = i686-elf-ar
+I686_ASM = nasm
+
+QEMU_I386 = /Users/nikitamelehin/Develop/qemu-4.2.1/i386-softmmu/qemu-system-i386
+
+QEMU = ${QEMU_I386}
+CC = ${I686_ELF_GCC}
+C++ = ${I686_ELF_G++}
+LD = ${I686_ELF_LD}
+AR = ${I686_ELF_AR}
+ASM = ${I686_ASM}
