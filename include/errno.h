@@ -128,5 +128,6 @@
 
 #define ENOMEDIUM       123     /* No medium found */
 #define EMEDIUMTYPE     124     /* Wrong medium type */
+#define EBADARCH        125     /* Bad arch */
 
 #endif /* __oneOS__ERRNO_H */

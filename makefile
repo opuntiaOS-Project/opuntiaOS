@@ -162,7 +162,7 @@ ${WINDOW_SERVER_PATH}/%.o: ${WINDOW_SERVER_PATH}/%.cpp ${WINDOW_SERVER_IPC}
 
 $(WINDOW_SERVER): ${WINDOW_SERVER_IPC} $(WINDOW_SERVER_OBJ) $(CRTS) ${WINDOW_SERVER_DEPENDENCIES}
 	@echo "Window Server [LD]  $@"
-	$(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -Ttext 0x0 -o $@ --oformat binary ${WINDOW_SERVER_DEPENDENCIES} -Map ws.map
+	$(LD) $(CRTS) $(WINDOW_SERVER_OBJ) -o $@ ${WINDOW_SERVER_DEPENDENCIES} -Map ws.map
 	
 # --- Apps ------------------------------------------------------------------ #
 
@@ -194,7 +194,7 @@ $(1)_S_OBJECTS = $$(patsubst %.s,%.o,$$($(1)_S_SOURCES))
 $$($(1)_BINARY): $$($(1)_C_OBJECTS) $$($(1)_CPP_OBJECTS) $$($(1)_S_OBJECTS) $$(CRTS) $$($(1)_SRC_LIBSLIST)
 	@mkdir -p $(BASE_DIR)/$($(1)_INSTALL_PATH)
 	@echo "$($(1)_NAME) [LD]  $$@"
-	$(QUIET) $$(LD) $$(CRTS) $$($(1)_C_OBJECTS) $$($(1)_CPP_OBJECTS) $$($(1)_S_OBJECTS) -Ttext 0x0 -o $$@ --oformat binary $$($(1)_SRC_LIBSLIST)
+	$(QUIET) $$(LD) $$(CRTS) $$($(1)_C_OBJECTS) $$($(1)_CPP_OBJECTS) $$($(1)_S_OBJECTS) -o $$@ $$($(1)_SRC_LIBSLIST)
 
 # std compiler
 ${APPS_PATH}/$($(1)_NAME)/%.o: ${APPS_PATH}/$($(1)_NAME)/%.c

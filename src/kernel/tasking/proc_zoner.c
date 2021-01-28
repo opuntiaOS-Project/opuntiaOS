@@ -10,6 +10,7 @@
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
+#include <log.h>
 
 /**
  * PROC ZONING
@@ -20,6 +21,31 @@ static inline bool _proc_zones_intersect(uint32_t start1, uint32_t size1, uint32
     uint32_t end1 = start1 + size1 - 1;
     uint32_t end2 = start2 + size2 - 1;
     return (start1 <= start2 && start2 <= end1) || (start1 <= end2 && end2 <= end1) || (start2 <= start1 && start1 <= end2) || (start2 <= end1 && end1 <= end2);
+}
+
+static inline bool _proc_can_fixup_zone(proc_t* proc, uint32_t* start_ptr, int* len_ptr)
+{
+    uint32_t zones_count = proc->zones.size;
+
+    for (uint32_t i = 0; i < zones_count; i++) {
+        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
+        if (_proc_zones_intersect(*start_ptr, *len_ptr, zone->start, zone->len)) {
+            if (*start_ptr > zone->start) {
+                int move = (zone->start + zone->len) - (*start_ptr);
+                *start_ptr += move;
+                *len_ptr -= move;
+            } else {
+                int move = (*start_ptr + *len_ptr) - zone->start;
+                *len_ptr -= move;
+            }
+
+            if (*len_ptr <= 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 static inline bool _proc_can_add_zone(proc_t* proc, uint32_t start, uint32_t len)
@@ -36,8 +62,37 @@ static inline bool _proc_can_add_zone(proc_t* proc, uint32_t start, uint32_t len
     return true;
 }
 
+/**
+ * Inserts zone, which won't overlap with existing ones.
+ */
+proc_zone_t* proc_extend_zone(proc_t* proc, uint32_t start, uint32_t len)
+{
+    len += (start & (VMM_PAGE_SIZE - 1));
+    start &= ~(VMM_PAGE_SIZE - 1);
+    if (len % VMM_PAGE_SIZE) {
+        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
+    }
+
+    proc_zone_t new_zone;
+    new_zone.type = 0;
+    new_zone.flags = ZONE_USER;
+
+    if (_proc_can_fixup_zone(proc, &start, &len)) {
+        new_zone.start = start;
+        new_zone.len = len;
+        if (dynamic_array_push(&proc->zones, &new_zone) != 0) {
+            return 0;
+        }
+        return (proc_zone_t*)dynamic_array_get(&proc->zones, proc->zones.size - 1);
+    }
+
+    return 0;
+}
+
 proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
 {
+    len += (start & (VMM_PAGE_SIZE - 1));
+    start &= ~(VMM_PAGE_SIZE - 1);
     if (len % VMM_PAGE_SIZE) {
         len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
     }

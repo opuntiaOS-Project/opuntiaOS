@@ -6,16 +6,16 @@
  * Free Software Foundation.
  */
 
-#ifndef __oneOS__X86__TASKING__PROC_H
-#define __oneOS__X86__TASKING__PROC_H
+#ifndef __oneOS__TASKING__PROC_H
+#define __oneOS__TASKING__PROC_H
 
 #include <algo/dynamic_array.h>
 #include <fs/vfs.h>
+#include <io/tty/tty.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <io/tty/tty.h>
-#include <types.h>
 #include <platform/x86/idt.h>
+#include <types.h>
 
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16
@@ -31,6 +31,7 @@ enum ZONE_FLAGS {
 };
 
 enum ZONE_TYPES {
+    ZONE_TYPE_NULL = 0x0,
     ZONE_TYPE_CODE = 0x1,
     ZONE_TYPE_DATA = 0x2,
     ZONE_TYPE_STACK = 0x4,
@@ -100,7 +101,6 @@ int kthread_setup_regs(proc_t* p, void* entry_point);
 void kthread_setup_segment_regs(proc_t* p);
 int kthread_free(proc_t* p);
 
-
 int proc_load(proc_t* p, const char* path);
 int proc_copy_of(proc_t* new_proc, struct thread* from_thread);
 
@@ -120,8 +120,9 @@ int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd);
  */
 
 proc_zone_t* proc_new_zone(proc_t* p, uint32_t start, uint32_t len);
+proc_zone_t* proc_extend_zone(proc_t* proc, uint32_t start, uint32_t len);
 proc_zone_t* proc_new_random_zone(proc_t* p, uint32_t len);
 proc_zone_t* proc_new_random_zone_backward(proc_t* p, uint32_t len);
 proc_zone_t* proc_find_zone(proc_t* p, uint32_t addr);
 
-#endif // __oneOS__X86__TASKING__PROC_H
+#endif // __oneOS__TASKING__PROC_H

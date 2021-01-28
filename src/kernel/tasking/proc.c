@@ -11,13 +11,14 @@
 #include <io/tty/tty.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <platform/x86/gdt.h>
+#include <platform/x86/tasking/tss.h>
 #include <syscall_structs.h>
+#include <tasking/elf.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <utils/kassert.h>
-#include <platform/x86/gdt.h>
-#include <platform/x86/tasking/tss.h>
 
 static int proc_next_pid = 1;
 
@@ -142,7 +143,6 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
                     vfs_open(from_proc->fds[i].dentry, fd, from_proc->fds[i].flags);
                 }
             }
-            
         }
     }
 
@@ -156,7 +156,6 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
 static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
 {
     uint32_t code_size = fd->dentry->inode->size;
-    log("Load with size %x", code_size);
     proc_zone_t* code_zone = proc_new_random_zone(p, code_size);
     code_zone->type = ZONE_TYPE_CODE;
     code_zone->flags |= ZONE_READABLE | ZONE_EXECUTABLE;
@@ -182,9 +181,6 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     thread_set_stack(main_thread, stack_zone->start + VMM_PAGE_SIZE, stack_zone->start + VMM_PAGE_SIZE);
     thread_set_eip(main_thread, code_zone->start);
 
-    if (code_size == 0x135C) {
-        thread_set_eip(main_thread, 0x80);
-    }
     kfree(prog);
 
     return 0;
@@ -207,7 +203,7 @@ int proc_load(proc_t* p, const char* path)
     pdirectory_t* new_pdir = vmm_new_user_pdir();
     vmm_switch_pdir(new_pdir);
     p->pdir = new_pdir;
-    int err = _proc_load_bin(p, &fd);
+    int err = elf_load(p, &fd);
 
     if (!err) {
         if (!p->cwd) {
@@ -215,6 +211,8 @@ int proc_load(proc_t* p, const char* path)
         }
         vmm_free_pdir(old_pdir);
     } else {
+        log_error("proc: elf loading");
+        while (1) {}
         p->pdir = old_pdir;
         vmm_switch_pdir(old_pdir);
         vmm_free_pdir(new_pdir);

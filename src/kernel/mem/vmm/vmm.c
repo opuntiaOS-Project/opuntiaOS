@@ -873,7 +873,7 @@ int vmm_page_fault_handler(uint8_t info, uint32_t vaddr)
 
                 if (zone->type == ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
                     zone->fd->offset = PAGE_START(vaddr) - zone->start;
-                    vfs_read(zone->fd, (uint8_t*)PAGE_START(vaddr), VMM_PAGE_SIZE);
+                    vfs_read(zone->fd, (void*)PAGE_START(vaddr), VMM_PAGE_SIZE);
                 }
             } else {
                 /* FIXME: Now we have a standard zone for kernel, but it's better to do the same thing as for user's pages */

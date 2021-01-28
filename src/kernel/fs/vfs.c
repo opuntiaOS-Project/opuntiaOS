@@ -296,18 +296,18 @@ bool vfs_can_write(file_descriptor_t* fd)
     return fd->ops->can_write(fd->dentry, fd->offset);
 }
 
-int vfs_read(file_descriptor_t* fd, uint8_t* buf, uint32_t len)
+int vfs_read(file_descriptor_t* fd, void* buf, uint32_t len)
 {
-    int read = fd->ops->read(fd->dentry, buf, fd->offset, len);
+    int read = fd->ops->read(fd->dentry, (uint8_t*)buf, fd->offset, len);
     if (read > 0) {
         fd->offset += read;
     }
     return read;
 }
 
-int vfs_write(file_descriptor_t* fd, uint8_t* buf, uint32_t len)
+int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
 {
-    int written = fd->ops->write(fd->dentry, buf, fd->offset, len);
+    int written = fd->ops->write(fd->dentry, (uint8_t*)buf, fd->offset, len);
     if (written > 0) {
         fd->offset += written;
     }
