@@ -1,0 +1,66 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+kernel_out_path = "base/boot"
+
+kernel_c_flags = [
+  "-ffreestanding",
+  "-Werror",
+  "-Wno-address-of-packed-member",
+]
+
+if (kernel_symbols) {
+  kernel_c_flags += [ "-ggdb" ]
+}
+
+if (optimize) {
+  kernel_c_flags += [ "-Os" ]
+}
+
+kernel_asm_flags = [
+  "-f",
+  "elf",
+]
+
+kernel_ld_flags = []
+
+if (target_cpu == "x86") {
+  kernel_ld_flags += [
+    "--oformat",
+    "elf32-i386",
+  ]
+}
+
+config("kernel_flags") {
+  cflags = kernel_c_flags
+  asmflags = kernel_asm_flags
+  ldflags = kernel_ld_flags
+  defines = [ "oneOS_kernel" ]
+}
+
+kernel_src = exec_script("get_kernel_files.py",
+                         [
+                           rebase_path("//src", root_build_dir),
+                           target_cpu,
+                         ],
+                         "list lines")
+
+linker_script = rebase_path("//build/$target_cpu/kernel_link.ld", root_build_dir)
+
+executable("kernel_build") {
+  output_name = "$kernel_out_path/kernel.bin"
+  sources = kernel_src
+
+  include_dirs = [ "//include" ]
+
+  configs = [ ":kernel_flags" ]
+  ldflags = [ "-T$linker_script" ]
+}
+
+group("kernel") {
+  deps = [
+    ":kernel_build",
+    "//build/boot:boot",
+  ]
+}

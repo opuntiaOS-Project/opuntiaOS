@@ -5,6 +5,7 @@
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
+#include <std/Dbg.h>
 #include <std/Vector.h>
 #include <syscalls.h>
 
@@ -34,7 +35,7 @@ public:
         return wait_for_answer(msg);
     }
 
-    UniquePtr<Message> wait_for_answer(const Message& msg) 
+    UniquePtr<Message> wait_for_answer(const Message& msg)
     {
         for (;;) {
             for (int i = 0; i < m_messages.size(); i++) {

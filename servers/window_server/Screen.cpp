@@ -8,7 +8,7 @@
 
 #include "Screen.h"
 #include "Compositor.h"
-#include <cstring.h>
+#include <string.h>
 #include <std/Utility.h>
 
 static Screen* s_the;

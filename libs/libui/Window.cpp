@@ -40,18 +40,35 @@ Window::Window(uint32_t width, uint32_t height, const LG::String& icon_path)
     App::the().set_window(this);
 }
 
+/**
+ * Sets title for the window.
+ *
+ * @param title A title to be set.
+ * @return The status of operation.
+ */
 bool Window::set_title(const LG::String& title)
 {
     SetTitleMessage msg(Connection::the().key(), id(), title);
     return App::the().connection().send_async_message(msg);
 }
 
+/**
+ * Sets frame style for the window.
+ *
+ * @param color A color to be set.
+ * @return The status of operation.
+ */
 bool Window::set_frame_style(const LG::Color& color)
 {
     SetBarStyleMessage msg(Connection::the().key(), id(), color.u32(), 0);
     return App::the().connection().send_async_message(msg);
 }
 
+/**
+ * Notifies the window server that the bitmap format of the window was changed.
+ *
+ * @return The status of operation.
+ */
 bool Window::did_format_change()
 {
     SetBufferMessage msg(Connection::the().key(), id(), buffer().id(), bitmap().format());

@@ -1,0 +1,26 @@
+import("//build/libs/TEMPLATE.gni")
+
+oneOS_static_library("libui") {
+  sources = [
+    "App.cpp",
+    "Button.cpp",
+    "ClientDecoder.cpp",
+    "Connection.cpp",
+    "Label.cpp",
+    "Responder.cpp",
+    "View.cpp",
+    "Window.cpp",
+  ]
+
+  include_dirs = [
+    "//libs/",
+    "//libs/libcxx/",
+  ]
+
+  deplibs = [
+    "//libs/libcxx:libcxx",
+    "//libs/libfoundation:libfoundation",
+    "//libs/libg:libg",
+  ]
+  configs = [ "//build/libs:libcxx_flags" ]
+}

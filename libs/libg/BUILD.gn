@@ -1,0 +1,23 @@
+import("//build/libs/TEMPLATE.gni")
+
+oneOS_static_library("libg") {
+  sources = [
+    "Color.cpp",
+    "Context.cpp",
+    "Font.cpp",
+    "ImageLoaders/PNGLoader.cpp",
+    "PixelBitmap.cpp",
+    "Rect.cpp",
+  ]
+
+  include_dirs = [
+    "//libs/",
+    "//libs/libcxx/",
+  ]
+
+  deplibs = [
+    "//libs/libcxx:libcxx",
+    "//libs/libfoundation:libfoundation",
+  ]
+  configs = [ "//build/libs:libcxx_flags" ]
+}

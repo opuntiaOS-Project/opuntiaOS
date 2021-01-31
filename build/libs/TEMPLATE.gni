@@ -1,0 +1,56 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+template("oneOS_static_library") {
+  assert(defined(invoker.sources),
+         "Need sources in $target_name to build static library")
+
+  lib_name = target_name
+  lib_build_name = lib_name + "_build"
+  compiled_lib_output_name_base = "$root_out_dir/tmp/libs/"
+  compiled_lib_output_name = compiled_lib_output_name_base + lib_name
+  final_lib_output_name = "$root_out_dir/base/libs/" + lib_name + ".a"
+  deplib_list = []
+  deplib_bulders_list = []
+
+  if (defined(invoker.deplibs)) {
+    foreach(i, invoker.deplibs) {
+      deplib_bulders_list += [ i + "_build" ]
+      deplib_list +=
+          [ compiled_lib_output_name_base + get_label_info(i, "name") + ".a" ]
+    }
+  }
+  deplib_list += [ compiled_lib_output_name + ".a" ]
+  deplib_bulders_list += [ "//libs/" + lib_name + ":" + lib_build_name ]
+
+  script_args = [ rebase_path("$final_lib_output_name", root_build_dir) ]
+  foreach(i, deplib_list) {
+    script_args += [ rebase_path(i, root_build_dir) ]
+  }
+
+  # Create a build rule to compile only a lib with unresolved references from other libs
+  static_library(lib_build_name) {
+    output_name = "tmp/libs/" + lib_name
+    sources = invoker.sources
+    forward_variables_from(invoker,
+                           [
+                             "include_dirs",
+                             "configs",
+                             "cflags",
+                             "cflags_c",
+                             "cflags_cc",
+                             "asmflags",
+                             "deps",
+                             "public_deps",
+                           ])
+  }
+
+  action(lib_name) {
+    script = "//build/libs/merge_libs.py"
+    inputs = deplib_list
+    outputs = [ "$final_lib_output_name" ]
+    deps = deplib_bulders_list
+    args = script_args
+  }
+}

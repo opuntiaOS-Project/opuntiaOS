@@ -1,0 +1,39 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+stage2_start = "0x1000"
+
+executable("stage2") {
+  output_name = "stage2.bin"
+  sources = [
+    "//src/boot/x86/stage2_entry.s",
+    "//src/boot/x86/stage2/drivers/ata.c",
+    "//src/boot/x86/stage2/drivers/display.c",
+    "//src/boot/x86/stage2/drivers/elf_lite.c",
+    "//src/boot/x86/stage2/drivers/ext2_lite.c",
+    "//src/boot/x86/stage2/drivers/port.c",
+    "//src/boot/x86/stage2/mem/vm.c",
+    "//src/boot/x86/stage2/stage2.c",
+  ]
+
+  include_dirs = [ "//include" ]
+
+  ldflags = [
+    "-Ttext",
+    "$stage2_start",
+    "--oformat",
+    "binary",
+  ]
+
+  cflags = [
+    "-ffreestanding",
+    "-Werror",
+    "-Wno-address-of-packed-member",
+  ]
+
+  asmflags = [
+    "-f",
+    "elf",
+  ]
+}

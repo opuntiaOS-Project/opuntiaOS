@@ -1,0 +1,53 @@
+ar = "i686-elf-ar"
+cc = "i686-elf-gcc"
+cxx = "i686-elf-g++"
+ld = "i686-elf-ld"
+asm = "nasm"
+
+toolchain("i686-gcc") {
+  tool("cc") {
+    depfile = "{{output}}.d"
+    command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+    depsformat = "gcc"
+    description = "CC {{output}}"
+    outputs =
+        [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+  }
+  tool("cxx") {
+    depfile = "{{output}}.d"
+    command = "$cxx -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+    depsformat = "gcc"
+    description = "CXX {{output}}"
+    outputs =
+        [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+  }
+  tool("asm") {
+    depfile = "{{output}}.d"
+    command = "$asm {{source}} -o {{output}} {{asmflags}}"
+    depsformat = "gcc"
+    description = "ASM {{output}}"
+    outputs =
+        [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+  }
+  tool("alink") {
+    command = "rm -f {{output}} && $ar rcs {{output}} {{inputs}}"
+    description = "AR {{output}}"
+    outputs =
+        [ "{{root_out_dir}}/{{target_output_name}}{{output_extension}}" ]
+    default_output_extension = ".a"
+    output_prefix = ""
+  }
+  tool("link") {
+    outputs = [ "{{root_out_dir}}/{{target_output_name}}{{output_extension}}" ]
+    command = "$ld {{inputs}} -o {{output}} {{ldflags}} {{solibs}} {{libs}}"
+    description = "LINK {{output}}"
+  }
+  tool("stamp") {
+    command = "touch {{output}}"
+    description = "STAMP {{output}}"
+  }
+  tool("copy") {
+    command = "ln -f {{source}} {{output}} 2>/dev/null || (rm -rf {{output}} && cp -af {{source}} {{output}})"
+    description = "COPY {{source}} {{output}}"
+  }
+}

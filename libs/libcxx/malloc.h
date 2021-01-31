@@ -1,8 +1,14 @@
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 #include <libc/malloc.h>
+#ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
 
 typedef unsigned long size_t;
 
@@ -52,3 +58,5 @@ inline T& create(Args&&... args)
     T* newobject = new T(args...);
     return *newobject;
 }
+
+#endif

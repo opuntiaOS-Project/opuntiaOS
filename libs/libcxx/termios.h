@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
-    #include <libc/termios.h>
+#endif
+#include <libc/termios.h>
+#ifdef __cplusplus
 }
+#endif

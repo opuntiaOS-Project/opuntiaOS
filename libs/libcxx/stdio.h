@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
-    #include <libc/stdio.h>
+#endif
+#include <libc/stdio.h>
+#ifdef __cplusplus
 }
+#endif

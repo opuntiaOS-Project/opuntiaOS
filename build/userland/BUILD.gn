@@ -1,0 +1,67 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+uland_c_flags = [
+  "-ffreestanding",
+  "-Werror",
+  "-Wno-address-of-packed-member",
+]
+
+if (userland_symbols) {
+  uland_c_flags += [ "-ggdb" ]
+}
+
+if (optimize) {
+  uland_c_flags += [ "-Os" ]
+}
+
+uland_cc_flags = [
+  "-std=c++17",
+  "-fno-sized-deallocation",
+  "-fno-rtti",
+  "-fno-exceptions",
+]
+
+uland_asm_flags = [
+  "-f",
+  "elf",
+]
+
+config("userland_flags") {
+  cflags = uland_c_flags
+  cflags_cc = uland_cc_flags
+  asmflags = uland_asm_flags
+  defines = [ "oneOS" ]
+}
+
+config("userland_c_includes") {
+  include_dirs = [
+    "//libs/",
+    "//libs/libc/",
+  ]
+}
+
+config("userland_cxx_includes") {
+  include_dirs = [
+    "//libs/",
+    "//libs/libcxx/",
+  ]
+}
+
+group("userland") {
+  deps = [
+    "//userland/about:about",
+    "//userland/dock:dock",
+    "//userland/init:init",
+    "//userland/initgui:initgui",
+    "//userland/ls:ls",
+    "//userland/mkdir:mkdir",
+    "//userland/onesh:onesh",
+    "//userland/rm:rm",
+    "//userland/rmdir:rmdir",
+    "//userland/terminal:terminal",
+    "//userland/touch:touch",
+    "//userland/utester:utester",
+  ]
+}

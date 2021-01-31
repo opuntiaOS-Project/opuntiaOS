@@ -19,13 +19,13 @@ void fpu_handler();
 void fpu_init();
 void fpu_reset_state(fpu_state_t* new_fpu_state);
 
-inline void fpu_save(fpu_state_t* fpu_state)
+static inline void fpu_save(fpu_state_t* fpu_state)
 {
     asm volatile("fxsave %0"
                  : "=m"(*fpu_state));
 }
 
-inline void fpu_restore(fpu_state_t* fpu_state)
+static inline void fpu_restore(fpu_state_t* fpu_state)
 {
     asm volatile("fxrstor %0"
                  :

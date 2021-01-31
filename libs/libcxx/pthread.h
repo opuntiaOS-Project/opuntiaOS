@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
-    #include <libc/pthread.h>
+#endif
+#include <libc/pthread.h>
+#ifdef __cplusplus
 }
+#endif

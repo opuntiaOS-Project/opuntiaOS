@@ -1,0 +1,31 @@
+import("//build/userland/TEMPLATE.gni")
+
+oneOS_executable("window_server") {
+  install_path = "bin/"
+  sources = [
+    "Button.cpp",
+    "Compositor.cpp",
+    "Connection.cpp",
+    "CursorManager.cpp",
+    "Devices.cpp",
+    "ResourceManager.cpp",
+    "Screen.cpp",
+    "WSServerDecoder.cpp",
+    "Window.cpp",
+    "WindowFrame.cpp",
+    "WindowManager.cpp",
+    "main.cpp",
+  ]
+
+  configs = [
+    "//build/userland:userland_flags",
+    "//build/userland:userland_cxx_includes",
+  ]
+
+  deplibs = [
+    "libcxx",
+    "libfoundation",
+    "libg",
+    "libui",
+  ]
+}

@@ -1,0 +1,20 @@
+import("//build/userland/TEMPLATE.gni")
+
+oneOS_executable("dock") {
+  install_path = "bin/"
+  sources = [
+    "DockView.cpp",
+    "DockWindow.cpp",
+    "main.cpp",
+  ]
+  configs = [
+    "//build/userland:userland_flags",
+    "//build/userland:userland_cxx_includes",
+  ]
+  deplibs = [
+    "libcxx",
+    "libfoundation",
+    "libg",
+    "libui",
+  ]
+}

@@ -7,7 +7,7 @@
  */
 
 #include "PNGLoader.h"
-#include <cstring.h>
+#include <string.h>
 #include <libfoundation/puff.h>
 #include <memory.h>
 #include <std/Dbg.h>

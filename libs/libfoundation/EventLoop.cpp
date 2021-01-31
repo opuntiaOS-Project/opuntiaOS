@@ -7,7 +7,7 @@
  */
 
 #include "EventLoop.h"
-#include <cstring.h>
+#include <string.h>
 #include <memory.h>
 #include <sys/time.h>
 #include <syscalls.h>

@@ -1,0 +1,24 @@
+import("//build/libs/TEMPLATE.gni")
+
+oneOS_static_library("libc") {
+  sources = [
+    # shared (with CXX)
+    "dirent/dirent.c",
+    "malloc.c",
+    "pthread.c",
+    "setjmp.s",
+    "stdio.c",
+    "string.c",
+    "syscalls.c",
+    "termios.c",
+
+    "../crt0.s",
+
+    # private
+    "private/_init.c",
+  ]
+
+  include_dirs = [ "." ]
+
+  configs = [ "//build/libs:lib_flags" ]
+}
