@@ -1,0 +1,19 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+action("build_scripts") {
+  script = "build_scripts.py"
+  outputs = [
+    "$root_build_dir/build.sh",
+    "$root_build_dir/run.sh",
+    "$root_build_dir/sync.sh",
+    "$root_build_dir/all.sh",
+  ]
+
+  args = [
+    target_cpu,
+    rebase_path("//", root_build_dir),
+    rebase_path("$root_build_dir", root_build_dir),
+  ]
+}

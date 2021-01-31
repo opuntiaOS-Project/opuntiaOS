@@ -1,0 +1,27 @@
+import("//build/libs/TEMPLATE.gni")
+
+oneOS_static_library("libcxx") {
+  sources = [
+    # shared (with LibC)
+    "../crt0.s",
+    "../libc/dirent/dirent.c",
+    "../libc/malloc.c",
+    "../libc/pthread.c",
+    "../libc/setjmp.s",
+    "../libc/stdio.c",
+    "../libc/string.c",
+    "../libc/syscalls.c",
+    "../libc/termios.c",
+
+    # private
+    "private/_init.cpp",
+    "std/Dbg.cpp",
+  ]
+
+  include_dirs = [
+    ".",
+    "//libs/",
+  ]
+
+  configs = [ "//build/libs:libcxx_flags" ]
+}

@@ -12,7 +12,9 @@ typedef char           int8_t;
 
 typedef unsigned long   size_t;
 
+#ifdef __cplusplus
 typedef decltype(nullptr) nullptr_t;
+#endif
 
 #define true  1
 #define false 0

@@ -1,0 +1,52 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+template("oneOS_executable") {
+  assert(defined(invoker.sources),
+         "Need sources in $target_name to build oneOS App")
+
+  app_name = target_name
+  app_build_name = app_name + "_build"
+
+  deplibs = []
+  depbuilders = []
+  if (defined(invoker.libs)) {
+    deplibs = invoker.libs
+  }
+  if (defined(invoker.deps)) {
+    depbuilders = invoker.deps
+  }
+  if (defined(invoker.deplibs)) {
+    foreach(i, invoker.deplibs) {
+      deplibs += [ "$root_out_dir/base/libs/" + i + ".a" ]
+      depbuilders += [ "//libs/" + i + ":" + i ]
+    }
+  }
+
+  executable(app_build_name) {
+    if (defined(invoker.install_path)) {
+      output_name = "base/" + invoker.install_path + app_name
+    } else {
+      output_name = "base/bin/" + app_name
+    }
+    sources = invoker.sources
+    libs = deplibs
+    deps = depbuilders
+    forward_variables_from(invoker,
+                           [
+                             "include_dirs",
+                             "configs",
+                             "cflags",
+                             "cflags_c",
+                             "cflags_cc",
+                             "asmflags",
+                             "ldflags",
+                             "public_deps",
+                           ])
+  }
+
+  group(app_name) {
+    deps = [ ":" + app_build_name ]
+  }
+}

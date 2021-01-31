@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
-    #include <libc/syscalls.h>
+#endif
+#include <libc/syscalls.h>
+#ifdef __cplusplus
 }
+#endif

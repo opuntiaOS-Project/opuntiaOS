@@ -1,0 +1,18 @@
+import("//build/libs/TEMPLATE.gni")
+
+oneOS_static_library("libfoundation") {
+  sources = [
+    "EventLoop.cpp",
+    "puff.c",
+  ]
+
+  include_dirs = [
+    "//libs/",
+    "//libs/libcxx/",
+  ]
+
+  deplibs = [
+    "//libs/libcxx:libcxx",
+  ]
+  configs = [ "//build/libs:libcxx_flags" ]
+}

@@ -1,0 +1,50 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+lib_c_flags = [
+  "-ffreestanding",
+  "-Werror",
+  "-Wno-address-of-packed-member",
+]
+
+if (userland_symbols) {
+  lib_c_flags += [ "-ggdb" ]
+}
+
+if (optimize) {
+  lib_c_flags += [ "-Os" ]
+}
+
+lib_asm_flags = [
+  "-f",
+  "elf",
+]
+
+lib_cc_flags = [
+  "-std=c++17",
+  "-fno-sized-deallocation",
+  "-fno-rtti",
+  "-fno-exceptions",
+]
+
+config("lib_flags") {
+  cflags = lib_c_flags
+  asmflags = lib_asm_flags
+}
+
+config("libcxx_flags") {
+  cflags = lib_c_flags
+  asmflags = lib_asm_flags
+  cflags_cc = lib_cc_flags
+}
+
+group("libs") {
+  deps = [
+    "//libs/libc:libc",
+    "//libs/libcxx:libcxx",
+    "//libs/libfoundation:libfoundation",
+    "//libs/libg:libg",
+    "//libs/libui:libui",
+  ]
+}

@@ -7,7 +7,7 @@
  */
 
 #include "Font.h"
-#include <cstring.h>
+#include <string.h>
 #include <libcxx/malloc.h>
 #include <syscalls.h>
 

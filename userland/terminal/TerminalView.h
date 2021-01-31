@@ -8,14 +8,14 @@ public:
     TerminalView(const LG::Rect&, int ptmx);
 
     const LG::Color& font_color() const { return m_font_color; }
-    const LG::Color& cursor_color() const { return LG::Color(200, 200, 200, 255); }
+    const LG::Color cursor_color() const { return LG::Color(200, 200, 200, 255); }
     const LG::Color& background_color() const { return m_background_color; }
     inline const LG::Font& font() const { return *m_font_ptr; }
 
     inline int glyph_width() const { return font().glyph_width('.'); }
     inline int glyph_height() const { return font().glyph_height(); }
 
-    inline LG::Point<int> pos_on_screen() const { return { m_col * glyph_width(), m_row * glyph_height() }; }
+    inline LG::Point<int> pos_on_screen() const { return { (int)m_col * glyph_width(), (int)m_row * glyph_height() }; }
     inline int pos_in_data() const { return m_max_cols * m_row + m_col; }
 
     void display(const LG::Rect& rect) override;

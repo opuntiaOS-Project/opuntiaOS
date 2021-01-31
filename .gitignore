@@ -10,3 +10,4 @@ products/
 base/boot/
 base/bin/
 mountpoint/
+out/

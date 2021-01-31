@@ -1,0 +1,17 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+group("build") {
+  deps = [
+    ":scripts",
+    "//build/kernel:kernel",
+    "//build/libs:libs",
+    "//build/servers:servers",
+    "//build/userland:userland",
+  ]
+}
+
+group("scripts") {
+  deps = [ "//build/tools:build_scripts" ]
+}

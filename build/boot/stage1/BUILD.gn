@@ -1,0 +1,25 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+action("stage1") {
+  script = "compile_stage1.py"
+  sources = [ "//src/boot/x86/stage1/boot.s" ]
+  outputs = [ "$root_build_dir/stage1.bin" ]
+
+  inputs = [
+    "//src/boot/x86/stage1/boot.s",
+    "//src/boot/x86/stage1/utils16/disk_load.s",
+    "//src/boot/x86/stage1/utils16/print.s",
+    "//src/boot/x86/stage1/utils16/smm.s",
+    "//src/boot/x86/stage1/utils16/switch_to_pm.s",
+    "//src/boot/x86/stage1/utils32/gdt.s",
+    "//src/boot/x86/stage1/utils32/print.s",
+  ]
+
+  args = [
+    rebase_path("//src/boot/x86/stage1/boot.s", root_build_dir),
+    rebase_path(root_build_dir, root_build_dir),
+    rebase_path("//", root_build_dir),
+  ]
+}

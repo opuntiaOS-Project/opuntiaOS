@@ -1,3 +1,4 @@
+#include <drivers/x86/fpu.h>
 #include <mem/vmm/vmm.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/system.h>
