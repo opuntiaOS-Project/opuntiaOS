@@ -45,5 +45,5 @@ https://gn.googlesource.com/gn/#getting-a-binary
 
 
 ### Images
-Progress: November 2020
-![alt text](https://raw.githubusercontent.com/nimelehin/oneOS/master/images/progress_11_20.png)
+Progress: December 2020
+![alt text](https://raw.githubusercontent.com/nimelehin/oneOS/master/images/progress_12_20.png)
