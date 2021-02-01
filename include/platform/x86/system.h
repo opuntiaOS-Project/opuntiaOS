@@ -9,7 +9,7 @@
 #ifndef __oneOS__X86__SYSTEM_H
 #define __oneOS__X86__SYSTEM_H
 
-#include <platform/x86/registers.h>
+#include <platform/generic/registers.h>
 #include <types.h>
 
 /**

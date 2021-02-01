@@ -7,8 +7,8 @@
  */
 
 #include "EventLoop.h"
-#include <string.h>
 #include <memory.h>
+#include <string.h>
 #include <sys/time.h>
 #include <syscalls.h>
 
@@ -28,6 +28,9 @@ EventLoop::EventLoop()
 
 void EventLoop::check_fds()
 {
+    if (m_waiting_fds.size() == 0) {
+        return;
+    }
     fd_set_t readfds;
     fd_set_t writefds;
     FD_ZERO(&readfds);

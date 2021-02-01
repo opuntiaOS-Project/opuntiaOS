@@ -63,10 +63,13 @@ time_t timeman_to_seconds_since_epoch(uint8_t secs, uint8_t mins, uint8_t hrs, u
 
 int timeman_setup()
 {
-    uint8_t secs, mins, hrs, day, month;
-    uint32_t year;
+    uint8_t secs = 0, mins = 0, hrs = 0, day = 0, month = 0;
+    uint32_t year = 1970;
 
+    // FIXME: Add suppurt for ARM
+#ifdef __i386__
     rtc_load_time(&secs, &mins, &hrs, &day, &month, &year);
+#endif
 
 #ifdef TIME_MANAGER_DEBUG
     log("Loaded date: %ds %dm %dh %dd %dm %dy", (uint32_t)secs, (uint32_t)mins, (uint32_t)hrs, (uint32_t)day, (uint32_t)month, (uint32_t)year);

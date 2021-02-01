@@ -15,12 +15,12 @@ Devices::Devices()
 {
     s_the = this;
     m_mouse_fd = open("/dev/mouse", O_RDONLY);
-    if (!m_mouse_fd) {
+    if (m_mouse_fd < 0) {
         Dbg() << "Can't open mouse\n";
     }
 
     m_keyboard_fd = open("/dev/kbd", O_RDONLY);
-    if (!m_keyboard_fd) {
+    if (m_keyboard_fd < 0) {
         Dbg() << "Can't open keyboard\n";
     }
 

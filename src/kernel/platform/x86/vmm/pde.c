@@ -8,6 +8,11 @@
 
 #include <platform/x86/vmm/pde.h>
 
+void table_desc_init(table_desc_t* pde)
+{
+    *pde = 0;
+}
+
 void table_desc_clear(table_desc_t* pde)
 {
     *pde = 0;
@@ -31,6 +36,7 @@ bool table_desc_has_attrs(table_desc_t pde, uint32_t attrs)
 void table_desc_set_frame(table_desc_t* pde, uint32_t frame)
 {
     table_desc_del_frame(pde);
+    frame >>= TABLE_DESC_FRAME_OFFSET;
     *pde |= (frame << TABLE_DESC_FRAME_OFFSET);
 }
 

@@ -8,7 +8,7 @@
 
 #include <drivers/x86/pit.h>
 #include <log.h>
-#include <platform/x86/system.h>
+#include <platform/generic/system.h>
 #include <tasking/sched.h>
 #include <time/time_manager.h>
 #include <utils/kassert.h>

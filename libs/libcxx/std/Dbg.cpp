@@ -41,12 +41,11 @@ const Dbg& operator<<(const Dbg& stream, uint32_t value)
     return stream;
 }
 
-const Dbg& operator<<(const Dbg& stream, size_t value)
+const Dbg& operator<<(const Dbg& stream, unsigned long value)
 {
-    print_dec(stream.m_fd, value);
+    print_dec(stream.m_fd, (uint32_t)value);
     return stream;
 }
-
 
 // DbgPid
 
@@ -71,7 +70,7 @@ const DbgPid& operator<<(const DbgPid& stream, uint32_t value)
     return stream;
 }
 
-const DbgPid& operator<<(const DbgPid& stream, size_t value)
+const DbgPid& operator<<(const DbgPid& stream, unsigned long value)
 {
     if (getpid() == stream.pid())
         Dbg() << value;

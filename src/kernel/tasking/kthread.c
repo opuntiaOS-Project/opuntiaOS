@@ -12,8 +12,22 @@
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
-#include <platform/x86/gdt.h>
-#include <platform/x86/tasking/tss.h>
+#include <utils.h>
+
+/**
+ * For x86 we can use the same stack both for kernel and kthread operations.
+ * For arm we need use 2 stacks: one stack for svc mode and one for sys mode, so
+ * we create a bigger stack (2 * page_size) to fit 2 stacks required for arm.
+ */
+#ifdef __i386__
+#define KSTACK_ZONE_SIZE VMM_PAGE_SIZE
+#define KSTACK_TOP VMM_PAGE_SIZE
+#define USTACK_TOP VMM_PAGE_SIZE
+#elif __arm__
+#define KSTACK_ZONE_SIZE (2 * VMM_PAGE_SIZE)
+#define KSTACK_TOP VMM_PAGE_SIZE
+#define USTACK_TOP (2 * VMM_PAGE_SIZE)
+#endif
 
 extern void trap_return();
 extern void _tasking_jumper();
@@ -29,11 +43,11 @@ int kthread_setup(proc_t* p)
     p->main_thread->tid = p->pid;
     p->main_thread->process = p;
 
-    p->main_thread->kstack = zoner_new_zone(VMM_PAGE_SIZE);
+    p->main_thread->kstack = zoner_new_zone(KSTACK_ZONE_SIZE);
     if (!p->main_thread->kstack.start) {
         return -ENOMEM;
     }
-    _thread_setup_kstack(p->main_thread, p->main_thread->kstack.start + VMM_PAGE_SIZE);
+    _thread_setup_kstack(p->main_thread, p->main_thread->kstack.start + KSTACK_TOP);
 
     /* setting current work directory */
     p->cwd = 0;
@@ -50,20 +64,12 @@ int kthread_setup(proc_t* p)
 
 int kthread_setup_regs(proc_t* p, void* entry_point)
 {
-    kthread_setup_segment_regs(p);
-    p->main_thread->tf->ebp = (p->main_thread->kstack.start + VMM_PAGE_SIZE);
-    p->main_thread->tf->esp = p->main_thread->tf->ebp;
-    p->main_thread->tf->eip = (uint32_t)entry_point;
+    tf_setup_as_kernel_thread(p->main_thread->tf);
+    uint32_t stack = (p->main_thread->kstack.start + USTACK_TOP);
+    set_base_pointer(p->main_thread->tf, stack);
+    set_stack_pointer(p->main_thread->tf, stack);
+    set_instruction_pointer(p->main_thread->tf, (uint32_t)entry_point);
     return 0;
-}
-
-void kthread_setup_segment_regs(proc_t* p)
-{
-    p->main_thread->tf->cs = (SEG_KCODE << 3);
-    p->main_thread->tf->ds = (SEG_KDATA << 3);
-    p->main_thread->tf->es = p->main_thread->tf->ds;
-    p->main_thread->tf->ss = p->main_thread->tf->ds;
-    p->main_thread->tf->eflags = FL_IF;
 }
 
 int kthread_free(proc_t* p)

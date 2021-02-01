@@ -4,7 +4,7 @@
 
 # --- Init ------------------------------------------------------------------ #
 
-PLATFORM = ${ONEOS_TARGET}
+PLATFORM = x86
 MAKEFILES = build/${PLATFORM}
 PYTHON3 = python3
 

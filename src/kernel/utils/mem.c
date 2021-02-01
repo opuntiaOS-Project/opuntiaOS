@@ -1,5 +1,5 @@
 #include <mem/kmalloc.h>
-#include <utils/mem.h>
+#include <utils.h>
 
 void memset(uint8_t* dest, uint8_t fll, uint32_t nbytes)
 {
@@ -8,10 +8,10 @@ void memset(uint8_t* dest, uint8_t fll, uint32_t nbytes)
     }
 }
 
-void memcpy(uint8_t* dest, const uint8_t* src, uint32_t nbytes)
+void memcpy(void* dest, const void* src, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
-        *(dest + i) = *(src + i);
+        *(char*)(dest + i) = *(char*)(src + i);
     }
 }
 

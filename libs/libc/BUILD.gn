@@ -6,13 +6,13 @@ oneOS_static_library("libc") {
     "dirent/dirent.c",
     "malloc.c",
     "pthread.c",
-    "setjmp.s",
+    "setjmp_$target_cpu.s",
     "stdio.c",
     "string.c",
     "syscalls.c",
     "termios.c",
 
-    "../crt0.s",
+    "../crt0_$target_cpu.s",
 
     # private
     "private/_init.c",

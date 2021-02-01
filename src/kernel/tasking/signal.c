@@ -9,15 +9,21 @@
 #include <errno.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
+#include <platform/generic/system.h>
 #include <tasking/sched.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils/kassert.h>
-#include <platform/x86/system.h>
+#include <utils.h>
 
 #define MAGIC_STATE_JUST_TF 0xfeed3eee
 #define MAGIC_STATE_NEW_STACK 0xea12002a
+
+#ifdef __i386__
+#define return_tf (thread->tf->ebx)
+#elif __arm__
+#define return_tf (thread->tf->r[1])
+#endif
 
 enum {
     UNBLOCK,
@@ -45,23 +51,6 @@ static void _signal_init_caller()
 void signal_init()
 {
     _signal_init_caller();
-}
-
-/**
- * HELPER STACK FUNCTIONS
- */
-
-static inline void signal_push_to_user_stack(thread_t* thread, uint32_t value)
-{
-    thread->tf->esp -= 4;
-    *((uint32_t*)thread->tf->esp) = value;
-}
-
-static inline uint32_t signal_pop_from_user_stack(thread_t* thread)
-{
-    uint32_t val = *((uint32_t*)thread->tf->esp);
-    thread->tf->esp += 4;
-    return val;
 }
 
 /**
@@ -126,7 +115,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     pdirectory_t* prev_pdir = vmm_get_active_pdir();
     vmm_switch_pdir(thread->process->pdir);
 
-    uint32_t old_esp = thread->tf->esp;
+    uint32_t old_esp = get_stack_pointer(thread->tf);
     uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after sgnal to the right state */
 
     /* TODO: Add support for SMP */
@@ -154,24 +143,38 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
         _thread_setup_kstack(thread, (uint32_t)thread->context);
         memcpy((void*)thread->tf, (void*)old_tf, sizeof(trapframe_t));
 
-        signal_push_to_user_stack(thread, (uint32_t)old_tf);
-        signal_push_to_user_stack(thread, (uint32_t)old_ctx);
-        signal_push_to_user_stack(thread, (uint32_t)old_tf ^ (uint32_t)old_ctx); // checksum
+        tf_push_to_stack(thread->tf, (uint32_t)old_tf);
+        tf_push_to_stack(thread->tf, (uint32_t)old_ctx);
+        tf_push_to_stack(thread->tf, (uint32_t)old_tf ^ (uint32_t)old_ctx); // checksum
     }
-    signal_push_to_user_stack(thread, thread->tf->eflags);
-    signal_push_to_user_stack(thread, thread->tf->eip);
-    signal_push_to_user_stack(thread, thread->tf->eax);
-    signal_push_to_user_stack(thread, thread->tf->ebx);
-    signal_push_to_user_stack(thread, thread->tf->ecx);
-    signal_push_to_user_stack(thread, thread->tf->edx);
-    signal_push_to_user_stack(thread, old_esp);
-    signal_push_to_user_stack(thread, thread->tf->ebp);
-    signal_push_to_user_stack(thread, thread->tf->esi);
-    signal_push_to_user_stack(thread, thread->tf->edi);
-    signal_push_to_user_stack(thread, magic);
-    signal_push_to_user_stack(thread, (uint32_t)thread->signal_handlers[signo]);
-    signal_push_to_user_stack(thread, (uint32_t)signo);
-    signal_push_to_user_stack(thread, 0); /* fake return address */
+#ifdef __i386__
+    tf_push_to_stack(thread->tf, thread->tf->eflags);
+    tf_push_to_stack(thread->tf, thread->tf->eip);
+    tf_push_to_stack(thread->tf, thread->tf->eax);
+    tf_push_to_stack(thread->tf, thread->tf->ebx);
+    tf_push_to_stack(thread->tf, thread->tf->ecx);
+    tf_push_to_stack(thread->tf, thread->tf->edx);
+    tf_push_to_stack(thread->tf, old_esp);
+    tf_push_to_stack(thread->tf, thread->tf->ebp);
+    tf_push_to_stack(thread->tf, thread->tf->esi);
+    tf_push_to_stack(thread->tf, thread->tf->edi);
+    tf_push_to_stack(thread->tf, magic);
+    tf_push_to_stack(thread->tf, (uint32_t)thread->signal_handlers[signo]);
+    tf_push_to_stack(thread->tf, (uint32_t)signo);
+    tf_push_to_stack(thread->tf, 0); /* fake return address */
+#elif __arm__
+    for (int i = 0; i < 13; i++) {
+        tf_push_to_stack(thread->tf, thread->tf->r[i]);
+    }
+    tf_push_to_stack(thread->tf, old_esp);
+    tf_push_to_stack(thread->tf, thread->tf->user_sp);
+    tf_push_to_stack(thread->tf, thread->tf->user_ip);
+    tf_push_to_stack(thread->tf, thread->tf->user_flags);
+    tf_push_to_stack(thread->tf, magic);
+    tf_push_to_stack(thread->tf, (uint32_t)thread->signal_handlers[signo]);
+    tf_push_to_stack(thread->tf, (uint32_t)signo);
+    tf_push_to_stack(thread->tf, 0); /* fake return address */
+#endif
 
     vmm_switch_pdir(prev_pdir);
     system_enable_interrupts();
@@ -180,29 +183,39 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
 
 int signal_restore_thread_after_handling_signal(thread_t* thread)
 {
-    int ret = thread->tf->ebx;
-    thread->tf->esp += 12; /* cleaning 3 last pushes */
+    int ret = return_tf;
+    tf_move_stack_pointer(thread->tf, 12); /* cleaning 3 last pushes */
 
-    uint32_t magic = signal_pop_from_user_stack(thread);
-    thread->tf->edi = signal_pop_from_user_stack(thread);
-    thread->tf->esi = signal_pop_from_user_stack(thread);
-    thread->tf->ebp = signal_pop_from_user_stack(thread);
-    uint32_t old_esp = signal_pop_from_user_stack(thread);
-    thread->tf->edx = signal_pop_from_user_stack(thread);
-    thread->tf->ecx = signal_pop_from_user_stack(thread);
-    thread->tf->ebx = signal_pop_from_user_stack(thread);
-    thread->tf->eax = signal_pop_from_user_stack(thread);
-    thread->tf->eip = signal_pop_from_user_stack(thread);
-    thread->tf->eflags = signal_pop_from_user_stack(thread);
+    uint32_t magic = tf_pop_to_stack(thread->tf);
+#ifdef __i386__
+    thread->tf->edi = tf_pop_to_stack(thread->tf);
+    thread->tf->esi = tf_pop_to_stack(thread->tf);
+    thread->tf->ebp = tf_pop_to_stack(thread->tf);
+    uint32_t old_esp = tf_pop_to_stack(thread->tf);
+    thread->tf->edx = tf_pop_to_stack(thread->tf);
+    thread->tf->ecx = tf_pop_to_stack(thread->tf);
+    thread->tf->ebx = tf_pop_to_stack(thread->tf);
+    thread->tf->eax = tf_pop_to_stack(thread->tf);
+    thread->tf->eip = tf_pop_to_stack(thread->tf);
+    thread->tf->eflags = tf_pop_to_stack(thread->tf);
+#elif __arm__
+    thread->tf->user_flags = tf_pop_to_stack(thread->tf);
+    thread->tf->user_ip = tf_pop_to_stack(thread->tf);
+    thread->tf->user_sp = tf_pop_to_stack(thread->tf);
+    uint32_t old_esp = tf_pop_to_stack(thread->tf);
+    for (int i = 12; i >= 0; i--) {
+        thread->tf->r[i] = tf_pop_to_stack(thread->tf);
+    }
+#endif
     if (magic == MAGIC_STATE_NEW_STACK) {
-        uint32_t checksum = signal_pop_from_user_stack(thread);
-        context_t* old_ctx = (context_t*)signal_pop_from_user_stack(thread);
-        trapframe_t* old_tf = (trapframe_t*)signal_pop_from_user_stack(thread);
+        uint32_t checksum = tf_pop_to_stack(thread->tf);
+        context_t* old_ctx = (context_t*)tf_pop_to_stack(thread->tf);
+        trapframe_t* old_tf = (trapframe_t*)tf_pop_to_stack(thread->tf);
 
         uint32_t calced_checksum = ((uint32_t)old_tf ^ (uint32_t)old_ctx);
 
         if (checksum != calced_checksum) {
-            kprintf("Killed %d: wrong signal checksum\n", thread->process->pid);
+            log_error("Killed %d: wrong signal checksum\n", thread->process->pid);
             proc_die(thread->process);
             resched_dont_save_context();
         }
@@ -211,8 +224,8 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
         thread->context = old_ctx;
     }
 
-    if (old_esp != thread->tf->esp) {
-        kpanic("ESPs are diff after signal");
+    if (old_esp != get_stack_pointer(thread->tf)) {
+        log_error("ESPs are diff after signal");
     }
 
     /* If our thread was blocked, that means that it already has a context in stack, we need not ot overwrite it */
@@ -242,7 +255,7 @@ static int signal_process(thread_t* thread, int signo)
 {
     if (thread->signal_handlers[signo]) {
         signal_setup_stack_to_handle_signal(thread, signo);
-        thread->tf->eip = _signal_jumper_zone.start;
+        set_instruction_pointer(thread->tf, _signal_jumper_zone.start);
         return UNBLOCK;
     } else {
         int result = signal_default_action(signo);
@@ -268,10 +281,10 @@ int signal_dispatch_pending(thread_t* thread)
             break;
         }
     }
-    
+
     signal_rem_pending(thread, signo);
     int ret = signal_process(thread, signo);
-    
+
     if (ret < 0) {
         return ret;
     }
@@ -285,6 +298,6 @@ int signal_dispatch_pending(thread_t* thread)
             sched_enqueue(thread);
         }
     }
-    
+
     return 0;
 }

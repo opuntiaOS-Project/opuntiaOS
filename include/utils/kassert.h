@@ -10,7 +10,7 @@
 #define __oneOS__UTILS__KASSERT_H
 
 #include <log.h>
-#include <platform/x86/system.h>
+#include <platform/generic/system.h>
 #include <types.h>
 
 #define ASSERT(x)                                              \

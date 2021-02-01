@@ -12,10 +12,11 @@
 #include <fs/vfs.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
+#include <platform/generic/tasking/context.h>
+#include <platform/generic/tasking/trapframe.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
 #include <types.h>
-#include <platform/x86/idt.h>
 
 #define CPU_CNT 1
 #define THIS_CPU (&cpus[0])
@@ -24,6 +25,10 @@
 #define MAX_DYING_PROCESS_COUNT 8
 #define MAX_OPENED_FILES 16
 #define SIGNALS_CNT 32
+
+#ifdef __i386__
+#define FPU_ENABLED
+#endif
 
 typedef struct {
     char* kstack;

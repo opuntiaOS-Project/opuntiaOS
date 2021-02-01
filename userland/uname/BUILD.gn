@@ -1,0 +1,11 @@
+import("//build/userland/TEMPLATE.gni")
+
+oneOS_executable("uname") {
+  install_path = "bin/"
+  sources = [ "main.c" ]
+  configs = [
+    "//build/userland:userland_flags",
+    "//build/userland:userland_c_includes",
+  ]
+  deplibs = [ "libc" ]
+}

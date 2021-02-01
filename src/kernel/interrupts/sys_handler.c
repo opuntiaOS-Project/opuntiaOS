@@ -11,23 +11,39 @@
 #include <io/sockets/local_socket.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <platform/generic/system.h>
+#include <platform/generic/tasking/trapframe.h>
 #include <sys_handler.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <platform/x86/system.h>
+#include <utils.h>
 
+#ifdef __i386__
+#define sys_id (tf->eax)
 #define param1 (tf->ebx)
 #define param2 (tf->ecx)
 #define param3 (tf->edx)
 #define param4 (tf->esi)
 #define param5 (tf->edi)
-
-/* From Linux 4.14.0 headers. */
-/* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
-
 #define return_with_val(val) \
     (tf->eax = val);         \
     return
+
+#elif __arm__
+#define sys_id (tf->r[7])
+#define param1 (tf->r[0])
+#define param2 (tf->r[1])
+#define param3 (tf->r[2])
+#define param4 (tf->r[3])
+#define param5 (tf->r[4])
+#define return_with_val(val) \
+    (tf->r[0] = val);        \
+    return
+
+#endif
+
+/* From Linux 4.14.0 headers. */
+/* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
 
 static const void* syscalls[] = {
     sys_restart_syscall,
@@ -65,6 +81,7 @@ static const void* syscalls[] = {
     sys_select,
     sys_fstat,
     sys_sched_yield,
+    sys_uname,
     sys_shbuf_create,
     sys_shbuf_get,
     sys_shbuf_free,
@@ -72,36 +89,37 @@ static const void* syscalls[] = {
 
 static inline void set_return(trapframe_t* tf, uint32_t val)
 {
-    tf->eax = val;
+    param1 = val;
 }
 
-int ksyscall_impl(int sys_id, int a, int b, int c, int d)
+int ksyscall_impl(int id, int a, int b, int c, int d)
 {
     system_disable_interrupts();
-    trapframe_t tf;
-    tf.eax = sys_id;
-    tf.ebx = a;
-    tf.ecx = b;
-    tf.edx = c;
-    sys_handler(&tf);
+    trapframe_t* tf;
+    trapframe_t tf_on_stack;
+    tf = &tf_on_stack;
+    sys_id = id;
+    param1 = a;
+    param2 = b;
+    param3 = c;
+    sys_handler(tf);
     /* This hack has to be here, when a context switching happens
        during a syscall (e.g. when block occurs). The hack will start
        interrupts again after it has become a running thread. */
     system_enable_interrupts();
-    return tf.eax;
+    return param1;
 }
 
 void sys_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
-    void (*callee)(trapframe_t*) = (void*)syscalls[tf->eax];
+    void (*callee)(trapframe_t*) = (void*)syscalls[sys_id];
     callee(tf);
     system_enable_interrupts_only_counter();
 }
 
 void sys_restart_syscall(trapframe_t* tf)
 {
-    kprintd(tf->ebx);
 }
 
 /**
@@ -404,7 +422,10 @@ void sys_waitpid(trapframe_t* tf)
 
 void sys_exec(trapframe_t* tf)
 {
-    set_return(tf, tasking_exec((char*)param1, (const char**)param2, (const char**)param3));
+    int res = tasking_exec((char*)param1, (const char**)param2, (const char**)param3);
+    if (res != 0) {
+        set_return(tf, res);
+    }
 }
 
 void sys_sigaction(trapframe_t* tf)
@@ -469,9 +490,10 @@ void sys_create_thread(trapframe_t* tf)
     }
 
     thread_create_params_t* params = (thread_create_params_t*)param1;
-    thread_set_eip(thread, params->entry_point);
+    set_instruction_pointer(thread->tf, params->entry_point);
     uint32_t esp = params->stack_start + params->stack_size;
-    thread_set_stack(thread, esp, esp);
+    set_stack_pointer(thread->tf, esp);
+    set_base_pointer(thread->tf, esp);
 
     return_with_val(thread->tid);
 }
@@ -655,6 +677,24 @@ void sys_shbuf_free(trapframe_t* tf)
 void sys_sched_yield(trapframe_t* tf)
 {
     resched();
+}
+
+/**
+ * Misc
+ */
+
+void sys_uname(trapframe_t* tf)
+{
+    utsname_t* buf = (utsname_t*)param1;
+    vmm_copy_to_user(buf->sysname, "oneOS", 6);
+    vmm_copy_to_user(buf->release, "1.0.0-dev", 10);
+    vmm_copy_to_user(buf->version, "1", 2);
+#ifdef __i386__
+    vmm_copy_to_user(buf->machine, "x86", 4);
+#elif __arm__
+    vmm_copy_to_user(buf->machine, "ARM", 4);
+#endif
+    return_with_val(0);
 }
 
 void sys_none(trapframe_t* tf) { }

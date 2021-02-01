@@ -23,15 +23,41 @@ uland_cc_flags = [
   "-fno-exceptions",
 ]
 
-uland_asm_flags = [
-  "-f",
-  "elf",
-]
+uland_asm_flags = []
+uland_ld_flags = []
+
+if (target_cpu == "x86") {
+  uland_asm_flags += [
+    "-f",
+    "elf",
+  ]
+}
+
+if (target_cpu == "aarch32") {
+  uland_c_flags += [
+    "-fno-builtin",
+    "-march=armv7-a",
+    "-fno-pie",
+    "-no-pie",
+  ]
+  uland_asm_flags += [
+    "-march=armv7-a",
+    "-mcpu=cortex-a15",
+  ]
+  uland_ld_flags += [
+    "-nostdlib",
+    "-nostdinc",
+    "-nodefaultlibs",
+    "-nostartfiles",
+    "-lgcc",
+  ]
+}
 
 config("userland_flags") {
   cflags = uland_c_flags
   cflags_cc = uland_cc_flags
   asmflags = uland_asm_flags
+  ldflags = uland_ld_flags
   defines = [ "oneOS" ]
 }
 
@@ -52,6 +78,7 @@ config("userland_cxx_includes") {
 group("userland") {
   deps = [
     "//userland/about:about",
+    "//userland/cat:cat",
     "//userland/dock:dock",
     "//userland/init:init",
     "//userland/initgui:initgui",
@@ -62,6 +89,7 @@ group("userland") {
     "//userland/rmdir:rmdir",
     "//userland/terminal:terminal",
     "//userland/touch:touch",
+    "//userland/uname:uname",
     "//userland/utester:utester",
   ]
 }

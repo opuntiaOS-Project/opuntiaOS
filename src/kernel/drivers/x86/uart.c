@@ -26,25 +26,26 @@ void uart_setup()
     _uart_setup_impl(COM1);
 }
 
-static bool _uart_is_free_in(int port) {
-   return port_byte_in(port + 5) & 0x01;
+static inline bool _uart_is_free_in(int port)
+{
+    return port_byte_in(port + 5) & 0x01;
 }
 
-static bool _uart_is_free_out(int port) {
-   return port_byte_in(port + 5) & 0x20;
+static inline bool _uart_is_free_out(int port)
+{
+    return port_byte_in(port + 5) & 0x20;
 }
-
 
 int uart_write(int port, uint8_t data)
 {
-    while (!_uart_is_free_out(port));
+    while (!_uart_is_free_out(port)) { }
     port_byte_out(port, data);
     return 0;
 }
 
 int uart_read(int port, uint8_t* data)
 {
-    while (!_uart_is_free_out(port));
+    while (!_uart_is_free_out(port)) { }
     *data = port_byte_in(port);
     return 0;
 }

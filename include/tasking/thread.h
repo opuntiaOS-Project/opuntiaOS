@@ -11,18 +11,11 @@
 
 #include <drivers/x86/fpu.h>
 #include <fs/vfs.h>
+#include <platform/generic/tasking/context.h>
+#include <platform/generic/tasking/trapframe.h>
 #include <tasking/signal.h>
 #include <time/time_manager.h>
 #include <types.h>
-#include <platform/x86/idt.h>
-
-typedef struct {
-    uint32_t edi;
-    uint32_t esi;
-    uint32_t ebx;
-    uint32_t ebp;
-    uint32_t eip;
-} __attribute__((packed)) context_t;
 
 enum THREAD_STATUS {
     THREAD_INVALID = 0,
@@ -90,9 +83,6 @@ typedef struct thread thread_t;
 int thread_setup_main(struct proc* p, thread_t* thread);
 int thread_setup(struct proc* p, thread_t* thread);
 int thread_setup_kstack(thread_t* thread);
-
-void thread_set_stack(thread_t* thread, uint32_t ebp, uint32_t esp);
-void thread_set_eip(thread_t* thread, uint32_t eip);
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env);
 

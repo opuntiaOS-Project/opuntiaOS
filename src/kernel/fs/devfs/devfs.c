@@ -13,6 +13,7 @@
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
+#include <utils.h>
 
 #define DEVFS_ZONE_SIZE 32 * KB
 
@@ -341,6 +342,7 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 
 int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
 {
+    log("devfs: lookup");
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
     if (len == 1) {
@@ -489,7 +491,7 @@ driver_desc_t _devfs_driver_info()
 
 void devfs_install()
 {
-    driver_install(_devfs_driver_info());
+    driver_install(_devfs_driver_info(), "devfs");
 }
 
 /**
@@ -534,7 +536,13 @@ int devfs_mount()
     if (vfs_resolve_path("/dev", &mp) < 0) {
         return -ENOENT;
     }
-    int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), 2);
+    int driver_id = vfs_get_fs_id("devfs");
+    if (driver_id < 0) {
+        log("Devfs: no driver is installed, exiting");
+        return -ENOENT;
+    }
+    log("devfs: %x", driver_id);
+    int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), driver_id);
     dentry_put(mp);
     if (!err) {
         dm_send_notification(DM_NOTIFICATION_DEVFS_READY, 0);

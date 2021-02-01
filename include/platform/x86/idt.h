@@ -25,7 +25,7 @@ extern struct idt_entry idt[IDT_ENTRIES];
 extern void** handlers[IDT_ENTRIES];
 
 void idt_element_setup(uint8_t n, void* handler_addr, bool user);
-void idt_setup();
+void interrupts_setup();
 
 void set_irq_handler(uint8_t interrupt_no, void (*handler)());
 void init_irq_handlers();

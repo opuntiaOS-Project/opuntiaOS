@@ -1,5 +1,6 @@
 #include <drivers/driver_manager.h>
 #include <log.h>
+#include <utils.h>
 
 // ------------
 // Private
@@ -59,11 +60,12 @@ bool driver_manager_init()
 }
 
 // Registering new driver
-void driver_install(driver_desc_t driver_info)
+void driver_install(driver_desc_t driver_info, const char* name)
 {
     driver_t new_driver;
     new_driver.id = _drivers_count;
     new_driver.desc = driver_info;
+    new_driver.name = name;
     drivers[_drivers_count++] = new_driver;
 }
 
@@ -93,7 +95,7 @@ void pass_drivers_to_master_drivers()
                 if (drivers[i].desc.type_of_needed_driver == drivers[j].desc.type) {
                     drivers[i].is_active = true;
                     drivers[j].is_active = true;
-                    void (*rd)(driver_t* nd) = (void*)drivers[i].desc.functions[DM_FUNC_DRIVER_EMIT_DRIVER];
+                    void (*rd)(driver_t * nd) = (void*)drivers[i].desc.functions[DM_FUNC_DRIVER_EMIT_DRIVER];
                     rd(&drivers[j]);
                 }
             }
@@ -196,4 +198,14 @@ void dm_send_notification(uint32_t msg, uint32_t param)
             notify(msg, param);
         }
     }
+}
+
+int dm_get_driver_id_by_name(const char* name)
+{
+    for (int i = 0; i < _drivers_count; i++) {
+        if (strcmp(name, drivers[i].name) == 0) {
+            return drivers[i].id;
+        }
+    }
+    return -1;
 }

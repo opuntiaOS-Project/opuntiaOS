@@ -1,13 +1,13 @@
-#include <drivers/x86/bga.h>
 #include <drivers/driver_manager.h>
+#include <drivers/x86/bga.h>
+#include <drivers/x86/pci.h>
 #include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <log.h>
 #include <tasking/proc.h>
 #include <tasking/tasking.h>
-#include <utils/kassert.h>
-#include <drivers/x86/pci.h>
+#include <utils.h>
 
 #define VBE_DISPI_IOPORT_INDEX 0x01CE
 #define VBE_DISPI_IOPORT_DATA 0x01CF
@@ -58,7 +58,6 @@ static void _bga_set_resolution(uint16_t width, uint16_t height)
 
     bga_screen_line_size = (uint32_t)width * 4;
 }
-
 
 static int _bga_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 {
@@ -139,7 +138,7 @@ static inline driver_desc_t _bga_driver_info()
 
 void bga_install()
 {
-    driver_install(_bga_driver_info());
+    driver_install(_bga_driver_info(), "bga86");
 }
 
 void bga_init(device_t* dev)

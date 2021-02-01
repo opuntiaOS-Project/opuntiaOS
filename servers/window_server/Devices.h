@@ -11,13 +11,13 @@
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <memory.h>
-#include <syscalls.h>
+#include <std/Dbg.h>
 
 class Devices {
 public:
     static Devices& the();
     Devices();
-    ~Devices() {}
+    ~Devices() { }
 
     inline void pump_mouse()
     {

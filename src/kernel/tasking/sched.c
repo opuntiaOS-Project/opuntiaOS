@@ -9,10 +9,11 @@
 #include <algo/dynamic_array.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <platform/generic/registers.h>
+#include <platform/generic/tasking/trapframe.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <utils/kassert.h>
-#include <platform/x86/registers.h>
+#include <utils.h>
 
 // #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT
@@ -43,7 +44,7 @@ static void _init_cpus(cpu_t* cpu)
     sp -= sizeof(*cpu->scheduler);
     cpu->scheduler = (context_t*)sp;
     memset((void*)cpu->scheduler, 0, sizeof(*cpu->scheduler));
-    cpu->scheduler->eip = (uint32_t)sched;
+    context_set_instruction_pointer(cpu->scheduler, (uint32_t)sched);
     cpu->running_thread = 0;
 }
 
@@ -176,7 +177,7 @@ void sched()
         while (!_master_buf[_buf_read_prio].head) {
             if (_buf_read_prio >= MIN_PRIO) {
                 tasking_kill_dying();
-                sched_unblock_threads(); 
+                sched_unblock_threads();
                 _sched_swap_buffers();
             } else {
                 _buf_read_prio++;
@@ -190,7 +191,7 @@ void sched()
         }
         thread->sched_next = thread->sched_prev = 0;
 #ifdef SCHED_DEBUG
-        log("next to run %d %x\n", thread->tid, thread->tf->eip);
+        log("next to run %d %x %x\n", thread->tid, get_instruction_pointer(thread->tf), thread->tf);
 #endif
 #ifdef SCHED_SHOW_STAT
         log("[STAT] procs in buffer: %d", _debug_count_of_proc_in_buf(_master_buf));

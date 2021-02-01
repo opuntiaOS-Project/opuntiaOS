@@ -113,7 +113,6 @@ enum DRIVER_FILE_SYSTEM_OPERTAION {
 
 typedef struct {
     uint8_t type;
-    char name[DRIVER_NAME_LENGTH];
     bool auto_start;
     bool is_device_driver; // True if it's a dev driver (like ata driver)
     bool is_device_needed; // True if need to assign to a device
@@ -131,6 +130,7 @@ typedef struct {
     uint8_t id;
     bool is_active;
     driver_desc_t desc;
+    const char* name;
 } driver_t; // driver
 
 typedef struct {
@@ -160,8 +160,8 @@ extern device_t devices[MAX_DEVICES_COUNT];
 
 bool driver_manager_init();
 void register_drivers();
-void driver_install(driver_desc_t t_driver_info);
-void device_install(device_desc_t t_device_info);
+void driver_install(driver_desc_t driver_info, const char* name);
+void device_install(device_desc_t device_info);
 void eject_device(uint8_t dev_id);
 void eject_all_devices();
 void drivers_run();
@@ -169,6 +169,7 @@ device_t get_device(uint8_t t_dev_type, uint8_t t_start);
 void pass_drivers_to_master_drivers();
 void pass_devices_to_master_drivers();
 device_t* new_virtual_device(uint8_t type);
+int dm_get_driver_id_by_name();
 void dm_send_notification(uint32_t msg, uint32_t param);
 
 #endif // __oneOS__DRIVERS__DRIVERMANAGER_H

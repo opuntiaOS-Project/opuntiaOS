@@ -10,8 +10,9 @@
 #define __oneOS__MEM__VMM__VMM_H
 
 #include <mem/pmm.h>
-#include <platform/x86/vmm/pde.h>
-#include <platform/x86/vmm/pte.h>
+#include <platform/generic/vmm/consts.h>
+#include <platform/generic/vmm/pde.h>
+#include <platform/generic/vmm/pte.h>
 #include <types.h>
 
 #define KB (1024)
@@ -30,10 +31,6 @@ enum PAGE_FLAGS {
 #define USER_PAGE true
 #define KERNEL_PAGE false
 #define PAGE_CHOOSE_OWNER(vaddr) (vaddr >= KERNEL_BASE ? 0 : PAGE_USER)
-
-#define VMM_PTE_COUNT (1024)
-#define VMM_PDE_COUNT (1024)
-#define VMM_PAGE_SIZE (4096)
 
 enum VMM_ERR_CODES {
     VMM_ERR_PDIR,
@@ -69,11 +66,14 @@ int vmm_free_pdir(pdirectory_t* pdir);
 int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings);
 int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, uint32_t settings);
 int vmm_unmap_page(uint32_t vaddr);
+int vmm_unmap_pages(uint32_t vaddr, uint32_t n_pages);
 int vmm_copy_page(uint32_t to_vaddr, uint32_t src_vaddr, ptable_t* src_ptable);
 
 pdirectory_t* vmm_new_user_pdir();
 pdirectory_t* vmm_new_forked_user_pdir();
 void* vmm_bring_to_kernel(uint8_t* src, uint32_t length);
+void vmm_fast_copy_to_active_pdir(void* src, uint32_t dest_vaddr, uint32_t length);
+void vmm_copy_to_user(void* dest, void* src, uint32_t length);
 void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uint32_t length);
 void vmm_zero_user_pages(pdirectory_t* pdir);
 pdirectory_t* vmm_get_active_pdir();
@@ -85,7 +85,7 @@ int vmm_tune_pages(uint32_t vaddr, uint32_t length, uint32_t settings);
 
 int vmm_alloc_page(page_desc_t* page);
 int vmm_free_page(page_desc_t* page);
-int vmm_page_fault_handler(uint8_t info, uint32_t vaddr);
+int vmm_page_fault_handler(uint32_t info, uint32_t vaddr);
 
 int vmm_switch_pdir(pdirectory_t* pdir);
 void vmm_enable_paging();

@@ -12,6 +12,7 @@
 #include <log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
+#include <utils.h>
 
 // #define SHARED_BUFFER_DEBUG
 

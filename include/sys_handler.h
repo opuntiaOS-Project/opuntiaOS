@@ -1,9 +1,9 @@
 #ifndef __oneOS__INTERRUPTS__SYS_HANDLER_H
 #define __oneOS__INTERRUPTS__SYS_HANDLER_H
 
+#include <platform/generic/tasking/trapframe.h>
 #include <syscall_structs.h>
 #include <types.h>
-#include <platform/x86/idt.h>
 
 #define SYSCALL 0x80
 
@@ -48,6 +48,7 @@ void sys_sleep(trapframe_t* tf);
 void sys_select(trapframe_t* tf);
 void sys_fstat(trapframe_t* tf);
 void sys_sched_yield(trapframe_t* tf);
+void sys_uname(trapframe_t* tf);
 void sys_shbuf_create(trapframe_t* tf);
 void sys_shbuf_get(trapframe_t* tf);
 void sys_shbuf_free(trapframe_t* tf);

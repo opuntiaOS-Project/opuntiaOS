@@ -3,7 +3,7 @@
 #include <syscalls.h>
 
 static malloc_header_t* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
-static size_t allocated_blocks;
+static size_t allocated_blocks = 0;
 
 static int _alloc_new_block(size_t sz);
 
@@ -46,6 +46,11 @@ static inline char _malloc_can_fit_allocation(malloc_header_t* space, size_t all
 
 void* malloc(size_t sz)
 {
+    if (!sz) {
+        return 0;
+    }
+    sz += 3;
+    sz &= ~(uint32_t)0x3;
     /* iterating over allocated by mmap blocks
        and finding a first fit memory chunk */
     malloc_header_t* first_fit = 0;

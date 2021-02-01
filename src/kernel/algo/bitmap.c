@@ -36,6 +36,7 @@ int bitmap_find_space(bitmap_t bitmap, int req)
     int start = 0;
     for (int i = 0; i < bitmap.len; i++) {
         if (bitmap.data[i] == 0xff) {
+            taken = 0;
             continue;
         }
         for (int j = 0; j < 8; j++) {
@@ -46,6 +47,34 @@ int bitmap_find_space(bitmap_t bitmap, int req)
                     start = i * 8 + j;
                 }
                 taken++;
+                if (taken == req) {
+                    return start;
+                }
+            }
+        }
+    }
+    return -ENODATA;
+}
+
+int bitmap_find_space_aligned(bitmap_t bitmap, int req, int alignment)
+{
+    int taken = 0;
+    int start = 0;
+    for (int i = 0; i < bitmap.len; i++) {
+        if (bitmap.data[i] == 0xff) {
+            taken = 0;
+            continue;
+        }
+        for (int j = 0; j < 8; j++) {
+            if ((bitmap.data[i] >> j) & 1) {
+                taken = 0;
+            } else {
+                if (taken == 0) {
+                    start = i * 8 + j;
+                }
+                if ((start % alignment) == 0) {
+                    taken++;
+                }
                 if (taken == req) {
                     return start;
                 }

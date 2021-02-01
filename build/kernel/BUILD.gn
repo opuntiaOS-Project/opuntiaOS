@@ -9,6 +9,8 @@ kernel_c_flags = [
   "-Werror",
   "-Wno-address-of-packed-member",
 ]
+kernel_asm_flags = []
+kernel_ld_flags = []
 
 if (kernel_symbols) {
   kernel_c_flags += [ "-ggdb" ]
@@ -18,17 +20,34 @@ if (optimize) {
   kernel_c_flags += [ "-Os" ]
 }
 
-kernel_asm_flags = [
-  "-f",
-  "elf",
-]
-
-kernel_ld_flags = []
-
 if (target_cpu == "x86") {
+  kernel_asm_flags += [
+    "-f",
+    "elf",
+  ]
   kernel_ld_flags += [
     "--oformat",
     "elf32-i386",
+  ]
+}
+
+if (target_cpu == "aarch32") {
+  kernel_c_flags += [
+    "-fno-builtin",
+    "-march=armv7-a",
+    "-fno-pie",
+    "-no-pie",
+  ]
+  kernel_asm_flags += [
+    "-march=armv7-a",
+    "-mcpu=cortex-a15",
+  ]
+  kernel_ld_flags += [
+    "-nostdlib",
+    "-nostdinc",
+    "-nodefaultlibs",
+    "-nostartfiles",
+    "-lgcc",
   ]
 }
 
@@ -46,7 +65,8 @@ kernel_src = exec_script("get_kernel_files.py",
                          ],
                          "list lines")
 
-linker_script = rebase_path("//build/$target_cpu/kernel_link.ld", root_build_dir)
+linker_script =
+    rebase_path("//build/$target_cpu/kernel_link.ld", root_build_dir)
 
 executable("kernel_build") {
   output_name = "$kernel_out_path/kernel.bin"
@@ -59,8 +79,8 @@ executable("kernel_build") {
 }
 
 group("kernel") {
-  deps = [
-    ":kernel_build",
-    "//build/boot:boot",
-  ]
+  deps = [ ":kernel_build" ]
+  if (target_cpu == "x86") {
+    deps += [ "//build/boot:boot" ]
+  }
 }

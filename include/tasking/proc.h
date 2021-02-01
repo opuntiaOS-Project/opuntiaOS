@@ -14,7 +14,6 @@
 #include <io/tty/tty.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <platform/x86/idt.h>
 #include <types.h>
 
 #define MAX_PROCESS_COUNT 1024
@@ -37,6 +36,7 @@ enum ZONE_TYPES {
     ZONE_TYPE_STACK = 0x4,
     ZONE_TYPE_MAPPED_FILE_PRIVATLY = 0x8,
     ZONE_TYPE_MAPPED_FILE_SHAREDLY = 0x10,
+    ZONE_TYPE_BSS = 0x20,
 };
 
 struct proc_zone {

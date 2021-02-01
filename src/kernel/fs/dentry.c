@@ -10,10 +10,10 @@
 #include <fs/vfs.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <platform/generic/system.h>
 #include <sys_handler.h>
 #include <utils/kassert.h>
 #include <utils/mem.h>
-#include <platform/x86/system.h>
 
 // #define DENTRY_DEBUG
 
@@ -171,16 +171,17 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     }
 
     dentry_t* dentry = dentry_cache_find_empty_entry();
+    fs_desc_t* fs_desc;
 
     /* If inode_indx isn't 0, so we can say that we replace a valid dentry, which
        has area for storing inode allocated. */
     bool already_allocated_inode = (dentry->inode_indx != 0);
-
     dentry->d_count = 1;
     dentry->flags = 0;
     dentry->dev_indx = dev_indx;
     dentry->dev = &_vfs_devices[dentry->dev_indx];
-    dentry->ops = dynamic_array_get(&_vfs_fses, dentry->dev->fs);
+    fs_desc = dynamic_array_get(&_vfs_fses, dentry->dev->fs);
+    dentry->ops = fs_desc->ops;
     dentry->inode_indx = inode_indx;
     dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
 
@@ -215,6 +216,7 @@ dentry_t* dentry_get_parent(dentry_t* dentry)
 void dentry_flusher()
 {
     for (;;) {
+        log("WORK dentry_flusher");
         dentry_cache_list_t* dentry_cache_block = dentry_cache;
         while (dentry_cache_block) {
             int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);

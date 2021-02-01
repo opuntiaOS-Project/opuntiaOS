@@ -6,10 +6,12 @@
  * Free Software Foundation.
  */
 
+#include <log.h>
+#include <syscall_structs.h>
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <time/time_manager.h>
-#include <log.h>
+#include <utils.h>
 
 int should_unblock_join_block(thread_t* thread)
 {

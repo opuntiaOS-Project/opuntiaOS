@@ -71,7 +71,7 @@ void ata_add_new_device(device_t* new_device)
 void ata_install()
 {
     // registering driver and passing info to it
-    driver_install(_ata_driver_info());
+    driver_install(_ata_driver_info(), "ata86");
 }
 
 void ata_init(ata_t* ata, uint32_t port, bool is_master)

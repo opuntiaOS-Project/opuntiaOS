@@ -6,19 +6,19 @@
  * Free Software Foundation.
  */
 
+#ifdef FPU_ENABLED
 #include <drivers/x86/fpu.h>
+#endif
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
 #include <log.h>
 #include <mem/kmalloc.h>
-#include <platform/x86/idt.h>
-#include <platform/x86/system.h>
-#include <platform/x86/tasking/switchvm.h>
+#include <platform/generic/system.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils/kassert.h>
+#include <utils.h>
 
 #define TASKING_DEBUG
 
@@ -30,11 +30,13 @@ uint32_t nxt_proc;
  * used to jump to trapend
  * the jump will start the process
  */
+#ifdef __i386__
 void _tasking_jumper()
 {
     system_enable_interrupts();
     return;
 }
+#endif
 
 /**
  * TASK LOADING FUNCTIONS
@@ -101,6 +103,9 @@ static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
  */
 void tasking_start_init_proc()
 {
+    // We need to stop interrupts here, since this part of code
+    // is NOT interruptable.
+    system_disable_interrupts();
     proc_t* p = _tasking_alloc_proc();
     proc_setup_tty(p, tty_new());
 
@@ -113,6 +118,7 @@ void tasking_start_init_proc()
     }
 
     sched_enqueue(p->main_thread);
+    system_enable_interrupts();
 }
 
 int tasking_create_kernel_thread(void* entry_point)
@@ -222,7 +228,9 @@ int tasking_exec(const char* path, const char** argv, const char** env)
     proc_kill_all_threads_except(p, thread);
     p->main_thread = thread;
     p->pid = thread->tid;
+#ifdef FPU_ENABLED
     fpu_reset_state(p->main_thread->fpu_state);
+#endif
 
     int ret = _tasking_do_exec(p, kpath, kargc, kargv, 0);
 
