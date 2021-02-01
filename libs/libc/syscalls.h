@@ -36,6 +36,7 @@ int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds,
 int fstat(int nfds, fstat_t* stat);
 
 void sched_yield();
+int uname(utsname_t* buf);
 
 int system_pthread_create(thread_create_params_t* params);
 

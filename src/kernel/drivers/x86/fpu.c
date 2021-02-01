@@ -23,7 +23,6 @@ void fpu_setup(void) {
 	asm volatile ("mov %%cr4, %0" : "=r"(tmp));
 	tmp |= 3 << 9;
 	asm volatile ("mov %0, %%cr4" :: "r"(tmp));
-
 }
 
 void fpu_handler()

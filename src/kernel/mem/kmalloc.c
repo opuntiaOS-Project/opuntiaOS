@@ -7,8 +7,10 @@
  */
 
 #include <algo/bitmap.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/zoner.h>
+#include <utils.h>
 
 struct kmalloc_header {
     uint32_t len;
@@ -58,8 +60,8 @@ void* kmalloc(uint32_t size)
 
     int start = bitmap_find_space(bitmap, blocks_needed);
     if (start < 0) {
-        kprintf("[Err] NO SPACE AT KMALLOC");
-        while (1) {}
+        log_error("[Err] NO SPACE AT KMALLOC");
+        while (1) { }
         return 0;
     }
 

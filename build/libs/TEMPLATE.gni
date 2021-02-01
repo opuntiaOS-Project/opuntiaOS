@@ -24,7 +24,11 @@ template("oneOS_static_library") {
   deplib_list += [ compiled_lib_output_name + ".a" ]
   deplib_bulders_list += [ "//libs/" + lib_name + ":" + lib_build_name ]
 
-  script_args = [ rebase_path("$final_lib_output_name", root_build_dir) ]
+  script_args = [
+    "$target_cpu",
+    rebase_path("$final_lib_output_name", root_build_dir),
+  ]
+
   foreach(i, deplib_list) {
     script_args += [ rebase_path(i, root_build_dir) ]
   }

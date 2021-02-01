@@ -1,12 +1,15 @@
-#include <utils/kernel_self_test.h>
+#ifdef __i386__
+
 #include <drivers/x86/display.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
+#include <utils/kernel_self_test.h>
 
 bool _test_kmalloc();
 bool _test_page_fault();
 
-bool _test_kmalloc() {
+bool _test_kmalloc()
+{
     uint32_t* kek1 = (uint32_t*)kmalloc(sizeof(uint32_t));
     uint32_t* kek2 = (uint32_t*)kmalloc(sizeof(uint32_t));
     *kek1 = 1;
@@ -14,24 +17,20 @@ bool _test_kmalloc() {
     return *kek1 == 1 && *kek2 == 2;
 }
 
-bool _test_page_fault() {
-    int* newpage = (int *)0x10000000;
+bool _test_page_fault()
+{
+    int* newpage = (int*)0x10000000;
     *newpage = 8;
     return *newpage == 8;
 }
 
-void kpanic_at_test(char *t_err_msg, uint16_t test_no) {
-    clean_screen();
-    kprintf("*****\n");
-    kprintf("Kernel Panic\n");
-    kprintf("*****\n");
-    kprintf(t_err_msg);
-    kprintf("\nFailed Test: "); kprintd(test_no);
-    kprintf("\n*****");
-    while (1) {}
+void kpanic_at_test(char* t_err_msg, uint16_t test_no)
+{
+    while (1) { }
 }
 
-bool kernel_self_test(bool throw_kernel_panic) {
+bool kernel_self_test(bool throw_kernel_panic)
+{
     void* active_test[] = {
         _test_kmalloc,
         _test_page_fault,
@@ -43,7 +42,7 @@ bool kernel_self_test(bool throw_kernel_panic) {
         bool (*test)() = active_test[i];
         if (!test()) {
             if (throw_kernel_panic) {
-                while (1) {}
+                while (1) { }
                 kpanic_at_test("Kernel-self-test NOT passed", i);
             } else {
                 return false;
@@ -94,3 +93,5 @@ bool kernel_self_test(bool throw_kernel_panic) {
 //     kbdriver_discard_last_key();
 //     // while(1) {}
 // }
+
+#endif

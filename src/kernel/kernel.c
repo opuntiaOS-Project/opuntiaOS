@@ -6,22 +6,13 @@
  * Free Software Foundation.
  */
 
-#include <drivers/x86/pci.h>
-#include <platform/x86/gdt.h>
-#include <platform/x86/idt.h>
-#include <platform/x86/registers.h>
-#include <platform/x86/system.h>
+#include <platform/generic/init.h>
+#include <platform/generic/registers.h>
+#include <platform/generic/system.h>
 
 #include <types.h>
 
 #include <drivers/driver_manager.h>
-#include <drivers/x86/ata.h>
-#include <drivers/x86/bga.h>
-#include <drivers/x86/display.h>
-#include <drivers/x86/fpu.h>
-#include <drivers/x86/ide.h>
-#include <drivers/x86/mouse.h>
-#include <drivers/x86/pit.h>
 
 #include <mem/kmalloc.h>
 #include <mem/pmm.h>
@@ -37,9 +28,6 @@
 
 #include <time/time_manager.h>
 
-#include <cmd/cmd.h>
-#include <cmd/system_commands.h>
-
 #include <tasking/sched.h>
 
 #include <log.h>
@@ -54,7 +42,6 @@ void idle_thread()
     while (1) { }
 }
 
-// FIXME
 void launching()
 {
     tasking_create_kernel_thread(idle_thread);
@@ -65,34 +52,23 @@ void launching()
 
 void stage3(mem_desc_t* mem_desc)
 {
+    system_disable_interrupts();
     logger_setup();
-    clean_screen();
-    gdt_setup();
-    idt_setup();
-    pit_setup();
-    fpu_init();
+    platform_setup();
 
     // mem setup
     pmm_setup(mem_desc);
     vmm_setup();
 
-    // kernel self test
-    kernel_self_test(true);
-
     timeman_setup();
 
     // installing drivers
     driver_manager_init();
-    pci_install();
-    ide_install();
-    ata_install();
+    platform_drivers_setup();
     vfs_install();
     ext2_install();
     procfs_install();
     devfs_install();
-    kbdriver_install();
-    mouse_install();
-    bga_install();
     drivers_run();
 
     // mounting filesystems
@@ -107,10 +83,6 @@ void stage3(mem_desc_t* mem_desc)
     // init scheduling
     tasking_init();
     scheduler_init();
-
-    syscmd_init();
-    system_disable_interrupts();
-    clean_screen();
     tasking_create_kernel_thread(launching);
     resched(); /* Starting a scheduler */
 

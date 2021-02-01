@@ -10,21 +10,67 @@
 #include <fs/vfs.h>
 #include <log.h>
 #include <mem/kmalloc.h>
+#include <mem/vmm/zoner.h>
 #include <tasking/elf.h>
 #include <tasking/tasking.h>
+#include <utils.h>
 
 // #define ELF_DEBUG
 
+#ifdef __i386__
 #define MACHINE_ARCH EM_386
+#elif __arm__
+#define MACHINE_ARCH EM_ARM
+#endif
+
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define PAGES_PER_COPING_BUFFER 8
+#define COPING_BUFFER_LEN (PAGES_PER_COPING_BUFFER * VMM_PAGE_SIZE)
 #define USER_STACK_SIZE VMM_PAGE_SIZE
 
 static int _elf_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_program_header_32_t* ph)
 {
-    uint8_t* buf = kmalloc(ph->p_memsz);
-    memset(buf, 0, ph->p_memsz);
-    fd->ops->read(fd->dentry, buf, ph->p_offset, ph->p_filesz);
-    vmm_copy_to_pdir(p->pdir, buf, ph->p_vaddr, ph->p_memsz);
-    kfree(buf);
+    pdirectory_t* prev_pdir = vmm_get_active_pdir();
+    vmm_switch_pdir(p->pdir);
+
+    uint32_t zones_count = proc->zones.size;
+
+    for (uint32_t i = 0; i < zones_count; i++) {
+        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
+        if (zone->type == ZONE_TYPE_BSS) {
+            memset((void*)zone->start, 0, zone->len);
+        }
+    }
+
+    zone_t coping_zone = zoner_new_zone(COPING_BUFFER_LEN);
+    uint32_t mem_remaining = ph->p_memsz;
+    uint32_t file_remaining = ph->p_filesz;
+    uint32_t mem_offset = ph->p_vaddr;
+    uint32_t file_offset = ph->p_offset;
+
+    while (mem_remaining) {
+        memset(coping_zone.ptr, 0, COPING_BUFFER_LEN);
+        if (file_remaining) {
+            uint32_t file_read_len = MIN(file_remaining, COPING_BUFFER_LEN);
+            fd->ops->read(fd->dentry, coping_zone.ptr, file_offset, file_read_len);
+            file_offset += file_read_len;
+            file_remaining -= file_read_len;
+        }
+
+        void* write_ptr = coping_zone.ptr;
+        for (int i = 0; i < PAGES_PER_COPING_BUFFER && mem_remaining; i++) {
+            uint32_t mem_write_len = MIN(mem_remaining, VMM_PAGE_SIZE);
+            if (proc_find_zone(p, mem_offset)) {
+                vmm_fast_copy_to_active_pdir(write_ptr, mem_offset, mem_write_len);
+            }
+            mem_offset += mem_write_len;
+            mem_remaining -= mem_write_len;
+            write_ptr += VMM_PAGE_SIZE;
+        }
+    }
+
+    zoner_free_zone(coping_zone);
+    vmm_switch_pdir(prev_pdir);
 }
 
 static int _elf_interpret_program_header_entry(proc_t* p, file_descriptor_t* fd)
@@ -61,20 +107,24 @@ static int _elf_interpret_section_header_entry(proc_t* p, file_descriptor_t* fd)
     if (sh.sh_flags & SHF_ALLOC) {
         uint32_t zone_flags = ZONE_READABLE;
         uint32_t zone_type = ZONE_TYPE_NULL;
-        
         if (sh.sh_flags & SHF_WRITE) {
             zone_flags |= ZONE_WRITABLE;
         }
         if (sh.sh_flags & SHF_EXECINSTR) {
             zone_flags |= ZONE_EXECUTABLE;
         }
-        
         // FIXME: Mapping of zone types is bad.
         switch (sh.sh_type) {
         case SHT_PROGBITS:
             zone_type = ZONE_TYPE_CODE;
             break;
         case SHT_NOBITS:
+            zone_type = ZONE_TYPE_BSS;
+            break;
+        case SHT_INIT_ARRAY:
+            zone_type = ZONE_TYPE_DATA;
+            break;
+        case SHT_FINI_ARRAY:
             zone_type = ZONE_TYPE_DATA;
             break;
         default:
@@ -96,7 +146,8 @@ static int _elf_alloc_stack(proc_t* p)
     proc_zone_t* stack_zone = proc_new_random_zone_backward(p, USER_STACK_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
-    thread_set_stack(p->main_thread, stack_zone->start + USER_STACK_SIZE, stack_zone->start + USER_STACK_SIZE);
+    set_base_pointer(p->main_thread->tf, stack_zone->start + USER_STACK_SIZE);
+    set_stack_pointer(p->main_thread->tf, stack_zone->start + USER_STACK_SIZE);
 }
 
 static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_32_t* header)
@@ -113,8 +164,9 @@ static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_32_t
         _elf_interpret_program_header_entry(p, fd);
     }
 
+    proc_zone_t* stack_zone = proc_new_random_zone(p, VMM_PAGE_SIZE); // Forbid 0 allocations to make it work well
     _elf_alloc_stack(p);
-    thread_set_eip(p->main_thread, header->e_entry);
+    set_instruction_pointer(p->main_thread->tf, header->e_entry);
     return 0;
 }
 

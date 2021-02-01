@@ -28,7 +28,7 @@ driver_desc_t _ide_driver_info() {
 
 // install driver
 void ide_install() {
-    driver_install(_ide_driver_info());
+    driver_install(_ide_driver_info(), "ide86");
 }
 
 // [Stub]

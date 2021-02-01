@@ -27,17 +27,19 @@
 extern "C" {
 #endif
 
+#include <sys/types.h>
+
 /*
  * See puff.c for purpose and usage.
  */
 #ifndef NIL
-#    define NIL ((unsigned char*)0) /* for no output option */
+#define NIL ((unsigned char*)0) /* for no output option */
 #endif
 
-int puff(unsigned char* dest,    /* pointer to destination pointer */
-    unsigned long* destlen,      /* amount of output space */
+int puff(unsigned char* dest, /* pointer to destination pointer */
+    size_t* destlen, /* amount of output space */
     const unsigned char* source, /* pointer to source data pointer */
-    unsigned long* sourcelen);   /* amount of input available */
+    size_t* sourcelen); /* amount of input available */
 
 #ifdef __cplusplus
 }

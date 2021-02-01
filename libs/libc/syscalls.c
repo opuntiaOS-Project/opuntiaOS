@@ -14,10 +14,25 @@ int errno;
 static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
 {
     int ret;
+#ifdef __i386__
     asm volatile("push %%ebx;movl %2,%%ebx;int $0x80;pop %%ebx"
                  : "=a"(ret)
                  : "0"(sysid), "r"((int)(p1)), "c"((int)(p2)), "d"((int)(p3)), "S"((int)(p4)), "D"((int)(p5))
                  : "memory");
+#elif __arm__
+    asm volatile(
+        "mov r7, %1;\
+        mov r0, %2;\
+        mov r1, %3;\
+        mov r2, %4;\
+        mov r3, %5;\
+        mov r4, %6;\
+        swi 1;\
+        mov %0, r0;"
+        : "=r"(ret)
+        : "r"(sysid), "r"((int)(p1)), "r"((int)(p2)), "r"((int)(p3)), "r"((int)(p4)), "r"((int)(p5))
+        : "memory", "r0", "r1", "r2", "r3", "r4", "r7");
+#endif
     return ret;
 }
 
@@ -184,4 +199,9 @@ int shared_buffer_free(int id)
 void sched_yield()
 {
     syscall(SYSSCHEDYIELD, 0, 0, 0, 0, 0);
+}
+
+int uname(utsname_t* buf)
+{
+    return syscall(SYSUNAME, (int)buf, 0, 0, 0, 0);
 }

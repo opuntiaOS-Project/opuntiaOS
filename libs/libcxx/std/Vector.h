@@ -1,6 +1,7 @@
 #pragma once
 #include <libcxx/malloc.h>
 #include <libcxx/memory.h>
+#include <std/Dbg.h>
 
 namespace Algo {
 
@@ -11,7 +12,18 @@ public:
 
     Vector()
     {
+        // Dbg() << "- " << (uint32_t)m_data << "\n";
         grow(m_capacity);
+    }
+
+    Vector(void* tdefw)
+    {
+        // m_capacity = 0;
+        // m_size = 0;
+        // m_data = 0;
+        // Dbg() << "Look VEC at " << (uint32_t)((char*)(tdefw) + 0xf4 + 0x8) << " " << *((uint32_t*)((char*)(tdefw) + 0xf4 + 0x8));
+        grow(m_capacity);
+        // the << (uint32_t)((char*)(tdefw) + 0xf4 + 0x8) << 0 << *((uint32_t*)((char*)(tdefw) + 0xf4 + 0x8));
     }
 
     Vector(int capacity)
@@ -118,6 +130,8 @@ public:
     inline T* data() { return m_data; }
     inline const T* data() const { return m_data; }
 
+    inline T* end() { return m_data + m_size; }
+
 private:
     inline void ensure_capacity(size_t new_size)
     {
@@ -153,8 +167,6 @@ private:
             from++;
         }
     }
-
-    inline T* end() { return m_data + m_size; }
 
     size_t m_size { 0 };
     size_t m_capacity { 16 };

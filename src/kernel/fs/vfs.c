@@ -14,9 +14,10 @@
 #include <mem/kmalloc.h>
 #include <syscall_structs.h>
 #include <tasking/tasking.h>
-#include <utils/mem.h>
+#include <utils.h>
 
 // #define VFS_DEBUG
+#define MAX_FS 8
 
 vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
 dynamic_array_t _vfs_fses;
@@ -43,30 +44,42 @@ driver_desc_t _vfs_driver_info()
  */
 void vfs_install()
 {
-    driver_install(_vfs_driver_info());
-    dynamic_array_init_of_size(&_vfs_fses, sizeof(fs_ops_t), 16);
+    driver_install(_vfs_driver_info(), "vfs");
+    dynamic_array_init_of_size(&_vfs_fses, sizeof(fs_desc_t), MAX_FS);
 }
 
 int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
 {
     int fs_cnt = _vfs_fses.size;
     for (int i = 0; i < fs_cnt; i++) {
-        fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
-        if (!fs->recognize) {
+        fs_desc_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
+        if (!fs->ops->recognize) {
             continue;
         }
 
-        bool (*is_capable)(vfs_device_t * nd) = fs->recognize;
+        bool (*is_capable)(vfs_device_t * nd) = fs->ops->recognize;
         if (is_capable(vfs_dev)) {
             vfs_dev->fs = i;
-            if (fs->prepare_fs) {
-                int (*prepare_fs)(vfs_device_t * nd) = fs->prepare_fs;
+            if (fs->ops->prepare_fs) {
+                int (*prepare_fs)(vfs_device_t * nd) = fs->ops->prepare_fs;
                 return prepare_fs(&_vfs_devices[vfs_dev->dev->id]);
             }
             return 0;
         }
     }
     return -ENOENT;
+}
+
+int vfs_get_fs_id(const char* name)
+{
+    int fs_cnt = _vfs_fses.size;
+    for (int i = 0; i < fs_cnt; i++) {
+        fs_desc_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
+        if (strcmp(name, fs->driver->name) == 0) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 int vfs_add_dev(device_t* dev)
@@ -101,9 +114,9 @@ int vfs_add_dev_with_fs(device_t* dev, int fs_id)
     _vfs_devices[dev->id].dev = dev;
     _vfs_devices[dev->id].fs = fs_id;
 
-    fs_ops_t* fs = dynamic_array_get(&_vfs_fses, fs_id);
-    if (fs->prepare_fs) {
-        int (*prepare_fs)(vfs_device_t * nd) = fs->prepare_fs;
+    fs_desc_t* fs = dynamic_array_get(&_vfs_fses, fs_id);
+    if (fs->ops->prepare_fs) {
+        int (*prepare_fs)(vfs_device_t * nd) = fs->ops->prepare_fs;
         return prepare_fs(&_vfs_devices[dev->id]);
     }
 
@@ -117,9 +130,9 @@ void vfs_eject_device(device_t* dev)
     log("Ejecting\n");
 #endif
     int fs_id = _vfs_devices[dev->id].fs;
-    fs_ops_t* fs = dynamic_array_get(&_vfs_fses, (int)fs_id);
-    if (fs->eject_device) {
-        bool (*eject)(vfs_device_t * nd) = fs->eject_device;
+    fs_desc_t* fs = dynamic_array_get(&_vfs_fses, (int)fs_id);
+    if (fs->ops->eject_device) {
+        bool (*eject)(vfs_device_t * nd) = fs->ops->eject_device;
         eject(&_vfs_devices[dev->id]);
     }
     dentry_put_all_dentries_of_dev(dev->id);
@@ -131,32 +144,35 @@ void vfs_add_fs(driver_t* new_driver)
         return;
     }
 
-    fs_ops_t new_fs;
+    fs_ops_t* new_ops = kmalloc(sizeof(fs_ops_t));
 
-    new_fs.recognize = new_driver->desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
-    new_fs.prepare_fs = new_driver->desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS];
-    new_fs.eject_device = new_driver->desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
+    new_ops->recognize = new_driver->desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE];
+    new_ops->prepare_fs = new_driver->desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS];
+    new_ops->eject_device = new_driver->desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE];
 
-    new_fs.file.mkdir = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
-    new_fs.file.rmdir = new_driver->desc.functions[DRIVER_FILE_SYSTEM_RMDIR];
-    new_fs.file.getdents = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GETDENTS];
-    new_fs.file.lookup = new_driver->desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
-    new_fs.file.open = new_driver->desc.functions[DRIVER_FILE_SYSTEM_OPEN];
-    new_fs.file.can_read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
-    new_fs.file.can_write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
-    new_fs.file.read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ];
-    new_fs.file.write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE];
-    new_fs.file.truncate = new_driver->desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE];
-    new_fs.file.create = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CREATE];
-    new_fs.file.unlink = new_driver->desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
-    new_fs.file.ioctl = new_driver->desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
-    new_fs.file.mmap = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MMAP];
+    new_ops->file.mkdir = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MKDIR];
+    new_ops->file.rmdir = new_driver->desc.functions[DRIVER_FILE_SYSTEM_RMDIR];
+    new_ops->file.getdents = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GETDENTS];
+    new_ops->file.lookup = new_driver->desc.functions[DRIVER_FILE_SYSTEM_LOOKUP];
+    new_ops->file.open = new_driver->desc.functions[DRIVER_FILE_SYSTEM_OPEN];
+    new_ops->file.can_read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_READ];
+    new_ops->file.can_write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE];
+    new_ops->file.read = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ];
+    new_ops->file.write = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE];
+    new_ops->file.truncate = new_driver->desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE];
+    new_ops->file.create = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CREATE];
+    new_ops->file.unlink = new_driver->desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
+    new_ops->file.ioctl = new_driver->desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
+    new_ops->file.mmap = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MMAP];
 
-    new_fs.dentry.write_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
-    new_fs.dentry.read_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
-    new_fs.dentry.free_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE];
-    new_fs.dentry.get_fsdata = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
+    new_ops->dentry.write_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
+    new_ops->dentry.read_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
+    new_ops->dentry.free_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE];
+    new_ops->dentry.get_fsdata = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
 
+    fs_desc_t new_fs;
+    new_fs.driver = new_driver;
+    new_fs.ops = new_ops;
     dynamic_array_push(&_vfs_fses, &new_fs);
 }
 

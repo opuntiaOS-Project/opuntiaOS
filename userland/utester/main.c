@@ -2,6 +2,33 @@
 #include <string.h>
 #include <syscalls.h>
 
+void exectest(void)
+{
+    int i, pid;
+
+    char* paramscat[] = {
+        "../readme",
+        "../readme",
+        (char*)0,
+    };
+
+    for (i = 0; i < 20; i++) {
+        pid = fork();
+        if (pid < 0) {
+            write(1, "fork failed\n", 12);
+            return;
+        }
+        if (pid) {
+            wait(pid);
+        } else {
+            execve("/bin/cat", paramscat, 0);
+            write(1, "exec failed\n", 12);
+            exit(0);
+        }
+    }
+    write(1, "exectest ok\n", 12);
+}
+
 void exitwait(void)
 {
     int i, pid;
@@ -166,9 +193,9 @@ void dirfile(void)
 
 int main(int argc, char** argv)
 {
-    mem();
-    exitwait();
-    fourfiles();
-    dirfile();
+    // mem();
+    exectest();
+    // fourfiles();
+    // dirfile();
     return 0;
 }

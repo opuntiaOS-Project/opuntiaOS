@@ -16,17 +16,34 @@ if (optimize) {
   lib_c_flags += [ "-Os" ]
 }
 
-lib_asm_flags = [
-  "-f",
-  "elf",
-]
-
 lib_cc_flags = [
   "-std=c++17",
   "-fno-sized-deallocation",
   "-fno-rtti",
   "-fno-exceptions",
 ]
+
+lib_asm_flags = []
+
+if (target_cpu == "x86") {
+  lib_asm_flags += [
+    "-f",
+    "elf",
+  ]
+}
+
+if (target_cpu == "aarch32") {
+  lib_c_flags += [
+    "-fno-builtin",
+    "-march=armv7-a",
+    "-fno-pie",
+    "-no-pie",
+  ]
+  lib_asm_flags += [
+    "-march=armv7-a",
+    "-mcpu=cortex-a15",
+  ]
+}
 
 config("lib_flags") {
   cflags = lib_c_flags

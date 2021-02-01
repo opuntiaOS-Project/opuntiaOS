@@ -1,8 +1,8 @@
 #include <log.h>
 #include <mem/vmm/vmm.h>
 #include <platform/x86/isr_handler.h>
-#include <platform/x86/registers.h>
-#include <platform/x86/system.h>
+#include <platform/generic/registers.h>
+#include <platform/generic/system.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
@@ -59,7 +59,8 @@ void isr_handler(trapframe_t* tf)
     if (tf->int_no == 14) {
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
-            log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, read_cr2(), p->pid, tf->eip);
+            // log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, read_cr2(), p->pid, tf->eip);
+            log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, 0, p->pid, tf->eip);
             thread_print_backtrace();
             proc_die(p);
             resched();

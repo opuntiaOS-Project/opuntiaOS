@@ -54,6 +54,7 @@ enum __sysid {
     SYSSELECT,
     SYSFSTAT,
     SYSSCHEDYIELD,
+    SYSUNAME,
     SYS_SHBUF_CREATE,
     SYS_SHBUF_GET,
     SYS_SHBUF_FREE,
@@ -204,5 +205,20 @@ struct thread_create_params {
     uint32_t stack_size;
 };
 typedef struct thread_create_params thread_create_params_t;
+
+/**
+ * UNAME
+ */
+
+#define UTSNAME_ENTRY_LEN 65
+
+struct utsname {
+    char sysname[UTSNAME_ENTRY_LEN];
+    char nodename[UTSNAME_ENTRY_LEN];
+    char release[UTSNAME_ENTRY_LEN];
+    char version[UTSNAME_ENTRY_LEN];
+    char machine[UTSNAME_ENTRY_LEN];
+};
+typedef struct utsname utsname_t;
 
 #endif /* __oneOS__API_H */

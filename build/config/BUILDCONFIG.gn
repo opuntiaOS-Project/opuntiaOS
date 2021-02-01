@@ -12,7 +12,8 @@ declare_args() {
 if (target_cpu == "") {
   target_cpu = "x86"
 }
-
-if (target_cpu == "x86") {
-  set_default_toolchain("//toolchains:i686-gcc")
+if (target_cpu == "arm") {
+  target_cpu = "aarch32"
 }
+
+set_default_toolchain("//toolchains:cross-compiler")

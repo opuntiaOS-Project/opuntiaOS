@@ -6,8 +6,8 @@
  * Free Software Foundation.
  */
 
-#ifndef __oneOS__MEM__VMM__TABLE_DESC_H
-#define __oneOS__MEM__VMM__TABLE_DESC_H
+#ifndef __oneOS__X86__VMM__TABLE_DESC_H
+#define __oneOS__X86__VMM__TABLE_DESC_H
 
 #include <types.h>
 
@@ -31,6 +31,7 @@ enum TABLE_DESC_PAGE_FLAGS {
     TABLE_DESC_ZEROING_ON_DEMAND = 0x800
 };
 
+void table_desc_init(table_desc_t* pde);
 void table_desc_clear(table_desc_t* pde);
 void table_desc_set_attrs(table_desc_t* pde, uint32_t attrs);
 void table_desc_del_attrs(table_desc_t* pde, uint32_t attrs);
@@ -45,4 +46,4 @@ bool table_desc_is_4mb(table_desc_t pde);
 bool table_desc_is_copy_on_write(table_desc_t pde);
 uint32_t table_desc_get_frame(table_desc_t pde);
 
-#endif //__oneOS__MEM__VMM__TABLE_DESC_H
+#endif //__oneOS__X86__VMM__TABLE_DESC_H

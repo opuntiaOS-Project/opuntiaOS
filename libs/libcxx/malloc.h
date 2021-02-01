@@ -10,7 +10,11 @@ extern "C" {
 
 #ifdef __cplusplus
 
+#ifdef __i386__
 typedef unsigned long size_t;
+#elif __arm__
+typedef unsigned int size_t;
+#endif
 
 inline void* operator new(size_t size)
 {

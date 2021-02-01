@@ -12,9 +12,9 @@
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>
+#include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <platform/x86/gdt.h>
-#include <platform/x86/tasking/tss.h>
+#include <utils.h>
 
 extern void trap_return();
 extern void _tasking_jumper();
@@ -22,12 +22,12 @@ extern void _tasking_jumper();
 int _thread_setup_kstack(thread_t* thread, uint32_t esp)
 {
     char* sp = (char*)(esp);
-
     /* setting trapframe in kernel stack */
     sp -= sizeof(*thread->tf);
     thread->tf = (trapframe_t*)sp;
 
-    /* setting return point in kernel stack */
+    /* setting return point in kernel stack, so it
+       will return to this address in _tasking_jumper */
     sp -= 4;
     *(uint32_t*)sp = (uint32_t)trap_return;
 
@@ -37,34 +37,15 @@ int _thread_setup_kstack(thread_t* thread, uint32_t esp)
 
     /* setting init data */
     memset((void*)thread->context, 0, sizeof(*thread->context));
-    thread->context->eip = (uint32_t)_tasking_jumper;
+    context_set_instruction_pointer(thread->context, (uint32_t)_tasking_jumper);
     memset((void*)thread->tf, 0, sizeof(*thread->tf));
 
+#ifdef FPU_ENABLED
     /* setting fpu */
     thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
     fpu_reset_state(thread->fpu_state);
-
+#endif
     return 0;
-}
-
-static void _thread_setup_segment_regs(thread_t* thread)
-{
-    thread->tf->cs = (SEG_UCODE << 3) | DPL_USER;
-    thread->tf->ds = (SEG_UDATA << 3) | DPL_USER;
-    thread->tf->es = thread->tf->ds;
-    thread->tf->ss = thread->tf->ds;
-    thread->tf->eflags = FL_IF;
-}
-
-void thread_set_stack(thread_t* thread, uint32_t ebp, uint32_t esp)
-{
-    thread->tf->ebp = ebp;
-    thread->tf->esp = esp;
-}
-
-void thread_set_eip(thread_t* thread, uint32_t eip)
-{
-    thread->tf->eip = eip;
 }
 
 int thread_setup_main(proc_t* p, thread_t* thread)
@@ -84,7 +65,7 @@ int thread_setup_main(proc_t* p, thread_t* thread)
     memset((void*)thread->signal_handlers, 0, sizeof(thread->signal_handlers));
 
     _thread_setup_kstack(thread, thread->kstack.start + VMM_PAGE_SIZE);
-    _thread_setup_segment_regs(thread);
+    tf_setup_as_user_thread(thread->tf);
     return 0;
 }
 
@@ -105,36 +86,13 @@ int thread_setup(proc_t* p, thread_t* thread)
     memset((void*)thread->signal_handlers, 0, sizeof(thread->signal_handlers));
 
     _thread_setup_kstack(thread, thread->kstack.start + VMM_PAGE_SIZE);
-    _thread_setup_segment_regs(thread);
+    tf_setup_as_user_thread(thread->tf);
     return 0;
 }
 
 /**
  * STACK FUNCTIONS
  */
-
-static inline void _thread_push_to_user_stack(thread_t* thread, uint32_t value)
-{
-    thread->tf->esp -= 4;
-    *((uint32_t*)thread->tf->esp) = value;
-}
-
-static inline uint32_t _thread_pop_from_user_stack(thread_t* thread)
-{
-    uint32_t val = *((uint32_t*)thread->tf->esp);
-    thread->tf->esp += 4;
-    return val;
-}
-
-static inline void _thread_simulate_push_to_user_stack(thread_t* thread)
-{
-    thread->tf->esp -= 4;
-}
-
-static inline void _thread_simulate_pop_from_user_stack(thread_t* thread)
-{
-    thread->tf->esp += 4;
-}
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
 {
@@ -148,14 +106,14 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
         argv_data_size += 4 - (argv_data_size % 4);
     }
 
-    uint32_t size_in_stack = argv_data_size + (argc + 1) * sizeof(char*) + sizeof(argc) + sizeof(char*);
-    int* tmp_buf = (int*)kmalloc(size_in_stack);
+    uint32_t data_size_on_stack = argv_data_size + (argc + 1) * sizeof(char*) + sizeof(argc) + sizeof(char*);
+    int* tmp_buf = (int*)kmalloc(data_size_on_stack);
     if (!tmp_buf) {
         return -EAGAIN;
     }
-    memset((void*)tmp_buf, 0, size_in_stack);
+    memset((void*)tmp_buf, 0, data_size_on_stack);
 
-    char* tmp_buf_ptr = ((char*)tmp_buf) + size_in_stack;
+    char* tmp_buf_ptr = ((char*)tmp_buf) + data_size_on_stack;
     char* tmp_buf_data_ptr = tmp_buf_ptr - argv_data_size;
     uint32_t* tmp_buf_array_ptr = (uint32_t*)((char*)tmp_buf_data_ptr - (argc + 1) * sizeof(char*));
     int* tmp_buf_argv_ptr = (int*)((char*)tmp_buf_array_ptr - sizeof(char*));
@@ -165,11 +123,12 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
     uint32_t array_esp = data_esp - (argc + 1) * sizeof(char*);
     uint32_t argv_esp = array_esp - 4;
     uint32_t argc_esp = argv_esp - 4;
+    uint32_t end_esp = argc_esp; // Points to the end on the stack
 
     for (int i = argc - 1; i >= 0; i--) {
         uint32_t len = strlen(argv[i]);
         tmp_buf_ptr -= len + 1;
-        thread->tf->esp -= len + 1;
+        tf_move_stack_pointer(thread->tf, -(len + 1));
         memcpy(tmp_buf_ptr, argv[i], len);
         tmp_buf_ptr[len] = 0;
 
@@ -177,12 +136,17 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
     }
     tmp_buf_array_ptr[argc] = 0;
 
+    // FIXME: Remove these elements from stack for ARM
     *tmp_buf_argv_ptr = array_esp;
     *tmp_buf_argc_ptr = argc;
 
-    set_stack_pointer(thread->tf, argc_esp);
+    set_stack_pointer(thread->tf, end_esp);
+#ifdef __arm__
+    thread->tf->r[0] = argc;
+    thread->tf->r[1] = array_esp;
+#endif
 
-    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, get_stack_pointer(thread->tf), size_in_stack);
+    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, get_stack_pointer(thread->tf), data_size_on_stack);
 
     kfree(tmp_buf);
 
@@ -210,11 +174,11 @@ int thread_die(thread_t* thread)
 
 int thread_dump_frame(thread_t* thread)
 {
-    for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
-        uint8_t byte = *(uint8_t*)i;
-        uint32_t b32 = (uint32_t)byte;
-        log("%x - %x\n", i, b32);
-    }
+    // for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
+    //     uint8_t byte = *(uint8_t*)i;
+    //     uint32_t b32 = (uint32_t)byte;
+    //     log("%x - %x\n", i, b32);
+    // }
 }
 
 int thread_print_backtrace()

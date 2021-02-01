@@ -13,7 +13,6 @@
 #include <mem/vmm/vmm.h>
 #include <tasking/tasking.h>
 #include <types.h>
-#include <platform/x86/idt.h>
 
 #define MAX_PRIO 0
 #define MIN_PRIO 10

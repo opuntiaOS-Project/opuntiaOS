@@ -17,8 +17,9 @@
 #include <tasking/elf.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>
+#include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils/kassert.h>
+#include <utils.h>
 
 static int proc_next_pid = 1;
 
@@ -124,7 +125,9 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
 {
     proc_t* from_proc = from_thread->process;
     memcpy((uint8_t*)new_proc->main_thread->tf, (uint8_t*)from_thread->tf, sizeof(trapframe_t));
+#ifdef FPU_ENABLED
     memcpy((uint8_t*)new_proc->main_thread->fpu_state, (uint8_t*)from_thread->fpu_state, sizeof(fpu_state_t));
+#endif
 
     new_proc->cwd = dentry_duplicate(from_proc->cwd);
     new_proc->tty = from_proc->tty;
@@ -178,11 +181,11 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
 
     /* Setting registers */
     thread_t* main_thread = p->main_thread;
-    thread_set_stack(main_thread, stack_zone->start + VMM_PAGE_SIZE, stack_zone->start + VMM_PAGE_SIZE);
-    thread_set_eip(main_thread, code_zone->start);
+    set_base_pointer(main_thread->tf, stack_zone->start + VMM_PAGE_SIZE);
+    set_stack_pointer(main_thread->tf, stack_zone->start + VMM_PAGE_SIZE);
+    set_instruction_pointer(main_thread->tf, code_zone->start);
 
     kfree(prog);
-
     return 0;
 }
 
@@ -212,7 +215,7 @@ int proc_load(proc_t* p, const char* path)
         vmm_free_pdir(old_pdir);
     } else {
         log_error("proc: elf loading");
-        while (1) {}
+        while (1) { }
         p->pdir = old_pdir;
         vmm_switch_pdir(old_pdir);
         vmm_free_pdir(new_pdir);

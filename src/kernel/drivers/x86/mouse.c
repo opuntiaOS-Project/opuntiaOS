@@ -144,6 +144,7 @@ void mouse_handler()
     ringbuffer_write(&mouse_buffer, (uint8_t*)&packet, sizeof(mouse_packet_t));
 
 #ifdef MOUSE_DRIVER_DEBUG
+    log("%x", packet.button_states);
     if (packet.x_offset < 0) {
         log("-%d ", -packet.x_offset);
     } else {
@@ -170,6 +171,6 @@ void mouse_run()
 
 bool mouse_install()
 {
-    driver_install(_mouse_driver_info());
+    driver_install(_mouse_driver_info(), "mouse86");
     return true;
 }

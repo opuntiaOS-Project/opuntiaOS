@@ -8,9 +8,9 @@
 
 #include <errno.h>
 #include <fs/vfs.h>
+#include <log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
-#include <log.h>
 
 /**
  * PROC ZONING
@@ -30,7 +30,7 @@ static inline bool _proc_can_fixup_zone(proc_t* proc, uint32_t* start_ptr, int* 
     for (uint32_t i = 0; i < zones_count; i++) {
         proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
         if (_proc_zones_intersect(*start_ptr, *len_ptr, zone->start, zone->len)) {
-            if (*start_ptr > zone->start) {
+            if (*start_ptr >= zone->start) {
                 int move = (zone->start + zone->len) - (*start_ptr);
                 *start_ptr += move;
                 *len_ptr -= move;

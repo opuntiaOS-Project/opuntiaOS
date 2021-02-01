@@ -1,6 +1,5 @@
-#include <drivers/x86/display.h>
+// #include <drivers/x86/display.h>
 #include <drivers/x86/keyboard.h>
-#include <drivers/x86/pit.h>
 #include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
@@ -97,15 +96,15 @@ int _tty_process_esc_seq(uint8_t* buf)
     switch (cmd) {
     case 'J':
         if (argv[0] == 2) {
-            clean_screen();
+            // clean_screen();
         }
         return id;
     case 'H':
         if (argc == 0) {
-            set_cursor_offset(get_offset(0, 0));
+            // set_cursor_offset(get_offset(0, 0));
         }
         if (argc == 2) {
-            set_cursor_offset(get_offset(argv[1] - 1, argv[0] - 1));
+            // set_cursor_offset(get_offset(argv[1] - 1, argv[0] - 1));
         }
         return id;
     }
@@ -128,7 +127,7 @@ int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
             i += _tty_process_esc_seq(&buf[i]);
         } else {
             log_char(buf[i]);
-            print_char(buf[i], WHITE_ON_BLACK, -1, -1);
+            // print_char(buf[i], WHITE_ON_BLACK, -1, -1);
         }
     }
 
@@ -189,7 +188,7 @@ tty_entry_t* tty_new()
     ttys[next_tty].lines_avail = 0;
     _tty_setup_termios(&ttys[next_tty]);
     if (!ttys[next_tty].buffer.zone.start) {
-        kprintf("Error: tty buffer allocation");
+        log_error("Error: tty buffer allocation");
         while (1) { }
     }
     active_tty = &ttys[next_tty];
@@ -202,7 +201,7 @@ tty_entry_t* tty_new()
 static void _tty_echo_key(tty_entry_t* tty, key_t key)
 {
     if (tty->termios.c_lflag & ECHO) {
-        print_char(key, WHITE_ON_BLACK, -1, -1);
+        // print_char(key, WHITE_ON_BLACK, -1, -1);
     }
 }
 
@@ -224,7 +223,7 @@ void tty_eat_key(key_t key)
         tty->lines_avail++;
     } else if (key == KEY_BACKSPACE) {
         if (ringbuffer_space_to_read(&tty->buffer) > 0) {
-            delete_char(WHITE_ON_BLACK, -1, -1, 1);
+            // delete_char(WHITE_ON_BLACK, -1, -1, 1);
             tty->buffer.end--;
         }
     } else {

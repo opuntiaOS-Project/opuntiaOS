@@ -42,7 +42,7 @@ static bar_t _pci_get_bar(uint8_t bus, uint8_t device, uint8_t function, uint8_t
 
 void pci_install()
 {
-    driver_install(_pci_driver_info());
+    driver_install(_pci_driver_info(), "pci86");
 }
 
 uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t offset)

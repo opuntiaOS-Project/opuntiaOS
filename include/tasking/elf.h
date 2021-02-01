@@ -36,11 +36,10 @@ enum E_TYPE_FIELDS {
 };
 
 enum E_MACHINE_FIELDS {
-    EM_NONE,
-    EM_386 = 3,
-    EM_PPC = 20,
-    EM_PPC64 = 21,
-    EM_X86_64 = 62,
+    EM_NONE = 0x0,
+    EM_386 = 0x03,
+    EM_ARM = 0x28,
+    EM_AMD64 = 0x32,
 };
 
 typedef struct {

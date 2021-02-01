@@ -24,6 +24,7 @@ void zoner_init(uint32_t start_vaddr);
 void zoner_place_bitmap();
 
 zone_t zoner_new_zone(uint32_t size);
+zone_t zoner_new_zone_aligned(uint32_t size, uint32_t alignment);
 int zoner_free_zone(zone_t zone);
 
 #endif // __oneOS__MEM__VMM__ZONER_H

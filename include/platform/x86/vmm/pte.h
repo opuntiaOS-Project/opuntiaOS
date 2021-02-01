@@ -6,8 +6,8 @@
  * Free Software Foundation.
  */
 
-#ifndef __oneOS__MEM__VMM__PAGE_DESC_H
-#define __oneOS__MEM__VMM__PAGE_DESC_H
+#ifndef __oneOS__X86__VMM__PAGE_DESC_H
+#define __oneOS__X86__VMM__PAGE_DESC_H
 
 #include <types.h>
 
@@ -31,6 +31,7 @@ enum PAGE_DESC_PAGE_FLAGS {
     PAGE_DESC_ZEROING_ON_DEMAND = 0x800
 };
 
+void page_desc_init(page_desc_t* pte);
 void page_desc_set_attrs(page_desc_t* pte, uint32_t attrs);
 void page_desc_del_attrs(page_desc_t* pte, uint32_t attrs);
 bool page_desc_has_attrs(page_desc_t pte, uint32_t attr);
@@ -48,4 +49,4 @@ uint32_t page_desc_get_frame(page_desc_t pte);
 uint32_t page_desc_get_settings(page_desc_t pte);
 uint32_t page_desc_get_settings_ignore_cow(page_desc_t pte);
 
-#endif //__oneOS__MEM__VMM__PAGE_DESC_H
+#endif //__oneOS__X86__VMM__PAGE_DESC_H

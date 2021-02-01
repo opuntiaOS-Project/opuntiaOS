@@ -1,10 +1,19 @@
-ar = "i686-elf-ar"
-cc = "i686-elf-gcc"
-cxx = "i686-elf-g++"
-ld = "i686-elf-ld"
-asm = "nasm"
+if (target_cpu == "x86") {
+  ar = "i686-elf-ar"
+  cc = "i686-elf-gcc"
+  cxx = "i686-elf-g++"
+  ld = "i686-elf-ld"
+  asm = "nasm"
+}
+if (target_cpu == "aarch32") {
+  ar = "arm-none-eabi-ar"
+  cc = "arm-none-eabi-gcc"
+  cxx = "arm-none-eabi-g++"
+  ld = "arm-none-eabi-gcc"
+  asm = "arm-none-eabi-as"
+}
 
-toolchain("i686-gcc") {
+toolchain("cross-compiler") {
   tool("cc") {
     depfile = "{{output}}.d"
     command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
@@ -32,8 +41,7 @@ toolchain("i686-gcc") {
   tool("alink") {
     command = "rm -f {{output}} && $ar rcs {{output}} {{inputs}}"
     description = "AR {{output}}"
-    outputs =
-        [ "{{root_out_dir}}/{{target_output_name}}{{output_extension}}" ]
+    outputs = [ "{{root_out_dir}}/{{target_output_name}}{{output_extension}}" ]
     default_output_extension = ".a"
     output_prefix = ""
   }

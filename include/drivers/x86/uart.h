@@ -6,8 +6,8 @@
  * Free Software Foundation.
  */
 
-#ifndef __oneOS__DRIVERS__UART_H
-#define __oneOS__DRIVERS__UART_H
+#ifndef __oneOS__DRIVERS__X86_UART_H
+#define __oneOS__DRIVERS__X86_UART_H
 
 #include <types.h>
 

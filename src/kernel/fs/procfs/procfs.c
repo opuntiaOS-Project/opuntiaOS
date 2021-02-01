@@ -75,5 +75,5 @@ driver_desc_t _procfs_driver_info()
 
 void procfs_install()
 {
-    driver_install(_procfs_driver_info());
+    driver_install(_procfs_driver_info(), "procfs");
 }

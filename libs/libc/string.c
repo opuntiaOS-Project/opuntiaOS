@@ -1,40 +1,44 @@
 #include <string.h>
 
-void memset(uint8_t* dest, uint8_t fll, uint32_t nbytes)
+void* memset(void* dest, uint8_t fll, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
-        *(dest + i) = fll;
+        *((uint8_t*)dest + i) = fll;
     }
+    return dest;
 }
 
-void memmove(uint8_t* dest, const uint8_t* src, uint32_t nbytes)
+void* memmove(void* dest, const void* src, uint32_t nbytes)
 {
     if (src > dest) {
         for (int i = 0; i < nbytes; ++i) {
-            *(dest + i) = *(src + i);
+            *((uint8_t*)dest + i) = *((uint8_t*)src + i);
         }
     } else {
         for (int i = nbytes - 1; i >= 0; --i) {
-            *(dest + i) = *(src + i);
+            *((uint8_t*)dest + i) = *((uint8_t*)src + i);
         }
     }
+    return dest;
 }
 
-void memcpy(uint8_t* dest, const uint8_t* src, uint32_t nbytes)
+void* memcpy(void* dest, const void* src, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
-        *(dest + i) = *(src + i);
+        *((uint8_t*)dest + i) = *((uint8_t*)src + i);
     }
+    return dest;
 }
 
-void memccpy(uint8_t* dest, const uint8_t* src, uint8_t stop, uint32_t nbytes)
+void* memccpy(void* dest, const void* src, uint8_t stop, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
-        if (*(src + i) == stop) {
-            return;
+        *((uint8_t*)dest + i) = *((uint8_t*)src + i);
+        if (*((uint8_t*)src + i) == stop) {
+            return ((uint8_t*)dest + i + 1);
         }
-        *(dest + i) = *(src + i);
     }
+    return NULL;
 }
 
 int memcmp(const uint8_t* src1, const uint8_t* src2, uint32_t nbytes)

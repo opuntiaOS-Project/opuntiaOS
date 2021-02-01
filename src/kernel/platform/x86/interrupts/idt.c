@@ -15,7 +15,7 @@ void lidt(void* p, uint16_t size) {
 	asm volatile("lidt (%0)" : : "r"(pd));
 }
 
-void idt_setup() {
+void interrupts_setup() {
 	idt_element_setup(0, (void*)isr0, SYS);
 	idt_element_setup(1, (void*)isr1, SYS);
 	idt_element_setup(2, (void*)isr2, SYS);

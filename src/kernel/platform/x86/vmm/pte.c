@@ -9,6 +9,11 @@
 #include <platform/x86/vmm/pte.h>
 #include <mem/vmm/vmm.h>
 
+void page_desc_init(page_desc_t* pte)
+{
+    *pte = 0;
+}
+
 void page_desc_set_attrs(page_desc_t* pte, uint32_t attrs)
 {
     *pte |= attrs;
@@ -27,6 +32,7 @@ bool page_desc_has_attrs(page_desc_t pte, uint32_t attrs)
 void page_desc_set_frame(page_desc_t* pte, uint32_t frame)
 {
     page_desc_del_frame(pte);
+    frame >>= PAGE_DESC_FRAME_OFFSET;
     *pte |= (frame << PAGE_DESC_FRAME_OFFSET);
 }
 

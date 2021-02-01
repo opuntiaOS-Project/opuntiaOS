@@ -11,7 +11,7 @@
 #include <log.h>
 #include <mem/kmalloc.h>
 #include <time/time_manager.h>
-#include <utils/kassert.h>
+#include <utils.h>
 
 #define MAX_BLOCK_LEN 1024
 
@@ -498,7 +498,7 @@ static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t bl
         if (start_of_entry->inode != 0) {
             int name_len = start_of_entry->name_len;
             if (name_len > 251) {
-                kprintf("[VFS] Full name len is unsupported\n");
+                log_warn("[VFS] Full name len is unsupported\n");
                 name_len = 251;
             }
             memcpy(dirent->name, (char*)start_of_entry + 8, name_len);
@@ -885,7 +885,7 @@ int ext2_truncate(dentry_t* dentry, uint32_t len)
         block_index = _ext2_get_block_of_inode(dentry, virt_block_index);
         _ext2_free_block_index(dentry->dev, dentry->fsdata, block_index);
     }
-    
+
     dentry->inode->size = len;
     dentry->inode->mtime = (uint32_t)timeman_now();
     dentry_set_flag(dentry, DENTRY_DIRTY);
@@ -1134,5 +1134,5 @@ driver_desc_t _ext2_driver_info()
 
 void ext2_install()
 {
-    driver_install(_ext2_driver_info());
+    driver_install(_ext2_driver_info(), "ext2");
 }
