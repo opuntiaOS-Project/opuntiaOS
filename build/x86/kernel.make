@@ -2,26 +2,26 @@ kernel: products/os-image.bin products/kernel.bin
 
 # --- Stage1 ---------------------------------------------------------------- #
 
-products/boot.bin: src/boot/x86/stage1/boot.s
+products/boot.bin: boot/x86/stage1/boot.s
 	@mkdir -p products
 	${ASM} $< -f bin -o $@
 
 # --- Stage2 ---------------------------------------------------------------- #
 
-STAGE2_PATH = src/boot/x86/stage2
+STAGE2_PATH = boot/x86/stage2
 
 STAGE2_C_SRC = $(wildcard \
-					src/boot/x86/stage2/*.c \
-					src/boot/x86/stage2/*/*.c \
-					src/boot/x86/stage2/*/*/*.c \
-					src/boot/x86/stage2/*/*/*/*.c )
+					boot/x86/stage2/*.c \
+					boot/x86/stage2/*/*.c \
+					boot/x86/stage2/*/*/*.c \
+					boot/x86/stage2/*/*/*/*.c )
 STAGE2_S_SRC = $(wildcard \
-					src/boot/x86/stage2/*.s \
-					src/boot/x86/stage2/*/*.s \
-					src/boot/x86/stage2/*/*/*.s \
-					src/boot/x86/stage2/*/*/*/*.s )
+					boot/x86/stage2/*.s \
+					boot/x86/stage2/*/*.s \
+					boot/x86/stage2/*/*/*.s \
+					boot/x86/stage2/*/*/*/*.s )
 
-STAGE2_HEADERS = $(wildcard include/*.h)
+STAGE2_HEADERS = $(wildcard kernel/include/*.h)
 STAGE2_C_OBJ = ${STAGE2_C_SRC:.c=.o}
 STAGE2_S_OBJ = ${STAGE2_S_SRC:.s=.o}
 STAGE2_C_FLAGS = ${C_COMPILE_FLAGS} ${C_DEBUG_FLAGS} ${C_WARNING_FLAGS}
@@ -31,7 +31,7 @@ products/stage2.bin: products/stage2_entry.o ${STAGE2_C_OBJ} ${STAGE2_S_OBJ}
 	@echo "$(notdir $(CURDIR)): LD_S2 $@"
 	${QUIET} ${LD} -o $@ -Ttext ${KERNEL_STAGE2_POSITION} $^ --oformat binary
 
-products/stage2_entry.o: src/boot/x86/stage2_entry.s
+products/stage2_entry.o: boot/x86/stage2_entry.s
 	@mkdir -p products
 	@echo "$(notdir $(CURDIR)): S2_ENTRY_ASM $@"
 	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}
@@ -46,18 +46,18 @@ ${STAGE2_PATH}/%.o: ${STAGE2_PATH}/%.s
 
 # --- Kernel ---------------------------------------------------------------- #
 
-KERNEL_PATH = src/kernel
+KERNEL_PATH = kernel/kernel
 
 KERNEL_C_SRC = $(wildcard \
-					src/kernel/*.c \
-					src/kernel/*/*.c \
-					src/kernel/*/*/*.c \
-					src/kernel/*/*/*/*.c )
+					kernel/kernel/*.c \
+					kernel/kernel/*/*.c \
+					kernel/kernel/*/*/*.c \
+					kernel/kernel/*/*/*/*.c )
 KERNEL_S_SRC = $(wildcard \
-					src/kernel/*.s \
-					src/kernel/*/*.s \
-					src/kernel/*/*/*.s \
-					src/kernel/*/*/*/*.s )
+					kernel/kernel/*.s \
+					kernel/kernel/*/*.s \
+					kernel/kernel/*/*/*.s \
+					kernel/kernel/*/*/*/*.s )
 
 
 KERNEL_HEADERS = $(shell find include -name "*.h")
@@ -71,7 +71,7 @@ products/kernel.bin: products/stage3_entry.o ${KERNEL_C_OBJ} ${KERNEL_S_OBJ}
 	@echo "$(notdir $(CURDIR)): LD $@"
 	${QUIET} ${LD} -o $@ $^ ${LD_KERNEL_FLAGS}
 
-products/stage3_entry.o: src/boot/x86/stage3_entry.s
+products/stage3_entry.o: boot/x86/stage3_entry.s
 	@mkdir -p products
 	@echo "$(notdir $(CURDIR)): S3_ENTRY_ASM $@"
 	${QUIET} ${ASM} $< -o $@ ${ASM_KERNEL_FLAGS}

@@ -237,15 +237,15 @@ debug_aarch32: ${DISK}
 
 clean:
 	rm -rf products/*.bin products/*.o debug/*.dis
-	rm -rf src/kernel/*.bin src/kernel/*.o src/kernel/*.dis
-	rm -rf src/kernel/*/*.bin src/kernel/*/*.o
-	rm -rf src/kernel/*/*/*.bin src/kernel/*/*/*.o
-	rm -rf src/kernel/*/*/*/*.bin src/kernel/*/*/*/*.o
+	rm -rf kernel/kernel/*.bin kernel/kernel/*.o kernel/kernel/*.dis
+	rm -rf kernel/kernel/*/*.bin kernel/kernel/*/*.o
+	rm -rf kernel/kernel/*/*/*.bin kernel/kernel/*/*/*.o
+	rm -rf kernel/kernel/*/*/*/*.bin kernel/kernel/*/*/*/*.o
 
-	rm -rf src/boot/x86/stage2/*.bin src/boot/x86/stage2/*.o src/boot/x86/stage2/*.dis
-	rm -rf src/boot/x86/stage2/*/*.bin src/boot/x86/stage2/*/*.o
-	rm -rf src/boot/x86/stage2/*/*/*.bin src/boot/x86/stage2/*/*/*.o
-	rm -rf src/boot/x86/stage2/*/*/*/*.bin src/boot/x86/stage2/*/*/*/*.o
+	rm -rf boot/x86/stage2/*.bin boot/x86/stage2/*.o boot/x86/stage2/*.dis
+	rm -rf boot/x86/stage2/*/*.bin boot/x86/stage2/*/*.o
+	rm -rf boot/x86/stage2/*/*/*.bin boot/x86/stage2/*/*/*.o
+	rm -rf boot/x86/stage2/*/*/*/*.bin boot/x86/stage2/*/*/*/*.o
 
 	rm -rf userland/*/*.o
 	rm -rf libs/*/*/*.o

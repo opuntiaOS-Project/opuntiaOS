@@ -72,7 +72,7 @@ executable("kernel_build") {
   output_name = "$kernel_out_path/kernel.bin"
   sources = kernel_src
 
-  include_dirs = [ "//include" ]
+  include_dirs = [ "//kernel/include" ]
 
   configs = [ ":kernel_flags" ]
   ldflags = [ "-T$linker_script" ]

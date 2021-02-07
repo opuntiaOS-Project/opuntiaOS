@@ -21,13 +21,13 @@ call load_kernel
 call switch_to_pm
 jmp $
 
-%include "src/boot/x86/stage1/utils16/print.s"
-%include "src/boot/x86/stage1/utils16/smm.s"
-%include "src/boot/x86/stage1/utils16/disk_load.s"
-%include "src/boot/x86/stage1/utils16/switch_to_pm.s"
+%include "boot/x86/stage1/utils16/print.s"
+%include "boot/x86/stage1/utils16/smm.s"
+%include "boot/x86/stage1/utils16/disk_load.s"
+%include "boot/x86/stage1/utils16/switch_to_pm.s"
 
-%include "src/boot/x86/stage1/utils32/print.s"
-%include "src/boot/x86/stage1/utils32/gdt.s"
+%include "boot/x86/stage1/utils32/print.s"
+%include "boot/x86/stage1/utils32/gdt.s"
 
 
 [bits 16]

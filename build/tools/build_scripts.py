@@ -85,27 +85,33 @@ allf.write(
 GREEN='\\033[0;32m'
 RED='\\033[0;31m'
 NC='\\033[0m'
-ERROR="${{RED}}[ERROR]${{NC}}"
-SUCCESS="${{GREEN}}[SUCCESS]${{NC}}"
+ERROR="${RED}[ERROR]${NC}"
+SUCCESS="${GREEN}[SUCCESS]${NC}"
 
 ./build.sh
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
+if [ $? -ne 0 ]; then echo -e "${ERROR} All command failed" && exit 1; fi
 ./sync.sh
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
+if [ $? -ne 0 ]; then echo -e "${ERROR} All command failed" && exit 1; fi
 ./run.sh
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
+if [ $? -ne 0 ]; then echo -e "${ERROR} All command failed" && exit 1; fi
 """)
 allf.close()
 
 allf = open("{0}/dll.sh".format(out), "w")
 allf.write(
 """#!/bin/bash
+GREEN='\\033[0;32m'
+RED='\\033[0;31m'
+NC='\\033[0m'
+ERROR="${RED}[ERROR]${NC}"
+SUCCESS="${GREEN}[SUCCESS]${NC}"
+
 ./build.sh
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Debug All command failed" && exit 1; fi
+if [ $? -ne 0 ]; then echo -e "${ERROR} Debug All command failed" && exit 1; fi
 ./sync.sh
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Debug All command failed" && exit 1; fi
+if [ $? -ne 0 ]; then echo -e "${ERROR} Debug All command failed" && exit 1; fi
 ./debug.sh
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Debug All command failed" && exit 1; fi
+if [ $? -ne 0 ]; then echo -e "${ERROR} Debug All command failed" && exit 1; fi
 """) 
 allf.close()
 

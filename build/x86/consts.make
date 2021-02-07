@@ -1,5 +1,5 @@
 C_COMPILE_FLAGS += -ffreestanding
-C_INCLUDES += -I./include 
+C_INCLUDES += -I./kernel/include 
 C_DEBUG_FLAGS += -ggdb
 C_WARNING_FLAGS += -Werror -Wno-address-of-packed-member
 ASM_KERNEL_FLAGS = -f elf
