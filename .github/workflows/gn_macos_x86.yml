@@ -1,0 +1,31 @@
+name: Building x86
+
+on: [push]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Pouring GCC
+      run: brew install i686-elf-gcc i686-elf-binutils ninja nasm
+    
+    - name: Pouring GN
+      run: |
+        wget https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-amd64/+/latest
+        unzip latest
+        mv gn /usr/local/bin
+        
+    - name: Create Build Environment
+      run: gn gen out
+
+    - name: Build
+      working-directory: ${{github.workspace}}/out
+      shell: bash
+      run: ninja
+

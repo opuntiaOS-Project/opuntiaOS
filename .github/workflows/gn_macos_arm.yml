@@ -1,4 +1,4 @@
-name: Build OS MacOS
+name: Building ARMv7
 
 on: [push]
 
@@ -13,7 +13,10 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Pouring GCC
-      run: brew install i686-elf-gcc i686-elf-binutils ninja nasm
+      run: |
+        brew install ninja nasm
+        brew tap ArmMbed/homebrew-formulae
+        brew install arm-none-eabi-gcc
     
     - name: Pouring GN
       run: |
@@ -22,7 +25,7 @@ jobs:
         mv gn /usr/local/bin
         
     - name: Create Build Environment
-      run: gn gen out
+      run: gn gen out --args='target_cpu="aarch32"'
 
     - name: Build
       working-directory: ${{github.workspace}}/out
