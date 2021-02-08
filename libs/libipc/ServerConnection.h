@@ -35,14 +35,15 @@ public:
             }
             size_t buf_size = buf.size();
             buf.resize(buf_size + read_cnt);
-            memcpy((uint8_t*)&buf.data()[buf_size], (uint8_t*)tmpbuf, read_cnt);
+            memcpy(&buf.data()[buf_size], tmpbuf, read_cnt);
             if (read_cnt < sizeof(tmpbuf)) {
                 break;
             }
         }
 
         size_t msg_len = 0;
-        for (int i = 0; i < read_cnt; i += msg_len) {
+        size_t buf_size = buf.size();
+        for (int i = 0; i < buf_size; i += msg_len) {
             msg_len = 0;
             if (auto response = m_server_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
                 if (auto answer = m_server_decoder.handle(*response)) {
