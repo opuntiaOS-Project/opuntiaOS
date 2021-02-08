@@ -19,7 +19,7 @@ typedef char int8_t;
 #endif
 
 enum __sysid {
-    SYSPRINT = 0,
+    SYSRESTART = 0,
     SYSEXIT,
     SYSFORK,
     SYSREAD,
