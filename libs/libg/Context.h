@@ -13,6 +13,7 @@
 #include "PixelBitmap.h"
 #include "Point.h"
 #include "Rect.h"
+#include "Shading.h"
 #include <libcxx/malloc.h>
 #include <libcxx/sys/types.h>
 
@@ -29,7 +30,9 @@ public:
     void set(const Point<int>& start, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const GlyphBitmap& bitmap);
+    void draw_shading(const Rect& rect, const Shading& shading);
     void fill(const Rect& rect);
+    void mix(const Rect& rect);
     void add_ellipse(const Rect& rect);
 
     void set_draw_offset(const Point<int>& offset) { m_draw_offset = offset; }
@@ -41,7 +44,7 @@ private:
     PixelBitmap& m_bitmap;
     Rect m_clip;
     const Rect m_origin_clip;
-    Point<int> m_draw_offset {0, 0};
+    Point<int> m_draw_offset { 0, 0 };
     Color m_color {};
 };
 

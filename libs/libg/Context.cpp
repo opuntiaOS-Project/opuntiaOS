@@ -57,7 +57,7 @@ void Context::draw(const Point<int>& start, const PixelBitmap& bitmap)
         set(start, bitmap);
         return;
     }
-    
+
     Rect draw_bounds(start.x() + m_draw_offset.x(), start.y() + m_draw_offset.y(), bitmap.width(), bitmap.height());
     draw_bounds.intersect(m_clip);
     if (draw_bounds.empty()) {
@@ -74,13 +74,7 @@ void Context::draw(const Point<int>& start, const PixelBitmap& bitmap)
     for (int y = min_y; y <= max_y; y++, bitmap_y++) {
         int bitmap_x = min_x + offset_x;
         for (int x = min_x; x <= max_x; x++, bitmap_x++) {
-            if (bitmap[bitmap_y][bitmap_x].alpha() == 0xff) {
-                m_bitmap[y][x] = bitmap[bitmap_y][bitmap_x];
-            } else if (!bitmap[bitmap_y][bitmap_x].alpha()) {
-                continue;
-            } else {
-                m_bitmap[y][x].mix_with(bitmap[bitmap_y][bitmap_x]);
-            }
+            m_bitmap[y][x].mix_with(bitmap[bitmap_y][bitmap_x]);
         }
     }
 }
@@ -111,6 +105,28 @@ void Context::draw(const Point<int>& start, const GlyphBitmap& bitmap)
     }
 }
 
+void Context::mix(const Rect& rect)
+{
+    auto draw_bounds = rect;
+    draw_bounds.offset_by(m_draw_offset);
+    draw_bounds.intersect(m_clip);
+
+    if (draw_bounds.empty()) {
+        return;
+    }
+
+    int min_x = draw_bounds.min_x();
+    int min_y = draw_bounds.min_y();
+    int max_x = draw_bounds.max_x();
+    int max_y = draw_bounds.max_y();
+    const auto& color = fill_color();
+    for (int y = min_y; y <= max_y; y++) {
+        for (int x = min_x; x <= max_x; x++) {
+            m_bitmap[y][x].mix_with(color);
+        }
+    }
+}
+
 void Context::fill(const Rect& rect)
 {
     auto draw_bounds = rect;
@@ -129,6 +145,184 @@ void Context::fill(const Rect& rect)
     int len_x = max_x - min_x + 1;
     for (int y = min_y; y <= max_y; y++) {
         fast_set((uint32_t*)&m_bitmap[y][min_x], color, len_x);
+    }
+}
+
+void Context::draw_shading(const Rect& rect, const Shading& shading)
+{
+    auto draw_bounds = rect;
+    draw_bounds.offset_by(m_draw_offset);
+    auto orig_bounds = draw_bounds;
+    draw_bounds.intersect(m_clip);
+
+    if (draw_bounds.empty()) {
+        return;
+    }
+
+    int min_x = draw_bounds.min_x();
+    int min_y = draw_bounds.min_y();
+    int max_x = draw_bounds.max_x();
+    int max_y = draw_bounds.max_y();
+    auto color = fill_color();
+
+    int alpha_diff = color.alpha() - shading.final_alpha();
+    int step, skipped_steps, end_x;
+
+    switch (shading.type()) {
+    case TopToBottom:
+        step = alpha_diff / orig_bounds.height();
+        skipped_steps = min_y - orig_bounds.min_y();
+        color.set_alpha(color.alpha() - skipped_steps * step);
+
+        for (int y = min_y; y <= max_y; y++) {
+            for (int x = min_x; x <= max_x; x++) {
+                m_bitmap[y][x].mix_with(color);
+            }
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    case BottomToTop:
+        step = alpha_diff / orig_bounds.height();
+        skipped_steps = orig_bounds.max_y() - max_y;
+        color.set_alpha(color.alpha() - skipped_steps * step);
+
+        for (int y = max_y; y >= min_y; y--) {
+            for (int x = min_x; x <= max_x; x++) {
+                m_bitmap[y][x].mix_with(color);
+            }
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    case LeftToRight:
+        step = alpha_diff / orig_bounds.width();
+        skipped_steps = min_x - orig_bounds.min_x();
+        color.set_alpha(color.alpha() - skipped_steps * step);
+
+        for (int x = min_x; x <= max_x; x++) {
+            for (int y = min_y; y <= max_y; y++) {
+                m_bitmap[y][x].mix_with(color);
+            }
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    case RightToLeft:
+        step = alpha_diff / orig_bounds.width();
+        skipped_steps = orig_bounds.max_x() - max_x;
+        color.set_alpha(color.alpha() - skipped_steps * step);
+
+        for (int x = max_x; x >= min_x; x--) {
+            for (int y = min_y; y <= max_y; y++) {
+                m_bitmap[y][x].mix_with(color);
+            }
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    case Deg45:
+        step = alpha_diff / orig_bounds.height();
+        skipped_steps = orig_bounds.max_y() - max_y + min_x - orig_bounds.min_x();
+        if (skipped_steps >= orig_bounds.height()) {
+            return;
+        }
+
+        color.set_alpha(color.alpha() - skipped_steps * step);
+        end_x = min(min_x + (int)orig_bounds.height() - skipped_steps, max_x);
+
+        for (int y = max_y; y >= min_y; y--) {
+            auto cur_color = color;
+            for (int x = min_x; x <= end_x; x++) {
+                m_bitmap[y][x].mix_with(cur_color);
+                cur_color.set_alpha(cur_color.alpha() - step);
+            }
+            end_x--;
+            if (!end_x) {
+                return;
+            }
+
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    case Deg315:
+        step = alpha_diff / orig_bounds.height();
+        skipped_steps = min_y - orig_bounds.min_y() + min_x - orig_bounds.min_x();
+        if (skipped_steps >= orig_bounds.height()) {
+            return;
+        }
+
+        color.set_alpha(color.alpha() - skipped_steps * step);
+        end_x = min(min_x + (int)orig_bounds.height() - skipped_steps, max_x);
+
+        for (int y = min_y; y <= max_y; y++) {
+            auto cur_color = color;
+            for (int x = min_x; x <= end_x; x++) {
+                m_bitmap[y][x].mix_with(cur_color);
+                cur_color.set_alpha(cur_color.alpha() - step);
+            }
+            end_x--;
+            if (!end_x) {
+                return;
+            }
+
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    case Deg135:
+        step = alpha_diff / orig_bounds.height();
+        skipped_steps = orig_bounds.max_y() - max_y + orig_bounds.max_x() - max_x;
+        if (skipped_steps >= orig_bounds.height()) {
+            return;
+        }
+
+        color.set_alpha(color.alpha() - skipped_steps * step);
+        end_x = max(max_x - ((int)orig_bounds.height() - skipped_steps), min_x);
+
+        for (int y = max_y; y >= min_y; y--) {
+            auto cur_color = color;
+            for (int x = max_x; x >= end_x; x--) {
+                m_bitmap[y][x].mix_with(cur_color);
+                cur_color.set_alpha(cur_color.alpha() - step);
+            }
+            end_x++;
+            if (end_x == max_x) {
+                return;
+            }
+
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    case Deg225:
+        step = alpha_diff / orig_bounds.height();
+        skipped_steps = min_y - orig_bounds.min_y() + orig_bounds.max_x() - max_x;
+        if (skipped_steps >= orig_bounds.height()) {
+            return;
+        }
+
+        color.set_alpha(color.alpha() - skipped_steps * step);
+        end_x = max(max_x - ((int)orig_bounds.height() - skipped_steps), min_x);
+
+        for (int y = min_y; y <= max_y; y++) {
+            auto cur_color = color;
+            for (int x = max_x; x >= end_x; x--) {
+                m_bitmap[y][x].mix_with(cur_color);
+                cur_color.set_alpha(cur_color.alpha() - step);
+            }
+            end_x++;
+            if (end_x == max_x) {
+                return;
+            }
+
+            color.set_alpha(color.alpha() - step);
+        }
+        return;
+
+    default:
+        break;
     }
 }
 
