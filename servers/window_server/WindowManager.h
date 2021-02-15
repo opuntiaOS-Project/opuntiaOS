@@ -29,7 +29,7 @@ public:
     inline void add_window(Window* window)
     {
         if (window->type() == WindowType::Dock) {
-           setup_dock(window);
+            setup_dock(window);
         }
         m_windows.push_back(window);
         bring_to_front(*window);
@@ -75,13 +75,30 @@ public:
         m_windows.push_front(window_ptr);
     }
 
+    Window* get_top_standard_window_in_view() const
+    {
+        auto* prev_window = m_windows.head();
+        if (m_dock_window) {
+            if (prev_window) {
+                return prev_window->next();
+            }
+        }
+        return prev_window;
+    }
+
     void bring_to_front(Window& window)
     {
+        auto* prev_window = get_top_standard_window_in_view();
         do_bring_to_front(window);
         if (m_dock_window) {
             do_bring_to_front(*m_dock_window);
         }
+        window.frame().set_active(true);
         m_compositor.invalidate(window.bounds());
+        if (prev_window && prev_window->id() != window.id()) {
+            prev_window->frame().set_active(false);
+            prev_window->frame().invalidate(m_compositor);
+        }
     }
 
     inline LinkedList<Window>& windows() { return m_windows; }

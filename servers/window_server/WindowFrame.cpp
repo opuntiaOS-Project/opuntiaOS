@@ -8,6 +8,7 @@
 
 #include "WindowFrame.h"
 #include "Button.h"
+#include "Colors.h"
 #include "Window.h"
 #include "WindowManager.h"
 #include <libg/Font.h>
@@ -24,10 +25,10 @@ static const uint32_t s_close_button_glyph_data[10] = {
     0b1100000011,
     0b1110000111,
     0b0111001110,
-    0b0011101100,
-    0b0001110000,
-    0b0000111000,
-    0b0011011100,
+    0b0011111100,
+    0b0001111000,
+    0b0001111000,
+    0b0011111100,
     0b0111001110,
     0b1110000111,
     0b1100000011,
@@ -101,6 +102,7 @@ void WindowFrame::set_app_name(String&& title)
     } else {
         auto* new_control = new Button();
         new_control->set_title(title);
+        new_control->set_font(LG::Font::system_bold_font());
         m_control_panel_buttons.push_back(new_control);
     }
     Compositor::the().invalidate(bounds());
@@ -127,16 +129,35 @@ void WindowFrame::draw(LG::Context& ctx)
     int right_x = x + width - right_border_size();
     int bottom_y = y + height - bottom_border_size();
 
-    // Drawing frame
+    // Drawing frame and shadings
     ctx.set_fill_color(color());
-    ctx.fill(LG::Rect(x, y, width, top_border_size()));
-    ctx.fill(LG::Rect(x, y, left_border_size(), height));
-    ctx.fill(LG::Rect(right_x, y, right_border_size(), height));
-    ctx.fill(LG::Rect(x, bottom_y, width, bottom_border_size()));
+    ctx.fill(LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), top_border_size() - std_top_border_frame_size()));
+    if (active()) {
+        ctx.set_fill_color(LG::Color(Colors::ShadowColor));
+
+        int rb_shading_lr = x + std_left_border_size();
+        int tb_width = width - std_left_border_size() - std_right_border_size();
+        ctx.draw_shading(LG::Rect(rb_shading_lr, y, tb_width, std_top_border_frame_size()), LG::Shading(LG::ShadingType::BottomToTop, 0));
+        ctx.draw_shading(LG::Rect(rb_shading_lr, bottom_y, tb_width, bottom_border_size()), LG::Shading(LG::ShadingType::TopToBottom, 0));
+
+        int lr_shading_y = y + std_top_border_frame_size();
+        int lr_height = height - std_top_border_frame_size() - bottom_border_size();
+        ctx.draw_shading(LG::Rect(x, lr_shading_y, left_border_size(), lr_height), LG::Shading(LG::ShadingType::RightToLeft, 0));
+        ctx.draw_shading(LG::Rect(right_x, lr_shading_y, left_border_size(), lr_height), LG::Shading(LG::ShadingType::LeftToRight, 0));
+
+        ctx.draw_shading(LG::Rect(x, y, std_left_border_size(), std_top_border_frame_size()), LG::Shading(LG::ShadingType::Deg135, 0));
+        ctx.draw_shading(LG::Rect(x, bottom_y, std_left_border_size(), std_bottom_border_size()), LG::Shading(LG::ShadingType::Deg225, 0));
+        ctx.draw_shading(LG::Rect(right_x, y, std_right_border_size(), std_top_border_frame_size()), LG::Shading(LG::ShadingType::Deg45, 0));
+        ctx.draw_shading(LG::Rect(right_x, bottom_y, std_right_border_size(), std_bottom_border_size()), LG::Shading(LG::ShadingType::Deg315, 0));
+    }
 
     // Drawing labels, icons.
     // Drawing positions are calculated using a start of the frame.
-    ctx.set_fill_color(LG::Color::White);
+    if (active()) {
+        ctx.set_fill_color(LG::Color::LightSystemText);
+    } else {
+        ctx.set_fill_color(Colors::InactiveText);
+    }
     ctx.draw({ x + spacing(), y + icon_y_offset() }, icon());
 
     constexpr int start_controls_offset = icon_width() + 2 * spacing();
@@ -151,6 +172,23 @@ void WindowFrame::draw(LG::Context& ctx)
         m_window_control_buttons[i]->display(ctx, { start_buttons, y + button_y_offset() });
         start_buttons += -spacing() - m_window_control_buttons[i]->bounds().width();
     }
+}
+
+void WindowFrame::invalidate(Compositor& compositor) const
+{
+    if (!visible()) {
+        return;
+    }
+    int x = m_window.bounds().min_x();
+    int y = m_window.bounds().min_y();
+    size_t width = m_window.bounds().width();
+    size_t height = m_window.bounds().height();
+    int right_x = x + width - right_border_size();
+    int bottom_y = y + height - bottom_border_size();
+    compositor.invalidate(LG::Rect(x, y, width, top_border_size()));
+    compositor.invalidate(LG::Rect(x, y, left_border_size(), height));
+    compositor.invalidate(LG::Rect(right_x, y, right_border_size(), height));
+    compositor.invalidate(LG::Rect(x, bottom_y, width, bottom_border_size()));
 }
 
 void WindowFrame::receive_tap_event(const LG::Point<int>& tap)

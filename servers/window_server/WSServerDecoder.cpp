@@ -76,12 +76,12 @@ UniquePtr<Message> WServerDecoder::handle(const SetTitleMessage& msg)
 
 UniquePtr<Message> WServerDecoder::handle(const SetBarStyleMessage& msg)
 {
-    auto& wm = WindowManager::the();
-    auto* window = wm.window(msg.window_id());
-    if (!window) {
-        return nullptr;
-    }
-    window->frame().set_color(LG::Color(msg.color()));
+    // auto& wm = WindowManager::the();
+    // auto* window = wm.window(msg.window_id());
+    // if (!window) {
+    //     return nullptr;
+    // }
+    
     return nullptr;
 }
 

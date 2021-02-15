@@ -14,6 +14,7 @@
 #include <libg/PixelBitmap.h>
 
 class Window;
+class Compositor;
 
 class WindowFrame {
 public:
@@ -22,10 +23,12 @@ public:
     ~WindowFrame() { }
 
     void draw(LG::Context&);
-    constexpr size_t std_top_border_size() const { return 26; }
-    constexpr size_t std_bottom_border_size() const { return 1; }
-    constexpr size_t std_left_border_size() const { return 1; }
-    constexpr size_t std_right_border_size() const { return 1; }
+    static constexpr size_t std_app_header_size() { return 26; }
+    static constexpr size_t std_top_border_frame_size() { return 4; }
+    static constexpr size_t std_top_border_size() { return std_top_border_frame_size() + std_app_header_size(); }
+    static constexpr size_t std_bottom_border_size() { return 4; }
+    static constexpr size_t std_left_border_size() { return 4; }
+    static constexpr size_t std_right_border_size() { return 4; }
     inline size_t top_border_size() const { return m_top_border_size; }
     inline size_t bottom_border_size() const { return std_bottom_border_size(); }
     inline size_t left_border_size() const { return std_left_border_size(); }
@@ -57,23 +60,28 @@ public:
     }
 
     bool visible() const { return m_visible; }
+    void set_active(bool active) { m_active = active; }
+    bool active() const { return m_active; }
+
+    void invalidate(Compositor& compositor) const;
 
     void reload_icon();
     const LG::PixelBitmap& icon() const { return m_icon; }
 
     static constexpr int spacing() { return 8; }
-    static constexpr int icon_y_offset() { return 7; }
-    static constexpr int text_y_offset() { return 9; }
-    static constexpr int button_y_offset() { return 8; }
     static constexpr int icon_width() { return 12; }
+    static constexpr int icon_y_offset() { return 7 + std_top_border_frame_size(); }
+    static constexpr int text_y_offset() { return 9 + std_top_border_frame_size(); }
+    static constexpr int button_y_offset() { return 8 + std_top_border_frame_size(); }
 
 private:
     int draw_text(LG::Context& ctx, LG::Point<int> pt, const char* text, LG::Font& font);
     Window& m_window;
     Vector<Button*> m_window_control_buttons;
     Vector<Button*> m_control_panel_buttons;
-    LG::Color m_color { 0x00342d2d };
+    LG::Color m_color { LG::Color::LightSystemBackground };
     LG::PixelBitmap m_icon {};
     size_t m_top_border_size { std_top_border_size() };
     bool m_visible { true };
+    bool m_active { true };
 };

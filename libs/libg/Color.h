@@ -23,6 +23,10 @@ public:
         Green,
         White,
         Black,
+        LightSystemText,
+        LightSystemBackground,
+        LightSystemButton,
+        LightSystemAccentButton,
     };
 
     Color() = default;
@@ -77,6 +81,7 @@ public:
     inline uint8_t red() const { return m_r; }
     inline uint8_t green() const { return m_g; }
     inline uint8_t blue() const { return m_b; }
+    inline void set_alpha(uint8_t alpha) { m_opacity = 255 - alpha; }
 
     inline uint32_t u32() const
     {
@@ -89,18 +94,32 @@ public:
 
     [[gnu::always_inline]] inline void mix_with(const Color& clr)
     {
-        if (clr.is_opaque() || !alpha()) {
+        if (clr.is_opaque()) {
+            return;
+        }
+        
+        if (clr.alpha() == 255) {
+            *this = clr;
             return;
         }
 
-        int alpha_c = 256 * (alpha() + clr.alpha()) - alpha() * clr.alpha();
+        int alpha_c = 255 * (alpha() + clr.alpha()) - alpha() * clr.alpha();
         int alpha_of_me = alpha() * (255 - clr.alpha());
-        int alpha_of_it = 256 * clr.alpha();
+        int alpha_of_it = 255 * clr.alpha();
 
         m_r = (red() * alpha_of_me + clr.red() * alpha_of_it) / alpha_c;
         m_g = (green() * alpha_of_me + clr.green() * alpha_of_it) / alpha_c;
         m_b = (blue() * alpha_of_me + clr.blue() * alpha_of_it) / alpha_c;
-        m_opacity = 255 - (alpha_c / 256);
+        m_opacity = 255 - (alpha_c / 255);
+    }
+
+    inline LG::Color darken(int percents)
+    {
+        double multiplier = 1.0 - (double(percents) / 100.0);
+        int r = int(red() * multiplier);
+        int g = int(green() * multiplier);
+        int b = int(blue() * multiplier);
+        return LG::Color(r, g, b);
     }
 
 private:
