@@ -38,12 +38,13 @@ void Button::display(const LG::Rect& rect)
 
 void Button::hover_begin(const LG::Point<int>& location)
 {
-    set_background_color(std_hovered_background_color());
+    m_background_color_storage = background_color();
+    set_background_color(background_color().darken(8));
 }
 
 void Button::hover_end()
 {
-    set_background_color(std_background_color());
+    set_background_color(m_background_color_storage);
 }
 
 void Button::recalc_bounds()

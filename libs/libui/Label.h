@@ -29,6 +29,7 @@ public:
     const EdgeInsect& content_edge_insets() const { return m_content_edge_insets; }
 
     inline const LG::Font& font() const { return m_font; }
+    void set_font(const LG::Font& font) { m_font = font, recalc_bounds(); }
 
     inline size_t preferred_width() const { return text_width() + m_content_edge_insets.left() + m_content_edge_insets.right(); }
 

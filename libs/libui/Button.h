@@ -29,6 +29,7 @@ public:
     const EdgeInsect& content_edge_insets() const { return m_content_edge_insets; }
 
     inline const LG::Font& font() const { return m_font; }
+    void set_font(const LG::Font& font) { m_font = font, recalc_bounds(); }
 
     virtual void display(const LG::Rect& rect) override;
     virtual void hover_begin(const LG::Point<int>& location) override;
@@ -39,8 +40,8 @@ private:
     size_t text_height();
     size_t text_width();
 
-    static constexpr uint32_t std_background_color() { return 0x00eda024; }
-    static constexpr uint32_t std_hovered_background_color() { return 0x00ca8311; }
+    static constexpr uint32_t std_background_color() { return 0x00EBEBEB; }
+    LG::Color m_background_color_storage;
 
     String m_title {};
     LG::Color m_title_color { LG::Color::White };
