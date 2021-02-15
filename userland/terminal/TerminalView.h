@@ -49,8 +49,8 @@ private:
         set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + 2, glyph_height()));
     }
 
-    LG::Color m_background_color { 0x292929 };
-    LG::Color m_font_color { LG::Color::White };
+    LG::Color m_background_color { 0xE9E9EA };
+    LG::Color m_font_color { LG::Color::LightSystemText };
     LG::Font* m_font_ptr { LG::Font::load_from_file("/res/LizaRegular8x10.font") };
 
     int m_ptmx { -1 };
