@@ -14,7 +14,7 @@
 #include <utils/kassert.h>
 
 static int ticks_to_sched = 0;
-static int second = 1000;
+static int second = PIT_TICKS_PER_SECOND;
 static int _pit_set_frequency(uint16_t freq);
 
 static int _pit_set_frequency(uint16_t freq)
@@ -36,7 +36,6 @@ static int _pit_set_frequency(uint16_t freq)
 void pit_setup()
 {
     RUNNIG_THREAD = 0; // TODO: Remove it from here
-    ticks_to_sched = SCHED_INT;
     int res = _pit_set_frequency(PIT_TICKS_PER_SECOND);
     if (res < 0) {
         kpanic("Pit: failed to set freq");
@@ -48,15 +47,6 @@ void pit_handler()
 {
     timeman_pit_tick();
     if (RUNNIG_THREAD) {
-        ticks_to_sched--;
-        second--;
-        if (second < 0) {
-            second = 1000;
-            log("----- second -----");
-        }
-        if (ticks_to_sched < 0) {
-            ticks_to_sched = SCHED_INT;
-            resched();
-        }
+        resched();
     }
 }

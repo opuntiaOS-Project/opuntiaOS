@@ -34,13 +34,15 @@ static inline void _sp804_clear_interrupt(volatile sp804_registers_t* timer)
 static void _sp804_int_handler()
 {
     _sp804_clear_interrupt(timer1);
-    resched();
+    if (RUNNIG_THREAD) {
+        resched();
+    }
 }
 
 void sp804_install()
 {
     _sp804_map_itself();
-    timer1->load = SP804_CLK_HZ / 100;
+    timer1->load = SP804_CLK_HZ / 125;
     timer1->control = SP804_ENABLE_MASK | SP804_PERIODIC_MASK | SP804_32_BIT_MASK | SP804_INTS_ENABLED_MASK;
     irq_register_handler(SP804_TIMER1_IRQ_LINE, 0, IRQ_TYPE_EDGE_TRIGGERED_MASK, _sp804_int_handler);
 }
