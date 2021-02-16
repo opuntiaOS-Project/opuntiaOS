@@ -25,6 +25,8 @@ public:
     inline int key() const { return m_connection_id; }
 
 private:
+    void setup_listners();
+
     int m_connection_fd;
     int m_connection_id;
     ClientConnection<WindowServerDecoder, ClientDecoder> m_connection_with_server;

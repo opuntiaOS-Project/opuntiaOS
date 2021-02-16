@@ -30,9 +30,29 @@ Connection::Connection(int connection_fd)
 {
     s_the = this;
     if (m_connection_fd > 0) {
-        connect(m_connection_fd, "/win.sock", 9);
+        bool connected = false;
+        // Trying to connect for 5 times. If unsuccesfull, it crashes.
+        for (int i = 0; i < 5; i++) {
+            if (connect(m_connection_fd, "/win.sock", 9) == 0) {
+                connected = true;
+                break;
+            }
+            sched_yield();
+        }
+        if (!connected) {
+            goto crash;
+        }
+
+        greeting();
+        setup_listners();
+        return;
     }
-    greeting();
+crash:
+    exit(-1);
+}
+
+void Connection::setup_listners()
+{
     LFoundation::EventLoop::the().add(
         m_connection_fd, [] {
             Connection::the().listen();
