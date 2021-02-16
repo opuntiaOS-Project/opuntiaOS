@@ -75,13 +75,27 @@ void PNGLoader::read_PHYS(ChunkHeader& header, PixelBitmap& bitmap)
     streamer().skip(header.len);
 }
 
+void PNGLoader::read_ORNT(ChunkHeader& header, PixelBitmap& bitmap)
+{
+    streamer().skip(header.len);
+}
+
 // TODO: Currently support only comprssion type 0
 void PNGLoader::read_IDAT(ChunkHeader& header, PixelBitmap& bitmap)
 {
+    size_t buf_size = m_compressed_data.size();
+    m_compressed_data.resize(buf_size + header.len);
+    memcpy(&m_compressed_data.data()[buf_size], streamer().ptr(), header.len);
+    streamer().skip(header.len);
+}
+
+void PNGLoader::process_compressed_data(PixelBitmap& bitmap)
+{
+    size_t datalen = m_compressed_data.size();
     size_t destlen = 0;
-    int ret = puff(0, &destlen, streamer().ptr() + 2, &header.len);
+    int ret = puff(0, &destlen, m_compressed_data.data() + 2, &datalen);
     uint8_t* unzipped_data = (uint8_t*)malloc(destlen);
-    puff(unzipped_data, &destlen, streamer().ptr() + 2, &header.len);
+    puff(unzipped_data, &destlen, m_compressed_data.data() + 2, &datalen);
     DataStreamer local_streamer(unzipped_data);
     m_scanline_keeper.init(unzipped_data);
 
@@ -124,7 +138,6 @@ void PNGLoader::read_IDAT(ChunkHeader& header, PixelBitmap& bitmap)
     unfilter_scanlines();
     copy_scanlines_to_bitmap(bitmap);
     m_scanline_keeper.invalidate();
-    streamer().skip(header.len + 6);
 }
 
 uint8_t PNGLoader::paeth_predictor(int a, int b, int c)
@@ -239,6 +252,8 @@ bool PNGLoader::read_chunk(PixelBitmap& bitmap)
         read_TEXT(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"pHYs", 4) == 0) {
         read_PHYS(header, bitmap);
+    } else if (memcmp(header.type, (uint8_t*)"orNT", 4) == 0) {
+        read_ORNT(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"IDAT", 4) == 0) {
         read_IDAT(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"IEND", 4) == 0) {
@@ -258,6 +273,7 @@ void PNGLoader::proccess_stream(PixelBitmap& bitmap)
 {
     int len = 0;
     while (read_chunk(bitmap)) { }
+    process_compressed_data(bitmap);
 }
 
 PixelBitmap PNGLoader::load_from_mem(const uint8_t* ptr)
