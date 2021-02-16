@@ -39,7 +39,9 @@
    so we will switch to idle_thread to fix it. */
 void idle_thread()
 {
-    while (1) { }
+    while (1) {
+        ksys0(SYSSCHEDYIELD);
+    }
 }
 
 void launching()

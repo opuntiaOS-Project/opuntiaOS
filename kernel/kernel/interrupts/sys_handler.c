@@ -92,6 +92,7 @@ static inline void set_return(trapframe_t* tf, uint32_t val)
     param1 = val;
 }
 
+#ifdef __i386__
 int ksyscall_impl(int id, int a, int b, int c, int d)
 {
     system_disable_interrupts();
@@ -109,6 +110,25 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
     system_enable_interrupts();
     return param1;
 }
+#elif __arm__
+int ksyscall_impl(int id, int a, int b, int c, int d)
+{
+    int ret;
+    asm volatile(
+        "mov r7, %1;\
+        mov r0, %2;\
+        mov r1, %3;\
+        mov r2, %4;\
+        mov r3, %5;\
+        mov r4, %6;\
+        swi 1;\
+        mov %0, r0;"
+        : "=r"(ret)
+        : "r"(id), "r"((int)(a)), "r"((int)(b)), "r"((int)(c)), "r"((int)(d)), "r"((int)(0))
+        : "memory", "r0", "r1", "r2", "r3", "r4", "r7");
+    return ret;
+}
+#endif
 
 void sys_handler(trapframe_t* tf)
 {

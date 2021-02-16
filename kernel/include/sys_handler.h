@@ -7,6 +7,7 @@
 
 #define SYSCALL 0x80
 
+#define ksys0(sys_id) ksyscall_impl(sys_id, 0, 0, 0, 0);
 #define ksys1(sys_id, a) ksyscall_impl(sys_id, a, 0, 0, 0);
 #define ksys2(sys_id, a, b) ksyscall_impl(sys_id, a, b, 0, 0);
 #define ksys3(sys_id, a, b, c) ksyscall_impl(sys_id, a, b, c, 0);
