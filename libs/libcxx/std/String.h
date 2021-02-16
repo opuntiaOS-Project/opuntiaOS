@@ -1,7 +1,7 @@
 #pragma once
-#include <libcxx/string.h>
 #include <libcxx/malloc.h>
 #include <libcxx/memory.h>
+#include <libcxx/string.h>
 
 namespace Algo {
 
@@ -12,6 +12,14 @@ public:
     String(const char* str)
     {
         m_size = strlen(str);
+        ensure_capacity(m_size + 1);
+        memcpy((uint8_t*)m_str, (uint8_t*)str, m_size);
+        m_str[m_size] = '\0';
+    }
+
+    String(const char* str, uint32_t size)
+    {
+        m_size = size;
         ensure_capacity(m_size + 1);
         memcpy((uint8_t*)m_str, (uint8_t*)str, m_size);
         m_str[m_size] = '\0';
