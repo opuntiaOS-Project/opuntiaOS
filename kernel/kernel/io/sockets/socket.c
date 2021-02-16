@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2020 Nikita Melekhin
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License v2 as published by the
- * Free Software Foundation.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
 #include <io/sockets/socket.h>
