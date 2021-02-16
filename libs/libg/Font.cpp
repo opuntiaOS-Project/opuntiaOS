@@ -29,7 +29,7 @@ struct [[gnu::packed]] FontFileHeader
 Font& Font::system_font()
 {
     static Font* s_system_font_ptr;
-    const static char* s_system_font_path = "/res/system.font";
+    const static char* s_system_font_path = "/res/fonts/system.font";
     if (!s_system_font_ptr) {
         s_system_font_ptr = Font::load_from_file(s_system_font_path);
     }
@@ -39,7 +39,7 @@ Font& Font::system_font()
 Font& Font::system_bold_font()
 {
     static Font* s_system_bold_font_ptr;
-    const static char* s_system_bold_font_path = "/res/systembold.font";
+    const static char* s_system_bold_font_path = "/res/fonts/systembold.font";
     if (!s_system_bold_font_ptr) {
         s_system_bold_font_ptr = Font::load_from_file(s_system_bold_font_path);
     }

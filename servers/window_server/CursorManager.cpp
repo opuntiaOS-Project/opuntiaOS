@@ -21,5 +21,5 @@ CursorManager::CursorManager()
 {
     s_the = this;
     LG::PNG::PNGLoader loader;
-    m_std_cursor = loader.load_from_file("/res/arrow.png");
+    m_std_cursor = loader.load_from_file("/res/system/arrow.png");
 }

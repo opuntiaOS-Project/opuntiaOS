@@ -21,5 +21,5 @@ ResourceManager::ResourceManager()
 {
     s_the = this;
     LG::PNG::PNGLoader loader;
-    m_background = loader.load_from_file("/res/background.png");
+    m_background = loader.load_from_file("/res/wallpapers/island.png");
 }
