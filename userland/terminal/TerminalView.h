@@ -3,6 +3,11 @@
 #include <libui/View.h>
 #include <std/String.h>
 
+enum WindowStatus {
+    Normal,
+    DoNewLine,
+};
+
 class TerminalView : public UI::View {
 public:
     TerminalView(const LG::Rect&, int ptmx);
@@ -15,7 +20,7 @@ public:
     inline int glyph_width() const { return font().glyph_width('.'); }
     inline int glyph_height() const { return font().glyph_height(); }
 
-    inline LG::Point<int> pos_on_screen() const { return { (int)m_col * glyph_width(), (int)m_row * glyph_height() }; }
+    inline LG::Point<int> pos_on_screen() const { return { (int)m_col * glyph_width() + padding(), (int)m_row * glyph_height() + padding() }; }
     inline int pos_in_data() const { return m_max_cols * m_row + m_col; }
 
     void display(const LG::Rect& rect) override;
@@ -24,9 +29,16 @@ public:
 
     int ptmx() const { return m_ptmx; }
 
-    constexpr int cursor_width() { return 5; }
-
 private:
+    WindowStatus cursor_positions_do_new_line();
+    WindowStatus cursor_position_move_right();
+    WindowStatus cursor_position_move_left();
+    void data_do_new_line();
+    inline void data_set_char(char c)
+    {
+        m_display_data[pos_in_data()] = c;
+    }
+
     void scroll_line();
     void new_line();
     void increment_counter();
@@ -34,24 +46,29 @@ private:
 
     void recalc_dimensions(const LG::Rect&);
     void put_char(char c);
+    void put_text(const String& data);
     void push_back_char(char c);
     void send_input();
 
     inline void will_move_cursor()
     {
         auto pt = pos_on_screen();
-        set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + 2, glyph_height()));
+        set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + spacing(), glyph_height()));
     }
 
     inline void did_move_cursor()
     {
         auto pt = pos_on_screen();
-        set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + 2, glyph_height()));
+        set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + spacing(), glyph_height()));
     }
 
     LG::Color m_background_color { 0xE9E9EA };
     LG::Color m_font_color { LG::Color::LightSystemText };
     LG::Font* m_font_ptr { LG::Font::load_from_file("/res/LizaRegular8x10.font") };
+
+    constexpr int padding() const { return 2; }
+    constexpr int spacing() const { return 2; }
+    constexpr int cursor_width() const { return 5; }
 
     int m_ptmx { -1 };
     String m_input {};
