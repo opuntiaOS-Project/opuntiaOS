@@ -66,7 +66,7 @@ kernel_src = exec_script("get_kernel_files.py",
                          "list lines")
 
 linker_script =
-    rebase_path("//build/$target_cpu/kernel_link.ld", root_build_dir)
+    rebase_path("//build/kernel/$target_cpu/kernel_link.ld", root_build_dir)
 
 executable("kernel_build") {
   output_name = "$kernel_out_path/kernel.bin"

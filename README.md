@@ -47,9 +47,6 @@
 #### Common steps
 * `cd out`
 * `./all.bash`
-### Building the OS with Make (WORK ONLY TO BUILD x86) [will be deprecated]
-* Run `make format_ext2`. Run this only one time, to format your virtual drive
-* Run `make && make sync && make run`
 
 ### Getting GN
 https://gn.googlesource.com/gn/#getting-a-binary
