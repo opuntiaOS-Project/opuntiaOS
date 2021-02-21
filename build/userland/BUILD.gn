@@ -16,6 +16,10 @@ if (optimize) {
   uland_c_flags += [ "-Os" ]
 }
 
+if (static_analyze) {
+  uland_c_flags += [ "-fanalyzer" ]
+}
+
 uland_cc_flags = [
   "-std=c++17",
   "-fno-sized-deallocation",

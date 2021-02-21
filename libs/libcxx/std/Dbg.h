@@ -5,7 +5,7 @@
 class Dbg {
 public:
     Dbg() = default;
-    ~Dbg() { }
+    ~Dbg() = default;
 
     friend const Dbg& operator<<(const Dbg& os, const String& value);
     friend const Dbg& operator<<(const Dbg& os, int value);
@@ -23,7 +23,7 @@ public:
     {
     }
 
-    ~DbgPid() { }
+    ~DbgPid() = default;
 
     friend const DbgPid& operator<<(const DbgPid& os, const String& value);
     friend const DbgPid& operator<<(const DbgPid& os, int value);

@@ -54,7 +54,7 @@ public:
     {
     }
 
-    ~Color() { }
+    ~Color() = default;
 
     Color& operator=(const Color& c)
     {

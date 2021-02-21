@@ -50,7 +50,7 @@ private:
 template <class T>
 class LinkedList {
 public:
-    LinkedList() { }
+    LinkedList() = default;
 
     bool is_empty() const { return !m_head; }
 

@@ -21,7 +21,7 @@ namespace LG {
 class Context {
 public:
     Context(PixelBitmap&);
-    ~Context() { }
+    ~Context() = default;
 
     void add_clip(const Rect& rect);
     void reset_clip();

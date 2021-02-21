@@ -30,7 +30,7 @@ public:
 protected:
     bool m_display_message_sent { false };
     LG::Rect m_prev_display_message {};
-    Responder() { }
+    Responder() = default;
 };
 
 }

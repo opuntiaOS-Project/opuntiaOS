@@ -21,7 +21,7 @@ public:
         : Event(Event::Type::FdWaiterRead)
     {
     }
-    ~FDWaiterReadEvent() { }
+    ~FDWaiterReadEvent() = default;
 };
 
 class FDWaiterWriteEvent final : public Event {
@@ -30,7 +30,7 @@ public:
         : Event(Event::Type::FdWaiterWrite)
     {
     }
-    ~FDWaiterWriteEvent() { }
+    ~FDWaiterWriteEvent() = default;
 };
 
 class FDWaiter : public EventReceiver {
@@ -92,7 +92,7 @@ public:
         : Event(Event::Type::DeferredInvoke)
     {
     }
-    ~TimerEvent() { }
+    ~TimerEvent() = default;
 };
 
 class Timer : public EventReceiver {
@@ -147,7 +147,7 @@ public:
         , m_callback(callback)
     {
     }
-    ~CallEvent() { }
+    ~CallEvent() = default;
 
 private:
     void (*m_callback)();

@@ -36,7 +36,7 @@ public:
     {
     }
 
-    ~Event() { }
+    ~Event() = default;
 };
 
 class MouseEvent : public Event {
@@ -48,7 +48,7 @@ public:
     {
     }
 
-    ~MouseEvent() { }
+    ~MouseEvent() = default;
 
     uint32_t x() const { return m_x; }
     uint32_t y() const { return m_y; }
@@ -73,7 +73,7 @@ public:
     {
     }
 
-    ~MouseActionEvent() { }
+    ~MouseActionEvent() = default;
 
     MouseActionType type() const { return m_type; }
     uint32_t x() const { return m_x; }
@@ -94,7 +94,7 @@ public:
     {
     }
 
-    ~MouseLeaveEvent() { }
+    ~MouseLeaveEvent() = default;
 
     uint32_t x() const { return m_x; }
     uint32_t y() const { return m_y; }
@@ -113,7 +113,7 @@ public:
     {
     }
 
-    ~KeyUpEvent() { }
+    ~KeyUpEvent() = default;
 
     key_t key() const { return m_key; }
 
@@ -129,7 +129,7 @@ public:
     {
     }
 
-    ~KeyDownEvent() { }
+    ~KeyDownEvent() = default;
 
     key_t key() const { return m_key; }
 
@@ -145,7 +145,7 @@ public:
     {
     }
 
-    ~DisplayEvent() { }
+    ~DisplayEvent() = default;
 
     LG::Rect& bounds() { return m_display_bounds; }
     const LG::Rect& bounds() const { return m_display_bounds; }
@@ -162,7 +162,7 @@ public:
     {
     }
 
-    ~WindowCloseRequestEvent() { }
+    ~WindowCloseRequestEvent() = default;
     uint32_t window_id() const { return m_window_id; }
 
 private:
@@ -179,7 +179,7 @@ public:
     {
     }
 
-    ~NotifyWindowStatusChangedEvent() { }
+    ~NotifyWindowStatusChangedEvent() = default;
     uint32_t changed_window_id() const { return m_changed_window_id; }
     int type() const { return m_type; }
 
@@ -204,7 +204,7 @@ public:
     {
     }
 
-    ~NotifyWindowIconChangedEvent() { }
+    ~NotifyWindowIconChangedEvent() = default;
     uint32_t changed_window_id() const { return m_changed_window_id; }
     const LG::String& icon_path() const { return m_icon_path; }
 

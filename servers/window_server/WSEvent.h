@@ -27,7 +27,7 @@ public:
     {
     }
 
-    ~WSEvent() { }
+    ~WSEvent() = default;
 };
 
 struct MousePacket {
@@ -48,7 +48,7 @@ public:
     {
     }
 
-    ~MouseEvent() { }
+    ~MouseEvent() = default;
 
     const MousePacket& packet() const { return m_packet; }
     MousePacket& packet() { return m_packet; }
@@ -65,7 +65,7 @@ public:
     {
     }
 
-    ~KeyboardEvent() { }
+    ~KeyboardEvent() = default;
 
     const KeyboardPacket& packet() const { return m_packet; }
     KeyboardPacket& packet() { return m_packet; }

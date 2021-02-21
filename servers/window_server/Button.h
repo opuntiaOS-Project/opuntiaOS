@@ -14,7 +14,7 @@
 class Button {
 public:
     Button() = default;
-    ~Button() { }
+    ~Button() = default;
 
     void display();
     void set_title(const String& title) { m_title = title, recalc_dims(); }

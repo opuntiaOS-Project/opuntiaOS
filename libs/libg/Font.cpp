@@ -84,7 +84,7 @@ Font* Font::load_from_mem(uint8_t* font_data)
     FontFileHeader& header = *(FontFileHeader*)font_data;
 
     if (memcmp((uint8_t*)header.magic, (const uint8_t*)"!Fnt", 4)) {
-        write(1, "Font unsupported\n", 17);
+        Dbg() << "Font unsupported\n";
         return nullptr;
     }
 
@@ -94,7 +94,7 @@ Font* Font::load_from_mem(uint8_t* font_data)
     } else if (header.type == 1) {
         count = 384;
     } else {
-        write(1, "Type unsupported\n", 17);
+        Dbg() << "Type unsupported\n";
         return nullptr;
     }
 

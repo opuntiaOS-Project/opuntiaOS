@@ -12,18 +12,7 @@ public:
 
     Vector()
     {
-        // Dbg() << "- " << (uint32_t)m_data << "\n";
         grow(m_capacity);
-    }
-
-    Vector(void* tdefw)
-    {
-        // m_capacity = 0;
-        // m_size = 0;
-        // m_data = 0;
-        // Dbg() << "Look VEC at " << (uint32_t)((char*)(tdefw) + 0xf4 + 0x8) << " " << *((uint32_t*)((char*)(tdefw) + 0xf4 + 0x8));
-        grow(m_capacity);
-        // the << (uint32_t)((char*)(tdefw) + 0xf4 + 0x8) << 0 << *((uint32_t*)((char*)(tdefw) + 0xf4 + 0x8));
     }
 
     Vector(int capacity)
@@ -107,8 +96,10 @@ public:
 
     void clear_remain_capacity()
     {
-        for (size_t i = 0; i < m_size; ++i) {
-            data()[i].~T();
+        if (m_data) {
+            for (size_t i = 0; i < m_size; ++i) {
+                data()[i].~T();
+            }
         }
         m_size = 0;
     }
@@ -147,7 +138,11 @@ private:
         if (!m_data) {
             m_data = (T*)malloc(capacity * sizeof(T));
         } else {
+        retry:
             auto new_buf = (T*)malloc(capacity * sizeof(T));
+            if (!new_buf) {
+                goto retry;
+            }
 
             for (size_t i = 0; i < m_size; i++) {
                 new (&new_buf[i]) T(move(at(i)));

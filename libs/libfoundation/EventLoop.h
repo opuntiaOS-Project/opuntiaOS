@@ -37,7 +37,7 @@ public:
         return *this;
     }
 
-    ~QueuedEvent() { }
+    ~QueuedEvent() = default;
 
     EventReceiver& receiver;
     UniquePtr<Event> event { nullptr };

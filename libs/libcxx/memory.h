@@ -20,6 +20,7 @@ public:
         : m_data(nullptr)
     {
     }
+
     UniquePtr& operator=(nullptr_t)
     {
         reset();
@@ -31,6 +32,7 @@ public:
     {
         moving.swap(*this);
     }
+
     UniquePtr& operator=(UniquePtr&& moving) noexcept
     {
         moving.swap(*this);
@@ -43,6 +45,7 @@ public:
         UniquePtr<T> tmp((T*)moving.release());
         tmp.swap(*this);
     }
+
     template <typename U>
     UniquePtr& operator=(UniquePtr<U>&& moving)
     {

@@ -39,7 +39,7 @@ public:
     {
     }
 
-    ~DataStreamer() { }
+    ~DataStreamer() = default;
 
     template <typename T>
     void read(T& val)
@@ -81,7 +81,7 @@ public:
         , m_ptr(ptr)
     {
     }
-    ~Scanline() { }
+    ~Scanline() = default;
 
     void set(int type, void* ptr) { m_ptr = ptr; }
     int filter_type() const { return m_filter_type; }
@@ -126,7 +126,7 @@ private:
 class PNGLoader {
 public:
     PNGLoader() = default;
-    ~PNGLoader() { }
+    ~PNGLoader() = default;
 
     PixelBitmap load_from_file(const Algo::String& path);
     PixelBitmap load_from_mem(const uint8_t* ptr);

@@ -10,8 +10,8 @@
 
 class WServerDecoder : public WindowServerDecoder {
 public:
-    WServerDecoder() { }
-    ~WServerDecoder() { }
+    WServerDecoder() = default;
+    ~WServerDecoder() = default;
 
     using WindowServerDecoder::handle;
     virtual UniquePtr<Message> handle(const GreetMessage& msg) override;

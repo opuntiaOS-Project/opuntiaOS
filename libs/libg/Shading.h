@@ -31,7 +31,7 @@ public:
     {
     }
 
-    ~Shading() { }
+    ~Shading() = default;
 
     inline ShadingType type() const { return m_type; }
     inline uint8_t final_alpha() const { return m_final_alpha; }

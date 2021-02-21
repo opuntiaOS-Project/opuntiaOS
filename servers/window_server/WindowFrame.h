@@ -19,7 +19,7 @@ class WindowFrame {
 public:
     WindowFrame(Window& window);
     WindowFrame(Window& window, Vector<Button*>&& control_panel_buttons, Vector<Button*>&& window_control_buttons);
-    ~WindowFrame() { }
+    ~WindowFrame() = default;
 
     void draw(LG::Context&);
     static constexpr size_t std_app_header_size() { return 26; }

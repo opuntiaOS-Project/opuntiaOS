@@ -24,7 +24,7 @@ public:
         , m_y(y)
     {
     }
-    ~Point() { }
+    ~Point() = default;
 
     inline void set(const Point& p) { m_x = p.x(), m_y = p.y(); }
     inline void set_x(int x) { m_x = x; }

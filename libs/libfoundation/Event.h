@@ -24,7 +24,7 @@ public:
     {
     }
 
-    ~Event() { }
+    ~Event() = default;
 
     int type() { return m_type; }
 

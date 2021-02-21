@@ -31,7 +31,7 @@ public:
     {
     }
 
-    ~GlyphBitmap() { }
+    ~GlyphBitmap() = default;
 
     inline bool bit_at(int x, int y) const { return row(y) & (1 << x); }
     inline size_t width() const { return m_width; }
@@ -50,7 +50,7 @@ private:
 class Font {
 public:
     Font(uint32_t* raw_data, uint8_t* m_width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width);
-    ~Font() { }
+    ~Font() = default;
 
     static Font& system_font();
     static Font& system_bold_font();

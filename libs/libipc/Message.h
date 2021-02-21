@@ -7,7 +7,7 @@ typedef int message_key_t;
 
 class Message {
 public:
-    Message() { }
+    Message() = default;
     virtual ~Message() = default;
 
     virtual int decoder_magic() const { return 0; }

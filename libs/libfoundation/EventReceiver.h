@@ -15,8 +15,8 @@ namespace LFoundation {
 
 class EventReceiver {
 public:
-    EventReceiver() { }
-    ~EventReceiver() { }
+    EventReceiver() = default;
+    ~EventReceiver() = default;
     virtual void receive_event(UniquePtr<Event> event) {}
 
 private:

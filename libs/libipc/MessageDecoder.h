@@ -4,8 +4,8 @@
 
 class MessageDecoder {
 public:
-    MessageDecoder() { }
-    virtual ~MessageDecoder() {};
+    MessageDecoder() = default;
+    virtual ~MessageDecoder() = default;
 
     virtual int magic() { return 0; }
     virtual UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) { return nullptr; }

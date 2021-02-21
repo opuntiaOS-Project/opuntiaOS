@@ -21,7 +21,7 @@ public:
     Rect() = default;
     Rect(int x, int y, size_t width, size_t height);
 
-    ~Rect() { }
+    ~Rect()= default;
 
     inline size_t width() const { return m_width; }
     inline size_t height() const { return m_height; }

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <syscalls.h>
 
+
 static malloc_header_t* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
 static size_t allocated_blocks = 0;
 
@@ -47,7 +48,7 @@ static inline char _malloc_can_fit_allocation(malloc_header_t* space, size_t all
 void* malloc(size_t sz)
 {
     if (!sz) {
-        return 0;
+        return NULL;
     }
     sz += 3;
     sz &= ~(uint32_t)0x3;
@@ -69,7 +70,7 @@ void* malloc(size_t sz)
         int err = _alloc_new_block(sz);
         if (err) {
             /* TODO: Write to log this */
-            return 0;
+            return NULL;
         }
         first_fit = memory[allocated_blocks - 1];
     }
@@ -123,8 +124,11 @@ void free(void* mem)
 void* calloc(size_t num, size_t size)
 {
     void* mem = malloc(num * size);
-    memset(mem, 0, num * size);
+    if (!mem) {
+        return NULL;
+    }
 
+    memset(mem, 0, num * size);
     return mem;
 }
 
@@ -141,7 +145,7 @@ void* realloc(void* ptr, size_t new_size)
 
     uint8_t* new_area = malloc(new_size);
     if (!new_area) {
-        return 0;
+        return NULL;
     }
 
     memcpy(new_area, ptr, new_size < old_size ? new_size : old_size);

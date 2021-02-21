@@ -75,7 +75,7 @@ public:
     }
 
 protected:
-    Weakable() { }
+    Weakable() = default;
 
     ~Weakable()
     {

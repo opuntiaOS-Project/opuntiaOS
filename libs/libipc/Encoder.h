@@ -5,7 +5,7 @@ typedef Vector<uint8_t> EncodedMessage;
 
 class Encoder {
 public:
-    ~Encoder() { }
+    ~Encoder() = default;
 
     static void append(EncodedMessage& buf, int val)
     {
@@ -86,5 +86,5 @@ public:
     }
 
 private:
-    Encoder() { }
+    Encoder() = default;
 };

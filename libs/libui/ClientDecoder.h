@@ -16,7 +16,7 @@ class App;
 class ClientDecoder : public WindowClientDecoder {
 public:
     ClientDecoder();
-    ~ClientDecoder() { }
+    ~ClientDecoder() = default;
 
     using WindowClientDecoder::handle;
     virtual UniquePtr<Message> handle(const MouseMoveMessage& msg) override;

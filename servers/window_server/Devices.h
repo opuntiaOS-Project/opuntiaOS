@@ -16,7 +16,7 @@ class Devices {
 public:
     static Devices& the();
     Devices();
-    ~Devices() { }
+    ~Devices() = default;
 
     inline void pump_mouse()
     {

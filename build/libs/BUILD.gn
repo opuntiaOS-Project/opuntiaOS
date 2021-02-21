@@ -16,6 +16,10 @@ if (optimize) {
   lib_c_flags += [ "-Os" ]
 }
 
+if (static_analyze) {
+  lib_c_flags += [ "-fanalyzer" ]
+}
+
 lib_cc_flags = [
   "-std=c++17",
   "-fno-sized-deallocation",
