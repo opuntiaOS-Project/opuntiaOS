@@ -25,7 +25,7 @@ uint32_t timeman_days_in_months_since_soy(uint8_t month, uint32_t year);
 time_t timeman_to_seconds_since_epoch(uint8_t secs, uint8_t mins, uint8_t hrs, uint8_t day, uint8_t month, uint32_t year);
 
 int timeman_setup();
-void timeman_pit_tick();
+void timeman_timer_tick();
 
 time_t timeman_now();
 time_t timeman_seconds_since_boot();

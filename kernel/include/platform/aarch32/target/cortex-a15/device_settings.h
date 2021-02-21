@@ -8,6 +8,7 @@
  *      pl181
  *      pl111
  *      pl050
+ *      pl031
  */
 
 /* Base is read from CBAR */
@@ -23,6 +24,8 @@
 #define PL050_KEYBOARD_BASE 0x1c060000
 
 #define PL050_MOUSE_BASE 0x1c070000
+
+#define PL031_BASE 0x1c170000
 
 /**
  * Interrupt lines:

@@ -16,6 +16,7 @@
 #define SP804_TIMER1_BASE SP804_BASE
 #define SP804_TIMER2_BASE (SP804_TIMER1_BASE + 0x20)
 #define SP804_CLK_HZ 1000000
+#define TIMER_TICKS_PER_SECOND 125
 
 // https://developer.arm.com/documentation/ddi0271/d/programmer-s-model/register-descriptions/control-register--timerxcontrol?lang=en
 enum SP804ControlMasks {

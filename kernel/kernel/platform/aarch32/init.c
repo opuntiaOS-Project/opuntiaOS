@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <drivers/aarch32/pl031.h>
 #include <drivers/aarch32/pl050.h>
 #include <drivers/aarch32/pl111.h>
 #include <drivers/aarch32/pl181.h>
@@ -27,4 +28,5 @@ void platform_drivers_setup()
     pl111_install();
     pl050_keyboard_install();
     pl050_mouse_install();
+    pl031_install();
 }

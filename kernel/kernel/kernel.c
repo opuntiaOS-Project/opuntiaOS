@@ -60,11 +60,10 @@ void stage3(mem_desc_t* mem_desc)
     pmm_setup(mem_desc);
     vmm_setup();
 
-    timeman_setup();
-
     // installing drivers
     driver_manager_init();
     platform_drivers_setup();
+    timeman_setup();
     vfs_install();
     ext2_install();
     procfs_install();
