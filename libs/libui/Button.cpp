@@ -8,8 +8,6 @@
 #include "Button.h"
 #include "Context.h"
 #include <libfoundation/EventLoop.h>
-#include <libg/Color.h>
-#include <syscalls.h>
 
 namespace UI {
 
@@ -64,7 +62,7 @@ size_t Button::text_width()
     return width;
 }
 
-size_t Button::text_height()
+size_t Button::text_height() const
 {
     return font().glyph_height();
 }

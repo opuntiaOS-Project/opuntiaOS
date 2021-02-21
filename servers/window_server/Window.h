@@ -82,12 +82,6 @@ public:
 
     inline const LG::String& icon_path() const { return m_icon_path; }
 
-    void will_be_closed();
-    void will_be_minimized();
-    void was_minimized();
-    void will_be_maximized();
-    void was_maximized();
-
 private:
     int m_id { -1 };
     int m_connection_id { -1 };

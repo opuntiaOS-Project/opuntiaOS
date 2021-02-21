@@ -28,7 +28,7 @@ public:
         char tmpbuf[1024];
 
         int read_cnt;
-        while (read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf))) {
+        while ((read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf)))) {
             if (read_cnt <= 0) {
                 Dbg() << getpid() << " :: ServerConnection read error\n";
                 return;

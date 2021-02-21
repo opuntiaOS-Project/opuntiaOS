@@ -7,7 +7,6 @@
 
 #include <errno.h>
 #include <fs/vfs.h>
-#include <io/tty/tty.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>

@@ -30,13 +30,7 @@ public:
 
     Color() = default;
     Color(Colors);
-    Color(const Color& c)
-        : m_opacity(c.m_opacity)
-        , m_r(c.m_r)
-        , m_g(c.m_g)
-        , m_b(c.m_b)
-    {
-    }
+    Color(const Color& c) = default;
 
     Color(uint32_t color)
         : m_opacity((color & 0xFF000000) >> 24)
@@ -56,14 +50,7 @@ public:
 
     ~Color() = default;
 
-    Color& operator=(const Color& c)
-    {
-        m_opacity = c.m_opacity;
-        m_r = c.m_r;
-        m_g = c.m_g;
-        m_b = c.m_b;
-        return *this;
-    }
+    Color& operator=(const Color& c) = default;
 
     Color& operator=(Color&& c)
     {
@@ -112,7 +99,7 @@ public:
         m_opacity = 255 - (alpha_c / 255);
     }
 
-    inline LG::Color darken(int percents)
+    inline LG::Color darken(int percents) const
     {
         double multiplier = 1.0 - (double(percents) / 100.0);
         int r = int(red() * multiplier);

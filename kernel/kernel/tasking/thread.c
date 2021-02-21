@@ -173,11 +173,14 @@ int thread_die(thread_t* thread)
 
 int thread_dump_frame(thread_t* thread)
 {
-    // for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
-    //     uint8_t byte = *(uint8_t*)i;
-    //     uint32_t b32 = (uint32_t)byte;
-    //     log("%x - %x\n", i, b32);
-    // }
+#ifdef __i386__
+     for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
+         uint8_t byte = *(uint8_t*)i;
+         uint32_t b32 = (uint32_t)byte;
+         log("%x - %x\n", i, b32);
+     }
+#endif
+    return 0;
 }
 
 int thread_print_backtrace()

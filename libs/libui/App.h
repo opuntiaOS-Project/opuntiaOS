@@ -32,7 +32,7 @@ public:
 private:
     LFoundation::EventLoop m_event_loop;
     Connection m_server_connection;
-    Window* m_window;
+    Window* m_window { nullptr };
 };
 
 }

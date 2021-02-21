@@ -15,7 +15,7 @@ namespace UI {
 
 class Label : public View {
 public:
-    Label(const LG::Rect&);
+    explicit Label(const LG::Rect&);
 
     const String& text() const { return m_text; }
     void set_text(const String& text) { m_text = text; }

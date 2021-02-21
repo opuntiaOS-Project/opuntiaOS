@@ -109,7 +109,6 @@ public:
     inline int mouse_x() const { return m_mouse_x; }
     inline int mouse_y() const { return m_mouse_y; }
     inline bool is_mouse_left_button_pressed() const { return m_mouse_left_button_pressed; }
-    constexpr int cursor_size() const { return 14; }
 
     void setup_dock(Window* window);
 

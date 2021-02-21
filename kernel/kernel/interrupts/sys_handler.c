@@ -522,7 +522,7 @@ void sys_sleep(trapframe_t* tf)
     thread_t* p = RUNNIG_THREAD;
     time_t time = param1;
 
-    init_sleep_blocker(RUNNIG_THREAD, time);
+    init_sleep_blocker(p, time);
 
     return_with_val(0);
 }

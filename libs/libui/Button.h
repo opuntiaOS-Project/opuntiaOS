@@ -15,7 +15,7 @@ namespace UI {
 
 class Button : public View {
 public:
-    Button(const LG::Rect&);
+    explicit Button(const LG::Rect&);
 
     const String& title() const { return m_title; }
     void set_title(const String& title) { m_title = title, recalc_bounds(), set_needs_display(); }
@@ -36,7 +36,7 @@ public:
 
 private:
     void recalc_bounds();
-    size_t text_height();
+    size_t text_height() const;
     size_t text_width();
 
     static constexpr uint32_t std_background_color() { return 0x00EBEBEB; }

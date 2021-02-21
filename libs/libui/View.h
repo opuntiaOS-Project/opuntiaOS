@@ -21,7 +21,7 @@ class View : public Responder {
 public:
     friend class Window;
 
-    View(const LG::Rect&);
+    explicit View(const LG::Rect&);
     View(const LG::Rect&, const LG::Color&);
 
     template <class T, class... Args>

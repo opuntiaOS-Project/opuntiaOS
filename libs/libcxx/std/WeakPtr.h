@@ -11,12 +11,12 @@ class WeakLink {
 public:
     friend class Weakable<T>;
 
-    WeakLink(T& data)
+    explicit WeakLink(T& data)
         : m_ptr(&data)
     {
     }
 
-    operator bool() const { return ptr(); }
+    explicit operator bool() const { return ptr(); }
 
     T* ptr() { return m_ptr; }
     const T* ptr() const { return m_ptr; }
@@ -41,7 +41,7 @@ public:
         return *this;
     }
 
-    operator bool() const { return ptr(); }
+    explicit operator bool() const { return ptr(); }
 
     T* ptr() { return m_data ? m_data->ptr() : nullptr; }
     const T* ptr() const { return m_data ? m_data->ptr() : nullptr; }
@@ -55,7 +55,7 @@ public:
     void clear() { m_data = nullptr; }
 
 private:
-    WeakPtr(WeakLink<T>* data)
+    explicit WeakPtr(WeakLink<T>* data)
         : m_data(data)
     {
     }

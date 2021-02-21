@@ -15,7 +15,7 @@
 class Connection : public LFoundation::EventReceiver {
 public:
     static Connection& the();
-    Connection(int connection_fd);
+    explicit Connection(int connection_fd);
 
     inline void listen()
     {

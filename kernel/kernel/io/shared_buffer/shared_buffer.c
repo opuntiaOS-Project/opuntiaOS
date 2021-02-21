@@ -33,7 +33,6 @@ static bitmap_t bitmap;
 
 static inline uint32_t _shared_buffer_to_vaddr(int start)
 {
-    uint32_t vaddr = (uint32_t)_shared_buffer_zone.start + start * SHBUF_BLOCK_SIZE;
     return (uint32_t)_shared_buffer_zone.start + start * SHBUF_BLOCK_SIZE;
 }
 
@@ -69,6 +68,7 @@ int shared_buffer_init()
 {
     _shared_buffer_zone = zoner_new_zone(SHBUF_SPACE_SIZE);
     _shared_buffer_init_bitmap();
+    return 0;
 }
 
 int shared_buffer_create(uint8_t** res_buffer, size_t size)

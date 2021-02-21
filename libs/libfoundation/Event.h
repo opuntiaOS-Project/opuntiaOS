@@ -19,14 +19,14 @@ public:
         Other,
     };
 
-    Event(int type)
+    explicit Event(int type)
         : m_type(type)
     {
     }
 
     ~Event() = default;
 
-    int type() { return m_type; }
+    int type() const { return m_type; }
 
 private:
     int m_type;

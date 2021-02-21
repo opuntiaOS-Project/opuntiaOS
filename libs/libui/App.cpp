@@ -10,7 +10,7 @@
 
 namespace UI {
 
-static App* s_the = 0;
+static App* s_the = nullptr;
 
 App& App::the()
 {

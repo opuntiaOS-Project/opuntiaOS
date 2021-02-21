@@ -37,7 +37,7 @@ public:
 private:
     void recalc_dims();
     size_t text_width();
-    inline size_t text_height() { return font().glyph_height(); }
+    inline size_t text_height() const { return font().glyph_height(); }
 
     LG::Rect m_bounds {};
     String m_title {};

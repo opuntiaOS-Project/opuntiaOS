@@ -22,7 +22,7 @@ public:
         Other,
     };
 
-    WSEvent(int type)
+    explicit WSEvent(int type)
         : Event(type)
     {
     }
@@ -42,7 +42,7 @@ struct KeyboardPacket {
 
 class MouseEvent : public WSEvent {
 public:
-    MouseEvent(const MousePacket& packet)
+    explicit MouseEvent(const MousePacket& packet)
         : WSEvent(WSEvent::Type::MouseEvent)
         , m_packet(packet)
     {
@@ -59,7 +59,7 @@ private:
 
 class KeyboardEvent : public WSEvent {
 public:
-    KeyboardEvent(const KeyboardPacket& packet)
+    explicit KeyboardEvent(const KeyboardPacket& packet)
         : WSEvent(WSEvent::Type::KeyboardEvent)
         , m_packet(packet)
     {
@@ -76,7 +76,7 @@ private:
 
 class SendEvent : public WSEvent {
 public:
-    SendEvent(Message* msg)
+    explicit SendEvent(Message* msg)
         : WSEvent(WSEvent::Type::SendEvent)
         , m_message(msg)
     {
@@ -94,9 +94,7 @@ public:
         return *this;
     }
 
-    ~SendEvent()
-    {
-    }
+    ~SendEvent() = default;
 
     const UniquePtr<Message>& message() const { return m_message; }
     UniquePtr<Message>& message() { return m_message; }

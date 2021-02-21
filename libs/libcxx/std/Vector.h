@@ -15,7 +15,7 @@ public:
         grow(m_capacity);
     }
 
-    Vector(int capacity)
+    explicit Vector(int capacity)
     {
         grow(capacity);
     }

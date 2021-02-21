@@ -10,8 +10,6 @@
 #include <io/tty/tty.h>
 #include <log.h>
 #include <mem/kmalloc.h>
-#include <platform/x86/gdt.h>
-#include <platform/x86/tasking/tss.h>
 #include <syscall_structs.h>
 #include <tasking/elf.h>
 #include <tasking/proc.h>
@@ -213,8 +211,6 @@ int proc_load(proc_t* p, const char* path)
         }
         vmm_free_pdir(old_pdir);
     } else {
-        log_error("proc: elf loading");
-        while (1) { }
         p->pdir = old_pdir;
         vmm_switch_pdir(old_pdir);
         vmm_free_pdir(new_pdir);
@@ -312,7 +308,7 @@ void proc_kill_all_threads_except(proc_t* p, thread_t* gthread)
 
 int proc_chdir(proc_t* p, const char* path)
 {
-    char* kpath = 0;
+    char* kpath = NULL;
     if (!str_validate_len(path, 128)) {
         return -EINVAL;
     }

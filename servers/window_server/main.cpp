@@ -20,7 +20,7 @@
 void start_dock()
 {
     if (fork()) {
-        execve("/bin/dock", 0, 0);
+        execve("/bin/dock", nullptr, nullptr);
         ASSERT_NOT_REACHED();
     }
 }

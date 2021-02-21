@@ -17,7 +17,7 @@ class Compositor;
 
 class WindowFrame {
 public:
-    WindowFrame(Window& window);
+    explicit WindowFrame(Window& window);
     WindowFrame(Window& window, Vector<Button*>&& control_panel_buttons, Vector<Button*>&& window_control_buttons);
     ~WindowFrame() = default;
 
@@ -74,7 +74,6 @@ public:
     static constexpr int button_y_offset() { return 8 + std_top_border_frame_size(); }
 
 private:
-    int draw_text(LG::Context& ctx, LG::Point<int> pt, const char* text, LG::Font& font);
     Window& m_window;
     Vector<Button*> m_window_control_buttons;
     Vector<Button*> m_control_panel_buttons;

@@ -9,7 +9,6 @@
 #include <drivers/x86/fpu.h>
 #endif
 #include <errno.h>
-#include <fs/vfs.h>
 #include <io/tty/tty.h>
 #include <log.h>
 #include <mem/kmalloc.h>
@@ -191,10 +190,10 @@ int tasking_exec(const char* path, const char** argv, const char** env)
 {
     thread_t* thread = RUNNIG_THREAD;
     proc_t* p = RUNNIG_THREAD->process;
-    char* kpath = 0;
+    char* kpath = NULL;
     int kargc = 0;
-    char** kargv = 0;
-    char** kenv = 0;
+    char** kargv = NULL;
+    char** kenv = NULL;
 
     if (!str_validate_len(path, 128)) {
         return -EINVAL;

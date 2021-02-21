@@ -98,7 +98,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 
 void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
 {
-    MouseEvent* mouse_event = (MouseEvent*)event.release();
+    auto* mouse_event = (MouseEvent*)event.release();
     auto new_hovered_window = WeakPtr<Window>();
 
     if (continue_window_move(mouse_event)) {
@@ -151,7 +151,7 @@ end:
 
 void WindowManager::receive_keyboard_event(UniquePtr<LFoundation::Event> event)
 {
-    KeyboardEvent* keyboard_event = (KeyboardEvent*)event.release();
+    auto* keyboard_event = (KeyboardEvent*)event.release();
     if (active_window()) {
         auto window = active_window();
         m_event_loop.add(m_connection, new SendEvent(new KeyboardMessage(window->connection_id(), window->id(), keyboard_event->packet().key)));

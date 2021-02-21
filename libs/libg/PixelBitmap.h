@@ -42,7 +42,7 @@ public:
         m_bounds.set_height(0);
     }
 
-    PixelBitmap& operator=(PixelBitmap& bitmap)
+    PixelBitmap& operator=(const PixelBitmap& bitmap)
     {
         clear();
         m_bounds = bitmap.bounds();

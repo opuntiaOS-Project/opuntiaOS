@@ -90,6 +90,8 @@ static int _elf_interpret_program_header_entry(proc_t* p, file_descriptor_t* fd)
     default:
         break;
     }
+
+    return 0;
 }
 
 static int _elf_interpret_section_header_entry(proc_t* p, file_descriptor_t* fd)
@@ -147,6 +149,7 @@ static int _elf_alloc_stack(proc_t* p)
     stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
     set_base_pointer(p->main_thread->tf, stack_zone->start + USER_STACK_SIZE);
     set_stack_pointer(p->main_thread->tf, stack_zone->start + USER_STACK_SIZE);
+    return 0;
 }
 
 static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_32_t* header)

@@ -10,7 +10,7 @@ class Window;
 class Connection {
 public:
     static Connection& the();
-    Connection(int connection_fd);
+    explicit Connection(int connection_fd);
 
     void greeting();
     int new_window(const Window& window);

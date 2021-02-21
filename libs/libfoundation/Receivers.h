@@ -78,7 +78,7 @@ public:
         }
     }
 
-    inline int fd() { return m_fd; }
+    inline int fd() const { return m_fd; }
 
 private:
     int m_fd;
@@ -99,7 +99,7 @@ class Timer : public EventReceiver {
 public:
     friend class EventLoop;
 
-    Timer(void (*callback)())
+    explicit Timer(void (*callback)())
         : EventReceiver()
         , m_callback(callback)
     {

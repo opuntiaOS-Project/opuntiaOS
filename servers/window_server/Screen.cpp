@@ -32,8 +32,8 @@ Screen::Screen()
     mp.prot = PROT_READ | PROT_WRITE; // Ignored in kernel mapping bga file
 
     size_t screen_buffer_size = width() * height() * depth();
-    LG::Color* first_buffer = (LG::Color*)mmap(&mp);
-    LG::Color* second_buffer = (LG::Color*)((uint8_t*)first_buffer + screen_buffer_size);
+    auto* first_buffer = (LG::Color*)mmap(&mp);
+    auto* second_buffer = (LG::Color*)((uint8_t*)first_buffer + screen_buffer_size);
 
     m_display_bitmap = LG::PixelBitmap(first_buffer, width(), height());
     m_write_bitmap = LG::PixelBitmap(second_buffer, width(), height());

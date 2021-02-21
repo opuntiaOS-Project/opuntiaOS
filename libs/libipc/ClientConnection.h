@@ -54,7 +54,7 @@ public:
         char tmpbuf[1024];
 
         int read_cnt;
-        while (read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf))) {
+        while ((read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf)))) {
             if (read_cnt <= 0) {
                 Dbg() << getpid() << " :: ClientConnection read error\n";
                 return;
@@ -84,7 +84,7 @@ public:
         if (m_messages.size() > 0) {
             // Note: We send an event to ourselves and use CallEvent to recognize the
             // event as sign to start processing of messages.
-            LFoundation::EventLoop::the().add(*this, new LFoundation::CallEvent(0));
+            LFoundation::EventLoop::the().add(*this, new LFoundation::CallEvent(nullptr));
         }
     }
 

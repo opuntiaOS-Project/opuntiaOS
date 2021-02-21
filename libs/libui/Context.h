@@ -13,12 +13,12 @@
 namespace UI {
 class Context : public LG::Context {
 public:
-    Context(LG::PixelBitmap& bitmap)
+    explicit Context(LG::PixelBitmap& bitmap)
         : LG::Context(bitmap)
     {
     }
 
-    Context(View& view)
+    explicit Context(View& view)
         : Context(view.window()->bitmap())
     {
         auto frame = view.frame_in_window();

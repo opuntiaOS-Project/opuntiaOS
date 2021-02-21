@@ -42,7 +42,7 @@ PixelBitmap::PixelBitmap(PixelBitmap& bitmap)
     }
 }
 
-PixelBitmap::PixelBitmap(PixelBitmap&& moved_bitmap)
+PixelBitmap::PixelBitmap(PixelBitmap&& moved_bitmap) noexcept
     : m_data(moved_bitmap.m_data)
     , m_bounds(moved_bitmap.m_bounds)
     , m_should_free(moved_bitmap.m_should_free)

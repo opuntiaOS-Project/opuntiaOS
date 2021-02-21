@@ -30,7 +30,6 @@
 #include <tasking/sched.h>
 
 #include <log.h>
-#include <utils/kernel_self_test.h>
 
 #include <sys_handler.h>
 

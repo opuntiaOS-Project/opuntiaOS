@@ -31,7 +31,7 @@ public:
         Other,
     };
 
-    Event(int type)
+    explicit Event(int type)
         : LFoundation::Event(type)
     {
     }

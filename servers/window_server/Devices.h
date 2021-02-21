@@ -18,7 +18,7 @@ public:
     Devices();
     ~Devices() = default;
 
-    inline void pump_mouse()
+    inline void pump_mouse() const
     {
         LFoundation::EventLoop& el = LFoundation::EventLoop::the();
         WindowManager& wm = WindowManager::the();
@@ -29,13 +29,13 @@ public:
             return;
         }
 
-        MousePacket* packet_buf = (MousePacket*)buf;
+        auto* packet_buf = (MousePacket*)buf;
         for (int offset = 0, cnt = 0; offset < read_cnt; offset += sizeof(MousePacket), cnt++) {
             el.add(wm, new MouseEvent(packet_buf[cnt]));
         }
     }
 
-    inline void pump_keyboard()
+    inline void pump_keyboard() const
     {
         LFoundation::EventLoop& el = LFoundation::EventLoop::the();
         WindowManager& wm = WindowManager::the();
@@ -46,7 +46,7 @@ public:
             return;
         }
 
-        KeyboardPacket* packet_buf = (KeyboardPacket*)buf;
+        auto* packet_buf = (KeyboardPacket*)buf;
         for (int offset = 0, cnt = 0; offset < read_cnt; offset += sizeof(KeyboardPacket), cnt++) {
             el.add(wm, new KeyboardEvent(packet_buf[cnt]));
         }

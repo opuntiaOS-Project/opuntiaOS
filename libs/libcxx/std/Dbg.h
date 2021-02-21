@@ -18,7 +18,7 @@ private:
 
 class DbgPid {
 public:
-    DbgPid(int pid)
+    explicit DbgPid(int pid)
         : m_pid(pid)
     {
     }

@@ -13,7 +13,7 @@
 
 namespace LFoundation {
 
-static EventLoop* s_the = 0;
+static EventLoop* s_the = nullptr;
 
 EventLoop& EventLoop::the()
 {
