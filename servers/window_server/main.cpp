@@ -13,9 +13,9 @@
 #include "Screen.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
-#include <malloc.h>
-#include <pthread.h>
+#include <new>
 #include <syscalls.h>
+#include <unistd.h>
 
 void start_dock()
 {

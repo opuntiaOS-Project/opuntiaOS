@@ -6,6 +6,7 @@
 #include <libui/App.h>
 #include <libui/Context.h>
 #include <std/Dbg.h>
+#include <unistd.h>
 
 static DockView* this_view;
 

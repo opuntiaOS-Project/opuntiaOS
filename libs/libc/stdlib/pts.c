@@ -1,15 +1,12 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/_structs.h>
-#include <errno.h>
+#include <syscalls.h>
 
 #define _PATH_PTS "/dev/pts"
 #define MASTER_PTY(dev) (major(dev) == 128)
 #define SLAVE_PTY(dev) (major(dev) == 136)
-
-/**
- * TERMINAL FUNCTIONS
- */
 
 int posix_openpt(int flags)
 {

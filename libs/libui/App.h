@@ -11,7 +11,7 @@
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
-#include <malloc.h>
+#include <memory>
 #include <sys/types.h>
 
 namespace UI {

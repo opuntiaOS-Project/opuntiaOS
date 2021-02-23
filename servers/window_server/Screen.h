@@ -8,7 +8,7 @@
 #pragma once
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
-#include <memory.h>
+#include <memory>
 #include <syscalls.h>
 
 class Screen {

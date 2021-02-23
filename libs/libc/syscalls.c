@@ -33,36 +33,6 @@ int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
     return ret;
 }
 
-int read(int fd, char* buf, size_t count)
-{
-    return syscall(SYSREAD, (int)fd, (int)buf, (int)count, 0, 0);
-}
-
-int write(int fd, const void* buf, size_t count)
-{
-    return syscall(SYSWRITE, (int)fd, (int)buf, (int)count, 0, 0);
-}
-
-void exit(int ret_code)
-{
-    syscall(SYSEXIT, ret_code, 0, 0, 0, 0);
-}
-
-int fork()
-{
-    return syscall(SYSFORK, 0, 0, 0, 0, 0);
-}
-
-int wait(int pid)
-{
-    return syscall(SYSWAITPID, pid, 0, 0, 0, 0);
-}
-
-int execve(const char* path, char** argv, char** env)
-{
-    return syscall(SYSEXEC, (int)path, (int)argv, (int)env, 0, 0);
-}
-
 int chdir(char* path)
 {
     return syscall(SYSCHDIR, (int)path, 0, 0, 0, 0);
@@ -191,11 +161,6 @@ int shared_buffer_get(int id, uint8_t** buffer)
 int shared_buffer_free(int id)
 {
     return syscall(SYS_SHBUF_FREE, (int)id, 0, 0, 0, 0);
-}
-
-void sched_yield()
-{
-    syscall(SYSSCHEDYIELD, 0, 0, 0, 0, 0);
 }
 
 int uname(utsname_t* buf)

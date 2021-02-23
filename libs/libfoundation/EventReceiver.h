@@ -8,7 +8,7 @@
 #pragma once
 
 #include "Event.h"
-#include <memory.h>
+#include <memory>
 #include <syscalls.h>
 
 namespace LFoundation {
@@ -17,7 +17,7 @@ class EventReceiver {
 public:
     EventReceiver() = default;
     ~EventReceiver() = default;
-    virtual void receive_event(UniquePtr<Event> event) {}
+    virtual void receive_event(UniquePtr<Event> event) { }
 
 private:
 };

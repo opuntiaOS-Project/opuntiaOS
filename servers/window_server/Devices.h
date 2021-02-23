@@ -9,7 +9,7 @@
 #include "WSEvent.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
-#include <memory.h>
+#include <memory>
 #include <std/Dbg.h>
 
 class Devices {

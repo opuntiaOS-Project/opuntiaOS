@@ -1,0 +1,12 @@
+#pragma GCC system_header
+
+#ifndef __oneOS__LibCXX__CSTDDEF
+#define __oneOS__LibCXX__CSTDDEF
+
+#include <stddef.h>
+
+#ifdef __cplusplus
+typedef decltype(nullptr) nullptr_t;
+#endif
+
+#endif // __oneOS__LibCXX__CSTDDEF

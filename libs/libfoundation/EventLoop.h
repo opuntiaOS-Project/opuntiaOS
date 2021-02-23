@@ -9,7 +9,7 @@
 #include "Event.h"
 #include "EventReceiver.h"
 #include "Receivers.h"
-#include <memory.h>
+#include <memory>
 #include <std/Vector.h>
 #include <syscalls.h>
 

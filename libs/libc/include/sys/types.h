@@ -10,15 +10,8 @@ typedef int            int32_t;
 typedef short          int16_t;
 typedef char           int8_t;
 
-#ifdef __i386__
-typedef unsigned long size_t;
-#elif __arm__
-typedef unsigned int size_t;
-#endif
-
 #define true  1
 #define false 0
-#define NULL ((void*)0)
 
 #define MINORBITS 20
 #define MINORMASK ((1U << MINORBITS) - 1)

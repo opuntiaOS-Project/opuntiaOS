@@ -1,6 +1,7 @@
 #ifndef __oneOS__LibC__STDIO_H
 #define __oneOS__LibC__STDIO_H
 
+#include <stddef.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 

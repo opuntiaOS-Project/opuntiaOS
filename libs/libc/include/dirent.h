@@ -1,6 +1,7 @@
 #ifndef __oneOS__LibC__DIRENT_H
 #define __oneOS__LibC__DIRENT_H
 
+#include <stddef.h>
 #include <sys/_structs.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>

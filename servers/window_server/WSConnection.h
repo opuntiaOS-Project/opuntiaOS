@@ -7,7 +7,7 @@
 #include <libipc/ServerConnection.h>
 #include <libg/Rect.h>
 #include <libg/String.h>
-#include <malloc.h>
+#include <new>
 
 class GreetMessage : public Message {
 public:

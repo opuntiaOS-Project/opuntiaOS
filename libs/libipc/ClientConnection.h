@@ -1,7 +1,7 @@
 #pragma once
 #include "Message.h"
 #include "MessageDecoder.h"
-#include <cassert.h>
+#include <cassert>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>

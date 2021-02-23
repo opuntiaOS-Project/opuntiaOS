@@ -1,6 +1,6 @@
 #pragma once
 #include "Message.h"
-#include <memory.h>
+#include <memory>
 
 class MessageDecoder {
 public:

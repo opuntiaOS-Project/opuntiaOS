@@ -6,7 +6,8 @@
  */
 
 #include "EventLoop.h"
-#include <memory.h>
+#include <memory>
+#include <sched.h>
 #include <string.h>
 #include <sys/time.h>
 #include <syscalls.h>

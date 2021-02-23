@@ -1,0 +1,8 @@
+#pragma GCC system_header
+
+#ifndef __oneOS__LibCXX__CSTDLIB
+#define __oneOS__LibCXX__CSTDLIB
+
+#include <stdlib.h>
+
+#endif // __oneOS__LibCXX__CSTDLIB

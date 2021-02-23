@@ -80,6 +80,7 @@
  */
 
 #include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
+#include <stddef.h>
 #include "puff.h"               /* prototype for puff() */
 
 #define local static            /* for local function definitions */

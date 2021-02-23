@@ -1,5 +1,6 @@
 extern "C" {
 
+#include <cstddef>
 #include <sys/types.h>
 
 int errno;

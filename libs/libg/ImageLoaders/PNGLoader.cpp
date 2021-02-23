@@ -6,10 +6,10 @@
  */
 
 #include "PNGLoader.h"
+#include <cstring>
 #include <libfoundation/puff.h>
-#include <memory.h>
+#include <memory>
 #include <std/Dbg.h>
-#include <string.h>
 
 // #define PNGLOADER_DEGUG
 

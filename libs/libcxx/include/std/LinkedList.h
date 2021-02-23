@@ -1,7 +1,7 @@
 #pragma once
-#include <cassert.h>
-#include <malloc.h>
-#include <memory.h>
+#include <cassert>
+#include <memory>
+#include <new>
 
 namespace Algo {
 

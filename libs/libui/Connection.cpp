@@ -2,8 +2,9 @@
 #include "Window.h"
 #include <libipc/ClientConnection.h>
 #include <libui/Connection.h>
-#include <malloc.h>
-#include <memory.h>
+#include <memory>
+#include <new>
+#include <sched.h>
 #include <std/Dbg.h>
 #include <syscalls.h>
 

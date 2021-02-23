@@ -7,7 +7,7 @@
 
 #include "Font.h"
 #include <string.h>
-#include <malloc.h>
+#include <new>
 #include <syscalls.h>
 
 namespace LG {

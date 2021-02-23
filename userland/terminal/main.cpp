@@ -6,6 +6,7 @@
 #include <libui/Window.h>
 #include <std/Dbg.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int setup_shell()
 {

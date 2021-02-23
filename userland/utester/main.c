@@ -1,6 +1,7 @@
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include <syscalls.h>
+#include <unistd.h>
 
 void exectest(void)
 {

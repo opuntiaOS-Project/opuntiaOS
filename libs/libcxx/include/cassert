@@ -5,9 +5,12 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__LIBCXX__UTILS__ASSERT_H
-#define __oneOS__LIBCXX__UTILS__ASSERT_H
+#pragma GCC system_header
 
+#ifndef __oneOS__LIBCXX__CASSERT
+#define __oneOS__LIBCXX__CASSERT
+
+#include <cstdlib>
 #include <std/Dbg.h>
 
 #define ASSERT(x)                                                          \
@@ -18,4 +21,4 @@
 
 #define ASSERT_NOT_REACHED() ASSERT(false)
 
-#endif // __oneOS__LIBCXX__UTILS__ASSERT_H
+#endif // __oneOS__LIBCXX__CASSERT

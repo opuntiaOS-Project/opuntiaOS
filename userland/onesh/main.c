@@ -1,7 +1,8 @@
-#include <malloc.h>
+#include <pthread.h>
+#include <stdlib.h>
 #include <string.h>
 #include <syscalls.h>
-#include <pthread.h>
+#include <unistd.h>
 
 char* _cmd_app;
 char* _cmd_buffer;
@@ -93,7 +94,7 @@ void _cmd_processor()
     uint32_t cmd = _is_cmd_internal();
     if (cmd == CMD_NONE) {
         uint32_t namelen = strlen(_cmd_parsed_buffer[0]);
-        memcpy(_cmd_app+5, _cmd_buffer, namelen + 1);
+        memcpy(_cmd_app + 5, _cmd_buffer, namelen + 1);
 
         int res = fork();
         if (!res) {

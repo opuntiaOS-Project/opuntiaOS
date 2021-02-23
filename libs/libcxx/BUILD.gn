@@ -3,16 +3,20 @@ import("//build/libs/TEMPLATE.gni")
 oneOS_static_library("libcxx") {
   sources = [
     # shared (with LibC)
-    "../crt0_$target_cpu.s",
     "../libc/dirent/dirent.c",
-    "../libc/malloc.c",
-    "../libc/pthread.c",
-    "../libc/setjmp_$target_cpu.s",
-    "../libc/stdio.c",
-    "../libc/stdlib.c",
-    "../libc/string.c",
+    "../libc/malloc/malloc.c",
+    "../libc/posix/fs.c",
+    "../libc/posix/sched.c",
+    "../libc/posix/tasking.c",
+    "../libc/pthread/pthread.c",
+    "../libc/setjmp/$target_cpu/setjmp.s",
+    "../libc/stdio/stdio.c",
+    "../libc/stdlib/exit.c",
+    "../libc/stdlib/pts.c",
+    "../libc/string/string.c",
     "../libc/syscalls.c",
-    "../libc/termios.c",
+    "../libc/sysdeps/unix/$target_cpu/crt0.s",
+    "../libc/termios/termios.c",
 
     # private
     "private/_init.cpp",

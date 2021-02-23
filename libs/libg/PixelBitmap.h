@@ -9,7 +9,7 @@
 
 #include "Color.h"
 #include "Rect.h"
-#include <malloc.h>
+#include <new>
 #include <std/Dbg.h>
 #include <sys/types.h>
 

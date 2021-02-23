@@ -1,0 +1,8 @@
+#pragma GCC system_header
+
+#ifndef __oneOS__LibCXX__CSTRING
+#define __oneOS__LibCXX__CSTRING
+
+#include <string.h>
+
+#endif // __oneOS__LibCXX__CSTRING

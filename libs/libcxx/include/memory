@@ -1,7 +1,8 @@
+#pragma GCC system_header
 #pragma once
 
+#include <cstddef>
 #include <std/Utility.h>
-#include <syscalls.h>
 
 template <typename T>
 class UniquePtr {
