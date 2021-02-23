@@ -5,6 +5,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
+int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5);
+
 int open(const char* pathname, int flags);
 int close(int fd);
 int read(int fd, char* buf, size_t count);

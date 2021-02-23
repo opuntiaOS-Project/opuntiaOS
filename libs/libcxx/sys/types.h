@@ -24,6 +24,10 @@ typedef decltype(nullptr) nullptr_t;
 #define false 0
 #define NULL ((void*)0)
 
-extern int errno;
+#define MINORBITS 20
+#define MINORMASK ((1U << MINORBITS) - 1)
+#define major(dev) ((unsigned int)((dev) >> MINORBITS))
+#define minor(dev) ((unsigned int)((dev)&MINORMASK))
+#define makedev(ma, mi) (((ma) << MINORBITS) | (mi))
 
 #endif /* __oneOS__LibC__TYPES_H */

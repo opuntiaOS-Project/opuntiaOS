@@ -3,16 +3,16 @@ import("//build/libs/TEMPLATE.gni")
 oneOS_static_library("libc") {
   sources = [
     # shared (with CXX)
+    "../crt0_$target_cpu.s",
     "dirent/dirent.c",
     "malloc.c",
     "pthread.c",
     "setjmp_$target_cpu.s",
     "stdio.c",
+    "stdlib.c",
     "string.c",
     "syscalls.c",
     "termios.c",
-
-    "../crt0_$target_cpu.s",
 
     # private
     "private/_init.c",

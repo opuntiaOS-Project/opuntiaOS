@@ -4,8 +4,6 @@
 #include <sys/_structs.h>
 #include <sys/types.h>
 
-extern int errno;
-
 struct __dirstream {
     int fd;
     size_t size; /* size of dir data */

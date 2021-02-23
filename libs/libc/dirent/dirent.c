@@ -1,5 +1,5 @@
 #include <dirent/dirent.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <syscalls.h>
 
 /* TODO: Will be replaced with malloc */

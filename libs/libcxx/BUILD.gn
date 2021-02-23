@@ -9,6 +9,7 @@ oneOS_static_library("libcxx") {
     "../libc/pthread.c",
     "../libc/setjmp_$target_cpu.s",
     "../libc/stdio.c",
+    "../libc/stdlib.c",
     "../libc/string.c",
     "../libc/syscalls.c",
     "../libc/termios.c",

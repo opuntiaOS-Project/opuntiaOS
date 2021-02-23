@@ -2,6 +2,8 @@ extern "C" {
 
 #include "../sys/types.h"
 
+int errno;
+
 void _init()
 {
     extern void (*__init_array_start[])(int, char**, char**) __attribute__((visibility("hidden")));

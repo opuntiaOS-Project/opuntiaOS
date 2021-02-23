@@ -8,9 +8,7 @@
 #include <sys/time.h>
 #include <syscalls.h>
 
-int errno;
-
-static inline int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
+int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
 {
     int ret;
 #ifdef __i386__
