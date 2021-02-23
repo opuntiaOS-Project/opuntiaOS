@@ -20,7 +20,8 @@ oneOS_static_library("libcxx") {
   ]
 
   include_dirs = [
-    ".",
+    "include/",
+    "//libs/libc/include/",
     "//libs/",
   ]
 

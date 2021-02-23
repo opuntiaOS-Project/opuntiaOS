@@ -3,7 +3,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <libc/malloc.h>
+#include <libc/include/malloc.h>
 #ifdef __cplusplus
 }
 #endif

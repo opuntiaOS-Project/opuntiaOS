@@ -1,6 +1,6 @@
 #pragma once
-#include <libcxx/malloc.h>
-#include <libcxx/memory.h>
+#include <malloc.h>
+#include <memory.h>
 #include <std/Dbg.h>
 
 namespace Algo {

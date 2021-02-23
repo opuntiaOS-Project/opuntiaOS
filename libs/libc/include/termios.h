@@ -2,7 +2,10 @@
 #define __oneOS__LibC__TERMIOS_H
 
 #include <sys/_structs.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
+
+__BEGIN_DECLS
 
 typedef unsigned char cc_t;
 typedef unsigned int speed_t;
@@ -66,5 +69,7 @@ typedef struct termios termios_t;
 
 int tcgetattr(int fd, termios_t* termios_p);
 int tcsetattr(int fd, int optional_actions, const termios_t* termios_p);
+
+__END_DECLS
 
 #endif /* __oneOS__LibC__TERMIOS_H */

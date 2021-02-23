@@ -10,7 +10,7 @@
 #include "Color.h"
 #include "PixelBitmap.h"
 #include "Rect.h"
-#include <libcxx/sys/types.h>
+#include <sys/types.h>
 
 namespace LG {
 

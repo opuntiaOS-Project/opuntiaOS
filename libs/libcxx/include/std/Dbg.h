@@ -1,6 +1,6 @@
 #pragma once
-#include <libcxx/std/String.h>
-#include <libcxx/syscalls.h>
+#include <std/String.h>
+#include <syscalls.h>
 
 class Dbg {
 public:

@@ -2,7 +2,10 @@
 #define __oneOS__LibC__DIRENT_H
 
 #include <sys/_structs.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
+
+__BEGIN_DECLS
 
 struct __dirstream {
     int fd;
@@ -19,5 +22,7 @@ struct __dirent {
     char d_name[]; /* Filename (null-terminated) */
 };
 typedef struct __dirent dirent_t;
+
+__END_DECLS
 
 #endif /* __oneOS__LibC__DIRENT_H */

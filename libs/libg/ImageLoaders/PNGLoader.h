@@ -10,7 +10,7 @@
 #include "../Color.h"
 #include "../PixelBitmap.h"
 #include "../Rect.h"
-#include <libcxx/std/String.h>
+#include <std/String.h>
 #include <libfoundation/ByteOrder.h>
 
 namespace LG::PNG {

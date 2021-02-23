@@ -68,14 +68,15 @@ config("userland_flags") {
 config("userland_c_includes") {
   include_dirs = [
     "//libs/",
-    "//libs/libc/",
+    "//libs/libc/include",
   ]
 }
 
 config("userland_cxx_includes") {
   include_dirs = [
     "//libs/",
-    "//libs/libcxx/",
+    "//libs/libcxx/include",
+    "//libs/libc/include",
   ]
 }
 

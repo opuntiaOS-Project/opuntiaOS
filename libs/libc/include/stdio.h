@@ -1,7 +1,10 @@
 #ifndef __oneOS__LibC__STDIO_H
 #define __oneOS__LibC__STDIO_H
 
+#include <sys/cdefs.h>
 #include <sys/types.h>
+
+__BEGIN_DECLS
 
 #define MAX_OPENED_FILES 16
 #define STDIO_BUFFER_SIZE 16
@@ -24,5 +27,7 @@ FILE* fopen(const char* filename, const char* mode);
 size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream);
 int fseek(FILE* stream, uint32_t offset, int whence);
+
+__END_DECLS
 
 #endif // __oneOS__LibC__STDIO_H

@@ -1,7 +1,7 @@
 #pragma once
-#include <libcxx/malloc.h>
-#include <libcxx/memory.h>
-#include <libcxx/string.h>
+#include <malloc.h>
+#include <memory.h>
+#include <string.h>
 
 namespace Algo {
 

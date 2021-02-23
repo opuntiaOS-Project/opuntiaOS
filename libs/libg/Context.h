@@ -13,8 +13,8 @@
 #include "Point.h"
 #include "Rect.h"
 #include "Shading.h"
-#include <libcxx/malloc.h>
-#include <libcxx/sys/types.h>
+#include <malloc.h>
+#include <sys/types.h>
 
 namespace LG {
 

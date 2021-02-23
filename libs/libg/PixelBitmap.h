@@ -9,9 +9,9 @@
 
 #include "Color.h"
 #include "Rect.h"
-#include <libcxx/malloc.h>
-#include <libcxx/std/Dbg.h>
-#include <libcxx/sys/types.h>
+#include <malloc.h>
+#include <std/Dbg.h>
+#include <sys/types.h>
 
 namespace LG {
 

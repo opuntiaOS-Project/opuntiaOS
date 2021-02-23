@@ -2,8 +2,11 @@
 #define __oneOS__LibC__SYSCALLS_H
 
 #include <sys/_structs.h>
+#include <sys/cdefs.h>
 #include <sys/time.h>
 #include <sys/types.h>
+
+__BEGIN_DECLS
 
 int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5);
 
@@ -45,5 +48,7 @@ int system_pthread_create(thread_create_params_t* params);
 int shared_buffer_create(uint8_t** buffer, size_t size);
 int shared_buffer_get(int id, uint8_t** buffer);
 int shared_buffer_free(int id);
+
+__END_DECLS
 
 #endif /* __oneOS__LibC__SYSCALLS_H */

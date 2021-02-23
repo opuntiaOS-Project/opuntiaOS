@@ -1,7 +1,7 @@
 #pragma once
 
-#include <libcxx/std/Utility.h>
-#include <libcxx/syscalls.h>
+#include <std/Utility.h>
+#include <syscalls.h>
 
 template <typename T>
 class Weakable;

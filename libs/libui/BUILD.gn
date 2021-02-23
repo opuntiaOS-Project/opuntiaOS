@@ -14,7 +14,8 @@ oneOS_static_library("libui") {
 
   include_dirs = [
     "//libs/",
-    "//libs/libcxx/",
+    "//libs/libcxx/include",
+    "//libs/libc/include/",
   ]
 
   deplibs = [

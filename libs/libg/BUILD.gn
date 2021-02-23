@@ -12,7 +12,8 @@ oneOS_static_library("libg") {
 
   include_dirs = [
     "//libs/",
-    "//libs/libcxx/",
+    "//libs/libcxx/include",
+    "//libs/libc/include/",
   ]
 
   deplibs = [

@@ -1,7 +1,10 @@
 #ifndef __oneOS__LibC__SETJMP_H
 #define __oneOS__LibC__SETJMP_H
 
+#include <sys/cdefs.h>
 #include <sys/types.h>
+
+__BEGIN_DECLS
 
 #ifdef __i386__
 /**
@@ -31,5 +34,7 @@ typedef struct __jmp_buf sigjmp_buf[1];
 
 extern int setjmp(jmp_buf);
 extern void longjmp(jmp_buf, int val);
+
+__END_DECLS
 
 #endif

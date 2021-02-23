@@ -1,6 +1,6 @@
 extern "C" {
 
-#include "../sys/types.h"
+#include <sys/types.h>
 
 int errno;
 

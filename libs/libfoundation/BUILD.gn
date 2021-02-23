@@ -8,7 +8,8 @@ oneOS_static_library("libfoundation") {
 
   include_dirs = [
     "//libs/",
-    "//libs/libcxx/",
+    "//libs/libcxx/include",
+    "//libs/libc/include/",
   ]
 
   deplibs = [

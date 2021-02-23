@@ -1,4 +1,4 @@
-#include <dirent/dirent.h>
+#include <dirent.h>
 #include <errno.h>
 #include <syscalls.h>
 
