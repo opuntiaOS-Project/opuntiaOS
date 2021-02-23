@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     auto& dock_view = window.create_superview<DockView>();
     dock_view.set_background_color(LG::Color(222, 222, 222, 180));
     dock_view.new_fast_launch_entity("/res/icons/apps/about.icon", "/bin/about"); // FIXME: Parse some init file
+    dock_view.new_fast_launch_entity("/res/icons/apps/terminal.icon", "/bin/terminal");
     window.set_title("Dock");
     return app.run();
 }

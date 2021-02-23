@@ -5,16 +5,22 @@
 #include <libui/View.h>
 #include <libui/Window.h>
 #include <std/Dbg.h>
+#include <stdlib.h>
 
 int setup_shell()
 {
-    int ptmx = open("/dev/ptmx", O_RDONLY);
+    int ptmx = posix_openpt(O_RDONLY);
     int f = fork();
     if (f == 0) {
+        char* pname = ptsname(ptmx);
+        if (!pname) {
+            return -1;
+        }
+        Dbg() << "open " << pname << "\n";
         close(0);
         close(1);
-        open("/dev/pts1", O_RDONLY);
-        open("/dev/pts1", O_WRONLY);
+        open(pname, O_RDONLY);
+        open(pname, O_WRONLY);
         execve("/bin/onesh", 0, 0);
     }
     return ptmx;
