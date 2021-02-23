@@ -38,14 +38,9 @@ static void _mouse_recieve_notification(uint32_t msg, uint32_t param)
             kpanic("Can't init mouse in /dev");
         }
 
-        file_ops_t fops;
-        fops.open = 0;
+        file_ops_t fops = {0};
         fops.can_read = _mouse_can_read;
-        fops.can_write = 0;
         fops.read = _mouse_read;
-        fops.write = 0;
-        fops.ioctl = 0;
-        fops.mmap = 0;
         devfs_inode_t* res = devfs_register(mp, MKDEV(10, 1), "mouse", 5, 0, &fops);
 
         dentry_put(mp);

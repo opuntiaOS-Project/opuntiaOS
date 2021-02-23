@@ -55,13 +55,9 @@ static void pl050_mouse_recieve_notification(uint32_t msg, uint32_t param)
             kpanic("Can't init pl050_mouse in /dev");
         }
 
-        file_ops_t fops;
+        file_ops_t fops = {0};
         fops.can_read = _mouse_can_read;
-        fops.can_write = 0;
         fops.read = _mouse_read;
-        fops.write = 0;
-        fops.ioctl = 0;
-        fops.mmap = 0;
         devfs_inode_t* res = devfs_register(mp, MKDEV(10, 1), "mouse", 5, 0, &fops);
 
         dentry_put(mp);
@@ -123,17 +119,17 @@ static void _pl050_mouse_int_handler()
     ringbuffer_write(&mouse_buffer, (uint8_t*)&packet, sizeof(mouse_packet_t));
 
 #ifdef MOUSE_DRIVER_DEBUG
-    // log("%x ", packet.button_states);
-    // if (packet.x_offset < 0) {
-    //     log("-%d ", -packet.x_offset);
-    // } else {
-    //     log("%d ", packet.x_offset);
-    // }
-    // if (packet.y_offset < 0) {
-    //     log("-%d\n", -packet.y_offset);
-    // } else {
-    //     log("%d\n", packet.y_offset);
-    // }
+    log("%x ", packet.button_states);
+    if (packet.x_offset < 0) {
+        log("-%d ", -packet.x_offset);
+    } else {
+        log("%d ", packet.x_offset);
+    }
+    if (packet.y_offset < 0) {
+        log("-%d\n", -packet.y_offset);
+    } else {
+        log("%d\n", packet.y_offset);
+    }
 #endif /* MOUSE_DRIVER_DEBUG */
 }
 

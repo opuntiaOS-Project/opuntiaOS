@@ -2,6 +2,7 @@
 #include <io/tty/ptmx.h>
 #include <io/tty/pty_master.h>
 #include <log.h>
+#include <utils.h>
 
 // #define PTY_DEBUG
 
@@ -41,13 +42,12 @@ int ptmx_install()
         return -1;
     }
 
-    file_ops_t fops;
+    file_ops_t fops = {0};
     fops.open = ptmx_open;
     fops.can_read = ptmx_can_read;
     fops.can_write = ptmx_can_write;
     fops.read = ptmx_read;
     fops.write = ptmx_write;
-    fops.ioctl = 0;
     devfs_inode_t* res = devfs_register(mp, MKDEV(5, 2), "ptmx", 4, 0, &fops);
     dentry_put(mp);
     return 0;

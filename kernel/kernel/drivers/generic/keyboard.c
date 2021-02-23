@@ -2,6 +2,7 @@
 #include <drivers/generic/keyboard_mappings/scancode_set1.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
+#include <utils.h>
 
 static ringbuffer_t gkeyboard_buffer;
 static bool _gkeyboard_has_prefix_e0 = false;
@@ -35,14 +36,9 @@ int generic_keyboard_create_devfs()
         return -1;
     }
 
-    file_ops_t fops;
-    fops.open = 0;
+    file_ops_t fops = {0};
     fops.can_read = _generic_keyboard_can_read;
-    fops.can_write = 0;
     fops.read = _generic_keyboard_read;
-    fops.write = 0;
-    fops.ioctl = 0;
-    fops.mmap = 0;
     devfs_inode_t* res = devfs_register(mp, MKDEV(11, 0), "kbd", 3, 0, &fops);
 
     dentry_put(mp);
@@ -217,4 +213,3 @@ static key_t _generic_keyboard_apply_modifiers(key_t key)
     }
     return key;
 }
-

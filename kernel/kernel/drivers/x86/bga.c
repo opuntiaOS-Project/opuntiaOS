@@ -105,11 +105,7 @@ static void bga_recieve_notification(uint32_t msg, uint32_t param)
             kpanic("Can't init bga in /dev");
         }
 
-        file_ops_t fops;
-        fops.can_read = 0;
-        fops.can_write = 0;
-        fops.read = 0;
-        fops.write = 0;
+        file_ops_t fops = {0};
         fops.ioctl = _bga_ioctl;
         fops.mmap = _bga_mmap;
         devfs_inode_t* res = devfs_register(mp, MKDEV(10, 156), "bga", 3, 0, &fops);

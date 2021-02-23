@@ -26,6 +26,7 @@ static file_ops_t local_socket_ops = {
     .lookup = 0,
     .mkdir = 0,
     .rmdir = 0,
+    .fstat = 0,
     .ioctl = 0,
     .mmap = 0,
 };
