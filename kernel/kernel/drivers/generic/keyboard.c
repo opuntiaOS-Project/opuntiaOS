@@ -43,7 +43,7 @@ int generic_keyboard_create_devfs()
     fops.write = 0;
     fops.ioctl = 0;
     fops.mmap = 0;
-    devfs_inode_t* res = devfs_register(mp, "kbd", 3, 0, &fops);
+    devfs_inode_t* res = devfs_register(mp, MKDEV(11, 0), "kbd", 3, 0, &fops);
 
     dentry_put(mp);
     return 0;

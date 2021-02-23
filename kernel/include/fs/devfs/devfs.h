@@ -1,13 +1,12 @@
 #ifndef __oneOS__FS__DEVFS__DEVFS_H
 #define __oneOS__FS__DEVFS__DEVFS_H
 
-#include <types.h>
 #include <fs/vfs.h>
-
+#include <types.h>
 
 #define DEVFS_INODE_LEN (sizeof(struct devfs_inode))
 struct devfs_inode {
-    mode_t   mode;
+    mode_t mode;
     uint16_t uid;
     uint32_t size;
     uint32_t atime;
@@ -22,6 +21,7 @@ struct devfs_inode {
 
     /* NOTE: Instead of blocks here, we store devfs required things */
     uint32_t index;
+    uint32_t dev_id;
     char* name;
     struct file_ops handlers;
     struct devfs_inode* parent;
@@ -29,7 +29,6 @@ struct devfs_inode {
     struct devfs_inode* next;
     struct devfs_inode* first;
     struct devfs_inode* last;
-    uint32_t align_not_used;
     /* Block hack ends here */
 
     uint32_t generation;
@@ -40,12 +39,10 @@ struct devfs_inode {
 };
 typedef struct devfs_inode devfs_inode_t;
 
-
 void devfs_install();
 int devfs_mount();
 
 devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len);
-devfs_inode_t* devfs_register(dentry_t* dir, const char* name, uint32_t len, mode_t mode, const struct file_ops* handlers);
-
+devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers);
 
 #endif /* __oneOS__FS__DEVFS__DEVFS_H */

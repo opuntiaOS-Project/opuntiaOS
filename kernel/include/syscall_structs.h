@@ -136,7 +136,17 @@ typedef uint16_t mode_t;
 /* Fstat */
 
 struct fstat {
-    uint32_t size;
+    uint32_t dev; /* ID of device containing file */
+    uint32_t ino; /* inode number */
+    mode_t mode; /* protection */
+    uint32_t nlink; /* number of hard links */
+    uint32_t uid; /* user ID of owner */
+    uint32_t gid; /* group ID of owner */
+    uint32_t rdev; /* device ID (if special file) */
+    uint32_t size; /* total size, in bytes */
+    uint32_t atime; /* time of last access */
+    uint32_t mtime; /* time of last modification */
+    uint32_t ctime; /* time of last status change */
 };
 typedef struct fstat fstat_t;
 

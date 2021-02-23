@@ -84,7 +84,6 @@ void timeman_timer_tick()
         time_since_boot++;
         time_since_epoch++;
         ticks = 0;
-        log("Time: %d", time_since_epoch);
     }
 }
 

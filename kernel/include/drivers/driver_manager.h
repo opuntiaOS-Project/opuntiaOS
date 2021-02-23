@@ -3,6 +3,13 @@
 
 #include <types.h>
 
+#define MINORBITS 20
+#define MINORMASK ((1U << MINORBITS) - 1)
+
+#define MAJOR(dev) ((unsigned int)((dev) >> MINORBITS))
+#define MINOR(dev) ((unsigned int)((dev)&MINORMASK))
+#define MKDEV(ma, mi) (((ma) << MINORBITS) | (mi))
+
 #define MAX_DRIVERS_COUNT 256
 #define MAX_DEVICES_COUNT 64
 #define MAX_DRIVER_FUNCTION_COUNT 32
@@ -107,6 +114,7 @@ enum DRIVER_FILE_SYSTEM_OPERTAION {
     DRIVER_FILE_SYSTEM_CREATE,
     DRIVER_FILE_SYSTEM_UNLINK,
 
+    DRIVER_FILE_SYSTEM_FSTAT,
     DRIVER_FILE_SYSTEM_IOCTL,
     DRIVER_FILE_SYSTEM_MMAP,
 };

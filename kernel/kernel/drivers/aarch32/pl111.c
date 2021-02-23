@@ -103,7 +103,7 @@ static void pl111_recieve_notification(uint32_t msg, uint32_t param)
         fops.write = 0;
         fops.ioctl = _pl111_ioctl;
         fops.mmap = _pl111_mmap;
-        devfs_inode_t* res = devfs_register(mp, "bga", 3, 0, &fops);
+        devfs_inode_t* res = devfs_register(mp, MKDEV(10, 156), "bga", 3, 0, &fops);
 
         dentry_put(mp);
     }

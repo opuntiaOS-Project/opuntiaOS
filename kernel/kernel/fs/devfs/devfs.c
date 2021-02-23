@@ -29,7 +29,7 @@ static devfs_inode_t* devfs_root;
 static uint32_t next_inode_index = 2;
 
 /**
- * Zones Managment
+ * Zones Management
  */
 
 static int _devfs_alloc_entry_zone()
@@ -341,7 +341,6 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 
 int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
 {
-    log("devfs: lookup");
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
     if (len == 1) {
@@ -430,6 +429,19 @@ int devfs_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return -EFAULT;
 }
 
+int devfs_fstat(dentry_t* dentry, fstat_t* stat)
+{
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    stat->dev = devfs_inode->dev_id;
+    stat->ino = devfs_inode->index;
+    stat->mode = devfs_inode->mode;
+    // Calling a custom fstat
+    if (devfs_inode->handlers.fstat) {
+        return devfs_inode->handlers.fstat(dentry, stat);
+    }
+    return 0;
+}
+
 int devfs_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
@@ -482,6 +494,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = devfs_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = devfs_fstat;
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = devfs_ioctl;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = devfs_mmap;
 
@@ -513,7 +526,7 @@ devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len)
     return new_entry;
 }
 
-devfs_inode_t* devfs_register(dentry_t* dir, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers)
+devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
     devfs_inode_t* new_entry = _devfs_alloc_entry(devfs_inode);
@@ -521,6 +534,7 @@ devfs_inode_t* devfs_register(dentry_t* dir, const char* name, uint32_t len, mod
         return 0;
     }
 
+    new_entry->dev_id = devid;
     new_entry->mode = mode;
     _devfs_set_name(new_entry, name, len);
     memcpy((void*)&new_entry->handlers, (void*)handlers, sizeof(*handlers));

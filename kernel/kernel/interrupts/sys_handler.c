@@ -308,8 +308,8 @@ void sys_fstat(trapframe_t* tf)
     if (!stat) {
         return_with_val(-EINVAL);
     }
-    stat->size = fd->dentry->inode->size;
-    return_with_val(0);
+    int res = vfs_fstat(fd, stat);
+    return_with_val(res);
 }
 
 void sys_mkdir(trapframe_t* tf)

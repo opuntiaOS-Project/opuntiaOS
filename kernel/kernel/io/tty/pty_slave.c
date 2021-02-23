@@ -57,7 +57,7 @@ int pty_slave_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 
 int pty_slave_create(int id, pty_master_entry_t* ptm)
 {
-    ASSERT(0 < id && id < 10 && id <= PTYS_COUNT);
+    ASSERT(0 <= id && id < 10 && id <= PTYS_COUNT);
 
     dentry_t* mp;
     if (vfs_resolve_path("/dev", &mp) < 0) {
@@ -73,7 +73,7 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
     fops.read = pty_slave_read;
     fops.write = pty_slave_write;
     fops.ioctl = pty_slave_ioctl;
-    devfs_inode_t* res = devfs_register(mp, name, 4, 0, &fops);
+    devfs_inode_t* res = devfs_register(mp, MKDEV(136, id), name, 4, 0, &fops);
     pty_slaves[id].inode_indx = res->index;
     pty_slaves[id].ptm = ptm;
     pty_slaves[id].buffer = ringbuffer_create_std();

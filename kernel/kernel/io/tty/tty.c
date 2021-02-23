@@ -181,7 +181,7 @@ tty_entry_t* tty_new()
     fops.read = tty_read;
     fops.write = tty_write;
     fops.ioctl = tty_ioctl;
-    devfs_inode_t* res = devfs_register(mp, name, 4, 0, &fops);
+    devfs_inode_t* res = devfs_register(mp, MKDEV(4, next_tty), name, 4, 0, &fops);
     ttys[next_tty].id = next_tty;
     ttys[next_tty].inode_indx = res->index;
     ttys[next_tty].buffer = ringbuffer_create_std();

@@ -68,6 +68,7 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = procfs_getdents;
 
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = 0;
     return fs_desc;

@@ -28,7 +28,6 @@ void memmove(uint8_t* dest, const uint8_t* src, uint32_t nbytes)
     }
 }
 
-
 void memccpy(uint8_t* dest, const uint8_t* src, uint8_t stop, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
@@ -64,10 +63,10 @@ char* kmem_bring_to_kernel(const char* data, uint32_t size)
 char** kmem_bring_to_kernel_ptrarr(const char** data, uint32_t size)
 {
     char** res = kmalloc(size * sizeof(char*));
-    
+
     for (int i = 0; i < size; i++) {
         res[i] = kmem_bring_to_kernel(data[i], strlen(data[i]) + 1);
     }
-    
+
     return res;
 }

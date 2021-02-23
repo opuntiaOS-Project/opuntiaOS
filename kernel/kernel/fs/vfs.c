@@ -161,6 +161,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_ops->file.truncate = new_driver->desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE];
     new_ops->file.create = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CREATE];
     new_ops->file.unlink = new_driver->desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
+    new_ops->file.fstat = new_driver->desc.functions[DRIVER_FILE_SYSTEM_FSTAT];
     new_ops->file.ioctl = new_driver->desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
     new_ops->file.mmap = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MMAP];
 
@@ -368,6 +369,23 @@ int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len)
     }
     int res = dir_fd->ops->getdents(dir_fd->dentry, buf, &dir_fd->offset, len);
     return res;
+}
+
+int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
+{
+    // Check if we have a custom fstat
+    if (fd->ops->fstat) {
+        return fd->ops->fstat(fd->dentry, stat);
+    }
+
+    // For drives we set MAJOR=0 and MINOR=drive's id.
+    stat->dev = MKDEV(0, fd->dentry->dev_indx);
+    stat->ino = fd->dentry->inode_indx;
+    stat->mode = fd->dentry->inode->mode;
+    stat->size = fd->dentry->inode->size;
+    // FIXME: Fill more stat data here.
+
+    return 0;
 }
 
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result)

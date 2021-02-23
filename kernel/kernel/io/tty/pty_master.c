@@ -3,7 +3,10 @@
 #include <io/tty/pty_master.h>
 #include <io/tty/pty_slave.h>
 #include <log.h>
-#include <utils/kassert.h>
+#include <utils.h>
+
+#define INODE2PTSNO(x) (x-1)
+#define PTSNO2INODE(x) (x+1)
 
 /**
  * Since pty masters are virtual files and don't present on real hd,
@@ -17,6 +20,7 @@ bool pty_master_can_read(dentry_t* dentry, uint32_t start);
 bool pty_master_can_write(dentry_t* dentry, uint32_t start);
 int pty_master_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int pty_master_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+int pty_master_fstat(dentry_t* dentry, fstat_t* stat);
 
 static fs_ops_t pty_master_ops = {
     .recognize = 0,
@@ -41,6 +45,7 @@ static fs_ops_t pty_master_ops = {
         .lookup = 0,
         .mkdir = 0,
         .rmdir = 0,
+        .fstat = pty_master_fstat,
         .ioctl = 0,
         .mmap = 0,
     }
@@ -95,6 +100,13 @@ int pty_master_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t le
     return len;
 }
 
+int pty_master_fstat(dentry_t* dentry, fstat_t* stat)
+{
+    pty_master_entry_t* ptm = _ptm_get(dentry);
+    stat->dev = MKDEV(128, INODE2PTSNO(dentry->inode_indx));
+    return 0;
+}
+
 int pty_master_alloc(file_descriptor_t* fd)
 {
     pty_master_entry_t* ptm = 0;
@@ -102,7 +114,7 @@ int pty_master_alloc(file_descriptor_t* fd)
         if (pty_masters[i].dentry.inode_indx == 0) {
             /* According to dentry.c when inode_indx==0, dentry is free */
             ptm = &pty_masters[i];
-            ptm->dentry.inode_indx = i + 1;
+            ptm->dentry.inode_indx = PTSNO2INODE(i);
             break;
         }
     }
@@ -116,13 +128,9 @@ int pty_master_alloc(file_descriptor_t* fd)
        a file (or a dir). We also set a required function for this
        type of dentries free_inode, which is called when dentry is
        freed.
-       
-       DENTRY_PRIVATE shows that dentry and fd, shouldn't be copied
-       when a new process is forked.
     */
     ptm->dentry.d_count = 1;
     ptm->dentry.flags = 0;
-    dentry_set_flag(&ptm->dentry, DENTRY_PRIVATE);
     dentry_set_flag(&ptm->dentry, DENTRY_CUSTOM);
     ptm->dentry.ops = &pty_master_ops;
 
@@ -133,7 +141,7 @@ int pty_master_alloc(file_descriptor_t* fd)
     fd->offset = 0;
     fd->type = FD_TYPE_FILE;
 
-    pty_slave_create(ptm->dentry.inode_indx, ptm);
+    pty_slave_create(INODE2PTSNO(ptm->dentry.inode_indx), ptm);
     ptm->buffer = ringbuffer_create_std();
 
     return 0;
