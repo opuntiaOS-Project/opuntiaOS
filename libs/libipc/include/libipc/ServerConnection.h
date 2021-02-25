@@ -1,6 +1,6 @@
 #pragma once
-#include "Message.h"
-#include "MessageDecoder.h"
+#include <libipc/Message.h>
+#include <libipc/MessageDecoder.h>
 #include <std/Dbg.h>
 #include <std/Vector.h>
 

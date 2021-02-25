@@ -65,21 +65,6 @@ config("userland_flags") {
   defines = [ "oneOS" ]
 }
 
-config("userland_c_includes") {
-  include_dirs = [
-    "//libs/",
-    "//libs/libc/include",
-  ]
-}
-
-config("userland_cxx_includes") {
-  include_dirs = [
-    "//libs/",
-    "//libs/libcxx/include",
-    "//libs/libc/include",
-  ]
-}
-
 group("userland") {
   deps = [
     "//userland/about:about",

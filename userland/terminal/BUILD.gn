@@ -8,7 +8,6 @@ oneOS_executable("terminal") {
   ]
   configs = [
     "//build/userland:userland_flags",
-    "//build/userland:userland_cxx_includes",
   ]
   deplibs = [
     "libcxx",

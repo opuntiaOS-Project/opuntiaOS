@@ -17,14 +17,12 @@ oneOS_executable("window_server") {
     "main.cpp",
   ]
 
-  configs = [
-    "//build/userland:userland_flags",
-    "//build/userland:userland_cxx_includes",
-  ]
+  configs = [ "//build/userland:userland_flags" ]
 
   deplibs = [
     "libcxx",
     "libfoundation",
+    "libipc",
     "libg",
     "libui",
   ]

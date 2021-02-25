@@ -5,9 +5,9 @@
  * found in the LICENSE file.
  */
 
-#include "PNGLoader.h"
 #include <cstring>
 #include <libfoundation/puff.h>
+#include <libg/ImageLoaders/PNGLoader.h>
 #include <memory>
 #include <std/Dbg.h>
 

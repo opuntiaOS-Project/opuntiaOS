@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include "Color.h"
-#include "Font.h"
-#include "PixelBitmap.h"
-#include "Point.h"
-#include "Rect.h"
-#include "Shading.h"
+#include <libg/Color.h>
+#include <libg/Font.h>
+#include <libg/PixelBitmap.h>
+#include <libg/Point.h>
+#include <libg/Rect.h>
+#include <libg/Shading.h>
 #include <sys/types.h>
 
 namespace LG {

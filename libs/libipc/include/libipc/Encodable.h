@@ -1,6 +1,5 @@
 #pragma once
-
-#include "Encoder.h"
+#include <libipc/Encoder.h>
 
 template <typename T>
 class Encodable {

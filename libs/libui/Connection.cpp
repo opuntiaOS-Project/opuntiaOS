@@ -1,7 +1,13 @@
-#include "Connection.h"
-#include "Window.h"
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <libipc/ClientConnection.h>
 #include <libui/Connection.h>
+#include <libui/Window.h>
 #include <memory>
 #include <new>
 #include <sched.h>

@@ -100,6 +100,7 @@ typedef struct mmap_params mmap_params_t;
 #define O_DIRECTORY 0x8
 #define O_CREATE 0x10
 #define O_TRUNC 0x20
+#define O_APPEND 0x40
 
 /* MODES */
 #define S_IFSOCK 0xC000 /* [XSI] socket */

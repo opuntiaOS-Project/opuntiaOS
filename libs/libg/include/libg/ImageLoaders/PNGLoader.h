@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include "../Color.h"
-#include "../PixelBitmap.h"
-#include "../Rect.h"
-#include <std/String.h>
 #include <libfoundation/ByteOrder.h>
+#include <libg/Color.h>
+#include <libg/PixelBitmap.h>
+#include <libg/Rect.h>
+#include <std/String.h>
 
 namespace LG::PNG {
 

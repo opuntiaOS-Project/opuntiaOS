@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace LFoundation {
 
 class ByteOrder {

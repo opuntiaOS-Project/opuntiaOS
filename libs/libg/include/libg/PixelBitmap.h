@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "Color.h"
-#include "Rect.h"
+#include <libg/Color.h>
+#include <libg/Rect.h>
 #include <new>
 #include <std/Dbg.h>
 #include <sys/types.h>

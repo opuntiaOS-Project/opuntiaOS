@@ -6,14 +6,14 @@
  */
 
 #pragma once
-#include "../servers/window_server/WSConnection.h"
-#include "View.h"
-#include <sys/SharedBuffer.h>
+#include "../../../servers/window_server/WSConnection.h"
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
 #include <libg/String.h>
+#include <libui/View.h>
+#include <sys/SharedBuffer.h>
 #include <sys/types.h>
 
 namespace UI {

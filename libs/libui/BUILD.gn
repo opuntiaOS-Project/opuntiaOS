@@ -12,16 +12,11 @@ oneOS_static_library("libui") {
     "Window.cpp",
   ]
 
-  include_dirs = [
-    "//libs/",
-    "//libs/libcxx/include",
-    "//libs/libc/include/",
-  ]
-
   deplibs = [
-    "//libs/libcxx:libcxx",
-    "//libs/libfoundation:libfoundation",
-    "//libs/libg:libg",
+    "libcxx",
+    "libfoundation",
+    "libipc",
+    "libg",
   ]
   configs = [ "//build/libs:libcxx_flags" ]
 }

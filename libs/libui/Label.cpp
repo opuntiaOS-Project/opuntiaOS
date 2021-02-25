@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#include "Label.h"
-#include "Context.h"
 #include <libfoundation/EventLoop.h>
 #include <libg/Color.h>
+#include <libui/Context.h>
+#include <libui/Label.h>
 #include <syscalls.h>
 
 namespace UI {
@@ -21,10 +21,10 @@ Label::Label(const LG::Rect& frame)
 void Label::display(const LG::Rect& rect)
 {
     Context ctx(*this);
-    
+
     auto& f = font();
     const size_t letter_spacing = 2;
-    
+
     size_t label_width = bounds().width() - content_edge_insets().left() - content_edge_insets().right();
     size_t txt_width = text_width();
     size_t dots_width = font().glyph_width('.') * 3 + letter_spacing * 2;
@@ -32,7 +32,7 @@ void Label::display(const LG::Rect& rect)
     bool need_to_stop_rendering_text = (txt_width > label_width);
     size_t width_when_stop_rendering_text = content_edge_insets().left() + label_width - dots_width;
     LG::Point<int> text_start { content_edge_insets().left(), content_edge_insets().top() };
-    
+
     ctx.set_fill_color(text_color());
     for (int i = 0; i < m_text.size(); i++) {
         size_t glyph_width = f.glyph_width(m_text[i]) + letter_spacing;

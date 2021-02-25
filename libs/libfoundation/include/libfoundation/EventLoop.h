@@ -6,9 +6,9 @@
  */
 
 #pragma once
-#include "Event.h"
-#include "EventReceiver.h"
-#include "Receivers.h"
+#include <libfoundation/Event.h>
+#include <libfoundation/EventReceiver.h>
+#include <libfoundation/Receivers.h>
 #include <memory>
 #include <std/Vector.h>
 #include <syscalls.h>

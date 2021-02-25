@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include "Color.h"
+#include <libg/Color.h>
 
 namespace LG {
 

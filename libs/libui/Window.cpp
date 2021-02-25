@@ -5,9 +5,9 @@
  * found in the LICENSE file.
  */
 
-#include "Window.h"
-#include "App.h"
-#include "Connection.h"
+#include <libui/App.h>
+#include <libui/Connection.h>
+#include <libui/Window.h>
 #include <syscalls.h>
 
 namespace UI {
@@ -69,7 +69,7 @@ void Window::receive_event(UniquePtr<LFoundation::Event> event)
     if (event->type() == Event::Type::MouseActionEvent) {
         if (m_superview) {
             MouseActionEvent& own_event = *(MouseActionEvent*)event.get();
-            auto* view = m_superview->hit_test({(int)own_event.x(), (int)own_event.y()});
+            auto* view = m_superview->hit_test({ (int)own_event.x(), (int)own_event.y() });
             view->receive_mouse_action_event(own_event);
         }
     }

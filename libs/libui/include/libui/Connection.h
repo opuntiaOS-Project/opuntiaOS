@@ -1,6 +1,6 @@
 #pragma once
-#include "ClientDecoder.h"
 #include <libipc/ClientConnection.h>
+#include <libui/ClientDecoder.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -16,8 +16,8 @@ public:
     int new_window(const Window& window);
     void set_buffer(const Window& window);
 
-    template<class T>
-    inline UniquePtr<T>send_sync_message(const Message& msg) { return UniquePtr<T>(m_connection_with_server.send_sync(msg)); }
+    template <class T>
+    inline UniquePtr<T> send_sync_message(const Message& msg) { return UniquePtr<T>(m_connection_with_server.send_sync(msg)); }
     inline bool send_async_message(const Message& msg) const { return m_connection_with_server.send_message(msg); }
     inline void listen() { m_connection_with_server.pump_messages(); }
 

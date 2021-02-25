@@ -3,9 +3,6 @@ import("//build/userland/TEMPLATE.gni")
 oneOS_executable("ls") {
   install_path = "bin/"
   sources = [ "main.c" ]
-  configs = [
-    "//build/userland:userland_flags",
-    "//build/userland:userland_c_includes",
-  ]
+  configs = [ "//build/userland:userland_flags" ]
   deplibs = [ "libc" ]
 }

@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include "PixelBitmap.h"
+#include <libg/PixelBitmap.h>
 #include <std/Dbg.h>
 
 namespace LG {

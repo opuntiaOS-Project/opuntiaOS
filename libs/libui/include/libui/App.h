@@ -6,11 +6,11 @@
  */
 
 #pragma once
-#include "Connection.h"
-#include "Window.h"
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
+#include <libui/Connection.h>
+#include <libui/Window.h>
 #include <memory>
 #include <sys/types.h>
 

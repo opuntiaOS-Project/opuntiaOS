@@ -9,7 +9,6 @@ oneOS_executable("dock") {
   ]
   configs = [
     "//build/userland:userland_flags",
-    "//build/userland:userland_cxx_includes",
   ]
   deplibs = [
     "libcxx",

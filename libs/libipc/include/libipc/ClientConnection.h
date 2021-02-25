@@ -1,10 +1,10 @@
 #pragma once
-#include "Message.h"
-#include "MessageDecoder.h"
 #include <cassert>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
+#include <libipc/Message.h>
+#include <libipc/MessageDecoder.h>
 #include <std/Dbg.h>
 #include <std/Vector.h>
 #include <syscalls.h>

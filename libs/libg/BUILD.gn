@@ -10,15 +10,10 @@ oneOS_static_library("libg") {
     "Rect.cpp",
   ]
 
-  include_dirs = [
-    "//libs/",
-    "//libs/libcxx/include",
-    "//libs/libc/include/",
-  ]
-
   deplibs = [
-    "//libs/libcxx:libcxx",
-    "//libs/libfoundation:libfoundation",
+    "libcxx",
+    "libfoundation",
+    "libipc",
   ]
   configs = [ "//build/libs:libcxx_flags" ]
 }

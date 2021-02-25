@@ -5,16 +5,15 @@
  * found in the LICENSE file.
  */
 
-#include "Font.h"
-#include <string.h>
+#include <libg/Font.h>
 #include <new>
+#include <string.h>
 #include <syscalls.h>
 
 namespace LG {
 
 /* SerenityOS font header */
-struct [[gnu::packed]] FontFileHeader
-{
+struct [[gnu::packed]] FontFileHeader {
     char magic[4];
     uint8_t glyph_width;
     uint8_t glyph_height;
@@ -108,7 +107,6 @@ Font* Font::load_from_mem(uint8_t* font_data)
 
     return new Font(raw_data, width_data, header.glyph_width, header.glyph_height, count, header.is_variable_width);
 }
-
 
 GlyphBitmap Font::glyph_bitmap(size_t ch) const
 {

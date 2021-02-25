@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#include "Responder.h"
-#include "App.h"
-#include "Window.h"
 #include <libfoundation/EventLoop.h>
+#include <libui/App.h>
+#include <libui/Responder.h>
+#include <libui/Window.h>
 #include <std/Dbg.h>
 
 namespace UI {

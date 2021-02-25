@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#include "View.h"
-#include "Context.h"
 #include <libfoundation/EventLoop.h>
 #include <libg/Color.h>
+#include <libui/Context.h>
+#include <libui/View.h>
 #include <std/Dbg.h>
 
 namespace UI {

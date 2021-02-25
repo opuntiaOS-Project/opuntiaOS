@@ -1,5 +1,5 @@
 #pragma once
-#include "Message.h"
+#include <libipc/Message.h>
 #include <memory>
 
 class MessageDecoder {

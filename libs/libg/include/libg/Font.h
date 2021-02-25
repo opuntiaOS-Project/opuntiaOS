@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "Color.h"
-#include "PixelBitmap.h"
-#include "Rect.h"
+#include <libg/Color.h>
+#include <libg/PixelBitmap.h>
+#include <libg/Rect.h>
 #include <sys/types.h>
 
 namespace LG {

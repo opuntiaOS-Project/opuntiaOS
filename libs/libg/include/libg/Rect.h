@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Point.h"
+#include <libg/Point.h>
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
 #include <libipc/Encoder.h>

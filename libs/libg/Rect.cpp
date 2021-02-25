@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include "Rect.h"
+#include <libg/Rect.h>
 
 namespace LG {
 

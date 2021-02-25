@@ -8,19 +8,35 @@ template("oneOS_static_library") {
 
   lib_name = target_name
   lib_build_name = lib_name + "_build"
+  lib_include_config_name = lib_name + "_include_config"
   compiled_lib_output_name_base = "$root_out_dir/tmp/libs/"
   compiled_lib_output_name = compiled_lib_output_name_base + lib_name
   final_lib_output_name = "$root_out_dir/base/libs/" + lib_name + ".a"
   deplib_list = []
   deplib_bulders_list = []
+  includes = []
+
+  if (defined(invoker.include_dirs)) {
+    includes = invoker.include_dirs
+  }
 
   if (defined(invoker.deplibs)) {
     foreach(i, invoker.deplibs) {
-      deplib_bulders_list += [ i + "_build" ]
-      deplib_list +=
-          [ compiled_lib_output_name_base + get_label_info(i, "name") + ".a" ]
+      fullname = "//libs/" + i + ":" + i
+      deplib_bulders_list += [ fullname + "_build" ]
+      deplib_list += [ compiled_lib_output_name_base +
+                       get_label_info(fullname, "name") + ".a" ]
+      includes += [ "//libs/" + i + "/include" ]
+
+      # Also adding libc includes.
+      # Note to add libc after libcxx.
+      if (i == "libcxx") {
+        includes += [ "//libs/libc/include" ]
+      }
     }
   }
+  includes += [ "//libs/" + lib_name + "/include" ]
+
   deplib_list += [ compiled_lib_output_name + ".a" ]
   deplib_bulders_list += [ "//libs/" + lib_name + ":" + lib_build_name ]
 
@@ -33,13 +49,17 @@ template("oneOS_static_library") {
     script_args += [ rebase_path(i, root_build_dir) ]
   }
 
+  config(lib_include_config_name) {
+    include_dirs = includes
+  }
+
   # Create a build rule to compile only a lib with unresolved references from other libs
   static_library(lib_build_name) {
     output_name = "tmp/libs/" + lib_name
     sources = invoker.sources
+    include_dirs = includes
     forward_variables_from(invoker,
                            [
-                             "include_dirs",
                              "configs",
                              "cflags",
                              "cflags_c",

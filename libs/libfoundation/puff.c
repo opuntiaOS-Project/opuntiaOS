@@ -79,9 +79,9 @@
  * 2.3  21 Jan 2013     - Check for invalid code length codes in dynamic blocks
  */
 
+#include <libfoundation/puff.h> /* prototype for puff() */
 #include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
 #include <stddef.h>
-#include "puff.h"               /* prototype for puff() */
 
 #define local static            /* for local function definitions */
 

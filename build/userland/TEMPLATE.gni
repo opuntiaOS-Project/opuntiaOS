@@ -11,16 +11,32 @@ template("oneOS_executable") {
 
   deplibs = []
   depbuilders = []
+  includes = []
+  confs = []
   if (defined(invoker.libs)) {
     deplibs = invoker.libs
   }
   if (defined(invoker.deps)) {
     depbuilders = invoker.deps
   }
+  if (defined(invoker.include_dirs)) {
+    includes = invoker.include_dirs
+  }
+  if (defined(invoker.configs)) {
+    confs = invoker.configs
+  }
   if (defined(invoker.deplibs)) {
     foreach(i, invoker.deplibs) {
       deplibs += [ "$root_out_dir/base/libs/" + i + ".a" ]
       depbuilders += [ "//libs/" + i + ":" + i ]
+      includes += [ "//libs/" + i + "/include" ]
+      confs += [ "//libs/" + i + ":" + i + "_include_config" ]
+
+      # Also adding libc includes.
+      # Note to add libc after libcxx.
+      if (i == "libcxx") {
+        includes += [ "//libs/libc/include" ]
+      }
     }
   }
 
@@ -33,10 +49,10 @@ template("oneOS_executable") {
     sources = invoker.sources
     libs = deplibs
     deps = depbuilders
+    include_dirs = includes
+    configs = confs
     forward_variables_from(invoker,
                            [
-                             "include_dirs",
-                             "configs",
                              "cflags",
                              "cflags_c",
                              "cflags_cc",

@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "../servers/window_server/WSConnection.h"
+#include "../../../servers/window_server/WSConnection.h"
 #include <libfoundation/EventLoop.h>
 
 namespace UI {

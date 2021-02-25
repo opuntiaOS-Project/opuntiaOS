@@ -6,9 +6,9 @@
  */
 
 #pragma once
-#include "View.h"
-#include "Window.h"
 #include <libg/Context.h>
+#include <libui/View.h>
+#include <libui/Window.h>
 
 namespace UI {
 class Context : public LG::Context {
