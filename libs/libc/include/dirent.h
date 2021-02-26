@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__DIRENT_H
-#define __oneOS__LibC__DIRENT_H
+#ifndef _LIBC_DIRENT_H
+#define _LIBC_DIRENT_H
 
 #include <stddef.h>
 #include <sys/_structs.h>
@@ -26,4 +26,4 @@ typedef struct __dirent dirent_t;
 
 __END_DECLS
 
-#endif /* __oneOS__LibC__DIRENT_H */
+#endif /* _LIBC_DIRENT_H */

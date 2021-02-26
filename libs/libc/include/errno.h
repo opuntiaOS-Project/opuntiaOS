@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__ERRNO_H
-#define __oneOS__LibC__ERRNO_H
+#ifndef _LIBC_ERRNO_H
+#define _LIBC_ERRNO_H
 
 #include "../../../kernel/include/errno.h"
 

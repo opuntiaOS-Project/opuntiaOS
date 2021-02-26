@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__SYS__TIME_H
-#define __oneOS__LibC__SYS__TIME_H
+#ifndef _LIBC_SYS_TIME_H
+#define _LIBC_SYS_TIME_H
 
 #include <sys/cdefs.h>
 #include <sys/types.h>

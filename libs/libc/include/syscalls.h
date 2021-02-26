@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__SYSCALLS_H
-#define __oneOS__LibC__SYSCALLS_H
+#ifndef _LIBC_SYSCALLS_H
+#define _LIBC_SYSCALLS_H
 
 #include <stddef.h>
 #include <sys/_structs.h>
@@ -48,4 +48,4 @@ int shared_buffer_free(int id);
 
 __END_DECLS
 
-#endif /* __oneOS__LibC__SYSCALLS_H */
+#endif /* _LIBC_SYSCALLS_H */

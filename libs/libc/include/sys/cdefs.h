@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__CDEFS_H
-#define __oneOS__LibC__CDEFS_H
+#ifndef _LIBC_SYS_CDEFS_H
+#define _LIBC_SYS_CDEFS_H
 
 #if defined(__cplusplus)
 #define __BEGIN_DECLS extern "C" {
@@ -9,4 +9,4 @@
 #define __END_DECLS
 #endif
 
-#endif // __oneOS__LibC__CDEFS_H
+#endif // _LIBC_SYS_CDEFS_H

@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__STDDEF_H
-#define __oneOS__LibC__STDDEF_H
+#ifndef _LIBC_STDDEF_H
+#define _LIBC_STDDEF_H
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
@@ -16,4 +16,4 @@ typedef unsigned int size_t;
 
 __END_DECLS
 
-#endif // __oneOS__LibC__STDDEF_H
+#endif // _LIBC_STDDEF_H

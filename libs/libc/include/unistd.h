@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__UNISTD_H
-#define __oneOS__LibC__UNISTD_H
+#ifndef _LIBC_UNISTD_H
+#define _LIBC_UNISTD_H
 
 #include <stddef.h>
 #include <sys/cdefs.h>
@@ -18,4 +18,4 @@ int write(int fd, const void* buf, size_t count);
 
 __END_DECLS
 
-#endif // __oneOS__LibC__UNISTD_H
+#endif // _LIBC_UNISTD_H

@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__PTHREAD_H
-#define __oneOS__LibC__PTHREAD_H
+#ifndef _LIBC_PTHREAD_H
+#define _LIBC_PTHREAD_H
 
 #include <sys/_structs.h>
 #include <sys/cdefs.h>
@@ -11,4 +11,4 @@ int pthread_create(void* func);
 
 __END_DECLS
 
-#endif /* __oneOS__LibC__PTHREAD_H */
+#endif /* _LIBC_PTHREAD_H */

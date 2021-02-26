@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__MALLOC_H
-#define __oneOS__LibC__MALLOC_H
+#ifndef _LIBC_MALLOC_MALLOC_H
+#define _LIBC_MALLOC_MALLOC_H
 
 #include <stddef.h>
 #include <sys/cdefs.h>
@@ -26,4 +26,4 @@ void* realloc(void*, size_t);
 
 __END_DECLS
 
-#endif // __oneOS__LibC__MALLOC_H
+#endif // _LIBC_MALLOC_MALLOC_H

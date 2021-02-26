@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__STDLIB_H
-#define __oneOS__LibC__STDLIB_H
+#ifndef _LIBC_STDLIB_H
+#define _LIBC_STDLIB_H
 
 #include <stddef.h>
 #include <sys/cdefs.h>
@@ -23,4 +23,4 @@ char* ptsname(int fd);
 
 __END_DECLS
 
-#endif // __oneOS__LibC__STDLIB_H
+#endif // _LIBC_STDLIB_H

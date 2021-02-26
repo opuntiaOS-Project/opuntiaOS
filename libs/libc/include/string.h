@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__STRING_H
-#define __oneOS__LibC__STRING_H
+#ifndef _LIBC_STRING_H
+#define _LIBC_STRING_H
 
 #include <stddef.h>
 #include <sys/cdefs.h>
@@ -19,4 +19,4 @@ char* strncpy(char* dest, const char* src, size_t n);
 
 __END_DECLS
 
-#endif // __oneOS__LibC__STRING_H
+#endif // _LIBC_STRING_H

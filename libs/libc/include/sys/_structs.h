@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__SYSSTRUCTS_H
-#define __oneOS__LibC__SYSSTRUCTS_H
+#ifndef _LIBC_SYS__STRUCTS_H
+#define _LIBC_SYS__STRUCTS_H
 
 #include "../../../kernel/include/syscall_structs.h"
 

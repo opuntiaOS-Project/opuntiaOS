@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__TYPES_H
-#define __oneOS__LibC__TYPES_H
+#ifndef _LIBC_SYS_TYPES_H
+#define _LIBC_SYS_TYPES_H
 
 typedef unsigned long  uint64_t;
 typedef unsigned int   uint32_t;
@@ -19,4 +19,4 @@ typedef char           int8_t;
 #define minor(dev) ((unsigned int)((dev)&MINORMASK))
 #define makedev(ma, mi) (((ma) << MINORBITS) | (mi))
 
-#endif /* __oneOS__LibC__TYPES_H */
+#endif /* _LIBC_SYS_TYPES_H */

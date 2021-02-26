@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__SETJMP_H
-#define __oneOS__LibC__SETJMP_H
+#ifndef _LIBC_SETJMP_H
+#define _LIBC_SETJMP_H
 
 #include <sys/cdefs.h>
 #include <sys/types.h>

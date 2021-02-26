@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__SCHED_H
-#define __oneOS__LibC__SCHED_H
+#ifndef _LIBC_SCHED_H
+#define _LIBC_SCHED_H
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
@@ -10,4 +10,4 @@ void sched_yield();
 
 __END_DECLS
 
-#endif // __oneOS__LibC__SCHED_H
+#endif // _LIBC_SCHED_H

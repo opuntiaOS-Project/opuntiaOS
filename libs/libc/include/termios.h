@@ -1,5 +1,5 @@
-#ifndef __oneOS__LibC__TERMIOS_H
-#define __oneOS__LibC__TERMIOS_H
+#ifndef _LIBC_TERMIOS_H
+#define _LIBC_TERMIOS_H
 
 #include <sys/_structs.h>
 #include <sys/cdefs.h>
@@ -72,4 +72,4 @@ int tcsetattr(int fd, int optional_actions, const termios_t* termios_p);
 
 __END_DECLS
 
-#endif /* __oneOS__LibC__TERMIOS_H */
+#endif /* _LIBC_TERMIOS_H */
