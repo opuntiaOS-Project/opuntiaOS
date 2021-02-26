@@ -1,7 +1,7 @@
 #include <drivers/driver_manager.h>
 #include <drivers/x86/bga.h>
 #include <drivers/x86/pci.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <libkern/log.h>

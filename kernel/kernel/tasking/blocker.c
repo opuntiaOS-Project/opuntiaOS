@@ -6,7 +6,7 @@
  */
 
 #include <libkern/log.h>
-#include <syscall_structs.h>
+#include <libkern/syscall_structs.h>
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <time/time_manager.h>

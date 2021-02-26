@@ -5,12 +5,12 @@
  * found in the LICENSE file.
  */
 
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
-#include <syscall_structs.h>
+#include <libkern/syscall_structs.h>
 #include <tasking/elf.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>

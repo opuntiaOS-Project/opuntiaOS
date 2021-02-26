@@ -1,12 +1,12 @@
 // #include <drivers/x86/display.h>
 #include <drivers/x86/keyboard.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
-#include <syscall_structs.h>
+#include <libkern/syscall_structs.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
 #include <libkern/libkern.h>

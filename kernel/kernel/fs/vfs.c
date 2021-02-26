@@ -6,12 +6,12 @@
  */
 
 #include <algo/dynamic_array.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/vfs.h>
 #include <io/sockets/socket.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
-#include <syscall_structs.h>
+#include <libkern/syscall_structs.h>
 #include <tasking/tasking.h>
 #include <libkern/libkern.h>
 

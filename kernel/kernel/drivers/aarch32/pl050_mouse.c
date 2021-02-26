@@ -8,7 +8,7 @@
 #include <algo/ringbuffer.h>
 #include <drivers/generic/mouse.h>
 #include <drivers/aarch32/pl050.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <libkern/log.h>

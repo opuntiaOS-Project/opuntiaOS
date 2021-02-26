@@ -6,7 +6,7 @@
  */
 
 #include <drivers/aarch32/pl111.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <libkern/log.h>

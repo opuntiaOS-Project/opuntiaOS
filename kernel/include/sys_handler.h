@@ -2,7 +2,7 @@
 #define _KERNEL_SYS_HANDLER_H
 
 #include <platform/generic/tasking/trapframe.h>
-#include <syscall_structs.h>
+#include <libkern/syscall_structs.h>
 #include <libkern/types.h>
 
 #define SYSCALL 0x80

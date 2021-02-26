@@ -6,7 +6,7 @@
  */
 
 #include <algo/bitmap.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <mem/kmalloc.h>
 
 bitmap_t bitmap_wrap(uint8_t* data, uint32_t len)

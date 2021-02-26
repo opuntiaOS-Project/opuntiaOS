@@ -9,7 +9,7 @@
 #define _KERNEL_IO_SOCKETS_SOCKET_H
 
 #include <fs/vfs.h>
-#include <syscall_structs.h>
+#include <libkern/syscall_structs.h>
 #include <libkern/types.h>
 
 #define MAX_SOCKET_COUNT 16

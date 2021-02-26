@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include <errno.h>
+#include <libkern/errno.h>
 #include <io/shared_buffer/shared_buffer.h>
 #include <io/sockets/local_socket.h>
 #include <libkern/log.h>

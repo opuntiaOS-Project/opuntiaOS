@@ -8,7 +8,7 @@
 #ifdef FPU_ENABLED
 #include <drivers/x86/fpu.h>
 #endif
-#include <errno.h>
+#include <libkern/errno.h>
 #include <io/tty/tty.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>

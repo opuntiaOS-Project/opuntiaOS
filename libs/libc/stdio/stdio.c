@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <syscalls.h>
 
+#ifdef NO_COMPILE
+
 size_t _find_free_slot();
 
 size_t _find_free_slot()
@@ -32,3 +34,5 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream)
 {
     return read(stream->_fileno, ptr, size);
 }
+
+#endif

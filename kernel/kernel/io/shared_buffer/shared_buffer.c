@@ -6,7 +6,7 @@
  */
 
 #include <algo/bitmap.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <io/shared_buffer/shared_buffer.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>

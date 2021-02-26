@@ -11,7 +11,7 @@
 #include <algo/ringbuffer.h>
 #include <drivers/driver_manager.h>
 #include <fs/ext2/ext2.h>
-#include <syscall_structs.h>
+#include <libkern/syscall_structs.h>
 
 #define VFS_MAX_FS_COUNT 5
 #define VFS_MAX_DEV_COUNT 5

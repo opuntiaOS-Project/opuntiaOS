@@ -6,7 +6,7 @@
  */
 
 #include <drivers/x86/ata.h>
-#include <errno.h>
+#include <libkern/errno.h>
 
 ata_t _ata_drives[MAX_DEVICES_COUNT];
 

@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include <errno.h>
+#include <libkern/errno.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/generic/system.h>

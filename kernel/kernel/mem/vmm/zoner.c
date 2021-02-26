@@ -20,7 +20,7 @@
  */
 
 #include <algo/bitmap.h>
-#include <errno.h>
+#include <libkern/errno.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <libkern/libkern.h>

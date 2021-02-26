@@ -1,4 +1,4 @@
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/vfs.h>
 #include <io/tty/pty_master.h>
 #include <io/tty/pty_slave.h>

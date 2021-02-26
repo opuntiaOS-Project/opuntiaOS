@@ -5,15 +5,15 @@
  * found in the LICENSE file.
  */
 
-#include <errno.h>
 #include <fs/vfs.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <libkern/libkern.h>
 
 extern void trap_return();
 extern void _tasking_jumper();
@@ -174,11 +174,11 @@ int thread_die(thread_t* thread)
 int thread_dump_frame(thread_t* thread)
 {
 #ifdef __i386__
-     for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
-         uint8_t byte = *(uint8_t*)i;
-         uint32_t b32 = (uint32_t)byte;
-         log("%x - %x\n", i, b32);
-     }
+    for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
+        uint8_t byte = *(uint8_t*)i;
+        uint32_t b32 = (uint32_t)byte;
+        log("%x - %x\n", i, b32);
+    }
 #endif
     return 0;
 }

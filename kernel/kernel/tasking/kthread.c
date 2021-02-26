@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include <errno.h>
+#include <libkern/errno.h>
 #include <fs/vfs.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
