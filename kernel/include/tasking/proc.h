@@ -5,15 +5,15 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__TASKING__PROC_H
-#define __oneOS__TASKING__PROC_H
+#ifndef _KERNEL_TASKING_PROC_H
+#define _KERNEL_TASKING_PROC_H
 
 #include <algo/dynamic_array.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16
@@ -124,4 +124,4 @@ proc_zone_t* proc_new_random_zone(proc_t* p, uint32_t len);
 proc_zone_t* proc_new_random_zone_backward(proc_t* p, uint32_t len);
 proc_zone_t* proc_find_zone(proc_t* p, uint32_t addr);
 
-#endif // __oneOS__TASKING__PROC_H
+#endif // _KERNEL_TASKING_PROC_H

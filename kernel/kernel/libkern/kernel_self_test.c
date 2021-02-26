@@ -3,7 +3,7 @@
 #include <drivers/x86/display.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
-#include <utils/kernel_self_test.h>
+#include <libkern/kernel_self_test.h>
 
 bool _test_kmalloc();
 bool _test_page_fault();

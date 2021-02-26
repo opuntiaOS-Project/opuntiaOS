@@ -11,12 +11,12 @@
 #include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/aarch32/interrupts.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 // #define DEBUG_PL050
 // #define MOUSE_DRIVER_DEBUG

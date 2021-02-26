@@ -1,11 +1,11 @@
-#ifndef __oneOS__DRIVERS__IDE_H
-#define __oneOS__DRIVERS__IDE_H
+#ifndef _KERNEL_DRIVERS_X86_IDE_H
+#define _KERNEL_DRIVERS_X86_IDE_H
 
-#include <types.h>
+#include <libkern/types.h>
 #include <drivers/x86/ata.h>
 #include <platform/x86/idt.h>
 
 void ide_install();
 void ide_find_devices(device_t *t_device);
 
-#endif // __oneOS__DRIVERS__IDE_H
+#endif // _KERNEL_DRIVERS_X86_IDE_H

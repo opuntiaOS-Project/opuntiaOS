@@ -1,5 +1,5 @@
-#ifndef __oneOS__API_H
-#define __oneOS__API_H
+#ifndef _KERNEL_SYSCALL_STRUCTS_H
+#define _KERNEL_SYSCALL_STRUCTS_H
 
 #ifndef __oneOS__TYPES_H
 #define __oneOS__TYPES_H
@@ -232,4 +232,4 @@ struct utsname {
 };
 typedef struct utsname utsname_t;
 
-#endif /* __oneOS__API_H */
+#endif /* _KERNEL_SYSCALL_STRUCTS_H */

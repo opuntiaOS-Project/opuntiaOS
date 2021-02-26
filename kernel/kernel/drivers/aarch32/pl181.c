@@ -6,7 +6,7 @@
  */
 
 #include <drivers/aarch32/pl181.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 

@@ -1,5 +1,5 @@
-#ifndef __oneOS__DRIVERS__KEYBOARD_H
-#define __oneOS__DRIVERS__KEYBOARD_H
+#ifndef _KERNEL_DRIVERS_X86_KEYBOARD_H
+#define _KERNEL_DRIVERS_X86_KEYBOARD_H
 
 #include <drivers/driver_manager.h>
 #include <drivers/generic/keyboard.h>

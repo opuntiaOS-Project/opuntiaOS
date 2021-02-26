@@ -1,5 +1,5 @@
-#ifndef __oneOS__TTY__PTY_SLAVE_H
-#define __oneOS__TTY__PTY_SLAVE_H
+#ifndef _KERNEL_IO_TTY_PTY_SLAVE_H
+#define _KERNEL_IO_TTY_PTY_SLAVE_H
 
 #ifndef PTYS_COUNT
 #define PTYS_COUNT 4

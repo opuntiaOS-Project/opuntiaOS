@@ -7,7 +7,7 @@
 
 #include <errno.h>
 #include <io/sockets/local_socket.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <tasking/proc.h>
 #include <tasking/tasking.h>
 

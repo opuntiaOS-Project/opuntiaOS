@@ -6,9 +6,9 @@
  */
 
 #include <drivers/x86/fpu.h>
-#include <utils/mem.h>
+#include <libkern/mem.h>
 #include <platform/x86/idt.h>
-#include <log.h>
+#include <libkern/log.h>
 
 static fpu_state_t fpu_state;
 

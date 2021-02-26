@@ -1,7 +1,7 @@
-#ifndef __oneOS__DRIVERS__ATA_H
-#define __oneOS__DRIVERS__ATA_H
+#ifndef _KERNEL_DRIVERS_X86_ATA_H
+#define _KERNEL_DRIVERS_X86_ATA_H
 
-#include <types.h>
+#include <libkern/types.h>
 #include <platform/x86/port.h>
 #include <drivers/x86/display.h>
 #include <mem/kmalloc.h>
@@ -38,4 +38,4 @@ void ata_install();
 void ata_init(ata_t *ata, uint32_t port, bool is_master);
 bool ata_indentify(ata_t *ata);
 
-#endif //__oneOS__DRIVERS__ATA_H
+#endif //_KERNEL_DRIVERS_X86_ATA_H

@@ -1,8 +1,8 @@
-#ifndef __oneOS__FS__PROCFS__PROCFS_H
-#define __oneOS__FS__PROCFS__PROCFS_H
+#ifndef _KERNEL_FS_PROCFS_PROCFS_H
+#define _KERNEL_FS_PROCFS_PROCFS_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 void procfs_install();
 
-#endif // __oneOS__FS__PROCFS__PROCFS_H
+#endif // _KERNEL_FS_PROCFS_PROCFS_H

@@ -1,5 +1,5 @@
-#ifndef __oneLO__MEM__VMM__VMM_H
-#define __oneLO__MEM__VMM__VMM_H
+#ifndef _BOOT_X86_STAGE2_MEM_VM_H
+#define _BOOT_X86_STAGE2_MEM_VM_H
 
 #include "../types.h"
 #include "pte.h"
@@ -26,4 +26,4 @@ typedef struct pdirectory {
 
 int vm_setup();
 
-#endif // __oneLO__MEM__VMM__VMM_H
+#endif // _BOOT_X86_STAGE2_MEM_VM_H

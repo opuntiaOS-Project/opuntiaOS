@@ -5,12 +5,12 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__IO__SOCKET_H
-#define __oneOS__IO__SOCKET_H
+#ifndef _KERNEL_IO_SOCKETS_SOCKET_H
+#define _KERNEL_IO_SOCKETS_SOCKET_H
 
 #include <fs/vfs.h>
 #include <syscall_structs.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define MAX_SOCKET_COUNT 16
 
@@ -18,4 +18,4 @@ int socket_create(int domain, int type, int protocol, file_descriptor_t* fd, fil
 socket_t* socket_duplicate(socket_t* sock);
 int socket_put(socket_t* sock);
 
-#endif /* __oneOS__IO__SOCKET_H */
+#endif /* _KERNEL_IO_SOCKETS_SOCKET_H */

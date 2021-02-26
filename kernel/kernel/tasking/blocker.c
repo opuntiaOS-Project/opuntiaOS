@@ -5,12 +5,12 @@
  * found in the LICENSE file.
  */
 
-#include <log.h>
+#include <libkern/log.h>
 #include <syscall_structs.h>
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <time/time_manager.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 int should_unblock_join_block(thread_t* thread)
 {

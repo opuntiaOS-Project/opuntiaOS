@@ -8,7 +8,7 @@
 /* FIXME: Only for one cpu now */
 
 #include <platform/aarch32/system.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 static int depth_counter = 0;
 

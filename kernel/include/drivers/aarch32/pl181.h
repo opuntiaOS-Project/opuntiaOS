@@ -5,13 +5,13 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__PL181_H
-#define __oneOS__DRIVERS__PL181_H
+#ifndef _KERNEL_DRIVERS_AARCH32_PL181_H
+#define _KERNEL_DRIVERS_AARCH32_PL181_H
 
 #include <drivers/driver_manager.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <types.h>
-#include <utils/mask.h>
+#include <libkern/types.h>
+#include <libkern/mask.h>
 
 #define PL181_SECTOR_SIZE 512
 
@@ -76,4 +76,4 @@ typedef struct sd_card sd_card_t;
 
 void pl181_install();
 
-#endif //__oneOS__DRIVERS__PL181_H
+#endif //_KERNEL_DRIVERS_AARCH32_PL181_H

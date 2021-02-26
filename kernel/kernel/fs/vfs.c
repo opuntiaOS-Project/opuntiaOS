@@ -9,11 +9,11 @@
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/sockets/socket.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <syscall_structs.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 // #define VFS_DEBUG
 #define MAX_FS 8

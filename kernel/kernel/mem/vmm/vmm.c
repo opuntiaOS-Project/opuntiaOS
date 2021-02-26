@@ -6,14 +6,14 @@
  */
 
 #include <errno.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/generic/system.h>
 #include <platform/generic/vmm/pf_types.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 // #define VMM_DEBUG
 

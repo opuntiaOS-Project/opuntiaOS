@@ -6,10 +6,10 @@
  */
 
 #include <algo/bitmap.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/zoner.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 struct kmalloc_header {
     uint32_t len;

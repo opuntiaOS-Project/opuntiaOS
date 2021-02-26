@@ -1,7 +1,7 @@
-#ifndef __oneOS__X86__TASKING__SIGNAL_H
-#define __oneOS__X86__TASKING__SIGNAL_H
+#ifndef _KERNEL_TASKING_SIGNAL_H
+#define _KERNEL_TASKING_SIGNAL_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 #define SIGNALS_CNT 32
 
@@ -14,4 +14,4 @@ enum SIGNAL_ACTION {
 
 };
 
-#endif // __oneOS__X86__TASKING__SIGNAL_H
+#endif // _KERNEL_TASKING_SIGNAL_H

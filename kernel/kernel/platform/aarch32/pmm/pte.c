@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <platform/aarch32/vmm/pte.h>
 

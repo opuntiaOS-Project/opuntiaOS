@@ -7,13 +7,13 @@
 
 #include <errno.h>
 #include <fs/vfs.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 extern void trap_return();
 extern void _tasking_jumper();

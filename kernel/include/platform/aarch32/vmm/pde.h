@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__AARCH32__VMM__TABLE_DESC_H
-#define __oneOS__AARCH32__VMM__TABLE_DESC_H
+#ifndef _KERNEL_PLATFORM_AARCH32_VMM_PDE_H
+#define _KERNEL_PLATFORM_AARCH32_VMM_PDE_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 struct table_desc {
     union {
@@ -61,4 +61,4 @@ bool table_desc_is_4mb(table_desc_t pde);
 bool table_desc_is_copy_on_write(table_desc_t pde);
 uint32_t table_desc_get_frame(table_desc_t pde);
 
-#endif //__oneOS__AARCH32__VMM__TABLE_DESC_H
+#endif //_KERNEL_PLATFORM_AARCH32_VMM_PDE_H

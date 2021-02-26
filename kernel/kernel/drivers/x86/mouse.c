@@ -3,9 +3,9 @@
 #include <drivers/driver_manager.h>
 #include <drivers/x86/mouse.h>
 #include <fs/devfs/devfs.h>
-#include <log.h>
-#include <types.h>
-#include <utils/kassert.h>
+#include <libkern/log.h>
+#include <libkern/types.h>
+#include <libkern/kassert.h>
 #include <platform/x86/idt.h>
 #include <platform/x86/port.h>
 

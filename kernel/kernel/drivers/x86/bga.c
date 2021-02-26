@@ -4,10 +4,10 @@
 #include <errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <tasking/proc.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 #define VBE_DISPI_IOPORT_INDEX 0x01CE
 #define VBE_DISPI_IOPORT_DATA 0x01CF

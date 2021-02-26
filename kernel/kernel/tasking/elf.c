@@ -7,12 +7,12 @@
 
 #include <errno.h>
 #include <fs/vfs.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/zoner.h>
 #include <tasking/elf.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 // #define ELF_DEBUG
 
@@ -22,7 +22,6 @@
 #define MACHINE_ARCH EM_ARM
 #endif
 
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define PAGES_PER_COPING_BUFFER 8
 #define COPING_BUFFER_LEN (PAGES_PER_COPING_BUFFER * VMM_PAGE_SIZE)
 #define USER_STACK_SIZE VMM_PAGE_SIZE
@@ -50,7 +49,7 @@ static int _elf_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_program_hea
     while (mem_remaining) {
         memset(coping_zone.ptr, 0, COPING_BUFFER_LEN);
         if (file_remaining) {
-            uint32_t file_read_len = MIN(file_remaining, COPING_BUFFER_LEN);
+            uint32_t file_read_len = u32min(file_remaining, COPING_BUFFER_LEN);
             fd->ops->read(fd->dentry, coping_zone.ptr, file_offset, file_read_len);
             file_offset += file_read_len;
             file_remaining -= file_read_len;
@@ -58,7 +57,7 @@ static int _elf_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_program_hea
 
         void* write_ptr = coping_zone.ptr;
         for (int i = 0; i < PAGES_PER_COPING_BUFFER && mem_remaining; i++) {
-            uint32_t mem_write_len = MIN(mem_remaining, VMM_PAGE_SIZE);
+            uint32_t mem_write_len = u32min(mem_remaining, VMM_PAGE_SIZE);
             if (proc_find_zone(p, mem_offset)) {
                 vmm_fast_copy_to_active_pdir(write_ptr, mem_offset, mem_write_len);
             }

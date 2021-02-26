@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__PIT_H
-#define __oneOS__DRIVERS__PIT_H
+#ifndef _KERNEL_DRIVERS_X86_PIT_H
+#define _KERNEL_DRIVERS_X86_PIT_H
 
-#include <types.h>
+#include <libkern/types.h>
 #include <platform/x86/idt.h>
 
 #define PIT_BASE_FREQ 1193180
@@ -17,5 +17,5 @@
 void pit_setup();
 void pit_handler();
 
-#endif /* __oneOS__DRIVERS__PIT_H */
+#endif /* _KERNEL_DRIVERS_X86_PIT_H */
 

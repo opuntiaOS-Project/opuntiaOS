@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__X86__TASKING__TASKING_H
-#define __oneOS__X86__TASKING__TASKING_H
+#ifndef _KERNEL_TASKING_TASKING_H
+#define _KERNEL_TASKING_TASKING_H
 
 #include <fs/vfs.h>
 #include <mem/vmm/vmm.h>
@@ -15,7 +15,7 @@
 #include <platform/generic/tasking/trapframe.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define CPU_CNT 1
 #define THIS_CPU (&cpus[0])
@@ -88,4 +88,4 @@ int signal_rem_pending(thread_t* thread, int signo);
 int signal_restore_thread_after_handling_signal(thread_t* thread);
 int signal_dispatch_pending(thread_t* thread);
 
-#endif // __oneOS__X86__TASKING__TASKING_H
+#endif // _KERNEL_TASKING_TASKING_H

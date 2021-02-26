@@ -1,4 +1,4 @@
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <platform/x86/isr_handler.h>
 #include <platform/generic/registers.h>
@@ -6,7 +6,7 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils/kassert.h>
+#include <libkern/kassert.h>
 
 static const char* exception_messages[32] = {
     "Division by zero",

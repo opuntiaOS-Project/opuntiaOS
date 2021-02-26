@@ -5,14 +5,14 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__MEM__VMM__VMM_H
-#define __oneOS__MEM__VMM__VMM_H
+#ifndef _KERNEL_MEM_VMM_VMM_H
+#define _KERNEL_MEM_VMM_VMM_H
 
 #include <mem/pmm.h>
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/pde.h>
 #include <platform/generic/vmm/pte.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define KB (1024)
 #define MB (1024 * 1024)
@@ -90,4 +90,4 @@ int vmm_switch_pdir(pdirectory_t* pdir);
 void vmm_enable_paging();
 void vmm_disable_paging();
 
-#endif // __oneOS__MEM__VMM__VMM_H
+#endif // _KERNEL_MEM_VMM_VMM_H

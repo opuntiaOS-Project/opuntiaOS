@@ -7,7 +7,7 @@
 
 #include <errno.h>
 #include <fs/vfs.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 

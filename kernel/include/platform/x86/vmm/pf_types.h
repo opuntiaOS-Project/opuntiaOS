@@ -7,10 +7,10 @@
  * generic
  */
 
-#ifndef __oneOS__X86__VMM__PF_TYPES_H
-#define __oneOS__X86__VMM__PF_TYPES_H
+#ifndef _KERNEL_PLATFORM_X86_VMM_PF_TYPES_H
+#define _KERNEL_PLATFORM_X86_VMM_PF_TYPES_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 static inline int _vmm_is_caused_by_user(uint32_t info) 
 {
@@ -52,4 +52,4 @@ static inline int _vmm_is_page_permission_fault(uint32_t info)
     return !_vmm_is_page_not_present(info);
 }
 
-#endif //__oneOS__X86__VMM__PF_TYPES_H
+#endif //_KERNEL_PLATFORM_X86_VMM_PF_TYPES_H

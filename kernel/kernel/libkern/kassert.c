@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include <utils/kassert.h>
+#include <libkern/kassert.h>
 
 void kpanic(char* err_msg)
 {

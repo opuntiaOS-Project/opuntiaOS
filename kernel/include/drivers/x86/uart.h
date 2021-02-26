@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__X86_UART_H
-#define __oneOS__DRIVERS__X86_UART_H
+#ifndef _KERNEL_DRIVERS_X86_UART_H
+#define _KERNEL_DRIVERS_X86_UART_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 #define COM1 0x3F8
 #define COM2 0x2F8

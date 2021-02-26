@@ -1,5 +1,5 @@
-#ifndef __oneLO__MEM__VMM__PAGE_DESC_H
-#define __oneLO__MEM__VMM__PAGE_DESC_H
+#ifndef _BOOT_X86_STAGE2_MEM_PTE_H
+#define _BOOT_X86_STAGE2_MEM_PTE_H
 
 #include "../types.h"
 
@@ -22,4 +22,4 @@ enum PAGE_DESC_PAGE_FLAGS {
     PAGE_DESC_FRAME = 12
 };
 
-#endif //__oneLO__MEM__VMM__PAGE_DESC_H
+#endif //_BOOT_X86_STAGE2_MEM_PTE_H

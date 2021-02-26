@@ -5,13 +5,13 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__SP804_H
-#define __oneOS__DRIVERS__SP804_H
+#ifndef _KERNEL_DRIVERS_AARCH32_SP804_H
+#define _KERNEL_DRIVERS_AARCH32_SP804_H
 
 #include <drivers/driver_manager.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <types.h>
-#include <utils/mask.h>
+#include <libkern/types.h>
+#include <libkern/mask.h>
 
 #define SP804_TIMER1_BASE SP804_BASE
 #define SP804_TIMER2_BASE (SP804_TIMER1_BASE + 0x20)
@@ -41,4 +41,4 @@ typedef struct sp804_registers sp804_registers_t;
 
 void sp804_install();
 
-#endif //__oneOS__DRIVERS__SP804_H
+#endif //_KERNEL_DRIVERS_AARCH32_SP804_H

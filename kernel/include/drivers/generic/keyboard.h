@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__GENERIC__KEYBOARD_H
-#define __oneOS__DRIVERS__GENERIC__KEYBOARD_H
+#ifndef _KERNEL_DRIVERS_GENERIC_KEYBOARD_H
+#define _KERNEL_DRIVERS_GENERIC_KEYBOARD_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 enum KEYCODE {
 
@@ -190,4 +190,4 @@ int generic_keyboard_create_devfs();
 void generic_keyboard_init();
 void generic_emit_key_set1(uint32_t scancode);
 
-#endif //__oneOS__DRIVERS__GENERIC__KEYBOARD_H
+#endif //_KERNEL_DRIVERS_GENERIC_KEYBOARD_H

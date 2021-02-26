@@ -1,5 +1,5 @@
-#ifndef __oneOS__MEM__VMM__VMM_H
-#define __oneOS__MEM__VMM__VMM_H
+#ifndef _BOOT_X86_STAGE2_MEM_VMM_H
+#define _BOOT_X86_STAGE2_MEM_VMM_H
 
 #include <types.h>
 #include <mem/pmm.h>
@@ -56,4 +56,4 @@ int vmm_switch_pdir(pdirectory_t *pdir);
 void vmm_enable_paging();
 void vmm_disable_paging();
 
-#endif // __oneOS__MEM__VMM__VMM_H
+#endif // _BOOT_X86_STAGE2_MEM_VMM_H

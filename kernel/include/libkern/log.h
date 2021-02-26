@@ -1,7 +1,7 @@
-#ifndef __oneOS__UTILS__LOG_H
-#define __oneOS__UTILS__LOG_H
+#ifndef _KERNEL_LIBKERN_LOG_H
+#define _KERNEL_LIBKERN_LOG_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 void logger_setup();
 void log(const char* format, ...);
@@ -10,4 +10,4 @@ void log_error(const char* format, ...);
 void log_char(char c);
 void log_not_formatted(const char* format, ...);
 
-#endif //__oneOS__UTILS__LOG_H
+#endif // _KERNEL_LIBKERN_LOG_H

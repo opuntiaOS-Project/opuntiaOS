@@ -1,7 +1,7 @@
-#ifndef __oneOS__AARCH32__TRAPFRAME_H
-#define __oneOS__AARCH32__TRAPFRAME_H
+#ifndef _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H
+#define _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 #define CPSR_M_USR 0x10U
 #define CPSR_M_FIQ 0x11U
@@ -91,4 +91,4 @@ static inline void tf_setup_as_kernel_thread(trapframe_t* tf)
     tf->user_flags = 0x60000100 | CPSR_M_SYS;
 }
 
-#endif // __oneOS__AARCH32__TRAPFRAME_H
+#endif // _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H

@@ -1,5 +1,5 @@
-#ifndef __oneOS__TTY__PTY_MASTER_H
-#define __oneOS__TTY__PTY_MASTER_H
+#ifndef _KERNEL_IO_TTY_PTY_MASTER_H
+#define _KERNEL_IO_TTY_PTY_MASTER_H
 
 #include <fs/vfs.h>
 

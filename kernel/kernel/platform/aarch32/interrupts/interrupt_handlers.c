@@ -1,5 +1,5 @@
 #include <drivers/aarch32/gicv2.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <platform/aarch32/interrupts.h>
 #include <platform/aarch32/system.h>

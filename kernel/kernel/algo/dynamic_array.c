@@ -6,9 +6,9 @@
  */
 
 #include <algo/dynamic_array.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
-#include <utils/mem.h>
+#include <libkern/mem.h>
 
 static inline int _dynamic_array_resize(dynamic_array_t* v, uint32_t new_capacity, uint32_t element_size)
 {

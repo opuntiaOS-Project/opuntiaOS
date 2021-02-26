@@ -2,8 +2,8 @@
 #include <fs/vfs.h>
 #include <io/tty/pty_master.h>
 #include <io/tty/pty_slave.h>
-#include <log.h>
-#include <utils.h>
+#include <libkern/log.h>
+#include <libkern/libkern.h>
 
 #define INODE2PTSNO(x) (x-1)
 #define PTSNO2INODE(x) (x+1)

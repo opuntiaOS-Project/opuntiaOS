@@ -13,7 +13,7 @@
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 #define MAGIC_STATE_JUST_TF 0xfeed3eee
 #define MAGIC_STATE_NEW_STACK 0xea12002a

@@ -8,14 +8,14 @@
 #include <errno.h>
 #include <io/shared_buffer/shared_buffer.h>
 #include <io/sockets/local_socket.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <sys_handler.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 #ifdef __i386__
 #define sys_id (tf->eax)

@@ -1,7 +1,7 @@
-#ifndef __oneOS__AARCH32__CONTEXT_H
-#define __oneOS__AARCH32__CONTEXT_H
+#ifndef _KERNEL_PLATFORM_AARCH32_TASKING_CONTEXT_H
+#define _KERNEL_PLATFORM_AARCH32_TASKING_CONTEXT_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 typedef struct {
     uint32_t r[9];
@@ -18,4 +18,4 @@ static inline uint32_t context_set_instruction_pointer(context_t* ctx, uint32_t 
     ctx->lr = ip;
 }
 
-#endif // __oneOS__AARCH32__CONTEXT_H
+#endif // _KERNEL_PLATFORM_AARCH32_TASKING_CONTEXT_H

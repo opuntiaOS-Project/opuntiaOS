@@ -1,8 +1,8 @@
-#ifndef __oneOS__FS__DEVFS__DEVFS_H
-#define __oneOS__FS__DEVFS__DEVFS_H
+#ifndef _KERNEL_FS_DEVFS_DEVFS_H
+#define _KERNEL_FS_DEVFS_DEVFS_H
 
 #include <fs/vfs.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define DEVFS_INODE_LEN (sizeof(struct devfs_inode))
 struct devfs_inode {
@@ -45,4 +45,4 @@ int devfs_mount();
 devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len);
 devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers);
 
-#endif /* __oneOS__FS__DEVFS__DEVFS_H */
+#endif /* _KERNEL_FS_DEVFS_DEVFS_H */

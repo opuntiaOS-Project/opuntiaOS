@@ -9,7 +9,7 @@
 #include <platform/generic/registers.h>
 #include <platform/generic/system.h>
 
-#include <types.h>
+#include <libkern/types.h>
 
 #include <drivers/driver_manager.h>
 
@@ -29,7 +29,7 @@
 
 #include <tasking/sched.h>
 
-#include <log.h>
+#include <libkern/log.h>
 
 #include <sys_handler.h>
 

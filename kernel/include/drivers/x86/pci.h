@@ -1,9 +1,9 @@
-#ifndef __oneOS__DRIVERS__PCI_H
-#define __oneOS__DRIVERS__PCI_H
+#ifndef _KERNEL_DRIVERS_X86_PCI_H
+#define _KERNEL_DRIVERS_X86_PCI_H
 
 #include <drivers/x86/display.h>
 #include <drivers/driver_manager.h>
-#include <types.h>
+#include <libkern/types.h>
 #include <platform/x86/port.h>
 
 typedef struct {
@@ -42,4 +42,4 @@ void pci_find_devices();
 device_desc_t pci_get_device_desriptor(uint8_t bus, uint8_t device, uint8_t function);
 uint32_t pci_read_bar(device_t* dev, int bar_id);
 
-#endif /* __oneOS__DRIVERS__PCI_H */
+#endif /* _KERNEL_DRIVERS_X86_PCI_H */

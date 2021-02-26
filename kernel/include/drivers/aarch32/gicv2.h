@@ -5,14 +5,14 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__GICv2_H
-#define __oneOS__DRIVERS__GICv2_H
+#ifndef _KERNEL_DRIVERS_AARCH32_GICV2_H
+#define _KERNEL_DRIVERS_AARCH32_GICV2_H
 
 #include <drivers/driver_manager.h>
 #include <platform/aarch32/interrupts.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <types.h>
-#include <utils/mask.h>
+#include <libkern/types.h>
+#include <libkern/mask.h>
 
 enum GICDControlMasks {
     MASKDEFINE(GICD_ENABLE, 0, 1),
@@ -73,4 +73,4 @@ void gicv2_install();
 uint32_t gicv2_interrupt_descriptor();
 void gicv2_end(uint32_t int_disc);
 
-#endif //__oneOS__DRIVERS__GICv2_H
+#endif //_KERNEL_DRIVERS_AARCH32_GICV2_H

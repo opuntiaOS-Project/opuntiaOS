@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__AARCH32__VMM__CONSTS_H
-#define __oneOS__AARCH32__VMM__CONSTS_H
+#ifndef _KERNEL_PLATFORM_AARCH32_VMM_CONSTS_H
+#define _KERNEL_PLATFORM_AARCH32_VMM_CONSTS_H
 
 #define VMM_PTE_COUNT (256)
 #define VMM_PDE_COUNT (4096)

@@ -13,10 +13,10 @@
  * Need to be fixed.
  */
 
-#ifndef __oneOS__ALGO__DYNAMIC_ARRAY_H
-#define __oneOS__ALGO__DYNAMIC_ARRAY_H
+#ifndef _KERNEL_ALGO_DYNAMIC_ARRAY_H
+#define _KERNEL_ALGO_DYNAMIC_ARRAY_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 struct dynamic_array
 {
@@ -36,4 +36,4 @@ int dynamic_array_push(dynamic_array_t* v, void* element);
 int dynamic_array_pop(dynamic_array_t* v);
 int dynamic_array_clear(dynamic_array_t* v);
 
-#endif // __oneOS__ALGO__DYNAMIC_ARRAY_H
+#endif // _KERNEL_ALGO_DYNAMIC_ARRAY_H

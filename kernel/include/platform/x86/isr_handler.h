@@ -1,7 +1,7 @@
-#ifndef __oneOS__INTERRUPTS__ISRHANDLER_H
-#define __oneOS__INTERRUPTS__ISRHANDLER_H
+#ifndef _KERNEL_PLATFORM_X86_ISR_HANDLER_H
+#define _KERNEL_PLATFORM_X86_ISR_HANDLER_H
 
-#include <types.h>
+#include <libkern/types.h>
 #include <platform/x86/idt.h>
 #include <drivers/x86/display.h>
 

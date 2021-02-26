@@ -10,7 +10,7 @@
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 /**
  * For x86 we can use the same stack both for kernel and kthread operations.

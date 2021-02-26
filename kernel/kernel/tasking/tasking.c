@@ -10,13 +10,13 @@
 #endif
 #include <errno.h>
 #include <io/tty/tty.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 #define TASKING_DEBUG
 

@@ -1,8 +1,8 @@
-#ifndef __oneOS__MEM__PMM_H
-#define __oneOS__MEM__PMM_H
+#ifndef _KERNEL_MEM_PMM_H
+#define _KERNEL_MEM_PMM_H
 
 #include <platform/generic/pmm/settings.h>
-#include <types.h>
+#include <libkern/types.h>
 
 typedef struct {
     uint32_t startLo;
@@ -40,4 +40,4 @@ uint32_t pmm_get_used_blocks();
 uint32_t pmm_get_free_blocks();
 uint32_t pmm_get_block_size();
 
-#endif // __oneOS__MEM__PMM_H
+#endif // _KERNEL_MEM_PMM_H

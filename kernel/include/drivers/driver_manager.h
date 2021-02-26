@@ -1,7 +1,7 @@
-#ifndef __oneOS__DRIVERS__DRIVERMANAGER_H
-#define __oneOS__DRIVERS__DRIVERMANAGER_H
+#ifndef _KERNEL_DRIVERS_DRIVER_MANAGER_H
+#define _KERNEL_DRIVERS_DRIVER_MANAGER_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 #define MINORBITS 20
 #define MINORMASK ((1U << MINORBITS) - 1)
@@ -180,4 +180,4 @@ device_t* new_virtual_device(uint8_t type);
 int dm_get_driver_id_by_name();
 void dm_send_notification(uint32_t msg, uint32_t param);
 
-#endif // __oneOS__DRIVERS__DRIVERMANAGER_H
+#endif // _KERNEL_DRIVERS_DRIVER_MANAGER_H

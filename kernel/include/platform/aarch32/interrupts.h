@@ -1,8 +1,8 @@
-#ifndef __oneOS__AARCH32__INTERRUPTS_H
-#define __oneOS__AARCH32__INTERRUPTS_H
+#ifndef _KERNEL_PLATFORM_AARCH32_INTERRUPTS_H
+#define _KERNEL_PLATFORM_AARCH32_INTERRUPTS_H
 
-#include <types.h>
-#include <utils/mask.h>
+#include <libkern/types.h>
+#include <libkern/mask.h>
 
 #define IRQ_HANDLERS_MAX 256
 
@@ -40,4 +40,4 @@ void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_type_t type
 
 void gic_setup();
 
-#endif /* __oneOS__AARCH32__INTERRUPTS_H */
+#endif /* _KERNEL_PLATFORM_AARCH32_INTERRUPTS_H */

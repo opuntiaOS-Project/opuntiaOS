@@ -1,5 +1,5 @@
-#ifndef __oneOS__X86__PMM__SETTINGS_H
-#define __oneOS__X86__PMM__SETTINGS_H
+#ifndef _KERNEL_PLATFORM_X86_PMM_SETTINGS_H
+#define _KERNEL_PLATFORM_X86_PMM_SETTINGS_H
 
 #include <platform/x86/memmap.h>
 
@@ -8,4 +8,4 @@
 #define PMM_BLOCK_SIZE_KB (4)
 #define PMM_BLOCKS_PER_BYTE (8)
 
-#endif /* __oneOS__X86__PMM__SETTINGS_H */
+#endif /* _KERNEL_PLATFORM_X86_PMM_SETTINGS_H */

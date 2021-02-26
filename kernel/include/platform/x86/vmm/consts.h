@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__X86__VMM__CONSTS_H
-#define __oneOS__X86__VMM__CONSTS_H
+#ifndef _KERNEL_PLATFORM_X86_VMM_CONSTS_H
+#define _KERNEL_PLATFORM_X86_VMM_CONSTS_H
 
 #define VMM_PTE_COUNT (1024)
 #define VMM_PDE_COUNT (1024)
@@ -22,4 +22,4 @@
 #define VMM_USER_TABLES_START 0
 #define VMM_KERNEL_TABLES_START 768
 
-#endif //__oneOS__X86__VMM__CONSTS_H
+#endif //_KERNEL_PLATFORM_X86_VMM_CONSTS_H

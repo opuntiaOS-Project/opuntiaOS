@@ -6,7 +6,7 @@
  */
 
 #include <io/sockets/socket.h>
-#include <utils/kassert.h>
+#include <libkern/kassert.h>
 
 socket_t socket_list[MAX_SOCKET_COUNT];
 static int next_socket = 0;

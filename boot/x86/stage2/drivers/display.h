@@ -1,5 +1,5 @@
-#ifndef __oneLO__DRIVERS__DISAPLAY_H
-#define __oneLO__DRIVERS__DISAPLAY_H
+#ifndef _BOOT_X86_STAGE2_DRIVERS_DISPLAY_H
+#define _BOOT_X86_STAGE2_DRIVERS_DISPLAY_H
 
 #include "port.h"
 #include "../types.h"
@@ -30,4 +30,4 @@ void printf(const char* string);
 void printh(uint32_t hex);
 void printd(uint32_t dec);
 
-#endif // __oneLO__DRIVERS__DISAPLAY_H
+#endif // _BOOT_X86_STAGE2_DRIVERS_DISPLAY_H

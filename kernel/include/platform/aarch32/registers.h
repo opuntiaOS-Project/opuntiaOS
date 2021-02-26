@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__AARCH32__REGS_H
-#define __oneOS__AARCH32__REGS_H
+#ifndef _KERNEL_PLATFORM_AARCH32_REGISTERS_H
+#define _KERNEL_PLATFORM_AARCH32_REGISTERS_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 static inline uint32_t read_r3()
 {
@@ -65,4 +65,4 @@ static inline uint32_t read_spsr()
 }
 
 
-#endif /* __oneOS__AARCH32__REGS_H */
+#endif /* _KERNEL_PLATFORM_AARCH32_REGISTERS_H */

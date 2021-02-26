@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <syscall_structs.h>
 #include <tasking/elf.h>
@@ -16,7 +16,7 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 static int proc_next_pid = 1;
 

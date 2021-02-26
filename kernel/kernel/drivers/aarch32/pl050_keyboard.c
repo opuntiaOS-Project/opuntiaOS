@@ -8,11 +8,11 @@
 #include <drivers/aarch32/pl050.h>
 #include <drivers/generic/keyboard.h>
 #include <errno.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/aarch32/interrupts.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 #define DEBUG_PL050
 

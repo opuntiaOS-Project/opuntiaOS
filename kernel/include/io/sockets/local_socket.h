@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__IO__LOCAL_SOCKET_H
-#define __oneOS__IO__LOCAL_SOCKET_H
+#ifndef _KERNEL_IO_SOCKETS_LOCAL_SOCKET_H
+#define _KERNEL_IO_SOCKETS_LOCAL_SOCKET_H
 
 #include <io/sockets/socket.h>
 
@@ -20,4 +20,4 @@ int local_socket_bind(file_descriptor_t* sock, char* name, uint32_t len);
 int local_socket_connect(file_descriptor_t* sock, char* name, uint32_t len);
 
 
-#endif /* __oneOS__IO__LOCAL_SOCKET_H */
+#endif /* _KERNEL_IO_SOCKETS_LOCAL_SOCKET_H */

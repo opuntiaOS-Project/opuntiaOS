@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__X86__TIME__TIME_MANAGER_H
-#define __oneOS__X86__TIME__TIME_MANAGER_H
+#ifndef _KERNEL_TIME_TIME_MANAGER_H
+#define _KERNEL_TIME_TIME_MANAGER_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 /* 32 bits is enough until 2106y */
 typedef unsigned int time_t;
@@ -31,4 +31,4 @@ time_t timeman_now();
 time_t timeman_seconds_since_boot();
 time_t timeman_get_ticks_from_last_second();
 
-#endif /* __oneOS__X86__TIME__TIME_MANAGER_H */
+#endif /* _KERNEL_TIME_TIME_MANAGER_H */

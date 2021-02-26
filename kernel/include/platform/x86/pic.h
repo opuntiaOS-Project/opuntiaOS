@@ -1,5 +1,5 @@
-#ifndef __oneOS__HARDWARECOMMUNICATION__PIC_H
-#define __oneOS__HARDWARECOMMUNICATION__PIC_H
+#ifndef _KERNEL_PLATFORM_X86_PIC_H
+#define _KERNEL_PLATFORM_X86_PIC_H
 
 #include <platform/x86/port.h>
 

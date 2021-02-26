@@ -5,12 +5,12 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__UTILS__KASSERT_H
-#define __oneOS__UTILS__KASSERT_H
+#ifndef _KERNEL_LIBKERN_KASSERT_H
+#define _KERNEL_LIBKERN_KASSERT_H
 
-#include <log.h>
+#include <libkern/log.h>
+#include <libkern/types.h>
 #include <platform/generic/system.h>
-#include <types.h>
 
 #define ASSERT(x)                                              \
     if (unlikely(!(x))) {                                      \
@@ -20,4 +20,4 @@
 
 void kpanic(char* msg);
 
-#endif // __oneOS__UTILS__KASSERT_H
+#endif // _KERNEL_LIBKERN_KASSERT_H

@@ -5,11 +5,11 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__ALGO__RINGBUFFER_H
-#define __oneOS__ALGO__RINGBUFFER_H
+#ifndef _KERNEL_ALGO_RINGBUFFER_H
+#define _KERNEL_ALGO_RINGBUFFER_H
 
 #include <mem/vmm/zoner.h>
-#include <types.h>
+#include <libkern/types.h>
 
 struct __ringbuffer {
     zone_t zone;
@@ -33,4 +33,4 @@ uint32_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data);
 uint32_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data);
 void ringbuffer_clear(ringbuffer_t* buf);
 
-#endif //__oneOS__ALGO__RINGBUFFER_H
+#endif //_KERNEL_ALGO_RINGBUFFER_H

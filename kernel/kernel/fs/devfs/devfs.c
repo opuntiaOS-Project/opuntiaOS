@@ -9,10 +9,10 @@
 #include <drivers/driver_manager.h>
 #include <errno.h>
 #include <fs/devfs/devfs.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 #define DEVFS_ZONE_SIZE 32 * KB
 

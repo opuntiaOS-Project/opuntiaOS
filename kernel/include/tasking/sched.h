@@ -6,12 +6,12 @@
  */
 
 
-#ifndef __oneOS__X86__TASKING__SCHED_H
-#define __oneOS__X86__TASKING__SCHED_H
+#ifndef _KERNEL_TASKING_SCHED_H
+#define _KERNEL_TASKING_SCHED_H
 
 #include <mem/vmm/vmm.h>
 #include <tasking/tasking.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define MAX_PRIO 0
 #define MIN_PRIO 10
@@ -32,4 +32,4 @@ void sched();
 void sched_enqueue(thread_t* thread);
 void sched_dequeue(thread_t* thread);
 
-#endif // __oneOS__X86__TASKING__SCHED_H
+#endif // _KERNEL_TASKING_SCHED_H

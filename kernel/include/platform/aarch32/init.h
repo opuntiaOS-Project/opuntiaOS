@@ -1,9 +1,9 @@
-#ifndef __oneOS__AARCH32__INIT_H
-#define __oneOS__AARCH32__INIT_H
+#ifndef _KERNEL_PLATFORM_AARCH32_INIT_H
+#define _KERNEL_PLATFORM_AARCH32_INIT_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 void platform_setup();
 void platform_drivers_setup();
 
-#endif /* __oneOS__AARCH32__INIT_H */
+#endif /* _KERNEL_PLATFORM_AARCH32_INIT_H */

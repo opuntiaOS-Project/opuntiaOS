@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__FPU_H
-#define __oneOS__DRIVERS__FPU_H
+#ifndef _KERNEL_DRIVERS_X86_FPU_H
+#define _KERNEL_DRIVERS_X86_FPU_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 typedef struct {
     uint8_t buffer[512];
@@ -31,4 +31,4 @@ static inline void fpu_restore(fpu_state_t* fpu_state)
                  : "m"(*fpu_state));
 }
 
-#endif //__oneOS__DRIVERS__FPU_H
+#endif //_KERNEL_DRIVERS_X86_FPU_H

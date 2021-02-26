@@ -1,7 +1,7 @@
-#ifndef __oneOS__DRIVERS__BGA_H
-#define __oneOS__DRIVERS__BGA_H
+#ifndef _KERNEL_DRIVERS_X86_BGA_H
+#define _KERNEL_DRIVERS_X86_BGA_H
 
-#include <types.h>
+#include <libkern/types.h>
 #include <platform/x86/port.h>
 #include <drivers/x86/display.h>
 #include <mem/kmalloc.h>
@@ -11,4 +11,4 @@ void bga_install();
 void bga_init();
 void bga_set_resolution(uint16_t width, uint16_t height);
 
-#endif //__oneOS__DRIVERS__BGA_H
+#endif //_KERNEL_DRIVERS_X86_BGA_H

@@ -5,11 +5,11 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__AARCH32__SYSTEM_H
-#define __oneOS__AARCH32__SYSTEM_H
+#ifndef _KERNEL_PLATFORM_AARCH32_SYSTEM_H
+#define _KERNEL_PLATFORM_AARCH32_SYSTEM_H
 
 #include <platform/generic/registers.h>
-#include <types.h>
+#include <libkern/types.h>
 
 /**
  * INTS
@@ -84,4 +84,4 @@ inline static void system_stop()
     while (1) { }
 }
 
-#endif /* __oneOS__AARCH32__SYSTEM_H */
+#endif /* _KERNEL_PLATFORM_AARCH32_SYSTEM_H */

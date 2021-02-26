@@ -1,7 +1,7 @@
-#ifndef __oneOS__X86__TSS_H
-#define __oneOS__X86__TSS_H
+#ifndef _KERNEL_PLATFORM_X86_TASKING_TSS_H
+#define _KERNEL_PLATFORM_X86_TASKING_TSS_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 #define SEGTSS_TYPE 0x9 // defined in the Intel's manual 3a
 
@@ -51,4 +51,4 @@ extern tss_t tss;
 
 void ltr(uint16_t seg);
 
-#endif //__oneOS__X86__TSS_H
+#endif //_KERNEL_PLATFORM_X86_TASKING_TSS_H

@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__GENERIC__MOUSE_H
-#define __oneOS__DRIVERS__GENERIC__MOUSE_H
+#ifndef _KERNEL_DRIVERS_GENERIC_MOUSE_H
+#define _KERNEL_DRIVERS_GENERIC_MOUSE_H
 
 /* The mouse packet should be aligned to 4 bytes */
 struct mouse_packet {
@@ -16,4 +16,4 @@ struct mouse_packet {
 };
 typedef struct mouse_packet mouse_packet_t;
 
-#endif //__oneOS__DRIVERS__GENERIC__MOUSE_H
+#endif //_KERNEL_DRIVERS_GENERIC_MOUSE_H

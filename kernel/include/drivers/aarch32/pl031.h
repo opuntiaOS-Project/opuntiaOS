@@ -5,14 +5,14 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__PL031_H
-#define __oneOS__DRIVERS__PL031_H
+#ifndef _KERNEL_DRIVERS_AARCH32_PL031_H
+#define _KERNEL_DRIVERS_AARCH32_PL031_H
 
 #include <drivers/driver_manager.h>
 #include <platform/aarch32/interrupts.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <types.h>
-#include <utils/mask.h>
+#include <libkern/types.h>
+#include <libkern/mask.h>
 
 struct pl031_registers {
     uint32_t data;
@@ -26,4 +26,4 @@ typedef struct pl031_registers pl031_registers_t;
 void pl031_install();
 uint32_t pl031_read_rtc();
 
-#endif // __oneOS__DRIVERS__PL031_H
+#endif // _KERNEL_DRIVERS_AARCH32_PL031_H

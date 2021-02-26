@@ -5,11 +5,11 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__X86__SYSTEM_H
-#define __oneOS__X86__SYSTEM_H
+#ifndef _KERNEL_PLATFORM_X86_SYSTEM_H
+#define _KERNEL_PLATFORM_X86_SYSTEM_H
 
 #include <platform/generic/registers.h>
-#include <types.h>
+#include <libkern/types.h>
 
 /**
  * INTS
@@ -75,4 +75,4 @@ inline static void system_stop()
     asm volatile("hlt\n");
 }
 
-#endif /* __oneOS__X86__SYSTEM_H */
+#endif /* _KERNEL_PLATFORM_X86_SYSTEM_H */

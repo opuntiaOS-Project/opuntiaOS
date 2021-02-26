@@ -5,13 +5,13 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__AARCH32__PL111_H
-#define __oneOS__DRIVERS__AARCH32__PL111_H
+#ifndef _KERNEL_DRIVERS_AARCH32_PL111_H
+#define _KERNEL_DRIVERS_AARCH32_PL111_H
 
 #include <drivers/driver_manager.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <types.h>
-#include <utils/mask.h>
+#include <libkern/types.h>
+#include <libkern/mask.h>
 
 enum PL111RegisterMasks {
     MASKDEFINE(PIXELS_PER_LINE, 2, 6),
@@ -54,4 +54,4 @@ typedef struct pl111_registers pl111_registers_t;
 
 void pl111_install();
 
-#endif //__oneOS__DRIVERS__AARCH32__PL111_H
+#endif //_KERNEL_DRIVERS_AARCH32_PL111_H

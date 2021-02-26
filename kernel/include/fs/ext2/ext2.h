@@ -1,7 +1,7 @@
-#ifndef __oneOS__FS__EXT2__EXT2_H
-#define __oneOS__FS__EXT2__EXT2_H
+#ifndef _KERNEL_FS_EXT2_EXT2_H
+#define _KERNEL_FS_EXT2_EXT2_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 #define SUPERBLOCK_START 1024
 #define SUPERBLOCK_LEN (sizeof(superblock_t))
@@ -122,4 +122,4 @@ void ext2_install();
 
 /* All others apis are avail for VFS throw struct fs_ops_t */
 
-#endif // __oneOS__FS__EXT2__EXT2_H
+#endif // _KERNEL_FS_EXT2_EXT2_H

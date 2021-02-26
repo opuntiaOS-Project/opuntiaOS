@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__X86__TASKING__THREAD_H
-#define __oneOS__X86__TASKING__THREAD_H
+#ifndef _KERNEL_TASKING_THREAD_H
+#define _KERNEL_TASKING_THREAD_H
 
 #include <drivers/x86/fpu.h>
 #include <fs/vfs.h>
@@ -14,7 +14,7 @@
 #include <platform/generic/tasking/trapframe.h>
 #include <tasking/signal.h>
 #include <time/time_manager.h>
-#include <types.h>
+#include <libkern/types.h>
 
 enum THREAD_STATUS {
     THREAD_INVALID = 0,
@@ -105,4 +105,4 @@ int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t*
 int thread_dump_frame(thread_t* thread);
 int thread_print_backtrace();
 
-#endif /* __oneOS__X86__TASKING__THREAD_H */
+#endif /* _KERNEL_TASKING_THREAD_H */

@@ -1,7 +1,7 @@
-#ifndef __oneOS__HARDWARECOMMUNICATION__PORT_H
-#define __oneOS__HARDWARECOMMUNICATION__PORT_H
+#ifndef _KERNEL_PLATFORM_X86_PORT_H
+#define _KERNEL_PLATFORM_X86_PORT_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 uint8_t port_byte_in(uint16_t port);
 void port_byte_out(uint16_t port, uint8_t data);

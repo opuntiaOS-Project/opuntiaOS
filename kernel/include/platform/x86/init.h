@@ -1,9 +1,9 @@
-#ifndef __oneOS__X86__INIT_H
-#define __oneOS__X86__INIT_H
+#ifndef _KERNEL_PLATFORM_X86_INIT_H
+#define _KERNEL_PLATFORM_X86_INIT_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 void platform_setup();
 void platform_drivers_setup();
 
-#endif /* __oneOS__X86__INIT_H */
+#endif /* _KERNEL_PLATFORM_X86_INIT_H */

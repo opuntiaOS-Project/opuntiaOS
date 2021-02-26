@@ -2,7 +2,7 @@
 #include <drivers/generic/keyboard_mappings/scancode_set1.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 static ringbuffer_t gkeyboard_buffer;
 static bool _gkeyboard_has_prefix_e0 = false;

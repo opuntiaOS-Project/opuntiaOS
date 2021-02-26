@@ -1,5 +1,5 @@
-#ifndef __oneOS__TYPES_H
-#define __oneOS__TYPES_H
+#ifndef _KERNEL_LIBKERN_TYPES_H
+#define _KERNEL_LIBKERN_TYPES_H
 
 typedef unsigned long  uint64_t;
 typedef unsigned int   uint32_t;
@@ -25,4 +25,4 @@ typedef unsigned int size_t;
 
 #define NULL ((void*)0)
 
-#endif
+#endif // _KERNEL_LIBKERN_TYPES_H

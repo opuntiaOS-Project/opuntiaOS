@@ -2,7 +2,7 @@
 #include <drivers/x86/keyboard.h>
 #include <io/tty/tty.h>
 #include <platform/x86/idt.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 static driver_desc_t _keyboard_driver_info();
 static key_t _kbdriver_apply_modifiers(key_t key);

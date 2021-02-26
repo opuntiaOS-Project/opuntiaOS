@@ -1,9 +1,9 @@
-#ifndef __oneOS__TTY__TTY_H
-#define __oneOS__TTY__TTY_H
+#ifndef _KERNEL_IO_TTY_TTY_H
+#define _KERNEL_IO_TTY_TTY_H
 
 #include <algo/ringbuffer.h>
 #include <drivers/x86/keyboard.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define TTY_MAX_COUNT 8
 #define TTY_BUFFER_SIZE 1024
@@ -83,4 +83,4 @@ extern tty_entry_t ttys[TTY_MAX_COUNT];
 tty_entry_t* tty_new();
 void tty_eat_key(key_t key);
 
-#endif // __oneOS__TTY__TTY_H
+#endif // _KERNEL_IO_TTY_TTY_H

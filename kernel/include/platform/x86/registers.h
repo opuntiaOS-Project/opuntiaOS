@@ -5,13 +5,13 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__X86__REGS_H
-#define __oneOS__X86__REGS_H
+#ifndef _KERNEL_PLATFORM_X86_REGISTERS_H
+#define _KERNEL_PLATFORM_X86_REGISTERS_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 uint32_t read_cr2();
 uint32_t read_cr3();
 uint32_t read_esp();
 
-#endif /* __oneOS__X86__REGS_H */
+#endif /* _KERNEL_PLATFORM_X86_REGISTERS_H */

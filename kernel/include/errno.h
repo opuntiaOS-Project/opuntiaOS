@@ -1,5 +1,5 @@
-#ifndef __oneOS__ERRNO_H
-#define __oneOS__ERRNO_H
+#ifndef _KERNEL_ERRNO_H
+#define _KERNEL_ERRNO_H
 
 #define EPERM            1      /* Operation not permitted */
 #define ENOENT           2      /* No such file or directory */
@@ -130,4 +130,4 @@
 #define EMEDIUMTYPE     124     /* Wrong medium type */
 #define EBADARCH        125     /* Bad arch */
 
-#endif /* __oneOS__ERRNO_H */
+#endif /* _KERNEL_ERRNO_H */

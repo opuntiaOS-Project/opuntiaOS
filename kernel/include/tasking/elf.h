@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__TASKING__ELF_H
-#define __oneOS__TASKING__ELF_H
+#ifndef _KERNEL_TASKING_ELF_H
+#define _KERNEL_TASKING_ELF_H
 
 #define ELF_CLASS_32 1
 #define ELF_CLASS_64 2
@@ -145,4 +145,4 @@ struct proc;
 struct file_descriptor;
 int elf_load(struct proc* p, struct file_descriptor* fd);
 
-#endif // __oneOS__TASKING__ELF_H
+#endif // _KERNEL_TASKING_ELF_H

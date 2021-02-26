@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__FS__VFS_H
-#define __oneOS__FS__VFS_H
+#ifndef _KERNEL_FS_VFS_H
+#define _KERNEL_FS_VFS_H
 
 #include <algo/ringbuffer.h>
 #include <drivers/driver_manager.h>
@@ -206,4 +206,4 @@ int vfs_umount(dentry_t* mountpoint);
 
 struct proc_zone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
 
-#endif // __oneOS__FS__VFS_H
+#endif // _KERNEL_FS_VFS_H

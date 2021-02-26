@@ -1,6 +1,6 @@
 #include <drivers/generic/rtc.h>
 #include <drivers/generic/timer.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <time/time_manager.h>
 
 // #define TIME_MANAGER_DEBUG

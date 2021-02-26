@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__AARCH32__VMM__PAGE_DESC_H
-#define __oneOS__AARCH32__VMM__PAGE_DESC_H
+#ifndef _KERNEL_PLATFORM_AARCH32_VMM_PTE_H
+#define _KERNEL_PLATFORM_AARCH32_VMM_PTE_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 struct page_desc {
     union {
@@ -65,4 +65,4 @@ uint32_t page_desc_get_frame(page_desc_t pte);
 uint32_t page_desc_get_settings(page_desc_t pte);
 uint32_t page_desc_get_settings_ignore_cow(page_desc_t pte);
 
-#endif //__oneOS__AARCH32__VMM__PAGE_DESC_H
+#endif //_KERNEL_PLATFORM_AARCH32_VMM_PTE_H

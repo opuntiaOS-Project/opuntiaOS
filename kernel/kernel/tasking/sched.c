@@ -6,13 +6,13 @@
  */
 
 #include <algo/dynamic_array.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/registers.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 // #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT

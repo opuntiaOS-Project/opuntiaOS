@@ -1,5 +1,5 @@
-#ifndef __oneLO__MEM__MEM_MAP_H
-#define __oneLO__MEM__MEM_MAP_H
+#ifndef _BOOT_X86_STAGE2_MEM_MEM_MAP_H
+#define _BOOT_X86_STAGE2_MEM_MEM_MAP_H
 
 #include "../types.h"
 
@@ -17,4 +17,4 @@ typedef struct {
     uint16_t kernel_size;
 } mem_desc_t;
 
-#endif // __oneLO__MEM__MEM_MAP_H
+#endif // _BOOT_X86_STAGE2_MEM_MEM_MAP_H

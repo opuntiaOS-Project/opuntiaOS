@@ -5,10 +5,10 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__ALGO__BITMAP_H
-#define __oneOS__ALGO__BITMAP_H
+#ifndef _KERNEL_ALGO_BITMAP_H
+#define _KERNEL_ALGO_BITMAP_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 struct bitmap
 {
@@ -25,4 +25,4 @@ int bitmap_set(bitmap_t bitmap, int where);
 int bitmap_unset(bitmap_t bitmap, int where);
 int bitmap_set_range(bitmap_t bitmap, int start, int len);
 int bitmap_unset_range(bitmap_t bitmap, int start, int len);
-#endif //__oneOS__ALGO__BITMAP_H
+#endif //_KERNEL_ALGO_BITMAP_H

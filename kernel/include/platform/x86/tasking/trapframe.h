@@ -1,9 +1,9 @@
-#ifndef __oneOS__X86__TRAPFRAME_H
-#define __oneOS__X86__TRAPFRAME_H
+#ifndef _KERNEL_PLATFORM_X86_TASKING_TRAPFRAME_H
+#define _KERNEL_PLATFORM_X86_TASKING_TRAPFRAME_H
 
 #include <platform/x86/gdt.h>
 #include <platform/x86/tasking/tss.h>
-#include <types.h>
+#include <libkern/types.h>
 
 typedef struct {
     // registers as pushed by pusha
@@ -120,4 +120,4 @@ static inline void tf_setup_as_kernel_thread(trapframe_t* tf)
     tf->eflags = FL_IF;
 }
 
-#endif // __oneOS__X86__TRAPFRAME_H
+#endif // _KERNEL_PLATFORM_X86_TASKING_TRAPFRAME_H

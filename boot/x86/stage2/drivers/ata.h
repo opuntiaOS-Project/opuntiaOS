@@ -1,5 +1,5 @@
-#ifndef __oneOS__STAGE2__ATA_H
-#define __oneOS__STAGE2__ATA_H
+#ifndef _BOOT_X86_STAGE2_DRIVERS_ATA_H
+#define _BOOT_X86_STAGE2_DRIVERS_ATA_H
 
 #include "../types.h"
 #include "port.h"

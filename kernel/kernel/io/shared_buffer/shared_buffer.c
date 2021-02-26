@@ -8,10 +8,10 @@
 #include <algo/bitmap.h>
 #include <errno.h>
 #include <io/shared_buffer/shared_buffer.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 // #define SHARED_BUFFER_DEBUG
 

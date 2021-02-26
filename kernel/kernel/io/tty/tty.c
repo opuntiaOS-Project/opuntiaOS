@@ -4,12 +4,12 @@
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
-#include <log.h>
+#include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <syscall_structs.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
-#include <utils.h>
+#include <libkern/libkern.h>
 
 // #define TTY_DEBUG_TIME
 

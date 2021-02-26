@@ -1,5 +1,5 @@
 #include <drivers/generic/uart.h>
-#include <log.h>
+#include <libkern/log.h>
 
 static void _log_string(const char* str)
 {

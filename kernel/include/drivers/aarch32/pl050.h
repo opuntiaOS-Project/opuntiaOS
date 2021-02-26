@@ -5,13 +5,13 @@
  * found in the LICENSE file.
  */
 
-#ifndef __oneOS__DRIVERS__AARCH32__PL050_H
-#define __oneOS__DRIVERS__AARCH32__PL050_H
+#ifndef _KERNEL_DRIVERS_AARCH32_PL050_H
+#define _KERNEL_DRIVERS_AARCH32_PL050_H
 
 #include <drivers/driver_manager.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <types.h>
-#include <utils/mask.h>
+#include <libkern/types.h>
+#include <libkern/mask.h>
 
 struct pl050_registers {
     uint32_t cr; // control register (rw)
@@ -25,4 +25,4 @@ typedef struct pl050_registers pl050_registers_t;
 void pl050_keyboard_install();
 void pl050_mouse_install();
 
-#endif //__oneOS__DRIVERS__AARCH32__PL050_H
+#endif //_KERNEL_DRIVERS_AARCH32_PL050_H

@@ -1,7 +1,7 @@
-#ifndef __oneOS__X86__CONTEXT_H
-#define __oneOS__X86__CONTEXT_H
+#ifndef _KERNEL_PLATFORM_X86_TASKING_CONTEXT_H
+#define _KERNEL_PLATFORM_X86_TASKING_CONTEXT_H
 
-#include <types.h>
+#include <libkern/types.h>
 
 typedef struct {
     uint32_t edi;
@@ -21,4 +21,4 @@ static inline uint32_t context_set_instruction_pointer(context_t* ctx, uint32_t 
     ctx->eip = ip;
 }
 
-#endif // __oneOS__X86__CONTEXT_H
+#endif // _KERNEL_PLATFORM_X86_TASKING_CONTEXT_H

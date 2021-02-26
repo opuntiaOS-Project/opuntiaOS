@@ -1,10 +1,10 @@
-#ifndef __oneOS__X86__INTERRUPTS__IDT_H
-#define __oneOS__X86__INTERRUPTS__IDT_H
+#ifndef _KERNEL_PLATFORM_X86_IDT_H
+#define _KERNEL_PLATFORM_X86_IDT_H
 
 #include <platform/x86/pic.h>
 #include <platform/x86/port.h>
 #include <platform/x86/tasking/trapframe.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define INIT_CODE_SEG 0x08
 #define INIT_DATA_SEG 0x10
@@ -102,4 +102,4 @@ extern void syscall();
 #define IRQ14 46
 #define IRQ15 47
 
-#endif // __oneOS__X86__INTERRUPTS__IDT_H
+#endif // _KERNEL_PLATFORM_X86_IDT_H

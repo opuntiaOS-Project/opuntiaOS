@@ -1,9 +1,9 @@
-#ifndef __oneOS__INTERRUPTS__SYS_HANDLER_H
-#define __oneOS__INTERRUPTS__SYS_HANDLER_H
+#ifndef _KERNEL_SYS_HANDLER_H
+#define _KERNEL_SYS_HANDLER_H
 
 #include <platform/generic/tasking/trapframe.h>
 #include <syscall_structs.h>
-#include <types.h>
+#include <libkern/types.h>
 
 #define SYSCALL 0x80
 
@@ -56,4 +56,4 @@ void sys_shbuf_free(trapframe_t* tf);
 
 void sys_none(trapframe_t* tf);
 
-#endif // __oneOS__INTERRUPTS__SYS_HANDLER_H
+#endif // _KERNEL_SYS_HANDLER_H
