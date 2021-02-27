@@ -5,17 +5,18 @@
  * found in the LICENSE file.
  */
 
-#include <libkern/errno.h>
 #include <io/shared_buffer/shared_buffer.h>
 #include <io/sockets/local_socket.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
+#include <libkern/version.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <sys_handler.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
-#include <libkern/libkern.h>
 
 #ifdef __i386__
 #define sys_id (tf->eax)
@@ -705,14 +706,10 @@ void sys_sched_yield(trapframe_t* tf)
 void sys_uname(trapframe_t* tf)
 {
     utsname_t* buf = (utsname_t*)param1;
-    vmm_copy_to_user(buf->sysname, "oneOS", 6);
-    vmm_copy_to_user(buf->release, "1.0.0-dev", 10);
-    vmm_copy_to_user(buf->version, "1", 2);
-#ifdef __i386__
-    vmm_copy_to_user(buf->machine, "x86", 4);
-#elif __arm__
-    vmm_copy_to_user(buf->machine, "ARM", 4);
-#endif
+    vmm_copy_to_user(buf->sysname, OSTYPE, sizeof(OSTYPE));
+    vmm_copy_to_user(buf->release, OSRELEASE, sizeof(OSRELEASE));
+    vmm_copy_to_user(buf->version, VERSION_VARIANT, sizeof(VERSION_VARIANT));
+    vmm_copy_to_user(buf->machine, MACHINE, sizeof(MACHINE));
     return_with_val(0);
 }
 
