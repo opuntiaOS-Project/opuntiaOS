@@ -10,7 +10,7 @@
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
-#include <sys_handler.h>
+#include <syscalls/handlers.h>
 #include <libkern/kassert.h>
 #include <libkern/mem.h>
 

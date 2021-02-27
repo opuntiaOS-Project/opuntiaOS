@@ -31,7 +31,7 @@
 
 #include <libkern/log.h>
 
-#include <sys_handler.h>
+#include <syscalls/handlers.h>
 
 /* If we stay our anythread alone it can't get keyboard input,
    so we will switch to idle_thread to fix it. */

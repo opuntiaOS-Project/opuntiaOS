@@ -5,7 +5,7 @@
 #include <platform/aarch32/system.h>
 #include <platform/aarch32/tasking/trapframe.h>
 #include <platform/generic/registers.h>
-#include <sys_handler.h>
+#include <syscalls/handlers.h>
 
 /* IRQ */
 static irq_handler_t _irq_handlers[IRQ_HANDLERS_MAX];

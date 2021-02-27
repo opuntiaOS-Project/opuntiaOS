@@ -1,5 +1,6 @@
 #include <platform/x86/idt.h>
-#include <sys_handler.h>
+#include <platform/x86/syscalls/params.h>
+#include <syscalls/handlers.h>
 
 struct idt_entry idt[IDT_ENTRIES];
 void** handlers[IDT_ENTRIES];
@@ -7,26 +8,30 @@ void** handlers[IDT_ENTRIES];
 #define USER true
 #define SYS false
 
-void lidt(void* p, uint16_t size) {
+void lidt(void* p, uint16_t size)
+{
     volatile uint16_t pd[3];
-    pd[0] = size-1;
+    pd[0] = size - 1;
     pd[1] = (uint32_t)p;
     pd[2] = (uint32_t)p >> 16;
-	asm volatile("lidt (%0)" : : "r"(pd));
+    asm volatile("lidt (%0)"
+                 :
+                 : "r"(pd));
 }
 
-void interrupts_setup() {
-	idt_element_setup(0, (void*)isr0, SYS);
-	idt_element_setup(1, (void*)isr1, SYS);
-	idt_element_setup(2, (void*)isr2, SYS);
-	idt_element_setup(3, (void*)isr3, SYS);
-	idt_element_setup(4, (void*)isr4, SYS);
-	idt_element_setup(5, (void*)isr5, SYS);
-	idt_element_setup(6, (void*)isr6, SYS);
-	idt_element_setup(7, (void*)isr7, SYS);
-	idt_element_setup(8, (void*)isr8, SYS);
-	idt_element_setup(9, (void*)isr9, SYS);
-	idt_element_setup(10, (void*)isr10, SYS);
+void interrupts_setup()
+{
+    idt_element_setup(0, (void*)isr0, SYS);
+    idt_element_setup(1, (void*)isr1, SYS);
+    idt_element_setup(2, (void*)isr2, SYS);
+    idt_element_setup(3, (void*)isr3, SYS);
+    idt_element_setup(4, (void*)isr4, SYS);
+    idt_element_setup(5, (void*)isr5, SYS);
+    idt_element_setup(6, (void*)isr6, SYS);
+    idt_element_setup(7, (void*)isr7, SYS);
+    idt_element_setup(8, (void*)isr8, SYS);
+    idt_element_setup(9, (void*)isr9, SYS);
+    idt_element_setup(10, (void*)isr10, SYS);
     idt_element_setup(11, (void*)isr11, SYS);
     idt_element_setup(12, (void*)isr12, SYS);
     idt_element_setup(13, (void*)isr13, SYS);
@@ -49,9 +54,9 @@ void interrupts_setup() {
     idt_element_setup(30, (void*)isr30, SYS);
     idt_element_setup(31, (void*)isr31, SYS);
 
-	pic_remap(IRQ_MASTER_OFFSET, IRQ_SLAVE_OFFSET);
+    pic_remap(IRQ_MASTER_OFFSET, IRQ_SLAVE_OFFSET);
 
-	idt_element_setup(32, (void*)irq0, SYS);
+    idt_element_setup(32, (void*)irq0, SYS);
     idt_element_setup(33, (void*)irq1, SYS);
     idt_element_setup(34, (void*)irq2, SYS);
     idt_element_setup(35, (void*)irq3, SYS);
@@ -67,41 +72,44 @@ void interrupts_setup() {
     idt_element_setup(45, (void*)irq13, SYS);
     idt_element_setup(46, (void*)irq14, SYS);
     idt_element_setup(47, (void*)irq15, SYS);
-    
+
     for (int i = 48; i < 256; i++) {
         idt_element_setup(i, (void*)syscall, SYS);
     }
-    
-    idt_element_setup(SYSCALL, (void*)syscall, USER);
-    
+
+    idt_element_setup(SYSCALL_HANDLER_NO, (void*)syscall, USER);
+
     init_irq_handlers();
     lidt(idt, sizeof(idt));
     asm volatile("sti");
 }
 
-void set_irq_handler(uint8_t interrupt_no, void (*handler)()) {
+void set_irq_handler(uint8_t interrupt_no, void (*handler)())
+{
     handlers[interrupt_no] = (void*)handler;
 }
 
-inline void init_irq_handlers() {
+inline void init_irq_handlers()
+{
     int i;
-    for (i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++){
+    for (i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++) {
         handlers[i] = (void*)irq_empty_handler;
     }
-    for (i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++){
+    for (i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++) {
         handlers[i] = (void*)irq_empty_handler;
     }
 }
 
-inline void idt_element_setup(uint8_t n, void* handler_addr, bool is_user) {
-	idt[n].offset_lower = (uint32_t)handler_addr & 0xffff;
-	idt[n].segment = INIT_CODE_SEG;
-	idt[n].zero = 0;
+inline void idt_element_setup(uint8_t n, void* handler_addr, bool is_user)
+{
+    idt[n].offset_lower = (uint32_t)handler_addr & 0xffff;
+    idt[n].segment = INIT_CODE_SEG;
+    idt[n].zero = 0;
     idt[n].type = 0x8E;
     // setting user type
     // now user can call this sw interrupts (syscalls)
     if (is_user) {
-	    idt[n].type |= (0b1100000);
+        idt[n].type |= (0b1100000);
     }
-	idt[n].offset_upper = (uint32_t)handler_addr >> 16;
-}   
+    idt[n].offset_upper = (uint32_t)handler_addr >> 16;
+}
