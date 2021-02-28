@@ -7,8 +7,14 @@
 
 __BEGIN_DECLS
 
+#define _IOFBF 0 /* setvbuf should set fully buffered */
+#define _IOLBF 1 /* setvbuf should set line buffered */
+#define _IONBF 2 /* setvbuf should set unbuffered */
+#define BUFSIZ 1024 /* size of buffer used by setbuf */
+
 struct __fbuf {
-    void* base;
+    char* base;
+    char* ptr; /* current pointer */
     size_t size;
 };
 typedef struct __fbuf __fbuf_t;
@@ -16,8 +22,8 @@ typedef struct __fbuf __fbuf_t;
 struct __file {
     int _flags; /* flags, below; this FILE is free if 0 */
     int _file; /* fileno, if Unix descriptor, else -1 */
-    int _r; /* read space left for getc() */
-    int _w; /* write space left for putc() */
+    size_t _r; /* read space left */
+    size_t _w; /* write space left */
     __fbuf_t _rbuf; /* read buffer */
     __fbuf_t _wbuf; /* write buffer */
 };

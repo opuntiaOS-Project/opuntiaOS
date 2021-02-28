@@ -7,6 +7,24 @@
 
 __BEGIN_DECLS
 
+#ifndef NOMINMAX
+#define max(a, b) \
+    ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+
+#define min(a, b) \
+    ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
+#endif /* NOMINMAX */
+
+
+static inline int abs(int i)
+{
+    return i < 0 ? -i : i;
+}
+
 /* malloc */
 extern void* malloc(size_t);
 extern void free(void*);

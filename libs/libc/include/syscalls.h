@@ -13,8 +13,6 @@ int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5);
 
 int open(const char* pathname, int flags);
 int close(int fd);
-int read(int fd, char* buf, size_t count);
-int write(int fd, const void* buf, size_t count);
 
 int chdir(char* path);
 int mkdir(char* path);
