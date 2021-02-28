@@ -38,7 +38,7 @@ public:
     LG::PixelBitmap& bitmap() { return m_bitmap; }
     const LG::PixelBitmap& bitmap() const { return m_bitmap; }
 
-    void receive_event(UniquePtr<LFoundation::Event> event) override;
+    void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
     template <class T, class... Args>
     inline T& create_superview(Args&&... args)

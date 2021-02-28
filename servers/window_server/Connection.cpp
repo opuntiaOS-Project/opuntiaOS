@@ -33,10 +33,10 @@ Connection::Connection(int connection_fd)
     }
 }
 
-void Connection::receive_event(UniquePtr<LFoundation::Event> event)
+void Connection::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
     if (event->type() == WSEvent::Type::SendEvent) {
-        UniquePtr<SendEvent> send_event = move(event);
+        std::unique_ptr<SendEvent> send_event = std::move(event);
         m_connection_with_clients.send_message(*send_event->message());
     }
 }

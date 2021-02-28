@@ -1,0 +1,20 @@
+#pragma once
+
+#include <__config>
+#include <__undef_macros>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <typename T>
+static inline constexpr T min(const T& a, const T& b)
+{
+    return a < b ? a : b;
+}
+
+template <typename T>
+static inline constexpr T max(const T& a, const T& b)
+{
+    return a < b ? b : a;
+}
+
+_LIBCXX_END_NAMESPACE_STD

@@ -1,0 +1,16 @@
+#pragma GCC system_header
+
+#ifndef __oneOS__LibCXX__UNDEF_MACROS
+#define __oneOS__LibCXX__UNDEF_MACROS
+
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+
+#define NOMINMAX
+
+#endif // __oneOS__LibCXX__UNDEF_MACROS

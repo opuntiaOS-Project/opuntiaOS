@@ -19,7 +19,7 @@ public:
 
     const String& text() const { return m_text; }
     void set_text(const String& text) { m_text = text; }
-    void set_text(String&& text) { m_text = move(text); }
+    void set_text(String&& text) { m_text = std::move(text); }
 
     void set_text_color(const LG::Color& color) { m_text_color = color; }
     const LG::Color& text_color() const { return m_text_color; }

@@ -17,7 +17,7 @@ class EventReceiver {
 public:
     EventReceiver() = default;
     ~EventReceiver() = default;
-    virtual void receive_event(UniquePtr<Event> event) { }
+    virtual void receive_event(std::unique_ptr<Event> event) { }
 
 private:
 };

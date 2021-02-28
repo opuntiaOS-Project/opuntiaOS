@@ -96,7 +96,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
     m_mouse_left_button_pressed = (mouse_event->packet().button_states & 1);
 }
 
-void WindowManager::receive_mouse_event(UniquePtr<LFoundation::Event> event)
+void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
     auto* mouse_event = (MouseEvent*)event.release();
     auto new_hovered_window = WeakPtr<Window>();
@@ -149,7 +149,7 @@ end:
     delete mouse_event;
 }
 
-void WindowManager::receive_keyboard_event(UniquePtr<LFoundation::Event> event)
+void WindowManager::receive_keyboard_event(std::unique_ptr<LFoundation::Event> event)
 {
     auto* keyboard_event = (KeyboardEvent*)event.release();
     if (active_window()) {
@@ -159,13 +159,13 @@ void WindowManager::receive_keyboard_event(UniquePtr<LFoundation::Event> event)
     delete keyboard_event;
 }
 
-void WindowManager::receive_event(UniquePtr<LFoundation::Event> event)
+void WindowManager::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
     if (event->type() == WSEvent::Type::MouseEvent) {
-        receive_mouse_event(move(event));
+        receive_mouse_event(std::move(event));
     }
     if (event->type() == WSEvent::Type::KeyboardEvent) {
-        receive_keyboard_event(move(event));
+        receive_keyboard_event(std::move(event));
     }
 }
 

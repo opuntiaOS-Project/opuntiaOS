@@ -66,7 +66,7 @@ public:
     inline void push_back(T&& el)
     {
         ensure_capacity(size() + 1);
-        new (end()) T(move(el));
+        new (end()) T(std::move(el));
         m_size++;
     }
 
@@ -145,7 +145,7 @@ private:
             }
 
             for (size_t i = 0; i < m_size; i++) {
-                new (&new_buf[i]) T(move(at(i)));
+                new (&new_buf[i]) T(std::move(at(i)));
                 at(i).~T();
             }
             free(m_data);

@@ -6,6 +6,7 @@
  */
 
 #include "Button.h"
+#include <algorithm>
 
 void Button::recalc_dims()
 {
@@ -15,11 +16,11 @@ void Button::recalc_dims()
         new_height = m_icon.height();
         new_width += m_icon.width();
         if (m_title.size()) {
-            new_width += 4;  
+            new_width += 4;
         }
     }
     bounds().set_width(new_width + text_width());
-    bounds().set_height(max(new_height, text_height()));
+    bounds().set_height(std::max(new_height, text_height()));
 }
 
 size_t Button::text_width()

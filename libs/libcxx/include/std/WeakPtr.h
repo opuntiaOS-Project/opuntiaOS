@@ -1,7 +1,7 @@
 #pragma once
 
-#include <std/Utility.h>
 #include <syscalls.h>
+#include <utility>
 
 template <typename T>
 class Weakable;
@@ -35,7 +35,7 @@ public:
     {
     }
 
-    WeakPtr& operator=(nullptr_t)
+    WeakPtr& operator=(std::nullptr_t)
     {
         m_data = nullptr;
         return *this;

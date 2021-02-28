@@ -3,6 +3,14 @@
 #ifndef __oneOS__LibCXX__CSETJMP
 #define __oneOS__LibCXX__CSETJMP
 
+#include <__config>
 #include <setjmp.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::jmp_buf;
+using ::longjmp;
+
+_LIBCXX_END_NAMESPACE_STD
 
 #endif // __oneOS__LibCXX__CSETJMP

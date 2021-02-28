@@ -14,12 +14,12 @@ public:
     ~WServerDecoder() = default;
 
     using WindowServerDecoder::handle;
-    virtual UniquePtr<Message> handle(const GreetMessage& msg) override;
-    virtual UniquePtr<Message> handle(const CreateWindowMessage& msg) override;
-    virtual UniquePtr<Message> handle(const DestroyWindowMessage& msg) override;
-    virtual UniquePtr<Message> handle(const SetBarStyleMessage& msg) override;
-    virtual UniquePtr<Message> handle(const SetTitleMessage& msg) override;
-    virtual UniquePtr<Message> handle(const SetBufferMessage& msg) override;
-    virtual UniquePtr<Message> handle(const InvalidateMessage& msg) override;
-    virtual UniquePtr<Message> handle(const AskBringToFrontMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const GreetMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const CreateWindowMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const DestroyWindowMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const SetBarStyleMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const SetTitleMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const SetBufferMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const InvalidateMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const AskBringToFrontMessage& msg) override;
 };

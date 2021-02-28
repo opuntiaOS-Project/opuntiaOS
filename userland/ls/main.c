@@ -1,5 +1,6 @@
 #include <string.h>
 #include <syscalls.h>
+#include <unistd.h>
 
 #define BUF_SIZE 1024
 
@@ -59,7 +60,7 @@ int main(int argc, char** argv)
     } else {
         fd = open(".", O_RDONLY | O_DIRECTORY);
     }
-    
+
     if (fd < 0) {
         write(1, "ls: can't open file\n", 20);
         return -1;

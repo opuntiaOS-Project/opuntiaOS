@@ -25,14 +25,14 @@ public:
     }
 
     QueuedEvent(QueuedEvent&& qe)
-        : event(move(qe.event))
+        : event(std::move(qe.event))
         , receiver(qe.receiver)
     {
     }
 
     QueuedEvent& operator=(QueuedEvent&& qe)
     {
-        event = move(qe.event);
+        event = std::move(qe.event);
         receiver = qe.receiver;
         return *this;
     }
@@ -40,7 +40,7 @@ public:
     ~QueuedEvent() = default;
 
     EventReceiver& receiver;
-    UniquePtr<Event> event { nullptr };
+    std::unique_ptr<Event> event { nullptr };
 };
 
 class EventLoop {
@@ -60,7 +60,7 @@ public:
 
     inline void add(Timer&& timer)
     {
-        m_timers.push_back(move(timer));
+        m_timers.push_back(std::move(timer));
     }
 
     inline void add(EventReceiver& rec, Event* ptr)

@@ -27,7 +27,7 @@ public:
     inline const Window& window() const { return *m_window; }
 
     inline const Connection& connection() const { return m_server_connection; }
-    void receive_event(UniquePtr<LFoundation::Event> event) override;
+    void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
 private:
     LFoundation::EventLoop m_event_loop;

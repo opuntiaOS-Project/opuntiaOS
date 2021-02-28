@@ -1,0 +1,21 @@
+#pragma once
+
+#include <__config>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <typename T>
+inline T&& move(T& arg)
+{
+    return static_cast<T&&>(arg);
+}
+
+template <typename T, typename U>
+inline void swap(T& a, U& b)
+{
+    U tmp = move((U&)a);
+    a = (T &&) move(b);
+    b = move(tmp);
+}
+
+_LIBCXX_END_NAMESPACE_STD

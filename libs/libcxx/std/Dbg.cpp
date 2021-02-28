@@ -1,4 +1,5 @@
 #include <std/Dbg.h>
+#include <unistd.h>
 
 const Dbg& operator<<(const Dbg& stream, const String& value)
 {

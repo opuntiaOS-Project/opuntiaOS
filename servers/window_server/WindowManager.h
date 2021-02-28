@@ -104,7 +104,7 @@ public:
     inline const LinkedList<Window>& windows() const { return m_windows; }
     inline int next_win_id() { return ++m_next_win_id; }
 
-    void receive_event(UniquePtr<LFoundation::Event> event) override;
+    void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
     inline int mouse_x() const { return m_mouse_x; }
     inline int mouse_y() const { return m_mouse_y; }
@@ -124,8 +124,8 @@ private:
     bool continue_window_move(MouseEvent* mouse_event);
 
     void update_mouse_position(MouseEvent* mouse_event);
-    void receive_mouse_event(UniquePtr<LFoundation::Event> event);
-    void receive_keyboard_event(UniquePtr<LFoundation::Event> event);
+    void receive_mouse_event(std::unique_ptr<LFoundation::Event> event);
+    void receive_keyboard_event(std::unique_ptr<LFoundation::Event> event);
 
     inline WeakPtr<Window>& movable_window() { return m_movable_window; }
     inline const WeakPtr<Window>& movable_window() const { return m_movable_window; }

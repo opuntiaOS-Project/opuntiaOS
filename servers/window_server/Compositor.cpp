@@ -57,7 +57,7 @@ __attribute__((flatten)) void Compositor::refresh()
 
     auto& screen = Screen::the();
     auto& wm = WindowManager::the();
-    auto invalidated_areas = move(m_invalidated_areas);
+    auto invalidated_areas = std::move(m_invalidated_areas);
     LG::Context ctx(screen.write_bitmap());
 
     auto is_window_area_invalidated = [&](const Vector<LG::Rect>& areas, const LG::Rect& area) -> bool {

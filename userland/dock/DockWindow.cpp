@@ -2,7 +2,7 @@
 #include "DockView.h"
 #include <std/Dbg.h>
 
-void DockWindow::receive_event(UniquePtr<LFoundation::Event> event)
+void DockWindow::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
     if (event->type() == UI::Event::Type::NotifyWindowStatusChangedEvent) {
         UI::NotifyWindowStatusChangedEvent& own_event = *(UI::NotifyWindowStatusChangedEvent*)event.get();
@@ -19,5 +19,5 @@ void DockWindow::receive_event(UniquePtr<LFoundation::Event> event)
         DockView* it = (DockView*)superview();
         it->set_icon(own_event.changed_window_id(), own_event.icon_path());
     }
-    Window::receive_event(move(event));
+    Window::receive_event(std::move(event));
 }

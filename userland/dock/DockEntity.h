@@ -12,7 +12,7 @@ public:
     }
 
     int window_id() const { return m_window_id; }
-    void set_icon(LG::PixelBitmap&& icon) { m_icon = move(icon); }
+    void set_icon(LG::PixelBitmap&& icon) { m_icon = std::move(icon); }
     const LG::PixelBitmap& icon() const { return m_icon; }
 
 private:

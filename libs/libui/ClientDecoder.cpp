@@ -17,7 +17,7 @@ ClientDecoder::ClientDecoder()
 {
 }
 
-UniquePtr<Message> ClientDecoder::handle(const MouseMoveMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const MouseMoveMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
         m_event_loop.add(App::the().window(), new MouseEvent(msg.x(), msg.y()));
@@ -25,7 +25,7 @@ UniquePtr<Message> ClientDecoder::handle(const MouseMoveMessage& msg)
     return nullptr;
 }
 
-UniquePtr<Message> ClientDecoder::handle(const MouseActionMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const MouseActionMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
         m_event_loop.add(App::the().window(), new MouseActionEvent((MouseActionType)msg.type(), msg.x(), msg.y()));
@@ -33,7 +33,7 @@ UniquePtr<Message> ClientDecoder::handle(const MouseActionMessage& msg)
     return nullptr;
 }
 
-UniquePtr<Message> ClientDecoder::handle(const MouseLeaveMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const MouseLeaveMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
         m_event_loop.add(App::the().window(), new MouseLeaveEvent(msg.x(), msg.y()));
@@ -41,7 +41,7 @@ UniquePtr<Message> ClientDecoder::handle(const MouseLeaveMessage& msg)
     return nullptr;
 }
 
-UniquePtr<Message> ClientDecoder::handle(const KeyboardMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const KeyboardMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
         // Checking if the key is down or up
@@ -56,13 +56,13 @@ UniquePtr<Message> ClientDecoder::handle(const KeyboardMessage& msg)
     return nullptr;
 }
 
-UniquePtr<Message> ClientDecoder::handle(const DisplayMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const DisplayMessage& msg)
 {
     m_event_loop.add(App::the().window(), new DisplayEvent(msg.rect()));
     return nullptr;
 }
 
-UniquePtr<Message> ClientDecoder::handle(const WindowCloseRequestMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const WindowCloseRequestMessage& msg)
 {
     // TODO: Currently we support only 1 window per app.
     if (App::the().window().id() == msg.win_id()) {
@@ -72,7 +72,7 @@ UniquePtr<Message> ClientDecoder::handle(const WindowCloseRequestMessage& msg)
 }
 
 // Notifiers
-UniquePtr<Message> ClientDecoder::handle(const NotifyWindowStatusChangedMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const NotifyWindowStatusChangedMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
         m_event_loop.add(App::the().window(), new NotifyWindowStatusChangedEvent(msg.changed_window_id(), msg.type()));
@@ -80,7 +80,7 @@ UniquePtr<Message> ClientDecoder::handle(const NotifyWindowStatusChangedMessage&
     return nullptr;
 }
 
-UniquePtr<Message> ClientDecoder::handle(const NotifyWindowIconChangedMessage& msg)
+std::unique_ptr<Message> ClientDecoder::handle(const NotifyWindowIconChangedMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
         m_event_loop.add(App::the().window(), new NotifyWindowIconChangedEvent(msg.changed_window_id(), msg.icon_path()));

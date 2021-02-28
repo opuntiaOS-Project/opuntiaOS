@@ -39,6 +39,6 @@ private:
     LG::PixelBitmap m_write_bitmap;
     LG::PixelBitmap m_display_bitmap;
 
-    UniquePtr<LG::PixelBitmap> m_write_bitmap_ptr { nullptr };
-    UniquePtr<LG::PixelBitmap> m_display_bitmap_ptr { nullptr };
+    std::unique_ptr<LG::PixelBitmap> m_write_bitmap_ptr { nullptr };
+    std::unique_ptr<LG::PixelBitmap> m_display_bitmap_ptr { nullptr };
 };

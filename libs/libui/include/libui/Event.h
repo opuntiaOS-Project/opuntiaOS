@@ -200,7 +200,7 @@ public:
     NotifyWindowIconChangedEvent(uint32_t changed_window_id, LG::String&& path)
         : Event(Event::Type::NotifyWindowIconChangedEvent)
         , m_changed_window_id(changed_window_id)
-        , m_icon_path(move(path))
+        , m_icon_path(std::move(path))
     {
     }
 

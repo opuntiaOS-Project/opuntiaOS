@@ -7,32 +7,32 @@
 
 inline void* operator new(size_t size)
 {
-    return malloc(size);
+    return std::malloc(size);
 }
 
 inline void operator delete(void* ptr)
 {
-    return free(ptr);
+    return std::free(ptr);
 }
 
 inline void operator delete(void* ptr, size_t)
 {
-    return free(ptr);
+    return std::free(ptr);
 }
 
 inline void* operator new[](size_t size)
 {
-    return malloc(size);
+    return std::malloc(size);
 }
 
 inline void operator delete[](void* ptr)
 {
-    return free(ptr);
+    return std::free(ptr);
 }
 
 inline void operator delete[](void* ptr, size_t)
 {
-    return free(ptr);
+    return std::free(ptr);
 }
 
 inline void* operator new(size_t, void* ptr)

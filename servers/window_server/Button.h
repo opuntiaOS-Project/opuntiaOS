@@ -18,7 +18,7 @@ public:
 
     void display();
     void set_title(const String& title) { m_title = title, recalc_dims(); }
-    void set_title(String&& title) { m_title = move(title), recalc_dims(); }
+    void set_title(String&& title) { m_title = std::move(title), recalc_dims(); }
     const String& title() const { return m_title; }
 
     void set_font(const LG::Font& font) { m_font = font, recalc_dims(); }

@@ -84,21 +84,21 @@ public:
 
     SendEvent(SendEvent&& ev)
         : WSEvent(WSEvent::Type::SendEvent)
-        , m_message(move(ev.m_message))
+        , m_message(std::move(ev.m_message))
     {
     }
 
     SendEvent& operator=(SendEvent&& ev)
     {
-        m_message = move(ev.m_message);
+        m_message = std::move(ev.m_message);
         return *this;
     }
 
     ~SendEvent() = default;
 
-    const UniquePtr<Message>& message() const { return m_message; }
-    UniquePtr<Message>& message() { return m_message; }
+    const std::unique_ptr<Message>& message() const { return m_message; }
+    std::unique_ptr<Message>& message() { return m_message; }
 
 private:
-    UniquePtr<Message> m_message;
+    std::unique_ptr<Message> m_message;
 };

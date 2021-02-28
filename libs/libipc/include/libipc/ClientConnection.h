@@ -8,6 +8,7 @@
 #include <std/Dbg.h>
 #include <std/Vector.h>
 #include <syscalls.h>
+#include <unistd.h>
 
 template <typename ServerDecoder, typename ClientDecoder>
 class ClientConnection : public LFoundation::EventReceiver {
@@ -29,13 +30,13 @@ public:
         return wrote == encoded_msg.size();
     }
 
-    UniquePtr<Message> send_sync(const Message& msg)
+    std::unique_ptr<Message> send_sync(const Message& msg)
     {
         bool status = send_message(msg);
         return wait_for_answer(msg);
     }
 
-    UniquePtr<Message> wait_for_answer(const Message& msg)
+    std::unique_ptr<Message> wait_for_answer(const Message& msg)
     {
         for (;;) {
             for (int i = 0; i < m_messages.size(); i++) {
@@ -72,9 +73,9 @@ public:
         for (size_t i = 0; i < buf_size; i += msg_len) {
             msg_len = 0;
             if (auto response = m_client_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
-                m_messages.push_back(move(response));
+                m_messages.push_back(std::move(response));
             } else if (auto response = m_server_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
-                m_messages.push_back(move(response));
+                m_messages.push_back(std::move(response));
             } else {
                 Dbg() << getpid() << " :: ClientConnection read error\n";
                 ASSERT_NOT_REACHED();
@@ -88,12 +89,12 @@ public:
         }
     }
 
-    void receive_event(UniquePtr<LFoundation::Event> event) override
+    void receive_event(std::unique_ptr<LFoundation::Event> event) override
     {
         if (event->type() == LFoundation::Event::Type::DeferredInvoke) {
             // Note: The event was sent from pump_messages() and callback of CallEvent is 0!
             // Do NOT call callback here!
-            auto msg = move(m_messages);
+            auto msg = std::move(m_messages);
             for (int i = 0; i < msg.size(); i++) {
                 if (msg[i] && msg[i]->decoder_magic() == m_client_decoder.magic() && msg[i]->key() == m_accepted_key) {
                     m_client_decoder.handle(*msg[i]);
@@ -105,7 +106,7 @@ public:
 private:
     int m_accepted_key { -1 };
     int m_connection_fd;
-    Vector<UniquePtr<Message>> m_messages;
+    Vector<std::unique_ptr<Message>> m_messages;
     ServerDecoder& m_server_decoder;
     ClientDecoder& m_client_decoder;
 };

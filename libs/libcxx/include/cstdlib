@@ -3,6 +3,21 @@
 #ifndef __oneOS__LibCXX__CSTDLIB
 #define __oneOS__LibCXX__CSTDLIB
 
+#include <__config>
 #include <stdlib.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::abs;
+using ::calloc;
+using ::exit;
+using ::free;
+using ::malloc;
+using ::posix_openpt;
+using ::ptsname;
+using ::ptsname_r;
+using ::realloc;
+
+_LIBCXX_END_NAMESPACE_STD
 
 #endif // __oneOS__LibCXX__CSTDLIB

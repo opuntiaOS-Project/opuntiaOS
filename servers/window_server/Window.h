@@ -11,7 +11,7 @@
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
 #include <std/LinkedList.h>
-#include <std/Utility.h>
+#include <utility>
 #include <std/WeakPtr.h>
 #include <sys/SharedBuffer.h>
 #include <sys/types.h>
@@ -70,7 +70,7 @@ public:
 
     inline void set_icon(LG::String&& name)
     {
-        m_icon_path = move(name);
+        m_icon_path = std::move(name);
         m_frame.reload_icon();
     }
 

@@ -110,7 +110,7 @@ public:
         }
     }
 
-    inline void add(Scanline&& el) { m_data.push_back(move(el)); }
+    inline void add(Scanline&& el) { m_data.push_back(std::move(el)); }
     inline void set_color_length(uint8_t color_length) { m_color_length = color_length; }
     inline uint8_t color_length() const { return m_color_length; }
 

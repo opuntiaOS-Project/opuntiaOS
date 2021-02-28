@@ -339,7 +339,7 @@ class WindowServerDecoder : public MessageDecoder {
 public:
     WindowServerDecoder() {}
     int magic() const { return 320; }
-    UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
+    std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
         int msg_id, decoder_magic;
         size_t saved_dml = decoded_msg_len;
@@ -417,7 +417,7 @@ public:
         }
     }
     
-    UniquePtr<Message> handle(const Message& msg) override
+    std::unique_ptr<Message> handle(const Message& msg) override
     {
         if (magic() != msg.decoder_magic()) {
             return nullptr;
@@ -445,14 +445,14 @@ public:
         }
     }
     
-    virtual UniquePtr<Message> handle(const GreetMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const DestroyWindowMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const SetBarStyleMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const SetTitleMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const InvalidateMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const AskBringToFrontMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const GreetMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const DestroyWindowMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const SetBufferMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const SetBarStyleMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const SetTitleMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const InvalidateMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const AskBringToFrontMessage& msg) { return nullptr; }
 };
 
 class MouseMoveMessage : public Message {
@@ -741,7 +741,7 @@ class WindowClientDecoder : public MessageDecoder {
 public:
     WindowClientDecoder() {}
     int magic() const { return 737; }
-    UniquePtr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
+    std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
         int msg_id, decoder_magic;
         size_t saved_dml = decoded_msg_len;
@@ -810,7 +810,7 @@ public:
         }
     }
     
-    UniquePtr<Message> handle(const Message& msg) override
+    std::unique_ptr<Message> handle(const Message& msg) override
     {
         if (magic() != msg.decoder_magic()) {
             return nullptr;
@@ -840,14 +840,14 @@ public:
         }
     }
     
-    virtual UniquePtr<Message> handle(const MouseMoveMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const MouseActionMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const MouseLeaveMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const KeyboardMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const DisplayMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const WindowCloseRequestMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const NotifyWindowStatusChangedMessage& msg) { return nullptr; }
-    virtual UniquePtr<Message> handle(const NotifyWindowIconChangedMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const MouseMoveMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const MouseActionMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const MouseLeaveMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const KeyboardMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const DisplayMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const WindowCloseRequestMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const NotifyWindowStatusChangedMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const NotifyWindowIconChangedMessage& msg) { return nullptr; }
 };
 

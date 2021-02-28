@@ -3,6 +3,20 @@
 #ifndef __oneOS__LibCXX__CSTRING
 #define __oneOS__LibCXX__CSTRING
 
+#include <__config>
 #include <string.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::memset;
+using ::memcmp;
+using ::memcpy;
+using ::memmove;
+using ::memset;
+using ::strcpy;
+using ::strlen;
+using ::strncpy;
+
+_LIBCXX_END_NAMESPACE_STD
 
 #endif // __oneOS__LibCXX__CSTRING

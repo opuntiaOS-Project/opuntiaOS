@@ -82,9 +82,9 @@ void EventLoop::pump()
 {
     check_fds();
     check_timers();
-    Vector<QueuedEvent> events_to_dispatch(move(m_event_queue));
+    Vector<QueuedEvent> events_to_dispatch(std::move(m_event_queue));
     for (int i = 0; i < events_to_dispatch.size(); i++) {
-        events_to_dispatch[i].receiver.receive_event(move(events_to_dispatch[i].event));
+        events_to_dispatch[i].receiver.receive_event(std::move(events_to_dispatch[i].event));
     }
     if (!events_to_dispatch.size()) {
         sched_yield();

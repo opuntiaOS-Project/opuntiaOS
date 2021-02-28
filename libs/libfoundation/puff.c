@@ -81,7 +81,6 @@
 
 #include <libfoundation/puff.h> /* prototype for puff() */
 #include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
-#include <stddef.h>
 
 #define local static            /* for local function definitions */
 

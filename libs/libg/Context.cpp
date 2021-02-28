@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <algorithm>
 #include <libg/Context.h>
 #include <std/Memory.h>
 
@@ -228,7 +229,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
 
         color.set_alpha(color.alpha() - skipped_steps * step);
-        end_x = min(min_x + (int)orig_bounds.height() - skipped_steps, max_x);
+        end_x = std::min(min_x + (int)orig_bounds.height() - skipped_steps, max_x);
 
         for (int y = max_y; y >= min_y; y--) {
             auto cur_color = color;
@@ -253,7 +254,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
 
         color.set_alpha(color.alpha() - skipped_steps * step);
-        end_x = min(min_x + (int)orig_bounds.height() - skipped_steps, max_x);
+        end_x = std::min(min_x + (int)orig_bounds.height() - skipped_steps, max_x);
 
         for (int y = min_y; y <= max_y; y++) {
             auto cur_color = color;
@@ -278,7 +279,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
 
         color.set_alpha(color.alpha() - skipped_steps * step);
-        end_x = max(max_x - ((int)orig_bounds.height() - skipped_steps), min_x);
+        end_x = std::max(max_x - ((int)orig_bounds.height() - skipped_steps), min_x);
 
         for (int y = max_y; y >= min_y; y--) {
             auto cur_color = color;
@@ -303,7 +304,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
 
         color.set_alpha(color.alpha() - skipped_steps * step);
-        end_x = max(max_x - ((int)orig_bounds.height() - skipped_steps), min_x);
+        end_x = std::max(max_x - ((int)orig_bounds.height() - skipped_steps), min_x);
 
         for (int y = min_y; y <= max_y; y++) {
             auto cur_color = color;

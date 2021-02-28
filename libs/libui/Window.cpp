@@ -57,7 +57,7 @@ bool Window::did_format_change()
     return App::the().connection().send_async_message(msg);
 }
 
-void Window::receive_event(UniquePtr<LFoundation::Event> event)
+void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
     if (event->type() == Event::Type::MouseEvent) {
         if (m_superview) {

@@ -1,4 +1,5 @@
 #include "TerminalView.h"
+#include <algorithm>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/KeyboardMapping.h>
 #include <libg/Color.h>
@@ -176,10 +177,10 @@ void TerminalView::put_text(const String& data)
             if (status == DoNewLine) {
                 set_to_redraw_full_screen();
             } else {
-                top_left_update_location.set_x(min(top_left_update_location.x(), pt.x()));
-                top_left_update_location.set_y(min(top_left_update_location.y(), pt.y()));
-                bottom_right_update_location.set_x(max(bottom_right_update_location.x(), pt.x() + glyph_width()));
-                bottom_right_update_location.set_y(max(bottom_right_update_location.y(), pt.y() + glyph_height()));
+                top_left_update_location.set_x(std::min(top_left_update_location.x(), pt.x()));
+                top_left_update_location.set_y(std::min(top_left_update_location.y(), pt.y()));
+                bottom_right_update_location.set_x(std::max(bottom_right_update_location.x(), pt.x() + glyph_width()));
+                bottom_right_update_location.set_y(std::max(bottom_right_update_location.y(), pt.y() + glyph_height()));
             }
         }
     }

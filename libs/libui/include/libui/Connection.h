@@ -17,7 +17,7 @@ public:
     void set_buffer(const Window& window);
 
     template <class T>
-    inline UniquePtr<T> send_sync_message(const Message& msg) { return UniquePtr<T>(m_connection_with_server.send_sync(msg)); }
+    inline std::unique_ptr<T> send_sync_message(const Message& msg) { return std::unique_ptr<T>(m_connection_with_server.send_sync(msg)); }
     inline bool send_async_message(const Message& msg) const { return m_connection_with_server.send_message(msg); }
     inline void listen() { m_connection_with_server.pump_messages(); }
 

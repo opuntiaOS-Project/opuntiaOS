@@ -9,6 +9,6 @@ public:
     {
     }
 
-    void receive_event(UniquePtr<LFoundation::Event> event) override;
+    void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
 };

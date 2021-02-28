@@ -13,7 +13,7 @@
 #include <libg/Font.h>
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <libg/Rect.h>
-#include <std/Utility.h>
+#include <utility>
 #include <syscalls.h>
 
 #define CONTROL_PANEL_CLOSE 0x0
@@ -78,8 +78,8 @@ WindowFrame::WindowFrame(Window& window)
 
 WindowFrame::WindowFrame(Window& window, Vector<Button*>&& control_panel_buttons, Vector<Button*>&& window_control_buttons)
     : m_window(window)
-    , m_window_control_buttons(move(window_control_buttons))
-    , m_control_panel_buttons(move(control_panel_buttons))
+    , m_window_control_buttons(std::move(window_control_buttons))
+    , m_control_panel_buttons(std::move(control_panel_buttons))
 {
 }
 

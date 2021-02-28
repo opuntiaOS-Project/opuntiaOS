@@ -1,56 +1,59 @@
 #pragma GCC system_header
 #pragma once
 
+#include <__config>
 #include <cstddef>
-#include <std/Utility.h>
+#include <utility>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
 
 template <typename T>
-class UniquePtr {
+class unique_ptr {
 public:
-    UniquePtr()
+    unique_ptr()
         : m_data(nullptr)
     {
     }
 
-    UniquePtr(T* data)
+    unique_ptr(T* data)
         : m_data(data)
     {
     }
 
-    UniquePtr(nullptr_t)
+    unique_ptr(std::nullptr_t)
         : m_data(nullptr)
     {
     }
 
-    UniquePtr& operator=(nullptr_t)
+    unique_ptr& operator=(std::nullptr_t)
     {
         reset();
         return *this;
     }
 
-    UniquePtr(UniquePtr&& moving) noexcept
+    unique_ptr(unique_ptr&& moving) noexcept
         : m_data(nullptr)
     {
         moving.swap(*this);
     }
 
-    UniquePtr& operator=(UniquePtr&& moving) noexcept
+    unique_ptr& operator=(unique_ptr&& moving) noexcept
     {
         moving.swap(*this);
         return *this;
     }
 
     template <typename U>
-    UniquePtr(UniquePtr<U>&& moving)
+    unique_ptr(unique_ptr<U>&& moving)
     {
-        UniquePtr<T> tmp((T*)moving.release());
+        unique_ptr<T> tmp((T*)moving.release());
         tmp.swap(*this);
     }
 
     template <typename U>
-    UniquePtr& operator=(UniquePtr<U>&& moving)
+    unique_ptr& operator=(unique_ptr<U>&& moving)
     {
-        UniquePtr<T> tmp((T*)moving.release());
+        unique_ptr<T> tmp((T*)moving.release());
         tmp.swap(*this);
         return *this;
     }
@@ -62,7 +65,7 @@ public:
         return result;
     }
 
-    void swap(UniquePtr& src) noexcept
+    void swap(unique_ptr& src) noexcept
     {
         T* tmp_data = m_data;
         m_data = src.m_data;
@@ -75,13 +78,13 @@ public:
         delete tmp;
     }
 
-    ~UniquePtr()
+    ~unique_ptr()
     {
         delete m_data;
     }
 
-    UniquePtr(UniquePtr const&) = delete;
-    UniquePtr& operator=(UniquePtr const&) = delete;
+    unique_ptr(unique_ptr const&) = delete;
+    unique_ptr& operator=(unique_ptr const&) = delete;
 
     T* operator->() const { return m_data; }
     T& operator*() const { return *m_data; }
@@ -92,3 +95,5 @@ public:
 private:
     T* m_data { nullptr };
 };
+
+_LIBCXX_END_NAMESPACE_STD

@@ -25,7 +25,7 @@ App::App()
     s_the = this;
 }
 
-void App::receive_event(UniquePtr<LFoundation::Event> event)
+void App::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
     if (event->type() == Event::Type::WindowCloseRequestEvent) {
         // TODO: Only 1 window is supported for now

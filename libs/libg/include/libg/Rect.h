@@ -11,7 +11,7 @@
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
 #include <libipc/Encoder.h>
-#include <std/Utility.h>
+#include <utility>
 #include <sys/types.h>
 
 namespace LG {
@@ -21,7 +21,7 @@ public:
     Rect() = default;
     Rect(int x, int y, size_t width, size_t height);
 
-    ~Rect()= default;
+    ~Rect() = default;
 
     inline size_t width() const { return m_width; }
     inline size_t height() const { return m_height; }

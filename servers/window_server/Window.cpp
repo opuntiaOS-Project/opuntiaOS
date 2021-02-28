@@ -7,7 +7,7 @@
 
 #include "Window.h"
 #include "WindowManager.h"
-#include <std/Utility.h>
+#include <utility>
 
 Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
     : m_id(id)
@@ -28,8 +28,8 @@ Window::Window(Window&& win)
     : m_id(win.m_id)
     , m_connection_id(win.m_connection_id)
     , m_buffer(win.m_buffer)
-    , m_frame(*this, move(win.m_frame.control_panel_buttons()), move(win.m_frame.window_control_buttons()))
-    , m_content_bitmap(move(win.m_content_bitmap))
+    , m_frame(*this, std::move(win.m_frame.control_panel_buttons()), std::move(win.m_frame.window_control_buttons()))
+    , m_content_bitmap(std::move(win.m_content_bitmap))
     , m_bounds(win.m_bounds)
     , m_content_bounds(win.m_content_bounds)
 {

@@ -69,7 +69,7 @@ public:
         return *this;
     }
 
-    void receive_event(UniquePtr<Event> event) override
+    void receive_event(std::unique_ptr<Event> event) override
     {
         if (event->type() == Event::Type::FdWaiterRead) {
             m_on_read();
@@ -131,7 +131,7 @@ public:
 
     inline bool expired() { return true; } // FIXME
 
-    void receive_event(UniquePtr<Event> event) override
+    void receive_event(std::unique_ptr<Event> event) override
     {
         m_callback();
     }
@@ -162,7 +162,7 @@ private:
 //     {
 //     }
 
-//     void receive_event(UniquePtr<Event> event) override
+//     void receive_event(std::unique_ptr<Event> event) override
 //     {
 //         if (event->type() == Event::Type::DeferredInvoke) {
 

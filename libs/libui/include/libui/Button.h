@@ -19,7 +19,7 @@ public:
 
     const String& title() const { return m_title; }
     void set_title(const String& title) { m_title = title, recalc_bounds(), set_needs_display(); }
-    void set_title(String&& title) { m_title = move(title), recalc_bounds(), set_needs_display(); }
+    void set_title(String&& title) { m_title = std::move(title), recalc_bounds(), set_needs_display(); }
 
     void set_title_color(const LG::Color& color) { m_title_color = color; }
     const LG::Color& title_color() const { return m_title_color; }

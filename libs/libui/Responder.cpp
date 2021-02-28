@@ -29,7 +29,7 @@ void Responder::send_display_message_to_self(Window& win, const LG::Rect& displa
     }
 }
 
-void Responder::receive_event(UniquePtr<LFoundation::Event> event)
+void Responder::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
     if (event->type() == Event::Type::MouseEvent) {
         MouseEvent& own_event = *(MouseEvent*)event.get();

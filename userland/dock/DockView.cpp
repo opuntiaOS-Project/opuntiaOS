@@ -49,7 +49,7 @@ void DockView::new_fast_launch_entity(const LG::String& icon_path, LG::String&& 
     auto* entity = new FastLaunchEntity();
     LG::PNG::PNGLoader loader;
     entity->set_icon(loader.load_from_file(icon_path + "/32x32.png"));
-    entity->set_path_to_exec(move(exec_path));
+    entity->set_path_to_exec(std::move(exec_path));
     m_fast_launch_entites.push_back(entity);
     m_fast_launch_entites_count++;
     set_needs_display();
