@@ -6,7 +6,7 @@
 #include <libipc/ClientConnection.h>
 #include <libipc/ServerConnection.h>
 #include <libg/Rect.h>
-#include <libg/String.h>
+#include <libg/string.h>
 #include <new>
 
 class GreetMessage : public Message {
@@ -59,7 +59,7 @@ private:
 
 class CreateWindowMessage : public Message {
 public:
-    CreateWindowMessage(message_key_t key,int type,uint32_t width,uint32_t height,int buffer_id,LG::String icon_path)
+    CreateWindowMessage(message_key_t key,int type,uint32_t width,uint32_t height,int buffer_id,LG::string icon_path)
         : m_key(key)
         , m_type(type)
         , m_width(width)
@@ -76,7 +76,7 @@ public:
     uint32_t width() const { return m_width; }
     uint32_t height() const { return m_height; }
     int buffer_id() const { return m_buffer_id; }
-    LG::String icon_path() const { return m_icon_path; }
+    LG::string icon_path() const { return m_icon_path; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -96,7 +96,7 @@ private:
     uint32_t m_width;
     uint32_t m_height;
     int m_buffer_id;
-    LG::String m_icon_path;
+    LG::string m_icon_path;
 };
 
 class CreateWindowMessageReply : public Message {
@@ -247,7 +247,7 @@ private:
 
 class SetTitleMessage : public Message {
 public:
-    SetTitleMessage(message_key_t key,uint32_t window_id,LG::String title)
+    SetTitleMessage(message_key_t key,uint32_t window_id,LG::string title)
         : m_key(key)
         , m_window_id(window_id)
         , m_title(title)
@@ -258,7 +258,7 @@ public:
     int key() const override { return m_key; }
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
-    LG::String title() const { return m_title; }
+    LG::string title() const { return m_title; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -272,7 +272,7 @@ public:
 private:
     message_key_t m_key;
     uint32_t m_window_id;
-    LG::String m_title;
+    LG::string m_title;
 };
 
 class InvalidateMessage : public Message {
@@ -357,13 +357,13 @@ public:
         uint32_t var_width;
         uint32_t var_height;
         int var_buffer_id;
-        LG::String var_icon_path;
+        LG::string var_icon_path;
         uint32_t var_window_id;
         uint32_t var_status;
         int var_format;
         uint32_t var_color;
         int var_text_style;
-        LG::String var_title;
+        LG::string var_title;
         LG::Rect var_rect;
         uint32_t var_target_window_id;
         
@@ -705,7 +705,7 @@ private:
 
 class NotifyWindowIconChangedMessage : public Message {
 public:
-    NotifyWindowIconChangedMessage(message_key_t key,int win_id,int changed_window_id,LG::String icon_path)
+    NotifyWindowIconChangedMessage(message_key_t key,int win_id,int changed_window_id,LG::string icon_path)
         : m_key(key)
         , m_win_id(win_id)
         , m_changed_window_id(changed_window_id)
@@ -718,7 +718,7 @@ public:
     int decoder_magic() const override { return 737; }
     int win_id() const { return m_win_id; }
     int changed_window_id() const { return m_changed_window_id; }
-    LG::String icon_path() const { return m_icon_path; }
+    LG::string icon_path() const { return m_icon_path; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -734,7 +734,7 @@ private:
     message_key_t m_key;
     int m_win_id;
     int m_changed_window_id;
-    LG::String m_icon_path;
+    LG::string m_icon_path;
 };
 
 class WindowClientDecoder : public MessageDecoder {
@@ -762,7 +762,7 @@ public:
         LG::Rect var_rect;
         int var_reason;
         int var_changed_window_id;
-        LG::String var_icon_path;
+        LG::string var_icon_path;
         
         switch(msg_id) {
         case 1:

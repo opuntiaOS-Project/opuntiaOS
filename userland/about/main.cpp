@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
     auto& target_label = superview.add_subview<UI::Label>(LG::Rect(16 + label.bounds().width() + 8, 16, 16, 16));
     target_label.set_text_color(LG::Color::LightSystemText);
-    target_label.set_text(LG::String("for ") + uts.machine);
+    target_label.set_text(LG::string("for ") + uts.machine);
     target_label.set_width(target_label.preferred_width());
 
     auto& version_label = superview.add_subview<UI::Label>(LG::Rect(16, 16 + label.bounds().height() + 8, 16, 16));

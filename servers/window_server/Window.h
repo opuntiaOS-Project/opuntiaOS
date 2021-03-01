@@ -68,19 +68,19 @@ public:
     void make_frame();
     void make_frameless();
 
-    inline void set_icon(LG::String&& name)
+    inline void set_icon(LG::string&& name)
     {
         m_icon_path = std::move(name);
         m_frame.reload_icon();
     }
 
-    inline void set_icon(const LG::String& name)
+    inline void set_icon(const LG::string& name)
     {
         m_icon_path = name;
         m_frame.reload_icon();
     }
 
-    inline const LG::String& icon_path() const { return m_icon_path; }
+    inline const LG::string& icon_path() const { return m_icon_path; }
 
 private:
     int m_id { -1 };
@@ -92,5 +92,5 @@ private:
     LG::PixelBitmap m_content_bitmap;
     SharedBuffer<LG::Color> m_buffer;
     WindowFrame m_frame;
-    LG::String m_icon_path {};
+    LG::string m_icon_path {};
 };

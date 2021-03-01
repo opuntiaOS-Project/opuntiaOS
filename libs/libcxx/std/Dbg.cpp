@@ -1,7 +1,7 @@
 #include <std/Dbg.h>
 #include <unistd.h>
 
-const Dbg& operator<<(const Dbg& stream, const String& value)
+const Dbg& operator<<(const Dbg& stream, const std::string& value)
 {
     write(stream.m_fd, value.data(), value.size());
     return stream;
@@ -50,7 +50,7 @@ const Dbg& operator<<(const Dbg& stream, unsigned long value)
 
 // DbgPid
 
-const DbgPid& operator<<(const DbgPid& stream, const String& value)
+const DbgPid& operator<<(const DbgPid& stream, const std::string& value)
 {
     if (getpid() == stream.pid())
         Dbg() << value;

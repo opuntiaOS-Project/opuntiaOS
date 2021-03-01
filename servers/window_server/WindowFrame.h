@@ -37,9 +37,9 @@ public:
 
     void receive_tap_event(const LG::Point<int>& tap);
 
-    void set_app_name(const String& title);
-    void set_app_name(String&& title);
-    void add_control(const String& title);
+    void set_app_name(const std::string& title);
+    void set_app_name(std::string&& title);
+    void add_control(const std::string& title);
 
     inline std::vector<Button*>& window_control_buttons() { return m_window_control_buttons; }
     inline const std::vector<Button*>& window_control_buttons() const { return m_window_control_buttons; }

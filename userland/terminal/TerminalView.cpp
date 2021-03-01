@@ -18,7 +18,7 @@ TerminalView::TerminalView(const LG::Rect& frame, int ptmx)
             char text[256];
             int cnt = read(this_view->ptmx(), text, 255);
             text[cnt] = '\0';
-            this_view->put_text(String(text, cnt));
+            this_view->put_text(std::string(text, cnt));
         },
         nullptr);
     recalc_dimensions(frame);
@@ -150,7 +150,7 @@ void TerminalView::push_back_char(char c)
     increment_counter();
 }
 
-void TerminalView::put_text(const String& data)
+void TerminalView::put_text(const std::string& data)
 {
     auto current_pos = pos_on_screen();
     LG::Point<int> top_left_update_location { current_pos.x(), current_pos.y() };

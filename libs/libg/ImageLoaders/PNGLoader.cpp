@@ -18,7 +18,7 @@ namespace LG::PNG {
 constexpr int png_header_size = 8;
 static uint8_t png_header[] = { 137, 80, 78, 71, 13, 10, 26, 10 };
 
-PixelBitmap PNGLoader::load_from_file(const String& path)
+PixelBitmap PNGLoader::load_from_file(const std::string& path)
 {
     int fd = open(path.c_str(), O_RDONLY);
     if (fd < 0) {

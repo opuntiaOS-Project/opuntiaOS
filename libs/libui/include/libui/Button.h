@@ -9,7 +9,7 @@
 #include <libg/Font.h>
 #include <libui/EdgeInsets.h>
 #include <libui/View.h>
-#include <std/String.h>
+#include <string>
 
 namespace UI {
 
@@ -17,9 +17,9 @@ class Button : public View {
 public:
     explicit Button(const LG::Rect&);
 
-    const String& title() const { return m_title; }
-    void set_title(const String& title) { m_title = title, recalc_bounds(), set_needs_display(); }
-    void set_title(String&& title) { m_title = std::move(title), recalc_bounds(), set_needs_display(); }
+    const std::string& title() const { return m_title; }
+    void set_title(const std::string& title) { m_title = title, recalc_bounds(), set_needs_display(); }
+    void set_title(std::string&& title) { m_title = std::move(title), recalc_bounds(), set_needs_display(); }
 
     void set_title_color(const LG::Color& color) { m_title_color = color; }
     const LG::Color& title_color() const { return m_title_color; }
@@ -42,7 +42,7 @@ private:
     static constexpr uint32_t std_background_color() { return 0x00EBEBEB; }
     LG::Color m_background_color_storage;
 
-    String m_title {};
+    std::string m_title {};
     LG::Color m_title_color { LG::Color::White };
     LG::Font m_font { LG::Font::system_font() };
 

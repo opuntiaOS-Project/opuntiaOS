@@ -9,7 +9,7 @@
 
 #include <libfoundation/Event.h>
 #include <libg/Rect.h>
-#include <libg/String.h>
+#include <libg/string.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -190,14 +190,14 @@ private:
 
 class NotifyWindowIconChangedEvent : public Event {
 public:
-    NotifyWindowIconChangedEvent(uint32_t changed_window_id, const LG::String& path)
+    NotifyWindowIconChangedEvent(uint32_t changed_window_id, const LG::string& path)
         : Event(Event::Type::NotifyWindowIconChangedEvent)
         , m_changed_window_id(changed_window_id)
         , m_icon_path(path)
     {
     }
 
-    NotifyWindowIconChangedEvent(uint32_t changed_window_id, LG::String&& path)
+    NotifyWindowIconChangedEvent(uint32_t changed_window_id, LG::string&& path)
         : Event(Event::Type::NotifyWindowIconChangedEvent)
         , m_changed_window_id(changed_window_id)
         , m_icon_path(std::move(path))
@@ -206,11 +206,11 @@ public:
 
     ~NotifyWindowIconChangedEvent() = default;
     uint32_t changed_window_id() const { return m_changed_window_id; }
-    const LG::String& icon_path() const { return m_icon_path; }
+    const LG::string& icon_path() const { return m_icon_path; }
 
 private:
     uint32_t m_changed_window_id;
-    LG::String m_icon_path;
+    LG::string m_icon_path;
 };
 
 }

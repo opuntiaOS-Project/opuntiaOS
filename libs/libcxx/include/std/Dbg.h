@@ -1,5 +1,5 @@
 #pragma once
-#include <std/String.h>
+#include <string>
 #include <syscalls.h>
 
 class Dbg {
@@ -7,7 +7,7 @@ public:
     Dbg() = default;
     ~Dbg() = default;
 
-    friend const Dbg& operator<<(const Dbg& os, const String& value);
+    friend const Dbg& operator<<(const Dbg& os, const std::string& value);
     friend const Dbg& operator<<(const Dbg& os, int value);
     friend const Dbg& operator<<(const Dbg& stream, uint32_t value);
     friend const Dbg& operator<<(const Dbg& stream, unsigned long value);
@@ -25,7 +25,7 @@ public:
 
     ~DbgPid() = default;
 
-    friend const DbgPid& operator<<(const DbgPid& os, const String& value);
+    friend const DbgPid& operator<<(const DbgPid& os, const std::string& value);
     friend const DbgPid& operator<<(const DbgPid& os, int value);
     friend const DbgPid& operator<<(const DbgPid& stream, uint32_t value);
     friend const DbgPid& operator<<(const DbgPid& stream, unsigned long value);

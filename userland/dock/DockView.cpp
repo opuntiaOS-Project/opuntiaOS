@@ -44,7 +44,7 @@ void DockView::display(const LG::Rect& rect)
     }
 }
 
-void DockView::new_fast_launch_entity(const LG::String& icon_path, LG::String&& exec_path)
+void DockView::new_fast_launch_entity(const LG::string& icon_path, LG::string&& exec_path)
 {
     auto* entity = new FastLaunchEntity();
     LG::PNG::PNGLoader loader;
@@ -85,7 +85,7 @@ void DockView::remove_entity(int window_id)
     set_needs_display();
 }
 
-void DockView::set_icon(int window_id, const LG::String& path)
+void DockView::set_icon(int window_id, const LG::string& path)
 {
     auto* ent = find_entity(window_id);
     if (!ent) {

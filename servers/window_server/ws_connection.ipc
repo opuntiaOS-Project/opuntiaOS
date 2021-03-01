@@ -3,11 +3,11 @@
     NAME: WindowServerDecoder
     MAGIC: 320
     GreetMessage() => GreetMessageReply(uint32_t connection_id)
-    CreateWindowMessage(int type, uint32_t width, uint32_t height, int buffer_id, LG::String icon_path) => CreateWindowMessageReply(uint32_t window_id)
+    CreateWindowMessage(int type, uint32_t width, uint32_t height, int buffer_id, LG::string icon_path) => CreateWindowMessageReply(uint32_t window_id)
     DestroyWindowMessage(uint32_t window_id) => DestroyWindowMessageReply(uint32_t status)
     SetBufferMessage(uint32_t window_id, int buffer_id, int format)
     SetBarStyleMessage(uint32_t window_id, uint32_t color, int text_style)
-    SetTitleMessage(uint32_t window_id, LG::String title)
+    SetTitleMessage(uint32_t window_id, LG::string title)
     InvalidateMessage(uint32_t window_id, LG::Rect rect)
     AskBringToFrontMessage(uint32_t window_id, uint32_t target_window_id)
 }
@@ -24,5 +24,5 @@
     DisconnectMessage(int reason)
 
     NotifyWindowStatusChangedMessage(int win_id, int changed_window_id, int type)
-    NotifyWindowIconChangedMessage(int win_id, int changed_window_id, LG::String icon_path)
+    NotifyWindowIconChangedMessage(int win_id, int changed_window_id, LG::string icon_path)
 }

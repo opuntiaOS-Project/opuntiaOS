@@ -4,7 +4,7 @@
 #include <libg/Font.h>
 #include <libui/View.h>
 #include <std/LinkedList.h>
-#include <std/String.h>
+#include <string>
 
 class DockView : public UI::View {
 public:
@@ -16,9 +16,9 @@ public:
     DockEntity* find_entity(int window_id);
     void new_entity(int window_id);
     void remove_entity(int window_id);
-    void set_icon(int window_id, const LG::String& path);
+    void set_icon(int window_id, const LG::string& path);
 
-    void new_fast_launch_entity(const LG::String& icon_path, LG::String&& exec_path);
+    void new_fast_launch_entity(const LG::string& icon_path, LG::string&& exec_path);
 
 private:
     void launch(const FastLaunchEntity& ent);

@@ -11,7 +11,7 @@
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
-#include <std/String.h>
+#include <string>
 
 namespace LG::PNG {
 
@@ -128,7 +128,7 @@ public:
     PNGLoader() = default;
     ~PNGLoader() = default;
 
-    PixelBitmap load_from_file(const Algo::String& path);
+    PixelBitmap load_from_file(const std::string& path);
     PixelBitmap load_from_mem(const uint8_t* ptr);
 
     inline DataStreamer& streamer() { return m_streamer; }

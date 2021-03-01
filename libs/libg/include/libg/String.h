@@ -11,15 +11,15 @@
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
 #include <libipc/Encoder.h>
-#include <std/String.h>
+#include <string>
 #include <sys/types.h>
 #include <syscalls.h>
 
 namespace LG {
 
-class String : public ::String, public Encodable<String>, public Decodable<String> {
+class string : public std::string, public Encodable<string>, public Decodable<string> {
 public:
-    using ::String::String;
+    using std::string::string;
 
     void encode(EncodedMessage& buf) const override
     {

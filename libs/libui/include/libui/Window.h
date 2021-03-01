@@ -11,7 +11,7 @@
 #include <libfoundation/EventReceiver.h>
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
-#include <libg/String.h>
+#include <libg/string.h>
 #include <libui/View.h>
 #include <sys/SharedBuffer.h>
 #include <sys/types.h>
@@ -27,7 +27,7 @@ class Window : public LFoundation::EventReceiver {
 public:
     Window();
     Window(uint32_t width, uint32_t height, WindowType type = WindowType::Standard);
-    Window(uint32_t width, uint32_t height, const LG::String& path);
+    Window(uint32_t width, uint32_t height, const LG::string& path);
 
     int id() const { return m_id; }
     inline WindowType type() const { return m_type; }
@@ -59,11 +59,11 @@ public:
 
     inline const LG::Rect& bounds() const { return m_bounds; }
 
-    bool set_title(const LG::String& title);
+    bool set_title(const LG::string& title);
     bool set_frame_style(const LG::Color& color);
     bool did_format_change();
 
-    inline const LG::String& icon_path() const { return m_icon_path; }
+    inline const LG::string& icon_path() const { return m_icon_path; }
 
 private:
     uint32_t m_id;
@@ -73,7 +73,7 @@ private:
     SharedBuffer<LG::Color> m_buffer;
     View* m_superview { nullptr };
     View* m_focused_view { nullptr };
-    LG::String m_icon_path { "/res/icons/apps/missing.icon" };
+    LG::string m_icon_path { "/res/icons/apps/missing.icon" };
 };
 
 }

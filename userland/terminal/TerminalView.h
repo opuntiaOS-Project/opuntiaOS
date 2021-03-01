@@ -1,7 +1,7 @@
 #pragma once
 #include <libg/Font.h>
 #include <libui/View.h>
-#include <std/String.h>
+#include <string>
 
 enum WindowStatus {
     Normal,
@@ -46,7 +46,7 @@ private:
 
     void recalc_dimensions(const LG::Rect&);
     void put_char(char c);
-    void put_text(const String& data);
+    void put_text(const std::string& data);
     void push_back_char(char c);
     void send_input();
 
@@ -71,7 +71,7 @@ private:
     constexpr int cursor_width() const { return 5; }
 
     int m_ptmx { -1 };
-    String m_input {};
+    std::string m_input {};
 
     size_t m_max_cols { 0 };
     size_t m_max_rows { 0 };

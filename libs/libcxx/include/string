@@ -1,15 +1,20 @@
-#pragma once
+#pragma GCC system_header
+
+#ifndef _LIBCXX_STRING
+#define _LIBCXX_STRING
+
+#include <__config>
 #include <cstring>
-#include <memory>
 #include <new>
+#include <utility>
 
-namespace Algo {
+_LIBCXX_BEGIN_NAMESPACE_STD
 
-class String {
+class string {
 public:
-    String() = default;
+    string() = default;
 
-    String(const char* str)
+    string(const char* str)
     {
         m_size = strlen(str);
         ensure_capacity(m_size + 1);
@@ -17,7 +22,7 @@ public:
         m_str[m_size] = '\0';
     }
 
-    String(const char* str, uint32_t size)
+    string(const char* str, uint32_t size)
     {
         m_size = size;
         ensure_capacity(m_size + 1);
@@ -25,7 +30,7 @@ public:
         m_str[m_size] = '\0';
     }
 
-    String(const String& s)
+    string(const string& s)
     {
         grow(s.m_capacity);
         m_size = s.m_size;
@@ -33,7 +38,7 @@ public:
         m_str[m_size] = '\0';
     }
 
-    String(String&& s)
+    string(string&& s)
     {
         m_size = s.m_size;
         m_capacity = s.m_capacity;
@@ -42,12 +47,12 @@ public:
         s.m_str = nullptr;
     }
 
-    ~String()
+    ~string()
     {
         clear();
     }
 
-    String& operator=(const String& s)
+    string& operator=(const string& s)
     {
         grow(s.m_capacity);
         m_size = s.m_size;
@@ -56,7 +61,7 @@ public:
         return *this;
     }
 
-    String& operator=(String&& s)
+    string& operator=(string&& s)
     {
         if (this != &s) {
             clear();
@@ -69,7 +74,7 @@ public:
         return *this;
     }
 
-    String& operator+=(const String& s)
+    string& operator+=(const string& s)
     {
         ensure_capacity(size() + s.size() + 1);
         memcpy((uint8_t*)end(), (uint8_t*)s.m_str, s.size());
@@ -78,17 +83,17 @@ public:
         return *this;
     }
 
-    String operator+(const String& s) const
+    string operator+(const string& s) const
     {
-        String res(*this);
+        string res(*this);
         res += s;
         return res;
     }
 
-    String operator+(const char* s) const
+    string operator+(const char* s) const
     {
-        String res(*this);
-        res += String(s);
+        string res(*this);
+        res += string(s);
         return res;
     }
 
@@ -163,6 +168,7 @@ private:
     size_t m_capacity { 0 };
     char* m_str { nullptr };
 };
-}
 
-using Algo::String;
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_STRING

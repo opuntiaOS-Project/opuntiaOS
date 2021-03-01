@@ -9,7 +9,7 @@
 
 #include <libg/Color.h>
 #include <libg/Context.h>
-#include <std/String.h>
+#include <string>
 
 class Button {
 public:
@@ -17,9 +17,9 @@ public:
     ~Button() = default;
 
     void display();
-    void set_title(const String& title) { m_title = title, recalc_dims(); }
-    void set_title(String&& title) { m_title = std::move(title), recalc_dims(); }
-    const String& title() const { return m_title; }
+    void set_title(const std::string& title) { m_title = title, recalc_dims(); }
+    void set_title(std::string&& title) { m_title = std::move(title), recalc_dims(); }
+    const std::string& title() const { return m_title; }
 
     void set_font(const LG::Font& font) { m_font = font, recalc_dims(); }
     void set_icon(const LG::GlyphBitmap& icon) { m_is_icon_set = true, m_icon = icon, recalc_dims(); }
@@ -40,7 +40,7 @@ private:
     inline size_t text_height() const { return font().glyph_height(); }
 
     LG::Rect m_bounds {};
-    String m_title {};
+    std::string m_title {};
     LG::Font m_font { LG::Font::system_font() };
     LG::Color m_title_color;
     LG::GlyphBitmap m_icon;

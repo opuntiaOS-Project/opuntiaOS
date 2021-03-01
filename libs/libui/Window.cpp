@@ -28,7 +28,7 @@ Window::Window(uint32_t width, uint32_t height, WindowType type)
     App::the().set_window(this);
 }
 
-Window::Window(uint32_t width, uint32_t height, const LG::String& icon_path)
+Window::Window(uint32_t width, uint32_t height, const LG::string& icon_path)
     : m_bounds(0, 0, width, height)
     , m_buffer(size_t(width * height * 4))
     , m_bitmap()
@@ -39,7 +39,7 @@ Window::Window(uint32_t width, uint32_t height, const LG::String& icon_path)
     App::the().set_window(this);
 }
 
-bool Window::set_title(const LG::String& title)
+bool Window::set_title(const LG::string& title)
 {
     SetTitleMessage msg(Connection::the().key(), id(), title);
     return App::the().connection().send_async_message(msg);

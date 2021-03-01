@@ -83,7 +83,7 @@ WindowFrame::WindowFrame(Window& window, std::vector<Button*>&& control_panel_bu
 {
 }
 
-void WindowFrame::set_app_name(const String& title)
+void WindowFrame::set_app_name(const std::string& title)
 {
     if (m_control_panel_buttons.size() > 0) {
         m_control_panel_buttons[0]->set_title(title);
@@ -94,7 +94,7 @@ void WindowFrame::set_app_name(const String& title)
     }
 }
 
-void WindowFrame::set_app_name(String&& title)
+void WindowFrame::set_app_name(std::string&& title)
 {
     if (m_control_panel_buttons.size() > 0) {
         m_control_panel_buttons[0]->set_title(title);
@@ -107,7 +107,7 @@ void WindowFrame::set_app_name(String&& title)
     Compositor::the().invalidate(bounds());
 }
 
-void WindowFrame::add_control(const String& title)
+void WindowFrame::add_control(const std::string& title)
 {
     auto* new_control = new Button();
     new_control->set_title(title);

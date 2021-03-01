@@ -9,7 +9,7 @@
 #include <libg/Font.h>
 #include <libui/EdgeInsets.h>
 #include <libui/View.h>
-#include <std/String.h>
+#include <string>
 
 namespace UI {
 
@@ -17,9 +17,9 @@ class Label : public View {
 public:
     explicit Label(const LG::Rect&);
 
-    const String& text() const { return m_text; }
-    void set_text(const String& text) { m_text = text; }
-    void set_text(String&& text) { m_text = std::move(text); }
+    const std::string& text() const { return m_text; }
+    void set_text(const std::string& text) { m_text = text; }
+    void set_text(std::string&& text) { m_text = std::move(text); }
 
     void set_text_color(const LG::Color& color) { m_text_color = color; }
     const LG::Color& text_color() const { return m_text_color; }
@@ -41,7 +41,7 @@ private:
     size_t text_height() const;
     size_t text_width() const;
 
-    String m_text {};
+    std::string m_text {};
     LG::Color m_text_color { LG::Color::Black };
     LG::Font m_font { LG::Font::system_font() };
 
