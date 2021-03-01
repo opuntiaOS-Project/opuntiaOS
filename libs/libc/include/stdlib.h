@@ -8,17 +8,20 @@
 __BEGIN_DECLS
 
 #ifndef NOMINMAX
+#ifndef max
 #define max(a, b) \
     ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
+#endif /* max */
 
+#ifndef min
 #define min(a, b) \
     ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
+#endif /* min */
 #endif /* NOMINMAX */
-
 
 static inline int abs(int i)
 {
