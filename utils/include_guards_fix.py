@@ -54,5 +54,5 @@ def fix_guards(file):
     
 for root, subdirs, files in os.walk(walk_dir):
     for x in files:
-        if x.endswith(".h") or x.endswith(".hpp"):
+        if x.endswith(".h") or x.endswith(".hpp") or root.find("/libcxx/include") != -1:
             fix_guards(os.path.join(root, x))
