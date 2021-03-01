@@ -114,13 +114,13 @@ public:
     inline void set_color_length(uint8_t color_length) { m_color_length = color_length; }
     inline uint8_t color_length() const { return m_color_length; }
 
-    inline Vector<Scanline>& scanlines() { return m_data; }
-    inline const Vector<Scanline>& scanlines() const { return m_data; }
+    inline std::vector<Scanline>& scanlines() { return m_data; }
+    inline const std::vector<Scanline>& scanlines() const { return m_data; }
 
 private:
     uint8_t m_color_length { 0 };
     void* m_ptr { nullptr };
-    Vector<Scanline> m_data;
+    std::vector<Scanline> m_data;
 };
 
 class PNGLoader {
@@ -149,7 +149,7 @@ private:
     void unfilter_scanlines();
     void copy_scanlines_to_bitmap(PixelBitmap& bitmap);
 
-    Vector<uint8_t> m_compressed_data;
+    std::vector<uint8_t> m_compressed_data;
     DataStreamer m_streamer;
     IHDRChunk m_ihdr_chunk;
     ScanlineKeeper m_scanline_keeper;

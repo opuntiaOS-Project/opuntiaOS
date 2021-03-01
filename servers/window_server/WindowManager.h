@@ -17,7 +17,7 @@
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
 #include <std/LinkedList.h>
-#include <std/Vector.h>
+#include <vector>
 #include <syscalls.h>
 
 class WindowManager : public LFoundation::EventReceiver {

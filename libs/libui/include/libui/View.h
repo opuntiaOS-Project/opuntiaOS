@@ -10,7 +10,7 @@
 #include <libg/Point.h>
 #include <libg/Rect.h>
 #include <libui/Responder.h>
-#include <std/Vector.h>
+#include <vector>
 #include <syscalls.h>
 
 namespace UI {
@@ -68,8 +68,8 @@ public:
     inline Window* window() { return m_window; }
     inline bool has_superview() { return m_superview; }
     inline View* superview() { return m_superview; }
-    inline Vector<View*>& subviews() { return m_subviews; }
-    inline const Vector<View*>& subviews() const { return m_subviews; }
+    inline std::vector<View*>& subviews() { return m_subviews; }
+    inline const std::vector<View*>& subviews() const { return m_subviews; }
 
     void set_needs_display(const LG::Rect&);
     inline void set_needs_display() { set_needs_display(bounds()); }
@@ -109,7 +109,7 @@ private:
 
     View* m_superview { nullptr };
     Window* m_window { nullptr };
-    Vector<View*> m_subviews;
+    std::vector<View*> m_subviews;
     LG::Rect m_frame;
     LG::Rect m_bounds;
 

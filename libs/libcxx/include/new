@@ -1,7 +1,7 @@
 #pragma GCC system_header
 
-#ifndef __oneOS__LibCXX__NEW
-#define __oneOS__LibCXX__NEW
+#ifndef _LIBCXX_NEW
+#define _LIBCXX_NEW
 
 #include <cstdlib>
 
@@ -52,4 +52,4 @@ inline T& create(Args&&... args)
     return *newobject;
 }
 
-#endif // __oneOS__LibCXX__NEW
+#endif // _LIBCXX_NEW

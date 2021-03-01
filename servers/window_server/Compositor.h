@@ -9,7 +9,7 @@
 #include "WSConnection.h"
 #include "WSServerDecoder.h"
 #include <libipc/ServerConnection.h>
-#include <std/Vector.h>
+#include <vector>
 #include <syscalls.h>
 
 class CursorManager;
@@ -22,7 +22,7 @@ public:
 
     void refresh();
 
-    void optimized_invalidate_insert(Vector<LG::Rect>& data, const LG::Rect& area)
+    void optimized_invalidate_insert(std::vector<LG::Rect>& data, const LG::Rect& area)
     {
         LG::Rect area_union;
         size_t area_square = area.square();
@@ -47,9 +47,9 @@ public:
     inline const ResourceManager& resource_manager() const { return m_resource_manager; }
 
 private:
-    void copy_changes_to_second_buffer(const Vector<LG::Rect>& areas);
+    void copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas);
 
     CursorManager& m_cursor_manager;
     ResourceManager& m_resource_manager;
-    Vector<LG::Rect> m_invalidated_areas;
+    std::vector<LG::Rect> m_invalidated_areas;
 };

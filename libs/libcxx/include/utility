@@ -1,4 +1,7 @@
-#pragma once
+#pragma GCC system_header
+
+#ifndef _LIBCXX_UTILITY
+#define _LIBCXX_UTILITY
 
 #include <__config>
 
@@ -19,3 +22,5 @@ inline void swap(T& a, U& b)
 }
 
 _LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_UTILITY

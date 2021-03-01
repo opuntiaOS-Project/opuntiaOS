@@ -1,33 +1,37 @@
-#pragma once
-#include <memory>
-#include <new>
-#include <std/Dbg.h>
+#pragma GCC system_header
 
-namespace Algo {
+#ifndef _LIBCXX_VECTOR
+#define _LIBCXX_VECTOR
+
+#include <__config>
+#include <new>
+#include <utility>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
 
 template <class T>
-class Vector {
+class vector {
 public:
     typedef T* iterator;
 
-    Vector()
+    vector()
     {
         grow(m_capacity);
     }
 
-    explicit Vector(int capacity)
+    explicit vector(int capacity)
     {
         grow(capacity);
     }
 
-    Vector(const Vector& v)
+    vector(const vector& v)
     {
         grow(v.m_capacity);
         m_size = v.m_size;
         copy(m_data, v.m_data, m_size);
     }
 
-    Vector(Vector&& v)
+    vector(vector&& v)
     {
         m_size = v.m_size;
         m_capacity = v.m_capacity;
@@ -36,12 +40,12 @@ public:
         v.m_data = nullptr;
     }
 
-    ~Vector()
+    ~vector()
     {
         clear();
     }
 
-    Vector& operator=(const Vector& v)
+    vector& operator=(const vector& v)
     {
         grow(v.m_capacity);
         m_size = v.m_size;
@@ -49,7 +53,7 @@ public:
         return *this;
     }
 
-    Vector& operator=(Vector&& v)
+    vector& operator=(vector&& v)
     {
         if (this != &v) {
             clear();
@@ -111,13 +115,14 @@ public:
     }
 
     inline size_t size() const { return m_size; }
+    inline size_t capacity() const { return m_capacity; }
 
     inline const T& operator[](size_t i) const { return at(i); }
     inline T& operator[](size_t i) { return at(i); }
-
+    inline const T& front() const { return at(0); }
+    inline T& front() { return at(0); }
     inline const T& back() const { return at(size() - 1); }
     inline T& back() { return at(size() - 1); }
-
     inline T* data() { return m_data; }
     inline const T* data() const { return m_data; }
 
@@ -167,6 +172,7 @@ private:
     size_t m_capacity { 16 };
     T* m_data { nullptr };
 };
-}
 
-using Algo::Vector;
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_VECTOR

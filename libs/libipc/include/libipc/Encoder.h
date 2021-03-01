@@ -1,7 +1,7 @@
 #pragma once
-#include <std/Vector.h>
+#include <vector>
 
-typedef Vector<uint8_t> EncodedMessage;
+typedef std::vector<uint8_t> EncodedMessage;
 
 class Encoder {
 public:

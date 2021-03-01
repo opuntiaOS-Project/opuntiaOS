@@ -76,7 +76,7 @@ WindowFrame::WindowFrame(Window& window)
     m_window_control_buttons.push_back(minimize);
 }
 
-WindowFrame::WindowFrame(Window& window, Vector<Button*>&& control_panel_buttons, Vector<Button*>&& window_control_buttons)
+WindowFrame::WindowFrame(Window& window, std::vector<Button*>&& control_panel_buttons, std::vector<Button*>&& window_control_buttons)
     : m_window(window)
     , m_window_control_buttons(std::move(window_control_buttons))
     , m_control_panel_buttons(std::move(control_panel_buttons))

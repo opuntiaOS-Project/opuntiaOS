@@ -33,7 +33,7 @@ Compositor::Compositor()
     }));
 }
 
-void Compositor::copy_changes_to_second_buffer(const Vector<LG::Rect>& areas)
+void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas)
 {
     auto& screen = Screen::the();
 
@@ -60,7 +60,7 @@ __attribute__((flatten)) void Compositor::refresh()
     auto invalidated_areas = std::move(m_invalidated_areas);
     LG::Context ctx(screen.write_bitmap());
 
-    auto is_window_area_invalidated = [&](const Vector<LG::Rect>& areas, const LG::Rect& area) -> bool {
+    auto is_window_area_invalidated = [&](const std::vector<LG::Rect>& areas, const LG::Rect& area) -> bool {
         for (int i = 0; i < areas.size(); i++) {
             if (area.intersects(areas[i])) {
                 return true;

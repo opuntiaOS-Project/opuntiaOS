@@ -18,7 +18,7 @@ class Compositor;
 class WindowFrame {
 public:
     explicit WindowFrame(Window& window);
-    WindowFrame(Window& window, Vector<Button*>&& control_panel_buttons, Vector<Button*>&& window_control_buttons);
+    WindowFrame(Window& window, std::vector<Button*>&& control_panel_buttons, std::vector<Button*>&& window_control_buttons);
     ~WindowFrame() = default;
 
     void draw(LG::Context&);
@@ -41,11 +41,11 @@ public:
     void set_app_name(String&& title);
     void add_control(const String& title);
 
-    inline Vector<Button*>& window_control_buttons() { return m_window_control_buttons; }
-    inline const Vector<Button*>& window_control_buttons() const { return m_window_control_buttons; }
+    inline std::vector<Button*>& window_control_buttons() { return m_window_control_buttons; }
+    inline const std::vector<Button*>& window_control_buttons() const { return m_window_control_buttons; }
 
-    inline Vector<Button*>& control_panel_buttons() { return m_control_panel_buttons; }
-    inline const Vector<Button*>& control_panel_buttons() const { return m_control_panel_buttons; }
+    inline std::vector<Button*>& control_panel_buttons() { return m_control_panel_buttons; }
+    inline const std::vector<Button*>& control_panel_buttons() const { return m_control_panel_buttons; }
     void handle_control_panel_tap(int button_id);
 
     inline LG::Color& color() { return m_color; }
@@ -75,8 +75,8 @@ public:
 
 private:
     Window& m_window;
-    Vector<Button*> m_window_control_buttons;
-    Vector<Button*> m_control_panel_buttons;
+    std::vector<Button*> m_window_control_buttons;
+    std::vector<Button*> m_control_panel_buttons;
     LG::Color m_color { LG::Color::LightSystemBackground };
     LG::PixelBitmap m_icon {};
     size_t m_top_border_size { std_top_border_size() };

@@ -2,7 +2,7 @@
 #include <libipc/Message.h>
 #include <libipc/MessageDecoder.h>
 #include <std/Dbg.h>
-#include <std/Vector.h>
+#include <vector>
 
 template <typename ServerDecoder, typename ClientDecoder>
 class ServerConnection {
@@ -23,7 +23,7 @@ public:
 
     void pump_messages()
     {
-        Vector<char> buf;
+        std::vector<char> buf;
 
         char tmpbuf[1024];
 

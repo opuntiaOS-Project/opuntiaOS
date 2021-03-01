@@ -1,5 +1,7 @@
 #pragma GCC system_header
-#pragma once
+
+#ifndef _LIBCXX_MEMORY
+#define _LIBCXX_MEMORY
 
 #include <__config>
 #include <cstddef>
@@ -97,3 +99,5 @@ private:
 };
 
 _LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_MEMORY

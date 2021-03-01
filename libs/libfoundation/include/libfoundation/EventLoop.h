@@ -10,7 +10,7 @@
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/Receivers.h>
 #include <memory>
-#include <std/Vector.h>
+#include <vector>
 #include <syscalls.h>
 
 namespace LFoundation {
@@ -77,8 +77,8 @@ public:
 private:
     bool m_stop_flag { false };
     int m_exit_code { 0 };
-    Vector<FDWaiter> m_waiting_fds;
-    Vector<Timer> m_timers;
-    Vector<QueuedEvent> m_event_queue;
+    std::vector<FDWaiter> m_waiting_fds;
+    std::vector<Timer> m_timers;
+    std::vector<QueuedEvent> m_event_queue;
 };
 }

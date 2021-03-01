@@ -1,7 +1,7 @@
 #pragma GCC system_header
 
-#ifndef __oneOS__LibCXX__CSTDDEF
-#define __oneOS__LibCXX__CSTDDEF
+#ifndef _LIBCXX_CSTDDEF
+#define _LIBCXX_CSTDDEF
 
 #include <__config>
 #include <stddef.h>
@@ -14,4 +14,4 @@ typedef decltype(nullptr) nullptr_t;
 
 _LIBCXX_END_NAMESPACE_STD
 
-#endif // __oneOS__LibCXX__CSTDDEF
+#endif // _LIBCXX_CSTDDEF

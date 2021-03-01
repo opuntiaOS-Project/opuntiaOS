@@ -7,8 +7,8 @@
 
 #pragma GCC system_header
 
-#ifndef __oneOS__LIBCXX__CASSERT
-#define __oneOS__LIBCXX__CASSERT
+#ifndef _LIBCXX_CASSERT
+#define _LIBCXX_CASSERT
 
 #include <cstdlib>
 #include <std/Dbg.h>
@@ -21,4 +21,4 @@
 
 #define ASSERT_NOT_REACHED() ASSERT(false)
 
-#endif // __oneOS__LIBCXX__CASSERT
+#endif // _LIBCXX_CASSERT

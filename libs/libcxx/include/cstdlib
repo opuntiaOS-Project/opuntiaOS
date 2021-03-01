@@ -1,7 +1,7 @@
 #pragma GCC system_header
 
-#ifndef __oneOS__LibCXX__CSTDLIB
-#define __oneOS__LibCXX__CSTDLIB
+#ifndef _LIBCXX_CSTDLIB
+#define _LIBCXX_CSTDLIB
 
 #include <__config>
 #include <stdlib.h>
@@ -20,4 +20,4 @@ using ::realloc;
 
 _LIBCXX_END_NAMESPACE_STD
 
-#endif // __oneOS__LibCXX__CSTDLIB
+#endif // _LIBCXX_CSTDLIB

@@ -1,4 +1,7 @@
-#pragma once
+#pragma GCC system_header
+
+#ifndef _LIBCXX_ALGORITHM
+#define _LIBCXX_ALGORITHM
 
 #include <__config>
 #include <__undef_macros>
@@ -18,3 +21,5 @@ static inline constexpr T max(const T& a, const T& b)
 }
 
 _LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_ALGORITHM

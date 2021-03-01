@@ -6,7 +6,7 @@
 #include <libipc/Message.h>
 #include <libipc/MessageDecoder.h>
 #include <std/Dbg.h>
-#include <std/Vector.h>
+#include <vector>
 #include <syscalls.h>
 #include <unistd.h>
 
@@ -50,7 +50,7 @@ public:
 
     void pump_messages()
     {
-        Vector<char> buf;
+        std::vector<char> buf;
 
         char tmpbuf[1024];
 
@@ -106,7 +106,7 @@ public:
 private:
     int m_accepted_key { -1 };
     int m_connection_fd;
-    Vector<std::unique_ptr<Message>> m_messages;
+    std::vector<std::unique_ptr<Message>> m_messages;
     ServerDecoder& m_server_decoder;
     ClientDecoder& m_client_decoder;
 };
