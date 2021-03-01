@@ -4,6 +4,7 @@ oneOS_static_library("libcxx") {
   sources = [
     # shared (with LibC)
     "../libc/dirent/dirent.c",
+    "../libc/init/_lib.c",
     "../libc/malloc/malloc.c",
     "../libc/posix/fs.c",
     "../libc/posix/sched.c",
@@ -18,8 +19,8 @@ oneOS_static_library("libcxx") {
     "../libc/sysdeps/unix/$target_cpu/crt0.s",
     "../libc/termios/termios.c",
 
-    # private
-    "private/_init.cpp",
+    #private
+    "init/_init.cpp",
     "std/Dbg.cpp",
   ]
 

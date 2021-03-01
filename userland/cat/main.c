@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <syscalls.h>
 #include <unistd.h>
@@ -9,7 +10,7 @@ void cat(int fd)
 {
     int n = 0;
     while ((n = read(fd, buf, sizeof(buf))) > 0) {
-        if (write(1, buf, n) != n) {
+        if (fwrite(buf, n, 1, stdout) != n) {
             exit(1);
         }
     }
@@ -30,7 +31,7 @@ int main(int argc, char** argv)
             return 1;
         }
         cat(fd);
-        // close(fd);
+        close(fd);
     }
     return 0;
 }

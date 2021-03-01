@@ -19,15 +19,26 @@ struct __fbuf {
 };
 typedef struct __fbuf __fbuf_t;
 
+struct __rwbuf {
+    __fbuf_t rbuf;
+    __fbuf_t wbuf;
+    char* base;
+    size_t size;
+};
+typedef struct __rwbuf __rwbuf_t;
+
 struct __file {
     int _flags; /* flags, below; this FILE is free if 0 */
     int _file; /* fileno, if Unix descriptor, else -1 */
     size_t _r; /* read space left */
     size_t _w; /* write space left */
-    __fbuf_t _rbuf; /* read buffer */
-    __fbuf_t _wbuf; /* write buffer */
+    __rwbuf_t _bf; /* rw buffer */
 };
 typedef struct __file FILE;
+
+extern FILE* stdin;
+extern FILE* stdout;
+extern FILE* stderr;
 
 FILE* fopen(const char* filename, const char* mode);
 int fclose(FILE* stream);
@@ -35,6 +46,10 @@ int fclose(FILE* stream);
 size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream);
 int fseek(FILE* stream, uint32_t offset, int whence);
+
+int setvbuf(FILE* stream, char* buf, int mode, size_t size);
+void setbuf(FILE* stream, char* buf);
+void setlinebuf(FILE* stream);
 
 __END_DECLS
 

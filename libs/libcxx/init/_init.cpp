@@ -1,12 +1,14 @@
-extern "C" {
-
 #include <cstddef>
 #include <sys/types.h>
 
-int errno;
+extern "C" {
+extern void _libc_init();
+extern void _libc_deinit();
 
 void _init()
 {
+    _libc_init();
+
     extern void (*__init_array_start[])(int, char**, char**) __attribute__((visibility("hidden")));
     extern void (*__init_array_end[])(int, char**, char**) __attribute__((visibility("hidden")));
 
@@ -14,5 +16,10 @@ void _init()
     for (size_t i = 0; i < size; i++) {
         (*__init_array_start[i])(0, 0, 0);
     }
+}
+
+void _deinit()
+{
+    _libc_deinit();
 }
 }

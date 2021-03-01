@@ -2,8 +2,8 @@ import("//build/libs/TEMPLATE.gni")
 
 oneOS_static_library("libc") {
   sources = [
-    # shared (with CXX)
     "dirent/dirent.c",
+    "init/_lib.c",
     "malloc/malloc.c",
     "posix/fs.c",
     "posix/sched.c",
@@ -19,7 +19,7 @@ oneOS_static_library("libc") {
     "termios/termios.c",
 
     # private
-    "private/_init.c",
+    "init/_init.c",
   ]
 
   include_dirs = [
