@@ -191,7 +191,7 @@ class Generator:
         self.out("#include <libipc/ClientConnection.h>")
         self.out("#include <libipc/ServerConnection.h>")
         self.out("#include <libg/Rect.h>")
-        self.out("#include <libg/String.h>")
+        self.out("#include <libg/string.h>")
         self.out("#include <malloc.h>")
         self.out("")
 
