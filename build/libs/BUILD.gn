@@ -21,7 +21,7 @@ if (static_analyze) {
 }
 
 lib_cc_flags = [
-  "-std=c++17",
+  "-std=c++2a",
   "-fno-sized-deallocation",
   "-fno-rtti",
   "-fno-exceptions",
