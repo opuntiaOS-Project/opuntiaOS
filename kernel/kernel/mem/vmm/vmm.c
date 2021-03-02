@@ -6,14 +6,15 @@
  */
 
 #include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/generic/system.h>
+#include <platform/generic/vmm/mapping_table.h>
 #include <platform/generic/vmm/pf_types.h>
 #include <tasking/tasking.h>
-#include <libkern/libkern.h>
 
 // #define VMM_DEBUG
 
@@ -345,20 +346,10 @@ static bool _vmm_create_kernel_ptables()
         table_desc_set_frame(ptable_desc, paddr);
     }
 
-    // TODO: Replace with table
-#ifdef __i386__
-    _vmm_map_init_kernel_pages(0x00100000, 0xc0000000);
-    _vmm_map_init_kernel_pages(0x00000000, 0xffc00000);
-#elif __arm__
-    _vmm_map_init_kernel_pages(0x80100000, 0xc0000000); // kernel 1mb
-    _vmm_map_init_kernel_pages(0x80200000, 0xc0100000); // kernel
-    _vmm_map_init_kernel_pages(0x80300000, 0xc0200000); // kernel
-    _vmm_map_init_kernel_pages(0x80400000, 0xc0300000); // kernel
-    _vmm_map_init_kernel_pages(0x80500000, 0xc0400000); // kernel
-    _vmm_map_init_kernel_pages(0x80600000, 0xc0500000); // kernel
-    _vmm_map_init_kernel_pages(0x80700000, 0xc0600000); // kernel
-    _vmm_map_init_kernel_pages(0x80800000, 0xc0700000); // kernel
-#endif
+    int te = 0;
+    do {
+        _vmm_map_init_kernel_pages(kernel_mapping_table[te].paddr, kernel_mapping_table[te].vaddr);
+    } while (!kernel_mapping_table[te++].last);
 
     return true;
 }
@@ -369,12 +360,10 @@ static bool _vmm_create_kernel_ptables()
  */
 static bool _vmm_map_kernel()
 {
-#ifdef __i386__
-    vmm_map_pages(0x00000000, 0x00000000, 1024, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
-#elif __arm__
-    vmm_map_page(0x1c090000, 0x1c090000, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
-    vmm_map_page(0x3F00b000, 0x3F00b000, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
-#endif
+    int te = 0;
+    do {
+        vmm_map_pages(extern_mapping_table[te].paddr, extern_mapping_table[te].vaddr, extern_mapping_table[te].pages, extern_mapping_table[te].flags);
+    } while (!extern_mapping_table[te++].last);
     return true;
 }
 

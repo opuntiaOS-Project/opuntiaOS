@@ -3,6 +3,7 @@
 
 /**
  * Used devices:
+ *      uart
  *      gicv2
  *      sp804
  *      pl181
@@ -14,6 +15,8 @@
 /* Base is read from CBAR */
 #define GICv2_DISTRIBUTOR_OFFSET 0x1000
 #define GICv2_CPU_INTERFACE_OFFSET 0x2000
+
+#define UART_BASE 0x1c090000
 
 #define SP804_BASE 0x1c110000
 

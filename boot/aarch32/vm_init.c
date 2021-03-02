@@ -137,10 +137,6 @@ void vm_setup()
     map_page(0x80200000, 0xc0100000); // kernel
     map_page(0x80300000, 0xc0200000); // kernel
     map_page(0x80400000, 0xc0300000); // kernel
-    map_page(0x80500000, 0xc0400000); // kernel
-    map_page(0x80600000, 0xc0500000); // kernel
-    map_page(0x80700000, 0xc0600000); // kernel
-    map_page(0x80800000, 0xc0700000); // kernel
     map_page(0x80000000, 0x80000000); // kernel to self
     map_page(0x80100000, 0x80100000); // kernel to self
     map_page(0x80200000, 0x80200000); // kernel to self
