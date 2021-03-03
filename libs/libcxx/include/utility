@@ -4,6 +4,7 @@
 #define _LIBCXX_UTILITY
 
 #include <__config>
+#include <type_traits>
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
@@ -20,6 +21,12 @@ inline void swap(T& a, U& b)
     a = (T &&) move(b);
     b = move(tmp);
 }
+
+template <class T>
+constexpr T&& forward(std::remove_reference_t<T>& t) { return static_cast<T&&>(t); }
+
+template <class T>
+constexpr T&& forward(std::remove_reference_t<T>&& t) { return static_cast<T&&>(t); }
 
 _LIBCXX_END_NAMESPACE_STD
 

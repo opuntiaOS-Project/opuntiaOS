@@ -5,6 +5,7 @@
 
 #include <__config>
 #include <cstddef>
+#include <new>
 #include <type_traits>
 #include <utility>
 
@@ -106,29 +107,42 @@ struct allocator {
 
     T* allocate(size_t n)
     {
-        return operator new(n);
+        return reinterpret_cast<T*>(operator new(n * sizeof(T)));
     }
 
     void deallocate(T* p, size_t n)
     {
-        return delete (p, n);
+        return operator delete(p, n);
     }
 };
 
 template <class T, class... Args>
 constexpr T* construct_at(T* p, Args&&... args)
 {
-    return new (static_cast<void*>(p)) T(args...);
+    return reinterpret_cast<T*>(new (static_cast<void*>(p)) T(forward<Args>(args)...));
 }
 
 template <class T>
-constexpr T* destroy_at(T* p)
+constexpr void destroy_at(T* p)
 {
-    if constexpr (is_array_v<T>(p)) {
-        static_assert("Not impmented destroy_at for array");
+    if constexpr (is_array_v<T>) {
+        static_assert("Not implemented destroy_at for arrays");
     }
     return p->~T();
 }
+
+#if defined(_LIBCXX_BUILD_ONEOS_EXTENSIONS)
+_LIBCXX_BEGIN_ONEOS_EXTENSION
+
+template <class T, class... Args>
+constexpr T& construct(Args&&... args)
+{
+    T* newobject = new T(forward<Args>(args)...);
+    return *newobject;
+}
+
+_LIBCXX_END_ONEOS_EXTENSION
+#endif
 
 _LIBCXX_END_NAMESPACE_STD
 

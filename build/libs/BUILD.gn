@@ -25,6 +25,7 @@ lib_cc_flags = [
   "-fno-sized-deallocation",
   "-fno-rtti",
   "-fno-exceptions",
+  "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS",
 ]
 
 lib_asm_flags = []

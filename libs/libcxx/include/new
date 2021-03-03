@@ -45,11 +45,4 @@ inline void* operator new[](size_t, void* ptr)
     return ptr;
 }
 
-template <class T, class... Args>
-inline T& create(Args&&... args)
-{
-    T* newobject = new T(args...);
-    return *newobject;
-}
-
 #endif // _LIBCXX_NEW

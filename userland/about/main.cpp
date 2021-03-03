@@ -3,6 +3,7 @@
 #include <libui/Label.h>
 #include <libui/View.h>
 #include <libui/Window.h>
+#include <memory>
 #include <syscalls.h>
 
 #define BODY_COLOR 0x819EFA
@@ -12,8 +13,8 @@ int main(int argc, char** argv)
     utsname_t uts;
     int rc = uname(&uts);
 
-    auto& app = create<UI::App>();
-    auto& window = create<UI::Window>(200, 140, "/res/icons/apps/about.icon");
+    auto& app = std::oneos::construct<UI::App>();
+    auto& window = std::oneos::construct<UI::Window>(200, 140, "/res/icons/apps/about.icon");
     auto& superview = window.create_superview<UI::View>();
     superview.set_background_color(LG::Color::LightSystemBackground);
 

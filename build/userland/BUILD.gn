@@ -25,6 +25,7 @@ uland_cc_flags = [
   "-fno-sized-deallocation",
   "-fno-rtti",
   "-fno-exceptions",
+  "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS",
 ]
 
 uland_asm_flags = []

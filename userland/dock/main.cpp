@@ -5,12 +5,13 @@
 #include <libui/Label.h>
 #include <libui/View.h>
 #include <libui/Window.h>
+#include <memory>
 #include <std/Dbg.h>
 
 int main(int argc, char** argv)
 {
-    auto& app = create<UI::App>();
-    auto& window = create<DockWindow>();
+    auto& app = std::oneos::construct<UI::App>();
+    auto& window = std::oneos::construct<DockWindow>();
     window.set_bitmap_format(LG::PixelBitmapFormat::RGBA); // Turning on Alpha channel
     auto& dock_view = window.create_superview<DockView>();
     dock_view.set_background_color(LG::Color(222, 222, 222, 180));
