@@ -126,7 +126,7 @@ template <class T>
 constexpr void destroy_at(T* p)
 {
     if constexpr (is_array_v<T>) {
-        static_assert("Not implemented destroy_at for arrays");
+        static_assert(true, "Not implemented destroy_at for arrays");
     }
     return p->~T();
 }

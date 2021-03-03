@@ -23,22 +23,86 @@ using bool_constant = integral_constant<bool, v>;
 using true_type = integral_constant<bool, true>;
 using false_type = integral_constant<bool, false>;
 
-// Primary type categories
+// Type relationships
 
-template <class T>
-struct is_array : false_type {
+template <class T, class U>
+struct is_same : false_type {
 };
 
 template <class T>
-struct is_array<T[]> : true_type {
+struct is_same<T, T> : true_type {
 };
 
-template <class T, size_t N>
-struct is_array<T[N]> : true_type {
+template <class T, class U>
+inline constexpr bool is_same_v = is_same<T, U>::value;
+
+// Const-volatility specifiers
+
+template <class T>
+struct remove_const {
+    typedef T type;
+};
+template <class T>
+struct remove_const<const T> {
+    typedef T type;
 };
 
 template <class T>
-inline constexpr bool is_array_v = is_array<T>::value;
+struct remove_volatile {
+    typedef T type;
+};
+template <class T>
+struct remove_volatile<volatile T> {
+    typedef T type;
+};
+
+template <class T>
+struct remove_cv {
+    typedef T type;
+};
+template <class T>
+struct remove_cv<const T> {
+    typedef T type;
+};
+template <class T>
+struct remove_cv<volatile T> {
+    typedef T type;
+};
+template <class T>
+struct remove_cv<const volatile T> {
+    typedef T type;
+};
+
+template <class T>
+using remove_const_t = typename remove_const<T>::type;
+
+template <class T>
+using remove_volatile_t = typename remove_volatile<T>::type;
+
+template <class T>
+using remove_cv_t = typename remove_cv<T>::type;
+
+template <class T>
+struct add_const {
+    typedef const T type;
+};
+template <class T>
+struct add_volatile {
+    typedef volatile T type;
+};
+template <class T>
+struct add_cv {
+    typedef const volatile T type;
+};
+
+template <class T>
+using add_const_t = typename add_const<T>::type;
+
+template <class T>
+using add_volatile_t = typename add_volatile<T>::type;
+
+template <class T>
+using add_cv_t = typename add_cv<T>::type;
 
 // References
 
@@ -59,6 +123,42 @@ struct remove_reference<T&&> {
 
 template <class T>
 using remove_reference_t = typename remove_reference<T>::type;
+
+// Primary type categories
+
+template <class T>
+struct is_void : is_same<void, typename remove_cv<T>::type> {
+};
+
+template <class T>
+inline constexpr bool is_void_v = is_void<T>::value;
+
+template <class T>
+struct is_pointer_h : false_type {
+};
+
+template <class T>
+struct is_pointer_h<T*> : true_type {
+};
+
+template <class T>
+struct is_pointer : is_pointer_h<typename std::remove_cv<T>::type> {
+};
+
+template <class T>
+struct is_array : false_type {
+};
+
+template <class T>
+struct is_array<T[]> : true_type {
+};
+
+template <class T, size_t N>
+struct is_array<T[N]> : true_type {
+};
+
+template <class T>
+inline constexpr bool is_array_v = is_array<T>::value;
 
 _LIBCXX_END_NAMESPACE_STD
 
