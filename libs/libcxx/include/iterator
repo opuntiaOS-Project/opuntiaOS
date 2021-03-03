@@ -1,0 +1,91 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_ITERATOR
+#define _LIBCXX_ITERATOR
+
+#include <__config>
+#include <stddef.h>
+#include <type_traits>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <class T>
+class __legacy_iter {
+};
+
+template <class T>
+class __legacy_iter<T*> {
+public:
+    using value_type = T;
+    using difference_type = size_t;
+    using pointer = T*;
+    using reference = T&;
+
+    __legacy_iter() = default;
+    __legacy_iter(pointer p)
+        : m_p(p)
+    {
+    }
+
+    ~__legacy_iter() = default;
+
+    bool operator!=(const __legacy_iter& other) const { return m_p != other.m_p; }
+    bool operator==(const __legacy_iter& other) const { return m_p == other.m_p; }
+    bool operator<(const __legacy_iter& other) const { return m_p < other.m_p; }
+    bool operator>(const __legacy_iter& other) const { return m_p > other.m_p; }
+    bool operator>=(const __legacy_iter& other) const { return m_p >= other.m_p; }
+
+    __legacy_iter<T*>& operator++()
+    {
+        m_p++;
+        return *this;
+    }
+
+    __legacy_iter& operator--()
+    {
+        m_p--;
+        return *this;
+    }
+
+    __legacy_iter& operator++(int)
+    {
+        m_p++;
+        return *this;
+    }
+
+    __legacy_iter& operator--(int)
+    {
+        m_p--;
+        return *this;
+    }
+
+    __legacy_iter operator-(difference_type value) { return { m_p - value }; }
+    __legacy_iter operator+(difference_type value) { return { m_p + value }; }
+
+    __legacy_iter& operator+=(difference_type value)
+    {
+        m_p += value;
+        return *this;
+    }
+
+    __legacy_iter& operator-=(difference_type value)
+    {
+        m_p -= value;
+        return *this;
+    }
+
+    __legacy_iter& operator=(const __legacy_iter& other)
+    {
+        m_p = other.m_p;
+        return *this;
+    }
+    reference operator*() { return *m_p; }
+    difference_type operator-(const __legacy_iter& other) { return m_p - other.m_p; }
+
+private:
+    pointer m_p = nullptr;
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_ITERATOR

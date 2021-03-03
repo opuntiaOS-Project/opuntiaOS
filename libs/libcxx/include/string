@@ -5,40 +5,94 @@
 
 #include <__config>
 #include <cstring>
+#include <iterator>
+#include <memory>
 #include <new>
 #include <utility>
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
-class string {
+template <class CharT>
+class char_traits {
 public:
-    string() = default;
+    using char_type = CharT;
+    using int_type = int;
 
-    string(const char* str)
+    static constexpr void assign(char_type& r, const char_type& a) { r = a; }
+
+    static constexpr char_type* assign(char_type* p, size_t count, char_type a)
     {
-        m_size = strlen(str);
-        ensure_capacity(m_size + 1);
-        memcpy((uint8_t*)m_str, (uint8_t*)str, m_size);
-        m_str[m_size] = '\0';
+        for (size_t sz = 0; sz < count; sz++) {
+            assign(p[sz], a);
+        }
+        return p;
     }
 
-    string(const char* str, uint32_t size)
+    static constexpr char_type* move(char_type* dest, const char_type* src, size_t count)
+    {
+        // FIXME
+        for (size_t sz = 0; sz < count; sz++) {
+            dest[sz] = std::move(src[sz]);
+        }
+        return dest;
+    }
+
+    static constexpr size_t length(const char_type* s)
+    {
+        return strlen(s);
+    }
+
+    static constexpr char_type* copy(char_type* dest, const char_type* src, size_t count)
+    {
+        for (size_t sz = 0; sz < count; sz++) {
+            dest[sz] = src[sz];
+        }
+        return dest;
+    }
+
+    static constexpr char_type to_char_type(int_type c) { return static_cast<char_type>(c); }
+    static constexpr int_type to_int_type(char_type c) { return static_cast<int_type>(c); }
+    static constexpr bool eq_int_type(int_type c1, int_type c2) { return c1 == c2; }
+
+    static constexpr int_type eof() { return -1; }
+    static constexpr bool not_eof(int_type a) { return a != eof(); }
+};
+
+template <class CharT, class Traits = char_traits<CharT>, class Allocator = allocator<CharT>>
+class basic_string {
+public:
+    using value_type = CharT;
+    using pointer = CharT*;
+    using reference = CharT&;
+    using iterator = __legacy_iter<pointer>;
+
+    basic_string() = default;
+
+    basic_string(const value_type* str)
+    {
+        m_size = Traits::length(str);
+        ensure_capacity(m_size + 1);
+        Traits::copy(m_str, str, m_size);
+        Traits::assign(m_str[m_size], '\0');
+    }
+
+    basic_string(const value_type* str, size_t size)
     {
         m_size = size;
         ensure_capacity(m_size + 1);
-        memcpy((uint8_t*)m_str, (uint8_t*)str, m_size);
-        m_str[m_size] = '\0';
+        Traits::copy(m_str, str, m_size);
+        Traits::assign(m_str[m_size], '\0');
     }
 
-    string(const string& s)
+    basic_string(const basic_string& s)
     {
         grow(s.m_capacity);
         m_size = s.m_size;
-        memcpy((uint8_t*)m_str, (uint8_t*)s.m_str, m_size);
-        m_str[m_size] = '\0';
+        Traits::copy(m_str, s.m_str, m_size);
+        Traits::assign(m_str[m_size], '\0');
     }
 
-    string(string&& s)
+    basic_string(basic_string&& s)
     {
         m_size = s.m_size;
         m_capacity = s.m_capacity;
@@ -47,21 +101,21 @@ public:
         s.m_str = nullptr;
     }
 
-    ~string()
+    ~basic_string()
     {
         clear();
     }
 
-    string& operator=(const string& s)
+    basic_string& operator=(const basic_string& s)
     {
         grow(s.m_capacity);
         m_size = s.m_size;
-        memcpy((uint8_t*)m_str, (uint8_t*)s.m_str, m_size);
-        m_str[m_size] = '\0';
+        Traits::copy(m_str, s.m_str, m_size);
+        Traits::assign(m_str[m_size], '\0');
         return *this;
     }
 
-    string& operator=(string&& s)
+    basic_string& operator=(basic_string&& s)
     {
         if (this != &s) {
             clear();
@@ -74,47 +128,49 @@ public:
         return *this;
     }
 
-    string& operator+=(const string& s)
+    basic_string& operator+=(const basic_string& s)
     {
         ensure_capacity(size() + s.size() + 1);
-        memcpy((uint8_t*)end(), (uint8_t*)s.m_str, s.size());
+        Traits::copy(&m_str[m_size], s.m_str, m_size);
         m_size += s.size();
-        m_str[m_size] = '\0';
+        Traits::assign(m_str[m_size], '\0');
         return *this;
     }
 
-    string operator+(const string& s) const
+    basic_string operator+(const basic_string& s) const
     {
-        string res(*this);
+        basic_string res(*this);
         res += s;
         return res;
     }
 
-    string operator+(const char* s) const
+    basic_string operator+(const value_type* s) const
     {
-        string res(*this);
-        res += string(s);
+        basic_string res(*this);
+        res += basic_string(s);
         return res;
     }
 
-    inline void push_back(char c)
+    inline void push_back(const value_type& c)
     {
         ensure_capacity(size() + 2);
-        m_str[m_size++] = c;
-        m_str[m_size] = '\0';
+        Traits::assign(m_str[m_size], c);
+        m_size++;
+        Traits::assign(m_str[m_size], '\0');
     }
 
     inline void pop_back()
     {
-        m_str[--m_size] = '\0';
+        --m_size;
+        Traits::assign(m_str[m_size], '\0');
     }
 
-    inline const char& at(size_t i) const
+    inline const reference at(size_t i) const
     {
         return m_str[i];
     }
 
-    inline char& at(size_t i)
+    inline reference at(size_t i)
     {
         return m_str[i];
     }
@@ -130,22 +186,28 @@ public:
     }
 
     inline size_t size() const { return m_size; }
+    inline size_t length() const { return m_size; }
 
-    inline const char& operator[](size_t i) const { return at(i); }
-    inline char& operator[](size_t i) { return at(i); }
+    inline const reference operator[](size_t i) const { return at(i); }
+    inline reference operator[](size_t i) { return at(i); }
 
-    inline const char& back() const { return at(size() - 1); }
-    inline char& back() { return at(size() - 1); }
+    inline const reference back() const { return at(size() - 1); }
+    inline reference back() { return at(size() - 1); }
 
-    inline const char* c_str() const { return m_str; }
-    inline const char* data() const { return m_str; }
+    inline const pointer c_str() const { return m_str; }
+    inline const pointer data() const { return m_str; }
+
+    inline iterator begin() { return iterator(&m_str[0]); }
+    inline iterator end() { return iterator(&m_str[m_size]); }
 
 private:
     inline void ensure_capacity(size_t new_size)
     {
-        if (new_size > m_capacity) {
-            grow(new_size + 16);
+        int capacity = 16;
+        while (new_size > capacity) {
+            capacity *= 2;
         }
+        grow(capacity);
     }
 
     void grow(size_t capacity)
@@ -155,19 +217,23 @@ private:
         }
 
         if (!m_str) {
-            m_str = (char*)malloc(capacity);
+            m_str = m_allocator.allocate(capacity);
         } else {
-            m_str = (char*)realloc(m_str, capacity);
+            auto new_str = m_allocator.allocate(capacity);
+            Traits::move(new_str, m_str, m_capacity);
+            m_allocator.deallocate(m_str, m_capacity);
+            m_str = new_str;
         }
         m_capacity = capacity;
     }
 
-    inline char* end() { return m_str + m_size; }
-
     size_t m_size { 0 };
     size_t m_capacity { 0 };
-    char* m_str { nullptr };
+    value_type* m_str { nullptr };
+    Allocator m_allocator;
 };
+
+typedef basic_string<char> string;
 
 _LIBCXX_END_NAMESPACE_STD
 

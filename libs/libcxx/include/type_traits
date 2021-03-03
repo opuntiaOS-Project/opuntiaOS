@@ -124,6 +124,27 @@ struct remove_reference<T&&> {
 template <class T>
 using remove_reference_t = typename remove_reference<T>::type;
 
+template <class T>
+struct remove_pointer {
+    typedef T type;
+};
+template <class T>
+struct remove_pointer<T*> {
+    typedef T type;
+};
+template <class T>
+struct remove_pointer<T* const> {
+    typedef T type;
+};
+template <class T>
+struct remove_pointer<T* volatile> {
+    typedef T type;
+};
+template <class T>
+struct remove_pointer<T* const volatile> {
+    typedef T type;
+};
+
 // Primary type categories
 
 template <class T>
