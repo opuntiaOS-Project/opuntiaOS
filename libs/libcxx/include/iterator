@@ -9,6 +9,35 @@
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
+struct input_iterator_tag {
+};
+struct output_iterator_tag {
+};
+struct forward_iterator_tag : public input_iterator_tag {
+};
+struct bidirectional_iterator_tag : public forward_iterator_tag {
+};
+struct random_access_iterator_tag : public bidirectional_iterator_tag {
+};
+
+template <class Iter>
+struct iterator_traits {
+    using value_type = Iter::value_type;
+    using difference_type = Iter::difference_type;
+    using pointer = Iter::pointer;
+    using reference = Iter::reference;
+    using iterator_category = Iter::iterator_category;
+};
+
+template <class T>
+struct iterator_traits<T*> {
+    using value_type = T;
+    using difference_type = size_t;
+    using pointer = T*;
+    using reference = T&;
+    using iterator_category = std::random_access_iterator_tag;
+};
+
 template <class T>
 class __legacy_iter {
 };
@@ -20,6 +49,7 @@ public:
     using difference_type = size_t;
     using pointer = T*;
     using reference = T&;
+    using iterator_category = std::random_access_iterator_tag;
 
     __legacy_iter() = default;
     __legacy_iter(pointer p)
@@ -35,28 +65,30 @@ public:
     bool operator>(const __legacy_iter& other) const { return m_p > other.m_p; }
     bool operator>=(const __legacy_iter& other) const { return m_p >= other.m_p; }
 
-    __legacy_iter<T*>& operator++()
+    __legacy_iter& operator++()
     {
-        m_p++;
+        ++m_p;
         return *this;
     }
 
     __legacy_iter& operator--()
     {
-        m_p--;
+        --m_p;
         return *this;
     }
 
-    __legacy_iter& operator++(int)
+    __legacy_iter operator++(int)
     {
-        m_p++;
-        return *this;
+        auto tmp = *this;
+        ++m_p;
+        return tmp;
     }
 
-    __legacy_iter& operator--(int)
+    __legacy_iter operator--(int)
     {
-        m_p--;
-        return *this;
+        auto tmp = *this;
+        --m_p;
+        return tmp;
     }
 
     __legacy_iter operator-(difference_type value) { return { m_p - value }; }
@@ -81,9 +113,102 @@ public:
     }
     reference operator*() { return *m_p; }
     difference_type operator-(const __legacy_iter& other) { return m_p - other.m_p; }
+    constexpr reference operator[](difference_type n) const { return m_p[n]; }
 
 private:
     pointer m_p = nullptr;
+};
+
+template <class Iter>
+class reverse_iterator {
+public:
+    using iterator_type = Iter;
+    using value_type = Iter::value_type;
+    using difference_type = Iter::difference_type;
+    using pointer = Iter::pointer;
+    using reference = Iter::reference;
+    using iterator_category = Iter::iterator_category;
+
+    constexpr reverse_iterator() = default;
+    ~reverse_iterator() = default;
+
+    constexpr explicit reverse_iterator(iterator_type base_iter)
+        : m_base(base_iter)
+    {
+    }
+
+    constexpr iterator_type base() const { return m_base; }
+
+    bool operator!=(const reverse_iterator& other) const { return m_base != other.m_base; }
+    bool operator==(const reverse_iterator& other) const { return m_base == other.m_base; }
+    bool operator<(const reverse_iterator& other) const { return m_base < other.m_base; }
+    bool operator>(const reverse_iterator& other) const { return m_base > other.m_base; }
+    bool operator>=(const reverse_iterator& other) const { return m_base >= other.m_base; }
+
+    reverse_iterator& operator++()
+    {
+        --m_base;
+        return *this;
+    }
+
+    reverse_iterator& operator--()
+    {
+        ++m_base;
+        return *this;
+    }
+
+    reverse_iterator operator++(int)
+    {
+        auto tmp = *this;
+        --m_base;
+        return tmp;
+    }
+
+    reverse_iterator operator--(int)
+    {
+        auto tmp = *this;
+        ++m_base;
+        return tmp;
+    }
+
+    reverse_iterator operator-(difference_type value) { return { m_base + value }; }
+    reverse_iterator operator+(difference_type value) { return { m_base - value }; }
+
+    reverse_iterator& operator+=(difference_type value)
+    {
+        m_base -= value;
+        return *this;
+    }
+
+    reverse_iterator& operator-=(difference_type value)
+    {
+        m_base += value;
+        return *this;
+    }
+
+    reverse_iterator& operator=(const reverse_iterator& other)
+    {
+        m_base = other.m_base;
+        return *this;
+    }
+
+    reference operator*() { return *m_base; }
+    difference_type operator-(const reverse_iterator& other) { return other.m_base - m_base; }
+    constexpr reference operator[](difference_type n) const { return m_base[-n]; }
+
+private:
+    iterator_type m_base;
+};
+
+template <class Iter>
+constexpr typename iterator_traits<Iter>::difference_type distance(Iter first, Iter last)
+{
+    typename iterator_traits<Iter>::difference_type res;
+    while (first != last) {
+        first++;
+        res++;
+    }
+    return res;
 };
 
 _LIBCXX_END_NAMESPACE_STD
