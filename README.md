@@ -1,4 +1,6 @@
-# oneOS
+<p align="center">
+<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/banner/banner_opac.png" width="300">
+</p>
 
 ## Features
 ### Kernel
@@ -53,4 +55,4 @@ https://gn.googlesource.com/gn/#getting-a-binary
 
 ### Images
 Progress: February 2021 (preview)
-![alt text](https://raw.githubusercontent.com/nimelehin/oneOS/master/images//progress_02_21_preview1.png)
+![alt text](https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/images/progress_21_02.png)
