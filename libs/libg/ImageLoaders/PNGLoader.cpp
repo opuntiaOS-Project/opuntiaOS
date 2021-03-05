@@ -36,9 +36,10 @@ PixelBitmap PNGLoader::load_from_file(const std::string& path)
     mmap_params.size = stat.size;
 
     uint8_t* ptr = (uint8_t*)mmap(&mmap_params);
-
     PixelBitmap bitmap = load_from_mem(ptr);
-    // munmap(ptr);
+
+    munmap(ptr);
+    close(fd);
     return bitmap;
 }
 

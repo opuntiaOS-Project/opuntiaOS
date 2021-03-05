@@ -1010,7 +1010,7 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
 #endif
             vmm_load_page(vaddr, zone->flags);
 
-            if (zone->type == ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
+            if (zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
                 zone->fd->offset = PAGE_START(vaddr) - zone->start;
                 vfs_read(zone->fd, (void*)PAGE_START(vaddr), VMM_PAGE_SIZE);
             }

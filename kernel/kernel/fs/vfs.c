@@ -6,14 +6,14 @@
  */
 
 #include <algo/dynamic_array.h>
-#include <libkern/errno.h>
 #include <fs/vfs.h>
 #include <io/sockets/socket.h>
-#include <libkern/log.h>
-#include <mem/kmalloc.h>
-#include <libkern/syscall_structs.h>
-#include <tasking/tasking.h>
+#include <libkern/errno.h>
 #include <libkern/libkern.h>
+#include <libkern/log.h>
+#include <libkern/syscall_structs.h>
+#include <mem/kmalloc.h>
+#include <tasking/tasking.h>
 
 // #define VFS_DEBUG
 #define MAX_FS 8
@@ -207,8 +207,25 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
     fd->type = FD_TYPE_FILE;
     fd->dentry = dentry_duplicate(file);
     fd->offset = 0;
-    fd->mapped_times = 0;
+    fd->ref_count = 1;
     fd->ops = &file->ops->file;
+    return 0;
+}
+
+static int _int_vfs_do_close(file_descriptor_t* fd)
+{
+    if (fd->ref_count) {
+        return -EIO;
+    }
+
+    if (fd->type == FD_TYPE_FILE) {
+        dentry_put(fd->dentry);
+    } else {
+        socket_put(fd->sock_entry);
+    }
+    fd->dentry = NULL;
+    fd->ops = NULL;
+    fd->offset = 0;
     return 0;
 }
 
@@ -218,18 +235,14 @@ int vfs_close(file_descriptor_t* fd)
         return -EFAULT;
     }
 
-    if (fd->mapped_times) {
+    if (!fd->ref_count) {
         return -EIO;
     }
 
-    if (fd->type == FD_TYPE_FILE) {
-        dentry_put(fd->dentry);
-    } else {
-        socket_put(fd->sock_entry);
+    fd->ref_count--;
+    if (!fd->ref_count) {
+        return _int_vfs_do_close(fd);
     }
-    fd->dentry = 0;
-    fd->offset = 0;
-    fd->ops = 0;
     return 0;
 }
 
@@ -533,7 +546,7 @@ static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
 
 proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
-    fd->mapped_times++;
+    fd->ref_count++;
     /* Check if we have a custom mmap for a dentry */
     if (fd->dentry->ops->file.mmap) {
         proc_zone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
@@ -542,4 +555,13 @@ proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
         }
     }
     return _vfs_do_mmap(fd, params);
+}
+
+int vfs_munmap(proc_zone_t* zone)
+{
+    if (!(zone->flags & ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !(zone->flags & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+        return -EFAULT;
+    }
+
+    return vfs_close(zone->fd);
 }

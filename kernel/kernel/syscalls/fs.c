@@ -328,6 +328,7 @@ void sys_mmap(trapframe_t* tf)
         return_with_val(-ENOMEM);
     }
 
+    zone->type |= ZONE_TYPE_MAPPED;
     if (map_read) {
         zone->flags |= ZONE_READABLE;
     }
@@ -343,4 +344,22 @@ void sys_mmap(trapframe_t* tf)
 
 void sys_munmap(trapframe_t* tf)
 {
+    proc_t* p = RUNNIG_THREAD->process;
+    void* ptr = (void*)param1;
+
+    proc_zone_t* zone = proc_find_zone(p, (uint32_t)ptr);
+    if (!zone) {
+        return_with_val(-EFAULT);
+    }
+
+    if (!(zone->type & ZONE_TYPE_MAPPED)) {
+        return_with_val(-EPERM);
+    }
+
+    if ((zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY) || (zone->type & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+        return_with_val(vfs_munmap(zone));
+    }
+
+    // TODO: Split or remove zone
+    return_with_val(0);
 }

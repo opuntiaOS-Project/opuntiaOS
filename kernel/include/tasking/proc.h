@@ -11,9 +11,9 @@
 #include <algo/dynamic_array.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
+#include <libkern/types.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <libkern/types.h>
 
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16
@@ -33,9 +33,10 @@ enum ZONE_TYPES {
     ZONE_TYPE_CODE = 0x1,
     ZONE_TYPE_DATA = 0x2,
     ZONE_TYPE_STACK = 0x4,
-    ZONE_TYPE_MAPPED_FILE_PRIVATLY = 0x8,
-    ZONE_TYPE_MAPPED_FILE_SHAREDLY = 0x10,
-    ZONE_TYPE_BSS = 0x20,
+    ZONE_TYPE_BSS = 0x8,
+    ZONE_TYPE_MAPPED = 0x10,
+    ZONE_TYPE_MAPPED_FILE_PRIVATLY = 0x20,
+    ZONE_TYPE_MAPPED_FILE_SHAREDLY = 0x40,
 };
 
 struct proc_zone {

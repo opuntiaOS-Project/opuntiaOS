@@ -357,7 +357,7 @@ file_descriptor_t* proc_get_free_fd(proc_t* p)
         }
     }
 
-    return 0;
+    return NULL;
 }
 
 file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
@@ -365,11 +365,11 @@ file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
     ASSERT(p->fds);
 
     if (index >= MAX_OPENED_FILES) {
-        return 0;
+        return NULL;
     }
 
     if (!p->fds[index].dentry) {
-        return 0;
+        return NULL;
     }
 
     return &p->fds[index];

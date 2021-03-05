@@ -70,8 +70,11 @@ Font* Font::load_from_file(const char* path)
     mmap_params.fd = fd;
     mmap_params.size = stat.size;
 
-    uint8_t* res = (uint8_t*)mmap(&mmap_params);
-    return Font::load_from_mem(res);
+    uint8_t* ptr = (uint8_t*)mmap(&mmap_params);
+    auto* res = Font::load_from_mem(ptr);
+
+    close(fd);
+    return res;
 }
 
 Font* Font::load_from_mem(uint8_t* font_data)

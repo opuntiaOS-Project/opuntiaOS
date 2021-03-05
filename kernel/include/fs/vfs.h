@@ -135,7 +135,7 @@ struct file_descriptor {
     };
     uint32_t offset;
     uint32_t flags;
-    uint32_t mapped_times;
+    uint32_t ref_count;
     file_ops_t* ops;
 };
 typedef struct file_descriptor file_descriptor_t;
@@ -205,5 +205,6 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
 int vfs_umount(dentry_t* mountpoint);
 
 struct proc_zone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
+int vfs_munmap(struct proc_zone*);
 
 #endif // _KERNEL_FS_VFS_H
