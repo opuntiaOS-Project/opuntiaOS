@@ -1,4 +1,5 @@
 #include "DockView.h"
+#include <algorithm>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/KeyboardMapping.h>
 #include <libg/Color.h>
@@ -27,7 +28,7 @@ void DockView::display(const LG::Rect& rect)
     ctx.fill(bounds());
 
     ctx.set_fill_color(LG::Color(222, 222, 222, 255));
-    ctx.fill(LG::Rect(0, 0, 8 + 40 * m_fast_launch_entites_count, bounds().height()));
+    ctx.fill(LG::Rect(0, 0, 8 + 40 * m_fast_launch_entites.size(), bounds().height()));
 
     // Drawing launched icons
     int offsetx = 8;
@@ -46,12 +47,10 @@ void DockView::display(const LG::Rect& rect)
 
 void DockView::new_fast_launch_entity(const LG::string& icon_path, LG::string&& exec_path)
 {
-    auto* entity = new FastLaunchEntity();
     LG::PNG::PNGLoader loader;
-    entity->set_icon(loader.load_from_file(icon_path + "/32x32.png"));
-    entity->set_path_to_exec(std::move(exec_path));
-    m_fast_launch_entites.push_back(entity);
-    m_fast_launch_entites_count++;
+    m_fast_launch_entites.push_back(FastLaunchEntity());
+    m_fast_launch_entites.back().set_icon(loader.load_from_file(icon_path + "/32x32.png"));
+    m_fast_launch_entites.back().set_path_to_exec(std::move(exec_path));
     set_needs_display();
 }
 
@@ -69,19 +68,13 @@ void DockView::new_entity(int window_id)
 {
     // Don't add an icon of dock (self).
     if (window()->id() != window_id) {
-        auto* entity = new DockEntity(window_id);
-        m_dock_entites.push_back(entity);
+        m_dock_entites.push_back(DockEntity(window_id));
     }
 }
 
 void DockView::remove_entity(int window_id)
 {
-    auto* ent = find_entity(window_id);
-    if (!ent) {
-        return;
-    }
-    m_dock_entites.remove(ent);
-    delete ent;
+    m_dock_entites.erase(std::find(m_dock_entites.begin(), m_dock_entites.end(), DockEntity(window_id)));
     set_needs_display();
 }
 

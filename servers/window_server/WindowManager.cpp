@@ -107,7 +107,8 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 
     update_mouse_position(mouse_event);
 
-    for (auto& window : m_windows) {
+    for (auto* window_ptr : m_windows) {
+        auto& window = *window_ptr;
         if (window.bounds().contains(m_mouse_x, m_mouse_y)) {
             if (window.frame().bounds().contains(m_mouse_x, m_mouse_y)) {
                 if (is_mouse_left_button_pressed()) {
@@ -195,7 +196,8 @@ bool WindowManager::notify_listner_about_changed_icon(const Window& win, int cha
 
 void WindowManager::notify_window_status_changed(int changed_window_id, WindowStatusUpdateType type)
 {
-    for (auto& window : m_windows) {
+    for (auto* window_ptr : m_windows) {
+        auto& window = *window_ptr;
         if (window.event_mask() & WindowEvent::WindowStatus) {
             notify_listner_about_window_status(window, changed_window_id, type);
         }
@@ -204,7 +206,8 @@ void WindowManager::notify_window_status_changed(int changed_window_id, WindowSt
 
 void WindowManager::notify_window_icon_changed(int changed_window_id)
 {
-    for (auto& window : m_windows) {
+    for (auto* window_ptr : m_windows) {
+        auto& window = *window_ptr;
         if (window.event_mask() & WindowEvent::IconChange) {
             notify_listner_about_changed_icon(window, changed_window_id);
         }

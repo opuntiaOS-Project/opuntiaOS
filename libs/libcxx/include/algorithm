@@ -20,6 +20,17 @@ static inline constexpr T max(const T& a, const T& b)
     return a < b ? b : a;
 }
 
+template <class Iter, class T>
+Iter find(Iter first, Iter last, const T& value)
+{
+    for (; first != last; ++first) {
+        if (*first == value) {
+            return first;
+        }
+    }
+    return last;
+}
+
 _LIBCXX_END_NAMESPACE_STD
 
 #endif // _LIBCXX_ALGORITHM

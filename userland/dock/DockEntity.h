@@ -1,8 +1,7 @@
 #pragma once
 #include <libg/PixelBitmap.h>
-#include <std/LinkedList.h>
 
-class DockEntity : public LinkedListNode<DockEntity> {
+class DockEntity {
 public:
     DockEntity() = default;
 
@@ -10,6 +9,9 @@ public:
         : m_window_id(window_id)
     {
     }
+
+    bool operator==(const DockEntity& other) const { return m_window_id == other.m_window_id; }
+    bool operator!=(const DockEntity& other) const { return m_window_id != other.m_window_id; }
 
     int window_id() const { return m_window_id; }
     void set_icon(LG::PixelBitmap&& icon) { m_icon = std::move(icon); }

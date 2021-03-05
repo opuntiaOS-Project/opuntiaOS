@@ -10,6 +10,7 @@ _LIBCXX_BEGIN_NAMESPACE_STD
 
 using ::size_t;
 using ::ssize_t;
+using ::ptrdiff_t;
 typedef decltype(nullptr) nullptr_t;
 
 _LIBCXX_END_NAMESPACE_STD

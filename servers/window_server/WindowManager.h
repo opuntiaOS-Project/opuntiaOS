@@ -13,12 +13,13 @@
 #include "WSEvent.h"
 #include "WSServerDecoder.h"
 #include "Window.h"
+#include <algorithm>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
-#include <std/LinkedList.h>
-#include <vector>
+#include <list>
 #include <syscalls.h>
+#include <vector>
 
 class WindowManager : public LFoundation::EventReceiver {
 public:
@@ -46,7 +47,7 @@ public:
         if (hovered_window().ptr() == window) {
             m_hovered_window = nullptr;
         }
-        m_windows.remove(window);
+        m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
         m_compositor.invalidate(window->bounds());
         notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
         delete window;
@@ -59,9 +60,9 @@ public:
 
     inline Window* window(int id)
     {
-        for (auto& window : m_windows) {
-            if (window.id() == id) {
-                return &window;
+        for (auto* window : m_windows) {
+            if (window->id() == id) {
+                return window;
             }
         }
         return nullptr;
@@ -70,19 +71,25 @@ public:
     inline void do_bring_to_front(Window& window)
     {
         auto* window_ptr = &window;
-        m_windows.remove(window_ptr);
+        m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
         m_windows.push_front(window_ptr);
     }
 
     Window* get_top_standard_window_in_view() const
     {
-        auto* prev_window = m_windows.head();
-        if (m_dock_window) {
-            if (prev_window) {
-                return prev_window->next();
-            }
+        if (m_windows.empty()) {
+            return nullptr;
         }
-        return prev_window;
+        
+        auto it = m_windows.begin();
+        if (m_dock_window) {
+            it++;
+        }
+
+        if (it == m_windows.end()) {
+            return *m_windows.begin();
+        }
+        return *it;
     }
 
     void bring_to_front(Window& window)
@@ -100,8 +107,8 @@ public:
         }
     }
 
-    inline LinkedList<Window>& windows() { return m_windows; }
-    inline const LinkedList<Window>& windows() const { return m_windows; }
+    inline std::list<Window*>& windows() { return m_windows; }
+    inline const std::list<Window*>& windows() const { return m_windows; }
     inline int next_win_id() { return ++m_next_win_id; }
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
@@ -134,7 +141,7 @@ private:
     inline WeakPtr<Window>& active_window() { return m_active_window; }
     inline const WeakPtr<Window>& active_window() const { return m_active_window; }
 
-    LinkedList<Window> m_windows;
+    std::list<Window*> m_windows;
 
     Screen& m_screen;
     Connection& m_connection;

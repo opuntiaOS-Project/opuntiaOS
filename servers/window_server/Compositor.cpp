@@ -87,15 +87,14 @@ __attribute__((flatten)) void Compositor::refresh()
         draw_wallpaper_for_area(invalidated_areas[i]);
     }
 
-    auto* window_ptr = wm.windows().tail();
-    while (window_ptr) {
-        auto& window = *window_ptr;
+    auto& windows = wm.windows();
+    for (auto it = windows.rbegin(); it != windows.rend(); it++) {
+        auto& window = *(*it);
         if (is_window_area_invalidated(invalidated_areas, window.bounds())) {
             for (int i = 0; i < invalidated_areas.size(); i++) {
                 draw_window(window, invalidated_areas[i]);
             }
         }
-        window_ptr = window_ptr->prev();
     }
 
     auto mouse_draw_position = m_cursor_manager.draw_position(wm.mouse_x(), wm.mouse_y());

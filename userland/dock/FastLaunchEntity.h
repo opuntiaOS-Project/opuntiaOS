@@ -1,9 +1,8 @@
 #pragma once
 #include <libg/PixelBitmap.h>
 #include <libg/string.h>
-#include <std/LinkedList.h>
 
-class FastLaunchEntity : public LinkedListNode<FastLaunchEntity> {
+class FastLaunchEntity {
 public:
     FastLaunchEntity() = default;
 

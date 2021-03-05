@@ -10,11 +10,10 @@
 #include "WindowFrame.h"
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
-#include <std/LinkedList.h>
-#include <utility>
 #include <std/WeakPtr.h>
 #include <sys/SharedBuffer.h>
 #include <sys/types.h>
+#include <utility>
 
 enum WindowType : int {
     Standard = 0,
@@ -33,7 +32,7 @@ enum WindowEvent {
     IconChange = (1 << 1),
 };
 
-class Window : public Weakable<Window>, public LinkedListNode<Window> {
+class Window : public Weakable<Window> {
 public:
     Window(int connection_id, int id, const CreateWindowMessage& msg);
     Window(Window&& win);

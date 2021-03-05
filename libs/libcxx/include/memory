@@ -100,17 +100,45 @@ private:
     T* m_data { nullptr };
 };
 
+template <class Alloc>
+struct allocator_traits {
+    using allocator_type = Alloc;
+    using value_type = Alloc::value_type;
+    using pointer = Alloc::pointer;
+    using const_pointer = Alloc::const_pointer;
+    using void_pointer = Alloc::void_pointer;
+    using const_void_pointer = Alloc::const_void_pointer;
+    using difference_type = Alloc::difference_type;
+    using size_type = Alloc::size_type;
+};
+
+template <class _Alloc, class S>
+struct __rebind_alloc_helper;
+
+template <template <class, class...> class _Alloc, class New, class Old, class... OtherArgs>
+struct __rebind_alloc_helper<_Alloc<Old, OtherArgs...>, New> {
+    typedef typename std::allocator_traits<_Alloc<New, OtherArgs...>>::allocator_type type;
+};
+
 template <class T>
 struct allocator {
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using void_pointer = void*;
+    using const_void_pointer = const void*;
+    using difference_type = ptrdiff_t;
+    using size_type = size_t;
+
     allocator() = default;
     ~allocator() = default;
 
-    T* allocate(size_t n)
+    pointer allocate(size_t n)
     {
-        return reinterpret_cast<T*>(operator new(n * sizeof(T)));
+        return reinterpret_cast<pointer>(operator new(n * sizeof(T)));
     }
 
-    void deallocate(T* p, size_t n)
+    void deallocate(pointer p, size_t n)
     {
         return operator delete(p, n);
     }

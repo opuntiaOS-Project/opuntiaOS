@@ -1,0 +1,271 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_LIST
+#define _LIBCXX_LIST
+
+#include <__config>
+#include <memory>
+#include <stddef.h>
+#include <type_traits>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+namespace details {
+
+template <class T>
+class list_node {
+public:
+    using value_type = T;
+    using pointer = T*;
+    using reference = T&;
+    using const_reference = const T&;
+
+private:
+    using __node_type = details::list_node<value_type>;
+    using __node_pointer = __node_type*;
+
+public:
+    list_node(const_reference elem, __node_pointer next = nullptr, __node_pointer prev = nullptr)
+        : m_elem(elem)
+        , m_next(next)
+        , m_prev(prev)
+    {
+    }
+
+    list_node(value_type&& elem, __node_pointer next = nullptr, __node_pointer prev = nullptr)
+        : m_elem(std::move(elem))
+        , m_next(next)
+        , m_prev(prev)
+    {
+    }
+
+    ~list_node() = default;
+
+    inline reference get() { return m_elem; }
+    inline const_reference get() const { return m_elem; }
+    inline reference operator*() { return m_elem; }
+    inline __node_pointer next() const { return m_next; }
+    inline __node_pointer prev() const { return m_prev; }
+    inline void set_prev(__node_pointer prev) { m_prev = prev; };
+    inline void set_next(__node_pointer next) { m_next = next; };
+
+private:
+    value_type m_elem;
+    __node_pointer m_prev { nullptr };
+    __node_pointer m_next { nullptr };
+};
+
+}
+
+template <class T, class Alloc>
+class list;
+
+template <class T>
+class list_iter {
+    template <class U, class Alloctor>
+    friend class list;
+
+public:
+    using value_type = T;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+    using pointer = T*;
+    using reference = T&;
+    using const_reference = const T&;
+    using iterator_category = std::bidirectional_iterator_tag;
+
+private:
+    using __node_type = details::list_node<value_type>;
+    using __node_pointer = __node_type*;
+
+public:
+    list_iter() = default;
+    list_iter(nullptr_t) { }
+    list_iter(__node_pointer v)
+        : m_value(v)
+    {
+    }
+
+    ~list_iter() = default;
+
+    bool operator!=(const list_iter& other) const { return m_value != other.m_value; }
+    bool operator==(const list_iter& other) const { return m_value == other.m_value; }
+
+    list_iter& operator++()
+    {
+        if (m_value) {
+            m_prev_value = m_value;
+            m_value = m_value->next();
+        }
+        return *this;
+    }
+
+    list_iter& operator--()
+    {
+        if (m_value == end()) {
+            m_value = m_prev_value;
+        } else {
+            m_value = m_value->prev();
+        }
+        return *this;
+    }
+
+    list_iter operator++(int)
+    {
+        auto tmp = *this;
+        operator++();
+        return tmp;
+    }
+
+    list_iter operator--(int)
+    {
+        auto tmp = *this;
+        operator--();
+        return tmp;
+    }
+
+    list_iter& operator=(const list_iter& other)
+    {
+        m_value = other.m_value;
+        m_prev_value = other.m_prev_value;
+        return *this;
+    }
+
+    reference operator*() { return m_value->get(); }
+
+    __node_pointer end() { return nullptr; }
+
+private:
+    __node_pointer get_value() { return m_value; }
+
+    __node_pointer m_value { nullptr };
+    __node_pointer m_prev_value { nullptr };
+};
+
+template <class T, class Allocator = std::allocator<T>>
+class list {
+public:
+    using value_type = T;
+    using pointer = T*;
+    using reference = T&;
+    using const_reference = const T&;
+    using allocator_type = Allocator;
+    using size_type = size_t;
+    using iterator = list_iter<value_type>;
+    using const_iterator = list_iter<const value_type>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+
+private:
+    using __node_type = details::list_node<value_type>;
+    using __node_pointer = __node_type*;
+    typedef typename __rebind_alloc_helper<allocator_type, __node_type>::type __node_alloc_type;
+
+public:
+    list() = default;
+    ~list() = default;
+
+    iterator insert(iterator pos, value_type&& value)
+    {
+        __node_pointer next_elem = pos.get_value();
+        __node_pointer prev_elem = m_tail;
+        if (next_elem) {
+            prev_elem = next_elem->prev();
+        }
+
+        __node_pointer new_elem = m_node_allocator.allocate(1);
+        construct_at(new_elem, std::move(value));
+
+        new_elem->set_prev(prev_elem);
+        if (!prev_elem) {
+            m_head = new_elem;
+        } else {
+            prev_elem->set_next(new_elem);
+        }
+
+        new_elem->set_next(next_elem);
+        if (!next_elem) {
+            m_tail = new_elem;
+        } else {
+            next_elem->set_prev(new_elem);
+        }
+        ++m_size;
+
+        return iterator(new_elem);
+    }
+
+    iterator insert(iterator pos, const_reference value)
+    {
+        return insert(pos, value_type(value));
+    }
+
+    void push_back(const_reference value) { insert(end(), value); }
+    void push_back(value_type&& value) { insert(end(), std::move(value)); }
+
+    void push_front(const_reference value) { insert(begin(), value); }
+    void push_front(value_type&& value) { insert(begin(), std::move(value)); }
+
+    iterator erase(iterator pos)
+    {
+        __node_pointer this_elem = pos.get_value();
+        if (!this_elem) {
+            return end();
+        }
+
+        __node_pointer next_elem = this_elem->next();
+        __node_pointer prev_elem = this_elem->prev();
+
+        if (m_head == this_elem) {
+            m_head = next_elem;
+        }
+
+        if (m_tail == this_elem) {
+            m_tail = prev_elem;
+        }
+
+        if (next_elem) {
+            next_elem->set_prev(prev_elem);
+        }
+
+        if (prev_elem) {
+            prev_elem->set_next(next_elem);
+        }
+
+        destroy_at(this_elem);
+        m_node_allocator.deallocate(this_elem, 1);
+        --m_size;
+
+        return iterator(next_elem);
+    }
+
+    void pop_back() { erase(--end()); }
+    void pop_front() { erase(begin()); }
+
+    inline reference front() { return m_head->get(); }
+    inline const_reference front() const { return m_head->get(); }
+    inline reference back() { return m_tail->get(); }
+    inline const_reference back() const { return m_tail->get(); }
+
+    inline size_type size() const { return m_size; }
+    inline bool empty() const { return size() == 0; }
+
+    inline iterator begin() const { return iterator(m_head); }
+    inline iterator end() const { return ++iterator(m_tail); }
+
+    inline reverse_iterator rbegin() const { return reverse_iterator(m_tail); }
+    inline reverse_iterator rend() const { return ++reverse_iterator(m_head); }
+
+    allocator_type allocator() const { return m_allocator; }
+
+private:
+    __node_alloc_type node_allocator() { return m_node_allocator; }
+
+    __node_pointer m_head { nullptr };
+    __node_pointer m_tail { nullptr };
+    size_type m_size { 0 };
+    __node_alloc_type m_node_allocator {};
+    allocator_type m_allocator {};
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_LIST

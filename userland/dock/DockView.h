@@ -3,7 +3,7 @@
 #include "FastLaunchEntity.h"
 #include <libg/Font.h>
 #include <libui/View.h>
-#include <std/LinkedList.h>
+#include <list>
 #include <string>
 
 class DockView : public UI::View {
@@ -23,7 +23,6 @@ public:
 private:
     void launch(const FastLaunchEntity& ent);
 
-    int m_fast_launch_entites_count { 0 };
-    LinkedList<FastLaunchEntity> m_fast_launch_entites {};
-    LinkedList<DockEntity> m_dock_entites {};
+    std::list<FastLaunchEntity> m_fast_launch_entites {};
+    std::list<DockEntity> m_dock_entites {};
 };
