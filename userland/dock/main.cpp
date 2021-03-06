@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     window.set_bitmap_format(LG::PixelBitmapFormat::RGBA); // Turning on Alpha channel
     auto& dock_view = window.create_superview<DockView>();
     dock_view.set_background_color(LG::Color(222, 222, 222, 180));
+    dock_view.new_fast_launch_entity("/res/icons/apps/logo.icon", "/bin/about"); // Launch launchpad instead of about app
     dock_view.new_fast_launch_entity("/res/icons/apps/about.icon", "/bin/about"); // FIXME: Parse some init file
     dock_view.new_fast_launch_entity("/res/icons/apps/terminal.icon", "/bin/terminal");
     window.set_title("Dock");

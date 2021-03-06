@@ -252,6 +252,10 @@ bool PNGLoader::read_chunk(PixelBitmap& bitmap)
         read_TEXT(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"pHYs", 4) == 0) {
         read_PHYS(header, bitmap);
+    } else if (memcmp(header.type, (uint8_t*)"sRGB", 4) == 0) {
+        read_PHYS(header, bitmap);
+    } else if (memcmp(header.type, (uint8_t*)"eXIf", 4) == 0) {
+        read_PHYS(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"orNT", 4) == 0) {
         read_ORNT(header, bitmap);
     } else if (memcmp(header.type, (uint8_t*)"IDAT", 4) == 0) {
