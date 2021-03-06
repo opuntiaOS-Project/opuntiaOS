@@ -1,7 +1,7 @@
 #pragma once
 #include <syscalls.h>
 
-namespace Sys {
+namespace LFoundation {
 
 template <typename T>
 class SharedBuffer {
@@ -73,5 +73,3 @@ private:
     T* m_data { nullptr };
 };
 }
-
-using Sys::SharedBuffer;

@@ -13,7 +13,7 @@
 #include <libg/PixelBitmap.h>
 #include <libg/string.h>
 #include <libui/View.h>
-#include <sys/SharedBuffer.h>
+#include <libfoundation/SharedBuffer.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -32,8 +32,8 @@ public:
     int id() const { return m_id; }
     inline WindowType type() const { return m_type; }
 
-    SharedBuffer<LG::Color>& buffer() { return m_buffer; }
-    const SharedBuffer<LG::Color>& buffer() const { return m_buffer; }
+    LFoundation::SharedBuffer<LG::Color>& buffer() { return m_buffer; }
+    const LFoundation::SharedBuffer<LG::Color>& buffer() const { return m_buffer; }
 
     LG::PixelBitmap& bitmap() { return m_bitmap; }
     const LG::PixelBitmap& bitmap() const { return m_bitmap; }
@@ -70,7 +70,7 @@ private:
     WindowType m_type { WindowType::Standard };
     LG::Rect m_bounds;
     LG::PixelBitmap m_bitmap;
-    SharedBuffer<LG::Color> m_buffer;
+    LFoundation::SharedBuffer<LG::Color> m_buffer;
     View* m_superview { nullptr };
     View* m_focused_view { nullptr };
     LG::string m_icon_path { "/res/icons/apps/missing.icon" };

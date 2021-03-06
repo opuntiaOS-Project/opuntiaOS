@@ -8,10 +8,10 @@
 #pragma once
 #include "Connection.h"
 #include "WindowFrame.h"
+#include <libfoundation/SharedBuffer.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
 #include <std/WeakPtr.h>
-#include <sys/SharedBuffer.h>
 #include <sys/types.h>
 #include <utility>
 
@@ -45,7 +45,7 @@ public:
     inline WindowEventMask event_mask() const { return m_event_mask; }
     inline void set_event_mask(WindowEventMask mask) { m_event_mask = mask; }
 
-    inline SharedBuffer<LG::Color>& buffer() { return m_buffer; }
+    inline LFoundation::SharedBuffer<LG::Color>& buffer() { return m_buffer; }
     inline LG::PixelBitmap& content_bitmap() { return m_content_bitmap; }
     inline const LG::PixelBitmap& content_bitmap() const { return m_content_bitmap; }
 
@@ -89,7 +89,7 @@ private:
     LG::Rect m_bounds;
     LG::Rect m_content_bounds;
     LG::PixelBitmap m_content_bitmap;
-    SharedBuffer<LG::Color> m_buffer;
+    LFoundation::SharedBuffer<LG::Color> m_buffer;
     WindowFrame m_frame;
     LG::string m_icon_path {};
 };
