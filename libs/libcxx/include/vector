@@ -4,6 +4,7 @@
 #define _LIBCXX_VECTOR
 
 #include <__config>
+#include <iterator>
 #include <memory>
 #include <utility>
 
@@ -12,14 +13,25 @@ _LIBCXX_BEGIN_NAMESPACE_STD
 template <class T, class Allocator = std::allocator<T>>
 class vector {
 public:
-    typedef T* iterator;
+    using value_type = T;
+    using allocator_type = Allocator;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = T&;
+    using const_reference = const T&;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using iterator = std::__legacy_iter<pointer>;
+    using const_iterator = std::__legacy_iter<const_pointer>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     vector()
     {
         grow(m_capacity);
     }
 
-    explicit vector(int capacity)
+    explicit vector(size_type capacity)
     {
         grow(capacity);
     }
@@ -67,24 +79,24 @@ public:
         return *this;
     }
 
-    inline void push_back(T&& el)
+    inline void push_back(value_type&& el)
     {
         ensure_capacity(size() + 1);
-        new (end()) T(std::move(el));
+        construct_at(&m_data[m_size], std::move(el));
         m_size++;
     }
 
-    inline void push_back(const T& el)
+    inline void push_back(const_reference el)
     {
         push_back(T(el));
     }
 
-    inline const T& at(size_t i) const
+    inline const_reference at(size_type i) const
     {
         return data()[i];
     }
 
-    inline T& at(size_t i)
+    inline reference at(size_type i)
     {
         return data()[i];
     }
@@ -93,22 +105,23 @@ public:
     {
         clear_remain_capacity();
         if (m_data) {
-            free(m_data);
+            m_allocator.deallocate(m_data, m_capacity);
             m_data = nullptr;
         }
+        m_capacity = 0;
     }
 
     void clear_remain_capacity()
     {
         if (m_data) {
-            for (size_t i = 0; i < m_size; ++i) {
+            for (size_type i = 0; i < m_size; ++i) {
                 destroy_at(&m_data[i]);
             }
         }
         m_size = 0;
     }
 
-    inline void resize(size_t new_size)
+    inline void resize(size_type new_size)
     {
         ensure_capacity(new_size);
         m_size = new_size;
@@ -117,28 +130,41 @@ public:
     inline size_t size() const { return m_size; }
     inline size_t capacity() const { return m_capacity; }
 
-    inline const T& operator[](size_t i) const { return at(i); }
-    inline T& operator[](size_t i) { return at(i); }
-    inline const T& front() const { return at(0); }
-    inline T& front() { return at(0); }
-    inline const T& back() const { return at(size() - 1); }
-    inline T& back() { return at(size() - 1); }
-    inline T* data() { return m_data; }
-    inline const T* data() const { return m_data; }
+    inline reference operator[](size_t i) { return at(i); }
+    inline const_reference operator[](size_t i) const { return at(i); }
 
-    inline T* end() { return m_data + m_size; }
+    inline reference front() { return at(0); }
+    inline const_reference front() const { return at(0); }
+
+    inline reference back() { return at(size() - 1); }
+    inline const_reference back() const { return at(size() - 1); }
+
+    inline pointer data() { return m_data; }
+    inline const_pointer data() const { return m_data; }
+
+    inline iterator begin() { return iterator(&m_data[0]); }
+    inline iterator end() { return iterator(&m_data[m_size]); }
+
+    inline const_iterator cbegin() { return const_iterator(&m_data[0]); }
+    inline const_iterator cend() { return const_iterator(&m_data[m_size]); }
+
+    inline reverse_iterator rbegin() { return reverse_iterator(&m_data[m_size - 1]); }
+    inline reverse_iterator rend() { return reverse_iterator(&m_data[-1]); }
+
+    inline const_reverse_iterator crbegin() { return const_reverse_iterator(&m_data[m_size - 1]); }
+    inline const_reverse_iterator crend() { return const_reverse_iterator(&m_data[-1]); }
 
 private:
-    inline void ensure_capacity(size_t new_size)
+    inline void ensure_capacity(size_type new_size)
     {
-        int capacity = 16;
+        size_type capacity = 16;
         while (new_size > capacity) {
             capacity *= 2;
         }
         grow(capacity);
     }
 
-    void grow(size_t capacity)
+    void grow(size_type capacity)
     {
         if (!m_data) {
             m_data = m_allocator.allocate(capacity);
@@ -159,19 +185,19 @@ private:
         m_capacity = capacity;
     }
 
-    void copy(T* to, T* from, size_t len)
+    void copy(pointer to, const_pointer from, size_type len)
     {
-        for (size_t i = 0; i < len; i++) {
-            new (to) T(*from);
+        for (size_type i = 0; i < len; i++) {
+            construct_at(to, T(*from));
             to++;
             from++;
         }
     }
 
-    size_t m_size { 0 };
-    size_t m_capacity { 16 };
-    T* m_data { nullptr };
-    Allocator m_allocator;
+    size_type m_size { 0 };
+    size_type m_capacity { 16 };
+    pointer m_data { nullptr };
+    allocator_type m_allocator;
 };
 
 _LIBCXX_END_NAMESPACE_STD

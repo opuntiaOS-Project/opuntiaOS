@@ -70,9 +70,9 @@ void EventLoop::check_fds()
 
 void EventLoop::check_timers()
 {
-    for (int i = 0; i < m_timers.size(); i++) {
-        if (m_timers[i].expired()) {
-            m_event_queue.push_back(QueuedEvent(m_timers[i], new TimerEvent()));
+    for (auto& timer : m_timers) {
+        if (timer.expired()) {
+            m_event_queue.push_back(QueuedEvent(timer, new TimerEvent()));
         }
     }
 }
@@ -82,9 +82,10 @@ void EventLoop::pump()
     check_fds();
     check_timers();
     std::vector<QueuedEvent> events_to_dispatch(std::move(m_event_queue));
-    for (int i = 0; i < events_to_dispatch.size(); i++) {
-        events_to_dispatch[i].receiver.receive_event(std::move(events_to_dispatch[i].event));
+    for (auto& event : events_to_dispatch) {
+        event.receiver.receive_event(std::move(event.event));
     }
+
     if (!events_to_dispatch.size()) {
         sched_yield();
     }

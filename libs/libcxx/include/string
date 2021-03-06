@@ -62,13 +62,14 @@ template <class CharT, class Traits = std::char_traits<CharT>, class Allocator =
 class basic_string {
 public:
     using value_type = CharT;
+    using allocator_type = Allocator;
     using pointer = CharT*;
+    using const_pointer = const CharT*;
     using reference = CharT&;
     using iterator = std::__legacy_iter<pointer>;
-    using const_iterator = std::__legacy_iter<const pointer>;
+    using const_iterator = std::__legacy_iter<const_pointer>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using allocator_type = Allocator;
 
     basic_string() = default;
 
