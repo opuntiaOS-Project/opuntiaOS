@@ -168,4 +168,4 @@ enum Keycode {
     KEY_UNKNOWN,
     KEY_NUMKEYCODES
 };
-}
+} // namespace LFoundation

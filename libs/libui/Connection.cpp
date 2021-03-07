@@ -86,4 +86,4 @@ int Connection::new_window(const Window& window)
 #endif
     return resp_message->window_id();
 }
-}
+} // namespace UI

@@ -1,6 +1,6 @@
+#include <platform/generic/system.h>
 #include <platform/x86/irq_handler.h>
 #include <tasking/tasking.h>
-#include <platform/generic/system.h>
 
 static inline void irq_redirect(uint8_t int_no) {
     void (*func)() = (void*)handlers[int_no];

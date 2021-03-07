@@ -24,7 +24,7 @@ int32_t root_fs_dev_id = -1;
 
 driver_desc_t _vfs_driver_info()
 {
-    driver_desc_t vfs_desc;
+    driver_desc_t vfs_desc = { 0 };
     vfs_desc.type = DRIVER_VIRTUAL_FILE_SYSTEM;
     vfs_desc.is_device_driver = false;
     vfs_desc.is_device_needed = true;

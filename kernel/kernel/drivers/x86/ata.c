@@ -37,7 +37,7 @@ static uint8_t _ata_gen_drive_head_register(bool is_lba, bool is_master, uint8_t
 
 driver_desc_t _ata_driver_info()
 {
-    driver_desc_t ata_desc;
+    driver_desc_t ata_desc = { 0 };
     ata_desc.type = DRIVER_STORAGE_DEVICE;
     ata_desc.auto_start = false;
     ata_desc.is_device_driver = true;
@@ -221,7 +221,7 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
         read_data[2 * i + 1] = (data >> 8) & 0xFF;
         read_data[2 * i + 0] = (data >> 0) & 0xFF;
     }
-    
+
     return 0;
 }
 

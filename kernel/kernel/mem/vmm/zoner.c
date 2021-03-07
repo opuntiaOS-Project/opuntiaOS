@@ -21,9 +21,9 @@
 
 #include <algo/bitmap.h>
 #include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
-#include <libkern/libkern.h>
 
 #define ZONER_BITMAP_SIZE (4 * 1024 * 8)
 #define ZONER_TO_BITMAP_INDEX(x) ((x - KERNEL_BASE) >> 12)

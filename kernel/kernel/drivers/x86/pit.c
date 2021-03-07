@@ -6,11 +6,11 @@
  */
 
 #include <drivers/x86/pit.h>
+#include <libkern/kassert.h>
 #include <libkern/log.h>
 #include <platform/generic/system.h>
 #include <tasking/sched.h>
 #include <time/time_manager.h>
-#include <libkern/kassert.h>
 
 static int ticks_to_sched = 0;
 static int second = TIMER_TICKS_PER_SECOND;

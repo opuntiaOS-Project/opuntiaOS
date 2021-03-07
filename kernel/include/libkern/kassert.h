@@ -18,6 +18,6 @@
         system_stop();                                         \
     }
 
-void kpanic(char* msg);
+void kpanic(char* msg) __attribute__((noreturn));
 
 #endif // _KERNEL_LIBKERN_KASSERT_H

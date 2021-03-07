@@ -1,9 +1,9 @@
 #ifndef _KERNEL_PLATFORM_X86_TASKING_TRAPFRAME_H
 #define _KERNEL_PLATFORM_X86_TASKING_TRAPFRAME_H
 
+#include <libkern/types.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/tasking/tss.h>
-#include <libkern/types.h>
 
 typedef struct {
     // registers as pushed by pusha

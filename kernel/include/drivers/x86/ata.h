@@ -1,11 +1,11 @@
 #ifndef _KERNEL_DRIVERS_X86_ATA_H
 #define _KERNEL_DRIVERS_X86_ATA_H
 
-#include <libkern/types.h>
-#include <platform/x86/port.h>
-#include <drivers/x86/display.h>
-#include <mem/kmalloc.h>
 #include <drivers/driver_manager.h>
+#include <drivers/x86/display.h>
+#include <libkern/types.h>
+#include <mem/kmalloc.h>
+#include <platform/x86/port.h>
 
 typedef struct {            // LBA28 | LBA48
     uint32_t data;          // 16bit | 16 bits

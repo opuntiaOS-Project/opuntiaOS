@@ -10,8 +10,8 @@
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/Receivers.h>
 #include <memory>
-#include <vector>
 #include <syscalls.h>
+#include <vector>
 
 namespace LFoundation {
 
@@ -81,4 +81,4 @@ private:
     std::vector<Timer> m_timers;
     std::vector<QueuedEvent> m_event_queue;
 };
-}
+} // namespace LFoundation

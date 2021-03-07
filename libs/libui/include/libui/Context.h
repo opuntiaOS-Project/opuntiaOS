@@ -26,4 +26,4 @@ public:
         set_draw_offset(frame.origin());
     }
 };
-}
+} // namespace UI

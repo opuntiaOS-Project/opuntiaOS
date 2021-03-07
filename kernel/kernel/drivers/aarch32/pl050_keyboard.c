@@ -8,11 +8,11 @@
 #include <drivers/aarch32/pl050.h>
 #include <drivers/generic/keyboard.h>
 #include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/aarch32/interrupts.h>
-#include <libkern/libkern.h>
 
 #define DEBUG_PL050
 
@@ -69,7 +69,7 @@ void pl050_keyboard_init(device_t* dev)
 
 static driver_desc_t _pl050_keyboard_driver_info()
 {
-    driver_desc_t desc;
+    driver_desc_t desc = { 0 };
     desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
     desc.auto_start = true;
     desc.is_device_driver = false;

@@ -5,9 +5,9 @@
  * found in the LICENSE file.
  */
 
+#include <libfoundation/EventLoop.h>
 #include <libui/Button.h>
 #include <libui/Context.h>
-#include <libfoundation/EventLoop.h>
 
 namespace UI {
 
@@ -67,4 +67,4 @@ size_t Button::text_height() const
     return font().glyph_height();
 }
 
-}
+} // namespace UI

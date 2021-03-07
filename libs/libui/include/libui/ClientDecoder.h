@@ -34,4 +34,4 @@ private:
     LFoundation::EventLoop& m_event_loop;
 };
 
-}
+} // namespace UI

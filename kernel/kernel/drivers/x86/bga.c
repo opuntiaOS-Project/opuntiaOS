@@ -1,13 +1,13 @@
 #include <drivers/driver_manager.h>
 #include <drivers/x86/bga.h>
 #include <drivers/x86/pci.h>
-#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <tasking/proc.h>
 #include <tasking/tasking.h>
-#include <libkern/libkern.h>
 
 #define VBE_DISPI_IOPORT_INDEX 0x01CE
 #define VBE_DISPI_IOPORT_DATA 0x01CF
@@ -105,7 +105,7 @@ static void bga_recieve_notification(uint32_t msg, uint32_t param)
             kpanic("Can't init bga in /dev");
         }
 
-        file_ops_t fops = {0};
+        file_ops_t fops = { 0 };
         fops.ioctl = _bga_ioctl;
         fops.mmap = _bga_mmap;
         devfs_inode_t* res = devfs_register(mp, MKDEV(10, 156), "bga", 3, 0, &fops);
@@ -116,7 +116,7 @@ static void bga_recieve_notification(uint32_t msg, uint32_t param)
 
 static inline driver_desc_t _bga_driver_info()
 {
-    driver_desc_t bga_desc;
+    driver_desc_t bga_desc = { 0 };
     bga_desc.type = DRIVER_VIDEO_DEVICE;
     bga_desc.auto_start = false;
     bga_desc.is_device_driver = true;

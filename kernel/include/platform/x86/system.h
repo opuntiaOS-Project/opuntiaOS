@@ -8,8 +8,8 @@
 #ifndef _KERNEL_PLATFORM_X86_SYSTEM_H
 #define _KERNEL_PLATFORM_X86_SYSTEM_H
 
-#include <platform/generic/registers.h>
 #include <libkern/types.h>
+#include <platform/generic/registers.h>
 
 /**
  * INTS
@@ -69,10 +69,11 @@ inline static void system_disable_paging()
     asm volatile("mov %eax, %cr0");
 }
 
-inline static void system_stop()
+__attribute__((noreturn)) inline static void system_stop()
 {
     asm volatile("cli\n");
     asm volatile("hlt\n");
+    while (1) { }
 }
 
 #endif /* _KERNEL_PLATFORM_X86_SYSTEM_H */

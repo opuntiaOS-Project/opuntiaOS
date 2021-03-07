@@ -32,4 +32,4 @@ private:
     int m_right { 0 };
 };
 
-}
+} // namespace UI

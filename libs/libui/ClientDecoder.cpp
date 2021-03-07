@@ -88,4 +88,4 @@ std::unique_ptr<Message> ClientDecoder::handle(const NotifyWindowIconChangedMess
     return nullptr;
 }
 
-}
+} // namespace UI

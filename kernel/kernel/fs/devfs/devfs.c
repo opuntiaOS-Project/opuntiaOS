@@ -464,7 +464,7 @@ proc_zone_t* devfs_mmap(dentry_t* dentry, mmap_params_t* params)
 
 driver_desc_t _devfs_driver_info()
 {
-    driver_desc_t fs_desc;
+    driver_desc_t fs_desc = { 0 };
     fs_desc.type = DRIVER_FILE_SYSTEM;
     fs_desc.auto_start = false;
     fs_desc.is_device_driver = false;

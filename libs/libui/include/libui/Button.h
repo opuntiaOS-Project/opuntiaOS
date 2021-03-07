@@ -49,4 +49,4 @@ private:
     EdgeInsect m_content_edge_insets { 12, 12, 12, 12 };
 };
 
-}
+} // namespace UI

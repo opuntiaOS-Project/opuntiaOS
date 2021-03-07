@@ -41,4 +41,4 @@ private:
     uint8_t m_final_alpha { true };
 };
 
-}
+} // namespace LG

@@ -8,8 +8,8 @@
 #ifndef _KERNEL_ALGO_RINGBUFFER_H
 #define _KERNEL_ALGO_RINGBUFFER_H
 
-#include <mem/vmm/zoner.h>
 #include <libkern/types.h>
+#include <mem/vmm/zoner.h>
 
 struct __ringbuffer {
     zone_t zone;

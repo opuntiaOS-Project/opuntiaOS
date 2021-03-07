@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include <sys/types.h>
+#include <vector>
 
 typedef std::vector<uint8_t> EncodedMessage;
 typedef int message_key_t;

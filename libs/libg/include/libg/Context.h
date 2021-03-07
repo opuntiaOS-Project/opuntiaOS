@@ -46,4 +46,4 @@ private:
     Color m_color {};
 };
 
-}
+} // namespace LG

@@ -22,11 +22,11 @@ struct random_access_iterator_tag : public bidirectional_iterator_tag {
 
 template <class Iter>
 struct iterator_traits {
-    using value_type = Iter::value_type;
-    using difference_type = Iter::difference_type;
-    using pointer = Iter::pointer;
-    using reference = Iter::reference;
-    using iterator_category = Iter::iterator_category;
+    using value_type = typename Iter::value_type;
+    using difference_type = typename Iter::difference_type;
+    using pointer = typename Iter::pointer;
+    using reference = typename Iter::reference;
+    using iterator_category = typename Iter::iterator_category;
 };
 
 template <class T>
@@ -123,11 +123,11 @@ template <class Iter>
 class reverse_iterator {
 public:
     using iterator_type = Iter;
-    using value_type = Iter::value_type;
-    using difference_type = Iter::difference_type;
-    using pointer = Iter::pointer;
-    using reference = Iter::reference;
-    using iterator_category = Iter::iterator_category;
+    using value_type = typename Iter::value_type;
+    using difference_type = typename Iter::difference_type;
+    using pointer = typename Iter::pointer;
+    using reference = typename Iter::reference;
+    using iterator_category = typename Iter::iterator_category;
 
     constexpr reverse_iterator() = default;
     ~reverse_iterator() = default;

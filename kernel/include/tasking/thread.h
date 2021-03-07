@@ -10,11 +10,11 @@
 
 #include <drivers/x86/fpu.h>
 #include <fs/vfs.h>
+#include <libkern/types.h>
 #include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <tasking/signal.h>
 #include <time/time_manager.h>
-#include <libkern/types.h>
 
 enum THREAD_STATUS {
     THREAD_INVALID = 0,

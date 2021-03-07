@@ -9,11 +9,11 @@
 #include "../../../servers/window_server/WSConnection.h"
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
+#include <libfoundation/SharedBuffer.h>
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
 #include <libg/string.h>
 #include <libui/View.h>
-#include <libfoundation/SharedBuffer.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -76,4 +76,4 @@ private:
     LG::string m_icon_path { "/res/icons/apps/missing.icon" };
 };
 
-}
+} // namespace UI

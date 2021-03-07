@@ -104,4 +104,4 @@ void Rect::decode(const char* buf, size_t& offset)
     Encoder::decode(buf, offset, m_height);
 }
 
-}
+} // namespace LG

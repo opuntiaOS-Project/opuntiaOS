@@ -10,8 +10,8 @@
 #include <libg/Point.h>
 #include <libg/Rect.h>
 #include <libui/Responder.h>
-#include <vector>
 #include <syscalls.h>
+#include <vector>
 
 namespace UI {
 
@@ -120,4 +120,4 @@ private:
     LG::Color m_background_color { LG::Color::White };
 };
 
-}
+} // namespace UI

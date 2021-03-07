@@ -41,4 +41,4 @@ void Responder::receive_event(std::unique_ptr<LFoundation::Event> event)
     }
 }
 
-}
+} // namespace UI

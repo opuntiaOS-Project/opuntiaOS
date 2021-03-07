@@ -1,8 +1,8 @@
 #include <algo/ringbuffer.h>
 #include <drivers/x86/keyboard.h>
 #include <io/tty/tty.h>
-#include <platform/x86/idt.h>
 #include <libkern/libkern.h>
+#include <platform/x86/idt.h>
 
 static driver_desc_t _keyboard_driver_info();
 static key_t _kbdriver_apply_modifiers(key_t key);
@@ -18,7 +18,7 @@ static void _kbdriver_notification(uint32_t msg, uint32_t param)
 
 static driver_desc_t _keyboard_driver_info()
 {
-    driver_desc_t kbd_desc;
+    driver_desc_t kbd_desc = { 0 };
     kbd_desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
     kbd_desc.auto_start = true;
     kbd_desc.is_device_driver = false;

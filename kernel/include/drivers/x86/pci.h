@@ -1,8 +1,8 @@
 #ifndef _KERNEL_DRIVERS_X86_PCI_H
 #define _KERNEL_DRIVERS_X86_PCI_H
 
-#include <drivers/x86/display.h>
 #include <drivers/driver_manager.h>
+#include <drivers/x86/display.h>
 #include <libkern/types.h>
 #include <platform/x86/port.h>
 

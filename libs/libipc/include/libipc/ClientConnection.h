@@ -6,9 +6,9 @@
 #include <libipc/Message.h>
 #include <libipc/MessageDecoder.h>
 #include <std/Dbg.h>
-#include <vector>
 #include <syscalls.h>
 #include <unistd.h>
+#include <vector>
 
 template <typename ServerDecoder, typename ClientDecoder>
 class ClientConnection : public LFoundation::EventReceiver {

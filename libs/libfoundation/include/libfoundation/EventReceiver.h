@@ -22,4 +22,4 @@ public:
 private:
 };
 
-}
+} // namespace LFoundation

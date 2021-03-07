@@ -1,6 +1,6 @@
 #include <drivers/driver_manager.h>
-#include <libkern/log.h>
 #include <libkern/libkern.h>
+#include <libkern/log.h>
 
 // ------------
 // Private

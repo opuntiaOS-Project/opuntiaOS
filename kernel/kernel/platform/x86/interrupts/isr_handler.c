@@ -1,12 +1,12 @@
+#include <libkern/kassert.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
-#include <platform/x86/isr_handler.h>
 #include <platform/generic/registers.h>
 #include <platform/generic/system.h>
+#include <platform/x86/isr_handler.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <libkern/kassert.h>
 
 static const char* exception_messages[32] = {
     "Division by zero",
@@ -47,7 +47,7 @@ void isr_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
 
-    proc_t* p = 0;
+    proc_t* p = NULL;
     if (likely(RUNNIG_THREAD)) {
         p = RUNNIG_THREAD->process;
         if (RUNNIG_THREAD->process->is_kthread) {
@@ -60,10 +60,14 @@ void isr_handler(trapframe_t* tf)
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
             // log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, read_cr2(), p->pid, tf->eip);
-            log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, 0, p->pid, tf->eip);
-            thread_print_backtrace();
-            proc_die(p);
-            resched();
+            if (!p) {
+                kpanic("Carsh PF in kernel");
+            } else {
+                log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, 0, p->pid, tf->eip);
+                thread_print_backtrace();
+                proc_die(p);
+                resched();
+            }
         }
     } else if (tf->int_no == 6) {
         if (!p) {

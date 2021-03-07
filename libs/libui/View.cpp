@@ -181,4 +181,4 @@ void View::receive_display_event(DisplayEvent& event)
     Responder::receive_display_event(event);
 }
 
-}
+} // namespace UI

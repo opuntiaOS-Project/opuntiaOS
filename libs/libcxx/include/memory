@@ -103,13 +103,13 @@ private:
 template <class Alloc>
 struct allocator_traits {
     using allocator_type = Alloc;
-    using value_type = Alloc::value_type;
-    using pointer = Alloc::pointer;
-    using const_pointer = Alloc::const_pointer;
-    using void_pointer = Alloc::void_pointer;
-    using const_void_pointer = Alloc::const_void_pointer;
-    using difference_type = Alloc::difference_type;
-    using size_type = Alloc::size_type;
+    using value_type = typename Alloc::value_type;
+    using pointer = typename Alloc::pointer;
+    using const_pointer = typename Alloc::const_pointer;
+    using void_pointer = typename Alloc::void_pointer;
+    using const_void_pointer = typename Alloc::const_void_pointer;
+    using difference_type = typename Alloc::difference_type;
+    using size_type = typename Alloc::size_type;
 };
 
 template <class _Alloc, class S>

@@ -13,7 +13,7 @@
 
 // #define PNGLOADER_DEGUG
 
-namespace LG::PNG {
+namespace LG { namespace PNG {
 
 constexpr int png_header_size = 8;
 static uint8_t png_header[] = { 137, 80, 78, 71, 13, 10, 26, 10 };
@@ -298,4 +298,5 @@ PixelBitmap PNGLoader::load_from_mem(const uint8_t* ptr)
     return bitmap;
 }
 
-}
+} // namespace PNG
+ } // namespace LG

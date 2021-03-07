@@ -235,6 +235,7 @@ static int _open_file(FILE* file, const char* path, const char* mode)
     }
 
     file->_file = fd;
+    return 0;
 }
 
 static FILE* _fopen_internal(const char* path, const char* mode)
@@ -367,6 +368,7 @@ size_t fwrite(const void* ptr, size_t size, size_t count, FILE* stream)
 
 int fseek(FILE* stream, uint32_t offset, int whence)
 {
+    return -1;
 }
 
 int fputc(int c, FILE* stream)

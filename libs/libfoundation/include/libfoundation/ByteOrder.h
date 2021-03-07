@@ -31,4 +31,4 @@ public:
     }
 };
 
-}
+} // namespace LFoundation

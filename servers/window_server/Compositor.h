@@ -9,8 +9,8 @@
 #include "WSConnection.h"
 #include "WSServerDecoder.h"
 #include <libipc/ServerConnection.h>
-#include <vector>
 #include <syscalls.h>
+#include <vector>
 
 class CursorManager;
 class ResourceManager;

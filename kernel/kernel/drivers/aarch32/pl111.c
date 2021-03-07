@@ -6,14 +6,14 @@
  */
 
 #include <drivers/aarch32/pl111.h>
-#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <tasking/tasking.h>
-#include <libkern/libkern.h>
 
 #define DEBUG_PL111
 
@@ -96,7 +96,7 @@ static void pl111_recieve_notification(uint32_t msg, uint32_t param)
             kpanic("Can't init bga in /dev");
         }
 
-        file_ops_t fops = {0};
+        file_ops_t fops = { 0 };
         fops.ioctl = _pl111_ioctl;
         fops.mmap = _pl111_mmap;
         devfs_inode_t* res = devfs_register(mp, MKDEV(10, 156), "bga", 3, 0, &fops);
@@ -145,7 +145,7 @@ void pl111_init(device_t* dev)
 
 static driver_desc_t _pl111_driver_info()
 {
-    driver_desc_t pl111_desc;
+    driver_desc_t pl111_desc = { 0 };
     pl111_desc.type = DRIVER_VIDEO_DEVICE;
     pl111_desc.auto_start = true;
     pl111_desc.is_device_driver = false;

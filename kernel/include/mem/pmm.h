@@ -1,8 +1,8 @@
 #ifndef _KERNEL_MEM_PMM_H
 #define _KERNEL_MEM_PMM_H
 
-#include <platform/generic/pmm/settings.h>
 #include <libkern/types.h>
+#include <platform/generic/pmm/settings.h>
 
 typedef struct {
     uint32_t startLo;

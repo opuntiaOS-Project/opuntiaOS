@@ -3,8 +3,8 @@
 
 #include <drivers/generic/mouse.h>
 #include <drivers/x86/ata.h>
-#include <platform/x86/idt.h>
 #include <libkern/types.h>
+#include <platform/x86/idt.h>
 
 bool mouse_install();
 

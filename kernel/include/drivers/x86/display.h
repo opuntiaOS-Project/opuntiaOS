@@ -1,10 +1,10 @@
 #ifndef _KERNEL_DRIVERS_X86_DISPLAY_H
 #define _KERNEL_DRIVERS_X86_DISPLAY_H
 
+#include <libkern/libkern.h>
+#include <libkern/types.h>
 #include <platform/x86/memmap.h>
 #include <platform/x86/port.h>
-#include <libkern/types.h>
-#include <libkern/libkern.h>
 
 #define VIDEO_MEMORY (char*)(0xb8000 + BIOS_SETTING_BASE)
 #define VIDEO_ADDRESS (char*)(0xb8000 + BIOS_SETTING_BASE)

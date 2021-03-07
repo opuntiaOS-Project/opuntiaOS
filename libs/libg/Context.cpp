@@ -379,4 +379,4 @@ void Context::add_ellipse(const Rect& rect)
     }
 }
 
-}
+} // namespace LG

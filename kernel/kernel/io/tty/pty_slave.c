@@ -1,8 +1,8 @@
 #include <fs/devfs/devfs.h>
 #include <io/tty/pty_master.h>
 #include <io/tty/pty_slave.h>
-#include <libkern/log.h>
 #include <libkern/libkern.h>
+#include <libkern/log.h>
 
 pty_slave_entry_t pty_slaves[PTYS_COUNT];
 

@@ -7,12 +7,12 @@
 
 #include <algo/dynamic_array.h>
 #include <fs/vfs.h>
+#include <libkern/kassert.h>
 #include <libkern/log.h>
+#include <libkern/mem.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
 #include <syscalls/handlers.h>
-#include <libkern/kassert.h>
-#include <libkern/mem.h>
 
 // #define DENTRY_DEBUG
 

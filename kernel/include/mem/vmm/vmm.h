@@ -8,11 +8,11 @@
 #ifndef _KERNEL_MEM_VMM_VMM_H
 #define _KERNEL_MEM_VMM_VMM_H
 
+#include <libkern/types.h>
 #include <mem/pmm.h>
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/pde.h>
 #include <platform/generic/vmm/pte.h>
-#include <libkern/types.h>
 
 #define KB (1024)
 #define MB (1024 * 1024)

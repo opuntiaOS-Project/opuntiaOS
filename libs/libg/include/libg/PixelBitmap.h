@@ -93,4 +93,4 @@ private:
     PixelBitmapFormat m_format { RGB };
 };
 
-}
+} // namespace LG

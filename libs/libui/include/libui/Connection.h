@@ -34,4 +34,4 @@ private:
     ClientDecoder m_client_decoder;
 };
 
-}
+} // namespace UI

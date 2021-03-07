@@ -82,6 +82,7 @@ void EventLoop::pump()
     check_fds();
     check_timers();
     std::vector<QueuedEvent> events_to_dispatch(std::move(m_event_queue));
+    m_event_queue.clear();
     for (auto& event : events_to_dispatch) {
         event.receiver.receive_event(std::move(event.event));
     }
@@ -99,4 +100,4 @@ int EventLoop::run()
     return m_exit_code;
 }
 
-}
+} // namespace LFoundation

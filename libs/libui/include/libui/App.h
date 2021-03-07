@@ -35,4 +35,4 @@ private:
     Window* m_window { nullptr };
 };
 
-}
+} // namespace UI

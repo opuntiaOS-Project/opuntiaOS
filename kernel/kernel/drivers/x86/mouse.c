@@ -1,11 +1,11 @@
 #include <algo/ringbuffer.h>
-#include <drivers/x86/display.h>
 #include <drivers/driver_manager.h>
+#include <drivers/x86/display.h>
 #include <drivers/x86/mouse.h>
 #include <fs/devfs/devfs.h>
+#include <libkern/kassert.h>
 #include <libkern/log.h>
 #include <libkern/types.h>
-#include <libkern/kassert.h>
 #include <platform/x86/idt.h>
 #include <platform/x86/port.h>
 
@@ -38,7 +38,7 @@ static void _mouse_recieve_notification(uint32_t msg, uint32_t param)
             kpanic("Can't init mouse in /dev");
         }
 
-        file_ops_t fops = {0};
+        file_ops_t fops = { 0 };
         fops.can_read = _mouse_can_read;
         fops.read = _mouse_read;
         devfs_inode_t* res = devfs_register(mp, MKDEV(10, 1), "mouse", 5, 0, &fops);
@@ -49,7 +49,7 @@ static void _mouse_recieve_notification(uint32_t msg, uint32_t param)
 
 static driver_desc_t _mouse_driver_info()
 {
-    driver_desc_t desc;
+    driver_desc_t desc = { 0 };
     desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
     desc.auto_start = true;
     desc.is_device_driver = false;

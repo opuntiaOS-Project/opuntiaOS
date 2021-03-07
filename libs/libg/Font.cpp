@@ -116,4 +116,4 @@ GlyphBitmap Font::glyph_bitmap(size_t ch) const
     return GlyphBitmap(&m_raw_data[ch * m_height], glyph_width(ch), m_height);
 }
 
-}
+} // namespace LG

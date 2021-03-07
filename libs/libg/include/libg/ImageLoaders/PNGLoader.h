@@ -13,7 +13,7 @@
 #include <libg/Rect.h>
 #include <string>
 
-namespace LG::PNG {
+namespace LG { namespace PNG {
 
 struct ChunkHeader {
     size_t len;
@@ -155,4 +155,5 @@ private:
     ScanlineKeeper m_scanline_keeper;
 };
 
-}
+} // namespace PNG
+ } // namespace LG

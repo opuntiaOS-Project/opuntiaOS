@@ -2,7 +2,7 @@
 
 static driver_desc_t _pci_driver_info()
 {
-    driver_desc_t pci_desc;
+    driver_desc_t pci_desc = { 0 };
     pci_desc.type = DRIVER_BUS_CONTROLLER;
     pci_desc.auto_start = true;
     pci_desc.is_device_driver = false;
@@ -106,7 +106,7 @@ void pci_find_devices()
 
 device_desc_t pci_get_device_desriptor(uint8_t bus, uint8_t device, uint8_t function)
 {
-    device_desc_t new_device;
+    device_desc_t new_device = { 0 };
 
     new_device.bus = bus;
     new_device.device = device;

@@ -70,4 +70,4 @@ private:
     bool m_dynamic_width;
 };
 
-}
+} // namespace LG

@@ -1,5 +1,5 @@
-#include <termios.h>
 #include <syscalls.h>
+#include <termios.h>
 
 int tcgetpgrp(int fd)
 {
@@ -13,7 +13,7 @@ int tcsetpgrp(int fd, pid_t pgid)
 
 int tcgetattr(int fd, termios_t* termios_p)
 {
-    ioctl(0, TCGETS, (int)termios_p);
+    return ioctl(0, TCGETS, (int)termios_p);
 }
 
 int tcsetattr(int fd, int optional_actions, const termios_t* termios_p)

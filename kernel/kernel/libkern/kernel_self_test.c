@@ -1,9 +1,9 @@
 #ifdef __i386__
 
 #include <drivers/x86/display.h>
+#include <libkern/kernel_self_test.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/vmm.h>
-#include <libkern/kernel_self_test.h>
 
 bool _test_kmalloc();
 bool _test_page_fault();

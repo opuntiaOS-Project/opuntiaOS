@@ -45,7 +45,7 @@ int procfs_getdents(dentry_t* dir, uint32_t* offset, dirent_t* res)
 
 driver_desc_t _procfs_driver_info()
 {
-    driver_desc_t fs_desc;
+    driver_desc_t fs_desc = { 0 };
     fs_desc.type = DRIVER_FILE_SYSTEM;
     fs_desc.auto_start = false;
     fs_desc.is_device_driver = false;

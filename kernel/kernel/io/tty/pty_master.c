@@ -1,9 +1,9 @@
-#include <libkern/errno.h>
 #include <fs/vfs.h>
 #include <io/tty/pty_master.h>
 #include <io/tty/pty_slave.h>
-#include <libkern/log.h>
+#include <libkern/errno.h>
 #include <libkern/libkern.h>
+#include <libkern/log.h>
 
 #define INODE2PTSNO(x) (x-1)
 #define PTSNO2INODE(x) (x+1)

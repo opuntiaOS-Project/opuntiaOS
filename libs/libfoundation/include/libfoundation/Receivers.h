@@ -10,8 +10,8 @@
 #include <libfoundation/EventReceiver.h>
 #include <memory>
 #include <std/Dbg.h>
-#include <vector>
 #include <syscalls.h>
+#include <vector>
 
 namespace LFoundation {
 
@@ -170,4 +170,4 @@ private:
 //     }
 // };
 
-}
+} // namespace LFoundation

@@ -63,4 +63,4 @@ void PixelBitmap::resize(size_t width, size_t height)
     m_should_free = true;
 }
 
-}
+} // namespace LG

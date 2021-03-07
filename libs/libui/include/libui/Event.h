@@ -213,4 +213,4 @@ private:
     LG::string m_icon_path;
 };
 
-}
+} // namespace UI

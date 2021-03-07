@@ -2,11 +2,11 @@
 // See .ipc file
 
 #pragma once
-#include <libipc/Encoder.h>
-#include <libipc/ClientConnection.h>
-#include <libipc/ServerConnection.h>
 #include <libg/Rect.h>
 #include <libg/string.h>
+#include <libipc/ClientConnection.h>
+#include <libipc/Encoder.h>
+#include <libipc/ServerConnection.h>
 #include <new>
 
 class GreetMessage : public Message {

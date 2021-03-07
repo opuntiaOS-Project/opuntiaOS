@@ -32,4 +32,4 @@ private:
     int m_type;
 };
 
-}
+} // namespace LFoundation

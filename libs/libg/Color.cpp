@@ -55,4 +55,4 @@ Color::Color(Colors clr)
     m_opacity = 0;
 }
 
-}
+} // namespace LG

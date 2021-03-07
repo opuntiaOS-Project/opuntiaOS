@@ -77,7 +77,7 @@ inline static void system_disable_paging()
     // asm volatile("mov %eax, %cr0");
 }
 
-inline static void system_stop()
+__attribute__((noreturn)) inline static void system_stop()
 {
     // asm volatile("cli\n");
     // asm volatile("hlt\n");

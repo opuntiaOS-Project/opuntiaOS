@@ -11,8 +11,8 @@
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
 #include <libipc/Encoder.h>
-#include <utility>
 #include <sys/types.h>
+#include <utility>
 
 namespace LG {
 
@@ -72,4 +72,4 @@ private:
     size_t m_height { 0 };
 };
 
-}
+} // namespace LG

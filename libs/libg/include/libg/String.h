@@ -38,4 +38,4 @@ public:
         offset++;
     }
 };
-}
+} // namespace LG

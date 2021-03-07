@@ -33,4 +33,4 @@ protected:
     Responder() = default;
 };
 
-}
+} // namespace UI

@@ -129,7 +129,7 @@ static void _pl181_add_new_device(device_t* new_device)
 
 static void _pl181_add_device(uint32_t rca, bool ishc)
 {
-    device_desc_t new_device;
+    device_desc_t new_device = { 0 };
     new_device.class_id = 0x08;
     new_device.subclass_id = 0x05;
     new_device.interface_id = 0;
@@ -146,7 +146,7 @@ static uint32_t _pl181_get_capacity(device_t* device)
 
 static driver_desc_t _pl181_driver_info()
 {
-    driver_desc_t ata_desc;
+    driver_desc_t ata_desc = { 0 };
     ata_desc.type = DRIVER_STORAGE_DEVICE;
     ata_desc.auto_start = false;
     ata_desc.is_device_driver = true;

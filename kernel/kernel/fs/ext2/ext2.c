@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#include <libkern/errno.h>
 #include <fs/vfs.h>
+#include <libkern/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
@@ -233,13 +233,14 @@ static uint32_t _ext2_get_block_of_inode(dentry_t* dentry, uint32_t inode_block_
     uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb) / 4;
     if (inode_block_index < 12) {
         return dentry->inode->block[inode_block_index];
-    } else if (inode_block_index < 12 + block_len) { // single indirect
-        return _ext2_get_block_of_inode_lev0(dentry, dentry->inode->block[12], inode_block_index - 12);
-    } else if (inode_block_index < 12 + block_len + block_len * block_len) { // double indirect
-        return _ext2_get_block_of_inode_lev1(dentry, dentry->inode->block[13], inode_block_index - 12 - block_len);
-    } else { // triple indirect
-        return _ext2_get_block_of_inode_lev2(dentry, dentry->inode->block[14], inode_block_index - (12 + block_len + block_len * block_len));
     }
+    if (inode_block_index < 12 + block_len) { // single indirect
+        return _ext2_get_block_of_inode_lev0(dentry, dentry->inode->block[12], inode_block_index - 12);
+    }
+    if (inode_block_index < 12 + block_len + block_len * block_len) { // double indirect
+        return _ext2_get_block_of_inode_lev1(dentry, dentry->inode->block[13], inode_block_index - 12 - block_len);
+    } // triple indirect
+    return _ext2_get_block_of_inode_lev2(dentry, dentry->inode->block[14], inode_block_index - (12 + block_len + block_len * block_len));
 }
 
 static int _ext2_set_block_of_inode_lev0(dentry_t* dentry, uint32_t cur_block, uint32_t inode_block_index, uint32_t val)
@@ -278,13 +279,14 @@ int _ext2_set_block_of_inode(dentry_t* dentry, uint32_t inode_block_index, uint3
         dentry->inode->block[inode_block_index] = val;
         dentry_set_flag(dentry, DENTRY_DIRTY);
         return 0;
-    } else if (inode_block_index < 12 + block_len) { // single indirect
-        return _ext2_set_block_of_inode_lev0(dentry, dentry->inode->block[12], inode_block_index - 12, val);
-    } else if (inode_block_index < 12 + block_len + block_len * block_len) { // double indirect
-        return _ext2_set_block_of_inode_lev1(dentry, dentry->inode->block[13], inode_block_index - 12 - block_len, val);
-    } else { // triple indirect
-        return _ext2_set_block_of_inode_lev2(dentry, dentry->inode->block[14], inode_block_index - (12 + block_len + block_len * block_len), val);
     }
+    if (inode_block_index < 12 + block_len) { // single indirect
+        return _ext2_set_block_of_inode_lev0(dentry, dentry->inode->block[12], inode_block_index - 12, val);
+    }
+    if (inode_block_index < 12 + block_len + block_len * block_len) { // double indirect
+        return _ext2_set_block_of_inode_lev1(dentry, dentry->inode->block[13], inode_block_index - 12 - block_len, val);
+    } // triple indirect
+    return _ext2_set_block_of_inode_lev2(dentry, dentry->inode->block[14], inode_block_index - (12 + block_len + block_len * block_len), val);
 }
 
 static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* block_index, uint32_t group_index)
@@ -1096,7 +1098,7 @@ fsdata_t get_fsdata(dentry_t* dentry)
 
 driver_desc_t _ext2_driver_info()
 {
-    driver_desc_t fs_desc;
+    driver_desc_t fs_desc = { 0 };
     fs_desc.type = DRIVER_FILE_SYSTEM;
     fs_desc.auto_start = false;
     fs_desc.is_device_driver = false;

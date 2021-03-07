@@ -164,8 +164,7 @@ void WindowManager::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
     if (event->type() == WSEvent::Type::MouseEvent) {
         receive_mouse_event(std::move(event));
-    }
-    if (event->type() == WSEvent::Type::KeyboardEvent) {
+    } else if (event->type() == WSEvent::Type::KeyboardEvent) {
         receive_keyboard_event(std::move(event));
     }
 }

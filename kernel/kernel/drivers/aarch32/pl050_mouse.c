@@ -6,17 +6,17 @@
  */
 
 #include <algo/ringbuffer.h>
-#include <drivers/generic/mouse.h>
 #include <drivers/aarch32/pl050.h>
-#include <libkern/errno.h>
+#include <drivers/generic/mouse.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/aarch32/interrupts.h>
 #include <tasking/tasking.h>
-#include <libkern/libkern.h>
 
 // #define DEBUG_PL050
 // #define MOUSE_DRIVER_DEBUG
@@ -55,7 +55,7 @@ static void pl050_mouse_recieve_notification(uint32_t msg, uint32_t param)
             kpanic("Can't init pl050_mouse in /dev");
         }
 
-        file_ops_t fops = {0};
+        file_ops_t fops = { 0 };
         fops.can_read = _mouse_can_read;
         fops.read = _mouse_read;
         devfs_inode_t* res = devfs_register(mp, MKDEV(10, 1), "mouse", 5, 0, &fops);
@@ -147,7 +147,7 @@ void pl050_mouse_init(device_t* dev)
 
 static driver_desc_t _pl050_mouse_driver_info()
 {
-    driver_desc_t desc;
+    driver_desc_t desc = { 0 };
     desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
     desc.auto_start = true;
     desc.is_device_driver = false;

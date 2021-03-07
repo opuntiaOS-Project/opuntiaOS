@@ -8,15 +8,15 @@
 #ifdef FPU_ENABLED
 #include <drivers/x86/fpu.h>
 #endif
-#include <libkern/errno.h>
 #include <io/tty/tty.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
-#include <libkern/libkern.h>
 
 #define TASKING_DEBUG
 

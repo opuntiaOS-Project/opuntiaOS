@@ -115,4 +115,4 @@ private:
     uint8_t m_opacity { 0 };
 };
 
-}
+} // namespace LG

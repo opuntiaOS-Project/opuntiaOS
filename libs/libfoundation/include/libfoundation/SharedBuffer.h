@@ -72,4 +72,4 @@ private:
     size_t m_size { 0 };
     T* m_data { nullptr };
 };
-}
+} // namespace LFoundation

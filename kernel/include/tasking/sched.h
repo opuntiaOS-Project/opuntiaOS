@@ -9,9 +9,9 @@
 #ifndef _KERNEL_TASKING_SCHED_H
 #define _KERNEL_TASKING_SCHED_H
 
+#include <libkern/types.h>
 #include <mem/vmm/vmm.h>
 #include <tasking/tasking.h>
-#include <libkern/types.h>
 
 #define MAX_PRIO 0
 #define MIN_PRIO 10

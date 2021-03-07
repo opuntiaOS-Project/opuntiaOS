@@ -13,8 +13,8 @@
 #include <libg/Font.h>
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <libg/Rect.h>
-#include <utility>
 #include <syscalls.h>
+#include <utility>
 
 #define CONTROL_PANEL_CLOSE 0x0
 #define CONTROL_PANEL_MAXIMIZE 0x1

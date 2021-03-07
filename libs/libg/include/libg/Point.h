@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <sys/types.h>
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
 #include <libipc/Encoder.h>
+#include <sys/types.h>
 
 namespace LG {
 
@@ -80,4 +80,4 @@ private:
     T m_y {};
 };
 
-}
+} // namespace LG

@@ -1,5 +1,5 @@
-#include <mem/kmalloc.h>
 #include <libkern/libkern.h>
+#include <mem/kmalloc.h>
 
 void* memset(void* dest, uint8_t fll, uint32_t nbytes)
 {

@@ -9,13 +9,13 @@
 #define _KERNEL_TASKING_TASKING_H
 
 #include <fs/vfs.h>
+#include <libkern/types.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
-#include <libkern/types.h>
 
 #define CPU_CNT 1
 #define THIS_CPU (&cpus[0])

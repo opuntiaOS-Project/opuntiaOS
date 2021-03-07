@@ -1,10 +1,10 @@
 #ifndef _KERNEL_PLATFORM_X86_IDT_H
 #define _KERNEL_PLATFORM_X86_IDT_H
 
+#include <libkern/types.h>
 #include <platform/x86/pic.h>
 #include <platform/x86/port.h>
 #include <platform/x86/tasking/trapframe.h>
-#include <libkern/types.h>
 
 #define INIT_CODE_SEG 0x08
 #define INIT_DATA_SEG 0x10

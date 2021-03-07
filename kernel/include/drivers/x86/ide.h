@@ -1,8 +1,8 @@
 #ifndef _KERNEL_DRIVERS_X86_IDE_H
 #define _KERNEL_DRIVERS_X86_IDE_H
 
-#include <libkern/types.h>
 #include <drivers/x86/ata.h>
+#include <libkern/types.h>
 #include <platform/x86/idt.h>
 
 void ide_install();

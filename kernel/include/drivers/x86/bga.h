@@ -1,11 +1,11 @@
 #ifndef _KERNEL_DRIVERS_X86_BGA_H
 #define _KERNEL_DRIVERS_X86_BGA_H
 
-#include <libkern/types.h>
-#include <platform/x86/port.h>
-#include <drivers/x86/display.h>
-#include <mem/kmalloc.h>
 #include <drivers/driver_manager.h>
+#include <drivers/x86/display.h>
+#include <libkern/types.h>
+#include <mem/kmalloc.h>
+#include <platform/x86/port.h>
 
 void bga_install();
 void bga_init();

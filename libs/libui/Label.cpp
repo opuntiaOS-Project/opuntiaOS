@@ -83,4 +83,4 @@ size_t Label::text_height() const
     return font().glyph_height();
 }
 
-}
+} // namespace UI
