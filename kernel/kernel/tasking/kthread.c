@@ -73,5 +73,5 @@ int kthread_setup_regs(proc_t* p, void* entry_point)
 int kthread_free(proc_t* p)
 {
     /* proc_free can free kthreads too) */
-    proc_free(p);
+    return proc_free(p);
 }

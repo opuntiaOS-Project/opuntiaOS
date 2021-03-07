@@ -39,7 +39,7 @@ static uint32_t kernel_ptables_start_paddr = 0x0;
 inline static void* _vmm_pspace_get_vaddr_of_active_pdir();
 inline static void* _vmm_pspace_get_nth_active_ptable(uint32_t n);
 inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr);
-static bool _vmm_split_pspace();
+static int _vmm_split_pspace();
 static void _vmm_pspace_init();
 static void _vmm_pspace_gen(pdirectory_t*);
 static void* _vmm_kernel_convert_vaddr2paddr(uint32_t vaddr);
@@ -170,7 +170,7 @@ inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr)
     return (void*)_vmm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(vaddr));
 }
 
-static bool _vmm_split_pspace()
+static int _vmm_split_pspace()
 {
     pspace_zone = zoner_new_zone(4 * MB);
 
@@ -181,6 +181,7 @@ static bool _vmm_split_pspace()
     _vmm_kernel_pdir = (pdir_t*)_vmm_alloc_kernel_pdir();
     _vmm_active_pdir = (pdir_t*)_vmm_kernel_pdir;
     memset((void*)_vmm_active_pdir, 0, PDIR_SIZE);
+    return 0;
 }
 
 /**
@@ -557,7 +558,7 @@ int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, uint32_t set
 
     int status = 0;
     for (; n_pages; paddr += VMM_PAGE_SIZE, vaddr += VMM_PAGE_SIZE, n_pages--) {
-        if (status = vmm_map_page(vaddr, paddr, settings) < 0) {
+        if ((status = vmm_map_page(vaddr, paddr, settings) < 0)) {
             return status;
         }
     }
@@ -573,7 +574,7 @@ int vmm_unmap_pages(uint32_t vaddr, uint32_t n_pages)
 
     int status = 0;
     for (; n_pages; vaddr += VMM_PAGE_SIZE, n_pages--) {
-        if (status = vmm_unmap_page(vaddr) < 0) {
+        if ((status = vmm_unmap_page(vaddr) < 0)) {
             return status;
         }
     }
@@ -648,7 +649,7 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uint32_t vaddr)
         }
     }
 
-    _vmm_free_mapped_zone(src_ptable_zone);
+    return _vmm_free_mapped_zone(src_ptable_zone);
 }
 
 static void _vmm_ensure_cow_for_page(uint32_t vaddr)

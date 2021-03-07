@@ -16,7 +16,7 @@ static inline uint32_t context_get_instruction_pointer(context_t* ctx)
     return ctx->eip;
 }
 
-static inline uint32_t context_set_instruction_pointer(context_t* ctx, uint32_t ip)
+static inline void context_set_instruction_pointer(context_t* ctx, uint32_t ip)
 {
     ctx->eip = ip;
 }

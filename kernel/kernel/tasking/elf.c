@@ -68,7 +68,7 @@ static int _elf_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_program_hea
     }
 
     zoner_free_zone(coping_zone);
-    vmm_switch_pdir(prev_pdir);
+    return vmm_switch_pdir(prev_pdir);
 }
 
 static int _elf_interpret_program_header_entry(proc_t* p, file_descriptor_t* fd)
@@ -139,6 +139,7 @@ static int _elf_interpret_section_header_entry(proc_t* p, file_descriptor_t* fd)
             }
         }
     }
+    return 0;
 }
 
 static int _elf_alloc_stack(proc_t* p)

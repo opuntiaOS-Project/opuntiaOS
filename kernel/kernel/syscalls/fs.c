@@ -40,9 +40,8 @@ void sys_open(trapframe_t* tf)
     dentry_put(file);
     if (!res) {
         return_with_val(proc_get_fd_id(p, fd));
-    } else {
-        return_with_val(res);
     }
+    return_with_val(res);
 }
 
 void sys_close(trapframe_t* tf)
@@ -263,12 +262,15 @@ void sys_select(trapframe_t* tf)
 
     init_select_blocker(RUNNIG_THREAD, nfds, readfds, writefds, exceptfds, timeout);
 
-    if (readfds)
+    if (readfds) {
         FD_ZERO(readfds);
-    if (writefds)
+    }
+    if (writefds) {
         FD_ZERO(writefds);
-    if (exceptfds)
+    }
+    if (exceptfds) {
         FD_ZERO(exceptfds);
+    }
 
     for (int i = 0; i < nfds; i++) {
         fd = proc_get_fd(p, i);

@@ -7,12 +7,12 @@
 
 #include <algo/dynamic_array.h>
 #include <drivers/driver_manager.h>
-#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
-#include <libkern/libkern.h>
 
 #define DEVFS_ZONE_SIZE 32 * KB
 
@@ -255,11 +255,10 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
         int rec_len = 8 + 1 + 1;
 
         if (len < rec_len) {
-            if (already_read) {
-                return already_read;
-            } else {
+            if (!already_read) {
                 return -EINVAL;
             }
+            return already_read;
         }
 
         tmp.inode = devfs_inode->index;
@@ -278,11 +277,10 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
         int rec_len = 8 + 2 + 1;
 
         if (len < rec_len) {
-            if (already_read) {
-                return already_read;
-            } else {
+            if (!already_read) {
                 return -EINVAL;
             }
+            return already_read;
         }
 
         if (devfs_inode->parent) {
@@ -314,11 +312,10 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
         int rec_len = 8 + name_len + 1;
 
         if (len < rec_len) {
-            if (already_read) {
-                return already_read;
-            } else {
+            if (!already_read) {
                 return -EINVAL;
             }
+            return already_read;
         }
 
         tmp.inode = child_devfs_inode->index;

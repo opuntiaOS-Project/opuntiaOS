@@ -53,6 +53,7 @@ static inline bool free_inode_cache()
     if (need_to_free_inode_cache()) {
         can_cache_inodes = 0;
     }
+    return true;
 }
 
 static void dentry_cache_alloc()

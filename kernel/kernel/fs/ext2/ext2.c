@@ -720,7 +720,7 @@ static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* na
     uint32_t blocks_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
 
     for (int i = 0; i < blocks_per_dir; i++) {
-        if (block_index = _ext2_get_block_of_inode(dir, i)) {
+        if ((block_index = _ext2_get_block_of_inode(dir, i))) {
             if (_ext2_add_to_dir_block(dir->dev, dir->fsdata, block_index, child_dentry, name, len) == 0) {
                 goto updated_inode;
             }
@@ -749,7 +749,7 @@ static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
     uint32_t blocks_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
 
     for (int i = 0; i < blocks_per_dir; i++) {
-        if (block_index = _ext2_get_block_of_inode(dir, i)) {
+        if ((block_index = _ext2_get_block_of_inode(dir, i))) {
             if (_ext2_rm_from_dir_block(dir->dev, dir->fsdata, block_index, child_dentry) == 0) {
                 child_dentry->inode->links_count--;
                 dentry_set_flag(child_dentry, DENTRY_DIRTY);

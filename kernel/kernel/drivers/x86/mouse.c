@@ -68,15 +68,15 @@ static driver_desc_t _mouse_driver_info()
 
 static inline void _mouse_wait_in()
 {
-    while (port_8bit_in(0x64) & 1 == 0) { }
+    while ((port_8bit_in(0x64) & 1) == 0) { }
 }
 
 static inline void _mouse_wait_out()
 {
-    while (port_8bit_in(0x64) & 2 == 0) { }
+    while ((port_8bit_in(0x64) & 2) == 1) { }
 }
 
-static inline uint8_t _mouse_wait_then_write(uint16_t port, uint8_t data)
+static inline void _mouse_wait_then_write(uint16_t port, uint8_t data)
 {
     _mouse_wait_out();
     port_8bit_out(port, data);

@@ -247,6 +247,7 @@ static int signal_default_action(int signo)
     if (signo == 9) {
         return SIGNAL_ACTION_TERMINATE;
     }
+    return -1;
 }
 
 /* FIXME: Don't allow to run a signal while other is in process */

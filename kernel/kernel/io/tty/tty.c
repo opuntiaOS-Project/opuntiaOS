@@ -1,15 +1,15 @@
 // #include <drivers/x86/display.h>
 #include <drivers/x86/keyboard.h>
-#include <libkern/errno.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
+#include <libkern/errno.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
-#include <mem/kmalloc.h>
 #include <libkern/syscall_structs.h>
+#include <mem/kmalloc.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
-#include <libkern/libkern.h>
 
 // #define TTY_DEBUG_TIME
 
@@ -108,6 +108,7 @@ int _tty_process_esc_seq(uint8_t* buf)
         }
         return id;
     }
+    return 0;
 }
 
 int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
@@ -174,7 +175,7 @@ tty_entry_t* tty_new()
 
     char* name = "tty ";
     name[3] = next_tty + '0';
-    file_ops_t fops = {0};
+    file_ops_t fops = { 0 };
     fops.can_read = tty_can_read;
     fops.can_write = tty_can_write;
     fops.read = tty_read;

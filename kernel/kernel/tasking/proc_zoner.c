@@ -76,7 +76,7 @@ proc_zone_t* proc_extend_zone(proc_t* proc, uint32_t start, uint32_t len)
     new_zone.type = 0;
     new_zone.flags = ZONE_USER;
 
-    if (_proc_can_fixup_zone(proc, &start, &len)) {
+    if (_proc_can_fixup_zone(proc, &start, (int*)&len)) {
         new_zone.start = start;
         new_zone.len = len;
         if (dynamic_array_push(&proc->zones, &new_zone) != 0) {

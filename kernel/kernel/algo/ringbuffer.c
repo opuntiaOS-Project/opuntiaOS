@@ -38,9 +38,8 @@ uint32_t ringbuffer_space_to_read(ringbuffer_t* buf)
 {
     if (buf->start <= buf->end) {
         return buf->end - buf->start;
-    } else {
-        return buf->zone.len - buf->start + buf->end;
     }
+    return buf->zone.len - buf->start + buf->end;
 }
 
 uint32_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, uint32_t start)
@@ -48,18 +47,16 @@ uint32_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, uint32_t 
     start %= buf->zone.len;
     if (start <= buf->end) {
         return buf->end - start;
-    } else {
-        return buf->zone.len - start + buf->end;
     }
+    return buf->zone.len - start + buf->end;
 }
 
 uint32_t ringbuffer_space_to_write(ringbuffer_t* buf)
 {
     if (buf->start > buf->end) {
         return buf->start - buf->end;
-    } else {
-        return buf->zone.len - buf->end + buf->start;
     }
+    return buf->zone.len - buf->end + buf->start;
 }
 
 uint32_t ringbuffer_read(ringbuffer_t* buf, uint8_t* holder, uint32_t siz)

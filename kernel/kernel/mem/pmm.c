@@ -262,6 +262,7 @@ bool pmm_free_blocks(void* block, uint32_t t_size)
         _pmm_mat_free_block(block_id + i);
         pmm_used_blocks--;
     }
+    return true;
 }
 
 // pmm_alloc_block allocates a block

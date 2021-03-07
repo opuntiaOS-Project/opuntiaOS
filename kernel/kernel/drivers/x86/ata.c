@@ -20,13 +20,12 @@ static int ata_read(device_t* device, uint32_t sector, uint8_t* read_data);
 static int ata_flush(device_t* device);
 static uint32_t ata_get_capacity(device_t* device);
 
-
 /**
  * Drive/Head register:
  * 1 lba, 1, drv, head [0-3]
  * drv: 0 if master else 1
  * lba: is lba access
- */ 
+ */
 static uint8_t _ata_gen_drive_head_register(bool is_lba, bool is_master, uint8_t head)
 {
     uint8_t res = 0xA0;
@@ -127,10 +126,10 @@ bool ata_indentify(ata_t* ata)
             ata->sectors = data;
         }
         if (i == 49) {
-            if ((data >> 8) & 0x1 == 1) {
+            if (((data >> 8) & 0x1) == 1) {
                 ata->dma = true;
             }
-            if ((data >> 9) & 0x1 == 1) {
+            if (((data >> 9) & 0x1) == 1) {
                 ata->lba = true;
             }
         }
@@ -163,12 +162,12 @@ int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size
     // waiting for processing
     // while BSY is on and no Errors
     uint8_t status = port_8bit_in(dev->port.command);
-    while ((status >> 7) & 1 == 1 && (status >> 0) & 1 != 1) {
+    while (((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
         status = port_8bit_in(dev->port.command);
     }
 
     // check if drive isn't ready to transer DRQ
-    if ((status >> 0) & 1 == 1) {
+    if (((status >> 0) & 1) == 1) {
         kprintf("Error");
         return -EBUSY;
     }
@@ -222,6 +221,8 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
         read_data[2 * i + 1] = (data >> 8) & 0xFF;
         read_data[2 * i + 0] = (data >> 0) & 0xFF;
     }
+    
+    return 0;
 }
 
 int ata_flush(device_t* device)
@@ -229,7 +230,7 @@ int ata_flush(device_t* device)
     ata_t* dev = &_ata_drives[device->id];
 
     uint8_t dev_config = _ata_gen_drive_head_register(true, !dev->is_master, 0);
-    
+
     port_8bit_out(dev->port.device, dev_config);
     port_8bit_out(dev->port.command, 0xE7);
 
@@ -245,7 +246,7 @@ int ata_flush(device_t* device)
     if (status & 0x01) {
         return -EBUSY;
     }
-    
+
     return 0;
 }
 

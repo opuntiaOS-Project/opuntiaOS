@@ -76,6 +76,7 @@ int timeman_setup()
 #ifdef TIME_MANAGER_DEBUG
     log("Loaded date: %d", time_since_epoch);
 #endif
+    return 0;
 }
 
 void timeman_timer_tick()

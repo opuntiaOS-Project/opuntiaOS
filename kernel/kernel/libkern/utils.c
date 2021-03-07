@@ -1,13 +1,14 @@
 #include <libkern/libkern.h>
 
-int stoi(char *str, int len)
+int stoi(void* strv, int len)
 {
+    char* str = (char*)strv;
     if (len > 9) {
         return 0;
     }
     int res = 0;
     int mult = 1;
-    char *end = str + len - 1;
+    char* end = str + len - 1;
     while (end >= str) {
         res += (*end - '0') * mult;
         mult *= 10;
@@ -79,10 +80,10 @@ int strcmp(const char* a, const char* b)
 
     if (a < b) {
         return -1;
-    } else if (a > b) {
+    }
+    if (a > b) {
         return 1;
     }
-
     return 0;
 }
 
@@ -96,12 +97,14 @@ int strncmp(const char* a, const char* b, uint32_t num)
 
     if (!num) {
         return 0;
-    } else if (a < b) {
-        return -1;
-    } else if (a > b) {
-        return 1;
     }
 
+    if (a < b) {
+        return -1;
+    }
+    if (a > b) {
+        return 1;
+    }
     return 0;
 }
 

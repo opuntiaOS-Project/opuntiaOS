@@ -30,10 +30,10 @@ void sys_socket(trapframe_t* tf)
         int res = local_socket_create(type, protocol, fd);
         if (!res) {
             return_with_val(proc_get_fd_id(p, fd));
-        } else {
-            return_with_val(res);
         }
+        return_with_val(res);
     }
+    return_with_val(-1);
 }
 
 void sys_bind(trapframe_t* tf)
@@ -83,11 +83,10 @@ void sys_ioctl(trapframe_t* tf)
         return_with_val(-EBADF);
     }
 
-    if (fd->dentry->ops->file.ioctl) {
-        return_with_val(fd->dentry->ops->file.ioctl(fd->dentry, param2, param3));
-    } else {
+    if (!fd->dentry->ops->file.ioctl) {
         return_with_val(-EACCES);
     }
+    return_with_val(fd->dentry->ops->file.ioctl(fd->dentry, param2, param3));
 }
 
 void sys_shbuf_create(trapframe_t* tf)

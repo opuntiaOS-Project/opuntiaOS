@@ -1,0 +1,2 @@
+Checks: '-*,clang-diagnostic-*,llvm-*,-llvm-header-guard,-llvm-include-order,-clang-diagnostic-incompatible-library-redeclaration'
+HeaderFilterRegex: '.*'
