@@ -80,11 +80,11 @@ static void _split_rwbuf(FILE* stream)
     // TODO: Base on stream flags.
     stream->_bf.rbuf.base = stream->_bf.base;
     stream->_bf.rbuf.ptr = stream->_bf.rbuf.base;
-    stream->_bf.rbuf.size = ((stream->_bf.size + 1) / 2) & ((size_t)~(0b11));
+    stream->_bf.rbuf.size = ((stream->_bf.size + 1) / 2) & ((size_t) ~(0b11));
 
     stream->_bf.wbuf.base = stream->_bf.base + stream->_bf.rbuf.size;
     stream->_bf.wbuf.ptr = stream->_bf.wbuf.base;
-    stream->_bf.wbuf.size = (stream->_bf.size - stream->_bf.rbuf.size) & ((size_t)~(0b11));
+    stream->_bf.wbuf.size = (stream->_bf.size - stream->_bf.rbuf.size) & ((size_t) ~(0b11));
 
     stream->_r = 0;
     stream->_w = stream->_bf.wbuf.size;
@@ -367,6 +367,20 @@ size_t fwrite(const void* ptr, size_t size, size_t count, FILE* stream)
 
 int fseek(FILE* stream, uint32_t offset, int whence)
 {
+}
+
+int fputc(int c, FILE* stream)
+{
+    int res = fwrite(&c, 1, 1, stream);
+    if (!res) {
+        return -errno;
+    }
+    return c;
+}
+
+int putc(int c, FILE* stream)
+{
+    return fputc(c, stream);
 }
 
 int setvbuf(FILE* stream, char* buf, int mode, size_t size)

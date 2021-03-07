@@ -47,9 +47,17 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream);
 int fseek(FILE* stream, uint32_t offset, int whence);
 
+int fputc(int c, FILE* stream);
+int putc(int c, FILE* stream);
+
 int setvbuf(FILE* stream, char* buf, int mode, size_t size);
 void setbuf(FILE* stream, char* buf);
 void setlinebuf(FILE* stream);
+
+int vsnprintf(char* s, size_t n, const char* format, va_list arg);
+int snprintf(char* s, size_t n, const char* format, ...);
+int fprintf(FILE* stream, const char* format, ...);
+int printf(const char* format, ...);
 
 __END_DECLS
 

@@ -1,0 +1,23 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_CSTDIO
+#define _LIBCXX_CSTDIO
+
+#include <__config>
+#include <stddef.h>
+#include <stdio.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::fclose;
+using ::FILE;
+using ::fopen;
+
+using ::fprintf;
+using ::printf;
+using ::snprintf;
+using ::vsnprintf;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_CSTDIO

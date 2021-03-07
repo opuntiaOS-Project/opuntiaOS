@@ -1,16 +1,17 @@
+#include <stdio.h>
 #include <syscalls.h>
 #include <unistd.h>
 
 int main(int argc, char** argv)
 {
     if (argc < 2) {
-        write(1, "Usage: rmdir files...\n", 22);
+        printf("Usage: rmdir files...\n");
         return 0;
     }
 
     for (int i = 1; i < argc; i++) {
         if (rmdir(argv[i]) < 0) {
-            write(1, "rmdir: failed to delete\n", 24);
+            printf("rmdir: failed to delete\n");
             break;
         }
     }

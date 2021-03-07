@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <syscalls.h>
 #include <unistd.h>
@@ -11,28 +12,6 @@ struct linux_dirent {
     uint8_t file_type;
     char* name;
 };
-
-void print_int(int num)
-{
-    int id = 0;
-    char buf[32];
-    if (!num) {
-        write(1, "0", 1);
-    }
-    while (num) {
-        buf[id++] = (num % 10) + '0';
-        num /= 10;
-    }
-
-    for (int i = 0; i < id / 2; i++) {
-        char tmp = buf[i];
-        buf[i] = buf[id - i - 1];
-        buf[id - i - 1] = tmp;
-    }
-
-    buf[id] = '\0';
-    write(1, buf, id);
-}
 
 int main(int argc, char** argv)
 {
@@ -62,13 +41,13 @@ int main(int argc, char** argv)
     }
 
     if (fd < 0) {
-        write(1, "ls: can't open file\n", 20);
+        printf("ls: can't open file\n");
         return -1;
     }
     for (;;) {
         nread = getdents(fd, buf, BUF_SIZE);
         if (nread < 0) {
-            write(1, "Err\n", 4);
+            printf("ls: can't read dir\n");
             return -1;
         }
 
@@ -78,12 +57,11 @@ int main(int argc, char** argv)
         for (bpos = 0; bpos < nread;) {
             d = (struct linux_dirent*)(buf + bpos);
             if (((char*)&d->name)[0] != '.' || show_private) {
-                write(1, &d->name, d->name_len + 1);
+                printf("%s", &d->name);
                 if (show_inodes) {
-                    write(1, " ", 1);
-                    print_int(d->inode);
+                    printf(" %d", d->inode);
                 }
-                write(1, "\n", 1);
+                printf("\n");
             }
             bpos += d->rec_len;
         }

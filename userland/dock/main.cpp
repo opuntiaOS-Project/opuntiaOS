@@ -1,5 +1,6 @@
 #include "DockView.h"
 #include "DockWindow.h"
+#include <cstdio>
 #include <libui/App.h>
 #include <libui/Button.h>
 #include <libui/Label.h>

@@ -11,6 +11,7 @@ oneOS_static_library("libcxx") {
     "../libc/posix/tasking.c",
     "../libc/pthread/pthread.c",
     "../libc/setjmp/$target_cpu/setjmp.s",
+    "../libc/stdio/printf.c",
     "../libc/stdio/stdio.c",
     "../libc/stdlib/exit.c",
     "../libc/stdlib/pts.c",
