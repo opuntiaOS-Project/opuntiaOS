@@ -16,7 +16,9 @@ using ::fopen;
 using ::fprintf;
 using ::printf;
 using ::snprintf;
+using ::sprintf;
 using ::vsnprintf;
+using ::vsprintf;
 
 _LIBCXX_END_NAMESPACE_STD
 

@@ -145,13 +145,13 @@ struct allocator {
 };
 
 template <class T, class... Args>
-constexpr T* construct_at(T* p, Args&&... args)
+static constexpr T* construct_at(T* p, Args&&... args)
 {
     return reinterpret_cast<T*>(new (static_cast<void*>(p)) T(forward<Args>(args)...));
 }
 
 template <class T>
-constexpr void destroy_at(T* p)
+static constexpr void destroy_at(T* p)
 {
     if constexpr (is_array_v<T>) {
         static_assert(true, "Not implemented destroy_at for arrays");
@@ -163,7 +163,7 @@ constexpr void destroy_at(T* p)
 _LIBCXX_BEGIN_ONEOS_EXTENSION
 
 template <class T, class... Args>
-constexpr T& construct(Args&&... args)
+static constexpr T& construct(Args&&... args)
 {
     T* newobject = new T(forward<Args>(args)...);
     return *newobject;

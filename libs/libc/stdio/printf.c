@@ -192,6 +192,37 @@ int snprintf(char* s, size_t n, const char* format, ...)
     return res;
 }
 
+static int putch_callback_buf(char ch, char* buf_base, size_t* written, void* callback_params)
+{
+    if (!written) {
+        return -1;
+    }
+
+    size_t vw = *written;
+    buf_base[vw++] = ch;
+    *written = vw;
+    return 0;
+}
+
+int vsprintf(char* s, const char* format, va_list arg)
+{
+    if (!s) {
+        return 0;
+    }
+    ssize_t wr = _printf_internal(s, format, putch_callback_buf, NULL, arg);
+    s[wr] = '\0';
+    return (int)wr;
+}
+
+int sprintf(char* s, const char* format, ...)
+{
+    va_list arg;
+    va_start(arg, format);
+    int res = vsprintf(s, format, arg);
+    va_end(arg);
+    return res;
+}
+
 static int putch_callback_stream(char c, char* buf_base, size_t* written, void* callback_params)
 {
     FILE* stream = (FILE*)callback_params;

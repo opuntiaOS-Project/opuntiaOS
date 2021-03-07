@@ -4,6 +4,7 @@
 #define _LIBCXX_STRING
 
 #include <__config>
+#include <cstdio>
 #include <cstring>
 #include <iterator>
 #include <memory>
@@ -260,6 +261,20 @@ private:
 };
 
 typedef basic_string<char> string;
+
+static std::string to_string(int a)
+{
+    char buf[32];
+    std::sprintf(buf, "%d", a);
+    return std::string(buf);
+}
+
+static std::string to_string(unsigned a)
+{
+    char buf[32];
+    std::sprintf(buf, "%u", a);
+    return std::string(buf);
+}
 
 _LIBCXX_END_NAMESPACE_STD
 
