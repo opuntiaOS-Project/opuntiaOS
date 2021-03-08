@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <functional>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/Receivers.h>
@@ -48,7 +49,7 @@ public:
     static EventLoop& the();
     EventLoop();
 
-    inline void add(int fd, void (*on_read)(), void (*on_write)())
+    inline void add(int fd, std::function<void(void)> on_read, std::function<void(void)> on_write)
     {
         m_waiting_fds.push_back(FDWaiter(fd, on_read, on_write));
     }

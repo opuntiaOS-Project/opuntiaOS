@@ -37,7 +37,7 @@ class FDWaiter : public EventReceiver {
 public:
     friend class EventLoop;
 
-    FDWaiter(int fd, void (*on_read)(), void (*on_write)())
+    FDWaiter(int fd, std::function<void(void)> on_read, std::function<void(void)> on_write)
         : EventReceiver()
         , m_fd(fd)
         , m_on_read(on_read)
@@ -82,8 +82,8 @@ public:
 
 private:
     int m_fd;
-    void (*m_on_read)();
-    void (*m_on_write)();
+    std::function<void(void)> m_on_read;
+    std::function<void(void)> m_on_write;
 };
 
 class TimerEvent final : public Event {
@@ -99,7 +99,7 @@ class Timer : public EventReceiver {
 public:
     friend class EventLoop;
 
-    explicit Timer(void (*callback)())
+    explicit Timer(std::function<void(void)> callback)
         : EventReceiver()
         , m_callback(callback)
     {
@@ -137,7 +137,7 @@ public:
     }
 
 private:
-    void (*m_callback)();
+    std::function<void(void)> m_callback;
 };
 
 class CallEvent final : public Event {

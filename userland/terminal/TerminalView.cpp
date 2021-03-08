@@ -6,19 +6,16 @@
 #include <libui/Context.h>
 #include <std/Dbg.h>
 
-static TerminalView* this_view;
-
 TerminalView::TerminalView(const LG::Rect& frame, int ptmx)
     : View(frame)
     , m_ptmx(ptmx)
 {
-    this_view = this;
     LFoundation::EventLoop::the().add(
-        ptmx, [] {
+        ptmx, [this] {
             char text[256];
-            int cnt = read(this_view->ptmx(), text, 255);
+            int cnt = read(this->ptmx(), text, 255);
             text[cnt] = '\0';
-            this_view->put_text(std::string(text, cnt));
+            this->put_text(std::string(text, cnt));
         },
         nullptr);
     recalc_dimensions(frame);

@@ -1,0 +1,106 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_FUNCTIONAL
+#define _LIBCXX_FUNCTIONAL
+
+#include <__config>
+#include <memory>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <typename>
+class function;
+
+template <typename R, typename... Args>
+class function<R(Args...)> {
+public:
+    using result_type = R;
+
+    function() = default;
+    function(std::nullptr_t) { }
+
+    template <typename Functor>
+    function(Functor f)
+        : m_constructor(reinterpret_cast<_constructor>(construct_functor<Functor>))
+        , m_destroyer(reinterpret_cast<_destroyer>(destroy_functor<Functor>))
+        , m_invoker(reinterpret_cast<_invoker>(invoke_functor<Functor>))
+        , m_functor_size(sizeof(Functor))
+    {
+        m_functor.reset(m_allocator.allocate(m_functor_size));
+        m_constructor(m_functor.get(), &f);
+    }
+
+    function(const function& other)
+        : m_constructor(other.m_constructor)
+        , m_destroyer(other.m_destroyer)
+        , m_invoker(other.m_invoker)
+        , m_functor_size(other.m_functor_size)
+    {
+        if (m_invoker && m_functor_size) {
+            m_functor.reset(m_allocator.allocate(m_functor_size));
+            m_constructor(m_functor.get(), other.m_functor.get());
+        }
+    }
+
+    function& operator=(const function& other)
+    {
+        m_constructor = other.m_constructor;
+        m_destroyer = other.m_destroyer;
+        m_invoker = other.m_invoker;
+        m_functor_size = other.m_functor_size;
+        if (m_invoker && m_functor_size) {
+            m_functor.reset(m_allocator.allocate(m_functor_size));
+            m_constructor(m_functor.get(), other.m_functor.get());
+        }
+        return *this;
+    }
+
+    ~function()
+    {
+        if (m_functor) {
+            m_destroyer(m_functor.get());
+        }
+    }
+
+    result_type operator()(Args&&... args)
+    {
+        return m_invoker(m_functor.get(), std::forward<Args>(args)...);
+    }
+
+    operator bool() { return !!m_functor; }
+
+private:
+    using _alloc_type = char;
+    using _invoker = R (*)(void*, Args&&...);
+    using _constructor = void (*)(void*, void*);
+    using _destroyer = void (*)(void*);
+
+    template <typename Functor>
+    static void construct_functor(Functor* at, Functor* other)
+    {
+        construct_at(at, *other);
+    }
+
+    template <typename Functor>
+    static void destroy_functor(Functor* p)
+    {
+        destroy_at(p);
+    }
+
+    template <typename Functor>
+    static result_type invoke_functor(Functor* functor, Args&&... args)
+    {
+        return (*functor)(std::forward<Args>(args)...);
+    }
+
+    _invoker m_invoker { nullptr };
+    _constructor m_constructor { nullptr };
+    _destroyer m_destroyer { nullptr };
+    std::unique_ptr<_alloc_type> m_functor { nullptr };
+    size_t m_functor_size { 0 };
+    std::allocator<_alloc_type> m_allocator {};
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_FUNCTIONAL

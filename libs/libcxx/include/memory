@@ -82,6 +82,13 @@ public:
         delete tmp;
     }
 
+    void reset(T* new_ptr)
+    {
+        T* tmp = release();
+        delete tmp;
+        m_data = new_ptr;
+    }
+
     ~unique_ptr()
     {
         delete m_data;
@@ -143,6 +150,12 @@ struct allocator {
         return operator delete(p, n);
     }
 };
+
+template <class T, class... Args>
+static constexpr unique_ptr<T> make_unique(Args&&... args)
+{
+    return new T(forward<Args>(args)...);
+}
 
 template <class T, class... Args>
 static constexpr T* construct_at(T* p, Args&&... args)
