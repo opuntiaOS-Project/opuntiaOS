@@ -1,8 +1,8 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/_structs.h>
 #include <syscalls.h>
 #include <unistd.h>
 

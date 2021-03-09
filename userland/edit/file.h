@@ -1,5 +1,5 @@
-#ifndef __EDIT__FILE__
-#define __EDIT__FILE__
+#ifndef _USERLAND_EDIT_FILE_H
+#define _USERLAND_EDIT_FILE_H
 
 #ifdef __oneOS__
 #include <sys/types.h>

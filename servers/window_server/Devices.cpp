@@ -6,6 +6,7 @@
  */
 
 #include "Devices.h"
+#include <fcntl.h>
 #include <std/Dbg.h>
 
 static Devices* s_the;

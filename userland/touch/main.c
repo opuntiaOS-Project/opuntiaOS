@@ -1,3 +1,5 @@
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <syscalls.h>
 #include <unistd.h>
 

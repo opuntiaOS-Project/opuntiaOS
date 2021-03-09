@@ -7,7 +7,7 @@
 
 #include <drivers/aarch32/pl050.h>
 #include <drivers/generic/keyboard.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>

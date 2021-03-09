@@ -5,6 +5,15 @@
  * found in the LICENSE file.
  */
 
+#include <bits/fcntl.h>
+#include <bits/ioctls.h>
+#include <bits/select.h>
+#include <bits/socket.h>
+#include <bits/sys/mman.h>
+#include <bits/sys/stat.h>
+#include <bits/sys/utsname.h>
+#include <bits/syscalls.h>
+#include <bits/thread.h>
 #include <sys/time.h>
 #include <syscalls.h>
 
@@ -31,36 +40,6 @@ int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5)
         : "memory", "r0", "r1", "r2", "r3", "r4", "r7");
 #endif
     return ret;
-}
-
-int chdir(char* path)
-{
-    return syscall(SYSCHDIR, (int)path, 0, 0, 0, 0);
-}
-
-int mkdir(char* path)
-{
-    return syscall(SYSMKDIR, (int)path, 0, 0, 0, 0);
-}
-
-int rmdir(char* path)
-{
-    return syscall(SYSRMDIR, (int)path, 0, 0, 0, 0);
-}
-
-int unlink(char* path)
-{
-    return syscall(SYSUNLINK, (int)path, 0, 0, 0, 0);
-}
-
-int creat(char* path, uint32_t mode)
-{
-    return syscall(SYSCREAT, (int)path, (int)mode, 0, 0, 0);
-}
-
-int open(const char* pathname, int flags)
-{
-    return syscall(SYSOPEN, (int)pathname, flags, 0, 0, 0);
 }
 
 int close(int fd)
@@ -126,11 +105,6 @@ int lseek(int fd, uint32_t off, int whence)
 int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout)
 {
     return syscall(SYSSELECT, (int)nfds, (int)readfds, (int)writefds, (int)exceptfds, (int)timeout);
-}
-
-int fstat(int nfds, fstat_t* stat)
-{
-    return syscall(SYSFSTAT, (int)nfds, (int)stat, 0, 0, 0);
 }
 
 pid_t getpid()

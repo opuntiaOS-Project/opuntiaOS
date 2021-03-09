@@ -1,5 +1,5 @@
-#ifndef _KERNEL_SYS_HANDLER_H
-#define _KERNEL_SYS_HANDLER_H
+#ifndef _KERNEL_SYSCALLS_HANDLERS_H
+#define _KERNEL_SYSCALLS_HANDLERS_H
 
 #include <libkern/syscall_structs.h>
 #include <libkern/types.h>
@@ -54,4 +54,4 @@ void sys_shbuf_free(trapframe_t* tf);
 
 void sys_none(trapframe_t* tf);
 
-#endif // _KERNEL_SYS_HANDLER_H
+#endif // _KERNEL_SYSCALLS_HANDLERS_H

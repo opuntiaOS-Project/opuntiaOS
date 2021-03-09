@@ -1,4 +1,5 @@
 #include "TerminalView.h"
+#include <fcntl.h>
 #include <libui/App.h>
 #include <libui/Button.h>
 #include <libui/Label.h>

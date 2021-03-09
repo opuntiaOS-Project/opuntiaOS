@@ -12,31 +12,31 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    int flag_s = false;
-    int flag_n = false;
-    int flag_r = false;
-    int flag_m = false;
+    int flag_s = 0;
+    int flag_n = 0;
+    int flag_r = 0;
+    int flag_m = 0;
     if (argc == 1) {
-        flag_s = true;
+        flag_s = 1;
     } else {
         for (int i = 1; i < argc; ++i) {
             if (argv[i][0] == '-') {
                 for (const char* o = &argv[i][1]; *o; ++o) {
                     switch (*o) {
                     case 's':
-                        flag_s = true;
+                        flag_s = 1;
                         break;
                     case 'n':
-                        flag_n = true;
+                        flag_n = 1;
                         break;
                     case 'r':
-                        flag_r = true;
+                        flag_r = 1;
                         break;
                     case 'm':
-                        flag_m = true;
+                        flag_m = 1;
                         break;
                     case 'a':
-                        flag_s = flag_n = flag_r = flag_m = true;
+                        flag_s = flag_n = flag_r = flag_m = 1;
                         break;
                     }
                 }
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     }
 
     if (!flag_s && !flag_n && !flag_r && !flag_m) {
-        flag_s = true;
+        flag_s = 1;
     }
 
     if (flag_s) {

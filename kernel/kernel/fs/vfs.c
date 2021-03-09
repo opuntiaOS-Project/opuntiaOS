@@ -8,7 +8,7 @@
 #include <algo/dynamic_array.h>
 #include <fs/vfs.h>
 #include <io/sockets/socket.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <libkern/syscall_structs.h>

@@ -6,7 +6,7 @@
  */
 
 #include <io/sockets/local_socket.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/log.h>
 #include <tasking/proc.h>
 #include <tasking/tasking.h>

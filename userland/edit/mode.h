@@ -1,5 +1,5 @@
-#ifndef __EDIT__MODE__
-#define __EDIT__MODE__
+#ifndef _USERLAND_EDIT_MODE_H
+#define _USERLAND_EDIT_MODE_H
 
 #include "viewer.h"
 #ifdef __oneOS__

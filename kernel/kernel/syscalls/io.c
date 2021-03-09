@@ -7,7 +7,7 @@
 
 #include <io/shared_buffer/shared_buffer.h>
 #include <io/sockets/local_socket.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <platform/generic/syscalls/params.h>

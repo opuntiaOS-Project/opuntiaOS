@@ -1,5 +1,5 @@
-#ifndef __EDIT__LT__
-#define __EDIT__LT__
+#ifndef _USERLAND_EDIT_LIFETIME_H
+#define _USERLAND_EDIT_LIFETIME_H
 
 #include "viewer.h"
 #include <termios.h>

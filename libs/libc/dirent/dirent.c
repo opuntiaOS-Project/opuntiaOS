@@ -1,6 +1,6 @@
 #include <dirent.h>
 #include <errno.h>
-#include <syscalls.h>
+#include <fcntl.h>
 
 /* TODO: Will be replaced with malloc */
 DIR dirarr[8];

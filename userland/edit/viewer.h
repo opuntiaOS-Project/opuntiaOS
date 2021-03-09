@@ -1,5 +1,5 @@
-#ifndef __EDIT__VIEWER__
-#define __EDIT__VIEWER__
+#ifndef _USERLAND_EDIT_VIEWER_H
+#define _USERLAND_EDIT_VIEWER_H
 
 #define STDIN 0
 #define STDOUT 1

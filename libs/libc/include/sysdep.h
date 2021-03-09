@@ -1,7 +1,7 @@
 #ifndef _LIBC_SYSDEP_H
 #define _LIBC_SYSDEP_H
 
-#include <sys/_structs.h>
+#include <bits/syscalls.h>
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS

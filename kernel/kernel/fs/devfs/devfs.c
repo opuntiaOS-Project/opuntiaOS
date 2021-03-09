@@ -8,7 +8,7 @@
 #include <algo/dynamic_array.h>
 #include <drivers/driver_manager.h>
 #include <fs/devfs/devfs.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>

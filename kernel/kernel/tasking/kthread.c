@@ -6,7 +6,7 @@
  */
 
 #include <fs/vfs.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>

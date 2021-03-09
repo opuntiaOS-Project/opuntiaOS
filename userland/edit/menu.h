@@ -1,5 +1,5 @@
-#ifndef __EDIT__MENU__
-#define __EDIT__MENU__
+#ifndef _USERLAND_EDIT_MENU_H
+#define _USERLAND_EDIT_MENU_H
 
 #include "mode.h"
 #include "viewer.h"

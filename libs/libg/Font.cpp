@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <fcntl.h>
 #include <libg/Font.h>
 #include <new>
 #include <string.h>

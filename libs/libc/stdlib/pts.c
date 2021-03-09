@@ -1,8 +1,8 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/_structs.h>
-#include <syscalls.h>
+#include <sys/stat.h>
 
 #define _PATH_PTS "/dev/pts"
 #define MASTER_PTY(dev) (major(dev) == 128)

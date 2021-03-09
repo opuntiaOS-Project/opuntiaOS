@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>

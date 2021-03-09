@@ -84,8 +84,6 @@ typedef struct {
 #define S_IWOTH 0x0002
 #define S_IXOTH 0x0001
 
-typedef uint16_t mode_t;
-
 #define INODE_LEN (sizeof(inode_t))
 #define INODES_RESERVED 11
 typedef struct {

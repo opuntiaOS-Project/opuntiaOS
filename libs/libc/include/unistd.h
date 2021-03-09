@@ -15,6 +15,9 @@ int wait(int pid);
 /* fs */
 ssize_t read(int fd, char* buf, size_t count);
 ssize_t write(int fd, const void* buf, size_t count);
+int rmdir(const char* path);
+int chdir(const char* path);
+int unlink(const char* path);
 
 __END_DECLS
 

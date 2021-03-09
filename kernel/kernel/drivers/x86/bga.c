@@ -3,7 +3,7 @@
 #include <drivers/x86/pci.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <tasking/proc.h>

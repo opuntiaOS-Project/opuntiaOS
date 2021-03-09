@@ -1,7 +1,7 @@
 #ifndef _LIBC_ERRNO_H
 #define _LIBC_ERRNO_H
 
-#include "../../../kernel/include/libkern/errno.h"
+#include <bits/errno.h>
 
 extern int errno;
 

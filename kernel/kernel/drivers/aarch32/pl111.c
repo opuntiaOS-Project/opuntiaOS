@@ -8,7 +8,7 @@
 #include <drivers/aarch32/pl111.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>

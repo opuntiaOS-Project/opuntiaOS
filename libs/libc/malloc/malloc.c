@@ -2,6 +2,9 @@
 #include <string.h>
 #include <syscalls.h>
 
+#define BLOCK_ALLOCATED (0)
+#define BLOCK_FREE (1)
+
 static malloc_header_t* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
 static size_t allocated_blocks = 0;
 
@@ -24,7 +27,7 @@ static int _alloc_new_block(size_t sz)
         return -1;
     }
     memory[allocated_blocks] = (void*)ret; // allocating a new block of memory
-    memory[allocated_blocks]->free = true;
+    memory[allocated_blocks]->free = BLOCK_FREE;
     memory[allocated_blocks]->next = 0;
     memory[allocated_blocks]->prev = 0;
     memory[allocated_blocks]->size = allocated_sz - sizeof(malloc_header_t);
@@ -77,13 +80,13 @@ void* malloc(size_t sz)
     malloc_header_t* copy_next = first_fit->next;
     size_t copy_size = first_fit->size;
 
-    first_fit->free = false;
+    first_fit->free = BLOCK_ALLOCATED;
     if (_malloc_need_to_divide_space(first_fit, sz)) {
         first_fit->size = sz;
         first_fit->next = (malloc_header_t*)((size_t)first_fit + sz + sizeof(malloc_header_t));
 
         // adjust the firstfit chunk
-        first_fit->next->free = true;
+        first_fit->next->free = BLOCK_FREE;
         first_fit->next->size = copy_size - sz - sizeof(malloc_header_t);
         first_fit->next->next = copy_next;
         first_fit->next->prev = first_fit;
@@ -104,7 +107,7 @@ void free(void* mem)
 
     malloc_header_t* mem_header = (malloc_header_t*)((uint32_t)mem - sizeof(malloc_header_t));
 
-    mem_header->free = true;
+    mem_header->free = BLOCK_FREE;
     if (mem_header->prev && mem_header->prev->free) {
         mem_header = mem_header->prev;
     }

@@ -1,7 +1,7 @@
 #include <fs/vfs.h>
 #include <io/tty/pty_master.h>
 #include <io/tty/pty_slave.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 

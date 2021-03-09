@@ -1,24 +1,26 @@
 #ifndef _LIBC_SYSCALLS_H
 #define _LIBC_SYSCALLS_H
 
+#include <bits/fcntl.h>
+#include <bits/ioctls.h>
+#include <bits/select.h>
+#include <bits/socket.h>
+#include <bits/sys/mman.h>
+#include <bits/sys/stat.h>
+#include <bits/sys/utsname.h>
+#include <bits/syscalls.h>
+#include <bits/thread.h>
+#include <bits/time.h>
 #include <stddef.h>
-#include <sys/_structs.h>
 #include <sys/cdefs.h>
-#include <sys/time.h>
 #include <sys/types.h>
 
 __BEGIN_DECLS
 
 int syscall(sysid_t sysid, int p1, int p2, int p3, int p4, int p5);
 
-int open(const char* pathname, int flags);
 int close(int fd);
 
-int chdir(char* path);
-int mkdir(char* path);
-int rmdir(char* path);
-int unlink(char* path);
-int creat(char* path, uint32_t mode);
 int lseek(int fd, uint32_t off, int whence);
 pid_t getpid();
 int kill(pid_t pid, int signo);

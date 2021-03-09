@@ -12,7 +12,7 @@ print('walk_dir (absolute) = ' + os.path.abspath(walk_dir))
 all_includes = []
 
 def is_guard(line):
-    if line.startswith("#ifndef __one"):
+    if line.startswith("#ifndef _"):
         return True
     return False
 

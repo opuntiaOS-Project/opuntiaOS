@@ -9,7 +9,7 @@
 #include <drivers/x86/fpu.h>
 #endif
 #include <io/tty/tty.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>

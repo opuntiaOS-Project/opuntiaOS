@@ -7,7 +7,7 @@
 
 #include <algo/bitmap.h>
 #include <io/shared_buffer/shared_buffer.h>
-#include <libkern/errno.h>
+#include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>

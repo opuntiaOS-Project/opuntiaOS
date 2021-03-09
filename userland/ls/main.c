@@ -1,5 +1,7 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <syscalls.h>
 #include <unistd.h>
 
@@ -20,17 +22,17 @@ int main(int argc, char** argv)
     struct linux_dirent* d;
     int bpos;
     char d_type;
-    char has_path = false;
-    char show_inodes = false;
-    char show_private = false;
+    char has_path = 0;
+    char show_inodes = 0;
+    char show_private = 0;
 
     for (int i = 1; i < argc; i++) {
         if (memcmp(argv[i], "-i", 3) == 0) {
-            show_inodes = true;
+            show_inodes = 1;
         } else if (memcmp(argv[i], "-a", 3) == 0) {
-            show_private = true;
+            show_private = 1;
         } else {
-            has_path = true;
+            has_path = 1;
         }
     }
 

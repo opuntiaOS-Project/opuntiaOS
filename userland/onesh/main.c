@@ -4,6 +4,9 @@
 #include <syscalls.h>
 #include <unistd.h>
 
+#define true (1)
+#define false (0)
+
 char* _cmd_app;
 char* _cmd_buffer;
 char** _cmd_parsed_buffer;
