@@ -271,6 +271,20 @@ int proc_die(proc_t* p)
     return 0;
 }
 
+int proc_block_all_threads(proc_t* p, blocker_t* blocker)
+{
+    FOREACH_THREAD(p)
+    {
+        thread->status = THREAD_BLOCKED;
+        thread->blocker.reason = blocker->reason;
+        thread->blocker.should_unblock = blocker->should_unblock;
+        thread->blocker.should_unblock_for_signal = blocker->should_unblock_for_signal;
+        sched_dequeue(thread);
+    }
+    END_FOREACH
+    return 0;
+}
+
 /**
  * PROC THREAD FUNCTIONS
  */

@@ -44,8 +44,8 @@ void idle_thread()
 
 void launching()
 {
-    tasking_create_kernel_thread(idle_thread);
-    tasking_create_kernel_thread(dentry_flusher);
+    tasking_create_kernel_thread(idle_thread, NULL);
+    tasking_create_kernel_thread(dentry_flusher, NULL);
     tasking_start_init_proc();
     ksys1(SYSEXIT, 0);
 }
@@ -82,7 +82,7 @@ void stage3(mem_desc_t* mem_desc)
     // init scheduling
     tasking_init();
     scheduler_init();
-    tasking_create_kernel_thread(launching);
+    tasking_create_kernel_thread(launching, NULL);
     resched(); /* Starting a scheduler */
 
     while (1) { }

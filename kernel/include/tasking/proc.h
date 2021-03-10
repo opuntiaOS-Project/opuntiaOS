@@ -18,6 +18,8 @@
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16
 
+struct blocker;
+
 /* Like Page Flags in vmm.h */
 enum ZONE_FLAGS {
     ZONE_WRITABLE = 0x1,
@@ -99,12 +101,14 @@ void proc_kill_all_threads_except(proc_t* p, struct thread* gthread);
 int kthread_setup(proc_t* p);
 int kthread_setup_regs(proc_t* p, void* entry_point);
 void kthread_setup_segment_regs(proc_t* p);
+int kthread_fill_up_stack(struct thread* thread, void* data);
 int kthread_free(proc_t* p);
 
 int proc_load(proc_t* p, const char* path);
 int proc_copy_of(proc_t* new_proc, struct thread* from_thread);
 
 int proc_die(proc_t* p);
+int proc_block_all_threads(proc_t* p, struct blocker* blocker);
 
 /**
  * PROC FD FUNCTIONS

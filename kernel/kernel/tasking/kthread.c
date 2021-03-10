@@ -70,6 +70,27 @@ int kthread_setup_regs(proc_t* p, void* entry_point)
     return 0;
 }
 
+int kthread_fill_up_stack(thread_t* thread, void* data)
+{
+    if (!thread) {
+        return -EFAULT;
+    }
+    if (!thread->process->is_kthread) {
+        return -EPERM;
+    }
+    if (!vmm_is_kernel_address((uint32_t)data) && data) {
+        return -EFAULT;
+    }
+
+#ifdef __i386__
+    tf_move_stack_pointer(thread->tf, -sizeof(data));
+    vmm_copy_to_pdir(thread->process->pdir, &data, get_stack_pointer(thread->tf), sizeof(data));
+#elif __arm__
+    thread->tf->r[0] = (uint32_t)data;
+#endif
+    return 0;
+}
+
 int kthread_free(proc_t* p)
 {
     /* proc_free can free kthreads too) */

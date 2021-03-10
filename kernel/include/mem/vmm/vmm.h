@@ -73,7 +73,7 @@ pdirectory_t* vmm_new_forked_user_pdir();
 void* vmm_bring_to_kernel(uint8_t* src, uint32_t length);
 void vmm_fast_copy_to_active_pdir(void* src, uint32_t dest_vaddr, uint32_t length);
 void vmm_copy_to_user(void* dest, void* src, uint32_t length);
-void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uint32_t length);
+void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uint32_t dest_vaddr, uint32_t length);
 void vmm_zero_user_pages(pdirectory_t* pdir);
 pdirectory_t* vmm_get_active_pdir();
 pdirectory_t* vmm_get_kernel_pdir();
@@ -89,5 +89,7 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr);
 int vmm_switch_pdir(pdirectory_t* pdir);
 void vmm_enable_paging();
 void vmm_disable_paging();
+
+int vmm_is_kernel_address(uint32_t add);
 
 #endif // _KERNEL_MEM_VMM_VMM_H

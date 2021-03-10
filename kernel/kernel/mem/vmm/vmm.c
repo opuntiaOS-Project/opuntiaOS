@@ -822,6 +822,14 @@ int vmm_free_pdir(pdirectory_t* pdir)
     return 0;
 }
 
+int vmm_is_kernel_address(uint32_t add)
+{
+    if (add >= KERNEL_BASE) {
+        return 1;
+    }
+    return 0;
+}
+
 void* vmm_bring_to_kernel(uint8_t* src, uint32_t length)
 {
     if ((uint32_t)src >= KERNEL_BASE) {
@@ -845,7 +853,7 @@ void vmm_copy_to_user(void* dest, void* src, uint32_t length)
     memcpy(dest, src, length);
 }
 
-void vmm_copy_to_pdir(pdirectory_t* pdir, uint8_t* src, uint32_t dest_vaddr, uint32_t length)
+void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uint32_t dest_vaddr, uint32_t length)
 {
     pdirectory_t* prev_pdir = vmm_get_active_pdir();
     uint8_t* ksrc;
