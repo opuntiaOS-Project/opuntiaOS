@@ -12,6 +12,17 @@ void table_desc_init(table_desc_t* pde)
     *pde = 0;
 }
 
+void table_desc_set_allocated_state(table_desc_t* pde)
+{
+    *pde = 0;
+}
+
+// x86 doesn't need allocated state.
+bool table_desc_is_in_allocated_state(table_desc_t* pde)
+{
+    return 0;
+}
+
 void table_desc_clear(table_desc_t* pde)
 {
     *pde = 0;

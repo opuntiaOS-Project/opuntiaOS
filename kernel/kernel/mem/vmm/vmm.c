@@ -93,9 +93,19 @@ inline static uint32_t _vmm_alloc_ptables_to_cover_page()
     return (uint32_t)pmm_alloc_aligned(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
 }
 
+inline static void _vmm_free_ptables_to_cover_page(uint32_t addr)
+{
+    pmm_free((void*)addr, VMM_PAGE_SIZE);
+}
+
 inline static uint32_t _vmm_alloc_page_paddr()
 {
     return (uint32_t)pmm_alloc_aligned(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
+}
+
+inline static void _vmm_free_page_paddr(uint32_t addr)
+{
+    pmm_free((void*)addr, VMM_PAGE_SIZE);
 }
 
 static zone_t _vmm_alloc_mapped_zone(uint32_t size, uint32_t alignment)
@@ -415,9 +425,17 @@ page_desc_t* vmm_ptable_lookup(ptable_t* ptable, uint32_t vaddr)
     return 0;
 }
 
+static inline void vmm_table_desc_init_from_allocated_state(table_desc_t* ptable_desc)
+{
+    uint32_t frame = table_desc_get_frame(*ptable_desc);
+    table_desc_init(ptable_desc);
+    table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE | TABLE_DESC_USER);
+    table_desc_set_frame(ptable_desc, frame);
+}
+
 /**
- * The function is supposed to create new ptable (not kernel) and
- * rebuild pspace to match to the new setup.
+ * The function creates new ptable (not kernel) and
+ * rebuilds pspace to match to the new setup.
  * It may allocate several tables to cover the full page. For example,
  * it allocates 4 tables for arm (ptable -- 1KB, while a page is 4KB).
  */
@@ -425,6 +443,11 @@ int vmm_allocate_ptable(uint32_t vaddr)
 {
     if (!_vmm_active_pdir) {
         return -VMM_ERR_PDIR;
+    }
+
+    table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    if (table_desc_is_in_allocated_state(ptable_desc)) {
+        goto skip_allocation;
     }
 
     uint32_t ptables_paddr = _vmm_alloc_ptables_to_cover_page();
@@ -439,27 +462,45 @@ int vmm_allocate_ptable(uint32_t vaddr)
     uint32_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
 
     for (uint32_t i = 0, pvaddr = ptable_serve_vaddr_start, ptable_paddr = ptables_paddr; i < ptables_per_page; i++, pvaddr += table_coverage, ptable_paddr += PTABLE_SIZE) {
-        table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, pvaddr);
-        table_desc_clear(ptable_desc);
-        table_desc_init(ptable_desc);
-        table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE | TABLE_DESC_USER);
-        table_desc_set_frame(ptable_desc, ptable_paddr);
+        table_desc_t* tmp_ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, pvaddr);
+        table_desc_clear(tmp_ptable_desc);
+        table_desc_set_allocated_state(tmp_ptable_desc);
+        table_desc_set_frame(tmp_ptable_desc, ptable_paddr);
     }
 
-    int ret = vmm_map_page(ptable_vaddr_start, ptables_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
-    if (ret == 0) {
-        memset((void*)ptable_vaddr_start, 0, VMM_PAGE_SIZE);
+    int err = vmm_map_page(ptable_vaddr_start, ptables_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
+    if (err) {
+        return err;
     }
-    return ret;
+    memset((void*)ptable_vaddr_start, 0, VMM_PAGE_SIZE);
+
+skip_allocation:
+    vmm_table_desc_init_from_allocated_state(ptable_desc);
+    return 0;
 }
 
-static int vmm_free_ptable(uint32_t ptable_indx)
+/**
+ * The function ignores restoring tables from Allocated state,
+ * and creates new.
+ */
+int vmm_force_allocate_ptable(uint32_t vaddr)
 {
-    if (_vmm_active_pdir == 0) {
+    // Clearing Allocated state flags, so vmm_allocate_ptable will allocate new tables.
+    table_desc_t* ptable_desc_orig = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
+    table_desc_clear(ptable_desc_orig);
+    return vmm_allocate_ptable(vaddr);
+}
+
+/**
+ * The function deletes ptable(s) and rebuilds pspace to match the new setup.
+ */
+static int vmm_free_ptable(uint32_t vaddr)
+{
+    if (!_vmm_active_pdir) {
         return -VMM_ERR_PDIR;
     }
 
-    table_desc_t* ptable_desc = &_vmm_active_pdir->entities[ptable_indx];
+    table_desc_t* ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, vaddr);
 
     if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
         return -EFAULT;
@@ -469,9 +510,45 @@ static int vmm_free_ptable(uint32_t ptable_indx)
         return -EFAULT;
     }
 
-    pmm_free_block((void*)table_desc_get_frame(*ptable_desc));
-    table_desc_del_frame(ptable_desc);
+    // Entering allocated state, since table is alloacted but now valid.
+    // Allocated state will remove TABLE_DESC_PRESENT flag.
+    uint32_t frame = table_desc_get_frame(*ptable_desc);
+    table_desc_set_allocated_state(ptable_desc);
+    table_desc_set_frame(ptable_desc, frame);
 
+    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    for (uint32_t i = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++) {
+        page_desc_t* page = &ptable->entities[i];
+        if (page_desc_has_attrs(*page, PAGE_DESC_PRESENT)) {
+            page_desc_del_attrs(page, PAGE_DESC_PRESENT);
+            _vmm_free_page_paddr(page_desc_get_frame(*page));
+        }
+    }
+
+    uint32_t ptable_vaddr_start = PAGE_START((uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr));
+    uint32_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
+    uint32_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
+    uint32_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
+
+    // Chechking if we can delete thw whole page of tables.
+    for (uint32_t i = 0, pvaddr = ptable_serve_vaddr_start; i < ptables_per_page; i++, pvaddr += table_coverage) {
+        table_desc_t* ptable_desc_c = vmm_pdirectory_lookup(_vmm_active_pdir, pvaddr);
+        if (table_desc_has_attrs(*ptable_desc_c, TABLE_DESC_PRESENT)) {
+            return 0;
+        }
+    }
+
+    // If we are here, we can delete the page of tables.
+    table_desc_t* ptable_desc_first = vmm_pdirectory_lookup(_vmm_active_pdir, ptable_serve_vaddr_start);
+    _vmm_free_ptables_to_cover_page(table_desc_get_frame(*ptable_desc_first));
+
+    for (uint32_t i = 0, pvaddr = ptable_serve_vaddr_start; i < ptables_per_page; i++, pvaddr += table_coverage) {
+        table_desc_t* ptable_desc_c = vmm_pdirectory_lookup(_vmm_active_pdir, pvaddr);
+        table_desc_clear(ptable_desc_c);
+    }
+
+    // Cleaning Pspace
+    vmm_unmap_page(ptable_vaddr_start);
     return 0;
 }
 
@@ -602,7 +679,6 @@ static inline void _vmm_tables_set_cow(uint32_t table_index, table_desc_t* cur, 
 
     /* Marking all pages as not-writable to handle COW. Later will restore using zones data */
     ptable_t* ptable = _vmm_pspace_get_nth_active_ptable(table_index);
-    // log("Ask set cow %x", ptable);
     for (int i = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++) {
         page_desc_t* page = &ptable->entities[i];
         page_desc_del_attrs(page, PAGE_DESC_WRITABLE);
@@ -619,6 +695,7 @@ static bool _vmm_is_copy_on_write(uint32_t vaddr)
 // TODO handle delete of tables and dirs
 static int _vmm_resolve_copy_on_write(proc_t* p, uint32_t vaddr)
 {
+    table_desc_t orig_table_desc[VMM_PAGE_SIZE / PTABLE_SIZE];
     uint32_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
     uint32_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
     uint32_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
@@ -628,24 +705,33 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uint32_t vaddr)
     ptable_t* src_ptable = (ptable_t*)src_ptable_zone.ptr;
     ptable_t* root_ptable = (ptable_t*)PAGE_START((uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(ptable_serve_vaddr_start));
     memcpy(src_ptable, root_ptable, VMM_PAGE_SIZE);
-    // log("Resolve got %x", root_ptable);
 
-    /* Setting up new ptables. */
-    int res = vmm_allocate_ptable(vaddr);
-    if (res != 0) {
-        return res;
+    // Saving descriptors of original ptables
+    for (int it = 0; it < ptables_per_page; it++) {
+        table_desc_t* tmp_table_desc = vmm_pdirectory_lookup(_vmm_active_pdir, ptable_serve_vaddr_start);
+        orig_table_desc[it] = tmp_table_desc[it];
     }
 
-    ptable_t* new_ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    /* Setting up new ptables. */
+    int err = vmm_force_allocate_ptable(vaddr);
+    if (err) {
+        return err;
+    }
 
     /* Copying all pages from this tables to newly allocated. */
     uint32_t table_start = TABLE_START(ptable_serve_vaddr_start);
-    for (int i = 0; i < VMM_TOTAL_PAGES_PER_TABLE * ptables_per_page; i++) {
-        uint32_t page_vaddr = table_start + (i * VMM_PAGE_SIZE);
-        page_desc_t* page_desc = &src_ptable->entities[i];
-        if (page_desc_is_present(*page_desc)) {
-            // log("       PAGE %x", *page_desc);
-            _vmm_copy_page_to_resolve_cow(p, page_vaddr, src_ptable, i);
+    table_desc_t* start_ptable_desc = vmm_pdirectory_lookup(_vmm_active_pdir, ptable_serve_vaddr_start);
+    for (int ptable_idx = 0; ptable_idx < ptables_per_page; ptable_idx++) {
+        if (table_desc_is_present(orig_table_desc[ptable_idx])) {
+            vmm_table_desc_init_from_allocated_state(&start_ptable_desc[ptable_idx]);
+            for (int page_idx = 0; page_idx < VMM_TOTAL_PAGES_PER_TABLE; page_idx++) {
+                uint32_t offset_in_table_set = ptable_idx * VMM_TOTAL_PAGES_PER_TABLE + page_idx;
+                uint32_t page_vaddr = table_start + (offset_in_table_set * VMM_PAGE_SIZE);
+                page_desc_t* page_desc = &src_ptable->entities[offset_in_table_set];
+                if (page_desc_is_present(*page_desc)) {
+                    _vmm_copy_page_to_resolve_cow(p, page_vaddr, src_ptable, offset_in_table_set);
+                }
+            }
         }
     }
 
@@ -808,8 +894,9 @@ int vmm_free_pdir(pdirectory_t* pdir)
     pdirectory_t* cur_pdir = vmm_get_active_pdir();
     vmm_switch_pdir(pdir);
 
+    uint32_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-        vmm_free_ptable(i);
+        vmm_free_ptable(table_coverage * i);
     }
 
     if (cur_pdir == pdir) {
@@ -1045,7 +1132,7 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
         //     visited++;
         // }
         if (!visited) {
-            ASSERT(false);
+            return SHOULD_CRASH;
         }
     }
 

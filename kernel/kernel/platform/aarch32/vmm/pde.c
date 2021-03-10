@@ -18,6 +18,23 @@ void table_desc_init(table_desc_t* pde)
     pde->domain = 0b0011;
 }
 
+void table_desc_set_allocated_state(table_desc_t* pde)
+{
+    pde->data = 0;
+    pde->valid = 0;
+    pde->zero1 = 0;
+    pde->zero2 = 0;
+    pde->zero3 = 1;
+    pde->ns = 1;
+    pde->imp = 0;
+    pde->domain = 0b0011;
+}
+
+bool table_desc_is_in_allocated_state(table_desc_t* pde)
+{
+    return (pde->data & 0b0111111111) == (0b0001111000);
+}
+
 void table_desc_clear(table_desc_t* pde)
 {
     pde->data = 0;
