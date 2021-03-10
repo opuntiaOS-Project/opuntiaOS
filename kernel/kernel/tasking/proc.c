@@ -73,8 +73,9 @@ int proc_setup(proc_t* p)
         return res;
     }
 
-    /* setting current work directory */
-    p->cwd = 0;
+    /* setting dentries */
+    p->proc_file = NULL;
+    p->cwd = NULL;
 
     /* allocating space for open files */
     p->fds = kmalloc(MAX_OPENED_FILES * sizeof(file_descriptor_t));
@@ -188,14 +189,13 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
 
 int proc_load(proc_t* p, const char* path)
 {
-    dentry_t* file;
     file_descriptor_t fd;
 
-    if (vfs_resolve_path_start_from(p->cwd, path, &file) < 0) {
+    if (vfs_resolve_path_start_from(p->cwd, path, &p->proc_file) < 0) {
         return -ENOENT;
     }
-    if (vfs_open(file, &fd, O_RDONLY) < 0) {
-        dentry_put(file);
+    if (vfs_open(p->proc_file, &fd, O_RDONLY) < 0) {
+        dentry_put(p->proc_file);
         return -ENOENT;
     }
 
@@ -207,7 +207,7 @@ int proc_load(proc_t* p, const char* path)
 
     if (!err) {
         if (!p->cwd) {
-            p->cwd = dentry_get_parent(file);
+            p->cwd = dentry_get_parent(p->proc_file);
         }
         vmm_free_pdir(old_pdir);
     } else {
@@ -216,7 +216,6 @@ int proc_load(proc_t* p, const char* path)
         vmm_free_pdir(new_pdir);
     }
 
-    dentry_put(file);
     vfs_close(&fd);
     return err;
 }
@@ -242,6 +241,9 @@ int proc_free(proc_t* p)
         kfree(p->fds);
     }
 
+    if (p->proc_file) {
+        dentry_put(p->proc_file);
+    }
     if (p->cwd) {
         dentry_put(p->cwd);
     }
@@ -328,7 +330,7 @@ int proc_chdir(proc_t* p, const char* path)
     }
     kpath = kmem_bring_to_kernel(path, strlen(path) + 1);
 
-    dentry_t* new_cwd;
+    dentry_t* new_cwd = NULL;
     int ret = vfs_resolve_path_start_from(p->cwd, kpath, &new_cwd);
     if (ret) {
         return -ENOENT;

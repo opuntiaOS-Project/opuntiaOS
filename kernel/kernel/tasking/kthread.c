@@ -47,10 +47,11 @@ int kthread_setup(proc_t* p)
     }
     _thread_setup_kstack(p->main_thread, p->main_thread->kstack.start + KSTACK_TOP);
 
-    /* setting current work directory */
-    p->cwd = 0;
+    /* setting dentries */
+    p->proc_file = NULL;
+    p->cwd = NULL;
 
-    p->fds = 0;
+    p->fds = NULL;
 
     /* setting signal handlers to 0 */
     p->main_thread->signals_mask = 0x0; /* All signals are disabled. */

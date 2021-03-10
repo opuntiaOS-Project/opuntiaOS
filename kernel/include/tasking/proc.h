@@ -70,6 +70,7 @@ struct proc {
 
     dynamic_array_t zones;
 
+    dentry_t* proc_file;
     dentry_t* cwd;
     file_descriptor_t* fds;
     tty_entry_t* tty;
