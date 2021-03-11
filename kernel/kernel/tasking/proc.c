@@ -187,36 +187,70 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     return 0;
 }
 
-int proc_load(proc_t* p, const char* path)
+int proc_load(proc_t* p, thread_t* main_thread, const char* path)
 {
     file_descriptor_t fd;
+    dentry_t* dentry;
 
-    if (vfs_resolve_path_start_from(p->cwd, path, &p->proc_file) < 0) {
+    if (vfs_resolve_path_start_from(p->cwd, path, &dentry) < 0) {
         return -ENOENT;
     }
-    if (vfs_open(p->proc_file, &fd, O_RDONLY) < 0) {
-        dentry_put(p->proc_file);
+    if (vfs_open(dentry, &fd, O_RDONLY) < 0) {
+        dentry_put(dentry);
         return -ENOENT;
     }
 
+    // Saving data to restore in case of error.
     pdirectory_t* old_pdir = p->pdir;
+    dynamic_array_t old_zones = p->zones;
+
+    // Reallocating proc.
     pdirectory_t* new_pdir = vmm_new_user_pdir();
     vmm_switch_pdir(new_pdir);
     p->pdir = new_pdir;
-    int err = elf_load(p, &fd);
 
-    if (!err) {
-        if (!p->cwd) {
-            p->cwd = dentry_get_parent(p->proc_file);
-        }
-        vmm_free_pdir(old_pdir);
-    } else {
-        p->pdir = old_pdir;
-        vmm_switch_pdir(old_pdir);
-        vmm_free_pdir(new_pdir);
+    if (dynamic_array_init_of_size(&p->zones, sizeof(proc_zone_t), 8) != 0) {
+        dentry_put(dentry);
+        vfs_close(&fd);
+        return -ENOMEM;
     }
 
+    int err = elf_load(p, &fd);
+    if (err) {
+        goto restore;
+    }
+
+success:
+    p->main_thread = main_thread;
+
+    // Clearing proc
+    proc_kill_all_threads_except(p, p->main_thread);
+    p->pid = p->main_thread->tid;
+    if (p->proc_file) {
+        dentry_put(p->proc_file);
+    }
+#ifdef FPU_ENABLED
+    fpu_reset_state(p->main_thread->fpu_state);
+#endif
+    dynamic_array_clear(&old_zones);
+    vmm_free_pdir(old_pdir);
+
+    // Setting up proc
+    p->proc_file = dentry; // dentry isn't put, but is transfered to the proc.
+    if (!p->cwd) {
+        p->cwd = dentry_get_parent(p->proc_file);
+    }
     vfs_close(&fd);
+    return 0;
+
+restore:
+    dynamic_array_clear(&p->zones);
+    p->zones = old_zones;
+    p->pdir = old_pdir;
+    vmm_switch_pdir(old_pdir);
+    vmm_free_pdir(new_pdir);
+    vfs_close(&fd);
+    dentry_put(dentry);
     return err;
 }
 

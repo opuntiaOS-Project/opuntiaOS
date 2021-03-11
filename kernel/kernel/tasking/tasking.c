@@ -110,7 +110,7 @@ void tasking_start_init_proc()
     /* creating new pdir */
     p->pdir = vmm_new_user_pdir();
 
-    if (proc_load(p, "/boot/init") < 0) {
+    if (proc_load(p, p->main_thread, "/boot/init") < 0) {
         log_error("Failed to load init proc");
         while (1) { }
     }
@@ -177,9 +177,9 @@ void tasking_fork(trapframe_t* tf)
     resched();
 }
 
-static int _tasking_do_exec(proc_t* p, const char* path, int argc, char** argv, char** env)
+static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, int argc, char** argv, char** env)
 {
-    int res = proc_load(p, path);
+    int res = proc_load(p, main_thread, path);
     if (res == 0) {
         thread_fill_up_stack(p->main_thread, argc, argv, env);
     }
@@ -222,19 +222,10 @@ int tasking_exec(const char* path, const char** argv, const char** env)
         kargv = kmem_bring_to_kernel_ptrarr(argv, kargc);
     }
 
-    /* Cleaning proc */
-    dynamic_array_clear(&p->zones);
-    proc_kill_all_threads_except(p, thread);
-    p->main_thread = thread;
-    p->pid = thread->tid;
-#ifdef FPU_ENABLED
-    fpu_reset_state(p->main_thread->fpu_state);
-#endif
-
-    int ret = _tasking_do_exec(p, kpath, kargc, kargv, 0);
+    int err = _tasking_do_exec(p, thread, kpath, kargc, kargv, 0);
 
 #ifdef TASKING_DEBUG
-    if (!ret) {
+    if (!err) {
         log("Exec %s : pid %d", kpath, p->pid);
     }
 #endif
@@ -245,7 +236,7 @@ int tasking_exec(const char* path, const char** argv, const char** env)
     }
     kfree(kargv);
 
-    return ret;
+    return err;
 }
 
 int tasking_waitpid(int pid)

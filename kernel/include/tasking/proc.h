@@ -105,7 +105,7 @@ void kthread_setup_segment_regs(proc_t* p);
 int kthread_fill_up_stack(struct thread* thread, void* data);
 int kthread_free(proc_t* p);
 
-int proc_load(proc_t* p, const char* path);
+int proc_load(proc_t* p, struct thread* main_thread, const char* path);
 int proc_copy_of(proc_t* new_proc, struct thread* from_thread);
 
 int proc_die(proc_t* p);
