@@ -68,7 +68,7 @@ inline static int _pl181_select_card(uint32_t rca)
     return _pl181_send_cmd(CMD_SELECT | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, rca);
 }
 
-static int _pl181_read_block(device_t* device, uint32_t lba_like, uint8_t* read_data)
+static int _pl181_read_block(device_t* device, uint32_t lba_like, void* read_data)
 {
     sd_card_t* sd_card = &sd_cards[device->id];
     uint32_t* read_data32 = (uint32_t*)read_data;
@@ -91,27 +91,27 @@ static int _pl181_read_block(device_t* device, uint32_t lba_like, uint8_t* read_
     return bytes_read;
 }
 
-static int _pl181_write_block(device_t* device, uint32_t lba_like, uint8_t* read_data)
+static int _pl181_write_block(device_t* device, uint32_t lba_like, void* write_data)
 {
     sd_card_t* sd_card = &sd_cards[device->id];
-    uint32_t* read_data32 = (uint32_t*)read_data;
-    uint32_t bytes_read = 0;
+    uint32_t* write_data32 = (uint32_t*)write_data;
+    uint32_t bytes_written = 0;
 
     registers->data_length = PL181_SECTOR_SIZE; // Set length of bytes to transfer
     registers->data_control = 0b01; // Enable dpsm and set direction from host to card
 
     if (sd_card->ishc) {
-        _pl181_send_cmd(CMD_WRITE_SINGLE_BLOCK | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, lba_like / 512);
-    } else {
         _pl181_send_cmd(CMD_WRITE_SINGLE_BLOCK | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, lba_like);
+    } else {
+        _pl181_send_cmd(CMD_WRITE_SINGLE_BLOCK | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, lba_like * PL181_SECTOR_SIZE);
     }
 
     while (registers->status & MMC_STAT_TRANSMIT_FIFO_EMPTY_MASK) {
-        registers->fifo_data[0] = *read_data32;
-        read_data32++;
-        bytes_read += 4;
+        registers->fifo_data[0] = *write_data32;
+        write_data32++;
+        bytes_written += 4;
     }
-    return bytes_read;
+    return bytes_written;
 }
 
 static void _pl181_add_new_device(device_t* new_device)
