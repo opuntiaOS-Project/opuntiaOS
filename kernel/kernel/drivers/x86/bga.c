@@ -88,7 +88,8 @@ static proc_zone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
         return 0;
     }
 
-    zone->flags |= ZONE_WRITABLE | ZONE_READABLE;
+    zone->flags |= ZONE_WRITABLE | ZONE_READABLE | ZONE_NOT_CACHEABLE;
+    zone->type |= ZONE_TYPE_DEVICE;
 
     for (int offset = 0; offset < bga_screen_buffer_size; offset += VMM_PAGE_SIZE) {
         vmm_map_page(zone->start + offset, bga_buf_paddr + offset, zone->flags);

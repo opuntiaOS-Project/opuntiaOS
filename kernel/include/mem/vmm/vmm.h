@@ -51,6 +51,8 @@ enum VMM_PF_HANDLER {
     SHOULD_CRASH = -1,
 };
 
+struct dynamic_array;
+
 /**
  * PUBLIC FUNCTIONS
  */
@@ -60,7 +62,8 @@ int vmm_setup();
 table_desc_t* vmm_pdirectory_lookup(pdirectory_t* t_pdir, uint32_t t_addr);
 page_desc_t* vmm_ptable_lookup(ptable_t* t_ptable, uint32_t t_addr);
 int vmm_allocate_ptable(uint32_t vaddr);
-int vmm_free_pdir(pdirectory_t* pdir);
+int vmm_free_ptable(uint32_t vaddr, struct dynamic_array* zones);
+int vmm_free_pdir(pdirectory_t* pdir, struct dynamic_array* zones);
 
 int vmm_map_page(uint32_t vaddr, uint32_t paddr, uint32_t settings);
 int vmm_map_pages(uint32_t vaddr, uint32_t paddr, uint32_t n_pages, uint32_t settings);
@@ -83,7 +86,7 @@ int vmm_tune_page(uint32_t vaddr, uint32_t settings);
 int vmm_tune_pages(uint32_t vaddr, uint32_t length, uint32_t settings);
 
 int vmm_alloc_page(page_desc_t* page);
-int vmm_free_page(page_desc_t* page);
+int vmm_free_page(uint32_t vaddr, page_desc_t* page, struct dynamic_array* zones);
 int vmm_page_fault_handler(uint32_t info, uint32_t vaddr);
 
 int vmm_switch_pdir(pdirectory_t* pdir);

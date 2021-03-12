@@ -232,8 +232,8 @@ success:
 #ifdef FPU_ENABLED
     fpu_reset_state(p->main_thread->fpu_state);
 #endif
+    vmm_free_pdir(old_pdir, &old_zones);
     dynamic_array_clear(&old_zones);
-    vmm_free_pdir(old_pdir);
 
     // Setting up proc
     p->proc_file = dentry; // dentry isn't put, but is transfered to the proc.
@@ -244,11 +244,11 @@ success:
     return 0;
 
 restore:
-    dynamic_array_clear(&p->zones);
-    p->zones = old_zones;
     p->pdir = old_pdir;
     vmm_switch_pdir(old_pdir);
-    vmm_free_pdir(new_pdir);
+    vmm_free_pdir(new_pdir, &p->zones);
+    dynamic_array_clear(&p->zones);
+    p->zones = old_zones;
     vfs_close(&fd);
     dentry_put(dentry);
     return err;
@@ -282,17 +282,16 @@ int proc_free(proc_t* p)
         dentry_put(p->cwd);
     }
 
-    dynamic_array_free(&p->zones);
-
     /* Key parts deletion. After that line you can't work with this process. */
     proc_kill_all_threads(p);
     p->pid = 0;
 
     if (!p->is_kthread) {
-        vmm_free_pdir(p->pdir);
-        p->pdir = 0;
+        vmm_free_pdir(p->pdir, &p->zones);
+        p->pdir = NULL;
     }
 
+    dynamic_array_free(&p->zones);
     return 0;
 }
 

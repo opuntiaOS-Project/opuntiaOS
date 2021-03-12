@@ -494,7 +494,7 @@ int vmm_force_allocate_ptable(uint32_t vaddr)
 /**
  * The function deletes ptable(s) and rebuilds pspace to match the new setup.
  */
-static int vmm_free_ptable(uint32_t vaddr)
+int vmm_free_ptable(uint32_t vaddr, dynamic_array_t* zones)
 {
     if (!_vmm_active_pdir) {
         return -VMM_ERR_PDIR;
@@ -510,19 +510,17 @@ static int vmm_free_ptable(uint32_t vaddr)
         return -EFAULT;
     }
 
-    // Entering allocated state, since table is alloacted but now valid.
+    // Entering allocated state, since table is alloacted but not valid.
     // Allocated state will remove TABLE_DESC_PRESENT flag.
     uint32_t frame = table_desc_get_frame(*ptable_desc);
     table_desc_set_allocated_state(ptable_desc);
     table_desc_set_frame(ptable_desc, frame);
 
     ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
-    for (uint32_t i = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++) {
+    uint32_t pages_vstart = TABLE_START(vaddr);
+    for (uint32_t i = 0, pages_voffset = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++, pages_voffset += VMM_PAGE_SIZE) {
         page_desc_t* page = &ptable->entities[i];
-        if (page_desc_has_attrs(*page, PAGE_DESC_PRESENT)) {
-            page_desc_del_attrs(page, PAGE_DESC_PRESENT);
-            _vmm_free_page_paddr(page_desc_get_frame(*page));
-        }
+        vmm_free_page(pages_vstart + pages_voffset, page, zones);
     }
 
     uint32_t ptable_vaddr_start = PAGE_START((uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr));
@@ -881,7 +879,7 @@ pdirectory_t* vmm_new_forked_user_pdir()
     return new_pdir;
 }
 
-int vmm_free_pdir(pdirectory_t* pdir)
+int vmm_free_pdir(pdirectory_t* pdir, dynamic_array_t* zones)
 {
     if (!pdir) {
         return -EINVAL;
@@ -896,7 +894,7 @@ int vmm_free_pdir(pdirectory_t* pdir)
 
     uint32_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-        vmm_free_ptable(table_coverage * i);
+        vmm_free_ptable(table_coverage * i, zones);
     }
 
     if (cur_pdir == pdir) {
@@ -1078,12 +1076,20 @@ int vmm_alloc_page(page_desc_t* page)
     return 0;
 }
 
-// currently unused and unoptimized with rewritten vmm
-int vmm_free_page(page_desc_t* page)
+int vmm_free_page(uint32_t vaddr, page_desc_t* page, dynamic_array_t* zones)
 {
-    uint32_t frame = page_desc_get_frame(*page);
-    pmm_free_block((void*)(frame * VMM_PAGE_SIZE));
+    if (!page_desc_has_attrs(*page, PAGE_DESC_PRESENT)) {
+        return 0;
+    }
     page_desc_del_attrs(page, PAGE_DESC_PRESENT);
+
+    proc_zone_t* zone = proc_find_zone_no_proc(zones, vaddr);
+    if (zone) {
+        if (zone->type & ZONE_TYPE_DEVICE) {
+            return 0;
+        }
+    }
+    _vmm_free_page_paddr(page_desc_get_frame(*page));
     return 0;
 }
 

@@ -178,16 +178,21 @@ proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len)
     return proc_new_zone(proc, max_end - len, len);
 }
 
-proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr)
+proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, uint32_t addr)
 {
-    uint32_t zones_count = proc->zones.size;
+    uint32_t zones_count = zones->size;
 
     for (uint32_t i = 0; i < zones_count; i++) {
-        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
+        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(zones, i);
         if (zone->start <= addr && addr < zone->start + zone->len) {
             return zone;
         }
     }
 
     return 0;
+}
+
+proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr)
+{
+    return proc_find_zone_no_proc(&proc->zones, addr);
 }

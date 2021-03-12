@@ -36,9 +36,10 @@ enum ZONE_TYPES {
     ZONE_TYPE_DATA = 0x2,
     ZONE_TYPE_STACK = 0x4,
     ZONE_TYPE_BSS = 0x8,
-    ZONE_TYPE_MAPPED = 0x10,
-    ZONE_TYPE_MAPPED_FILE_PRIVATLY = 0x20,
-    ZONE_TYPE_MAPPED_FILE_SHAREDLY = 0x40,
+    ZONE_TYPE_DEVICE = 0x10,
+    ZONE_TYPE_MAPPED = 0x20,
+    ZONE_TYPE_MAPPED_FILE_PRIVATLY = 0x40,
+    ZONE_TYPE_MAPPED_FILE_SHAREDLY = 0x80,
 };
 
 struct proc_zone {
@@ -129,5 +130,6 @@ proc_zone_t* proc_extend_zone(proc_t* proc, uint32_t start, uint32_t len);
 proc_zone_t* proc_new_random_zone(proc_t* p, uint32_t len);
 proc_zone_t* proc_new_random_zone_backward(proc_t* p, uint32_t len);
 proc_zone_t* proc_find_zone(proc_t* p, uint32_t addr);
+proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, uint32_t addr);
 
 #endif // _KERNEL_TASKING_PROC_H
