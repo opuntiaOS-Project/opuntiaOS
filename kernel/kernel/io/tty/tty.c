@@ -127,7 +127,7 @@ int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
         if (buf[i] == '\x1b') {
             i += _tty_process_esc_seq(&buf[i]);
         } else {
-            log_char(buf[i]);
+            log_not_formatted("%c", buf[i]);
             // print_char(buf[i], WHITE_ON_BLACK, -1, -1);
         }
     }
