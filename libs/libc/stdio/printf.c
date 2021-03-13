@@ -9,6 +9,73 @@
 #include <syscalls.h>
 #include <unistd.h>
 
+static const char* HEX_alphabet = "0123456789ABCDEF";
+static const char* hex_alphabet = "0123456789abcdef";
+
+static int _printf_hex32_impl(unsigned int value, const char* alph, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
+{
+    int nxt = 0;
+    char tmp_buf[16];
+
+    while (value > 0) {
+        tmp_buf[nxt++] = alph[(value % 16)];
+        value /= 16;
+    }
+
+    callback('0', base_buf, written, callback_params);
+    callback('x', base_buf, written, callback_params);
+    if (nxt == 0) {
+        callback('0', base_buf, written, callback_params);
+    }
+
+    while (nxt) {
+        callback(tmp_buf[--nxt], base_buf, written, callback_params);
+    }
+    return 0;
+}
+
+static int _printf_hex64_impl(unsigned long value, const char* alph, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
+{
+    int nxt = 0;
+    char tmp_buf[32];
+
+    while (value > 0) {
+        tmp_buf[nxt++] = alph[(value % 16)];
+        value /= 16;
+    }
+
+    callback('0', base_buf, written, callback_params);
+    callback('x', base_buf, written, callback_params);
+    if (nxt == 0) {
+        callback('0', base_buf, written, callback_params);
+    }
+
+    while (nxt) {
+        callback(tmp_buf[--nxt], base_buf, written, callback_params);
+    }
+    return 0;
+}
+
+static int _printf_hex32(unsigned int value, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
+{
+    return _printf_hex32_impl(value, hex_alphabet, base_buf, written, callback, callback_params);
+}
+
+static int _printf_HEX32(unsigned int value, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
+{
+    return _printf_hex32_impl(value, HEX_alphabet, base_buf, written, callback, callback_params);
+}
+
+static int _printf_hex64(unsigned long value, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
+{
+    return _printf_hex64_impl(value, hex_alphabet, base_buf, written, callback, callback_params);
+}
+
+static int _printf_HEX64(unsigned long value, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
+{
+    return _printf_hex64_impl(value, HEX_alphabet, base_buf, written, callback, callback_params);
+}
+
 static int _printf_u32(unsigned int value, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
 {
     int nxt = 0;
@@ -118,11 +185,29 @@ static ssize_t _printf_internal(char* buf, const char* format, _putch_callback c
                 break;
             case 'u':
                 if (l_arg) {
-                    unsigned long value = va_arg(arg, uint64_t);
+                    uint64_t value = va_arg(arg, uint64_t);
                     _printf_u64(value, buf, &written, callback, callback_params);
                 } else {
-                    unsigned int value = va_arg(arg, uint32_t);
+                    uint32_t value = va_arg(arg, uint32_t);
                     _printf_u32(value, buf, &written, callback, callback_params);
+                }
+                break;
+            case 'x':
+                if (l_arg) {
+                    uint64_t value = va_arg(arg, uint64_t);
+                    _printf_hex64(value, buf, &written, callback, callback_params);
+                } else {
+                    uint32_t value = va_arg(arg, uint32_t);
+                    _printf_hex32(value, buf, &written, callback, callback_params);
+                }
+                break;
+            case 'X':
+                if (l_arg) {
+                    uint64_t value = va_arg(arg, uint64_t);
+                    _printf_HEX64(value, buf, &written, callback, callback_params);
+                } else {
+                    uint32_t value = va_arg(arg, uint32_t);
+                    _printf_HEX32(value, buf, &written, callback, callback_params);
                 }
                 break;
             case 'c': {
