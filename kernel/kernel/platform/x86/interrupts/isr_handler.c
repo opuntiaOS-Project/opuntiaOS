@@ -4,6 +4,7 @@
 #include <platform/generic/registers.h>
 #include <platform/generic/system.h>
 #include <platform/x86/isr_handler.h>
+#include <tasking/dump.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
@@ -64,9 +65,7 @@ void isr_handler(trapframe_t* tf)
                 kpanic("Carsh PF in kernel");
             } else {
                 log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, 0, p->pid, tf->eip);
-                thread_print_backtrace();
-                proc_die(p);
-                resched();
+                dump_and_kill(p);
             }
         }
     } else if (tf->int_no == 6) {
@@ -74,9 +73,7 @@ void isr_handler(trapframe_t* tf)
             kpanic("invalid opcode in kernel");
         } else {
             log_warn("Crash: invalid opcode in %d tid\n", RUNNIG_THREAD->tid);
-            thread_print_backtrace();
-            proc_die(p);
-            resched();
+            dump_and_kill(p);
         }
     } else {
         log_warn("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);

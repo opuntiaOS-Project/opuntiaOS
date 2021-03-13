@@ -40,6 +40,7 @@ enum BLOCKER_REASON {
     BLOCKER_WRITE,
     BLOCKER_SLEEP,
     BLOCKER_SELECT,
+    BLOCKER_DUMPING,
 };
 
 struct proc;

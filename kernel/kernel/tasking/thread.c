@@ -182,20 +182,3 @@ int thread_dump_frame(thread_t* thread)
 #endif
     return 0;
 }
-
-int thread_print_backtrace()
-{
-    int id = 1;
-    log("# %d : %x", id++, get_instruction_pointer(RUNNIG_THREAD->tf));
-    if (get_instruction_pointer(RUNNIG_THREAD->tf) <= 0xa) { // for now it's ok)
-        return 0;
-    }
-    uint32_t* stack = (uint32_t*)get_stack_pointer(RUNNIG_THREAD->tf);
-    for (; (uint32_t)stack > 0 && (uint32_t)stack <= 0xc0000000; stack = (uint32_t*)*stack) {
-        log("# %d : %x", id++, stack[1]);
-        if (stack[1] <= 0xa) { // for now it's ok)
-            break;
-        }
-    }
-    return 0;
-}

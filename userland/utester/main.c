@@ -195,9 +195,9 @@ void dirfile(void)
 
 int main(int argc, char** argv)
 {
-    // mem();
+    mem();
     exectest();
-    // fourfiles();
-    // dirfile();
+    fourfiles();
+    dirfile();
     return 0;
 }

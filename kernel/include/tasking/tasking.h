@@ -54,7 +54,7 @@ void switchuvm(thread_t* p);
  */
 
 void tasking_start_init_proc();
-int tasking_create_kernel_thread(void* entry_point, void* data);
+proc_t* tasking_create_kernel_thread(void* entry_point, void* data);
 
 /**
  * TASKING RELATED FUNCTIONS

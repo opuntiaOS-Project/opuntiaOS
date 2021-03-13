@@ -141,8 +141,41 @@ typedef struct {
     uint32_t sh_entsize;
 } elf_section_header_32_t;
 
+typedef struct {
+    uint32_t st_name; /* name - index into string table */
+    uint32_t st_value; /* symbol value */
+    uint32_t st_size; /* symbol size */
+    unsigned char st_info; /* type and binding */
+    unsigned char st_other; /* 0 - no defined meaning */
+    uint16_t st_shndx; /* section header index */
+} elf_sym_32_t;
+
+enum ST_BINDING_FIELDS {
+    STB_LOCAL = 0,
+    STB_GLOBAL = 1,
+    STB_WEAK = 2,
+    STB_NUM = 3,
+    STB_LOPROC = 13,
+    STB_HIPROC = 15
+};
+
+enum ST_TYPE_FIELDS {
+    STT_NOTYPE = 0,
+    STT_OBJECT = 1,
+    STT_FUNC = 2,
+    STT_SECTION = 3,
+    STT_FILE = 4,
+    STT_TLS = 6,
+    STT_LOPROC = 13,
+    STT_HIPROC = 15
+};
+
 struct proc;
 struct file_descriptor;
+
+int elf_check_header(elf_header_32_t* header);
 int elf_load(struct proc* p, struct file_descriptor* fd);
+int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_entries, char** strtab);
+ssize_t elf_find_function_in_symtab(void* symtab, size_t syms_n, uint32_t ip);
 
 #endif // _KERNEL_TASKING_ELF_H

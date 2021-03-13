@@ -36,7 +36,7 @@ void sys_open(trapframe_t* tf)
     if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
         return_with_val(-ENOENT);
     }
-    int res = vfs_open(file, fd, param2);
+    int res = vfs_open(file, fd, flags);
     dentry_put(file);
     if (!res) {
         return_with_val(proc_get_fd_id(p, fd));

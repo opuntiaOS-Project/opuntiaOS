@@ -119,14 +119,14 @@ void tasking_start_init_proc()
     system_enable_interrupts();
 }
 
-int tasking_create_kernel_thread(void* entry_point, void* data)
+proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
 {
     proc_t* p = _tasking_alloc_kernel_thread(entry_point);
     p->pdir = vmm_get_kernel_pdir();
     kthread_fill_up_stack(p->main_thread, data);
     p->main_thread->status = THREAD_RUNNING;
     sched_enqueue(p->main_thread);
-    return 0;
+    return p;
 }
 
 /**

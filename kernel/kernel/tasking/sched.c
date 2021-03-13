@@ -96,7 +96,7 @@ void sched_unblock_threads()
     for (int i = 0; i < threads_cnt; i++) {
         thread = &thread_storage[i];
         if (thread->status == THREAD_BLOCKED && thread->blocker.reason != BLOCKER_INVALID) {
-            if (thread->blocker.should_unblock(thread)) {
+            if (thread->blocker.should_unblock && thread->blocker.should_unblock(thread)) {
                 thread->status = THREAD_RUNNING;
                 thread->blocker.reason = BLOCKER_INVALID;
                 sched_enqueue(thread);
