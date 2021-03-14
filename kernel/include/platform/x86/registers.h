@@ -13,5 +13,14 @@
 uint32_t read_cr2();
 uint32_t read_cr3();
 uint32_t read_esp();
+extern uint32_t read_eip();
+
+static inline uint32_t read_ebp()
+{
+    uint32_t val;
+    asm volatile("movl %%ebp,%0"
+                 : "=r"(val));
+    return val;
+}
 
 #endif /* _KERNEL_PLATFORM_X86_REGISTERS_H */

@@ -15,6 +15,9 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 
+zone_t kernel_file_mapping_zone;
+dump_data_t kernel_dump_data;
+
 #define READ_PER_CYCLE 1024
 
 static int dump_writer(const char* w)
@@ -113,4 +116,92 @@ void dump_and_kill(proc_t* p)
     dumper_p->pdir = p->pdir;
 
     resched();
+}
+
+/**
+ * The function maps kernel elf file to kernelspace.
+ * Called during kernel initialisation.
+ */
+static int dump_map_kernel_elf_file()
+{
+    dentry_t* kernel_file;
+    file_descriptor_t fd;
+    int err = vfs_resolve_path("/boot/kernel.bin", &kernel_file);
+    if (err) {
+        return err;
+    }
+
+    // Kernel file's dentry is left in an open state to protect file
+    // from deletion.
+    kernel_file = dentry_duplicate(kernel_file);
+
+    err = vfs_open(kernel_file, &fd, O_RDONLY);
+    if (err) {
+        dentry_put(kernel_file);
+        return err;
+    }
+
+    uint32_t elf_file_size = kernel_file->inode->size;
+
+    kernel_file_mapping_zone = zoner_new_zone(elf_file_size);
+    if (!kernel_file_mapping_zone.ptr) {
+        dentry_put(kernel_file);
+        vfs_close(&fd);
+        return -ENOMEM;
+    }
+
+    char* copy_to = (char*)kernel_file_mapping_zone.ptr;
+    for (uint32_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
+        fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);
+        copy_to += READ_PER_CYCLE;
+    }
+
+    vfs_close(&fd);
+    return 0;
+}
+
+/**
+ * The function maps kernel elf file to kernelspace.
+ * Called during kernel initialisation.
+ */
+int dump_prepare_kernel_data()
+{
+    int err = dump_map_kernel_elf_file();
+    if (err) {
+        return err;
+    }
+
+    void* mapped_at_ptr = (void*)kernel_file_mapping_zone.ptr;
+    err = elf_check_header(mapped_at_ptr);
+    if (err) {
+        return err;
+    }
+
+    err = elf_find_symtab_unchecked(mapped_at_ptr, &kernel_dump_data.syms, &kernel_dump_data.symsn, &kernel_dump_data.strs);
+    if (err || !kernel_dump_data.syms || !kernel_dump_data.strs) {
+        return err;
+    }
+
+    kernel_dump_data.p = NULL;
+    kernel_dump_data.entry_point = ((elf_header_32_t*)mapped_at_ptr)->e_entry;
+    kernel_dump_data.writer = dump_writer;
+    kernel_dump_data.sym_resolver = elf_find_function_in_symtab;
+
+    return 0;
+}
+
+int dump_kernel(const char* err)
+{
+    if (unlikely(!kernel_file_mapping_zone.ptr)) {
+        return -1;
+    }
+    return dump_kernel_impl(&kernel_dump_data, err);
+}
+
+int dump_kernel_from_tf(const char* err, trapframe_t* tf)
+{
+    if (unlikely(!kernel_file_mapping_zone.ptr)) {
+        return -1;
+    }
+    return dump_kernel_impl_from_tf(&kernel_dump_data, err, tf);
 }

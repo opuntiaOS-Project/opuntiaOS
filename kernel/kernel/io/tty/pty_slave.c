@@ -66,7 +66,7 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
 
     char* name = "pts ";
     name[3] = id + '0';
-    file_ops_t fops = {0};
+    file_ops_t fops = { 0 };
     fops.can_read = pty_slave_can_read;
     fops.can_write = pty_slave_can_write;
     fops.read = pty_slave_read;

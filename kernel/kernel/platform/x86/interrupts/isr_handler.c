@@ -9,6 +9,8 @@
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 
+static char err_buf[64];
+
 static const char* exception_messages[32] = {
     "Division by zero",
     "Debug",
@@ -60,9 +62,9 @@ void isr_handler(trapframe_t* tf)
     if (tf->int_no == 14) {
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
-            // log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, read_cr2(), p->pid, tf->eip);
             if (!p) {
-                kpanic("Carsh PF in kernel");
+                snprintf(err_buf, 64, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
+                kpanic_tf(err_buf, tf);
             } else {
                 log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, 0, p->pid, tf->eip);
                 dump_and_kill(p);
@@ -70,7 +72,8 @@ void isr_handler(trapframe_t* tf)
         }
     } else if (tf->int_no == 6) {
         if (!p) {
-            kpanic("invalid opcode in kernel");
+            snprintf(err_buf, 64, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
+            kpanic_tf(err_buf, tf);
         } else {
             log_warn("Crash: invalid opcode in %d tid\n", RUNNIG_THREAD->tid);
             dump_and_kill(p);

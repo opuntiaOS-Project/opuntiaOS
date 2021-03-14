@@ -1,6 +1,7 @@
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
-#include <platform/generic/system.h>
+#include <platform/x86/registers.h>
+#include <platform/x86/system.h>
 #include <platform/x86/tasking/dump_impl.h>
 
 void dump_regs(dump_data_t* dump_data)
@@ -16,16 +17,13 @@ void dump_regs(dump_data_t* dump_data)
     dump_data->writer(buf);
 }
 
-void dump_backtrace(dump_data_t* dump_data)
+void dump_backtrace(dump_data_t* dump_data, uint32_t ip, uint32_t* bp, int is_kernel)
 {
+    uint32_t id = 1;
     char buf[64];
 
-    uint32_t id = 1;
-    uint32_t ip = get_instruction_pointer(dump_data->p->main_thread->tf);
-    uint32_t* bp = (uint32_t*)get_base_pointer(dump_data->p->main_thread->tf);
-
     do {
-        if (vmm_is_kernel_address(ip)) {
+        if (vmm_is_kernel_address(ip) && !is_kernel) {
             return;
         }
 
@@ -35,7 +33,7 @@ void dump_backtrace(dump_data_t* dump_data)
         dump_data->writer(&dump_data->strs[index]);
         dump_data->writer("\n");
 
-        if (vmm_is_kernel_address((uint32_t)bp)) {
+        if (vmm_is_kernel_address((uint32_t)bp) != is_kernel) {
             return;
         }
 
@@ -49,7 +47,26 @@ void dump_backtrace(dump_data_t* dump_data)
 
 int dump_impl(dump_data_t* dump_data)
 {
+    trapframe_t* tf = dump_data->p->main_thread->tf;
     dump_regs(dump_data);
-    dump_backtrace(dump_data);
+    dump_backtrace(dump_data, get_instruction_pointer(tf), (uint32_t*)get_base_pointer(tf), 0);
+    return 0;
+}
+
+int dump_kernel_impl(dump_data_t* dump_data, const char* err_desc)
+{
+    if (err_desc) {
+        dump_data->writer(err_desc);
+    }
+    dump_backtrace(dump_data, read_eip(), (uint32_t*)read_ebp(), 1);
+    return 0;
+}
+
+int dump_kernel_impl_from_tf(dump_data_t* dump_data, const char* err_desc, trapframe_t* tf)
+{
+    if (err_desc) {
+        dump_data->writer(err_desc);
+    }
+    dump_backtrace(dump_data, tf->eip, (uint32_t*)tf->ebp, 1);
     return 0;
 }

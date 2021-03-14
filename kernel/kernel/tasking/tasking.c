@@ -14,6 +14,7 @@
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
+#include <tasking/dump.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
@@ -137,6 +138,7 @@ void tasking_init()
 {
     nxt_proc = 0;
     signal_init();
+    dump_prepare_kernel_data();
 }
 
 void tasking_kill_dying()

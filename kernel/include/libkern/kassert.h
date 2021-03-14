@@ -11,6 +11,7 @@
 #include <libkern/log.h>
 #include <libkern/types.h>
 #include <platform/generic/system.h>
+#include <platform/generic/tasking/trapframe.h>
 
 #define ASSERT(x)                                              \
     if (unlikely(!(x))) {                                      \
@@ -18,6 +19,7 @@
         system_stop();                                         \
     }
 
-void kpanic(char* msg) __attribute__((noreturn));
+void kpanic(const char* msg) __attribute__((noreturn));
+void kpanic_tf(const char* err_msg, trapframe_t* tf) __attribute__((noreturn));
 
 #endif // _KERNEL_LIBKERN_KASSERT_H

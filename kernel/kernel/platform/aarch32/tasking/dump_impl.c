@@ -15,3 +15,13 @@ int dump_impl(dump_data_t* dump_data)
 {
     return 0;
 }
+
+int dump_kernel_impl(dump_data_t* dump_data, const char* err_desc)
+{
+    return 0;
+}
+
+int dump_kernel_impl_from_tf(dump_data_t* dump_data, const char* err_desc, trapframe_t* tf)
+{
+    return 0;
+}
