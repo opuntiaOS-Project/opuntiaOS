@@ -59,6 +59,11 @@ void sys_getpid(trapframe_t* tf)
     return_with_val(RUNNIG_THREAD->tid);
 }
 
+void sys_getuid(trapframe_t* tf)
+{
+    return_with_val(RUNNIG_THREAD->process->uid);
+}
+
 void sys_kill(trapframe_t* tf)
 {
     thread_t* thread = thread_by_pid(param1);

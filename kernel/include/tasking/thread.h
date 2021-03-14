@@ -83,6 +83,7 @@ typedef struct thread thread_t;
 int thread_setup_main(struct proc* p, thread_t* thread);
 int thread_setup(struct proc* p, thread_t* thread);
 int thread_setup_kstack(thread_t* thread);
+int thread_copy_of(thread_t* thread, thread_t* from_thread);
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env);
 

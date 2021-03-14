@@ -35,6 +35,12 @@ int kthread_setup(proc_t* p)
 {
     p->pid = proc_alloc_pid();
     p->pgid = p->pid;
+    p->uid = 0;
+    p->gid = 0;
+    p->euid = 0;
+    p->egid = 0;
+    p->suid = 0;
+    p->sgid = 0;
     p->is_kthread = true;
     /* allocating kernel stack */
     p->main_thread = proc_alloc_thread();

@@ -35,6 +35,7 @@ static const void* syscalls[] = {
     [SYSRAISE] = sys_raise,
     [SYSLSEEK] = sys_lseek,
     [SYSGETPID] = sys_getpid,
+    [SYSGETUID] = sys_getuid,
     [SYSKILL] = sys_kill,
     [SYSMKDIR] = sys_mkdir,
     [SYSRMDIR] = sys_rmdir,

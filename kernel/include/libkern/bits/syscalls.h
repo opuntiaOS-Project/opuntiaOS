@@ -20,6 +20,8 @@ enum __sysid {
     SYSRAISE,
     SYSLSEEK,
     SYSGETPID,
+    SYSSETUID,
+    SYSGETUID,
     SYSKILL,
     SYSMKDIR,
     SYSRMDIR,

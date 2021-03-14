@@ -19,6 +19,9 @@ int rmdir(const char* path);
 int chdir(const char* path);
 int unlink(const char* path);
 
+/* identity */
+uid_t getuid();
+
 __END_DECLS
 
 #endif // _LIBC_UNISTD_H

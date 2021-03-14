@@ -65,6 +65,13 @@ int proc_setup(proc_t* p)
 {
     p->pid = proc_alloc_pid();
     p->pgid = p->pid;
+    p->ppid = 0;
+    p->uid = 0;
+    p->gid = 0;
+    p->euid = 0;
+    p->egid = 0;
+    p->suid = 0;
+    p->sgid = 0;
     p->is_kthread = false;
 
     p->main_thread = proc_alloc_thread();
@@ -95,6 +102,18 @@ int proc_setup(proc_t* p)
     return 0;
 }
 
+int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid)
+{
+    int err = proc_setup(p);
+    p->uid = uid;
+    p->gid = gid;
+    p->euid = uid;
+    p->egid = gid;
+    p->suid = uid;
+    p->sgid = gid;
+    return err;
+}
+
 int proc_setup_tty(proc_t* p, tty_entry_t* tty)
 {
     file_descriptor_t* fd0 = &p->fds[0];
@@ -122,11 +141,15 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
 int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
 {
     proc_t* from_proc = from_thread->process;
-    memcpy((uint8_t*)new_proc->main_thread->tf, (uint8_t*)from_thread->tf, sizeof(trapframe_t));
-#ifdef FPU_ENABLED
-    memcpy((uint8_t*)new_proc->main_thread->fpu_state, (uint8_t*)from_thread->fpu_state, sizeof(fpu_state_t));
-#endif
+    thread_copy_of(new_proc->main_thread, from_thread);
 
+    new_proc->ppid = from_proc->pid;
+    new_proc->uid = from_proc->uid;
+    new_proc->gid = from_proc->gid;
+    new_proc->euid = from_proc->euid;
+    new_proc->egid = from_proc->egid;
+    new_proc->suid = from_proc->suid;
+    new_proc->sgid = from_proc->sgid;
     new_proc->cwd = dentry_duplicate(from_proc->cwd);
     new_proc->tty = from_proc->tty;
 

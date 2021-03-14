@@ -88,6 +88,21 @@ static proc_t* _tasking_alloc_proc()
     return p;
 }
 
+static proc_t* _tasking_alloc_proc_with_uid(uid_t uid, gid_t gid)
+{
+    proc_t* p = &proc[nxt_proc++];
+    proc_setup_with_uid(p, uid, gid);
+    return p;
+}
+
+static proc_t* _tasking_fork_proc_from_current()
+{
+    proc_t* new_proc = _tasking_alloc_proc();
+    new_proc->pdir = vmm_new_forked_user_pdir();
+    proc_copy_of(new_proc, RUNNIG_THREAD);
+    return new_proc;
+}
+
 static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
 {
     proc_t* p = &proc[nxt_proc++];
@@ -105,7 +120,7 @@ void tasking_start_init_proc()
     // We need to stop interrupts here, since this part of code
     // is NOT interruptable.
     system_disable_interrupts();
-    proc_t* p = _tasking_alloc_proc();
+    proc_t* p = _tasking_alloc_proc_with_uid(0, 0);
     proc_setup_tty(p, tty_new());
 
     /* creating new pdir */
@@ -159,11 +174,7 @@ void tasking_kill_dying()
 
 void tasking_fork(trapframe_t* tf)
 {
-    proc_t* new_proc = _tasking_alloc_proc();
-    new_proc->pdir = vmm_new_forked_user_pdir();
-
-    /* copying data from proc to new proc */
-    proc_copy_of(new_proc, RUNNIG_THREAD);
+    proc_t* new_proc = _tasking_fork_proc_from_current();
 
     /* setting output */
     set_syscall_result(new_proc->main_thread->tf, 0);

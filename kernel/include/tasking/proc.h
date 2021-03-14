@@ -61,13 +61,20 @@ enum PROC_STATUS {
 
 struct thread;
 struct proc {
-    uint32_t sz;
     pdirectory_t* pdir;
-    uint32_t pid;
-    uint32_t pgid;
+    pid_t pid;
+    pid_t ppid;
+    pid_t pgid;
     uint32_t prio;
     uint32_t status;
     struct thread* main_thread;
+
+    uid_t uid;
+    gid_t gid;
+    uid_t euid;
+    gid_t egid;
+    uid_t suid;
+    gid_t sgid;
 
     dynamic_array_t zones;
 
@@ -87,6 +94,7 @@ uint32_t proc_alloc_pid();
 struct thread* thread_by_pid(uint32_t pid);
 
 int proc_setup(proc_t* p);
+int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid);
 int proc_setup_tty(proc_t* p, tty_entry_t* tty);
 int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env);
 int proc_free(proc_t* p);
