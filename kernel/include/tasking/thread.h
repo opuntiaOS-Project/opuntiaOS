@@ -8,7 +8,7 @@
 #ifndef _KERNEL_TASKING_THREAD_H
 #define _KERNEL_TASKING_THREAD_H
 
-#include <drivers/x86/fpu.h>
+#include <drivers/generic/fpu.h>
 #include <fs/vfs.h>
 #include <libkern/types.h>
 #include <platform/generic/tasking/context.h>

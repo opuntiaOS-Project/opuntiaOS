@@ -34,12 +34,16 @@ if (target_cpu == "x86") {
 if (target_cpu == "aarch32") {
   kernel_c_flags += [
     "-fno-builtin",
-    "-march=armv7-a",
+    "-march=armv7-a+neon-vfpv4",
+    "-mfpu=neon-vfpv4",
+    "-mfloat-abi=soft",
     "-fno-pie",
     "-no-pie",
   ]
   kernel_asm_flags += [
-    "-march=armv7-a",
+    "-march=armv7-a+neon-vfpv4",
+    "-mfpu=neon-vfpv4",
+    "-mfloat-abi=softfp",
     "-mcpu=cortex-a15",
   ]
   kernel_ld_flags += [

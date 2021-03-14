@@ -6,6 +6,8 @@
 #include <platform/aarch32/tasking/trapframe.h>
 #include <platform/generic/registers.h>
 #include <syscalls/handlers.h>
+#include <tasking/cpu.h>
+#include <tasking/tasking.h>
 
 /* IRQ */
 static irq_handler_t _irq_handlers[IRQ_HANDLERS_MAX];
@@ -42,6 +44,7 @@ void interrupts_setup()
 {
     disable_interrupts();
     set_abort_stack((uint32_t)&STACK_ABORT_TOP);
+    set_undefined_stack((uint32_t)&STACK_UNDEFINED_TOP);
     set_svc_stack((uint32_t)&STACK_SVC_TOP);
     set_irq_stack((uint32_t)&STACK_IRQ_TOP);
     init_irq_handlers();
@@ -59,12 +62,29 @@ void reset_handler()
 
 void undefined_handler()
 {
-    uint32_t val;
-    asm volatile("mov %0, lr"
-                 : "=r"(val)
-                 :);
-    log("undefined_handler address : %x", val);
-    while (1) { }
+#ifdef FPU_ENABLED
+    if (!RUNNIG_THREAD) {
+        goto undefined_h;
+    }
+
+    if (fpu_is_avail()) {
+        goto undefined_h;
+    }
+
+    if (THIS_CPU->fpu_for_thread && THIS_CPU->fpu_for_thread->tid == THIS_CPU->fpu_for_pid) {
+        fpu_save(THIS_CPU->fpu_for_thread->fpu_state);
+    }
+
+    fpu_restore(RUNNIG_THREAD->fpu_state);
+    THIS_CPU->fpu_for_thread = RUNNIG_THREAD;
+    THIS_CPU->fpu_for_pid = RUNNIG_THREAD->tid;
+    fpu_make_avail();
+    return;
+#endif // FPU_ENABLED
+
+undefined_h:
+    log("undefined_handler address");
+    system_stop();
 }
 
 void svc_handler(trapframe_t* tf)
@@ -79,18 +99,19 @@ void prefetch_abort_handler()
                  : "=r"(val)
                  :);
     log("prefetch_abort_handler address : %x", val);
-    while (1) { }
+    system_stop();
 }
 
 void data_abort_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
+    cpu_enter_kernel_space();
     uint32_t fault_addr = read_far();
     uint32_t info = read_dfsr();
     uint32_t is_pl0 = read_spsr() & 0xf; // See CPSR M field values
     info |= ((is_pl0 != 0) << 31); // Set the 31bit as type
-    // log("data_abort_handler: %x %x %x", fault_addr, info, tf->user_ip);
     vmm_page_fault_handler(info, fault_addr);
+    cpu_leave_kernel_space();
     system_enable_interrupts_only_counter();
 }
 
@@ -118,12 +139,14 @@ static inline void _irq_redirect(irq_line_t line)
 void irq_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
+    cpu_enter_kernel_space();
     /* Remove gicv2 call from here */
     uint32_t int_disc = gicv2_interrupt_descriptor();
     /* We end the interrupt before handle it, since we can
        call sched() and not return here. */
     gicv2_end(int_disc);
     _irq_redirect(int_disc & 0x1ff);
+    cpu_leave_kernel_space();
     system_enable_interrupts_only_counter();
 }
 

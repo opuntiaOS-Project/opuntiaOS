@@ -12,6 +12,7 @@
 #include <platform/generic/syscalls/params.h>
 #include <platform/generic/system.h>
 #include <syscalls/handlers.h>
+#include <tasking/cpu.h>
 
 /* From Linux 4.14.0 headers. */
 /* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
@@ -74,6 +75,7 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
     /* This hack has to be here, when a context switching happens
        during a syscall (e.g. when block occurs). The hack will start
        interrupts again after it has become a running thread. */
+    cpu_enter_kernel_space();
     system_enable_interrupts();
     return param1;
 }
@@ -100,8 +102,10 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
 void sys_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
+    cpu_enter_kernel_space();
     void (*callee)(trapframe_t*) = (void*)syscalls[sys_id];
     callee(tf);
+    cpu_leave_kernel_space();
     system_enable_interrupts_only_counter();
 }
 

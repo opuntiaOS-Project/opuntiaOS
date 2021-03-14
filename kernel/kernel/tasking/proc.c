@@ -253,7 +253,7 @@ success:
         dentry_put(p->proc_file);
     }
 #ifdef FPU_ENABLED
-    fpu_reset_state(p->main_thread->fpu_state);
+    fpu_init_state(p->main_thread->fpu_state);
 #endif
     vmm_free_pdir(old_pdir, &old_zones);
     dynamic_array_clear(&old_zones);

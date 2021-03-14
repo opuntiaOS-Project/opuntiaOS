@@ -38,7 +38,7 @@ void fpu_init()
     set_irq_handler(IRQ7, fpu_handler);
 }
 
-void fpu_reset_state(fpu_state_t* new_fpu_state)
+void fpu_init_state(fpu_state_t* new_fpu_state)
 {
-    memcpy((uint8_t*)new_fpu_state, (uint8_t*)&fpu_state, sizeof(fpu_state_t));
+    memcpy(new_fpu_state, &fpu_state, sizeof(fpu_state_t));
 }

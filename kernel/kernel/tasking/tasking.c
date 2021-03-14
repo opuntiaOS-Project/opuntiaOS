@@ -14,6 +14,7 @@
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/system.h>
+#include <tasking/cpu.h>
 #include <tasking/dump.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
@@ -32,7 +33,8 @@ uint32_t nxt_proc;
 #ifdef __i386__
 void _tasking_jumper()
 {
-    system_enable_interrupts();
+    cpu_leave_kernel_space();
+    system_enable_interrupts_only_counter();
     return;
 }
 #endif

@@ -36,7 +36,7 @@ oneos_loader:
 .global trap_return
 vector_table:
     b reset_handler
-    b undefined_handler
+    b undefined_handler_isp
     b svc_isp
     b prefetch_abort_handler
     b data_abort_isp
@@ -106,6 +106,26 @@ trap_return:
     subs    pc, lr, #0
     nop
 
+undefined_handler_isp:
+    subs    lr, lr, #4
+    stmfd   sp!, {r0-r12,lr}
+    mrs     r0, spsr
+    mrs     r1, sp_usr
+    mrs     r2, lr_usr
+    stmfd   sp!, {r0-r2}
+
+    mov     r0, sp
+	bl      undefined_handler
+
+	ldmfd   sp!, {r0-r2}
+    msr     spsr, r0
+    msr     sp_usr, r1
+    msr     lr_usr, r2
+
+    ldmfd   sp!, {r0-r12,lr}
+    subs    pc, lr, #0
+    nop
+
 data_abort_isp:
     subs    lr, lr, #8
     stmfd   sp!, {r0-r12,lr}
@@ -115,7 +135,7 @@ data_abort_isp:
     stmfd   sp!, {r0-r2}
 
     mov     r0, sp
-	bl    data_abort_handler
+	bl      data_abort_handler
 
 	ldmfd   sp!, {r0-r2}
     msr     spsr, r0
@@ -221,7 +241,6 @@ swi:
     swi 0x0
     pop {pc}
 
-
 .global set_svc_stack
 set_svc_stack:
     mov     r1, sp
@@ -247,6 +266,16 @@ set_abort_stack:
     mov     r1, sp
     mov     r2, lr
     cps	    #0x17       /* set abort mode */
+    mov	    sp, r0
+    cps	    #0x1F		/* set system mode */
+    mov     sp, r1
+    bx      r2
+
+.global set_undefined_stack
+set_undefined_stack:
+    mov     r1, sp
+    mov     r2, lr
+    cps	    #0x1B       /* set abort mode */
     mov	    sp, r0
     cps	    #0x1F		/* set system mode */
     mov     sp, r1

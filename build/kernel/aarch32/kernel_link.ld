@@ -54,6 +54,10 @@
 		STACK_ABORT_BASE = .;
 		. += 0x1000;
 		STACK_ABORT_TOP =  .;
+
+		STACK_UNDEFINED_BASE = .;
+		. += 0x1000;
+		STACK_UNDEFINED_TOP =  .;
 	}
 
 	__end = .;

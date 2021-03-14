@@ -4,6 +4,7 @@
 #include <platform/generic/registers.h>
 #include <platform/generic/system.h>
 #include <platform/x86/isr_handler.h>
+#include <tasking/cpu.h>
 #include <tasking/dump.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
@@ -49,6 +50,7 @@ static const char* exception_messages[32] = {
 void isr_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
+    cpu_enter_kernel_space();
 
     proc_t* p = NULL;
     if (likely(RUNNIG_THREAD)) {
@@ -84,5 +86,6 @@ void isr_handler(trapframe_t* tf)
 
     /* We are leaving interrupt, and later interrupts will be on,
        when flags are restored */
+    cpu_leave_kernel_space();
     system_enable_interrupts_only_counter();
 }

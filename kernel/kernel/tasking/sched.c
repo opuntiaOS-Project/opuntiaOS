@@ -10,7 +10,9 @@
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/registers.h>
+#include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
+#include <tasking/cpu.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 
@@ -38,13 +40,18 @@ static void _debug_print_runqueue(runqueue_t* it);
 
 static void _init_cpus(cpu_t* cpu)
 {
+    cpu->current_state = CPU_IN_KERNEL;
     cpu->kstack = kmalloc(VMM_PAGE_SIZE);
     char* sp = cpu->kstack + VMM_PAGE_SIZE;
     sp -= sizeof(*cpu->scheduler);
     cpu->scheduler = (context_t*)sp;
     memset((void*)cpu->scheduler, 0, sizeof(*cpu->scheduler));
     context_set_instruction_pointer(cpu->scheduler, (uint32_t)sched);
-    cpu->running_thread = 0;
+    cpu->running_thread = NULL;
+#ifdef FPU_ENABLED
+    cpu->fpu_for_thread = NULL;
+    cpu->fpu_for_pid = 0;
+#endif // FPU_ENABLED
 }
 
 static inline void _sched_swap_buffers()
@@ -197,7 +204,7 @@ void sched()
 #endif
         ASSERT(thread->status == THREAD_RUNNING);
         switchuvm(thread);
-        switch_contexts(&THIS_CPU->scheduler, thread->context);
+        switch_contexts(&(THIS_CPU->scheduler), thread->context);
     }
 }
 

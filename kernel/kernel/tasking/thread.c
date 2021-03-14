@@ -42,7 +42,7 @@ int _thread_setup_kstack(thread_t* thread, uint32_t esp)
 #ifdef FPU_ENABLED
     /* setting fpu */
     thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
-    fpu_reset_state(thread->fpu_state);
+    fpu_init_state(thread->fpu_state);
 #endif
     return 0;
 }
