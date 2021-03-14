@@ -4,7 +4,7 @@
 
 // void _tasking_jumper()
 _tasking_jumper:
-    bl      system_enable_interrupts
+    bl      system_enable_interrupts_only_counter
     mov     r0, sp // saving current sp to bring it to the new mode
     cps	    #0x13
     mov     sp, r0

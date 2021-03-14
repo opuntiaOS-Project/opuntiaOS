@@ -8,34 +8,22 @@
 #ifndef _KERNEL_TASKING_TASKING_H
 #define _KERNEL_TASKING_TASKING_H
 
+#include <drivers/generic/fpu.h>
 #include <fs/vfs.h>
 #include <libkern/types.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
+#include <tasking/bits/cpu.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
 
-#define CPU_CNT 1
-#define THIS_CPU (&cpus[0])
-#define RUNNIG_THREAD cpus[0].running_thread
 #define MAX_PROCESS_COUNT 1024
 #define MAX_DYING_PROCESS_COUNT 8
 #define MAX_OPENED_FILES 16
 #define SIGNALS_CNT 32
 
-#ifdef __i386__
-#define FPU_ENABLED
-#endif
-
-typedef struct {
-    char* kstack;
-    context_t* scheduler; // context of sched's registers
-    thread_t* running_thread;
-} __attribute__((packed)) cpu_t;
-
-extern cpu_t cpus[CPU_CNT];
 extern proc_t proc[MAX_PROCESS_COUNT];
 extern uint32_t nxt_proc;
 extern uint32_t ended_proc;

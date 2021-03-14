@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <drivers/aarch32/fpuv4.h>
 #include <drivers/aarch32/pl031.h>
 #include <drivers/aarch32/pl050.h>
 #include <drivers/aarch32/pl111.h>
@@ -17,6 +18,7 @@
 void platform_setup()
 {
     interrupts_setup();
+    fpuv4_install();
 }
 
 void platform_drivers_setup()

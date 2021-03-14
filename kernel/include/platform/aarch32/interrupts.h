@@ -1,8 +1,8 @@
 #ifndef _KERNEL_PLATFORM_AARCH32_INTERRUPTS_H
 #define _KERNEL_PLATFORM_AARCH32_INTERRUPTS_H
 
-#include <libkern/types.h>
 #include <libkern/mask.h>
+#include <libkern/types.h>
 
 #define IRQ_HANDLERS_MAX 256
 
@@ -18,6 +18,7 @@ enum IRQTypeMasks {
 void interrupts_setup();
 
 extern char STACK_ABORT_TOP;
+extern char STACK_UNDEFINED_TOP;
 extern char STACK_IRQ_TOP;
 extern char STACK_SVC_TOP;
 extern char STACK_TOP;
@@ -26,6 +27,7 @@ extern void swi(uint32_t num);
 extern void set_svc_stack(uint32_t stack);
 extern void set_irq_stack(uint32_t stack);
 extern void set_abort_stack(uint32_t stack);
+extern void set_undefined_stack(uint32_t stack);
 
 extern void reset_handler();
 extern void undefined_handler();
