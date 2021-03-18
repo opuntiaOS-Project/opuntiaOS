@@ -45,7 +45,7 @@
 #### Generating ninja for x86
 * Run `./gn_gen`. Run this only one time.
 #### Generating ninja for ARM
-* Run `./gn_gen target_cpu=\"aarch32\"`. Run this only one time.
+* Run `./gn_gen --target_cpu aarch32`. Run this only one time.
 #### Common steps
 * `cd out`
 * `./all.bash`
