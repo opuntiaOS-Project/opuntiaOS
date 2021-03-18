@@ -141,8 +141,3 @@ int shared_buffer_free(int id)
 {
     return syscall(SYS_SHBUF_FREE, (int)id, 0, 0, 0, 0);
 }
-
-int uname(utsname_t* buf)
-{
-    return syscall(SYSUNAME, (int)buf, 0, 0, 0, 0);
-}

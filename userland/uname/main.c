@@ -1,5 +1,6 @@
+#include <stdio.h>
 #include <string.h>
-#include <syscalls.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 
 int main(int argc, char** argv)
@@ -49,20 +50,19 @@ int main(int argc, char** argv)
     }
 
     if (flag_s) {
-        write(1, " ", 1);
-        write(1, uts.sysname, strlen(uts.sysname));
+        printf("%s ", uts.sysname);
     }
     if (flag_n) {
-        write(1, " ", 1);
-        write(1, uts.nodename, strlen(uts.nodename));
+        printf("%s ", uts.nodename);
+        // write(1, uts.nodename, strlen(uts.nodename));
     }
     if (flag_r) {
-        write(1, " ", 1);
-        write(1, uts.release, strlen(uts.release));
+        printf("%s ", uts.release);
+        // write(1, uts.release, strlen(uts.release));
     }
     if (flag_m) {
-        write(1, " ", 1);
-        write(1, uts.machine, strlen(uts.machine));
+        printf("%s ", uts.machine);
+        // write(1, uts.machine, strlen(uts.machine));
     }
     return 0;
 }

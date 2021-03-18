@@ -39,8 +39,6 @@ pid_t getpgid(pid_t arg);
 int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout);
 int fstat(int nfds, fstat_t* stat);
 
-int uname(utsname_t* buf);
-
 int system_pthread_create(thread_create_params_t* params);
 
 int shared_buffer_create(uint8_t** buffer, size_t size);

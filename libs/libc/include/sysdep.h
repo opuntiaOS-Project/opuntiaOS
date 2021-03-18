@@ -32,9 +32,9 @@ static inline int _syscall_impl(sysid_t sysid, int p1, int p2, int p3, int p4, i
 }
 
 #define DO_SYSCALL_0(type) _syscall_impl(type, 0, 0, 0, 0, 0)
-#define DO_SYSCALL_1(type, a) _syscall_impl(type, a, 0, 0, 0, 0)
-#define DO_SYSCALL_2(type, a, b) _syscall_impl(type, a, b, 0, 0, 0)
-#define DO_SYSCALL_3(type, a, b, c) _syscall_impl(type, a, b, c, 0, 0)
+#define DO_SYSCALL_1(type, a) _syscall_impl(type, (int)a, 0, 0, 0, 0)
+#define DO_SYSCALL_2(type, a, b) _syscall_impl(type, (int)a, (int)b, 0, 0, 0)
+#define DO_SYSCALL_3(type, a, b, c) _syscall_impl(type, (int)a, (int)b, (int)c, 0, 0)
 
 __END_DECLS
 

@@ -8,6 +8,7 @@ oneOS_static_library("libcxx") {
     "../libc/malloc/malloc.c",
     "../libc/posix/fs.c",
     "../libc/posix/sched.c",
+    "../libc/posix/system.c",
     "../libc/posix/tasking.c",
     "../libc/pthread/pthread.c",
     "../libc/setjmp/$target_cpu/setjmp.s",
