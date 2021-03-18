@@ -12,6 +12,7 @@
 #include "ResourceManager.h"
 #include "Screen.h"
 #include "WindowManager.h"
+#include <cstdlib>
 #include <libfoundation/EventLoop.h>
 #include <new>
 #include <syscalls.h>
@@ -21,7 +22,7 @@ void start_dock()
 {
     if (fork()) {
         execve("/bin/dock", nullptr, nullptr);
-        ASSERT_NOT_REACHED();
+        std::abort();
     }
 }
 

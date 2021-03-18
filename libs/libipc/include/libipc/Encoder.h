@@ -15,7 +15,7 @@ public:
         buf.push_back((uint8_t)(val >> 24));
     }
 
-    static void append(EncodedMessage& buf, uint32_t val)
+    static void append(EncodedMessage& buf, unsigned int val)
     {
         buf.push_back((uint8_t)val);
         buf.push_back((uint8_t)(val >> 8));
@@ -45,7 +45,7 @@ public:
         val |= (uint8_t(b0));
     }
 
-    static void decode(const char* buf, size_t& offset, uint32_t& val)
+    static void decode(const char* buf, size_t& offset, unsigned int& val)
     {
         uint8_t b0 = buf[offset++];
         uint8_t b1 = buf[offset++];

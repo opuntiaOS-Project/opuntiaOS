@@ -1,5 +1,5 @@
 #pragma once
-#include <cassert>
+#include <cstdlib>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
@@ -78,7 +78,7 @@ public:
                 m_messages.push_back(std::move(response));
             } else {
                 Dbg() << getpid() << " :: ClientConnection read error\n";
-                ASSERT_NOT_REACHED();
+                std::abort();
             }
         }
 

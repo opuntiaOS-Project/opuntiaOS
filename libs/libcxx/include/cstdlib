@@ -8,6 +8,7 @@
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
+using ::abort;
 using ::abs;
 using ::calloc;
 using ::exit;

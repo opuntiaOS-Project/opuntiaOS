@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdlib>
 #include <libipc/Message.h>
 #include <libipc/MessageDecoder.h>
 #include <std/Dbg.h>
@@ -52,7 +53,7 @@ public:
             } else if (auto response = m_client_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
 
             } else {
-                ASSERT_NOT_REACHED();
+                std::abort();
             }
         }
     }

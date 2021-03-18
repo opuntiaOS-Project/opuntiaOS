@@ -35,7 +35,8 @@ extern void* calloc(size_t, size_t);
 extern void* realloc(void*, size_t);
 
 /* exit */
-void exit(int status);
+void abort() __attribute__((noreturn));
+void exit(int status) __attribute__((noreturn));
 
 /* pts */
 int posix_openpt(int flags);

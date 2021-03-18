@@ -1,5 +1,6 @@
 #include "DockView.h"
 #include <algorithm>
+#include <cstdlib>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/KeyboardMapping.h>
 #include <libg/Color.h>
@@ -93,7 +94,7 @@ void DockView::launch(const FastLaunchEntity& ent)
 {
     if (fork() == 0) {
         execve(ent.path_to_exec().c_str(), 0, 0);
-        ASSERT_NOT_REACHED();
+        std::abort();
     }
 }
 
