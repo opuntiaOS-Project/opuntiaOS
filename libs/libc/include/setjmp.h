@@ -16,17 +16,24 @@ __BEGIN_DECLS
  *   - edi
  *   - return address
  */
-#define _jblen (6)
-#elif __arm__
+#define _jblen (6 * 4)
+#elif defined(__arm__) && defined(__ARM_NEON__)
+/**
+ * ARMv7 (11 * 4 + 8 * 8):
+ *   - r4 - r12, sp, lr
+ *   - d8-d15
+ */
+#define _jblen (11 * 4 + 8 * 8)
+#elif defined(__arm__) && !defined(__ARM_NEON__)
 /**
  * ARMv7 (11 * 4):
  *   - r4 - r12, sp, lr
  */
-#define _jblen (11)
+#define _jblen (11 * 4)
 #endif
 
 struct __jmp_buf {
-    uint32_t regs[_jblen];
+    char regs[_jblen];
 };
 
 typedef struct __jmp_buf jmp_buf[1];
