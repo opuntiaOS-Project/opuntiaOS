@@ -6,8 +6,8 @@
  */
 
 #include <algorithm>
+#include <libfoundation/Memory.h>
 #include <libg/Context.h>
-#include <std/Memory.h>
 
 namespace LG {
 
@@ -47,7 +47,7 @@ void Context::set(const Point<int>& start, const PixelBitmap& bitmap)
     int bitmap_y = min_y + offset_y;
     int len_x = max_x - min_x + 1;
     for (int y = min_y; y <= max_y; y++, bitmap_y++) {
-        fast_copy((uint32_t*)&m_bitmap[y][min_x], (uint32_t*)&bitmap[bitmap_y][bitmap_x], len_x);
+        LFoundation::fast_copy((uint32_t*)&m_bitmap[y][min_x], (uint32_t*)&bitmap[bitmap_y][bitmap_x], len_x);
     }
 }
 
@@ -144,7 +144,7 @@ void Context::fill(const Rect& rect)
     int max_y = draw_bounds.max_y();
     int len_x = max_x - min_x + 1;
     for (int y = min_y; y <= max_y; y++) {
-        fast_set((uint32_t*)&m_bitmap[y][min_x], color, len_x);
+        LFoundation::fast_set((uint32_t*)&m_bitmap[y][min_x], color, len_x);
     }
 }
 
