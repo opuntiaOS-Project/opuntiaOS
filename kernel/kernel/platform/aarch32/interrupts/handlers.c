@@ -1,4 +1,5 @@
 #include <drivers/aarch32/gicv2.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <platform/aarch32/interrupts.h>
@@ -20,29 +21,10 @@ static inline uint32_t is_interrupt_enabled()
     return ((read_cpsr() >> 7) & 1) == 0;
 }
 
-static inline void enable_interrupts()
-{
-    asm volatile("cpsie i");
-}
-
-static inline void disable_interrupts()
-{
-    asm volatile("cpsid i");
-}
-
-static void dump_tf(trapframe_t* tf)
-{
-    for (int i = 0; i < 13; i++) {
-        log("r[%d]: %x", i, tf->r[i]);
-    }
-    log("sp: %x", tf->user_sp);
-    log("ip: %x", tf->user_ip);
-    log("fl: %x", tf->user_flags);
-}
-
 void interrupts_setup()
 {
-    disable_interrupts();
+    system_disable_interrupts();
+    system_enable_interrupts_only_counter(); // Reset counter
     set_abort_stack((uint32_t)&STACK_ABORT_TOP);
     set_undefined_stack((uint32_t)&STACK_UNDEFINED_TOP);
     set_svc_stack((uint32_t)&STACK_SVC_TOP);
@@ -53,11 +35,6 @@ void interrupts_setup()
 void gic_setup()
 {
     gicv2_install();
-}
-
-void reset_handler()
-{
-    log("reset_handler");
 }
 
 void undefined_handler()
@@ -84,7 +61,7 @@ void undefined_handler()
 
 undefined_h:
     log("undefined_handler address");
-    system_stop();
+    ASSERT(false);
 }
 
 void svc_handler(trapframe_t* tf)
@@ -153,6 +130,7 @@ void irq_handler(trapframe_t* tf)
 void fast_irq_handler()
 {
     log("fast_irq_handler");
+    ASSERT(false);
 }
 
 void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_type_t type, irq_handler_t func)

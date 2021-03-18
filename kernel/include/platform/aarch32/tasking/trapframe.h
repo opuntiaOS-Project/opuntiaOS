@@ -1,6 +1,7 @@
 #ifndef _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H
 #define _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H
 
+#include <libkern/log.h>
 #include <libkern/types.h>
 
 #define CPSR_M_USR 0x10U
@@ -89,6 +90,16 @@ static inline void tf_setup_as_user_thread(trapframe_t* tf)
 static inline void tf_setup_as_kernel_thread(trapframe_t* tf)
 {
     tf->user_flags = 0x60000100 | CPSR_M_SYS;
+}
+
+static void dump_tf(trapframe_t* tf)
+{
+    for (int i = 0; i < 13; i++) {
+        log("r[%d]: %x", i, tf->r[i]);
+    }
+    log("sp: %x", tf->user_sp);
+    log("ip: %x", tf->user_ip);
+    log("fl: %x", tf->user_flags);
 }
 
 #endif // _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H
