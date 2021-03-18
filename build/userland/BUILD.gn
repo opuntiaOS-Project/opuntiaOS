@@ -75,6 +75,7 @@ group("userland") {
     "//userland/dock:dock",
     "//userland/init:init",
     "//userland/initgui:initgui",
+    "//userland/kill:kill",
     "//userland/ls:ls",
     "//userland/mkdir:mkdir",
     "//userland/onesh:onesh",

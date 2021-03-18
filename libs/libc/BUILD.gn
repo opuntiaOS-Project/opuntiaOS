@@ -15,6 +15,7 @@ oneOS_static_library("libc") {
     "stdio/stdio.c",
     "stdlib/exit.c",
     "stdlib/pts.c",
+    "stdlib/tools.c",
     "string/string.c",
     "syscalls.c",
     "sysdeps/unix/$target_cpu/crt0.s",

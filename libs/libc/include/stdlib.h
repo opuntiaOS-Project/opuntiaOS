@@ -34,6 +34,9 @@ extern void free(void*);
 extern void* calloc(size_t, size_t);
 extern void* realloc(void*, size_t);
 
+/* tools */
+int atoi(const char* s);
+
 /* exit */
 void abort() __attribute__((noreturn));
 void exit(int status) __attribute__((noreturn));

@@ -10,6 +10,7 @@ _LIBCXX_BEGIN_NAMESPACE_STD
 
 using ::abort;
 using ::abs;
+using ::atoi;
 using ::calloc;
 using ::exit;
 using ::free;
