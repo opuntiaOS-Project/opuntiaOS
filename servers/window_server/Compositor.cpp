@@ -12,8 +12,8 @@
 #include "Window.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
+#include <libfoundation/Memory.h>
 #include <libg/Context.h>
-#include <std/Memory.h>
 
 static Compositor* s_the;
 
@@ -42,7 +42,7 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
         auto* buf1_ptr = (uint32_t*)&screen.display_bitmap()[bounds.min_y()][bounds.min_x()];
         auto* buf2_ptr = (uint32_t*)&screen.write_bitmap()[bounds.min_y()][bounds.min_x()];
         for (int j = 0; j < bounds.height(); j++) {
-            fast_copy(buf2_ptr, buf1_ptr, bounds.width());
+            LFoundation::fast_copy(buf2_ptr, buf1_ptr, bounds.width());
             buf1_ptr += screen.width();
             buf2_ptr += screen.width();
         }
