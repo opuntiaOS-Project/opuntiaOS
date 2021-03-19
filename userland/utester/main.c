@@ -1,4 +1,6 @@
 #include <fcntl.h>
+#include <sched.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syscalls.h>
@@ -193,8 +195,43 @@ void dirfile(void)
     write(1, "dir vs file OK\n", 15);
 }
 
+static volatile int rev = 0;
+
+int inter(int no)
+{
+    write(1, ")", 1);
+    rev++;
+    return 0;
+}
+
+int testsignals()
+{
+    write(1, "signals test\n", 13);
+    int pid = fork();
+    if (pid) {
+        sched_yield();
+        for (int i = 0; i < 50; i++) {
+            write(1, "(", 1);
+            kill(pid, 3);
+            sched_yield();
+        }
+
+        wait(pid);
+    } else {
+        sigaction(3, inter);
+        while (rev != 50) {
+        }
+
+        for (int i = 0; i < 50; i++) {
+            write(1, "(", 1);
+            raise(3);
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
+    testsignals();
     mem();
     exectest();
     fourfiles();

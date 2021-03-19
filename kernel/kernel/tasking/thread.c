@@ -38,12 +38,6 @@ int _thread_setup_kstack(thread_t* thread, uint32_t esp)
     memset((void*)thread->context, 0, sizeof(*thread->context));
     context_set_instruction_pointer(thread->context, (uint32_t)_tasking_jumper);
     memset((void*)thread->tf, 0, sizeof(*thread->tf));
-
-#ifdef FPU_ENABLED
-    /* setting fpu */
-    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
-    fpu_init_state(thread->fpu_state);
-#endif
     return 0;
 }
 
@@ -65,6 +59,11 @@ int thread_setup_main(proc_t* p, thread_t* thread)
 
     _thread_setup_kstack(thread, thread->kstack.start + VMM_PAGE_SIZE);
     tf_setup_as_user_thread(thread->tf);
+#ifdef FPU_ENABLED
+    /* setting fpu */
+    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
+    fpu_init_state(thread->fpu_state);
+#endif
     return 0;
 }
 
@@ -86,6 +85,11 @@ int thread_setup(proc_t* p, thread_t* thread)
 
     _thread_setup_kstack(thread, thread->kstack.start + VMM_PAGE_SIZE);
     tf_setup_as_user_thread(thread->tf);
+#ifdef FPU_ENABLED
+    /* setting fpu */
+    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
+    fpu_init_state(thread->fpu_state);
+#endif
     return 0;
 }
 
@@ -161,11 +165,18 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
     return 0;
 }
 
+int thread_kstack_free(thread_t* thread)
+{
+    zoner_free_zone(thread->kstack);
+#ifdef FPU_ENABLED
+    kfree_aligned(thread->fpu_state);
+#endif
+}
+
 int thread_free(thread_t* thread)
 {
+    thread_kstack_free(thread);
     thread->status = THREAD_DEAD;
-    // Don't dequeue here, since thread_die has been already run.
-    zoner_free_zone(thread->kstack);
     return 0;
 }
 

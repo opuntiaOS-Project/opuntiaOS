@@ -10,6 +10,7 @@
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/generic/system.h>
+#include <platform/generic/tasking/signal_impl.h>
 #include <tasking/sched.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
@@ -113,8 +114,9 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     system_disable_interrupts();
     pdirectory_t* prev_pdir = vmm_get_active_pdir();
     vmm_switch_pdir(thread->process->pdir);
+    vmm_prepare_active_pdir_for_copying_at((uint32_t)thread->tf, 1);
 
-    uint32_t old_esp = get_stack_pointer(thread->tf);
+    uint32_t old_sp = get_stack_pointer(thread->tf);
     uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after sgnal to the right state */
 
     /* TODO: Add support for SMP */
@@ -130,7 +132,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
             Trapframe
             Function calls and local vars...
             Context
-        ---- add after setup ----
+        ---- added after setup ----
             Trapframe for signal
             Context for signal
         */
@@ -140,41 +142,14 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
         context_t* old_ctx = thread->context;
 
         _thread_setup_kstack(thread, (uint32_t)thread->context);
-        memcpy((void*)thread->tf, (void*)old_tf, sizeof(trapframe_t));
+        memcpy(thread->tf, old_tf, sizeof(trapframe_t));
 
         tf_push_to_stack(thread->tf, (uint32_t)old_tf);
         tf_push_to_stack(thread->tf, (uint32_t)old_ctx);
         tf_push_to_stack(thread->tf, (uint32_t)old_tf ^ (uint32_t)old_ctx); // checksum
     }
-#ifdef __i386__
-    tf_push_to_stack(thread->tf, thread->tf->eflags);
-    tf_push_to_stack(thread->tf, thread->tf->eip);
-    tf_push_to_stack(thread->tf, thread->tf->eax);
-    tf_push_to_stack(thread->tf, thread->tf->ebx);
-    tf_push_to_stack(thread->tf, thread->tf->ecx);
-    tf_push_to_stack(thread->tf, thread->tf->edx);
-    tf_push_to_stack(thread->tf, old_esp);
-    tf_push_to_stack(thread->tf, thread->tf->ebp);
-    tf_push_to_stack(thread->tf, thread->tf->esi);
-    tf_push_to_stack(thread->tf, thread->tf->edi);
-    tf_push_to_stack(thread->tf, magic);
-    tf_push_to_stack(thread->tf, (uint32_t)thread->signal_handlers[signo]);
-    tf_push_to_stack(thread->tf, (uint32_t)signo);
-    tf_push_to_stack(thread->tf, 0); /* fake return address */
-#elif __arm__
-    for (int i = 0; i < 13; i++) {
-        tf_push_to_stack(thread->tf, thread->tf->r[i]);
-    }
-    tf_push_to_stack(thread->tf, old_esp);
-    tf_push_to_stack(thread->tf, thread->tf->user_sp);
-    tf_push_to_stack(thread->tf, thread->tf->user_ip);
-    tf_push_to_stack(thread->tf, thread->tf->user_flags);
-    tf_push_to_stack(thread->tf, magic);
-    tf_push_to_stack(thread->tf, (uint32_t)thread->signal_handlers[signo]);
-    tf_push_to_stack(thread->tf, (uint32_t)signo);
-    tf_push_to_stack(thread->tf, 0); /* fake return address */
-#endif
 
+    signal_impl_prepare_stack(thread, signo, old_sp, magic);
     vmm_switch_pdir(prev_pdir);
     system_enable_interrupts();
     return 0;
@@ -183,29 +158,10 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
 int signal_restore_thread_after_handling_signal(thread_t* thread)
 {
     int ret = return_tf;
-    tf_move_stack_pointer(thread->tf, 12); /* cleaning 3 last pushes */
 
-    uint32_t magic = tf_pop_to_stack(thread->tf);
-#ifdef __i386__
-    thread->tf->edi = tf_pop_to_stack(thread->tf);
-    thread->tf->esi = tf_pop_to_stack(thread->tf);
-    thread->tf->ebp = tf_pop_to_stack(thread->tf);
-    uint32_t old_esp = tf_pop_to_stack(thread->tf);
-    thread->tf->edx = tf_pop_to_stack(thread->tf);
-    thread->tf->ecx = tf_pop_to_stack(thread->tf);
-    thread->tf->ebx = tf_pop_to_stack(thread->tf);
-    thread->tf->eax = tf_pop_to_stack(thread->tf);
-    thread->tf->eip = tf_pop_to_stack(thread->tf);
-    thread->tf->eflags = tf_pop_to_stack(thread->tf);
-#elif __arm__
-    thread->tf->user_flags = tf_pop_to_stack(thread->tf);
-    thread->tf->user_ip = tf_pop_to_stack(thread->tf);
-    thread->tf->user_sp = tf_pop_to_stack(thread->tf);
-    uint32_t old_esp = tf_pop_to_stack(thread->tf);
-    for (int i = 12; i >= 0; i--) {
-        thread->tf->r[i] = tf_pop_to_stack(thread->tf);
-    }
-#endif
+    uint32_t old_sp, magic;
+    signal_impl_restore_stack(thread, &old_sp, &magic);
+
     if (magic == MAGIC_STATE_NEW_STACK) {
         uint32_t checksum = tf_pop_to_stack(thread->tf);
         context_t* old_ctx = (context_t*)tf_pop_to_stack(thread->tf);
@@ -223,18 +179,18 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
         thread->context = old_ctx;
     }
 
-    if (old_esp != get_stack_pointer(thread->tf)) {
-        log_error("ESPs are diff after signal");
+    if (old_sp != get_stack_pointer(thread->tf)) {
+        log_error("SPs are diff after signal");
     }
 
-    /* If our thread was blocked, that means that it already has a context in stack, we need not ot overwrite it */
+    /* If our thread was blocked, that means that it already has a context on stack, we need not to overwrite it */
     if (thread->blocker.reason != BLOCKER_INVALID) {
         thread->status = THREAD_BLOCKED;
         sched_dequeue(thread);
         resched_dont_save_context();
     }
 
-    /* Since we already have a context in stack, we need not ot overwrite it */
+    /* Since we already have a context on stack, we need not to overwrite it */
     if (magic == MAGIC_STATE_NEW_STACK) {
         resched_dont_save_context();
     }
@@ -290,11 +246,7 @@ int signal_dispatch_pending(thread_t* thread)
     }
 
     if (ret == UNBLOCK) {
-        if (thread->status == THREAD_BLOCKED) {
-            if (!thread->blocker.should_unblock_for_signal) {
-                return -1;
-            }
-            thread->status = THREAD_RUNNING;
+        if (thread && thread->status == THREAD_BLOCKED && thread->blocker.should_unblock_for_signal) {
             sched_enqueue(thread);
         }
     }

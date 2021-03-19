@@ -87,6 +87,7 @@ int thread_copy_of(thread_t* thread, thread_t* from_thread);
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env);
 
+int thread_kstack_free(thread_t* thread);
 int thread_free(thread_t* thread);
 int thread_die(thread_t* thread);
 

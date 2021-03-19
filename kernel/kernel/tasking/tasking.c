@@ -276,6 +276,9 @@ void tasking_exit(int exit_code)
 
 int tasking_kill(thread_t* thread, int signo)
 {
+    if (thread->status == THREAD_INVALID || thread->status == THREAD_DEAD || thread->status == THREAD_DYING) {
+        return -EINVAL;
+    }
     signal_set_pending(thread, signo);
     signal_dispatch_pending(thread);
     return 0;

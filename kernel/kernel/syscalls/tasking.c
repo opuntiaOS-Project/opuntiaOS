@@ -67,7 +67,8 @@ void sys_getuid(trapframe_t* tf)
 void sys_kill(trapframe_t* tf)
 {
     thread_t* thread = thread_by_pid(param1);
-    return_with_val(tasking_kill(thread, param2));
+    int ret = tasking_kill(thread, param2);
+    return_with_val(ret);
 }
 
 void sys_setpgid(trapframe_t* tf)
