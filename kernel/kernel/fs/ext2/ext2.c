@@ -15,6 +15,7 @@
 #define MAX_BLOCK_LEN 1024
 
 #define SUPERBLOCK _ext2_superblocks[dev->dev->id]
+#define GROUPS_COUNT _ext2_group_table_info[dev->dev->id].count
 #define GROUP_TABLES _ext2_group_table_info[dev->dev->id].table
 #define BLOCK_LEN(sb) (1024 << (sb->log_block_size))
 #define TO_EXT_BLOCKS_CNT(sb, x) (x / (2 << (sb->log_block_size)))
@@ -294,7 +295,7 @@ static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint3
     uint8_t block_bitmap[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].block_bitmap), BLOCK_LEN(fsdata.sb));
 
-    for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
+    for (uint32_t off = 0; off < 8 * BLOCK_LEN(fsdata.sb); off++) {
         if (!_ext2_bitmap_get(block_bitmap, off)) {
             *block_index = fsdata.sb->blocks_per_group * group_index + off + 1;
             _ext2_bitmap_set_bit(block_bitmap, off);
@@ -307,11 +308,11 @@ static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint3
 
 static int _ext2_allocate_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* block_index, uint32_t pref_group)
 {
-    // TODO: change group count to real value
-    uint32_t groups_cnt = 3;
+    uint32_t groups_cnt = GROUPS_COUNT;
     for (int i = 0; i < groups_cnt; i++) {
-        if (GROUP_TABLES[(pref_group + i) % groups_cnt].free_inodes_count) {
-            if (_ext2_find_free_block_index(dev, fsdata, block_index, pref_group) == 0) {
+        uint32_t group_id = (pref_group + i) % groups_cnt;
+        if (GROUP_TABLES[group_id].free_blocks_count) {
+            if (_ext2_find_free_block_index(dev, fsdata, block_index, group_id) == 0) {
                 return 0;
             }
         }
@@ -379,7 +380,7 @@ static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint3
     uint8_t inode_bitmap[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].inode_bitmap), BLOCK_LEN(fsdata.sb));
 
-    for (uint32_t off = 0; off < BLOCK_LEN(fsdata.sb); off++) {
+    for (uint32_t off = 0; off < 8 * BLOCK_LEN(fsdata.sb); off++) {
         if (!_ext2_bitmap_get(inode_bitmap, off)) {
             *inode_index = SUPERBLOCK->inodes_per_group * group_index + off + 1;
             _ext2_bitmap_set_bit(inode_bitmap, off);
@@ -392,11 +393,11 @@ static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint3
 
 static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t pref_group)
 {
-    /* TODO: change group count to real value */
-    uint32_t groups_cnt = 3;
+    uint32_t groups_cnt = GROUPS_COUNT;
     for (int i = 0; i < groups_cnt; i++) {
-        if (fsdata.gt->table[(pref_group + i) % groups_cnt].free_inodes_count) {
-            if (_ext2_find_free_inode_index(dev, fsdata, inode_index, pref_group) == 0) {
+        uint32_t group_id = (pref_group + i) % groups_cnt;
+        if (fsdata.gt->table[group_id].free_inodes_count) {
+            if (_ext2_find_free_inode_index(dev, fsdata, inode_index, group_id) == 0) {
                 return 0;
             }
         }
