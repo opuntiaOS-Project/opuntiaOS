@@ -9,9 +9,9 @@
 #define _KERNEL_DRIVERS_AARCH32_PL181_H
 
 #include <drivers/driver_manager.h>
-#include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <libkern/types.h>
 #include <libkern/mask.h>
+#include <libkern/types.h>
+#include <platform/aarch32/target/cortex-a15/device_settings.h>
 
 #define PL181_SECTOR_SIZE 512
 
@@ -39,6 +39,8 @@ enum PL181Commands {
     CMD_ALL_SEND_CID = 2,
     CMD_SET_RELATIVE_ADDR = 3,
     CMD_SELECT = 7,
+    CMD_SEND_CSD = 9,
+    CMD_SEND_CID = 10,
     CMD_SET_SECTOR_SIZE = 16,
     CMD_READ_SINGLE_BLOCK = 17,
     CMD_WRITE_SINGLE_BLOCK = 24,
@@ -71,6 +73,7 @@ typedef struct pl181_registers pl181_registers_t;
 struct sd_card {
     uint32_t rca;
     uint32_t ishc;
+    uint32_t capacity;
 };
 typedef struct sd_card sd_card_t;
 

@@ -153,6 +153,7 @@ typedef struct {
     uint8_t revision_id;
     uint32_t interrupt;
     uint32_t port_base;
+    uint32_t args[4];
 } device_desc_t; // device desriptor
 
 typedef struct {

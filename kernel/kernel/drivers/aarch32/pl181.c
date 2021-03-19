@@ -116,10 +116,11 @@ static int _pl181_write_block(device_t* device, uint32_t lba_like, void* write_d
 
 static void _pl181_add_new_device(device_t* new_device)
 {
-    bool ishc = new_device->device_desc.port_base & 1;
-    uint32_t rca = new_device->device_desc.port_base & 0xFFFF0000;
+    bool ishc = new_device->device_desc.args[0] & 1;
+    uint32_t rca = new_device->device_desc.args[0] & 0xFFFF0000;
     sd_cards[new_device->id].rca = rca;
     sd_cards[new_device->id].ishc = ishc;
+    sd_cards[new_device->id].capacity = new_device->device_desc.args[1];
     _pl181_select_card(rca);
     _pl181_send_cmd(CMD_SET_SECTOR_SIZE | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, PL181_SECTOR_SIZE);
     if (registers->response[0] != 0x900) {
@@ -127,21 +128,24 @@ static void _pl181_add_new_device(device_t* new_device)
     }
 }
 
-static void _pl181_add_device(uint32_t rca, bool ishc)
+static void _pl181_add_device(uint32_t rca, bool ishc, uint32_t capacity)
 {
     device_desc_t new_device = { 0 };
     new_device.class_id = 0x08;
     new_device.subclass_id = 0x05;
     new_device.interface_id = 0;
     new_device.revision_id = 0;
-    new_device.port_base = (rca & 0xFFFF0000) | ishc; // Passing params to driver
+    new_device.port_base = 0;
     new_device.interrupt = 0;
+    new_device.args[0] = (rca & 0xFFFF0000) | ishc;
+    new_device.args[1] = capacity;
     device_install(new_device);
 }
 
 static uint32_t _pl181_get_capacity(device_t* device)
 {
-    return 16 * MB;
+    sd_card_t* sd_card = &sd_cards[device->id];
+    return sd_card->capacity;
 }
 
 static driver_desc_t _pl181_driver_info()
@@ -210,10 +214,17 @@ void pl181_install()
 #endif
     }
 
-    _pl181_send_cmd(CMD_ALL_SEND_CID | MMC_CMD_ENABLE_MASK | MMC_CMD_LONG_RESP_MASK, 0x0); // Not terribly relavent for my usage but does return manufacture info etc
+    _pl181_send_cmd(CMD_ALL_SEND_CID | MMC_CMD_ENABLE_MASK | MMC_CMD_LONG_RESP_MASK, 0x0);
     _pl181_send_cmd(CMD_SET_RELATIVE_ADDR | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, 0x0);
 
     // Get the card RCA from the response it is the top 16 bits of the 32 bit response
     uint32_t rca = (registers->response[0] & 0xFFFF0000);
-    _pl181_add_device(rca, ishc);
+
+    _pl181_send_cmd(CMD_SEND_CSD | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK | MMC_CMD_LONG_RESP_MASK, rca);
+    uint32_t resp1 = registers->response[1];
+    uint32_t capacity = ((resp1 >> 8) & 0x3) << 10;
+    capacity |= (resp1 & 0xFF) << 2;
+    capacity = 256 * 1024 * (capacity + 1);
+
+    _pl181_add_device(rca, ishc, capacity);
 }
