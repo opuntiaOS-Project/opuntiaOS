@@ -7,15 +7,22 @@
 
 #pragma once
 #include <libg/Font.h>
+#include <libui/Control.h>
 #include <libui/EdgeInsets.h>
-#include <libui/View.h>
 #include <string>
 
 namespace UI {
 
-class Button : public View {
+class Button : public Control {
+    UI_OBJECT();
+
 public:
-    explicit Button(const LG::Rect&);
+    enum Type {
+        System,
+        Custom,
+    };
+
+    ~Button() = default;
 
     const std::string& title() const { return m_title; }
     void set_title(const std::string& title) { m_title = title, recalc_bounds(), set_needs_display(); }
@@ -34,13 +41,21 @@ public:
     virtual void hover_begin(const LG::Point<int>& location) override;
     virtual void hover_end() override;
 
+    virtual void click_began(const LG::Point<int>& location) override;
+    virtual void click_ended() override;
+
+    void set_type(Type type) { m_button_type = type; }
+
+protected:
+    Button(View* superview, const LG::Rect& frame);
+
 private:
     void recalc_bounds();
     size_t text_height() const;
     size_t text_width();
 
-    static constexpr uint32_t std_background_color() { return 0x00EBEBEB; }
-    LG::Color m_background_color_storage;
+    static constexpr uint32_t system_background_color() { return 0x00EBEBEB; }
+    Type m_button_type { Type::System };
 
     std::string m_title {};
     LG::Color m_title_color { LG::Color::White };

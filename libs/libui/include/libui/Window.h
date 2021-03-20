@@ -24,6 +24,8 @@ enum WindowType {
 };
 
 class Window : public LFoundation::EventReceiver {
+    UI_OBJECT();
+
 public:
     Window();
     Window(uint32_t width, uint32_t height, WindowType type = WindowType::Standard);
@@ -43,7 +45,7 @@ public:
     template <class T, class... Args>
     inline T& create_superview(Args&&... args)
     {
-        T* new_view = new T(bounds(), args...);
+        T* new_view = new T(nullptr, bounds(), args...);
         new_view->set_window(this);
         m_superview = new_view;
         m_superview->set_needs_display();

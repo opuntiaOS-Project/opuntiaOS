@@ -16,15 +16,22 @@ namespace UI {
 
 class Event : public LFoundation::Event {
 public:
+    // Some of events can be sent and are used in processing of data,
+    // while some part of events are used only for describing actions.
     enum Type {
         Invalid = 0x2000,
         MouseEvent,
+        MouseUpEvent,
+        MouseDownEvent,
         MouseActionEvent,
+        MouseEnterEvent,
         MouseLeaveEvent,
         KeyUpEvent,
         KeyDownEvent,
         DisplayEvent,
         WindowCloseRequestEvent,
+
+        UIHandlerInvoke,
 
         NotifyWindowStatusChangedEvent,
         NotifyWindowIconChangedEvent,

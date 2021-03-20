@@ -9,8 +9,10 @@ enum WindowStatus {
 };
 
 class TerminalView : public UI::View {
+    UI_OBJECT();
+
 public:
-    TerminalView(const LG::Rect&, int ptmx);
+    TerminalView(UI::View* superview, const LG::Rect&, int ptmx);
 
     const LG::Color& font_color() const { return m_font_color; }
     const LG::Color cursor_color() const { return LG::Color(200, 200, 200, 255); }

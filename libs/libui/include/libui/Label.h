@@ -14,8 +14,10 @@
 namespace UI {
 
 class Label : public View {
+    UI_OBJECT();
+
 public:
-    explicit Label(const LG::Rect&);
+    ~Label() = default;
 
     const std::string& text() const { return m_text; }
     void set_text(const std::string& text) { m_text = text; }
@@ -35,6 +37,9 @@ public:
     virtual void display(const LG::Rect& rect) override;
     virtual void hover_begin(const LG::Point<int>& location) override;
     virtual void hover_end() override;
+
+protected:
+    Label(View* superview, const LG::Rect&);
 
 private:
     void recalc_bounds();

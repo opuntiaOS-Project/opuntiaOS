@@ -11,9 +11,10 @@
 
 namespace UI {
 
-Button::Button(const LG::Rect& frame)
-    : View(frame, std_background_color())
+Button::Button(View* superview, const LG::Rect& frame)
+    : Control(superview, frame)
 {
+    set_background_color(system_background_color());
 }
 
 void Button::display(const LG::Rect& rect)
@@ -21,6 +22,11 @@ void Button::display(const LG::Rect& rect)
     Context ctx(*this);
 
     ctx.set_fill_color(background_color());
+    if (m_button_type == Type::System) {
+        if (is_hovered()) {
+            ctx.set_fill_color(background_color().darken(8));
+        }
+    }
     ctx.fill(bounds());
 
     LG::Point<int> text_start { content_edge_insets().left(), content_edge_insets().top() };
@@ -35,13 +41,26 @@ void Button::display(const LG::Rect& rect)
 
 void Button::hover_begin(const LG::Point<int>& location)
 {
-    m_background_color_storage = background_color();
-    set_background_color(background_color().darken(8));
+    send_actions(UI::Event::Type::MouseEnterEvent);
+    View::hover_begin(location);
 }
 
 void Button::hover_end()
 {
-    set_background_color(m_background_color_storage);
+    send_actions(UI::Event::Type::MouseLeaveEvent);
+    View::hover_end();
+}
+
+void Button::click_began(const LG::Point<int>& location)
+{
+    send_actions(UI::Event::Type::MouseDownEvent);
+    View::click_began(location);
+}
+
+void Button::click_ended()
+{
+    send_actions(UI::Event::Type::MouseUpEvent);
+    View::click_ended();
 }
 
 void Button::recalc_bounds()

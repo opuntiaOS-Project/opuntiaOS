@@ -13,16 +13,11 @@
 
 namespace UI {
 
-View::View(const LG::Rect& frame)
+View::View(View* superview, const LG::Rect& frame)
     : m_frame(frame)
+    , m_superview(superview)
+    , m_window(superview ? superview->window() : nullptr)
     , m_bounds(0, 0, frame.width(), frame.height())
-{
-}
-
-View::View(const LG::Rect& frame, const LG::Color& bc)
-    : m_frame(frame)
-    , m_bounds(0, 0, frame.width(), frame.height())
-    , m_background_color(bc)
 {
 }
 
@@ -72,12 +67,21 @@ void View::did_display(const LG::Rect& rect)
 {
 }
 
+void View::mouse_moved(const LG::Point<int>& location)
+{
+}
+
 void View::hover_begin(const LG::Point<int>& location)
 {
+    m_hovered = true;
+    set_needs_display();
 }
 
 void View::hover_end()
 {
+    m_hovered = false;
+    m_active = false;
+    set_needs_display();
 }
 
 void View::click_began(const LG::Point<int>& location)
@@ -88,15 +92,15 @@ void View::click_began(const LG::Point<int>& location)
 
 void View::click_ended()
 {
-    m_active = true;
+    m_active = false;
     set_needs_display();
 }
 
 void View::receive_mouse_move_event(MouseEvent& event)
 {
+    auto location = LG::Point<int>(event.x(), event.y());
     if (!is_hovered()) {
-        m_hovered = true;
-        hover_begin(LG::Point<int>(event.x(), event.y()));
+        hover_begin(location);
     }
 
     foreach_subview([&](View& subview) -> bool {
@@ -114,6 +118,7 @@ void View::receive_mouse_move_event(MouseEvent& event)
         return true;
     });
 
+    mouse_moved(location);
     Responder::receive_mouse_move_event(event);
 }
 
@@ -144,10 +149,7 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
         return true;
     });
 
-    m_hovered = false;
-    m_active = false;
     hover_end();
-
     Responder::receive_mouse_leave_event(event);
 }
 

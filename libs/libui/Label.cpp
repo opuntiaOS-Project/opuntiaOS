@@ -13,8 +13,8 @@
 
 namespace UI {
 
-Label::Label(const LG::Rect& frame)
-    : View(frame)
+Label::Label(View* superview, const LG::Rect& frame)
+    : View(superview, frame)
 {
 }
 

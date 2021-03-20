@@ -6,8 +6,8 @@
 #include <libui/Context.h>
 #include <std/Dbg.h>
 
-TerminalView::TerminalView(const LG::Rect& frame, int ptmx)
-    : View(frame)
+TerminalView::TerminalView(UI::View* superview, const LG::Rect& frame, int ptmx)
+    : UI::View(superview, frame)
     , m_ptmx(ptmx)
 {
     LFoundation::EventLoop::the().add(

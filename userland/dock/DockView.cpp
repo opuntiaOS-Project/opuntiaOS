@@ -12,8 +12,8 @@
 
 static DockView* this_view;
 
-DockView::DockView(const LG::Rect& frame)
-    : View(frame)
+DockView::DockView(View* superview, const LG::Rect& frame)
+    : View(superview, frame)
 {
 }
 

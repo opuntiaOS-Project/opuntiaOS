@@ -13,6 +13,8 @@
 #include <syscalls.h>
 #include <vector>
 
+#define UI_OBJECT() friend class View
+
 namespace UI {
 
 class Window;
@@ -21,15 +23,12 @@ class View : public Responder {
 public:
     friend class Window;
 
-    explicit View(const LG::Rect&);
-    View(const LG::Rect&, const LG::Color&);
+    ~View() = default;
 
     template <class T, class... Args>
     T& add_subview(Args&&... args)
     {
-        T* subview = new T(args...);
-        subview->set_window(window());
-        subview->set_superview(this);
+        T* subview = new T(this, args...);
         m_subviews.push_back(subview);
         return *subview;
     }
@@ -82,6 +81,7 @@ public:
     virtual void display(const LG::Rect& rect);
     virtual void did_display(const LG::Rect& rect);
 
+    virtual void mouse_moved(const LG::Point<int>& new_location);
     virtual void hover_begin(const LG::Point<int>& location);
     virtual void hover_end();
 
@@ -102,6 +102,9 @@ public:
         m_background_color = background_color;
         set_needs_display();
     }
+
+protected:
+    View(View* superview, const LG::Rect&);
 
 private:
     void set_window(Window* window) { m_window = window; }
