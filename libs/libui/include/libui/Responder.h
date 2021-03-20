@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include <libfoundation/EventReceiver.h>
+#include <libfoundation/Object.h>
 #include <libg/Rect.h>
 #include <libui/Event.h>
 
@@ -14,7 +14,7 @@ namespace UI {
 
 class Window;
 
-class Responder : public LFoundation::EventReceiver {
+class Responder : public LFoundation::Object {
 public:
     bool send_invalidate_message_to_server(const LG::Rect& rect) const;
     void send_display_message_to_self(Window& win, const LG::Rect& display_rect);
