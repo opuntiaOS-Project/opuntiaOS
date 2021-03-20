@@ -24,6 +24,16 @@ public:
     {
     }
 
+    bool operator==(const Event& other)
+    {
+        return m_type == other.m_type;
+    }
+
+    bool operator!=(const Event& other)
+    {
+        return m_type != other.m_type;
+    }
+
     ~Event() = default;
 
     int type() const { return m_type; }
