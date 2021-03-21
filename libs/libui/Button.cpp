@@ -27,7 +27,7 @@ void Button::display(const LG::Rect& rect)
             ctx.set_fill_color(background_color().darken(8));
         }
     }
-    ctx.fill(bounds());
+    ctx.fill_rounded(bounds(), LG::CornerMask(4));
 
     LG::Point<int> text_start { content_edge_insets().left(), content_edge_insets().top() };
 
