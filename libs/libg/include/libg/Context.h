@@ -8,6 +8,7 @@
 #pragma once
 
 #include <libg/Color.h>
+#include <libg/CornerMask.h>
 #include <libg/Font.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Point.h>
@@ -26,10 +27,15 @@ public:
     void reset_clip();
 
     void set(const Point<int>& start, const PixelBitmap& bitmap);
+    void set_with_bounds(const Rect& rect, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
+    void draw_with_bounds(const Rect& rect, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const GlyphBitmap& bitmap);
+    void draw_rounded(const Point<int>& start, const PixelBitmap& bitmap, const CornerMask& mask);
     void draw_shading(const Rect& rect, const Shading& shading);
+    void draw_box_shading(const Rect& rect, const Shading& shading, const CornerMask& mask = { 0, false, false });
     void fill(const Rect& rect);
+    void fill_rounded(const Rect& rect, const CornerMask& mask);
     void mix(const Rect& rect);
     void add_ellipse(const Rect& rect);
 
@@ -39,10 +45,15 @@ public:
     inline const Color& fill_color() const { return m_color; }
 
 private:
+    void fill_rounded_helper(const Point<int>& start, size_t radius);
+    void draw_rounded_helper(const Point<int>& start, size_t radius, const PixelBitmap& bitmap);
+    void shadow_rounded_helper(const Point<int>& start, size_t radius, const Shading& shading);
+
     PixelBitmap& m_bitmap;
     Rect m_clip;
     const Rect m_origin_clip;
     Point<int> m_draw_offset { 0, 0 };
+    Point<int> m_bitmap_offset { 0, 0 };
     Color m_color {};
 };
 
