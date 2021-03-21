@@ -130,24 +130,12 @@ void WindowFrame::draw(LG::Context& ctx)
 
     // Drawing frame and shadings
     ctx.set_fill_color(color());
-    ctx.fill(LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), top_border_size() - std_top_border_frame_size()));
+    ctx.fill_rounded(LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), top_border_size() - std_top_border_frame_size()), LG::CornerMask(4, true, false));
     if (active()) {
         ctx.set_fill_color(LG::Color(Colors::ShadowColor));
 
-        int rb_shading_lr = x + std_left_border_size();
-        int tb_width = width - std_left_border_size() - std_right_border_size();
-        ctx.draw_shading(LG::Rect(rb_shading_lr, y, tb_width, std_top_border_frame_size()), LG::Shading(LG::ShadingType::BottomToTop, 0));
-        ctx.draw_shading(LG::Rect(rb_shading_lr, bottom_y, tb_width, bottom_border_size()), LG::Shading(LG::ShadingType::TopToBottom, 0));
-
-        int lr_shading_y = y + std_top_border_frame_size();
-        int lr_height = height - std_top_border_frame_size() - bottom_border_size();
-        ctx.draw_shading(LG::Rect(x, lr_shading_y, left_border_size(), lr_height), LG::Shading(LG::ShadingType::RightToLeft, 0));
-        ctx.draw_shading(LG::Rect(right_x, lr_shading_y, left_border_size(), lr_height), LG::Shading(LG::ShadingType::LeftToRight, 0));
-
-        ctx.draw_shading(LG::Rect(x, y, std_left_border_size(), std_top_border_frame_size()), LG::Shading(LG::ShadingType::Deg135, 0));
-        ctx.draw_shading(LG::Rect(x, bottom_y, std_left_border_size(), std_bottom_border_size()), LG::Shading(LG::ShadingType::Deg225, 0));
-        ctx.draw_shading(LG::Rect(right_x, y, std_right_border_size(), std_top_border_frame_size()), LG::Shading(LG::ShadingType::Deg45, 0));
-        ctx.draw_shading(LG::Rect(right_x, bottom_y, std_right_border_size(), std_bottom_border_size()), LG::Shading(LG::ShadingType::Deg315, 0));
+        auto shading_rect = LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), height - std_top_border_frame_size() - std_bottom_border_size());
+        ctx.draw_box_shading(shading_rect, LG::Shading(LG::ShadingType::Box, 0, 4), LG::CornerMask(4));
     }
 
     // Drawing labels, icons.

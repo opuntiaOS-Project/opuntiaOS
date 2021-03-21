@@ -79,6 +79,8 @@ public:
         m_frame.reload_icon();
     }
 
+    inline const LG::CornerMask& corner_mask() const { return m_corner_mask; }
+
     inline const LG::string& icon_path() const { return m_icon_path; }
 
 private:
@@ -91,5 +93,6 @@ private:
     LG::PixelBitmap m_content_bitmap;
     LFoundation::SharedBuffer<LG::Color> m_buffer;
     WindowFrame m_frame;
+    LG::CornerMask m_corner_mask { 4, false, true };
     LG::string m_icon_path {};
 };

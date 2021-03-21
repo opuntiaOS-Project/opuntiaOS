@@ -79,7 +79,7 @@ __attribute__((flatten)) void Compositor::refresh()
         ctx.add_clip(area);
         ctx.add_clip(window.bounds());
         window.frame().draw(ctx);
-        ctx.draw(window.content_bounds().origin(), window.content_bitmap());
+        ctx.draw_rounded(window.content_bounds().origin(), window.content_bitmap(), window.corner_mask());
         ctx.reset_clip();
     };
 
