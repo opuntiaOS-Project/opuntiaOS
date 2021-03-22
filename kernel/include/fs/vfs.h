@@ -135,7 +135,6 @@ struct file_descriptor {
     };
     uint32_t offset;
     uint32_t flags;
-    uint32_t ref_count;
     file_ops_t* ops;
 };
 typedef struct file_descriptor file_descriptor_t;

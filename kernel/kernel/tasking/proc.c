@@ -153,12 +153,6 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
     new_proc->cwd = dentry_duplicate(from_proc->cwd);
     new_proc->tty = from_proc->tty;
 
-    /* TODO: change the size in advance */
-    for (int i = 0; i < from_proc->zones.size; i++) {
-        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&from_proc->zones, i);
-        dynamic_array_push(&new_proc->zones, zone_to_copy);
-    }
-
     if (from_proc->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
             if (from_proc->fds[i].dentry) {
@@ -168,6 +162,15 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
                 }
             }
         }
+    }
+
+    for (int i = 0; i < from_proc->zones.size; i++) {
+        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&from_proc->zones, i);
+        if (zone_to_copy->file) {
+            log("Coping %x", zone_to_copy->file);
+            dentry_duplicate(zone_to_copy->file); // For the copied zone.
+        }
+        dynamic_array_push(&new_proc->zones, zone_to_copy);
     }
 
     return 0;

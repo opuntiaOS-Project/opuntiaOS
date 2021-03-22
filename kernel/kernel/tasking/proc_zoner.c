@@ -72,7 +72,7 @@ proc_zone_t* proc_extend_zone(proc_t* proc, uint32_t start, uint32_t len)
         len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
     }
 
-    proc_zone_t new_zone;
+    proc_zone_t new_zone = { 0 };
     new_zone.type = 0;
     new_zone.flags = ZONE_USER;
 
@@ -96,7 +96,7 @@ proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
         len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
     }
 
-    proc_zone_t new_zone;
+    proc_zone_t new_zone = { 0 };
     new_zone.start = start;
     new_zone.len = len;
     new_zone.type = 0;

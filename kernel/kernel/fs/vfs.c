@@ -207,17 +207,12 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
     fd->type = FD_TYPE_FILE;
     fd->dentry = dentry_duplicate(file);
     fd->offset = 0;
-    fd->ref_count = 1;
     fd->ops = &file->ops->file;
     return 0;
 }
 
 static int _int_vfs_do_close(file_descriptor_t* fd)
 {
-    if (fd->ref_count) {
-        return -EIO;
-    }
-
     if (fd->type == FD_TYPE_FILE) {
         dentry_put(fd->dentry);
     } else {
@@ -234,16 +229,7 @@ int vfs_close(file_descriptor_t* fd)
     if (!fd) {
         return -EFAULT;
     }
-
-    if (!fd->ref_count) {
-        return -EIO;
-    }
-
-    fd->ref_count--;
-    if (!fd->ref_count) {
-        return _int_vfs_do_close(fd);
-    }
-    return 0;
+    return _int_vfs_do_close(fd);
 }
 
 int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
@@ -534,7 +520,7 @@ static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
     if (map_private) {
         zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
         zone->type = ZONE_TYPE_MAPPED_FILE_PRIVATLY;
-        zone->fd = fd;
+        zone->file = dentry_duplicate(fd->dentry);
         zone->offset = params->offset;
     } else {
         /* TODO */
@@ -546,7 +532,6 @@ static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
 
 proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
-    fd->ref_count++;
     /* Check if we have a custom mmap for a dentry */
     if (fd->dentry->ops->file.mmap) {
         proc_zone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
@@ -562,6 +547,6 @@ int vfs_munmap(proc_zone_t* zone)
     if (!(zone->flags & ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !(zone->flags & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         return -EFAULT;
     }
-
-    return vfs_close(zone->fd);
+    dentry_put(zone->file);
+    return 0;
 }

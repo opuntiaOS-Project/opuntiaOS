@@ -47,7 +47,7 @@ struct proc_zone {
     uint32_t len;
     uint32_t type;
     uint32_t flags;
-    file_descriptor_t* fd;
+    dentry_t* file;
     uint32_t offset;
 };
 typedef struct proc_zone proc_zone_t;

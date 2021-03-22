@@ -15,13 +15,12 @@
 #define PROT_NONE 0x0
 
 struct mmap_params {
-    uint32_t addr;
-    uint32_t size;
-    uint32_t alignment;
-    uint32_t prot;
-    uint32_t flags;
-    uint32_t fd;
-    uint32_t offset;
+    void* addr;
+    size_t size;
+    int prot;
+    int flags;
+    int fd;
+    off_t offset;
 };
 typedef struct mmap_params mmap_params_t;
 

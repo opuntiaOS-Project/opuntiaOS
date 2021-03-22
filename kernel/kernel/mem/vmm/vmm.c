@@ -769,7 +769,12 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uint32_t vaddr, ptable_t* sr
         log_error("Cow: No page in zone");
         return SHOULD_CRASH;
     }
-    // log("COW: RESTORE PAGE %x with %x", vaddr, zone->flags);
+
+    if ((zone->type & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+        uint32_t old_page_paddr = page_desc_get_frame(*old_page_desc);
+        return vmm_map_page(vaddr, old_page_paddr, zone->flags);
+    }
+
     vmm_load_page(vaddr, zone->flags);
 
     /* Mapping the old page to do a copy */
@@ -853,8 +858,7 @@ pdirectory_t* vmm_new_user_pdir()
 
 /**
  * The function created a new user's pdir from the active pdir.
- * After copying the task we need to flush tlb. To do that we have to
- * to reload cr3 tlb entries. 
+ * After copying the task we need to flush tlb.
  */
 pdirectory_t* vmm_new_forked_user_pdir()
 {
@@ -875,7 +879,6 @@ pdirectory_t* vmm_new_forked_user_pdir()
     }
 
     system_flush_whole_tlb();
-
     return new_pdir;
 }
 
@@ -1118,8 +1121,8 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
             vmm_load_page(vaddr, zone->flags);
 
             if (zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
-                zone->fd->offset = PAGE_START(vaddr) - zone->start;
-                vfs_read(zone->fd, (void*)PAGE_START(vaddr), VMM_PAGE_SIZE);
+                uint32_t offset = zone->offset + (PAGE_START(vaddr) - zone->start);
+                zone->file->ops->file.read(zone->file, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
             }
         } else {
             /* FIXME: Now we have a standard zone for kernel, but it's better to do the same thing as for user's pages */
