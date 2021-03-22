@@ -49,7 +49,7 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
     }
 }
 
-__attribute__((flatten)) void Compositor::refresh()
+[[gnu::flatten]] void Compositor::refresh()
 {
     if (m_invalidated_areas.size() == 0) {
         return;

@@ -93,6 +93,6 @@ private:
     LG::PixelBitmap m_content_bitmap;
     LFoundation::SharedBuffer<LG::Color> m_buffer;
     WindowFrame m_frame;
-    LG::CornerMask m_corner_mask { 4, false, true };
+    LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
     LG::string m_icon_path {};
 };

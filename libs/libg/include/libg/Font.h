@@ -14,11 +14,6 @@
 
 namespace LG {
 
-enum FontTypes {
-    Default = 0,
-    LatinExtendedA = 1
-};
-
 class Font;
 class GlyphBitmap {
 public:
@@ -49,6 +44,11 @@ private:
 
 class Font {
 public:
+    enum Type {
+        Default = 0,
+        LatinExtendedA = 1
+    };
+
     Font(uint32_t* raw_data, uint8_t* m_width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width);
     ~Font() = default;
 

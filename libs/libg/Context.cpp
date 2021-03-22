@@ -158,7 +158,7 @@ void Context::draw(const Point<int>& start, const GlyphBitmap& bitmap)
     }
 }
 
-__attribute__((flatten)) void Context::draw_rounded(const Point<int>& start, const PixelBitmap& bitmap, const CornerMask& mask)
+[[gnu::flatten]] void Context::draw_rounded(const Point<int>& start, const PixelBitmap& bitmap, const CornerMask& mask)
 {
     Rect rect(start.x(), start.y(), bitmap.width(), bitmap.height());
     auto draw_bounds = rect;
@@ -406,7 +406,7 @@ void Context::shadow_rounded_helper(const Point<int>& start, size_t radius, cons
     }
 }
 
-__attribute__((flatten)) void Context::fill_rounded(const Rect& rect, const CornerMask& mask)
+[[gnu::flatten]] void Context::fill_rounded(const Rect& rect, const CornerMask& mask)
 {
     auto draw_bounds = rect;
     draw_bounds.offset_by(m_draw_offset);
@@ -492,7 +492,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
     int step, skipped_steps, end_x;
 
     switch (shading.type()) {
-    case TopToBottom:
+    case Shading::Type::TopToBottom:
         step = alpha_diff / orig_bounds.height();
         skipped_steps = min_y - orig_bounds.min_y();
         color.set_alpha(color.alpha() - skipped_steps * step);
@@ -505,7 +505,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
         return;
 
-    case BottomToTop:
+    case Shading::Type::BottomToTop:
         step = alpha_diff / orig_bounds.height();
         skipped_steps = orig_bounds.max_y() - max_y;
         color.set_alpha(color.alpha() - skipped_steps * step);
@@ -518,7 +518,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
         return;
 
-    case LeftToRight:
+    case Shading::Type::LeftToRight:
         step = alpha_diff / orig_bounds.width();
         skipped_steps = min_x - orig_bounds.min_x();
         color.set_alpha(color.alpha() - skipped_steps * step);
@@ -531,7 +531,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
         return;
 
-    case RightToLeft:
+    case Shading::Type::RightToLeft:
         step = alpha_diff / orig_bounds.width();
         skipped_steps = orig_bounds.max_x() - max_x;
         color.set_alpha(color.alpha() - skipped_steps * step);
@@ -544,7 +544,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
         return;
 
-    case Deg45:
+    case Shading::Type::Deg45:
         step = alpha_diff / orig_bounds.height();
         skipped_steps = orig_bounds.max_y() - max_y + min_x - orig_bounds.min_x();
         if (skipped_steps >= orig_bounds.height()) {
@@ -569,7 +569,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
         return;
 
-    case Deg315:
+    case Shading::Type::Deg315:
         step = alpha_diff / orig_bounds.height();
         skipped_steps = min_y - orig_bounds.min_y() + min_x - orig_bounds.min_x();
         if (skipped_steps >= orig_bounds.height()) {
@@ -594,7 +594,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
         return;
 
-    case Deg135:
+    case Shading::Type::Deg135:
         step = alpha_diff / orig_bounds.height();
         skipped_steps = orig_bounds.max_y() - max_y + orig_bounds.max_x() - max_x;
         if (skipped_steps >= orig_bounds.height()) {
@@ -619,7 +619,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         }
         return;
 
-    case Deg225:
+    case Shading::Type::Deg225:
         step = alpha_diff / orig_bounds.height();
         skipped_steps = min_y - orig_bounds.min_y() + orig_bounds.max_x() - max_x;
         if (skipped_steps >= orig_bounds.height()) {
@@ -676,10 +676,10 @@ void Context::draw_box_shading(const Rect& rect, const Shading& shading, const C
     int min_shading_y = rect.min_y() - shading_spread;
     int max_shading_y = rect.max_y();
 
-    draw_shading(LG::Rect(top_min_rx, min_shading_y, rwidth, shading_spread), LG::Shading(LG::ShadingType::BottomToTop, shading.final_alpha()));
-    draw_shading(LG::Rect(top_min_rx, max_shading_y, rwidth, shading_spread), LG::Shading(LG::ShadingType::TopToBottom, shading.final_alpha()));
-    draw_shading(LG::Rect(min_shading_x, top_min_ry, shading_spread, rheight), LG::Shading(LG::ShadingType::RightToLeft, shading.final_alpha()));
-    draw_shading(LG::Rect(max_shading_x, top_min_ry, shading_spread, rheight), LG::Shading(LG::ShadingType::LeftToRight, shading.final_alpha()));
+    draw_shading(LG::Rect(top_min_rx, min_shading_y, rwidth, shading_spread), LG::Shading(LG::Shading::Type::BottomToTop, shading.final_alpha()));
+    draw_shading(LG::Rect(top_min_rx, max_shading_y, rwidth, shading_spread), LG::Shading(LG::Shading::Type::TopToBottom, shading.final_alpha()));
+    draw_shading(LG::Rect(min_shading_x, top_min_ry, shading_spread, rheight), LG::Shading(LG::Shading::Type::RightToLeft, shading.final_alpha()));
+    draw_shading(LG::Rect(max_shading_x, top_min_ry, shading_spread, rheight), LG::Shading(LG::Shading::Type::LeftToRight, shading.final_alpha()));
 
     auto add_instant_clip = [&](int x, int y, size_t width, size_t height) {
         add_clip(LG::Rect(x + m_draw_offset.x(), y + m_draw_offset.y(), width, height));
@@ -702,8 +702,8 @@ void Context::draw_box_shading(const Rect& rect, const Shading& shading, const C
         shadow_rounded_helper({ top_max_rx, top_min_ry }, top_radius, shading);
         reset_instant_clip();
     } else {
-        draw_shading(LG::Rect(min_shading_x, min_shading_y, shading_spread, shading_spread), LG::Shading(LG::ShadingType::Deg135, 0));
-        draw_shading(LG::Rect(top_max_rx, min_shading_y, shading_spread, shading_spread), LG::Shading(LG::ShadingType::Deg45, 0));
+        draw_shading(LG::Rect(min_shading_x, min_shading_y, shading_spread, shading_spread), LG::Shading(LG::Shading::Type::Deg135, 0));
+        draw_shading(LG::Rect(top_max_rx, min_shading_y, shading_spread, shading_spread), LG::Shading(LG::Shading::Type::Deg45, 0));
     }
 
     if (mask.bottom_rounded()) {
@@ -715,8 +715,8 @@ void Context::draw_box_shading(const Rect& rect, const Shading& shading, const C
         shadow_rounded_helper({ bottom_max_rx, bottom_max_ry }, bottom_radius, shading);
         reset_instant_clip();
     } else {
-        draw_shading(LG::Rect(min_shading_x, bottom_max_ry, shading_spread, shading_spread), LG::Shading(LG::ShadingType::Deg225, 0));
-        draw_shading(LG::Rect(bottom_max_rx, bottom_max_ry, shading_spread, shading_spread), LG::Shading(LG::ShadingType::Deg315, 0));
+        draw_shading(LG::Rect(min_shading_x, bottom_max_ry, shading_spread, shading_spread), LG::Shading(LG::Shading::Type::Deg225, 0));
+        draw_shading(LG::Rect(bottom_max_rx, bottom_max_ry, shading_spread, shading_spread), LG::Shading(LG::Shading::Type::Deg315, 0));
     }
 }
 

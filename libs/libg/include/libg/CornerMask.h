@@ -14,7 +14,11 @@ namespace LG {
 
 class CornerMask {
 public:
-    CornerMask(size_t radius, bool top_rounded = true, bool bottom_rounded = true)
+    static constexpr bool Masked = true;
+    static constexpr bool NonMasked = false;
+    static constexpr size_t SystemRadius = 4;
+
+    CornerMask(size_t radius, bool top_rounded = Masked, bool bottom_rounded = Masked)
         : m_radius(radius)
         , m_top_rounded(top_rounded)
         , m_bottom_rounded(bottom_rounded)
@@ -26,9 +30,9 @@ public:
     bool bottom_rounded() const { return m_bottom_rounded; }
 
 private:
-    size_t m_radius { 4 };
-    bool m_top_rounded { true };
-    bool m_bottom_rounded { true };
+    size_t m_radius { SystemRadius };
+    bool m_top_rounded { Masked };
+    bool m_bottom_rounded { Masked };
 };
 
 } // namespace LG

@@ -135,7 +135,7 @@ void WindowFrame::draw(LG::Context& ctx)
         ctx.set_fill_color(LG::Color(Colors::ShadowColor));
 
         auto shading_rect = LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), height - std_top_border_frame_size() - std_bottom_border_size());
-        ctx.draw_box_shading(shading_rect, LG::Shading(LG::ShadingType::Box, 0, 4), LG::CornerMask(4));
+        ctx.draw_box_shading(shading_rect, LG::Shading(LG::Shading::Type::Box, 0, LG::Shading::SystemSpread), LG::CornerMask(LG::CornerMask::SystemRadius));
     }
 
     // Drawing labels, icons.
