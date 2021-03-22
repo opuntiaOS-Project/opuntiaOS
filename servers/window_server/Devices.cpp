@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <std/Dbg.h>
 
+namespace WinServer {
+
 static Devices* s_the;
 
 Devices::Devices()
@@ -41,3 +43,5 @@ Devices& Devices::the()
 {
     return *s_the;
 }
+
+} // namespace WinServer

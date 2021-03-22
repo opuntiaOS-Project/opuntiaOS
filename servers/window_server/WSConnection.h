@@ -27,13 +27,14 @@ public:
         Encoder::append(buffer, key());
         return buffer;
     }
+
 private:
     message_key_t m_key;
 };
 
 class GreetMessageReply : public Message {
 public:
-    GreetMessageReply(message_key_t key,uint32_t connection_id)
+    GreetMessageReply(message_key_t key, uint32_t connection_id)
         : m_key(key)
         , m_connection_id(connection_id)
     {
@@ -52,6 +53,7 @@ public:
         Encoder::append(buffer, m_connection_id);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_connection_id;
@@ -59,7 +61,7 @@ private:
 
 class CreateWindowMessage : public Message {
 public:
-    CreateWindowMessage(message_key_t key,int type,uint32_t width,uint32_t height,int buffer_id,LG::string icon_path)
+    CreateWindowMessage(message_key_t key, int type, uint32_t width, uint32_t height, int buffer_id, LG::string icon_path)
         : m_key(key)
         , m_type(type)
         , m_width(width)
@@ -90,6 +92,7 @@ public:
         Encoder::append(buffer, m_icon_path);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_type;
@@ -101,7 +104,7 @@ private:
 
 class CreateWindowMessageReply : public Message {
 public:
-    CreateWindowMessageReply(message_key_t key,uint32_t window_id)
+    CreateWindowMessageReply(message_key_t key, uint32_t window_id)
         : m_key(key)
         , m_window_id(window_id)
     {
@@ -120,6 +123,7 @@ public:
         Encoder::append(buffer, m_window_id);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_window_id;
@@ -127,7 +131,7 @@ private:
 
 class DestroyWindowMessage : public Message {
 public:
-    DestroyWindowMessage(message_key_t key,uint32_t window_id)
+    DestroyWindowMessage(message_key_t key, uint32_t window_id)
         : m_key(key)
         , m_window_id(window_id)
     {
@@ -146,6 +150,7 @@ public:
         Encoder::append(buffer, m_window_id);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_window_id;
@@ -153,7 +158,7 @@ private:
 
 class DestroyWindowMessageReply : public Message {
 public:
-    DestroyWindowMessageReply(message_key_t key,uint32_t status)
+    DestroyWindowMessageReply(message_key_t key, uint32_t status)
         : m_key(key)
         , m_status(status)
     {
@@ -172,6 +177,7 @@ public:
         Encoder::append(buffer, m_status);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_status;
@@ -179,7 +185,7 @@ private:
 
 class SetBufferMessage : public Message {
 public:
-    SetBufferMessage(message_key_t key,uint32_t window_id,int buffer_id,int format)
+    SetBufferMessage(message_key_t key, uint32_t window_id, int buffer_id, int format)
         : m_key(key)
         , m_window_id(window_id)
         , m_buffer_id(buffer_id)
@@ -204,6 +210,7 @@ public:
         Encoder::append(buffer, m_format);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_window_id;
@@ -213,7 +220,7 @@ private:
 
 class SetBarStyleMessage : public Message {
 public:
-    SetBarStyleMessage(message_key_t key,uint32_t window_id,uint32_t color,int text_style)
+    SetBarStyleMessage(message_key_t key, uint32_t window_id, uint32_t color, int text_style)
         : m_key(key)
         , m_window_id(window_id)
         , m_color(color)
@@ -238,6 +245,7 @@ public:
         Encoder::append(buffer, m_text_style);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_window_id;
@@ -247,7 +255,7 @@ private:
 
 class SetTitleMessage : public Message {
 public:
-    SetTitleMessage(message_key_t key,uint32_t window_id,LG::string title)
+    SetTitleMessage(message_key_t key, uint32_t window_id, LG::string title)
         : m_key(key)
         , m_window_id(window_id)
         , m_title(title)
@@ -269,6 +277,7 @@ public:
         Encoder::append(buffer, m_title);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_window_id;
@@ -277,7 +286,7 @@ private:
 
 class InvalidateMessage : public Message {
 public:
-    InvalidateMessage(message_key_t key,uint32_t window_id,LG::Rect rect)
+    InvalidateMessage(message_key_t key, uint32_t window_id, LG::Rect rect)
         : m_key(key)
         , m_window_id(window_id)
         , m_rect(rect)
@@ -299,6 +308,7 @@ public:
         Encoder::append(buffer, m_rect);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_window_id;
@@ -307,7 +317,7 @@ private:
 
 class AskBringToFrontMessage : public Message {
 public:
-    AskBringToFrontMessage(message_key_t key,uint32_t window_id,uint32_t target_window_id)
+    AskBringToFrontMessage(message_key_t key, uint32_t window_id, uint32_t target_window_id)
         : m_key(key)
         , m_window_id(window_id)
         , m_target_window_id(target_window_id)
@@ -329,6 +339,7 @@ public:
         Encoder::append(buffer, m_target_window_id);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     uint32_t m_window_id;
@@ -337,7 +348,7 @@ private:
 
 class WindowServerDecoder : public MessageDecoder {
 public:
-    WindowServerDecoder() {}
+    WindowServerDecoder() { }
     int magic() const { return 320; }
     std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
@@ -366,8 +377,8 @@ public:
         LG::string var_title;
         LG::Rect var_rect;
         uint32_t var_target_window_id;
-        
-        switch(msg_id) {
+
+        switch (msg_id) {
         case 1:
             return new GreetMessage(secret_key);
         case 2:
@@ -416,14 +427,14 @@ public:
             return nullptr;
         }
     }
-    
+
     std::unique_ptr<Message> handle(const Message& msg) override
     {
         if (magic() != msg.decoder_magic()) {
             return nullptr;
         }
-        
-        switch(msg.id()) {
+
+        switch (msg.id()) {
         case 1:
             return handle(static_cast<const GreetMessage&>(msg));
         case 3:
@@ -444,7 +455,7 @@ public:
             return nullptr;
         }
     }
-    
+
     virtual std::unique_ptr<Message> handle(const GreetMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const CreateWindowMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const DestroyWindowMessage& msg) { return nullptr; }
@@ -457,7 +468,7 @@ public:
 
 class MouseMoveMessage : public Message {
 public:
-    MouseMoveMessage(message_key_t key,int win_id,uint32_t x,uint32_t y)
+    MouseMoveMessage(message_key_t key, int win_id, uint32_t x, uint32_t y)
         : m_key(key)
         , m_win_id(win_id)
         , m_x(x)
@@ -482,6 +493,7 @@ public:
         Encoder::append(buffer, m_y);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_win_id;
@@ -491,7 +503,7 @@ private:
 
 class MouseActionMessage : public Message {
 public:
-    MouseActionMessage(message_key_t key,int win_id,int type,uint32_t x,uint32_t y)
+    MouseActionMessage(message_key_t key, int win_id, int type, uint32_t x, uint32_t y)
         : m_key(key)
         , m_win_id(win_id)
         , m_type(type)
@@ -519,6 +531,7 @@ public:
         Encoder::append(buffer, m_y);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_win_id;
@@ -529,7 +542,7 @@ private:
 
 class MouseLeaveMessage : public Message {
 public:
-    MouseLeaveMessage(message_key_t key,int win_id,uint32_t x,uint32_t y)
+    MouseLeaveMessage(message_key_t key, int win_id, uint32_t x, uint32_t y)
         : m_key(key)
         , m_win_id(win_id)
         , m_x(x)
@@ -554,6 +567,7 @@ public:
         Encoder::append(buffer, m_y);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_win_id;
@@ -563,7 +577,7 @@ private:
 
 class KeyboardMessage : public Message {
 public:
-    KeyboardMessage(message_key_t key,int win_id,uint32_t kbd_key)
+    KeyboardMessage(message_key_t key, int win_id, uint32_t kbd_key)
         : m_key(key)
         , m_win_id(win_id)
         , m_kbd_key(kbd_key)
@@ -585,6 +599,7 @@ public:
         Encoder::append(buffer, m_kbd_key);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_win_id;
@@ -593,7 +608,7 @@ private:
 
 class DisplayMessage : public Message {
 public:
-    DisplayMessage(message_key_t key,LG::Rect rect)
+    DisplayMessage(message_key_t key, LG::Rect rect)
         : m_key(key)
         , m_rect(rect)
     {
@@ -612,6 +627,7 @@ public:
         Encoder::append(buffer, m_rect);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     LG::Rect m_rect;
@@ -619,7 +635,7 @@ private:
 
 class WindowCloseRequestMessage : public Message {
 public:
-    WindowCloseRequestMessage(message_key_t key,int win_id)
+    WindowCloseRequestMessage(message_key_t key, int win_id)
         : m_key(key)
         , m_win_id(win_id)
     {
@@ -638,6 +654,7 @@ public:
         Encoder::append(buffer, m_win_id);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_win_id;
@@ -645,7 +662,7 @@ private:
 
 class DisconnectMessage : public Message {
 public:
-    DisconnectMessage(message_key_t key,int reason)
+    DisconnectMessage(message_key_t key, int reason)
         : m_key(key)
         , m_reason(reason)
     {
@@ -664,6 +681,7 @@ public:
         Encoder::append(buffer, m_reason);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_reason;
@@ -671,7 +689,7 @@ private:
 
 class NotifyWindowStatusChangedMessage : public Message {
 public:
-    NotifyWindowStatusChangedMessage(message_key_t key,int win_id,int changed_window_id,int type)
+    NotifyWindowStatusChangedMessage(message_key_t key, int win_id, int changed_window_id, int type)
         : m_key(key)
         , m_win_id(win_id)
         , m_changed_window_id(changed_window_id)
@@ -696,6 +714,7 @@ public:
         Encoder::append(buffer, m_type);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_win_id;
@@ -705,7 +724,7 @@ private:
 
 class NotifyWindowIconChangedMessage : public Message {
 public:
-    NotifyWindowIconChangedMessage(message_key_t key,int win_id,int changed_window_id,LG::string icon_path)
+    NotifyWindowIconChangedMessage(message_key_t key, int win_id, int changed_window_id, LG::string icon_path)
         : m_key(key)
         , m_win_id(win_id)
         , m_changed_window_id(changed_window_id)
@@ -730,6 +749,7 @@ public:
         Encoder::append(buffer, m_icon_path);
         return buffer;
     }
+
 private:
     message_key_t m_key;
     int m_win_id;
@@ -739,7 +759,7 @@ private:
 
 class WindowClientDecoder : public MessageDecoder {
 public:
-    WindowClientDecoder() {}
+    WindowClientDecoder() { }
     int magic() const { return 737; }
     std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
@@ -763,8 +783,8 @@ public:
         int var_reason;
         int var_changed_window_id;
         LG::string var_icon_path;
-        
-        switch(msg_id) {
+
+        switch (msg_id) {
         case 1:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_x);
@@ -809,14 +829,14 @@ public:
             return nullptr;
         }
     }
-    
+
     std::unique_ptr<Message> handle(const Message& msg) override
     {
         if (magic() != msg.decoder_magic()) {
             return nullptr;
         }
-        
-        switch(msg.id()) {
+
+        switch (msg.id()) {
         case 1:
             return handle(static_cast<const MouseMoveMessage&>(msg));
         case 2:
@@ -839,7 +859,7 @@ public:
             return nullptr;
         }
     }
-    
+
     virtual std::unique_ptr<Message> handle(const MouseMoveMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const MouseActionMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const MouseLeaveMessage& msg) { return nullptr; }
@@ -850,4 +870,3 @@ public:
     virtual std::unique_ptr<Message> handle(const NotifyWindowStatusChangedMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const NotifyWindowIconChangedMessage& msg) { return nullptr; }
 };
-

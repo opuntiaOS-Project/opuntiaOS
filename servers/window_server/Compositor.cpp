@@ -15,6 +15,8 @@
 #include <libfoundation/Memory.h>
 #include <libg/Context.h>
 
+namespace WinServer {
+
 static Compositor* s_the;
 
 Compositor& Compositor::the()
@@ -108,3 +110,5 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
     screen.swap_buffers();
     copy_changes_to_second_buffer(invalidated_areas);
 }
+
+} // namespace WinServer

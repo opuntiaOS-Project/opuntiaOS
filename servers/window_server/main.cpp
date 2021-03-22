@@ -30,13 +30,13 @@ int main()
 {
     start_dock();
     auto* event_loop = new LFoundation::EventLoop();
-    new Screen();
-    new Connection(socket(PF_LOCAL, 0, 0));
-    new CursorManager();
-    new ResourceManager();
-    new Compositor();
-    new WindowManager();
-    new Devices();
+    new WinServer::Screen();
+    new WinServer::Connection(socket(PF_LOCAL, 0, 0));
+    new WinServer::CursorManager();
+    new WinServer::ResourceManager();
+    new WinServer::Compositor();
+    new WinServer::WindowManager();
+    new WinServer::Devices();
     event_loop->run();
     return 0;
 }

@@ -12,6 +12,8 @@
 #include <sys/mman.h>
 #include <utility>
 
+namespace WinServer {
+
 static Screen* s_the;
 
 Screen& Screen::the()
@@ -47,3 +49,5 @@ void Screen::swap_buffers()
     m_active_buffer ^= 1;
     ioctl(m_screen_fd, BGA_SWAP_BUFFERS, m_active_buffer);
 }
+
+} // namespace WinServer

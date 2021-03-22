@@ -12,6 +12,8 @@
 #include <libg/Context.h>
 #include <libg/PixelBitmap.h>
 
+namespace WinServer {
+
 class Window;
 class Compositor;
 
@@ -83,3 +85,5 @@ private:
     bool m_visible { true };
     bool m_active { true };
 };
+
+} // namespace WinServer

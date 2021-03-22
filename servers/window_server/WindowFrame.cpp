@@ -20,6 +20,8 @@
 #define CONTROL_PANEL_MAXIMIZE 0x1
 #define CONTROL_PANEL_MINIMIZE 0x2
 
+namespace WinServer {
+
 static const uint32_t s_close_button_glyph_data[10] = {
     0b1100000011,
     0b1110000111,
@@ -218,3 +220,5 @@ void WindowFrame::reload_icon()
     LG::PNG::PNGLoader loader;
     m_icon = loader.load_from_file(m_window.icon_path() + "/12x12.png");
 }
+
+} // namespace WinServer

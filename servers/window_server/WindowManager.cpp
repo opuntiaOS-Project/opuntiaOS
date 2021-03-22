@@ -12,6 +12,8 @@
 
 #define WM_DEBUG
 
+namespace WinServer {
+
 static WindowManager* s_the;
 
 WindowManager& WindowManager::the()
@@ -212,3 +214,5 @@ void WindowManager::notify_window_icon_changed(int changed_window_id)
         }
     }
 }
+
+} // namespace WinServer

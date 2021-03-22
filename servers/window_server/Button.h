@@ -11,6 +11,8 @@
 #include <libg/Context.h>
 #include <string>
 
+namespace WinServer {
+
 class Button {
 public:
     Button() = default;
@@ -47,3 +49,5 @@ private:
 
     bool m_is_icon_set { false };
 };
+
+} // namespace WinServer

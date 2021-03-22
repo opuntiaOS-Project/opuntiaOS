@@ -9,6 +9,8 @@
 #include "WSEvent.h"
 #include <libfoundation/EventLoop.h>
 
+namespace WinServer {
+
 static Connection* s_the;
 
 Connection& Connection::the()
@@ -27,8 +29,8 @@ Connection::Connection(int connection_fd)
     if (!err) {
         LFoundation::EventLoop::the().add(
             m_connection_fd, [] {
-                    Connection::the().listen();
-                },
+                Connection::the().listen();
+            },
             nullptr);
     }
 }
@@ -40,3 +42,5 @@ void Connection::receive_event(std::unique_ptr<LFoundation::Event> event)
         m_connection_with_clients.send_message(*send_event->message());
     }
 }
+
+} // namespace WinServer

@@ -9,6 +9,8 @@
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <std/Dbg.h>
 
+namespace WinServer {
+
 static CursorManager* s_the;
 
 CursorManager& CursorManager::the()
@@ -22,3 +24,5 @@ CursorManager::CursorManager()
     LG::PNG::PNGLoader loader;
     m_std_cursor = loader.load_from_file("/res/system/arrow.png");
 }
+
+} // namespace WinServer

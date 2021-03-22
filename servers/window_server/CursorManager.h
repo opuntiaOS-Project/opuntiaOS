@@ -9,6 +9,8 @@
 #include <libg/PixelBitmap.h>
 #include <libg/Point.h>
 
+namespace WinServer {
+
 class CursorManager {
 public:
     static CursorManager& the();
@@ -21,3 +23,5 @@ public:
 private:
     LG::PixelBitmap m_std_cursor;
 };
+
+} // namespace WinServer

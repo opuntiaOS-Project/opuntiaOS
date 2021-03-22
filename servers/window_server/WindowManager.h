@@ -21,6 +21,8 @@
 #include <syscalls.h>
 #include <vector>
 
+namespace WinServer {
+
 class WindowManager : public LFoundation::EventReceiver {
 public:
     static WindowManager& the();
@@ -80,7 +82,7 @@ public:
         if (m_windows.empty()) {
             return nullptr;
         }
-        
+
         auto it = m_windows.begin();
         if (m_dock_window) {
             it++;
@@ -159,3 +161,5 @@ private:
     bool m_mouse_left_button_pressed { false };
     bool m_mouse_changed_button_status { false };
 };
+
+} // namespace WinServer

@@ -9,7 +9,11 @@
 
 #include <sys/types.h>
 
+namespace WinServer {
+
 enum Colors {
     ShadowColor = 0xf4000000,
     InactiveText = 0x7B7E78,
 };
+
+} // namespace WinServer

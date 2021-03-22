@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <syscalls.h>
 
+namespace WinServer {
+
 class WSEvent : public LFoundation::Event {
 public:
     enum Type {
@@ -103,3 +105,5 @@ public:
 private:
     std::unique_ptr<Message> m_message;
 };
+
+} // namespace WinServer

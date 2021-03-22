@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <utility>
 
+namespace WinServer {
+
 enum WindowType : int {
     Standard = 0,
     Dock = 1,
@@ -96,3 +98,5 @@ private:
     LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
     LG::string m_icon_path {};
 };
+
+} // namespace WinServer

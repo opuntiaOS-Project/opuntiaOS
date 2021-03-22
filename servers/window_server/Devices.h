@@ -12,6 +12,8 @@
 #include <memory>
 #include <std/Dbg.h>
 
+namespace WinServer {
+
 class Devices {
 public:
     static Devices& the();
@@ -56,3 +58,5 @@ private:
     int m_mouse_fd;
     int m_keyboard_fd;
 };
+
+} // namespace WinServer

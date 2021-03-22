@@ -9,6 +9,8 @@
 #include "WindowManager.h"
 #include <utility>
 
+namespace WinServer {
+
 Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
     : m_id(id)
     , m_connection_id(connection_id)
@@ -63,3 +65,5 @@ void Window::make_frameless()
     m_content_bounds = LG::Rect(x, y, content_width, content_height);
     m_frame.set_visible(false);
 }
+
+} // namespace WinServer

@@ -11,6 +11,8 @@
 #include <memory>
 #include <syscalls.h>
 
+namespace WinServer {
+
 class Screen {
 public:
     static Screen& the();
@@ -42,3 +44,5 @@ private:
     std::unique_ptr<LG::PixelBitmap> m_write_bitmap_ptr { nullptr };
     std::unique_ptr<LG::PixelBitmap> m_display_bitmap_ptr { nullptr };
 };
+
+} // namespace WinServer

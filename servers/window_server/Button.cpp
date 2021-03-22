@@ -8,6 +8,8 @@
 #include "Button.h"
 #include <algorithm>
 
+namespace WinServer {
+
 void Button::recalc_dims()
 {
     size_t new_width = 0;
@@ -46,3 +48,5 @@ void Button::display(LG::Context& ctx, LG::Point<int> pt)
         pt.offset_by(f.glyph_width(m_title[i]) + 2, 0);
     }
 }
+
+} // namespace WinServer

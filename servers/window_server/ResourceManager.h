@@ -9,12 +9,17 @@
 #include <libg/PixelBitmap.h>
 #include <libg/Point.h>
 
+namespace WinServer {
+
 class ResourceManager {
 public:
     static ResourceManager& the();
     ResourceManager();
 
     inline const LG::PixelBitmap& background() const { return m_background; }
+
 private:
     LG::PixelBitmap m_background;
 };
+
+} // namespace WinServer

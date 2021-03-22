@@ -9,6 +9,8 @@
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <std/Dbg.h>
 
+namespace WinServer {
+
 static ResourceManager* s_the;
 
 ResourceManager& ResourceManager::the()
@@ -22,3 +24,5 @@ ResourceManager::ResourceManager()
     LG::PNG::PNGLoader loader;
     m_background = loader.load_from_file("/res/wallpapers/island.png");
 }
+
+} // namespace WinServer

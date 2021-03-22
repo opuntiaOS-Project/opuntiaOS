@@ -12,6 +12,8 @@
 #include <syscalls.h>
 #include <vector>
 
+namespace WinServer {
+
 class CursorManager;
 class ResourceManager;
 
@@ -53,3 +55,5 @@ private:
     ResourceManager& m_resource_manager;
     std::vector<LG::Rect> m_invalidated_areas;
 };
+
+} // namespace WinServer

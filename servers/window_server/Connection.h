@@ -12,6 +12,8 @@
 #include <libipc/ServerConnection.h>
 #include <syscalls.h>
 
+namespace WinServer {
+
 class Connection : public LFoundation::EventReceiver {
 public:
     static Connection& the();
@@ -33,3 +35,5 @@ private:
     WServerDecoder m_server_decoder;
     WindowClientDecoder m_client_decoder;
 };
+
+} // namespace WinServer

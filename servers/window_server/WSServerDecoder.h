@@ -8,6 +8,8 @@
 #pragma once
 #include "Compositor.h"
 
+namespace WinServer {
+
 class WServerDecoder : public WindowServerDecoder {
 public:
     WServerDecoder() = default;
@@ -23,3 +25,5 @@ public:
     virtual std::unique_ptr<Message> handle(const InvalidateMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const AskBringToFrontMessage& msg) override;
 };
+
+} // namespace WinServer

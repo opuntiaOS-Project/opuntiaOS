@@ -9,6 +9,8 @@
 #include "Window.h"
 #include "WindowManager.h"
 
+namespace WinServer {
+
 std::unique_ptr<Message> WServerDecoder::handle(const GreetMessage& msg)
 {
     return new GreetMessageReply(msg.key(), Connection::the().alloc_connection());
@@ -80,7 +82,7 @@ std::unique_ptr<Message> WServerDecoder::handle(const SetBarStyleMessage& msg)
     // if (!window) {
     //     return nullptr;
     // }
-    
+
     return nullptr;
 }
 
@@ -98,3 +100,5 @@ std::unique_ptr<Message> WServerDecoder::handle(const AskBringToFrontMessage& ms
     }
     return nullptr;
 }
+
+} // namespace WinServer
