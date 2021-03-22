@@ -1,15 +1,11 @@
 #include <pthread.h>
+#include <sys/mman.h>
 #include <syscalls.h>
 
 int pthread_create(void* func)
 {
-    mmap_params_t stack_params;
-    stack_params.size = 4096; // one page for now)
-    stack_params.flags = MAP_STACK | MAP_PRIVATE;
-    stack_params.prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-    uint32_t start = mmap(&stack_params);
-
-    thread_create_params_t params;    
+    uint32_t start = (uint32_t)mmap(NULL, 4096, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_STACK | MAP_PRIVATE, 0, 0);
+    thread_create_params_t params;
     params.stack_start = start;
     params.stack_size = 4096;
     params.entry_point = (uint32_t)func;

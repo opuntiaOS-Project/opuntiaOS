@@ -27,8 +27,6 @@ int kill(pid_t pid, int signo);
 
 int raise(int signo);
 int sigaction(int signo, void* callback);
-int mmap(mmap_params_t* params);
-int munmap(void* ptr);
 int socket(int domain, int type, int protocol);
 int bind(int sockfd, const char* name, int len);
 int connect(int sockfd, const char* name, int len);

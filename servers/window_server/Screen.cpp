@@ -9,6 +9,7 @@
 #include "Compositor.h"
 #include <cstring>
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <utility>
 
 static Screen* s_the;
@@ -25,15 +26,10 @@ Screen::Screen()
     , m_display_bitmap()
 {
     s_the = this;
-    m_screen_fd = open("/dev/bga", 0);
-    mmap_params_t mp;
-    mp.flags = MAP_SHARED;
-    mp.fd = m_screen_fd;
-    mp.size = 1; // Ignored in kernel mapping bga file
-    mp.prot = PROT_READ | PROT_WRITE; // Ignored in kernel mapping bga file
+    m_screen_fd = open("/dev/bga", O_RDWR);
 
     size_t screen_buffer_size = width() * height() * depth();
-    auto* first_buffer = (LG::Color*)mmap(&mp);
+    auto* first_buffer = (LG::Color*)mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED, m_screen_fd, 0);
     auto* second_buffer = (LG::Color*)((uint8_t*)first_buffer + screen_buffer_size);
 
     m_display_bitmap = LG::PixelBitmap(first_buffer, width(), height());

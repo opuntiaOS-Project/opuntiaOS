@@ -11,6 +11,7 @@
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <memory>
 #include <std/Dbg.h>
+#include <sys/mman.h>
 
 // #define PNGLOADER_DEGUG
 
@@ -31,16 +32,10 @@ namespace PNG {
         fstat_t stat;
         fstat(fd, &stat);
 
-        mmap_params_t mmap_params;
-        mmap_params.prot = PROT_READ;
-        mmap_params.flags = MAP_PRIVATE;
-        mmap_params.fd = fd;
-        mmap_params.size = stat.size;
-
-        uint8_t* ptr = (uint8_t*)mmap(&mmap_params);
+        uint8_t* ptr = (uint8_t*)mmap(NULL, stat.size, PROT_READ, MAP_PRIVATE, fd, 0);
         PixelBitmap bitmap = load_from_mem(ptr);
 
-        munmap(ptr);
+        munmap(ptr, stat.size);
         close(fd);
         return bitmap;
     }

@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sysdep.h>
 #include <unistd.h>
@@ -46,4 +47,21 @@ int unlink(const char* path)
 int fstat(int nfds, fstat_t* stat)
 {
     return DO_SYSCALL_2(SYSFSTAT, (int)nfds, (int)stat);
+}
+
+void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+    mmap_params_t mmap_params = { 0 };
+    mmap_params.addr = addr;
+    mmap_params.size = length;
+    mmap_params.prot = prot;
+    mmap_params.flags = flags;
+    mmap_params.fd = fd;
+    mmap_params.offset = offset;
+    return (void*)DO_SYSCALL_1(SYSMMAP, &mmap_params);
+}
+
+int munmap(void* addr, size_t length)
+{
+    return DO_SYSCALL_2(SYSMUNMAP, addr, length);
 }

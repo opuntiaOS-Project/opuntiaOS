@@ -1,5 +1,6 @@
 #include "malloc.h"
 #include <string.h>
+#include <sys/mman.h>
 #include <syscalls.h>
 
 #define BLOCK_ALLOCATED (0)
@@ -17,12 +18,7 @@ static int _alloc_new_block(size_t sz)
     // this will reduce system calls for the small memory allocations
     size_t allocated_sz = sz > MALLOC_DEFAULT_BLOCK_SIZE ? sz : MALLOC_DEFAULT_BLOCK_SIZE;
 
-    static mmap_params_t params;
-    params.flags = MAP_ANONYMOUS | MAP_PRIVATE;
-    params.size = allocated_sz;
-    params.prot = PROT_READ | PROT_WRITE;
-
-    int ret = mmap(&params);
+    int ret = (int)mmap(NULL, allocated_sz, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
     if (ret < 0) {
         return -1;
     }
