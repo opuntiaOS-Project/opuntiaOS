@@ -277,22 +277,22 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
     /* If dir is a mount point, vfs should find it's parent by itself */
     if (dentry_test_flag(dir, DENTRY_MOUNTED)) {
 #ifdef VFS_DEBUG
-        log("[VFS] Lookup for mounted's parents %d %d : %d %d", dir->dev_indx, dir->inode_indx, dir->parent_dev_indx, dir->parent_inode_indx);
+        log("[VFS] Lookup for mounted's parents %d %d : %d %d", dir->dev_indx, dir->inode_indx, dir->parent->dev_indx, dir->parent->inode_indx);
 #endif
         if (len == 2) {
             if (name[0] == '.' && name[1] == '.') {
-                *result = dentry_get(dir->parent_dev_indx, dir->parent_inode_indx);
+                *result = dentry_duplicate(dir->parent);
                 return 0;
             }
         }
     }
 
-    uint32_t next_inode;
-    if (dir->ops->file.lookup(dir, name, len, &next_inode) == 0) {
-        *result = dentry_get(dir->dev_indx, next_inode);
-        return 0;
+    int err = dir->ops->file.lookup(dir, name, len, result);
+    if (err) {
+        return err;
     }
-    return -ENOENT;
+
+    return 0;
 }
 
 bool vfs_can_read(file_descriptor_t* fd)
@@ -444,7 +444,7 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
 
 int vfs_resolve_path(const char* path, dentry_t** result)
 {
-    return vfs_resolve_path_start_from((dentry_t*)0, path, result);
+    return vfs_resolve_path_start_from((dentry_t*)NULL, path, result);
 }
 
 int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)

@@ -94,7 +94,7 @@ fsdata_t get_fsdata(dentry_t* dentry);
 int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_truncate(dentry_t* dentry, uint32_t len);
-int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx);
+int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
 int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
@@ -893,12 +893,14 @@ int ext2_truncate(dentry_t* dentry, uint32_t len)
     return 0;
 }
 
-int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
+int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
     uint32_t block_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
     for (int block_index = 0; block_index < block_per_dir; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
-        if (_ext2_lookup_block(dir->dev, dir->fsdata, data_block_index, name, len, res_inode_indx) == 0) {
+        uint32_t res_inode_indx = 0;
+        if (_ext2_lookup_block(dir->dev, dir->fsdata, data_block_index, name, len, &res_inode_indx) == 0) {
+            *result = dentry_get(dir->dev_indx, res_inode_indx);
             return 0;
         }
     }

@@ -13,6 +13,9 @@
 #include <fs/ext2/ext2.h>
 #include <libkern/syscall_structs.h>
 
+#define DENTRY_WAS_IN_CACHE 0
+#define DENTRY_NEWLY_ALLOCATED 1
+
 #define VFS_MAX_FS_COUNT 5
 #define VFS_MAX_DEV_COUNT 5
 #define VFS_MAX_FILENAME 16
@@ -60,9 +63,7 @@ struct dentry {
     uint32_t dev_indx;
     vfs_device_t* dev;
 
-    uint32_t parent_inode_indx;
-    uint32_t parent_dev_indx;
-
+    struct dentry* parent;
     struct dentry* mountpoint;
     struct dentry* mounted_dentry;
 
@@ -89,7 +90,7 @@ struct file_ops {
     int (*create)(dentry_t* dentry, const char* name, uint32_t len, mode_t mode);
     int (*unlink)(dentry_t* dentry);
     int (*getdents)(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
-    int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, uint32_t* res_inode_indx);
+    int (*lookup)(dentry_t* dentry, const char* name, uint32_t len, dentry_t** result);
     int (*mkdir)(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
     int (*rmdir)(dentry_t* dir);
     int (*ioctl)(dentry_t* dentry, uint32_t cmd, uint32_t arg);
@@ -157,12 +158,13 @@ void dentry_flusher();
 
 void dentry_set_parent(dentry_t* to, dentry_t* parent);
 dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx);
+dentry_t* dentry_get_no_inode(uint32_t dev_indx, uint32_t inode_indx, int* newly_allocated);
 dentry_t* dentry_get_parent(dentry_t* dentry);
-void dentry_add(uint32_t dev_indx, uint32_t inode_indx, dentry_t res);
 dentry_t* dentry_duplicate(dentry_t* dentry);
 void dentry_put(dentry_t* dentry);
 void dentry_force_put(dentry_t* dentry);
 void dentry_put_all_dentries_of_dev(uint32_t dev_indx);
+void dentry_set_inode(dentry_t* dentry, inode_t* inode);
 void dentry_set_flag(dentry_t* dentry, uint32_t flag);
 bool dentry_test_flag(dentry_t* dentry, uint32_t flag);
 void dentry_rem_flag(dentry_t* dentry, uint32_t flag);

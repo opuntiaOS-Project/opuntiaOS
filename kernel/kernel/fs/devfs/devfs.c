@@ -336,20 +336,20 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
     return already_read;
 }
 
-int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_inode_indx)
+int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
     if (len == 1) {
         if (name[0] == '.') {
-            *res_inode_indx = devfs_inode->index;
+            *result = dentry_get(dir->dev_indx, devfs_inode->index);
             return 0;
         }
     }
 
     if (len == 2) {
         if (name[0] == '.' && name[1] == '.') {
-            *res_inode_indx = devfs_inode->parent->index;
+            *result = dentry_get(dir->dev_indx, devfs_inode->parent->index);
             return 0;
         }
     }
@@ -359,7 +359,7 @@ int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, uint32_t* res_in
         uint32_t child_name_len = strlen(child->name);
         if (len == child_name_len) {
             if (strncmp(name, child->name, len) == 0) {
-                *res_inode_indx = child->index;
+                *result = dentry_get(dir->dev_indx, child->index);
                 return 0;
             }
         }

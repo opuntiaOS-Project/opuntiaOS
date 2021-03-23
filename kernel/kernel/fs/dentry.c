@@ -16,6 +16,8 @@
 
 // #define DENTRY_DEBUG
 
+#define NOT_READ_INODE 0
+#define READ_INODE 1
 #define DENTRY_ALLOC_SIZE (4 * KB) /* Shows the size of list's parts. */
 #define DENTRY_SWAP_THRESHOLD_FOR_INODE_CACHE (16 * KB)
 
@@ -121,7 +123,7 @@ static inline void dentry_delete_inode(dentry_t* dentry)
 
 static inline void dentry_flush_inode(dentry_t* dentry)
 {
-    if (dentry_test_flag(dentry, DENTRY_DIRTY)) {
+    if (dentry_test_flag(dentry, DENTRY_DIRTY) && dentry->inode) {
         dentry->ops->dentry.write_inode(dentry);
         dentry_rem_flag(dentry, DENTRY_DIRTY);
     }
@@ -164,7 +166,7 @@ static void dentry_prefree(dentry_t* dentry)
     stat_cached_dentries--;
 }
 
-static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
+static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx, int need_to_read_inode)
 {
     if (inode_indx == 0) {
         return 0;
@@ -184,13 +186,14 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     dentry->ops = fs_desc->ops;
     dentry->inode_indx = inode_indx;
     dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
+    dentry->parent = NULL;
 
     if (!already_allocated_inode) {
         dentry->inode = (inode_t*)kmalloc(INODE_LEN);
         stat_cached_inodes_area_size += INODE_LEN;
     }
 
-    if (dentry->ops->dentry.read_inode(dentry) < 0) {
+    if (need_to_read_inode && dentry->ops->dentry.read_inode(dentry) < 0) {
         log_error("[Dentry] Can't read inode %d %d (dev, ino)", dev_indx, inode_indx);
         return 0;
     }
@@ -199,15 +202,22 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx)
     return dentry;
 }
 
+void dentry_set_inode(dentry_t* dentry, inode_t* inode)
+{
+    if (dentry->inode) {
+        kfree(dentry->inode);
+    }
+    dentry->inode = inode;
+}
+
 void dentry_set_parent(dentry_t* to, dentry_t* parent)
 {
-    to->parent_inode_indx = parent->inode_indx;
-    to->parent_dev_indx = parent->dev_indx;
+    to->parent = dentry_duplicate(parent);
 }
 
 dentry_t* dentry_get_parent(dentry_t* dentry)
 {
-    return dentry_get(dentry->parent_dev_indx, dentry->parent_inode_indx);
+    return dentry->parent;
 }
 
 /**
@@ -256,7 +266,29 @@ dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx)
     }
 
     /* It means no dentry in the cache. Let's add it. */
-    return dentry_alloc_new(dev_indx, inode_indx);
+    return dentry_alloc_new(dev_indx, inode_indx, READ_INODE);
+}
+
+dentry_t* dentry_get_no_inode(uint32_t dev_indx, uint32_t inode_indx, int* newly_allocated)
+{
+    /* We try to find the dentry in the cache */
+    dentry_cache_list_t* dentry_cache_block = dentry_cache;
+    while (dentry_cache_block) {
+        int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);
+        for (int i = 0; i < dentries_in_block; i++) {
+            if (dentry_cache_block->data[i].dev_indx == dev_indx && dentry_cache_block->data[i].inode_indx == inode_indx) {
+                if (!dentry_cache_block->data[i].d_count)
+                    stat_cached_dentries++;
+                *newly_allocated = DENTRY_WAS_IN_CACHE;
+                return dentry_duplicate(&dentry_cache_block->data[i]);
+            }
+        }
+        dentry_cache_block = dentry_cache_block->next;
+    }
+
+    /* It means no dentry in the cache. Let's add it. */
+    *newly_allocated = DENTRY_NEWLY_ALLOCATED;
+    return dentry_alloc_new(dev_indx, inode_indx, NOT_READ_INODE);
 }
 
 dentry_t* dentry_duplicate(dentry_t* dentry)
@@ -267,6 +299,10 @@ dentry_t* dentry_duplicate(dentry_t* dentry)
 
 static inline void dentry_put_impl(dentry_t* dentry)
 {
+    if (dentry->parent) {
+        dentry_put(dentry->parent);
+    }
+
     if (dentry_test_flag(dentry, DENTRY_CUSTOM)) {
         dentry->inode_indx = 0;
         if (dentry->ops->dentry.free_inode) {
