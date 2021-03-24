@@ -11,7 +11,7 @@ struct procfs_files {
 };
 typedef struct procfs_files procfs_files_t;
 
-#define DEVFS_INODE_LEN (sizeof(struct devfs_inode))
+#define PROCFS_INODE_LEN (sizeof(struct procfs_inode))
 struct procfs_inode {
     mode_t mode;
     uint16_t uid;
@@ -29,13 +29,7 @@ struct procfs_inode {
     /* NOTE: Instead of blocks here, we store procfs required things */
     uint32_t index;
     const struct file_ops* ops;
-    char* name;
-    struct file_ops handlers;
-    struct devfs_inode* parent;
-    struct devfs_inode* prev;
-    struct devfs_inode* next;
-    struct devfs_inode* first;
-    struct devfs_inode* last;
+    uint8_t padding[52];
     /* Block hack ends here */
 
     uint32_t generation;

@@ -25,6 +25,10 @@ static dynamic_array_t name_zones; /* Just store pointers to free zones one time
 static void* next_space_to_put_name;
 static uint32_t free_space_in_last_name_zone;
 
+static dynamic_array_t ops_zones; /* Just store pointers to free zones one time. */
+static void* next_space_to_put_ops;
+static uint32_t free_space_in_last_ops_zone;
+
 static devfs_inode_t* devfs_root;
 
 static uint32_t next_inode_index = 2;
@@ -59,6 +63,19 @@ static int _devfs_alloc_name_zone()
     return 0;
 }
 
+static int _devfs_alloc_ops_zone()
+{
+    void* new_zone = kmalloc(DEVFS_ZONE_SIZE);
+    if (!new_zone) {
+        return -ENOMEM;
+    }
+
+    dynamic_array_push(&ops_zones, &new_zone);
+    next_space_to_put_ops = new_zone;
+    free_space_in_last_ops_zone = DEVFS_ZONE_SIZE;
+    return 0;
+}
+
 static devfs_inode_t* _devfs_get_entry(uint32_t indx)
 {
     uint32_t entries_per_zone = DEVFS_ZONE_SIZE / DEVFS_INODE_LEN;
@@ -88,22 +105,36 @@ static devfs_inode_t* _devfs_new_entry()
     }
 
     devfs_inode_t* res = (devfs_inode_t*)next_space_to_put_entry;
-    res->index = next_inode_index++;
     next_space_to_put_entry += sizeof(devfs_inode_t);
     free_space_in_last_entry_zone -= sizeof(devfs_inode_t);
+    memset(res, 0, DEVFS_INODE_LEN);
+    res->index = next_inode_index++;
     return res;
 }
 
 static char* _devfs_new_name(int len)
 {
-    if (free_space_in_last_name_zone < len + 1) {
+    len = (len + 1 + 0x3) & (uint32_t)(~0b11);
+    if (free_space_in_last_name_zone < len) {
         _devfs_alloc_name_zone();
     }
 
     char* res = (char*)next_space_to_put_name;
-    next_space_to_put_name += len + 1;
-    free_space_in_last_name_zone -= len + 1;
-    memset(res, 0, len + 1);
+    next_space_to_put_name += len;
+    free_space_in_last_name_zone -= len;
+    memset(res, 0, len);
+    return res;
+}
+
+static file_ops_t* _devfs_new_ops()
+{
+    if (free_space_in_last_ops_zone < sizeof(file_ops_t)) {
+        _devfs_alloc_ops_zone();
+    }
+
+    file_ops_t* res = (file_ops_t*)next_space_to_put_ops;
+    next_space_to_put_ops += sizeof(file_ops_t);
+    free_space_in_last_ops_zone -= sizeof(file_ops_t);
     return res;
 }
 
@@ -176,6 +207,22 @@ static int _devfs_set_name(devfs_inode_t* entry, const char* name, uint32_t len)
     return 0;
 }
 
+static int _devfs_set_handlers(devfs_inode_t* entry, const file_ops_t* ops)
+{
+    if (!entry) {
+        return -EINVAL;
+    }
+
+    file_ops_t* ops_space = _devfs_new_ops();
+    if (!ops_space) {
+        return -ENOMEM;
+    }
+
+    memcpy(ops_space, ops, sizeof(file_ops_t));
+    entry->handlers = ops_space;
+    return 0;
+}
+
 /**
  * FS Tools
  */
@@ -183,7 +230,6 @@ static int _devfs_set_name(devfs_inode_t* entry, const char* name, uint32_t len)
 static int _devfs_setup_root()
 {
     devfs_root = _devfs_new_entry();
-    memset((void*)devfs_root, 0, DEVFS_INODE_LEN);
     devfs_root->index = 2;
     devfs_root->mode = S_IFDIR;
     return 0;
@@ -207,6 +253,7 @@ int devfs_prepare_fs(vfs_device_t* vdev)
 {
     dynamic_array_init(&name_zones, sizeof(void*));
     dynamic_array_init(&entry_zones, sizeof(void*));
+    dynamic_array_init(&ops_zones, sizeof(void*));
     _devfs_setup_root();
     return 0;
 }
@@ -359,8 +406,8 @@ int devfs_rmdir_dummy(dentry_t* dir)
 int devfs_open(dentry_t* dentry, file_descriptor_t* fd, uint32_t flags)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    if (devfs_inode->handlers.open) {
-        return devfs_inode->handlers.open(dentry, fd, flags);
+    if (devfs_inode->handlers->open) {
+        return devfs_inode->handlers->open(dentry, fd, flags);
     }
     /*  The device doesn't have custom open, so returns ENOEXEC in this case 
         according to vfs. */
@@ -370,8 +417,8 @@ int devfs_open(dentry_t* dentry, file_descriptor_t* fd, uint32_t flags)
 int devfs_can_read(dentry_t* dentry, uint32_t start)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    if (devfs_inode->handlers.can_read) {
-        return devfs_inode->handlers.can_read(dentry, start);
+    if (devfs_inode->handlers->can_read) {
+        return devfs_inode->handlers->can_read(dentry, start);
     }
     return true;
 }
@@ -379,8 +426,8 @@ int devfs_can_read(dentry_t* dentry, uint32_t start)
 int devfs_can_write(dentry_t* dentry, uint32_t start)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    if (devfs_inode->handlers.can_write) {
-        return devfs_inode->handlers.can_write(dentry, start);
+    if (devfs_inode->handlers->can_write) {
+        return devfs_inode->handlers->can_write(dentry, start);
     }
     return true;
 }
@@ -388,8 +435,8 @@ int devfs_can_write(dentry_t* dentry, uint32_t start)
 int devfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    if (devfs_inode->handlers.read) {
-        return devfs_inode->handlers.read(dentry, buf, start, len);
+    if (devfs_inode->handlers->read) {
+        return devfs_inode->handlers->read(dentry, buf, start, len);
     }
     return -EFAULT;
 }
@@ -397,8 +444,8 @@ int devfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 int devfs_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    if (devfs_inode->handlers.write) {
-        return devfs_inode->handlers.write(dentry, buf, start, len);
+    if (devfs_inode->handlers->write) {
+        return devfs_inode->handlers->write(dentry, buf, start, len);
     }
     return -EFAULT;
 }
@@ -410,8 +457,8 @@ int devfs_fstat(dentry_t* dentry, fstat_t* stat)
     stat->ino = devfs_inode->index;
     stat->mode = devfs_inode->mode;
     // Calling a custom fstat
-    if (devfs_inode->handlers.fstat) {
-        return devfs_inode->handlers.fstat(dentry, stat);
+    if (devfs_inode->handlers->fstat) {
+        return devfs_inode->handlers->fstat(dentry, stat);
     }
     return 0;
 }
@@ -419,8 +466,8 @@ int devfs_fstat(dentry_t* dentry, fstat_t* stat)
 int devfs_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    if (devfs_inode->handlers.ioctl) {
-        return devfs_inode->handlers.ioctl(dentry, cmd, arg);
+    if (devfs_inode->handlers->ioctl) {
+        return devfs_inode->handlers->ioctl(dentry, cmd, arg);
     }
     return -EFAULT;
 }
@@ -428,8 +475,8 @@ int devfs_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 proc_zone_t* devfs_mmap(dentry_t* dentry, mmap_params_t* params)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    if (devfs_inode->handlers.mmap) {
-        return devfs_inode->handlers.mmap(dentry, params);
+    if (devfs_inode->handlers->mmap) {
+        return devfs_inode->handlers->mmap(dentry, params);
     }
     /* If we don't have a custom impl, let's used a std one */
     return (proc_zone_t*)VFS_USE_STD_MMAP;
@@ -505,13 +552,13 @@ devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, u
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
     devfs_inode_t* new_entry = _devfs_alloc_entry(devfs_inode);
     if (!new_entry) {
-        return 0;
+        return NULL;
     }
 
     new_entry->dev_id = devid;
     new_entry->mode = mode;
     _devfs_set_name(new_entry, name, len);
-    memcpy((void*)&new_entry->handlers, (void*)handlers, sizeof(*handlers));
+    _devfs_set_handlers(new_entry, handlers);
     dentry_set_flag(dir, DENTRY_DIRTY);
 
     return new_entry;

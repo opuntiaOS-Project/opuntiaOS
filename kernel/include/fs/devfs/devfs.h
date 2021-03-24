@@ -23,12 +23,13 @@ struct devfs_inode {
     uint32_t index;
     uint32_t dev_id;
     char* name;
-    struct file_ops handlers;
+    struct file_ops* handlers;
     struct devfs_inode* parent;
     struct devfs_inode* prev;
     struct devfs_inode* next;
     struct devfs_inode* first;
     struct devfs_inode* last;
+    uint8_t padding[24];
     /* Block hack ends here */
 
     uint32_t generation;
