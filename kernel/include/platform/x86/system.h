@@ -8,6 +8,7 @@
 #ifndef _KERNEL_PLATFORM_X86_SYSTEM_H
 #define _KERNEL_PLATFORM_X86_SYSTEM_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 #include <platform/generic/registers.h>
 
@@ -69,7 +70,7 @@ inline static void system_disable_paging()
     asm volatile("mov %eax, %cr0");
 }
 
-__attribute__((noreturn)) inline static void system_stop()
+NORETURN inline static void system_stop()
 {
     asm volatile("cli\n");
     asm volatile("hlt\n");

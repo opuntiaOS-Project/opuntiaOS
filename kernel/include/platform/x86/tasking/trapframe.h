@@ -1,11 +1,12 @@
 #ifndef _KERNEL_PLATFORM_X86_TASKING_TRAPFRAME_H
 #define _KERNEL_PLATFORM_X86_TASKING_TRAPFRAME_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/tasking/tss.h>
 
-typedef struct {
+struct PACKED trapframe {
     // registers as pushed by pusha
     uint32_t edi;
     uint32_t esi;
@@ -38,7 +39,8 @@ typedef struct {
     uint32_t esp;
     uint16_t ss;
     uint16_t padding6;
-} __attribute__((packed)) trapframe_t;
+};
+typedef struct trapframe trapframe_t;
 
 static inline uint32_t get_stack_pointer(trapframe_t* tf)
 {

@@ -8,9 +8,10 @@
 #ifndef _KERNEL_PLATFORM_AARCH32_VMM_PTE_H
 #define _KERNEL_PLATFORM_AARCH32_VMM_PTE_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 
-struct page_desc {
+struct PACKED page_desc {
     union {
         struct {
             int xn : 1; // Execute never. Stops execution of page.
@@ -26,7 +27,7 @@ struct page_desc {
         };
         uint32_t data;
     };
-} __attribute__((packed));
+};
 typedef struct page_desc page_desc_t;
 
 #define pte_t page_desc_t

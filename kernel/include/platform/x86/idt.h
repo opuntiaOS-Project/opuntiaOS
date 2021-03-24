@@ -1,6 +1,7 @@
 #ifndef _KERNEL_PLATFORM_X86_IDT_H
 #define _KERNEL_PLATFORM_X86_IDT_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 #include <platform/x86/pic.h>
 #include <platform/x86/port.h>
@@ -13,13 +14,13 @@
 #define IRQ_MASTER_OFFSET 32
 #define IRQ_SLAVE_OFFSET 40
 
-struct idt_entry { // call gate
+struct PACKED idt_entry { // call gate
     uint16_t offset_lower;
     uint16_t segment;
     uint8_t zero;
     uint8_t type;
     uint16_t offset_upper;
-} __attribute__((packed));
+};
 
 extern struct idt_entry idt[IDT_ENTRIES];
 extern void** handlers[IDT_ENTRIES];

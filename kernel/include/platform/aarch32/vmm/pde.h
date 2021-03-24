@@ -8,9 +8,10 @@
 #ifndef _KERNEL_PLATFORM_AARCH32_VMM_PDE_H
 #define _KERNEL_PLATFORM_AARCH32_VMM_PDE_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 
-struct table_desc {
+struct PACKED table_desc {
     union {
         struct {
             int valid : 1; /* Valid mapping */
@@ -24,8 +25,7 @@ struct table_desc {
         };
         uint32_t data;
     };
-
-} __attribute__((packed));
+};
 typedef struct table_desc table_desc_t;
 
 #define pde_t table_desc_t

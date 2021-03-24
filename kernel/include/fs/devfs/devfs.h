@@ -2,10 +2,11 @@
 #define _KERNEL_FS_DEVFS_DEVFS_H
 
 #include <fs/vfs.h>
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 
 #define DEVFS_INODE_LEN (sizeof(struct devfs_inode))
-struct devfs_inode {
+struct PACKED devfs_inode {
     mode_t mode;
     uint16_t uid;
     uint32_t size;

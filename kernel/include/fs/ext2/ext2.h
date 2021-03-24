@@ -1,11 +1,12 @@
 #ifndef _KERNEL_FS_EXT2_EXT2_H
 #define _KERNEL_FS_EXT2_EXT2_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 
 #define SUPERBLOCK_START 1024
 #define SUPERBLOCK_LEN (sizeof(superblock_t))
-typedef struct {
+struct PACKED superblock {
     uint32_t inodes_count;
     uint32_t blocks_count;
     uint32_t r_blocks_count;
@@ -38,20 +39,21 @@ typedef struct {
     uint32_t feature_compat;
     uint32_t feature_incompat;
     uint32_t feature_ro_compat;
-    uint8_t  uuid[16];
-    uint8_t  volume_name[16];
-    uint8_t  last_mounted[64];
+    uint8_t uuid[16];
+    uint8_t volume_name[16];
+    uint8_t last_mounted[64];
     uint32_t algo_bitmap;
 
-    uint8_t  prealloc_blocks;
-    uint8_t  prealloc_dir_blocks;
+    uint8_t prealloc_blocks;
+    uint8_t prealloc_dir_blocks;
 
     // current jurnalling is unsupported
-    uint8_t unused[1024-206];
-} superblock_t;
+    uint8_t unused[1024 - 206];
+};
+typedef struct superblock superblock_t;
 
 #define GROUP_LEN (sizeof(group_desc_t))
-typedef struct {
+struct PACKED group_desc {
     uint32_t block_bitmap;
     uint32_t inode_bitmap;
     uint32_t inode_table;
@@ -59,8 +61,9 @@ typedef struct {
     uint16_t free_inodes_count;
     uint16_t used_dirs_count;
     uint16_t pad;
-    uint8_t  reserved[12];
-} group_desc_t;
+    uint8_t reserved[12];
+};
+typedef struct group_desc group_desc_t;
 
 #define S_IFSOCK 0xC000
 #define S_IFLNK 0xA000
@@ -86,8 +89,8 @@ typedef struct {
 
 #define INODE_LEN (sizeof(inode_t))
 #define INODES_RESERVED 11
-typedef struct {
-    mode_t   mode;
+struct PACKED inode {
+    mode_t mode;
     uint16_t uid;
     uint32_t size;
     uint32_t atime;
@@ -105,16 +108,18 @@ typedef struct {
     uint32_t dir_acl;
     uint32_t faddr;
     uint32_t osd2[3];
-} inode_t;
+};
+typedef struct inode inode_t;
 
 #define DIR_ENTRY_LEN (sizeof(dir_entry_t))
-typedef struct {
+struct PACKED dir_entry {
     uint32_t inode;
     uint16_t rec_len;
     uint8_t name_len;
     uint8_t file_type;
     char* name;
-} dir_entry_t;
+};
+typedef struct dir_entry dir_entry_t;
 
 void ext2_install();
 

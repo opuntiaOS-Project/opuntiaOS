@@ -2,6 +2,7 @@
 #define _KERNEL_FS_PROCFS_PROCFS_H
 
 #include <fs/vfs.h>
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 
 struct procfs_files {
@@ -12,7 +13,7 @@ struct procfs_files {
 typedef struct procfs_files procfs_files_t;
 
 #define PROCFS_INODE_LEN (sizeof(struct procfs_inode))
-struct procfs_inode {
+struct PACKED procfs_inode {
     mode_t mode;
     uint16_t uid;
     uint32_t size;

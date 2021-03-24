@@ -8,6 +8,7 @@
 #ifndef _KERNEL_LIBKERN_KASSERT_H
 #define _KERNEL_LIBKERN_KASSERT_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/log.h>
 #include <libkern/types.h>
 #include <platform/generic/system.h>
@@ -19,7 +20,7 @@
         system_stop();                                         \
     }
 
-void kpanic(const char* msg) __attribute__((noreturn));
-void kpanic_tf(const char* err_msg, trapframe_t* tf) __attribute__((noreturn));
+void kpanic(const char* msg) NORETURN;
+void kpanic_tf(const char* err_msg, trapframe_t* tf) NORETURN;
 
 #endif // _KERNEL_LIBKERN_KASSERT_H

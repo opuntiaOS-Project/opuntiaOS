@@ -1,6 +1,7 @@
 #ifndef _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H
 #define _KERNEL_PLATFORM_AARCH32_TASKING_TRAPFRAME_H
 
+#include <libkern/c_attrs.h>
 #include <libkern/log.h>
 #include <libkern/types.h>
 
@@ -20,7 +21,7 @@ typedef struct {
     uint32_t user_lr;
     uint32_t r[13];
     uint32_t user_ip;
-} __attribute__((packed)) trapframe_t;
+} PACKED trapframe_t;
 
 static inline uint32_t get_stack_pointer(trapframe_t* tf)
 {
