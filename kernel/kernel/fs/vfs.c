@@ -287,6 +287,10 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
         }
     }
 
+    if (!dir->ops->file.lookup) {
+        return -ENOEXEC;
+    }
+
     int err = dir->ops->file.lookup(dir, name, len, result);
     if (err) {
         return err;
@@ -431,7 +435,8 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
             cur_dent = dentry_duplicate(cur_dent);
         }
 
-        if (cur_dent != parent_dent) {
+        // Check for . & .. to not to mess up dentry's parent.
+        if (cur_dent != parent_dent && parent_dent->parent != cur_dent) {
             dentry_set_parent(cur_dent, parent_dent);
         }
         dentry_put(parent_dent);

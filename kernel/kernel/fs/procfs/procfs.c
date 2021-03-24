@@ -1,11 +1,28 @@
+#include <fs/procfs/procfs.h>
 #include <fs/vfs.h>
-#include <mem/kmalloc.h>
+#include <libkern/bits/errno.h>
+#include <libkern/libkern.h>
+#include <libkern/log.h>
 
-static int test_proc_num = 8;
-
+/**
+ * ProcFS works with caches differently. It does NOT allow reading 
+ * of random inode in it's current implementation. Instead of 
+ * accessing inode randomly, every cache entry (dentry) will be 
+ * filled up with inode by lookup functions, and the ONLY way when
+ * procfs_read_inode will be called is to get the root inode.
+ */
+extern const file_ops_t procfs_root_ops;
 int procfs_read_inode(dentry_t* dentry)
 {
-    dentry->inode->mode = S_IFDIR;
+    if (dentry->inode_indx != 2) {
+        log_warn("NOT ROOT ENTRY ID READ IN PROCFS");
+        return -1;
+    }
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    memset((void*)procfs_inode, 0, sizeof(procfs_inode_t));
+    procfs_inode->index = 2;
+    procfs_inode->mode = S_IFDIR;
+    procfs_inode->ops = &procfs_root_ops;
     return 0;
 }
 
@@ -27,20 +44,40 @@ fsdata_t procfs_data(dentry_t* dentry)
     return fsdata;
 }
 
-/* FIXME: New api */
-int procfs_getdents(dentry_t* dir, uint32_t* offset, dirent_t* res)
+int procfs_can_read(dentry_t* dentry, uint32_t start)
 {
-    // if (*offset >= test_proc_num) {
-    //     return -1;
-    // }
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    if (!procfs_inode->ops->can_read) {
+        return -ENOEXEC;
+    }
+    return procfs_inode->ops->can_read(dentry, start);
+}
 
-    // res->inode = *offset + 2;
-    // char val = (*offset + (int)'0');
-    // memcpy(res->name, "Proc", 4);
-    // memcpy(res->name+4, &val, 1);
+int procfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+{
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    if (!procfs_inode->ops->read) {
+        return -ENOEXEC;
+    }
+    return procfs_inode->ops->read(dentry, buf, start, len);
+}
 
-    // (*offset)++;
-    return 0;
+int procfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
+{
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
+    if (!procfs_inode->ops->getdents) {
+        return -ENOEXEC;
+    }
+    return procfs_inode->ops->getdents(dir, buf, offset, len);
+}
+
+int procfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
+{
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
+    if (!procfs_inode->ops->lookup) {
+        return -ENOEXEC;
+    }
+    return procfs_inode->ops->lookup(dir, name, len, result);
 }
 
 driver_desc_t _procfs_driver_info()
@@ -55,7 +92,8 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = 0; /* No custom open, vfs will use its code */
-    fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = procfs_can_read;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = procfs_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = 0;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = 0;
@@ -65,7 +103,7 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = procfs_write_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE] = procfs_free_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = procfs_data;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = procfs_lookup;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = procfs_getdents;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = 0;
@@ -77,4 +115,21 @@ driver_desc_t _procfs_driver_info()
 void procfs_install()
 {
     driver_install(_procfs_driver_info(), "procfs");
+}
+
+int procfs_mount()
+{
+    dentry_t* mp;
+    if (vfs_resolve_path("/proc", &mp) < 0) {
+        return -ENOENT;
+    }
+    int driver_id = vfs_get_fs_id("procfs");
+    if (driver_id < 0) {
+        log("Procfs: no driver is installed, exiting");
+        return -ENOENT;
+    }
+    log("procfs: %x", driver_id);
+    int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), driver_id);
+    dentry_put(mp);
+    return err;
 }

@@ -175,6 +175,12 @@ void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode);
 uint32_t dentry_stat_cached_count();
 
 /**
+ * VFS HELPERS
+ */
+
+ssize_t vfs_helper_write_dirent(dirent_t* buf, uint32_t buf_len, uint32_t inode_index, const char* name);
+
+/**
  * VFS APIS
  */
 

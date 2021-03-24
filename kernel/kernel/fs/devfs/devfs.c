@@ -8,6 +8,7 @@
 #include <algo/dynamic_array.h>
 #include <drivers/driver_manager.h>
 #include <fs/devfs/devfs.h>
+#include <fs/vfs.h>
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
@@ -212,7 +213,7 @@ int devfs_prepare_fs(vfs_device_t* vdev)
 
 int devfs_read_inode(dentry_t* dentry)
 {
-    /*  We currently has a uniqueue structure of inode for devfs. So we need to be
+    /*  We currently have a uniqueue structure of inode for devfs. So we need to be
         confident using inode in vfs, since inode and devfs_inode are not similar. */
     devfs_inode_t* devfs_inode = _devfs_get_devfs_inode(dentry->inode_indx);
     if (!devfs_inode) {
@@ -252,49 +253,34 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 
     /* Return . */
     if (*offset == 0) {
-        int rec_len = 8 + 1 + 1;
-
-        if (len < rec_len) {
+        ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, devfs_inode->index, ".");
+        if (read <= 0) {
             if (!already_read) {
                 return -EINVAL;
             }
             return already_read;
         }
-
-        tmp.inode = devfs_inode->index;
-        tmp.rec_len = rec_len;
-        tmp.name_len = 1;
-        memcpy(buf + already_read, (void*)&tmp, 8);
-        memcpy(buf + already_read + 8, ".", 1);
-        buf[already_read + rec_len - 1] = '\0';
-        already_read += rec_len;
-        len -= rec_len;
+        already_read += read;
+        len -= read;
         *offset = 1;
     }
 
     /* Return .. */
     if (*offset == 1) {
-        int rec_len = 8 + 2 + 1;
+        uint32_t inode_index = devfs_inode->index;
+        if (devfs_inode->parent) {
+            inode_index = devfs_inode->parent->index;
+        }
 
-        if (len < rec_len) {
+        ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, inode_index, "..");
+        if (read <= 0) {
             if (!already_read) {
                 return -EINVAL;
             }
             return already_read;
         }
-
-        if (devfs_inode->parent) {
-            tmp.inode = devfs_inode->parent->index;
-        } else {
-            tmp.inode = devfs_inode->index;
-        }
-        tmp.rec_len = rec_len;
-        tmp.name_len = 2;
-        memcpy(buf + already_read, (void*)&tmp, 8);
-        memcpy(buf + already_read + 8, "..", 2);
-        buf[already_read + rec_len - 1] = '\0';
-        already_read += rec_len;
-        len -= rec_len;
+        already_read += read;
+        len -= read;
         *offset = 2;
     }
 
@@ -308,24 +294,15 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 
     while (*offset != 0xffffffff) {
         devfs_inode_t* child_devfs_inode = (devfs_inode_t*)*offset;
-        uint32_t name_len = strlen(child_devfs_inode->name);
-        int rec_len = 8 + name_len + 1;
-
-        if (len < rec_len) {
+        ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, child_devfs_inode->index, child_devfs_inode->name);
+        if (read <= 0) {
             if (!already_read) {
                 return -EINVAL;
             }
             return already_read;
         }
-
-        tmp.inode = child_devfs_inode->index;
-        tmp.rec_len = rec_len;
-        tmp.name_len = name_len;
-        memcpy(buf + already_read, (void*)&tmp, 8);
-        memcpy(buf + already_read + 8, child_devfs_inode->name, name_len);
-        buf[already_read + rec_len - 1] = '\0';
-        already_read += rec_len;
-        len -= rec_len;
+        already_read += read;
+        len -= read;
         if (child_devfs_inode->next) {
             *offset = (uint32_t)child_devfs_inode->next;
         } else {

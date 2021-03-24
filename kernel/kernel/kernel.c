@@ -71,6 +71,7 @@ void stage3(mem_desc_t* mem_desc)
     drivers_run();
 
     // mounting filesystems
+    procfs_mount();
     devfs_mount();
 
     // ipc
