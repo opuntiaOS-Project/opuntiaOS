@@ -9,6 +9,7 @@
 #define _KERNEL_PLATFORM_AARCH32_REGISTERS_H
 
 #include <libkern/types.h>
+#include <platform/aarch32/system.h>
 
 static inline uint32_t read_r3()
 {
@@ -79,6 +80,7 @@ static inline void write_cpacr(uint32_t val)
                  :
                  : "r"(val)
                  : "memory");
+    system_instruction_barrier();
 }
 
 static inline uint32_t read_nsacr()
@@ -96,6 +98,7 @@ static inline void write_nsacr(uint32_t val)
                  :
                  : "r"(val)
                  : "memory");
+    system_instruction_barrier();
 }
 
 static inline uint32_t read_hcptr()
@@ -113,6 +116,7 @@ static inline void write_hcptr(uint32_t val)
                  :
                  : "r"(val)
                  : "memory");
+    system_instruction_barrier();
 }
 
 #endif /* _KERNEL_PLATFORM_AARCH32_REGISTERS_H */

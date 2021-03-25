@@ -13,9 +13,11 @@ fpu_restore:
 .global read_fpexc
 read_fpexc:
     vmrs    r0, fpexc
+    isb
     bx      lr
 
 .global write_fpexc
 write_fpexc:
     vmsr    fpexc, r0
+    isb
     bx      lr

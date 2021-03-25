@@ -65,6 +65,7 @@ static inline void write_ttbcr(uint32_t val)
                  :
                  : "r"(val)
                  : "memory");
+    asm volatile("dmb");
 }
 
 static inline void write_ttbr0(uint32_t val)
@@ -94,6 +95,7 @@ static inline void write_dacr(uint32_t val)
     asm volatile("mcr p15, 0, %0, c3, c0, 0"
                  :
                  : "r"(val));
+    asm volatile("dmb");
 }
 
 static ptable_t* map_page(uint32_t tphyz, uint32_t tvirt)
@@ -130,7 +132,7 @@ void vm_setup()
     for (int i = 0; i < VMM_PDE_COUNT; i++) {
         dir->entities[i].valid = 0;
     }
-    
+
     map_page(0x1c000000, 0x1c000000); // mapping uart
     map_page(0x3f000000, 0x3f000000); // mapping interrupt controller
     map_page(0x80100000, 0xc0000000); // kernel
