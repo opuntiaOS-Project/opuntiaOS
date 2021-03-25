@@ -70,6 +70,6 @@ void stage2(mem_desc_t *mem_desc) {
 
     asm volatile("push %0" : : "r"(mem_desc));
     asm volatile("mov $0xc0000000, %eax");
-    asm volatile("call %eax");
+    asm volatile("call *%eax");
     while (1) {}
 }

@@ -2,13 +2,13 @@
 
 memory_map_entry:
 base_address:
-    resq 1
+    dq 0x0
 length:
-    resq 1
+    dq 0x0
 type:
-    resd 1
+    dq 0x0
 acpi_null:
-    resd 1
+    dq 0x0
 memory_map_entry_end:
 
 memory_map_size: dw 0

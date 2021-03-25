@@ -7,6 +7,7 @@ stage2_start = "0x1000"
 executable("stage2") {
   output_name = "stage2.bin"
   sources = [
+    # Keep order
     "//boot/x86/stage2_entry.s",
     "//boot/x86/stage2/drivers/ata.c",
     "//boot/x86/stage2/drivers/display.c",
