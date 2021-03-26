@@ -70,10 +70,15 @@ inline static void system_disable_paging()
     asm volatile("mov %eax, %cr0");
 }
 
+inline static void system_stop_until_interrupt()
+{
+    asm volatile("hlt");
+}
+
 NORETURN inline static void system_stop()
 {
-    asm volatile("cli\n");
-    asm volatile("hlt\n");
+    system_disable_interrupts();
+    system_stop_until_interrupt();
     while (1) { }
 }
 

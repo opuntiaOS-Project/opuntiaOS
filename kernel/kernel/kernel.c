@@ -33,18 +33,8 @@
 
 #include <syscalls/handlers.h>
 
-/* If we stay our anythread alone it can't get keyboard input,
-   so we will switch to idle_thread to fix it. */
-void idle_thread()
-{
-    while (1) {
-        ksys0(SYSSCHEDYIELD);
-    }
-}
-
 void launching()
 {
-    tasking_create_kernel_thread(idle_thread, NULL);
     tasking_create_kernel_thread(dentry_flusher, NULL);
     tasking_start_init_proc();
     ksys1(SYSEXIT, 0);

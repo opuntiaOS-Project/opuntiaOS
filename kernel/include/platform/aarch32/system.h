@@ -91,10 +91,15 @@ inline static void system_disable_paging()
 {
 }
 
+inline static void system_stop_until_interrupt()
+{
+    asm volatile("wfi");
+}
+
 NORETURN inline static void system_stop()
 {
     system_disable_interrupts();
-    asm volatile("wfi");
+    system_stop_until_interrupt();
     while (1) { }
 }
 

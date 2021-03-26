@@ -129,8 +129,7 @@ void tasking_start_init_proc()
     p->pdir = vmm_new_user_pdir();
 
     if (proc_load(p, p->main_thread, "/boot/init") < 0) {
-        log_error("Failed to load init proc");
-        while (1) { }
+        kpanic("Failed to load init proc");
     }
 
     sched_enqueue(p->main_thread);

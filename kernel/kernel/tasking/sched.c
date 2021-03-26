@@ -10,6 +10,7 @@
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <platform/generic/registers.h>
+#include <platform/generic/system.h>
 #include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <tasking/cpu.h>
@@ -19,10 +20,12 @@
 // #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT
 
-runqueue_t buf1[PRIOS_COUNT];
-runqueue_t buf2[PRIOS_COUNT];
+runqueue_t buf1[TOTAL_PRIOS_COUNT];
+runqueue_t buf2[TOTAL_PRIOS_COUNT];
 
+// TODO: Made them per-cpu.
 static int _buf_read_prio;
+static int _enqueued_tasks;
 static runqueue_t* _master_buf;
 static runqueue_t* _slave_buf;
 
@@ -30,7 +33,7 @@ extern void switch_contexts(context_t** old, context_t* new);
 extern void switch_to_context(context_t* new);
 
 /* INIT */
-static void _init_cpus(cpu_t* cpu);
+static void _init_cpu(cpu_t* cpu);
 /* BUFFERS */
 static inline void _sched_swap_buffers();
 static inline thread_t* _master_buf_back();
@@ -38,7 +41,29 @@ static inline void _sched_save_running_proc();
 /* DEBUG */
 static void _debug_print_runqueue(runqueue_t* it);
 
-static void _init_cpus(cpu_t* cpu)
+static void _idle_thread()
+{
+    while (1) {
+        system_stop_until_interrupt();
+    }
+}
+
+static void _create_idle_thread()
+{
+    proc_t* idle_proc = tasking_create_kernel_thread(_idle_thread, NULL);
+
+    // Changing prio.
+    sched_dequeue(idle_proc->main_thread);
+    idle_proc->prio = IDLE_PRIO;
+
+    // Idle thread is enqueued in 2 bufs.
+    sched_enqueue(idle_proc->main_thread);
+    _sched_swap_buffers();
+    sched_enqueue(idle_proc->main_thread);
+    _enqueued_tasks -= 2; // Don't count idle thread.
+}
+
+static void _init_cpu(cpu_t* cpu)
 {
     cpu->current_state = CPU_IN_KERNEL;
     cpu->kstack = kmalloc(VMM_PAGE_SIZE);
@@ -52,6 +77,7 @@ static void _init_cpus(cpu_t* cpu)
     cpu->fpu_for_thread = NULL;
     cpu->fpu_for_pid = 0;
 #endif // FPU_ENABLED
+    _create_idle_thread();
 }
 
 static inline void _sched_swap_buffers()
@@ -91,7 +117,7 @@ void scheduler_init()
     _buf_read_prio = 0;
 
     for (int i = 0; i < CPU_CNT; i++) {
-        _init_cpus(&cpus[i]);
+        _init_cpu(&cpus[i]);
     }
 }
 
@@ -143,6 +169,7 @@ void sched_enqueue(thread_t* thread)
     }
 
     _sched_add_to_start_of_runqueue(thread);
+    _enqueued_tasks++;
 }
 
 void sched_dequeue(thread_t* thread)
@@ -174,28 +201,33 @@ void sched_dequeue(thread_t* thread)
         thread->sched_next->sched_prev = thread->sched_prev;
     }
 
-    thread->sched_next = thread->sched_prev = 0;
+    thread->sched_next = thread->sched_prev = NULL;
+    _enqueued_tasks--;
 }
 
 void sched()
 {
     for (;;) {
+        // Check if only idle thread is enqueued.
+        if (unlikely(_enqueued_tasks == 0)) {
+            _buf_read_prio = IDLE_PRIO;
+        }
+
         while (!_master_buf[_buf_read_prio].head) {
+            _buf_read_prio++;
             if (_buf_read_prio >= MIN_PRIO) {
                 tasking_kill_dying();
                 sched_unblock_threads();
                 _sched_swap_buffers();
-            } else {
-                _buf_read_prio++;
             }
         }
 
         thread_t* thread = _master_buf[_buf_read_prio].head;
         _master_buf[_buf_read_prio].head = thread->sched_next;
         if (_master_buf[_buf_read_prio].tail == thread) {
-            _master_buf[_buf_read_prio].tail = 0;
+            _master_buf[_buf_read_prio].tail = NULL;
         }
-        thread->sched_next = thread->sched_prev = 0;
+        thread->sched_next = thread->sched_prev = NULL;
 #ifdef SCHED_DEBUG
         log("next to run %d %x %x\n", thread->tid, get_instruction_pointer(thread->tf), thread->tf);
 #endif
@@ -210,7 +242,7 @@ void sched()
 
 static void _debug_print_runqueue(runqueue_t* it)
 {
-    for (int i = 0; i < PRIOS_COUNT; i++) {
+    for (int i = 0; i < PROC_PRIOS_COUNT; i++) {
         log(" Prio %d", i);
         thread_t* tmp = it[i].head;
         while (tmp) {

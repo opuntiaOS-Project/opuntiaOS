@@ -5,7 +5,6 @@
  * found in the LICENSE file.
  */
 
-
 #ifndef _KERNEL_TASKING_SCHED_H
 #define _KERNEL_TASKING_SCHED_H
 
@@ -15,7 +14,9 @@
 
 #define MAX_PRIO 0
 #define MIN_PRIO 10
-#define PRIOS_COUNT (MIN_PRIO - MAX_PRIO + 1)
+#define IDLE_PRIO (MIN_PRIO + 1)
+#define PROC_PRIOS_COUNT (MIN_PRIO - MAX_PRIO + 1)
+#define TOTAL_PRIOS_COUNT (IDLE_PRIO - MAX_PRIO + 1)
 #define DEFAULT_PRIO 6
 #define SCHED_INT 10
 
