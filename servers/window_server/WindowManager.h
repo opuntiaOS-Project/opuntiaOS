@@ -18,7 +18,6 @@
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
 #include <list>
-#include <syscalls.h>
 #include <vector>
 
 namespace WinServer {

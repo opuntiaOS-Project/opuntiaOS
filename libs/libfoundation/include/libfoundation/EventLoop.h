@@ -11,7 +11,6 @@
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/Receivers.h>
 #include <memory>
-#include <syscalls.h>
 #include <vector>
 
 namespace LFoundation {

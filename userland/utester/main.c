@@ -1,9 +1,9 @@
 #include <fcntl.h>
 #include <sched.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syscalls.h>
 #include <unistd.h>
 
 void exectest(void)

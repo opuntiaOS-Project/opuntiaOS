@@ -12,7 +12,7 @@
 #include <new>
 #include <sched.h>
 #include <std/Dbg.h>
-#include <syscalls.h>
+#include <sys/socket.h>
 
 // #define DEBUG_CONNECTION
 

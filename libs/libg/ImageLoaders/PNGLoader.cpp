@@ -12,6 +12,8 @@
 #include <memory>
 #include <std/Dbg.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 // #define PNGLOADER_DEGUG
 

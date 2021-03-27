@@ -1,5 +1,5 @@
-#ifndef _LIBC_BITS_SOCKET_H
-#define _LIBC_BITS_SOCKET_H
+#ifndef _LIBC_BITS_SYS_SOCKET_H
+#define _LIBC_BITS_SYS_SOCKET_H
 
 enum SOCK_DOMAINS {
     PF_LOCAL,
@@ -23,4 +23,4 @@ enum SOCK_TYPES {
     SOCK_PACKET,
 };
 
-#endif // _LIBC_BITS_SOCKET_H
+#endif // _LIBC_BITS_SYS_SOCKET_H

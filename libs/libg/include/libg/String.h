@@ -13,7 +13,6 @@
 #include <libipc/Encoder.h>
 #include <string>
 #include <sys/types.h>
-#include <syscalls.h>
 
 namespace LG {
 

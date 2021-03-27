@@ -9,6 +9,7 @@
 #include "Compositor.h"
 #include <cstring>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <utility>
 

@@ -1,7 +1,8 @@
 #include <pthread.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syscalls.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 #define true (1)

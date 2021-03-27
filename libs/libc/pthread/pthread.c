@@ -1,6 +1,6 @@
 #include <pthread.h>
 #include <sys/mman.h>
-#include <syscalls.h>
+#include <sysdep.h>
 
 int pthread_create(void* func)
 {
@@ -9,5 +9,5 @@ int pthread_create(void* func)
     params.stack_start = start;
     params.stack_size = 4096;
     params.entry_point = (uint32_t)func;
-    return system_pthread_create(&params);
+    return DO_SYSCALL_1(SYSPTHREADCREATE, &params);
 }

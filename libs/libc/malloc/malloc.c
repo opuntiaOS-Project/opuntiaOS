@@ -1,7 +1,6 @@
 #include "malloc.h"
 #include <string.h>
 #include <sys/mman.h>
-#include <syscalls.h>
 
 #define BLOCK_ALLOCATED (0)
 #define BLOCK_FREE (1)

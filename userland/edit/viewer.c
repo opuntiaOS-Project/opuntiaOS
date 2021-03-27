@@ -1,8 +1,5 @@
 #include "viewer.h"
 #include "file.h"
-#ifdef __oneOS__
-#include <syscalls.h>
-#else
 #include <unistd.h>
 #include <stdlib.h>
 #endif

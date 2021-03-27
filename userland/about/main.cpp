@@ -5,7 +5,6 @@
 #include <libui/Window.h>
 #include <memory>
 #include <sys/utsname.h>
-#include <syscalls.h>
 
 #define BODY_COLOR 0x819EFA
 

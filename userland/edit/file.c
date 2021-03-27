@@ -1,10 +1,5 @@
 #include "file.h"
 #include "viewer.h"
-#ifdef __oneOS__
-#include <malloc.h>
-#include <string.h>
-#include <syscalls.h>
-#else
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>

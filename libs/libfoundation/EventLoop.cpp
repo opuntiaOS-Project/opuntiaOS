@@ -8,8 +8,8 @@
 #include <libfoundation/EventLoop.h>
 #include <memory>
 #include <sched.h>
+#include <sys/select.h>
 #include <sys/time.h>
-#include <syscalls.h>
 
 namespace LFoundation {
 

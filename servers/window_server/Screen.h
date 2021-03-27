@@ -9,7 +9,6 @@
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
 #include <memory>
-#include <syscalls.h>
 
 namespace WinServer {
 

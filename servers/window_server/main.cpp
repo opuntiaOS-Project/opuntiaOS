@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <libfoundation/EventLoop.h>
 #include <new>
-#include <syscalls.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 void start_dock()

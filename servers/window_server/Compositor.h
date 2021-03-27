@@ -9,7 +9,6 @@
 #include "WSConnection.h"
 #include "WSServerDecoder.h"
 #include <libipc/ServerConnection.h>
-#include <syscalls.h>
 #include <vector>
 
 namespace WinServer {

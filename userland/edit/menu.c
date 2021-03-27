@@ -1,9 +1,6 @@
 #include "menu.h"
 #include "file.h"
 #include "lifetime.h"
-#ifdef __oneOS__
-#include <syscalls.h>
-#else
 #include <unistd.h>
 #include <stdlib.h>
 #endif

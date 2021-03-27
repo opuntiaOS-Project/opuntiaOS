@@ -1,8 +1,8 @@
+#include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <syscalls.h>
 #include <unistd.h>
 
 #define BUF_SIZE 1024

@@ -11,7 +11,6 @@
 #include <libipc/Message.h>
 #include <memory>
 #include <sys/types.h>
-#include <syscalls.h>
 
 namespace WinServer {
 

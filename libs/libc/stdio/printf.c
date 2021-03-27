@@ -6,7 +6,6 @@
 #include <string.h>
 #include <sys/_structs.h>
 #include <sys/types.h>
-#include <syscalls.h>
 #include <unistd.h>
 
 static const char* HEX_alphabet = "0123456789ABCDEF";

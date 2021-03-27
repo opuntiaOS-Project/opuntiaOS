@@ -10,7 +10,6 @@
 #include "WSServerDecoder.h"
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
-#include <syscalls.h>
 
 namespace WinServer {
 

@@ -1,4 +1,4 @@
-#include <syscalls.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 
 int tcgetpgrp(int fd)

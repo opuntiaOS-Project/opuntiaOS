@@ -8,6 +8,7 @@
 #include "Connection.h"
 #include "WSEvent.h"
 #include <libfoundation/EventLoop.h>
+#include <sys/socket.h>
 
 namespace WinServer {
 

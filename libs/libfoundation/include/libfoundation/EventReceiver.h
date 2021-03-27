@@ -9,7 +9,6 @@
 
 #include <libfoundation/Event.h>
 #include <memory>
-#include <syscalls.h>
 
 namespace LFoundation {
 

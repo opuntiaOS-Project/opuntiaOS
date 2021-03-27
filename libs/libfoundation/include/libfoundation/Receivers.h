@@ -10,7 +10,6 @@
 #include <libfoundation/EventReceiver.h>
 #include <memory>
 #include <std/Dbg.h>
-#include <syscalls.h>
 #include <vector>
 
 namespace LFoundation {

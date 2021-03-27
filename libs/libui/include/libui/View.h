@@ -10,7 +10,6 @@
 #include <libg/Point.h>
 #include <libg/Rect.h>
 #include <libui/Responder.h>
-#include <syscalls.h>
 #include <vector>
 
 #define UI_OBJECT() friend class View

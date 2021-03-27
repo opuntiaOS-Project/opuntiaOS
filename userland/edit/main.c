@@ -3,14 +3,9 @@
 #include "menu.h"
 #include "mode.h"
 #include "viewer.h"
-#ifdef __oneOS__
-#include <string.h>
-#include <syscalls.h>
-#else
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#endif
 
 #define STDIN 0
 #define STDOUT 1

@@ -1,4 +1,5 @@
-#include <syscalls.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #define BUF_SIZE 512
 char buf[BUF_SIZE];

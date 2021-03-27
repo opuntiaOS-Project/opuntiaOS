@@ -1,6 +1,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sysdep.h>
 
 /* TODO: Will be replaced with malloc */
 DIR dirarr[8];
@@ -33,7 +34,7 @@ int closedir(DIR* dir)
     return 0;
 }
 
-/* TODO: Rewrite when malloc is available */
-// dirent_t readdir(DIR* dir)
-// {
-// }
+ssize_t getdents(int fd, char* buf, size_t len)
+{
+    return (ssize_t)DO_SYSCALL_3(SYSGETDENTS, fd, buf, len);
+}

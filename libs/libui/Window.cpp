@@ -8,7 +8,6 @@
 #include <libui/App.h>
 #include <libui/Connection.h>
 #include <libui/Window.h>
-#include <syscalls.h>
 
 namespace UI {
 

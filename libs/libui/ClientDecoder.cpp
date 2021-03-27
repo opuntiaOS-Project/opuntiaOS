@@ -8,7 +8,6 @@
 #include <libui/App.h>
 #include <libui/ClientDecoder.h>
 #include <libui/Event.h>
-#include <syscalls.h>
 
 namespace UI {
 

@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syscalls.h>
 #include <unistd.h>
 
 #define _IO_MAGIC 0xFBAD0000 /* Magic number */

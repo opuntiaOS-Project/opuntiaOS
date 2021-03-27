@@ -9,7 +9,6 @@
 #include <libg/Color.h>
 #include <libui/Context.h>
 #include <libui/Label.h>
-#include <syscalls.h>
 
 namespace UI {
 
