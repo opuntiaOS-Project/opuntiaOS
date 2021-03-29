@@ -70,10 +70,10 @@ int indentify_ata_device(drive_desc_t *drive_desc) {
             // printf("\n");
         }
         if (i == 49) {
-            if ((data >> 8) & 0x1 == 1) {
+            if (((data >> 8) & 0x1) == 1) {
                 // printf("Dma supported\n");
             }
-            if ((data >> 9) & 0x1 == 1) {
+            if (((data >> 9) & 0x1) == 1) {
                 // printf("Lba supported\n");
             }
         }
