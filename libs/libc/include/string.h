@@ -7,13 +7,13 @@
 
 __BEGIN_DECLS
 
-void* memset(void* dest, uint8_t fll, uint32_t nbytes);
-void* memmove(void* dest, const void* src, uint32_t nbytes);
-void* memcpy(void* dest, const void* src, uint32_t nbytes);
-void* memccpy(void* dest, const void* src, uint8_t stop, uint32_t nbytes);
-int memcmp(const uint8_t* src1, const uint8_t* src2, uint32_t nbytes);
+void* memset(void* dest, int fll, size_t nbytes);
+void* memmove(void* dest, const void* src, size_t nbytes);
+void* memcpy(void* dest, const void* src, size_t nbytes);
+void* memccpy(void* dest, const void* src, int stop, size_t nbytes);
+int memcmp(const void* src1, const void* src2, size_t nbytes);
 
-uint32_t strlen(const char* s);
+size_t strlen(const char* s);
 char* strcpy(char* dest, const char* src);
 char* strncpy(char* dest, const char* src, size_t n);
 
