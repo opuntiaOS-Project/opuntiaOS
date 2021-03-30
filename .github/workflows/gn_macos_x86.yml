@@ -1,4 +1,4 @@
-name: Building x86
+name: Building x86 with GCC
 
 on: [push]
 
@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Pouring GCC
+    - name: Pouring Deps
       run: brew install i686-elf-gcc i686-elf-binutils ninja nasm
     
     - name: Pouring GN

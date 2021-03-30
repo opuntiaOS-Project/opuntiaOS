@@ -1,26 +1,25 @@
 SECTIONS
 {
-	
     . = 0xc0000000;
 	__start = .;
 
-	.text BLOCK(4K) : AT (ADDR(.text) - 0xc0000000 + 1M)
+	.text ALIGN(4K) : AT (ADDR(.text) - 0xc0000000 + 1M)
 	{
 		*(.oneos_kernel_boot)
 		*(.text)
 	}
 
-	.rodata BLOCK(4K) : AT (ADDR(.rodata) - 0xc0000000 + 1M)
+	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xc0000000 + 1M)
 	{
 		*(.rodata)
 	}
 
-	.data BLOCK(4K) : AT (ADDR(.data) - 0xc0000000 + 1M)
+	.data ALIGN(4K) : AT (ADDR(.data) - 0xc0000000 + 1M)
 	{
 		*(.data)
 	}
 
-	.bss BLOCK(4K) : AT (ADDR(.bss) - 0xc0000000 + 1M)
+	.bss ALIGN(4K) : AT (ADDR(.bss) - 0xc0000000 + 1M)
 	{
 		*(COMMON)
 		*(.bss)

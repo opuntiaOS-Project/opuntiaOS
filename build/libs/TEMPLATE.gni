@@ -42,6 +42,7 @@ template("oneOS_static_library") {
 
   script_args = [
     "$target_cpu",
+    "$host",
     rebase_path("$final_lib_output_name", root_build_dir),
   ]
 

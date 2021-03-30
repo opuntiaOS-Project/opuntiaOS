@@ -53,45 +53,4 @@ bool kernel_self_test(bool throw_kernel_panic)
     return true;
 }
 
-// Archieved
-// bool load_app(ata_t* ata0m) {
-//     uint8_t* new_block = pmm_alloc_block();
-//     vmm_map_page(new_block, 0x60000000);
-//     uint8_t *app = (uint8_t *)0x60000000;
-//     kprinth(app);
-//     uint8_t* read_buffer = (uint8_t*)kmalloc(512);
-//     ata_read(ata0m, 60, read_buffer);
-
-//     for (int i = 0; i < 256; i+=2) {
-//         app[i] = read_buffer[i+1];
-//         app[i+1] = read_buffer[i];
-//         kprinth(app[i]); kprintf(" ");
-//         kprinth(app[i+1]); kprintf(" ");
-//     }
-
-//     kprintf("\n\nTests passed [ENTER to continue]");
-
-//     uint32_t key = KEY_UNKNOWN;
-//     while (key != KEY_RETURN) {
-// 		key = kbdriver_get_last_key();
-//     }
-//     kbdriver_discard_last_key();
-
-//     asm volatile("mov $0x60000000, %eax");
-//     asm volatile("call %eax"); // test interrupts
-//     uint32_t return_value;
-//     asm volatile("mov %%eax, %%eax" : "=a" (return_value) :);
-
-//     kprintd(return_value);
-
-//     kprintf("\n\nTests passed [ENTER to continue]");
-
-//     key = KEY_UNKNOWN;
-//     while (key != KEY_RETURN) {
-// 		key = kbdriver_get_last_key();
-//     }
-//     kbdriver_discard_last_key();
-//     // while(1) {}
-// }
-
 #endif

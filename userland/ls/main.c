@@ -59,7 +59,7 @@ int main(int argc, char** argv)
         for (bpos = 0; bpos < nread;) {
             d = (struct linux_dirent*)(buf + bpos);
             if (((char*)&d->name)[0] != '.' || show_private) {
-                printf("%s", &d->name);
+                printf("%s", (char*)&d->name);
                 if (show_inodes) {
                     printf(" %d", d->inode);
                 }

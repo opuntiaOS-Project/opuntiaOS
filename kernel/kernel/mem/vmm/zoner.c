@@ -35,7 +35,7 @@ static bitmap_t bitmap;
 static bool _zoner_bitmap_set;
 
 /**
- * The function is used to allocate zone before bitmap is set.
+ * The function is used to allocate zones before bitmap is set.
  */
 static uint32_t _zoner_new_vzone(uint32_t size)
 {

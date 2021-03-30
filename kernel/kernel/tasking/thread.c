@@ -171,6 +171,7 @@ int thread_kstack_free(thread_t* thread)
 #ifdef FPU_ENABLED
     kfree_aligned(thread->fpu_state);
 #endif
+    return 0;
 }
 
 int thread_free(thread_t* thread)

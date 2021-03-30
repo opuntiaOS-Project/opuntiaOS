@@ -55,7 +55,7 @@ void _cmd_buffer_clear()
 
 void _cmd_loop()
 {
-    while (1) {
+    for (;;) {
         _cmd_loop_start();
         _cmd_input();
         _cmd_processor();
@@ -66,6 +66,9 @@ void _cmd_loop()
 void _cmd_input()
 {
     _cmd_buffer_position = read(0, _cmd_buffer, 256);
+    while (_cmd_buffer_position < 0) {
+        _cmd_buffer_position = read(0, _cmd_buffer, 256);
+    }
     _cmd_buffer[_cmd_buffer_position] = '\0';
 }
 

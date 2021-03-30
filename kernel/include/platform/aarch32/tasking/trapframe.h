@@ -28,13 +28,14 @@ static inline uint32_t get_stack_pointer(trapframe_t* tf)
     return tf->user_sp;
 }
 
-static inline uint32_t set_stack_pointer(trapframe_t* tf, uint32_t sp)
+static inline void set_stack_pointer(trapframe_t* tf, uint32_t sp)
 {
     tf->user_sp = sp;
 }
 
 static inline uint32_t get_base_pointer(trapframe_t* tf)
 {
+    return 0;
 }
 
 static inline void set_base_pointer(trapframe_t* tf, uint32_t bp)
@@ -46,7 +47,7 @@ static inline uint32_t get_instruction_pointer(trapframe_t* tf)
     return tf->user_ip;
 }
 
-static inline uint32_t set_instruction_pointer(trapframe_t* tf, uint32_t ip)
+static inline void set_instruction_pointer(trapframe_t* tf, uint32_t ip)
 {
     tf->user_ip = ip;
 }
@@ -56,7 +57,7 @@ static inline uint32_t get_syscall_result(trapframe_t* tf)
     return tf->r[0];
 }
 
-static inline uint32_t set_syscall_result(trapframe_t* tf, uint32_t val)
+static inline void set_syscall_result(trapframe_t* tf, uint32_t val)
 {
     tf->r[0] = val;
 }

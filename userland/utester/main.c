@@ -204,7 +204,7 @@ int inter(int no)
     return 0;
 }
 
-int testsignals()
+void testsignals()
 {
     write(1, "signals test\n", 13);
     int pid = fork();

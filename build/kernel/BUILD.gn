@@ -21,6 +21,12 @@ if (optimize) {
 }
 
 if (target_cpu == "x86") {
+  kernel_c_flags += [
+    "-mno-80387",
+    "-mno-mmx",
+    "-mno-sse",
+    "-mno-sse2",
+  ]
   kernel_asm_flags += [
     "-f",
     "elf",
@@ -34,25 +40,35 @@ if (target_cpu == "x86") {
 if (target_cpu == "aarch32") {
   kernel_c_flags += [
     "-fno-builtin",
-    "-march=armv7-a+neon-vfpv4",
+    "-march=armv7-a",
     "-mfpu=neon-vfpv4",
     "-mfloat-abi=soft",
     "-fno-pie",
-    "-no-pie",
   ]
   kernel_asm_flags += [
-    "-march=armv7-a+neon-vfpv4",
+    "-march=armv7-a",
     "-mfpu=neon-vfpv4",
     "-mfloat-abi=softfp",
     "-mcpu=cortex-a15",
   ]
-  kernel_ld_flags += [
-    "-nostdlib",
-    "-nostdinc",
-    "-nodefaultlibs",
-    "-nostartfiles",
-    "-lgcc",
-  ]
+  kernel_ld_flags += [ "-nostdlib" ]
+
+  if (host == "gnu") {
+    kernel_ld_flags += [
+      "-nostdinc",
+      "-nodefaultlibs",
+      "-nostartfiles",
+      "-lgcc",
+    ]
+  }
+
+  if (host == "llvm") {
+    kernel_ld_flags += [
+      "--oformat",
+      "elf32-littlearm",
+      rebase_path("//build/toolchains/llvm_runtime/libclang_rt.builtins-arm.a", root_build_dir),
+    ]
+  }
 }
 
 config("kernel_flags") {

@@ -11,7 +11,7 @@ int main()
 {
     sigaction(3, acceptsig);
     raise(3);
-ƒ
+
     char buf[256];
     char* arg[] = {
         "b",

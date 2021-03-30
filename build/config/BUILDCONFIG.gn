@@ -8,6 +8,8 @@ declare_args() {
   kernel_symbols = true
   userland_symbols = true
   static_analyze = false
+  host = "gnu"
+  LLVM_BIN_PATH = "/usr/local/Cellar/llvm/11.1.0/bin"
 }
 
 if (target_cpu == "") {
@@ -17,4 +19,15 @@ if (target_cpu == "arm") {
   target_cpu = "aarch32"
 }
 
-set_default_toolchain("//toolchains:cross-compiler")
+## LLVM for ARM does NOT supported yet!
+if (target_cpu == "aarch32" && host == "llvm") {
+  host = "gnu"
+}
+
+if (host == "gnu") {
+  set_default_toolchain("//toolchains:gnu-cross-compiler")
+}
+
+if (host == "llvm") {
+  set_default_toolchain("//toolchains:llvm-cross-compiler")
+}

@@ -3,3 +3,9 @@
 # found in the LICENSE file.
 
 buildconfig = "//build/config/BUILDCONFIG.gn"
+
+default_args = {
+  is_debug = true
+  optimize = true
+  host = "gnu"
+}

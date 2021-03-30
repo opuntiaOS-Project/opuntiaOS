@@ -321,6 +321,7 @@ static int vlog_fmt(const char* init_msg, const char* format, va_list arg)
     if (format[-1] != '\n') {
         vlog_unfmt("\n", arg);
     }
+    return 0;
 }
 
 int log(const char* format, ...)

@@ -77,8 +77,13 @@ typedef __time_t time_t;
 #endif // __time_t_defined
 
 #ifdef __i386__
+#if defined(__clang__)
+typedef unsigned int size_t;
+typedef int ssize_t;
+#elif defined(__GNUC__) || defined(__GNUG__)
 typedef unsigned long size_t;
 typedef long ssize_t;
+#endif
 #elif __arm__
 typedef unsigned int size_t;
 typedef int ssize_t;
