@@ -49,6 +49,10 @@ int fseek(FILE* stream, uint32_t offset, int whence);
 
 int fputc(int c, FILE* stream);
 int putc(int c, FILE* stream);
+int putchar(int c);
+
+int fputs(const char* s, FILE* stream);
+int puts(const char* s);
 
 int setvbuf(FILE* stream, char* buf, int mode, size_t size);
 void setbuf(FILE* stream, char* buf);

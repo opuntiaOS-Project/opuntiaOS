@@ -384,6 +384,26 @@ int putc(int c, FILE* stream)
     return fputc(c, stream);
 }
 
+int putchar(int c)
+{
+    return fputc(c, stdout);
+}
+
+int fputs(const char* s, FILE* stream)
+{
+    size_t len = strlen(s);
+    int res = fwrite(s, len, 1, stream);
+    if (!res) {
+        return -errno;
+    }
+    return res;
+}
+
+int puts(const char* s)
+{
+    return fputs(s, stdout);
+}
+
 int setvbuf(FILE* stream, char* buf, int mode, size_t size)
 {
     if (!stream) {
