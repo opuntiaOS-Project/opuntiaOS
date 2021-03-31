@@ -13,12 +13,17 @@ vector_table:
     b       reset_handler
     b       undefined_handler_isp
     b       svc_isp
-    b       prefetch_abort_handler
+    b       prefetch_abort_isp
     b       data_abort_isp
     nop
     b       irq_isp
 vector_FIQ:
-    b       fast_irq_handler
+    b       vector_FIQ
+    
+prefetch_abort_isp:
+    ldr     r1, =.prefetch_abort_handler_addr
+    ldr     r0, [r1]
+    blx     r0
 
 irq_isp:
     subs    lr, lr, #4
@@ -49,8 +54,10 @@ irq_isp:
     stmfd   sp!, {r6-r11}
     stmfd   sp!, {r1-r3}
 
+    ldr     r0, =.irq_handler_addr
+    ldr     r1, [r0]
     mov     r0, sp
-    bl      irq_handler
+    blx     r1
 
     ldmfd   sp!, {r0-r2}
     msr     spsr, r0
@@ -68,8 +75,10 @@ svc_isp:
     mrs     r2, lr_usr
     stmfd   sp!, {r0-r2}
 
+    ldr     r0, =.svc_handler_addr
+    ldr     r1, [r0]
     mov     r0, sp
-    bl      svc_handler
+    blx     r1
 
 trap_return:
     ldmfd   sp!, {r0-r2}
@@ -89,10 +98,12 @@ undefined_handler_isp:
     mrs     r2, lr_usr
     stmfd   sp!, {r0-r2}
 
+    ldr     r0, =.undefined_handler_addr
+    ldr     r1, [r0]
     mov     r0, sp
-	bl      undefined_handler
+    blx     r1
 
-	ldmfd   sp!, {r0-r2}
+    ldmfd   sp!, {r0-r2}
     msr     spsr, r0
     msr     sp_usr, r1
     msr     lr_usr, r2
@@ -109,10 +120,12 @@ data_abort_isp:
     mrs     r2, lr_usr
     stmfd   sp!, {r0-r2}
 
+    ldr     r0, =.data_abort_handler_addr
+    ldr     r1, [r0]
     mov     r0, sp
-	bl      data_abort_handler
+    blx     r1
 
-	ldmfd   sp!, {r0-r2}
+    ldmfd   sp!, {r0-r2}
     msr     spsr, r0
     msr     sp_usr, r1
     msr     lr_usr, r2
@@ -205,6 +218,24 @@ _reset_cpu3:
     stmia   r1!,{r2, r3, r4, r5, r6, r7, r8}
     pop     {r4, r5, r6, r7, r8, r9}
     ldr     pc, =_start
+
+.svc_handler_addr:
+    .word svc_handler
+
+.irq_handler_addr:
+    .word irq_handler
+
+.undefined_handler_addr:
+    .word undefined_handler
+
+.data_abort_handler_addr:
+    .word data_abort_handler
+
+.fast_irq_handler_addr:
+    .word fast_irq_handler
+
+.prefetch_abort_handler_addr:
+    .word prefetch_abort_handler
 
 .section ".text"
 .global set_svc_stack

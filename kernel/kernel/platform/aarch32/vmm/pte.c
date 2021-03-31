@@ -6,6 +6,7 @@
  */
 
 #include <libkern/log.h>
+#include <libkern/types.h>
 #include <mem/vmm/vmm.h>
 #include <platform/aarch32/vmm/pte.h>
 

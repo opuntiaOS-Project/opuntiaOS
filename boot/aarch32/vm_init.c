@@ -13,28 +13,28 @@ typedef char bool;
 #define VMM_PAGE_SIZE (4096)
 
 struct table_desc {
-    int valid : 1; /* Valid mapping */
-    int zero1 : 1;
-    int zero2 : 1;
-    int ns : 1;
-    int zero3 : 1;
-    int domain : 4;
-    int imp : 1;
-    int baddr : 22;
+    unsigned int valid : 1; /* Valid mapping */
+    unsigned int zero1 : 1;
+    unsigned int zero2 : 1;
+    unsigned int ns : 1;
+    unsigned int zero3 : 1;
+    unsigned int domain : 4;
+    unsigned int imp : 1;
+    unsigned int baddr : 22;
 } __attribute__((packed));
 typedef struct table_desc table_desc_t;
 
 struct page_desc {
-    int xn : 1; // Execute never. Stops execution of page.
-    int one : 1; // Always one for tables
-    int b : 1; // cacheable
-    int c : 1; // Cacheable
-    int ap1 : 2;
-    int tex : 3;
-    int ap2 : 1;
-    int s : 1;
-    int ng : 1;
-    int baddr : 20;
+    unsigned int xn : 1; // Execute never. Stops execution of page.
+    unsigned int one : 1; // Always one for tables
+    unsigned int b : 1; // cacheable
+    unsigned int c : 1; // Cacheable
+    unsigned int ap1 : 2;
+    unsigned int tex : 3;
+    unsigned int ap2 : 1;
+    unsigned int s : 1;
+    unsigned int ng : 1;
+    unsigned int baddr : 20;
 } __attribute__((packed));
 typedef struct page_desc page_desc_t;
 

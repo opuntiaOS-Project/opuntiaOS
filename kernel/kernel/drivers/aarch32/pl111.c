@@ -48,6 +48,7 @@ static int _pl111_init_buffer(uint32_t width, uint32_t height)
     pl111_bufs_paddr[0] = (char*)(paddr_zone);
     pl111_bufs_paddr[1] = (char*)(paddr_zone + one_screen_len);
     registers->lcd_upbase = (uint32_t)pl111_bufs_paddr[0];
+    return 0;
 }
 
 static int _pl111_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)

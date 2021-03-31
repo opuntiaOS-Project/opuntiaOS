@@ -14,16 +14,16 @@
 struct PACKED page_desc {
     union {
         struct {
-            int xn : 1; // Execute never. Stops execution of page.
-            int one : 1; // Always one for tables
-            int b : 1; // cacheable
-            int c : 1; // Cacheable
-            int ap1 : 2;
-            int tex : 3;
-            int ap2 : 1;
-            int s : 1;
-            int ng : 1;
-            int baddr : 20;
+            unsigned int xn : 1; // Execute never. Stops execution of page.
+            unsigned int one : 1; // Always one for tables
+            unsigned int b : 1; // cacheable
+            unsigned int c : 1; // Cacheable
+            unsigned int ap1 : 2;
+            unsigned int tex : 3;
+            unsigned int ap2 : 1;
+            unsigned int s : 1;
+            unsigned int ng : 1;
+            unsigned int baddr : 20;
         };
         uint32_t data;
     };

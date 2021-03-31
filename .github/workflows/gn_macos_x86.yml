@@ -1,4 +1,4 @@
-name: Building x86 with GCC
+name: Building x86
 
 on: [push]
 
@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Pouring Deps
-      run: brew install i686-elf-gcc i686-elf-binutils ninja nasm
+      run: brew install llvm i686-elf-gcc i686-elf-binutils ninja nasm
     
     - name: Pouring GN
       run: |
@@ -22,9 +22,20 @@ jobs:
         mv gn /usr/local/bin
         
     - name: Create Build Environment
-      run: gn gen out
+      run: gn gen out --args='target_cpu="x86" host="gnu"'
 
     - name: Build
+      working-directory: ${{github.workspace}}/out
+      shell: bash
+      run: ninja
+
+    - name: Cleaning GNU Build Environment
+      run: rm -rf out
+
+    - name: Create LLVM Build Environment
+      run: gn gen out --args='target_cpu="x86" host="llvm"'
+
+    - name: Build LLVM
       working-directory: ${{github.workspace}}/out
       shell: bash
       run: ninja

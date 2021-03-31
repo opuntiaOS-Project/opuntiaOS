@@ -66,7 +66,8 @@ if (target_cpu == "aarch32") {
     kernel_ld_flags += [
       "--oformat",
       "elf32-littlearm",
-      rebase_path("//build/toolchains/llvm_runtime/libclang_rt.builtins-arm.a", root_build_dir),
+      rebase_path("//toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-arm.a",
+                  root_build_dir),
     ]
   }
 }
@@ -88,7 +89,18 @@ kernel_src = exec_script("get_kernel_files.py",
 linker_script =
     rebase_path("//build/kernel/$target_cpu/kernel_link.ld", root_build_dir)
 
+action("kernel_config") {
+  script = "//build/kernel/gen_config.py"
+  outputs = [ "$root_out_dir/base/boot/kernel.config" ]
+  args = [
+    rebase_path("$root_out_dir/base/boot/kernel.config", root_build_dir),
+    "$target_cpu",
+    "$host",
+  ]
+}
+
 executable("kernel_build") {
+  deps = [ ":kernel_config" ]
   output_name = "$kernel_out_path/kernel.bin"
   sources = kernel_src
 

@@ -45,13 +45,24 @@ if (target_cpu == "aarch32") {
     "-march=armv7-a",
     "-mcpu=cortex-a15",
   ]
-  uland_ld_flags += [
-    "-nostdlib",
-    "-nostdinc",
-    "-nodefaultlibs",
-    "-nostartfiles",
-    "-lgcc",
-  ]
+  uland_ld_flags += [ "-nostdlib" ]
+
+  if (host == "gnu") {
+    uland_ld_flags += [
+      "-nostdinc",
+      "-nodefaultlibs",
+      "-nostartfiles",
+      "-lgcc",
+    ]
+  }
+
+  if (host == "llvm") {
+    uland_ld_flags += [
+      "--oformat",
+      "elf32-littlearm",
+      rebase_path("//toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-arm.a", root_build_dir),
+    ]
+  }
 }
 
 config("userland_flags") {

@@ -9,33 +9,38 @@
 		*(.init_data)
 	}
 
+	/DISCARD/ :
+	{
+		*(.ARM.exidx.init_code)
+	}
+
 	phys_passed = 0x80100000;
 	. = 0xc0000000;
 	__start = .;
 
-	.text BLOCK(4K) : AT (ADDR(.text) - 0xc0000000 + phys_passed)
+	.text ALIGN(4K) : AT (ADDR(.text) - 0xc0000000 + phys_passed)
 	{
 		*(.interrupt_vector_table)
 		*(.text)
 	}
 
-	.rodata BLOCK(4K) : AT (ADDR(.rodata) - 0xc0000000 + phys_passed)
+	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xc0000000 + phys_passed)
 	{
 		*(.rodata)
 	}
 
-	.data BLOCK(4K) : AT (ADDR(.data) - 0xc0000000 + phys_passed)
+	.data ALIGN(4K) : AT (ADDR(.data) - 0xc0000000 + phys_passed)
 	{
 		*(.data)
 	}
 
-	.bss BLOCK(4K) : AT (ADDR(.bss) - 0xc0000000 + phys_passed)
+	.bss ALIGN(4K) : AT (ADDR(.bss) - 0xc0000000 + phys_passed)
 	{
 		*(COMMON)
 		*(.bss)
 	}
 
-	.stack BLOCK(4K) : AT (ADDR(.bss) - 0xc0000000 + phys_passed)
+	.stack ALIGN(4K) : AT (ADDR(.stack) - 0xc0000000 + phys_passed)
 	{
 		STACK_BASE = .;
 		STACK_PHYZ_BASE = . - 0xc0000000 + phys_passed;
@@ -61,6 +66,9 @@
 	}
 
 	__end = .;
+
+	.ARM.exidx : { *(.ARM.exidx) }
+
 }
 
 ENTRY(boot_start)

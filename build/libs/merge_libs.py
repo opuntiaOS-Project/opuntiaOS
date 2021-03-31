@@ -14,10 +14,13 @@ srcs_lib = list(sys.argv[4:])
 
 if (arch == "aarch32"):
     AR_TOOL = "arm-none-eabi-ar"
-    srcs_lib.append("/usr/local/Cellar/arm-none-eabi-gcc/9-2019-q4-major/gcc/lib/gcc/arm-none-eabi/9.2.1/libgcc.a")
+    if host == "gnu":
+        srcs_lib.append("../toolchains/gcc_runtime/10.2.1/arm-none-eabi-libgcc.a")
+    elif host == "llvm":
+        srcs_lib.append("../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-arm.a")
 elif (arch == "x86"):
     AR_TOOL = "i686-elf-ar"
-    srcs_lib.append("../toolchains/llvm_runtime/libclang_rt.builtins-i386.a")
+    srcs_lib.append("../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-i386.a")
 
 if (len(srcs_lib) == 1):
     output = subprocess.check_output("cp {1} {0}".format(target_lib, srcs_lib[0]), shell=True)

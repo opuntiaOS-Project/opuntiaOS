@@ -19,11 +19,6 @@ if (target_cpu == "arm") {
   target_cpu = "aarch32"
 }
 
-## LLVM for ARM does NOT supported yet!
-if (target_cpu == "aarch32" && host == "llvm") {
-  host = "gnu"
-}
-
 if (host == "gnu") {
   set_default_toolchain("//toolchains:gnu-cross-compiler")
 }
