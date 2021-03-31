@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+#
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 # Launch the script from root of the project to have the correct paths
 
 import os
@@ -11,13 +17,16 @@ print('walk_dir (absolute) = ' + os.path.abspath(walk_dir))
 
 all_includes = []
 
+
 def is_guard(line):
     if line.startswith("#ifndef _"):
         return True
     return False
 
+
 def get_guard(line):
     return line[8:-1]
+
 
 def new_guard(line, path):
     gen = path.split('/')[1:]
@@ -40,18 +49,18 @@ def fix_guards(file):
             data.append(line)
             if is_guard(line) and guard is None:
                 guard = get_guard(line)
-    
+
     if guard is None:
         return
-    
+
     ng = new_guard(guard, file)
-    
 
     with open(file, 'w') as new_file:
         for i in data:
             i = i.replace(guard, ng)
             new_file.write(i)
-    
+
+
 for root, subdirs, files in os.walk(walk_dir):
     for x in files:
         if x.endswith(".h") or x.endswith(".hpp") or root.find("/libcxx/include") != -1:

@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+#
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 # The tool checks the compatability of linkern and libc bits/ structs
 
 import sys

@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+#
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 import subprocess
 import os
 import sys
@@ -64,13 +70,14 @@ class ClassTidyLauncher():
         self.c_back_flags += ["-std=gnu99"]
         ret = ""
         if len(self.c_files) > 0:
-            ret += self.run_clang_tidy(self.front_flags, self.c_files, self.c_back_flags).decode("ascii")
+            ret += self.run_clang_tidy(self.front_flags,
+                                       self.c_files, self.c_back_flags).decode("ascii")
         self.cpp_back_flags = self.back_flags
         self.cpp_back_flags += ["-std=c++2a"]
         if len(self.cpp_files) > 0:
-            ret += self.run_clang_tidy(self.front_flags, self.cpp_files, self.cpp_back_flags).decode("ascii")
+            ret += self.run_clang_tidy(self.front_flags,
+                                       self.cpp_files, self.cpp_back_flags).decode("ascii")
         return ret
-
 
 
 kernel_includes = ["kernel/include"]
