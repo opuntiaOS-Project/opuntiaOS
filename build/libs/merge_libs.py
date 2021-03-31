@@ -9,17 +9,28 @@ import subprocess
 import sys
 arch = sys.argv[1]
 host = sys.argv[2]
-target_lib = sys.argv[3]
-srcs_lib = list(sys.argv[4:])
+path_to_bins = sys.argv[3]
+target_lib = sys.argv[4]
+srcs_lib = list(sys.argv[5:])
+
+if path_to_bins == "__EMPTY_PATH_": 
+    path_to_bins = ""
+if len(path_to_bins) != 0:
+    if path_to_bins[-1] != '/':
+        path_to_bins += "/"
 
 if (arch == "aarch32"):
-    AR_TOOL = "arm-none-eabi-ar"
     if host == "gnu":
+        AR_TOOL = "{0}arm-none-eabi-ar".format(path_to_bins)
         srcs_lib.append("../toolchains/gcc_runtime/10.2.1/arm-none-eabi-libgcc.a")
     elif host == "llvm":
+        AR_TOOL = "{0}llvm-ar".format(path_to_bins)
         srcs_lib.append("../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-arm.a")
 elif (arch == "x86"):
-    AR_TOOL = "i686-elf-ar"
+    if host == "gnu":
+        AR_TOOL = "{0}i686-elf-ar".format(path_to_bins)
+    elif host == "llvm":
+        AR_TOOL = "{0}llvm-ar".format(path_to_bins)
     srcs_lib.append("../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-i386.a")
 
 if (len(srcs_lib) == 1):

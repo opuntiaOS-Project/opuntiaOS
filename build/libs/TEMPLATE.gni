@@ -40,9 +40,16 @@ template("oneOS_static_library") {
   deplib_list += [ compiled_lib_output_name + ".a" ]
   deplib_bulders_list += [ "//libs/" + lib_name + ":" + lib_build_name ]
 
+  # Use a strange __EMPTY_PATH_, empty string can't be passed as an arg.
+  path_to_bins = "__EMPTY_PATH_"
+  if (host == "llvm") {
+    path_to_bins = llvm_bin_path
+  }
+
   script_args = [
     "$target_cpu",
     "$host",
+    "$path_to_bins",
     rebase_path("$final_lib_output_name", root_build_dir),
   ]
 

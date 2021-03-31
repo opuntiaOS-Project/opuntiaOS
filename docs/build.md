@@ -101,9 +101,9 @@ Now we are ready to build the OS :)
 
 To generate ninja just run `./gn_gen.sh`. This command creates build directory `out/` and disk image for the OS.
 
-***Note*** you can set some env variables before running `./gn_gen.sh` to change some parameters, go to [Env varibles for Ninja]() to learn more.
+***Note*** you can set some environment variables before running `./gn_gen.sh` to change some parameters, visit [Environment varibles](https://github.com/nimelehin/oneOS/blob/master/docs/build.md#environment-variables) to learn more.
 
-**Options**
+#### **Options of ./gn.gen**
 
 * --target_cpu *value*
   * Allows to choose target arch
@@ -115,12 +115,22 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
   * Possible values:
     * gnu *(default)*
     * llvm
-* --LLVM_BIN_PATH *value*
-  * Provide path to LLVM bins
-  * Possible values:
-    * `path`
 
 So to build oneOS for Arm with LLVM you have to generate Ninja files with `./gn_gen.sh --target_cpu aarch32 --host llvm`
+
+#### **Environment variables**
+
+Another option how to configure the project is environment variables.
+
+* `ONEOS_QEMU_X86`
+  * Provide path to *qemu-system-i386* executable
+* `ONEOS_QEMU_ARM`
+  * Provide path to *qemu-system-arm* executable
+* `LLVM_BIN_PATH`  *(Only with --host llvm)*
+  * ***Must be set before `./gn_gen.sh`***
+  * Provide path to LLVM bins.
+
+</br>
 
 ### Building
 

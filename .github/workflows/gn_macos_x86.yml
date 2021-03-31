@@ -33,7 +33,9 @@ jobs:
       run: rm -rf out
 
     - name: Create LLVM Build Environment
-      run: gn gen out --args='target_cpu="x86" host="llvm"'
+      run: |
+        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/11.1.0/bin"
+        gn gen out --args='target_cpu="x86" host="llvm"'
 
     - name: Build LLVM
       working-directory: ${{github.workspace}}/out

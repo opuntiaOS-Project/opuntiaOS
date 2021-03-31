@@ -61,18 +61,18 @@ toolchain("gnu-cross-compiler") {
 }
 
 if (target_cpu == "x86") {
-  llvm_ar = "$LLVM_BIN_PATH/llvm-ar"
-  llvm_cc = "$LLVM_BIN_PATH/clang"
-  llvm_cxx = "$LLVM_BIN_PATH/clang++"
-  llvm_ld = "$LLVM_BIN_PATH/ld.lld"
+  llvm_ar = "$llvm_bin_path/llvm-ar"
+  llvm_cc = "$llvm_bin_path/clang"
+  llvm_cxx = "$llvm_bin_path/clang++"
+  llvm_ld = "$llvm_bin_path/ld.lld"
   llvm_asm = "nasm"
   llvm_target = "i686-pc-none-elf"
 }
 if (target_cpu == "aarch32") {
-  llvm_ar = "$LLVM_BIN_PATH/llvm-ar"
-  llvm_cc = "$LLVM_BIN_PATH/clang"
-  llvm_cxx = "$LLVM_BIN_PATH/clang++"
-  llvm_ld = "$LLVM_BIN_PATH/ld.lld"
+  llvm_ar = "$llvm_bin_path/llvm-ar"
+  llvm_cc = "$llvm_bin_path/clang"
+  llvm_cxx = "$llvm_bin_path/clang++"
+  llvm_ld = "$llvm_bin_path/ld.lld"
   llvm_asm = "arm-none-eabi-as"
   llvm_target = "armv7a-pc-none-elf"
 }
