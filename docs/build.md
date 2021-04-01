@@ -57,8 +57,6 @@ brew install cesarvandevelde/homebrew-formulae/arm-none-eabi-gcc
 
 ### LLVM Toolchain for MacOS
 
-***Currently LLVM toolchain uses some GCC binutils. You must install GNU Toolchain to compile with LLVM.***
-
 ```bash
 brew install llvm
 ```
@@ -82,8 +80,6 @@ brew install llvm
 </br>
 
 ### LLVM Toolchain for Linux (Ubuntu)
-
-***Currently LLVM toolchain uses some GCC binutils. You must install GNU Toolchain to compile with LLVM.***
 
 ```bash
 wget https://apt.llvm.org/llvm.sh

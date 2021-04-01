@@ -67,20 +67,24 @@ if (target_cpu == "x86") {
   llvm_ld = "$llvm_bin_path/ld.lld"
   llvm_asm = "nasm"
   llvm_target = "i686-pc-none-elf"
+  llvm_ccpp_target_flag = "-target $llvm_target"
+  llvm_asm_target_flag = ""  # No additinal flags are provided for nasm
 }
 if (target_cpu == "aarch32") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
   llvm_cxx = "$llvm_bin_path/clang++"
   llvm_ld = "$llvm_bin_path/ld.lld"
-  llvm_asm = "arm-none-eabi-as"
+  llvm_asm = "$llvm_bin_path/clang"
   llvm_target = "armv7a-pc-none-elf"
+  llvm_ccpp_target_flag = "-target $llvm_target"
+  llvm_asm_target_flag = "-target $llvm_target -c"
 }
 
 toolchain("llvm-cross-compiler") {
   tool("cc") {
     depfile = "{{output}}.d"
-    command = "$llvm_cc -target $llvm_target  {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+    command = "$llvm_cc -MMD -MF $depfile $llvm_ccpp_target_flag {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "CC {{output}}"
     outputs =
@@ -88,7 +92,7 @@ toolchain("llvm-cross-compiler") {
   }
   tool("cxx") {
     depfile = "{{output}}.d"
-    command = "$llvm_cxx -MMD -MF $depfile -target $llvm_target {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+    command = "$llvm_cxx -MMD -MF $depfile $llvm_ccpp_target_flag {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "CXX {{output}}"
     outputs =
@@ -96,7 +100,8 @@ toolchain("llvm-cross-compiler") {
   }
   tool("asm") {
     depfile = "{{output}}.d"
-    command = "$llvm_asm {{source}} -o {{output}} {{asmflags}}"
+    command =
+        "$llvm_asm $llvm_asm_target_flag {{source}} -o {{output}} {{asmflags}}"
     depsformat = "gcc"
     description = "ASM {{output}}"
     outputs =
