@@ -19,4 +19,8 @@ oneOS_static_library("libui") {
     "libg",
   ]
   configs = [ "//build/libs:libcxx_flags" ]
+
+  if (host == "llvm") {
+    cflags = [ "-flto" ]
+  }
 }

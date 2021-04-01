@@ -19,6 +19,10 @@ oneOS_executable("window_server") {
 
   configs = [ "//build/userland:userland_flags" ]
 
+  if (host == "llvm") {
+    cflags = [ "-flto" ]
+  }
+
   deplibs = [
     "libcxx",
     "libfoundation",

@@ -37,4 +37,8 @@ oneOS_static_library("libcxx") {
   ]
 
   configs = [ "//build/libs:libcxx_flags" ]
+
+  if (host == "llvm") {
+    cflags = [ "-flto" ]
+  }
 }

@@ -16,4 +16,8 @@ oneOS_static_library("libg") {
     "libipc",
   ]
   configs = [ "//build/libs:libcxx_flags" ]
+
+  if (host == "llvm") {
+    cflags = [ "-flto" ]
+  }
 }

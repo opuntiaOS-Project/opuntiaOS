@@ -1,6 +1,8 @@
 .global setjmp
 setjmp:
-    stm     r0!, {r4-r12,sp,lr}
+    stm     r0!, {r4-r12,lr}
+    mov    r1, sp
+    ldm    r0!, {r1}
 #ifdef __ARM_NEON__
     vstm    r0!, {d8-d15}
 #endif // __ARM_NEON__
@@ -9,7 +11,9 @@ setjmp:
 
 .global longjmp
 longjmp:
-    ldm    r0!, {r4-r12,sp,lr}
+    ldm    r0!, {r4-r12,lr}
+    ldm    r0!, {r1}
+    mov    sp, r1
 #ifdef __ARM_NEON__
     vldm    r0!, {d8-d15}
 #endif // __ARM_NEON__

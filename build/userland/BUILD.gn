@@ -43,6 +43,8 @@ if (target_cpu == "aarch32") {
   ]
   uland_asm_flags += [
     "-march=armv7-a",
+    "-mfpu=neon-vfpv4",
+    "-mfloat-abi=softfp",
     "-mcpu=cortex-a15",
   ]
   uland_ld_flags += [ "-nostdlib" ]
@@ -60,7 +62,8 @@ if (target_cpu == "aarch32") {
     uland_ld_flags += [
       "--oformat",
       "elf32-littlearm",
-      rebase_path("//toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-arm.a", root_build_dir),
+      rebase_path("//toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-arm.a",
+                  root_build_dir),
     ]
   }
 }

@@ -8,4 +8,8 @@ oneOS_static_library("libfoundation") {
 
   deplibs = [ "libcxx" ]
   configs = [ "//build/libs:libcxx_flags" ]
+
+  if (host == "llvm") {
+    cflags = [ "-flto" ]
+  }
 }
