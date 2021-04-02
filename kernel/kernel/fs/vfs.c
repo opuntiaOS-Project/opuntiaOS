@@ -340,7 +340,7 @@ int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
     return written;
 }
 
-int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
+int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode)
 {
     if (!dentry_inode_test_flag(dir, S_IFDIR)) {
         return -ENOTDIR;

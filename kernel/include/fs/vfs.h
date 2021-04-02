@@ -179,6 +179,7 @@ uint32_t dentry_stat_cached_count();
  */
 
 ssize_t vfs_helper_write_dirent(dirent_t* buf, uint32_t buf_len, uint32_t inode_index, const char* name);
+char* vfs_helper_split_path_with_name(char* name, size_t len);
 
 /**
  * VFS APIS
@@ -203,7 +204,7 @@ bool vfs_can_read(file_descriptor_t* fd);
 bool vfs_can_write(file_descriptor_t* fd);
 int vfs_read(file_descriptor_t* fd, void* buf, uint32_t len);
 int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len);
-int vfs_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
+int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode);
 int vfs_rmdir(dentry_t* dir);
 int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len);
 int vfs_fstat(file_descriptor_t* fd, fstat_t* stat);

@@ -9,6 +9,7 @@
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
+#include <mem/kmalloc.h>
 #include <tasking/tasking.h>
 
 #define NORM_FILENAME(x) ((x + 0x3) & (uint32_t)(~0b11))
@@ -30,4 +31,46 @@ ssize_t vfs_helper_write_dirent(dirent_t* buf, uint32_t buf_len, uint32_t inode_
     memcpy(buf_u8 + 8, name, name_len);
     buf_u8[virt_rec_len - 1] = '\0';
     return phys_rec_len;
+}
+
+/**
+ * The function splits the input path/to/the/file to 2 part parts:
+ * path/to/the and file. 
+ * Note that the function shorts the input string to be the path/to/the
+ * and allocates a new one which contains file path.
+ */
+char* vfs_helper_split_path_with_name(char* path, size_t len)
+{
+    char* name = NULL;
+    if (!path) {
+        return NULL;
+    }
+
+    if (!len) {
+        return NULL;
+    }
+
+    size_t len_of_name = 0;
+    char* res = &path[len - 1];
+
+    while (*res == '/') {
+        res--;
+    }
+
+    while (res >= path) {
+        if (*res == '/') {
+            res++;
+            goto alloc;
+        }
+        len_of_name++;
+        res--;
+    }
+    res++;
+
+alloc:
+    name = kmalloc(len_of_name + 1);
+    memcpy(name, res, len_of_name);
+    *res = '\0';
+    name[len_of_name] = '\0';
+    return name;
 }

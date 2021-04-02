@@ -187,16 +187,25 @@ void sys_mkdir(trapframe_t* tf)
     if (!str_validate_len(path, 128)) {
         return_with_val(-EINVAL);
     }
-    int name_len = strlen(path);
-    kpath = kmem_bring_to_kernel(path, name_len + 1);
+    size_t path_len = strlen(path);
+    kpath = kmem_bring_to_kernel(path, path_len + 1);
+    char* kname = vfs_helper_split_path_with_name(kpath, path_len);
+    if (!kname) {
+        kfree(kpath);
+        return_with_val(-EINVAL);
+    }
+    size_t name_len = strlen(kname);
 
-    // dentry_t* dir;
-    // if (vfs_resolve_path_start_from(p->cwd, &dir) < 0) {
-    //     return_with_val(-ENOENT);
-    // }
+    dentry_t* dir;
+    if (vfs_resolve_path_start_from(p->cwd, kpath, &dir) < 0) {
+        kfree(kname);
+        kfree(kpath);
+        return_with_val(-ENOENT);
+    }
 
     mode_t dir_mode = S_IFDIR | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-    int res = vfs_mkdir(p->cwd, kpath, name_len, dir_mode);
+    int res = vfs_mkdir(dir, kname, name_len, dir_mode);
+    kfree(kname);
     kfree(kpath);
     return_with_val(res);
 }
