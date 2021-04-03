@@ -20,6 +20,11 @@ bool Responder::send_invalidate_message_to_server(const LG::Rect& rect) const
     return app.connection().send_async_message(msg);
 }
 
+void Responder::send_layout_message(Window& win, UI::View* for_view)
+{
+    LFoundation::EventLoop::the().add(win, new LayoutEvent(for_view));
+}
+
 void Responder::send_display_message_to_self(Window& win, const LG::Rect& display_rect)
 {
     if (!m_display_message_sent || m_prev_display_message != display_rect) {
@@ -38,6 +43,10 @@ void Responder::receive_event(std::unique_ptr<LFoundation::Event> event)
     if (event->type() == Event::Type::DisplayEvent) {
         DisplayEvent& own_event = *(DisplayEvent*)event.get();
         receive_display_event(own_event);
+    }
+    if (event->type() == Event::Type::LayoutEvent) {
+        LayoutEvent& own_event = *(LayoutEvent*)event.get();
+        receive_layout_event(own_event);
     }
 }
 

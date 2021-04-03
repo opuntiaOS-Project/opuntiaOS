@@ -100,6 +100,13 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
             m_superview->receive_display_event(own_event);
         }
     }
+
+    if (event->type() == Event::Type::LayoutEvent) {
+        if (m_superview) {
+            LayoutEvent& own_event = *(LayoutEvent*)event.get();
+            m_superview->receive_layout_event(own_event);
+        }
+    }
 }
 
 } // namespace UI

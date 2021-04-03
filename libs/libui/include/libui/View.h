@@ -9,6 +9,7 @@
 #include <libg/Color.h>
 #include <libg/Point.h>
 #include <libg/Rect.h>
+#include <libui/Constraint.h>
 #include <libui/Responder.h>
 #include <vector>
 
@@ -61,6 +62,19 @@ public:
     inline void set_width(size_t x) { m_frame.set_width(x), m_bounds.set_width(x), set_needs_display(); }
     inline void set_height(size_t x) { m_frame.set_height(x), m_bounds.set_height(x), set_needs_display(); }
 
+    inline void turn_on_constraint_based_layout(bool b) { m_constraint_based_layout = b; }
+    void add_constraint(const UI::Constraint& constraint) { m_constrints.push_back(constraint); }
+
+    template <typename T>
+    inline void set_attribute(UI::Constraint::Attribute attr, T m_value) { UI::Constraint::set_attribute<T>(frame(), attr, value); }
+
+    virtual void layout_subviews();
+    inline void set_needs_layout()
+    {
+        send_layout_message(*window(), this);
+        set_needs_display();
+    }
+
     LG::Rect frame_in_window();
 
     inline Window* window() { return m_window; }
@@ -93,6 +107,7 @@ public:
     virtual void receive_keyup_event(KeyUpEvent&) override;
     virtual void receive_keydown_event(KeyDownEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
+    virtual void receive_layout_event(const LayoutEvent&) override;
 
     inline LG::Color& background_color() { return m_background_color; }
     inline const LG::Color& background_color() const { return m_background_color; }
@@ -114,6 +129,9 @@ private:
     std::vector<View*> m_subviews;
     LG::Rect m_frame;
     LG::Rect m_bounds;
+
+    bool m_constraint_based_layout { false };
+    std::vector<Constraint> m_constrints {};
 
     bool m_active { false };
     bool m_hovered { false };

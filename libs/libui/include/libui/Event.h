@@ -29,6 +29,7 @@ public:
         KeyUpEvent,
         KeyDownEvent,
         DisplayEvent,
+        LayoutEvent,
         WindowCloseRequestEvent,
 
         UIHandlerInvoke,
@@ -159,6 +160,23 @@ public:
 
 private:
     LG::Rect m_display_bounds;
+};
+
+class View;
+class LayoutEvent : public Event {
+public:
+    LayoutEvent(View* rect)
+        : Event(Event::Type::LayoutEvent)
+        , m_target(rect)
+    {
+    }
+
+    ~LayoutEvent() = default;
+
+    View* target() const { return m_target; }
+
+private:
+    View* m_target;
 };
 
 class WindowCloseRequestEvent : public Event {
