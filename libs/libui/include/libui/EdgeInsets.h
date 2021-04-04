@@ -9,10 +9,10 @@
 
 namespace UI {
 
-class EdgeInsect {
+class EdgeInsets {
 public:
-    EdgeInsect() = default;
-    EdgeInsect(int top, int left, int bottom, int right)
+    EdgeInsets() = default;
+    EdgeInsets(int top, int left, int bottom, int right)
         : m_top(top)
         , m_left(left)
         , m_bottom(bottom)

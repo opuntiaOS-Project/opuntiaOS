@@ -48,20 +48,7 @@ void View::layout_subviews()
 {
     // TODO: Apply topsort to find the right order.
     for (const auto& constraint : m_constrints) {
-        int to_view_value = 0;
-        if (constraint.to_item()) {
-            // Constraints could be added between a view and the view's superview or another view with the same superview.
-            //
-            // If it's the case view and the view's superview, it has to take attributes from bound to calculate the right
-            // view's posistion within this superview.
-            if (constraint.to_item() == constraint.item()->superview()) {
-                to_view_value = Constraint::get_attribute<int>(constraint.to_item()->bounds(), constraint.to_attribute());
-            } else {
-                to_view_value = Constraint::get_attribute<int>(constraint.to_item()->frame(), constraint.to_attribute());
-            }
-        }
-        int new_value = constraint.multiplier() * to_view_value + constraint.constant();
-        constraint.item()->set_attribute<int>(constraint.attribute(), new_value);
+        constraint_interpreter(constraint);
     }
 }
 

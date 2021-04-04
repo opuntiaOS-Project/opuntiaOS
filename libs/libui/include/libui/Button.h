@@ -31,8 +31,8 @@ public:
     void set_title_color(const LG::Color& color) { m_title_color = color; }
     const LG::Color& title_color() const { return m_title_color; }
 
-    void set_content_edge_insets(const EdgeInsect& ei) { m_content_edge_insets = ei; }
-    const EdgeInsect& content_edge_insets() const { return m_content_edge_insets; }
+    void set_content_edge_insets(const EdgeInsets& ei) { m_content_edge_insets = ei; }
+    const EdgeInsets& content_edge_insets() const { return m_content_edge_insets; }
 
     inline const LG::Font& font() const { return m_font; }
     void set_font(const LG::Font& font) { m_font = font, recalc_bounds(); }
@@ -61,7 +61,7 @@ private:
     LG::Color m_title_color { LG::Color::White };
     LG::Font m_font { LG::Font::system_font() };
 
-    EdgeInsect m_content_edge_insets { 12, 12, 12, 12 };
+    EdgeInsets m_content_edge_insets { 12, 12, 12, 12 };
 };
 
 } // namespace UI

@@ -10,12 +10,20 @@
 #include <libg/Point.h>
 #include <libg/Rect.h>
 #include <libui/Constraint.h>
+#include <libui/EdgeInsets.h>
 #include <libui/Responder.h>
 #include <vector>
 
 #define UI_OBJECT() friend class View
 
 namespace UI {
+
+struct SafeArea {
+    static const int Top = 8;
+    static const int Bottom = 8;
+    static const int Left = 8;
+    static const int Right = 8;
+};
 
 class Window;
 
@@ -63,10 +71,7 @@ public:
     inline void set_height(size_t x) { m_frame.set_height(x), m_bounds.set_height(x), set_needs_display(); }
 
     inline void turn_on_constraint_based_layout(bool b) { m_constraint_based_layout = b; }
-    void add_constraint(const UI::Constraint& constraint) { m_constrints.push_back(constraint); }
-
-    template <typename T>
-    inline void set_attribute(UI::Constraint::Attribute attr, T m_value) { UI::Constraint::set_attribute<T>(frame(), attr, value); }
+    void add_constraint(const Constraint& constraint) { m_constrints.push_back(constraint); }
 
     virtual void layout_subviews();
     inline void set_needs_layout()
@@ -121,8 +126,11 @@ protected:
     View(View* superview, const LG::Rect&);
 
 private:
+    inline LG::Rect& frame() { return m_frame; }
+
     void set_window(Window* window) { m_window = window; }
     void set_superview(View* superview) { m_superview = superview; }
+    inline void constraint_interpreter(const Constraint& constraint);
 
     View* m_superview { nullptr };
     Window* m_window { nullptr };
@@ -139,5 +147,61 @@ private:
 
     LG::Color m_background_color { LG::Color::White };
 };
+
+inline void View::constraint_interpreter(const Constraint& constraint)
+{
+    auto get_rel_item_attribute = [&]() {
+        // Constraints could be added between a view and the view's superview or another view with the same superview.
+        //
+        // If it's the case view and the view's superview, it has to take attributes from bound to calculate the right
+        // view's posistion within this superview.
+        if (constraint.rel_item() == constraint.item()->superview()) {
+            return Constraint::get_attribute<int>(constraint.rel_item()->bounds(), constraint.rel_attribute());
+        } else {
+            return Constraint::get_attribute<int>(constraint.rel_item()->frame(), constraint.rel_attribute());
+        }
+    };
+
+    auto calc_new_value = [&]() {
+        return constraint.multiplier() * get_rel_item_attribute() + constraint.constant();
+    };
+
+    switch (constraint.attribute()) {
+    case Constraint::Attribute::Top:
+        Constraint::set_attribute<Constraint::Attribute::Top>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    case Constraint::Attribute::Bottom:
+        Constraint::set_attribute<Constraint::Attribute::Bottom>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    case Constraint::Attribute::Left:
+        Constraint::set_attribute<Constraint::Attribute::Left>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    case Constraint::Attribute::Right:
+        Constraint::set_attribute<Constraint::Attribute::Right>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    case Constraint::Attribute::CenterX:
+        Constraint::set_attribute<Constraint::Attribute::CenterX>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    case Constraint::Attribute::CenterY:
+        Constraint::set_attribute<Constraint::Attribute::CenterY>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    case Constraint::Attribute::Width:
+        Constraint::set_attribute<Constraint::Attribute::Width>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    case Constraint::Attribute::Height:
+        Constraint::set_attribute<Constraint::Attribute::Height>(constraint.item()->frame(), calc_new_value());
+        return;
+
+    default:
+        break;
+    }
+}
 
 } // namespace UI

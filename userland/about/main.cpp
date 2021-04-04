@@ -44,20 +44,20 @@ int main(int argc, char** argv)
     footer.set_text("(c) 2020-2021");
     footer.set_width(footer.preferred_width());
 
-    superview.add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, 16));
-    superview.add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, 16));
+    superview.add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
+    superview.add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
 
     superview.add_constraint(UI::Constraint(target_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Right, 1, 8));
     superview.add_constraint(UI::Constraint(target_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Top, 1, 0));
 
-    superview.add_constraint(UI::Constraint(version_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, 16));
+    superview.add_constraint(UI::Constraint(version_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
     superview.add_constraint(UI::Constraint(version_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Bottom, 1, 8));
 
-    superview.add_constraint(UI::Constraint(button, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, 16));
+    superview.add_constraint(UI::Constraint(button, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
     superview.add_constraint(UI::Constraint(button, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, version_label, UI::Constraint::Attribute::Bottom, 1, 8));
 
-    superview.add_constraint(UI::Constraint(footer, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, 16));
-    superview.add_constraint(UI::Constraint(footer, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, superview, UI::Constraint::Attribute::Bottom, 1, -8));
+    superview.add_constraint(UI::Constraint(footer, UI::Constraint::Attribute::CenterX, UI::Constraint::Relation::Equal, superview, UI::Constraint::Attribute::CenterX, 1, 0));
+    superview.add_constraint(UI::Constraint(footer, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, superview, UI::Constraint::Attribute::Bottom, 1, -UI::SafeArea::Bottom));
 
     window.superview()->set_needs_layout();
     window.set_title("About");
