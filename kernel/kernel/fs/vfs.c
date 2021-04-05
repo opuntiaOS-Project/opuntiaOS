@@ -190,7 +190,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
         return -EPERM;
     }
 
-    if (dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
+    if (!dentry_inode_test_flag(file, S_IFSOCK) && dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
         return -EISDIR;
     }
 

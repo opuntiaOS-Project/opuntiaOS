@@ -40,7 +40,7 @@ Connection::Connection(int connection_fd)
         bool connected = false;
         // Trying to connect for 5 times. If unsuccesfull, it crashes.
         for (int i = 0; i < 5; i++) {
-            if (connect(m_connection_fd, "/win.sock", 9) == 0) {
+            if (connect(m_connection_fd, "/tmp/win.sock", 9) == 0) {
                 connected = true;
                 break;
             }

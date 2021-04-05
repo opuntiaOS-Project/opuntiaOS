@@ -38,14 +38,13 @@ NC='\\033[0m'
 ERROR="${{RED}}[ERROR]${{NC}}"
 SUCCESS="${{GREEN}}[SUCCESS]${{NC}}"
 
-sudo mkdir -p {0}/base/dev
-sudo mkdir -p {0}/base/proc
-
 sudo mkdir -p {0}/mountpoint
 sudo fuse-ext2 {1}/one.img {0}/mountpoint -o rw+
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't mount one.img to {0}/mountpoint" && exit 1; fi
 sudo mkdir -p {0}/mountpoint/boot
 sudo mkdir -p {0}/mountpoint/proc
+sudo mkdir -p {0}/mountpoint/dev
+sudo mkdir -p {0}/mountpoint/tmp
 sudo cp -r {0}/base/* {0}/mountpoint/
 sudo cp -r {1}/base/* {0}/mountpoint/
 sudo umount {0}/mountpoint
