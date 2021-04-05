@@ -7,7 +7,7 @@
 
 int open(const char* pathname, int flags)
 {
-    return DO_SYSCALL_2(SYSOPEN, pathname, flags);
+    return DO_SYSCALL_3(SYSOPEN, pathname, flags, S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO);
 }
 
 int creat(const char* path, mode_t mode)

@@ -176,17 +176,17 @@ static int _parse_mode(const char* mode, mode_t* flags)
 
     case 'w':
         if (has_plus) {
-            *flags = O_RDWR | O_CREATE;
+            *flags = O_RDWR | O_CREAT;
         } else {
-            *flags = O_WRONLY | O_CREATE;
+            *flags = O_WRONLY | O_CREAT;
         }
         return 0;
 
     case 'a':
         if (has_plus) {
-            *flags = O_APPEND | O_CREATE;
+            *flags = O_APPEND | O_CREAT;
         } else {
-            *flags = O_APPEND | O_CREATE;
+            *flags = O_APPEND | O_CREAT;
         }
         return 0;
 

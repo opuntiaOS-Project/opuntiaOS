@@ -18,8 +18,9 @@
 #define param3 (tf->edx)
 #define param4 (tf->esi)
 #define param5 (tf->edi)
+#define return_val (tf->eax)
 #define return_with_val(val) \
-    (tf->eax = val);         \
+    (return_val = val);      \
     return
 
 #endif // _KERNEL_PLATFORM_X86_SYSCALLS_PARAMS_H

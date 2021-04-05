@@ -22,15 +22,40 @@ void sys_open(trapframe_t* tf)
     if (!str_validate_len(path, 128)) {
         return_with_val(-EINVAL);
     }
-    int name_len = strlen(path);
-    kpath = kmem_bring_to_kernel(path, name_len + 1);
-    uint32_t flags = param2;
 
-    mode_t mode = S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO;
+    uint32_t flags = param2;
+    size_t path_len = strlen(path);
+    kpath = kmem_bring_to_kernel(path, path_len + 1);
+
+    mode_t mode = param3;
     dentry_t* file;
 
-    if (flags & O_CREATE) {
-        vfs_create(p->cwd, kpath, name_len, mode);
+    if (flags & O_CREAT) {
+        char* kname = vfs_helper_split_path_with_name(kpath, path_len);
+        if (!kname) {
+            kfree(kpath);
+            return_with_val(-EINVAL);
+        }
+        size_t name_len = strlen(kname);
+
+        dentry_t* dir;
+        if (vfs_resolve_path_start_from(p->cwd, kpath, &dir) < 0) {
+            kfree(kname);
+            kfree(kpath);
+            return_with_val(-ENOENT);
+        }
+
+        int err = vfs_create(dir, kname, name_len, mode);
+        if (err && (flags & O_EXCL)) {
+            dentry_put(dir);
+            kfree(kname);
+            kfree(kpath);
+            return_with_val(err);
+        }
+
+        vfs_helper_restore_full_path_after_split(kpath, kname);
+        dentry_put(dir);
+        kfree(kname);
     }
 
     if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
@@ -136,33 +161,15 @@ void sys_unlink(trapframe_t* tf)
 
 void sys_creat(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
-    const char* path = (char*)param1;
-    mode_t mode = param2;
-    char* kpath = 0;
-    if (!str_validate_len(path, 128)) {
-        return_with_val(-EINVAL);
-    }
-    int name_len = strlen(path);
-    kpath = kmem_bring_to_kernel(path, name_len + 1);
-
-    int err = vfs_create(p->cwd, kpath, name_len, mode);
-    if (err) {
-        return_with_val(err);
-    }
-
-    /* Opening file */
-    file_descriptor_t* fd = proc_get_free_fd(p);
-    dentry_t* file;
-    if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
-        return_with_val(-1);
-    }
-    err = vfs_open(file, fd, O_WRONLY);
-    dentry_put(file);
-    if (err) {
-        return_with_val(err);
-    }
-    return_with_val(proc_get_fd_id(p, fd));
+    uint32_t tmp_storage_2 = param2;
+    uint32_t tmp_storage_3 = param3;
+    param2 = O_CREAT | O_WRONLY | O_TRUNC;
+    param3 = param2;
+    sys_open(tf);
+    uint32_t result = return_val;
+    param2 = tmp_storage_2;
+    param3 = tmp_storage_3;
+    return_with_val(result);
 }
 
 void sys_fstat(trapframe_t* tf)

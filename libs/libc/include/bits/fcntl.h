@@ -10,8 +10,9 @@
 #define O_WRONLY 0x2
 #define O_RDWR 0x4
 #define O_DIRECTORY 0x8
-#define O_CREATE 0x10
+#define O_CREAT 0x10
 #define O_TRUNC 0x20
 #define O_APPEND 0x40
+#define O_EXCL 0x80
 
 #endif // _LIBC_BITS_FCNTL_H

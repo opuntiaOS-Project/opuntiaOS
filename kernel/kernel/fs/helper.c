@@ -74,3 +74,14 @@ alloc:
     name[len_of_name] = '\0';
     return name;
 }
+
+/**
+ * The function restores the path after it was splitted with a help of
+ * vfs_helper_split_path_with_name. 
+ * Note that the function must be called only after vfs_helper_split_path_with_name.
+ */
+void vfs_helper_restore_full_path_after_split(char* path, char* name)
+{
+    size_t path_len = strlen(path);
+    path[path_len] = name[0];
+}

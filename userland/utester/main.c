@@ -114,7 +114,7 @@ void fourfiles(void)
         }
 
         if (pid == 0) {
-            fd = open(fname, O_CREATE | O_RDWR);
+            fd = open(fname, O_CREAT | O_RDWR);
             if (fd < 0) {
                 write(1, "create failed\n", 14);
                 exit(-1);
@@ -170,7 +170,7 @@ void dirfile(void)
         write(1, "create dirfile succeeded!\n", 26);
         exit(-1);
     }
-    fd = open("dirfile", O_CREATE);
+    fd = open("dirfile", O_CREAT);
     if (chdir("dirfile") == 0) {
         write(1, "chdir dirfile succeeded!\n", 25);
         exit(-1);

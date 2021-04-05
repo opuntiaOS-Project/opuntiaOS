@@ -16,8 +16,9 @@
 #define param3 (tf->r[2])
 #define param4 (tf->r[3])
 #define param5 (tf->r[4])
+#define return_val (tf->r[0])
 #define return_with_val(val) \
-    (tf->r[0] = val);        \
+    (return_val = val);      \
     return
 
 #endif // _KERNEL_PLATFORM_AARCH32_SYSCALLS_PARAMS_H

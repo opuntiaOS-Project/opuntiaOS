@@ -180,6 +180,7 @@ uint32_t dentry_stat_cached_count();
 
 ssize_t vfs_helper_write_dirent(dirent_t* buf, uint32_t buf_len, uint32_t inode_index, const char* name);
 char* vfs_helper_split_path_with_name(char* name, size_t len);
+void vfs_helper_restore_full_path_after_split(char* path, char* name);
 
 /**
  * VFS APIS
