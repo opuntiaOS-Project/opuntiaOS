@@ -79,10 +79,10 @@
  * 2.3  21 Jan 2013     - Check for invalid code length codes in dynamic blocks
  */
 
-#include <libfoundation/puff.h> /* prototype for puff() */
-#include <setjmp.h>             /* for setjmp(), longjmp(), and jmp_buf */
+#include <libfoundation/compress/puff.h>    /* prototype for puff() */
+#include <setjmp.h>                         /* for setjmp(), longjmp(), and jmp_buf */
 
-#define local static            /* for local function definitions */
+#define local static                        /* for local function definitions */
 
 /*
  * Maximums for allocations and loops.  It is not useful to change these --

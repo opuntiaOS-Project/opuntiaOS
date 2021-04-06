@@ -7,7 +7,7 @@
 
 #include <cstring>
 #include <fcntl.h>
-#include <libfoundation/puff.h>
+#include <libfoundation/compress/puff.h>
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <memory>
 #include <std/Dbg.h>
