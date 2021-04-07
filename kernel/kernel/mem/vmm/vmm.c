@@ -690,7 +690,6 @@ static bool _vmm_is_copy_on_write(uint32_t vaddr)
     return table_desc_is_copy_on_write(*ptable_desc);
 }
 
-// TODO handle delete of tables and dirs
 static int _vmm_resolve_copy_on_write(proc_t* p, uint32_t vaddr)
 {
     table_desc_t orig_table_desc[VMM_PAGE_SIZE / PTABLE_SIZE];

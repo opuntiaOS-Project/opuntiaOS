@@ -34,7 +34,6 @@ static int _pit_set_frequency(uint16_t freq)
 
 void pit_setup()
 {
-    RUNNIG_THREAD = 0; // TODO: Remove it from here
     int res = _pit_set_frequency(TIMER_TICKS_PER_SECOND);
     if (res < 0) {
         kpanic("Pit: failed to set freq");
