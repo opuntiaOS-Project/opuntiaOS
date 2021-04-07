@@ -12,16 +12,19 @@
 
 static fpu_state_t fpu_state;
 
-void fpu_setup(void) {
+void fpu_setup(void)
+{
     uint32_t tmp;
-	asm volatile ("mov %%cr0, %0" : "=r"(tmp));
-	tmp &= ~(1 << 2);
-	tmp |= (1 << 1);
-	asm volatile ("mov %0, %%cr0" :: "r"(tmp));
+    asm volatile("mov %%cr0, %0"
+                 : "=r"(tmp));
+    tmp &= ~(1 << 2);
+    tmp |= (1 << 1);
+    asm volatile("mov %0, %%cr0" ::"r"(tmp));
 
-	asm volatile ("mov %%cr4, %0" : "=r"(tmp));
-	tmp |= 3 << 9;
-	asm volatile ("mov %0, %%cr4" :: "r"(tmp));
+    asm volatile("mov %%cr4, %0"
+                 : "=r"(tmp));
+    tmp |= 3 << 9;
+    asm volatile("mov %0, %%cr4" ::"r"(tmp));
 }
 
 void fpu_handler()

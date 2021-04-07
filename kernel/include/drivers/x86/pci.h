@@ -1,12 +1,20 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #ifndef _KERNEL_DRIVERS_X86_PCI_H
 #define _KERNEL_DRIVERS_X86_PCI_H
 
 #include <drivers/driver_manager.h>
 #include <drivers/x86/display.h>
+#include <libkern/c_attrs.h>
 #include <libkern/types.h>
 #include <platform/x86/port.h>
 
-typedef struct {
+struct PACKED pcidd {
     uint8_t bus;
     uint8_t device;
     uint8_t function;
@@ -21,7 +29,8 @@ typedef struct {
 
     uint32_t interrupt;
     uint32_t port_base;
-} pcidd_t; // pci device desriptor
+};
+typedef struct pcidd pcidd_t;
 
 enum bar_type {
     MEMORY_MAPPED = 0,

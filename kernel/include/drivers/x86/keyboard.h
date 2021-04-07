@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #ifndef _KERNEL_DRIVERS_X86_KEYBOARD_H
 #define _KERNEL_DRIVERS_X86_KEYBOARD_H
 

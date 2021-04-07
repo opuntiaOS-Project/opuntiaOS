@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <drivers/driver_manager.h>
 #include <drivers/x86/bga.h>
 #include <drivers/x86/pci.h>

@@ -1,6 +1,14 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <platform/x86/pic.h>
 
-void pic_remap(unsigned int offset1, unsigned int offset2){
+void pic_remap(unsigned int offset1, unsigned int offset2)
+{
     unsigned char m1, m2;
     m1 = port_byte_in(MASTER_PIC_DATA);
     m2 = port_byte_in(SLAVE_PIC_DATA);
@@ -19,9 +27,9 @@ void pic_remap(unsigned int offset1, unsigned int offset2){
     io_wait();
 
     port_byte_out(MASTER_PIC_DATA, ICW4_8086);
-	io_wait();
-	port_byte_out(SLAVE_PIC_DATA, ICW4_8086);
-	io_wait();
+    io_wait();
+    port_byte_out(SLAVE_PIC_DATA, ICW4_8086);
+    io_wait();
     port_byte_out(MASTER_PIC_DATA, 0x00);
     port_byte_out(SLAVE_PIC_DATA, 0x00);
 }

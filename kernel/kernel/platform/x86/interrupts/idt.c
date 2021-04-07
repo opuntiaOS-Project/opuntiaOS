@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <platform/x86/idt.h>
 #include <platform/x86/syscalls/params.h>
 #include <syscalls/handlers.h>

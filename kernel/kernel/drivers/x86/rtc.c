@@ -1,7 +1,14 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <drivers/x86/rtc.h>
 #include <platform/x86/port.h>
 
-#define BCD_TO_BIN(v) ((((v) & 0xF0) >> 1) + (((v) & 0xF0) >> 3) + ((v) & 0xf))
+#define BCD_TO_BIN(v) ((((v)&0xF0) >> 1) + (((v)&0xF0) >> 3) + ((v)&0xf))
 
 inline static uint8_t cmos_read(uint8_t port)
 {
@@ -9,8 +16,9 @@ inline static uint8_t cmos_read(uint8_t port)
     return port_8bit_in(0x71);
 }
 
-inline static void cmos_wait_while_updating() {
-      while ((cmos_read(0x0A) & 0x80));
+inline static void cmos_wait_while_updating()
+{
+    while ((cmos_read(0x0A) & 0x80)) { }
 }
 
 void rtc_load_time(uint8_t* secs, uint8_t* mins, uint8_t* hrs, uint8_t* day, uint8_t* month, uint32_t* year)

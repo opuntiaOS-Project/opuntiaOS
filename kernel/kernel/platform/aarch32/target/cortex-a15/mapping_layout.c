@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <mem/vmm/vmm.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
 #include <platform/aarch32/target/cortex-a15/memmap.h>
