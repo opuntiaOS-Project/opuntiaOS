@@ -1,0 +1,71 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_OSTREAM
+#define _LIBCXX_OSTREAM
+
+#include <__config>
+#include <cstdlib>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+typedef size_t streamsize;
+
+class ios_base {
+public:
+    typedef uint32_t openmode;
+    static constexpr openmode app = 0x1;
+    static constexpr openmode binary = 0x2;
+    static constexpr openmode in = 0x4;
+    static constexpr openmode out = 0x8;
+    static constexpr openmode trunc = 0x10;
+    static constexpr openmode ate = 0x20;
+
+    typedef uint32_t fmtflags;
+    static constexpr fmtflags dec = 0x1;
+    static constexpr fmtflags oct = 0x2;
+    static constexpr fmtflags hex = 0x4;
+    static constexpr fmtflags basefield = dec | oct | hex;
+    static constexpr fmtflags left = 0x8;
+    static constexpr fmtflags right = 0x10;
+    static constexpr fmtflags internal = 0x20;
+    static constexpr fmtflags adjustfield = left | right | internal;
+    static constexpr fmtflags scientific = 0x40;
+    static constexpr fmtflags fixed = 0x80;
+    static constexpr fmtflags floatfield = scientific | fixed;
+    static constexpr fmtflags boolalpha = 0x100;
+    static constexpr fmtflags showbase = 0x200;
+    static constexpr fmtflags showpoint = 0x400;
+    static constexpr fmtflags showpos = 0x800;
+    static constexpr fmtflags skipws = 0x1000;
+    static constexpr fmtflags unitbuf = 0x2000;
+    static constexpr fmtflags uppercase = 0x4000;
+
+    typedef uint32_t iostate;
+    static constexpr iostate goodbit = 0x0;
+    static constexpr iostate badbit = 0x1;
+    static constexpr iostate failbit = 0x2;
+    static constexpr iostate eofbit = 0x4;
+
+    typedef uint32_t seekdir;
+    static constexpr seekdir beg = 0x1;
+    static constexpr seekdir end = 0x2;
+    static constexpr seekdir cur = 0x4;
+
+    ios_base() = default;
+    virtual ~ios_base() = default;
+
+    fmtflags flags() const { return m_fl; }
+    fmtflags flags(fmtflags flags) { return m_fl = flags; }
+
+    fmtflags setf(fmtflags flags) { return m_fl |= flags; }
+    fmtflags setf(fmtflags flags, fmtflags mask) { return m_fl = (m_fl & ~mask) | (flags & mask); }
+
+    void unsetf(fmtflags flags) { m_fl = (m_fl & ~flags); }
+
+private:
+    fmtflags m_fl { 0 };
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_OSTREAM
