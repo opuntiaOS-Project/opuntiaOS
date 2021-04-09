@@ -1,0 +1,193 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_STREAMBUF
+#define _LIBCXX_STREAMBUF
+
+#include <__config>
+#include <algorithm>
+#include <cstdlib>
+#include <ios>
+#include <iosfwd>
+#include <string>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <class CharT, class Traits>
+class basic_streambuf {
+public:
+    using char_type = CharT;
+    using traits_type = Traits;
+    using int_type = typename traits_type::int_type;
+    using pos_type = typename traits_type::pos_type;
+    using off_type = typename traits_type::off_type;
+
+    virtual ~basic_streambuf() = default;
+
+    // TODO: Add locales
+
+    basic_streambuf* pubsetbuf(char_type* s, streamsize n) { return setbuf(s, n); }
+    pos_type pubseekoff(off_type off, ios_base::seekdir dir, ios_base::openmode which = ios_base::in | ios_base::out) { return seekoff(off, dir, which); }
+    pos_type pubseekpos(pos_type pos, ios_base::openmode which = ios_base::in | ios_base::out) { return seekpos(pos, which); }
+    int pubsync() { return sync(); }
+
+    streamsize in_avail()
+    {
+        if (egptr() - gptr() > 0) {
+            return egptr() - gptr();
+        }
+        return showmanyc();
+    }
+
+    int_type snextc()
+    {
+        if (sbumpc() == traits_type::eof()) {
+            return traits_type::eof();
+        }
+        return sgetc();
+    }
+
+    int_type sbumpc()
+    {
+        if (gptr() == egptr()) {
+            return uflow();
+        }
+        return Traits::to_int_type(*m_gptr++);
+    }
+
+    int_type sgetc()
+    {
+        if (gptr() == egptr()) {
+            return underflow();
+        }
+        return Traits::to_int_type(*gptr());
+    }
+
+    streamsize sgetn(char_type* s, streamsize n) { return xsgetn(s, n); }
+
+    int_type sputc(char_type c)
+    {
+        if (pptr() == epptr()) {
+            return overflow();
+        }
+        *pptr() = c;
+        m_pptr++;
+        return Traits::to_int_type(c);
+    }
+
+    streamsize sputn(char_type* s, streamsize n) { return xsputn(s, n); }
+
+    int_type sputbackc(char_type c)
+    {
+        if (eback() == egptr() || traits_type::eq(c, egptr()[-1])) {
+            return pbackfail(c);
+        }
+        return traits_type::to_int_type(*(--m_gptr));
+    }
+
+    int_type sungetc()
+    {
+        if (eback() == egptr())
+            return pbackfail();
+        return traits_type::to_int_type(*(--m_gptr));
+    }
+
+protected:
+    basic_streambuf() = default;
+
+    virtual basic_streambuf* setbuf(char_type* s, streamsize n) { return this; }
+    virtual pos_type seekoff(off_type off, ios_base::seekdir dir, ios_base::openmode which) { return pos_type(off_type(-1)); }
+    virtual pos_type seekpos(pos_type pos, ios_base::openmode which) { return pos_type(off_type(-1)); }
+    virtual int sync() { return 0; }
+
+    virtual streamsize showmanyc() { return 0; }
+    virtual int_type underflow() { return traits_type::eof(); }
+    virtual int_type uflow()
+    {
+        if (underflow() == traits_type::eof()) {
+            return traits_type::eof();
+        }
+        return traits_type::to_int_type(*m_gptr++);
+    }
+
+    virtual streamsize xsgetn(char_type* s, streamsize count)
+    {
+        auto eof = traits_type::eof();
+        int_type tmpcint;
+        for (streamsize i = 0; i < count;) {
+            if (gptr() < egptr()) {
+                streamsize can_get = std::min(static_cast<streamsize>(egptr() - gptr()), count);
+                traits_type::copy(s, gptr(), can_get);
+                this->gbump(can_get);
+                s += can_get;
+                i += can_get;
+            } else if ((tmpcint = uflow()) != eof) {
+                *s = traits_type::to_char_type(tmpcint);
+                s++;
+                i++;
+            } else {
+                return i;
+            }
+        }
+        return count;
+    }
+
+    char_type* eback() const { return m_eback; }
+    char_type* gptr() const { return m_gptr; }
+    char_type* egptr() const { return m_egptr; }
+
+    void gbump(int n) { m_gptr += n; }
+    void setg(char_type* gbeg, char_type* gcurr, char_type* gend)
+    {
+        m_eback = gbeg;
+        m_gptr = gcurr;
+        m_egptr = gend;
+    }
+
+    virtual streamsize xsputn(char_type* s, streamsize count)
+    {
+        auto eof = traits_type::eof();
+        int_type tmpcint;
+        for (streamsize i = 0; i < count;) {
+            if (pptr() < epptr()) {
+                streamsize can_put = std::min(static_cast<streamsize>(egptr() - gptr()), count);
+                traits_type::copy(pptr(), s, can_put);
+                this->pbump(can_put);
+                s += can_put;
+                i += can_put;
+            } else if ((tmpcint = overflow(*s)) != eof) {
+                s++;
+                i++;
+            } else {
+                return i;
+            }
+        }
+        return count;
+    }
+
+    virtual int_type overflow(int_type ch = traits_type::eof()) { return traits_type::eof(); }
+
+    char_type* pbase() const { return m_pbase; }
+    char_type* pptr() const { return m_pptr; }
+    char_type* epptr() const { return m_epptr; }
+    void pbump(int n) { m_pptr += n; }
+
+    void setg(char_type* pbeg, char_type* pend)
+    {
+        m_pbase = m_pptr = pbeg;
+        m_epptr = pend;
+    }
+
+    virtual int_type pbackfail(int_type c = traits_type::eof()) { return traits_type::eof(); }
+
+private:
+    char_type* m_eback { nullptr };
+    char_type* m_gptr { nullptr };
+    char_type* m_egptr { nullptr };
+    char_type* m_pbase { nullptr };
+    char_type* m_pptr { nullptr };
+    char_type* m_epptr { nullptr };
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_STREAMBUF
