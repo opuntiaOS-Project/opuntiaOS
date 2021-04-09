@@ -1,0 +1,21 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_IOSFWD
+#define _LIBCXX_IOSFWD
+
+#include <__config>
+#include <string>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+class ios_base;
+
+template <typename CharT, typename Traits = char_traits<CharT>>
+class basic_ios;
+
+template <typename CharT, typename Traits = char_traits<CharT>>
+class basic_streambuf;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_IOSFWD

@@ -1,10 +1,10 @@
 #pragma GCC system_header
 
-#ifndef _LIBCXX_OSTREAM
-#define _LIBCXX_OSTREAM
+#ifndef _LIBCXX_IOS
+#define _LIBCXX_IOS
 
 #include <__config>
-#include <cstdlib>
+#include <iosfwd>
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
@@ -62,10 +62,61 @@ public:
 
     void unsetf(fmtflags flags) { m_fl = (m_fl & ~flags); }
 
+    streamsize precision() const { return m_precision; }
+    streamsize precision(streamsize n_p) { return m_precision = n_p; }
+
+    streamsize width() const { return m_width; }
+    streamsize width(streamsize n_w) { return m_width = n_w; }
+
+    bool good() const { return rdstate() == goodbit; }
+    bool eof() const { return (m_rdstate & eofbit) != 0; }
+    bool fail() const { return (m_rdstate & failbit) != 0; }
+    bool bad() const { return (m_rdstate & badbit) != 0; }
+    bool operator!() const { return fail(); }
+    explicit operator bool() const { return !fail(); }
+
+    iostate rdstate() const { return m_rdstate; }
+    void setstate(iostate state) { m_rdstate = state; }
+    void clear(iostate state = goodbit) { m_rdstate = state; }
+
+    // TODO: Support locales
+
 private:
     fmtflags m_fl { 0 };
+    iostate m_rdstate { 0 };
+    iostate m_state { 0 };
+    streamsize m_precision { 0 };
+    streamsize m_width { 0 };
+};
+
+template <class CharT, class Traits>
+class basic_ios : public ios_base {
+public:
+    using char_type = CharT;
+    using traits_type = Traits;
+    using int_type = typename traits_type::int_type;
+    using pos_type = typename traits_type::pos_type;
+    using off_type = typename traits_type::off_type;
+
+    explicit basic_ios(basic_streambuf<char_type, traits_type>* rdbuf)
+        : ios_base()
+        , m_rdbuf(rdbuf)
+    {
+    }
+
+    virtual ~basic_ios() = default;
+
+    basic_streambuf<CharT, Traits>* rdbuf() const { return m_rdbuf; }
+    basic_streambuf<CharT, Traits>* rdbuf(basic_streambuf<CharT, Traits>* sb) { return m_rdbuf = sb; }
+    // TODO: Add more API to match C++20 standard.
+
+protected:
+    basic_ios() = default;
+
+private:
+    basic_streambuf<char_type, traits_type>* m_rdbuf { nullptr };
 };
 
 _LIBCXX_END_NAMESPACE_STD
 
-#endif // _LIBCXX_OSTREAM
+#endif // _LIBCXX_IOS
