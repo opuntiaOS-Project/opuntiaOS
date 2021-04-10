@@ -1,0 +1,124 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_OSTREAM
+#define _LIBCXX_OSTREAM
+
+#include <cstdlib>
+#include <ios>
+#include <streambuf>
+#include <string>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <typename CharT, typename Traits = char_traits<CharT>>
+class basic_ostream : public basic_ios<CharT, Traits> {
+public:
+    using char_type = CharT;
+    using traits_type = Traits;
+    using int_type = typename traits_type::int_type;
+    using pos_type = typename traits_type::pos_type;
+    using off_type = typename traits_type::off_type;
+
+    class sentry {
+    public:
+        explicit sentry(basic_ostream<char_type, traits_type>& os)
+            : m_os(os)
+        {
+        }
+        explicit operator bool() const { return true; }
+        ~sentry() = default;
+
+    private:
+        basic_ostream<char_type, traits_type>& m_os;
+    };
+
+    explicit basic_ostream(basic_streambuf<char_type, traits_type>* rdbuf)
+        : basic_ios<char_type, traits_type>(rdbuf)
+    {
+    }
+
+    virtual ~basic_ostream() = default;
+
+    basic_ostream& put(char_type ch)
+    {
+        sentry sen(*this);
+        if (sen) {
+            if (this->rdbuf()->sputc(ch) == traits_type::eof()) {
+                this->setstate(ios_base::badbit);
+            }
+        }
+        return *this;
+    }
+
+    basic_ostream& write(const char_type* s, streamsize count)
+    {
+        sentry sen(*this);
+        if (sen && count) {
+            if (this->rdbuf()->sputn(s, count) != count) {
+                this->setstate(ios_base::badbit);
+            }
+        }
+        return *this;
+    }
+
+    basic_ostream& flush()
+    {
+        sentry sen(*this);
+        if (sen) {
+            if (this->rdbuf()->pubsync() == -1) {
+                this->setstate(ios_base::badbit);
+            }
+        }
+        return *this;
+    }
+
+    friend const basic_ostream& operator<<(const basic_ostream& os, int value);
+    friend const basic_ostream& operator<<(const basic_ostream& stream, unsigned int value);
+    friend const basic_ostream& operator<<(const basic_ostream& stream, unsigned long value);
+    friend const basic_ostream& operator<<(const basic_ostream& os, const std::string& value);
+
+private:
+};
+
+template <class CharT, class Traits>
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, int value)
+{
+    char buf[16];
+    std::sprintf(buf, "%d", value);
+    size_t len = std::strlen(buf);
+    os.write(buf, len);
+    return os;
+}
+
+template <class CharT, class Traits>
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, unsigned int value)
+{
+    char buf[16];
+    std::sprintf(buf, "%u", value);
+    size_t len = std::strlen(buf);
+    os.write(buf, len);
+    return os;
+}
+
+template <class CharT, class Traits>
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, unsigned long value)
+{
+    char buf[16];
+    std::sprintf(buf, "%u", value);
+    size_t len = std::strlen(buf);
+    os.write(buf, len);
+    return os;
+}
+
+template <class CharT, class Traits>
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const std::string& value)
+{
+    os.write(value.c_str(), value.size());
+    return os;
+}
+
+typedef basic_ostream<char> ostream;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_OSTREAM

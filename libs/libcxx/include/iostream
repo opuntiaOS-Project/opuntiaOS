@@ -1,0 +1,17 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_IOSTREAM
+#define _LIBCXX_IOSTREAM
+
+#include <__config>
+#include <ostream>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+extern ostream cout;
+extern ostream cerr;
+// extern ostream clog;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_IOSTREAM

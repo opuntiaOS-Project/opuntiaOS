@@ -4,10 +4,13 @@
 extern "C" {
 extern void _libc_init();
 extern void _libc_deinit();
+extern void _Z12_libcpp_initv();
+extern void _Z14_libcpp_deinitv();
 
 void _init()
 {
     _libc_init();
+    _Z12_libcpp_initv();
 
     extern void (*__init_array_start[])(int, char**, char**) __attribute__((visibility("hidden")));
     extern void (*__init_array_end[])(int, char**, char**) __attribute__((visibility("hidden")));
@@ -20,6 +23,7 @@ void _init()
 
 void _deinit()
 {
+    _Z14_libcpp_deinitv();
     _libc_deinit();
 }
 }

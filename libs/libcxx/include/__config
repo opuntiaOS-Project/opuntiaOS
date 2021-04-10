@@ -9,4 +9,6 @@
 #define _LIBCXX_BEGIN_ONEOS_EXTENSION inline namespace oneos {
 #define _LIBCXX_END_ONEOS_EXTENSION }
 
+#define _ALIGNAS_TYPE(x) __attribute__((__aligned__(alignof(x))))
+
 #endif // _LIBCXX___CONFIG

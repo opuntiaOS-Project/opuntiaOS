@@ -27,6 +27,8 @@ oneOS_static_library("libcxx") {
 
     #private
     "init/_init.cpp",
+    "init/_lib.cpp",
+    "src/iostream.cpp",
     "std/Dbg.cpp",
   ]
 
