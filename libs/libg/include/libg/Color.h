@@ -14,7 +14,7 @@ namespace LG {
 // We keep opacity as an opposite to alpha.
 // This is used for capability with BGA driver
 // and probably should be fixed.
-class Color {
+class Color final {
 public:
     enum Colors {
         Red,
@@ -83,7 +83,7 @@ public:
         if (clr.is_opaque()) {
             return;
         }
-        
+
         if (clr.alpha() == 255) {
             *this = clr;
             return;
