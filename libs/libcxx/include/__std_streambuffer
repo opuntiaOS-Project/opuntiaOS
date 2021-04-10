@@ -1,0 +1,54 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX___STREAMBUFFER
+#define _LIBCXX___STREAMBUFFER
+
+#include <__config>
+#include <cstdio>
+#include <setjmp.h>
+#include <streambuf>
+#include <string>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <class CharT>
+class __stdoutbuf : public basic_streambuf<CharT> {
+public:
+    using char_type = CharT;
+    using traits_type = std::char_traits<char_type>;
+    using int_type = typename traits_type::int_type;
+    using pos_type = typename traits_type::pos_type;
+    using off_type = typename traits_type::off_type;
+
+    __stdoutbuf(FILE* file)
+        : m_file(file)
+    {
+    }
+
+    virtual int_type overflow(int_type c = traits_type::eof()) override
+    {
+        char_type ch = traits_type::to_char_type(c);
+        if (traits_type::eq_int_type(c, traits_type::eof())) {
+            return traits_type::eof();
+        }
+        if (fwrite(&ch, sizeof(char_type), 1, m_file) != sizeof(char_type)) {
+            return traits_type::eof();
+        }
+        return c;
+    }
+
+    virtual int sync() override
+    {
+        if (fflush(m_file) != 0) {
+            return -1;
+        }
+        return 0;
+    }
+
+private:
+    FILE* m_file;
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX___STREAMBUFFER
