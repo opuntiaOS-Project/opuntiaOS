@@ -72,10 +72,7 @@ public:
         return *this;
     }
 
-    friend const basic_ostream& operator<<(const basic_ostream& os, int value);
-    friend const basic_ostream& operator<<(const basic_ostream& stream, unsigned int value);
-    friend const basic_ostream& operator<<(const basic_ostream& stream, unsigned long value);
-    friend const basic_ostream& operator<<(const basic_ostream& os, const std::string& value);
+    inline basic_ostream& operator<<(basic_ostream& (*callback)(basic_ostream&)) { return callback(*this); }
 
 private:
 };
@@ -111,9 +108,25 @@ basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, unsig
 }
 
 template <class CharT, class Traits>
-basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const std::string& value)
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const char* value)
+{
+    size_t len = std::strlen(value);
+    os.write(value, len);
+    return os;
+}
+
+template <class CharT, class Traits, class Allocator>
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, std::basic_string<CharT, Traits, Allocator> const& value)
 {
     os.write(value.c_str(), value.size());
+    return os;
+}
+
+template <class CharT, class Traits>
+basic_ostream<CharT, Traits>& endl(basic_ostream<CharT, Traits>& os)
+{
+    os.put('\n');
+    os.flush();
     return os;
 }
 
