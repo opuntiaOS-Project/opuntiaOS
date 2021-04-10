@@ -74,7 +74,7 @@ public:
         return Traits::to_int_type(c);
     }
 
-    streamsize sputn(char_type* s, streamsize n) { return xsputn(s, n); }
+    streamsize sputn(const char_type* s, streamsize n) { return xsputn(s, n); }
 
     int_type sputbackc(char_type c)
     {
@@ -143,7 +143,7 @@ protected:
         m_egptr = gend;
     }
 
-    virtual streamsize xsputn(char_type* s, streamsize count)
+    virtual streamsize xsputn(const char_type* s, streamsize count)
     {
         auto eof = traits_type::eof();
         int_type tmpcint;
