@@ -429,6 +429,15 @@ void setlinebuf(FILE* stream)
     setvbuf(stream, NULL, _IOLBF, 0);
 }
 
+int fflush(FILE* stream)
+{
+    if (!stream) {
+        return -EBADF;
+    }
+
+    return _flush_wbuf(stream);
+}
+
 int _stdio_init()
 {
     _init_file_with_fd(stdin, 0);
