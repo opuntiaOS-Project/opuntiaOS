@@ -21,9 +21,12 @@ public:
     using off_type = typename traits_type::off_type;
 
     __stdoutbuf(FILE* file)
-        : m_file(file)
+        : basic_streambuf<char_type>()
+        , m_file(file)
     {
     }
+
+    ~__stdoutbuf() = default;
 
     virtual int_type overflow(int_type c = traits_type::eof()) override
     {

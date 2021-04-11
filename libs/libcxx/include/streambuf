@@ -67,7 +67,7 @@ public:
     int_type sputc(char_type c)
     {
         if (pptr() == epptr()) {
-            return overflow();
+            return overflow(c);
         }
         *pptr() = c;
         m_pptr++;
