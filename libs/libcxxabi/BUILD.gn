@@ -3,6 +3,10 @@ import("//build/libs/TEMPLATE.gni")
 oneOS_static_library("libcxxabi") {
   sources = [ "src/cxa_runtime.cpp" ]
 
+  if (target_cpu == "aarch32") {
+    sources += [ "src/aeabi_runtime.cpp" ]
+  }
+
   include_dirs = [
     "include/",
     "//libs/libc/include/",
