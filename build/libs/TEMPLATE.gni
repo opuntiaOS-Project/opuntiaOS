@@ -33,6 +33,13 @@ template("oneOS_static_library") {
       if (i == "libcxx") {
         includes += [ "//libs/libc/include" ]
       }
+
+      # When libcxx is a dependency, we also have to link to libcxxabi.
+      # We add libcxxabi as a dependency.
+      if (i == "libcxx") {
+        deplib_bulders_list += [ "//libs/libcxxabi:libcxxabi_build" ]
+        deplib_list += [ compiled_lib_output_name_base + "libcxxabi.a" ]
+      }
     }
   }
   includes += [ "//libs/" + lib_name + "/include" ]

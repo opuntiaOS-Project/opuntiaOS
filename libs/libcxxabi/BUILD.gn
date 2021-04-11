@@ -1,0 +1,18 @@
+import("//build/libs/TEMPLATE.gni")
+
+oneOS_static_library("libcxxabi") {
+  sources = [ "src/cxa_runtime.cpp" ]
+
+  include_dirs = [
+    "include/",
+    "//libs/libc/include/",
+    "//libs/libcxx/include/",
+    "//libs/",
+  ]
+
+  configs = [ "//build/libs:libcxx_flags" ]
+
+  if (host == "llvm") {
+    cflags = [ "-flto" ]
+  }
+}

@@ -35,8 +35,11 @@ oneOS_static_library("libcxx") {
   include_dirs = [
     "include/",
     "//libs/libc/include/",
+    "//libs/libcxxabi/include/",
     "//libs/",
   ]
+
+  deplibs = [ "libcxxabi" ]
 
   configs = [ "//build/libs:libcxx_flags" ]
 

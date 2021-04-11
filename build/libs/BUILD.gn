@@ -40,7 +40,6 @@ if (target_cpu == "aarch32") {
     "-mfpu=neon-vfpv4",
     "-mfloat-abi=softfp",
     "-fno-pie",
-
   ]
   lib_asm_flags += [
     "-march=armv7-a",
@@ -65,6 +64,7 @@ group("libs") {
   deps = [
     "//libs/libc:libc",
     "//libs/libcxx:libcxx",
+    "//libs/libcxxabi:libcxxabi",
     "//libs/libfoundation:libfoundation",
     "//libs/libg:libg",
     "//libs/libui:libui",
