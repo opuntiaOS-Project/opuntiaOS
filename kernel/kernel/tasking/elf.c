@@ -127,6 +127,9 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
         case SHT_FINI_ARRAY:
             zone_type = ZONE_TYPE_DATA;
             break;
+        case SHT_PREINIT_ARRAY:
+            zone_type = ZONE_TYPE_DATA;
+            break;
         default:
             break;
         }
