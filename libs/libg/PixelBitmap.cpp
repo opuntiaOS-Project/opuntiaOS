@@ -6,7 +6,6 @@
  */
 
 #include <libg/PixelBitmap.h>
-#include <std/Dbg.h>
 
 namespace LG {
 

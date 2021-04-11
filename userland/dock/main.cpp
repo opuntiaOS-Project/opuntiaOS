@@ -6,7 +6,6 @@
 #include <libui/View.h>
 #include <libui/Window.h>
 #include <memory>
-#include <std/Dbg.h>
 
 int main(int argc, char** argv)
 {

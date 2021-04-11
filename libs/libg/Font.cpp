@@ -6,6 +6,7 @@
  */
 
 #include <fcntl.h>
+#include <libfoundation/Logger.h>
 #include <libg/Font.h>
 #include <new>
 #include <string.h>
@@ -83,7 +84,7 @@ Font* Font::load_from_mem(uint8_t* font_data)
     FontFileHeader& header = *(FontFileHeader*)font_data;
 
     if (memcmp((uint8_t*)header.magic, (const uint8_t*)"!Fnt", 4)) {
-        Dbg() << "Font unsupported\n";
+        Logger::debug << "Font unsupported" << std::endl;
         return nullptr;
     }
 
@@ -93,7 +94,7 @@ Font* Font::load_from_mem(uint8_t* font_data)
     } else if (header.type == 1) {
         count = 384;
     } else {
-        Dbg() << "Type unsupported\n";
+        Logger::debug << "Type unsupported" << std::endl;
         return nullptr;
     }
 

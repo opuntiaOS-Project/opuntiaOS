@@ -3,9 +3,9 @@
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
+#include <libfoundation/Logger.h>
 #include <libipc/Message.h>
 #include <libipc/MessageDecoder.h>
-#include <std/Dbg.h>
 #include <unistd.h>
 #include <vector>
 
@@ -56,7 +56,7 @@ public:
         int read_cnt;
         while ((read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf)))) {
             if (read_cnt <= 0) {
-                Dbg() << getpid() << " :: ClientConnection read error\n";
+                Logger::debug << getpid() << " :: ClientConnection read error" << std::endl;
                 return;
             }
             size_t buf_size = buf.size();
@@ -76,7 +76,7 @@ public:
             } else if (auto response = m_server_decoder.decode((buf.data() + i), read_cnt - i, msg_len)) {
                 m_messages.push_back(std::move(response));
             } else {
-                Dbg() << getpid() << " :: ClientConnection read error\n";
+                Logger::debug << getpid() << " :: ClientConnection read error" << std::endl;
                 std::abort();
             }
         }

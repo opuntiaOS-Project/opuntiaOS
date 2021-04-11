@@ -1,6 +1,5 @@
 #include "DockWindow.h"
 #include "DockView.h"
-#include <std/Dbg.h>
 
 void DockWindow::receive_event(std::unique_ptr<LFoundation::Event> event)
 {

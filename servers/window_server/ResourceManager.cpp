@@ -7,7 +7,6 @@
 
 #include "ResourceManager.h"
 #include <libg/ImageLoaders/PNGLoader.h>
-#include <std/Dbg.h>
 
 namespace WinServer {
 

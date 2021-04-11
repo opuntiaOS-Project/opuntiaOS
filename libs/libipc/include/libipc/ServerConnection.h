@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdlib>
+#include <libfoundation/Logger.h>
 #include <libipc/Message.h>
 #include <libipc/MessageDecoder.h>
-#include <std/Dbg.h>
 #include <vector>
 
 template <typename ServerDecoder, typename ClientDecoder>
@@ -31,7 +31,7 @@ public:
         int read_cnt;
         while ((read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf)))) {
             if (read_cnt <= 0) {
-                Dbg() << getpid() << " :: ServerConnection read error\n";
+                Logger::debug << getpid() << " :: ServerConnection read error" << std::endl;
                 return;
             }
             size_t buf_size = buf.size();

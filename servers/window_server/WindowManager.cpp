@@ -9,6 +9,7 @@
 #include "CursorManager.h"
 #include "Screen.h"
 #include <libfoundation/KeyboardMapping.h>
+#include <libfoundation/Logger.h>
 
 #define WM_DEBUG
 
@@ -176,7 +177,7 @@ void WindowManager::receive_event(std::unique_ptr<LFoundation::Event> event)
 bool WindowManager::notify_listner_about_window_status(const Window& win, int changed_window_id, WindowStatusUpdateType type)
 {
 #ifdef WM_DEBUG
-    Dbg() << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << "\n";
+    Logger::debug << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << std::endl;
 #endif
     m_event_loop.add(m_connection, new SendEvent(new NotifyWindowStatusChangedMessage(win.connection_id(), win.id(), changed_window_id, (int)type)));
     return true;
@@ -185,7 +186,7 @@ bool WindowManager::notify_listner_about_window_status(const Window& win, int ch
 bool WindowManager::notify_listner_about_changed_icon(const Window& win, int changed_window_id)
 {
 #ifdef WM_DEBUG
-    Dbg() << "notify_listner_about_changed_icon " << win.id() << " that " << changed_window_id << "\n";
+    Logger::debug << "notify_listner_about_changed_icon " << win.id() << " that " << changed_window_id << std::endl;
 #endif
     auto* changed_window_ptr = window(changed_window_id);
     if (!changed_window_ptr) {

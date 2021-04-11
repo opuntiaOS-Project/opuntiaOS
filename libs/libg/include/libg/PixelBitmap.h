@@ -7,10 +7,10 @@
 
 #pragma once
 
+#include <cstring>
 #include <libg/Color.h>
 #include <libg/Rect.h>
 #include <new>
-#include <std/Dbg.h>
 #include <sys/types.h>
 
 namespace LG {

@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <cstring>
 #include <libfoundation/EventLoop.h>
 #include <memory>
 #include <sched.h>

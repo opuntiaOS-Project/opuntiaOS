@@ -5,13 +5,13 @@
  * found in the LICENSE file.
  */
 
+#include <libfoundation/Logger.h>
 #include <libipc/ClientConnection.h>
 #include <libui/Connection.h>
 #include <libui/Window.h>
 #include <memory>
 #include <new>
 #include <sched.h>
-#include <std/Dbg.h>
 #include <sys/socket.h>
 
 // #define DEBUG_CONNECTION
@@ -73,7 +73,7 @@ void Connection::greeting()
     m_connection_id = resp_message->connection_id();
     m_connection_with_server.set_accepted_key(m_connection_id);
 #ifdef DEBUG_CONNECTION
-    Dbg() << "Got greet with server\n";
+    Logger::debug << "Got greet with server" << std::endl;
 #endif
 }
 
@@ -82,7 +82,7 @@ int Connection::new_window(const Window& window)
     auto message = CreateWindowMessage(key(), window.type(), window.bounds().width(), window.bounds().height(), window.buffer().id(), window.icon_path());
     auto resp_message = send_sync_message<CreateWindowMessageReply>(message);
 #ifdef DEBUG_CONNECTION
-    Dbg() << "New window created\n";
+    Logger::debug << "New window created" << std::endl;
 #endif
     return resp_message->window_id();
 }

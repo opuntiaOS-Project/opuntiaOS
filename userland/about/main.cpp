@@ -1,3 +1,4 @@
+#include <iostream>
 #include <libui/App.h>
 #include <libui/Button.h>
 #include <libui/Label.h>
@@ -10,6 +11,8 @@
 
 int main(int argc, char** argv)
 {
+    std::cout << "Hello" << std::endl;
+
     utsname_t uts;
     int rc = uname(&uts);
 

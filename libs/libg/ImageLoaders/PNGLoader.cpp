@@ -7,10 +7,10 @@
 
 #include <cstring>
 #include <fcntl.h>
+#include <libfoundation/Logger.h>
 #include <libfoundation/compress/puff.h>
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <memory>
-#include <std/Dbg.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -27,7 +27,7 @@ namespace PNG {
     {
         int fd = open(path.c_str(), O_RDONLY);
         if (fd < 0) {
-            Dbg() << "PNGLoader: cant open\n";
+            Logger::debug << "PNGLoader: cant open" << std::endl;
             return PixelBitmap();
         }
 
@@ -60,7 +60,7 @@ namespace PNG {
         bitmap.resize(m_ihdr_chunk.width, m_ihdr_chunk.height);
 
 #ifdef PNGLOADER_DEGUG
-        Dbg() << "IHDR: " << m_ihdr_chunk.width << " " << m_ihdr_chunk.depth << " " << m_ihdr_chunk.compression_method << " " << m_ihdr_chunk.filter_method << " " << m_ihdr_chunk.color_type << "\n";
+        Logger::debug << "IHDR: " << m_ihdr_chunk.width << " " << m_ihdr_chunk.depth << " " << m_ihdr_chunk.compression_method << " " << m_ihdr_chunk.filter_method << " " << m_ihdr_chunk.color_type << std::endl;
 #endif
     }
 
@@ -106,7 +106,7 @@ namespace PNG {
                     local_streamer.read(scanline_filter);
 
                     if (scanline_filter > 4) {
-                        Dbg() << "Invalid PNG filter: " << scanline_filter;
+                        Logger::debug << "Invalid PNG filter: " << scanline_filter << std::endl;
                         continue;
                     }
 
@@ -123,7 +123,7 @@ namespace PNG {
                     local_streamer.read(scanline_filter);
 
                     if (scanline_filter > 4) {
-                        Dbg() << "Invalid PNG filter: " << scanline_filter;
+                        Logger::debug << "Invalid PNG filter: " << scanline_filter << std::endl;
                         continue;
                     }
 
@@ -262,7 +262,7 @@ namespace PNG {
         } else if (memcmp(header.type, (uint8_t*)"IEND", 4) == 0) {
             return false;
         } else {
-            Dbg() << "PNGLoader: Unexpected header type: " << (char*)header.type << "\n";
+            Logger::debug << "PNGLoader: Unexpected header type: " << (char*)header.type << std::endl;
             return false;
         }
 
@@ -283,12 +283,12 @@ namespace PNG {
     {
         auto bitmap = PixelBitmap();
         if (!ptr) {
-            Dbg() << "PNGLoader: nullptr\n";
+            Logger::debug << "PNGLoader: nullptr" << std::endl;
             return bitmap;
         }
 
         if (!check_header(ptr)) {
-            Dbg() << "PNGLoader: not png\n";
+            Logger::debug << "PNGLoader: not png" << std::endl;
             return bitmap;
         }
 

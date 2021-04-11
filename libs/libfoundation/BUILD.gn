@@ -2,8 +2,9 @@ import("//build/libs/TEMPLATE.gni")
 
 oneOS_static_library("libfoundation") {
   sources = [
-    "EventLoop.cpp",
-    "compress/puff.c",
+    "src/EventLoop.cpp",
+    "src/Logger.cpp",
+    "src/compress/puff.c",
   ]
 
   deplibs = [ "libcxx" ]

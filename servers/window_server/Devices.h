@@ -10,7 +10,6 @@
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <memory>
-#include <std/Dbg.h>
 
 namespace WinServer {
 

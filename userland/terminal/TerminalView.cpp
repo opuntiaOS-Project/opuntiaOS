@@ -4,7 +4,6 @@
 #include <libfoundation/KeyboardMapping.h>
 #include <libg/Color.h>
 #include <libui/Context.h>
-#include <std/Dbg.h>
 
 TerminalView::TerminalView(UI::View* superview, const LG::Rect& frame, int ptmx)
     : UI::View(superview, frame)

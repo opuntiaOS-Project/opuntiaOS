@@ -1,12 +1,12 @@
 #include "TerminalView.h"
 #include <fcntl.h>
+#include <libfoundation/Logger.h>
 #include <libui/App.h>
 #include <libui/Button.h>
 #include <libui/Label.h>
 #include <libui/View.h>
 #include <libui/Window.h>
 #include <memory>
-#include <std/Dbg.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -19,7 +19,7 @@ int setup_shell()
         if (!pname) {
             return -1;
         }
-        Dbg() << "open " << pname << "\n";
+        Logger::debug << "open " << pname << std::endl;
         close(0);
         close(1);
         open(pname, O_RDONLY);
