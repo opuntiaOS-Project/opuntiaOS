@@ -11,7 +11,7 @@
 #include <libfoundation/KeyboardMapping.h>
 #include <libfoundation/Logger.h>
 
-#define WM_DEBUG
+// #define WM_DEBUG
 
 namespace WinServer {
 
@@ -26,6 +26,7 @@ WindowManager::WindowManager()
     : m_screen(Screen::the())
     , m_connection(Connection::the())
     , m_compositor(Compositor::the())
+    , m_cursor_manager(CursorManager::the())
     , m_event_loop(LFoundation::EventLoop::the())
 {
     s_the = this;
@@ -45,23 +46,20 @@ void WindowManager::setup_dock(Window* window)
     m_dock_window = window->weak_ptr();
 }
 
-bool WindowManager::continue_window_move(MouseEvent* mouse_event)
+bool WindowManager::continue_window_move()
 {
     if (!movable_window()) {
         return false;
     }
 
-    update_mouse_position(mouse_event);
-
-    if (!is_mouse_left_button_pressed()) {
+    if (!m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
         m_movable_window = nullptr;
         return true;
     }
 
     auto bounds = movable_window()->bounds();
     m_compositor.invalidate(movable_window()->bounds());
-    movable_window()->bounds().offset_by(mouse_event->packet().x_offset, -mouse_event->packet().y_offset);
-    movable_window()->content_bounds().offset_by(mouse_event->packet().x_offset, -mouse_event->packet().y_offset);
+    movable_window()->offset_by(m_cursor_manager.get<CursorManager::Params::OffsetX>(), m_cursor_manager.get<CursorManager::Params::OffsetY>());
     bounds.unite(movable_window()->bounds());
     m_compositor.invalidate(bounds);
     return true;
@@ -69,69 +67,49 @@ bool WindowManager::continue_window_move(MouseEvent* mouse_event)
 
 void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 {
-    auto invalidate_bounds = m_compositor.cursor_manager().current_cursor().bounds();
-    invalidate_bounds.origin().set(m_compositor.cursor_manager().draw_position(m_mouse_x, m_mouse_y));
+    auto invalidate_bounds = m_cursor_manager.current_cursor().bounds();
+    invalidate_bounds.origin().set(m_cursor_manager.draw_position());
     m_compositor.invalidate(invalidate_bounds);
 
-    m_mouse_x += mouse_event->packet().x_offset;
-    m_mouse_y -= mouse_event->packet().y_offset;
-    if (m_mouse_x < 0) {
-        m_mouse_x = 0;
-    }
-    if (m_mouse_y < 0) {
-        m_mouse_y = 0;
-    }
-    if (m_mouse_x >= m_screen.width() - 1) {
-        m_mouse_x = m_screen.width() - 1;
-    }
-    if (m_mouse_y >= m_screen.height() - 1) {
-        m_mouse_y = m_screen.height() - 1;
-    }
+    m_cursor_manager.update_position(mouse_event);
 
-    invalidate_bounds.origin().set(m_compositor.cursor_manager().draw_position(m_mouse_x, m_mouse_y));
+    invalidate_bounds.origin().set(m_cursor_manager.draw_position());
     m_compositor.invalidate(invalidate_bounds);
-
-    m_mouse_changed_button_status = false;
-    if (m_mouse_left_button_pressed != (mouse_event->packet().button_states & 1)) {
-        m_mouse_changed_button_status = true;
-    }
-
-    m_mouse_left_button_pressed = (mouse_event->packet().button_states & 1);
 }
 
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
-    auto* mouse_event = (MouseEvent*)event.release();
     auto new_hovered_window = WeakPtr<Window>();
+    auto* mouse_event = (MouseEvent*)event.release();
+    update_mouse_position(mouse_event);
 
-    if (continue_window_move(mouse_event)) {
+    if (continue_window_move()) {
         goto end;
     }
 
-    update_mouse_position(mouse_event);
-
     for (auto* window_ptr : m_windows) {
         auto& window = *window_ptr;
-        if (window.bounds().contains(m_mouse_x, m_mouse_y)) {
-            if (window.frame().bounds().contains(m_mouse_x, m_mouse_y)) {
-                if (is_mouse_left_button_pressed()) {
-                    auto tap_point = LG::Point<int>(m_mouse_x - window.frame().bounds().min_x(), m_mouse_y - window.frame().bounds().min_y());
+        if (window.bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+            if (window.frame().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+                if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+                    auto tap_point = LG::Point<int>(m_cursor_manager.x() - window.frame().bounds().min_x(), m_cursor_manager.y() - window.frame().bounds().min_y());
                     window.frame().receive_tap_event(tap_point);
                     start_window_move(window);
                 }
-            } else if (window.content_bounds().contains(m_mouse_x, m_mouse_y)) {
-                LG::Point<int> point(m_mouse_x, m_mouse_y);
+            } else if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+                LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
                 point.offset_by(-window.content_bounds().origin());
                 m_event_loop.add(m_connection, new SendEvent(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y())));
                 new_hovered_window = window.weak_ptr();
 
-                if (m_mouse_changed_button_status) {
+                if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
                     // FIXME: only left button for now!
-                    m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window.connection_id(), window.id(), !is_mouse_left_button_pressed(), point.x(), point.y())));
+                    bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
+                    m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window.connection_id(), window.id(), !is_left_pressed, point.x(), point.y())));
                 }
             }
 
-            if (is_mouse_left_button_pressed() && m_active_window.ptr() != &window) {
+            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() && m_active_window.ptr() != &window) {
                 bring_to_front(window);
                 m_active_window = window.weak_ptr();
             }

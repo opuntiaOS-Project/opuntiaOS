@@ -114,10 +114,6 @@ public:
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
-    inline int mouse_x() const { return m_mouse_x; }
-    inline int mouse_y() const { return m_mouse_y; }
-    inline bool is_mouse_left_button_pressed() const { return m_mouse_left_button_pressed; }
-
     void setup_dock(Window* window);
 
     // Notifiers
@@ -129,7 +125,7 @@ public:
 
 private:
     void start_window_move(Window& window);
-    bool continue_window_move(MouseEvent* mouse_event);
+    bool continue_window_move();
 
     void update_mouse_position(MouseEvent* mouse_event);
     void receive_mouse_event(std::unique_ptr<LFoundation::Event> event);
@@ -147,6 +143,7 @@ private:
     Screen& m_screen;
     Connection& m_connection;
     Compositor& m_compositor;
+    CursorManager& m_cursor_manager;
     LFoundation::EventLoop& m_event_loop;
 
     WeakPtr<Window> m_dock_window {}; // TODO: may be remove it from here?
@@ -154,11 +151,6 @@ private:
     WeakPtr<Window> m_active_window {};
     WeakPtr<Window> m_hovered_window {};
     int m_next_win_id { 0 };
-
-    int m_mouse_x { 0 };
-    int m_mouse_y { 0 };
-    bool m_mouse_left_button_pressed { false };
-    bool m_mouse_changed_button_status { false };
 };
 
 } // namespace WinServer

@@ -99,7 +99,7 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
         }
     }
 
-    auto mouse_draw_position = m_cursor_manager.draw_position(wm.mouse_x(), wm.mouse_y());
+    auto mouse_draw_position = m_cursor_manager.draw_position();
     auto& current_mouse_bitmap = m_cursor_manager.current_cursor();
     for (int i = 0; i < invalidated_areas.size(); i++) {
         ctx.add_clip(invalidated_areas[i]);

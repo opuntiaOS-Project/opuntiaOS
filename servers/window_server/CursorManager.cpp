@@ -18,6 +18,7 @@ CursorManager& CursorManager::the()
 }
 
 CursorManager::CursorManager()
+    : m_screen(Screen::the())
 {
     s_the = this;
     LG::PNG::PNGLoader loader;

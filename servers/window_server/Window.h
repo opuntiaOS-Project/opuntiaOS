@@ -60,6 +60,12 @@ public:
     inline WindowFrame& frame() { return m_frame; }
     inline const WindowFrame& frame() const { return m_frame; }
 
+    inline void offset_by(int x_offset, int y_offset)
+    {
+        bounds().offset_by(x_offset, y_offset);
+        content_bounds().offset_by(x_offset, y_offset);
+    }
+
     inline void set_needs_display(const LG::Rect& rect) const
     {
         DisplayMessage msg(connection_id(), rect);
