@@ -8,10 +8,10 @@
 #pragma once
 #include "Compositor.h"
 #include "Connection.h"
+#include "Event.h"
 #include "Screen.h"
+#include "ServerDecoder.h"
 #include "WSConnection.h"
-#include "WSEvent.h"
-#include "WSServerDecoder.h"
 #include "Window.h"
 #include <algorithm>
 #include <libfoundation/EventLoop.h>

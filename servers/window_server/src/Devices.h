@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "WSEvent.h"
+#include "Event.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <memory>

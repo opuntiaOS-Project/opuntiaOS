@@ -14,7 +14,7 @@
 
 namespace WinServer {
 
-class WSEvent : public LFoundation::Event {
+class Event : public LFoundation::Event {
 public:
     enum Type {
         Invalid = 0x1000,
@@ -24,12 +24,12 @@ public:
         Other,
     };
 
-    explicit WSEvent(int type)
-        : Event(type)
+    explicit Event(int type)
+        : LFoundation::Event(type)
     {
     }
 
-    ~WSEvent() = default;
+    ~Event() = default;
 };
 
 struct MousePacket {
@@ -42,10 +42,10 @@ struct KeyboardPacket {
     uint32_t key;
 };
 
-class MouseEvent : public WSEvent {
+class MouseEvent : public WinServer::Event {
 public:
     explicit MouseEvent(const MousePacket& packet)
-        : WSEvent(WSEvent::Type::MouseEvent)
+        : WinServer::Event(WinServer::Event::Type::MouseEvent)
         , m_packet(packet)
     {
     }
@@ -59,10 +59,10 @@ private:
     MousePacket m_packet;
 };
 
-class KeyboardEvent : public WSEvent {
+class KeyboardEvent : public WinServer::Event {
 public:
     explicit KeyboardEvent(const KeyboardPacket& packet)
-        : WSEvent(WSEvent::Type::KeyboardEvent)
+        : WinServer::Event(WinServer::Event::Type::KeyboardEvent)
         , m_packet(packet)
     {
     }
@@ -76,16 +76,16 @@ private:
     KeyboardPacket m_packet;
 };
 
-class SendEvent : public WSEvent {
+class SendEvent : public WinServer::Event {
 public:
     explicit SendEvent(Message* msg)
-        : WSEvent(WSEvent::Type::SendEvent)
+        : WinServer::Event(WinServer::Event::Type::SendEvent)
         , m_message(msg)
     {
     }
 
     SendEvent(SendEvent&& ev)
-        : WSEvent(WSEvent::Type::SendEvent)
+        : WinServer::Event(WinServer::Event::Type::SendEvent)
         , m_message(std::move(ev.m_message))
     {
     }

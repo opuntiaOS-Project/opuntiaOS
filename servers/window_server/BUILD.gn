@@ -3,18 +3,18 @@ import("//build/userland/TEMPLATE.gni")
 oneOS_executable("window_server") {
   install_path = "bin/"
   sources = [
-    "Button.cpp",
-    "Compositor.cpp",
-    "Connection.cpp",
-    "CursorManager.cpp",
-    "Devices.cpp",
-    "ResourceManager.cpp",
-    "Screen.cpp",
-    "WSServerDecoder.cpp",
-    "Window.cpp",
-    "WindowFrame.cpp",
-    "WindowManager.cpp",
-    "main.cpp",
+    "src/Button.cpp",
+    "src/Compositor.cpp",
+    "src/Connection.cpp",
+    "src/CursorManager.cpp",
+    "src/Devices.cpp",
+    "src/ResourceManager.cpp",
+    "src/Screen.cpp",
+    "src/ServerDecoder.cpp",
+    "src/Window.cpp",
+    "src/WindowFrame.cpp",
+    "src/WindowManager.cpp",
+    "src/main.cpp",
   ]
 
   configs = [ "//build/userland:userland_flags" ]

@@ -7,15 +7,16 @@
 
 #pragma once
 #include "Compositor.h"
+#include "WSConnection.h"
 
 namespace WinServer {
 
-class WServerDecoder : public WindowServerDecoder {
+class WindowServerDecoder : public BaseWindowServerDecoder {
 public:
-    WServerDecoder() = default;
-    ~WServerDecoder() = default;
+    WindowServerDecoder() = default;
+    ~WindowServerDecoder() = default;
 
-    using WindowServerDecoder::handle;
+    using BaseWindowServerDecoder::handle;
     virtual std::unique_ptr<Message> handle(const GreetMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const CreateWindowMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const DestroyWindowMessage& msg) override;

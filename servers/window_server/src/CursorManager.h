@@ -7,7 +7,7 @@
 
 #pragma once
 #include "Screen.h"
-#include "WSEvent.h"
+#include "Event.h"
 #include <algorithm>
 #include <libg/PixelBitmap.h>
 #include <libg/Point.h>

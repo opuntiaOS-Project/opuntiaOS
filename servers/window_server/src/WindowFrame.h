@@ -7,7 +7,7 @@
 
 #pragma once
 #include "Button.h"
-#include "WSEvent.h"
+#include "Event.h"
 #include <libfoundation/EventReceiver.h>
 #include <libg/Context.h>
 #include <libg/PixelBitmap.h>

@@ -346,9 +346,9 @@ private:
     uint32_t m_target_window_id;
 };
 
-class WindowServerDecoder : public MessageDecoder {
+class BaseWindowServerDecoder : public MessageDecoder {
 public:
-    WindowServerDecoder() { }
+    BaseWindowServerDecoder() { }
     int magic() const { return 320; }
     std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {
@@ -757,9 +757,9 @@ private:
     LG::string m_icon_path;
 };
 
-class WindowClientDecoder : public MessageDecoder {
+class BaseWindowClientDecoder : public MessageDecoder {
 public:
-    WindowClientDecoder() { }
+    BaseWindowClientDecoder() { }
     int magic() const { return 737; }
     std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override
     {

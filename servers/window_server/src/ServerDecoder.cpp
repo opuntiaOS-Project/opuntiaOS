@@ -5,18 +5,18 @@
  * found in the LICENSE file.
  */
 
-#include "WSServerDecoder.h"
+#include "ServerDecoder.h"
 #include "Window.h"
 #include "WindowManager.h"
 
 namespace WinServer {
 
-std::unique_ptr<Message> WServerDecoder::handle(const GreetMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const GreetMessage& msg)
 {
     return new GreetMessageReply(msg.key(), Connection::the().alloc_connection());
 }
 
-std::unique_ptr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
     int win_id = wm.next_win_id();
@@ -28,7 +28,7 @@ std::unique_ptr<Message> WServerDecoder::handle(const CreateWindowMessage& msg)
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
 
-std::unique_ptr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const SetBufferMessage& msg)
 {
     auto* window = WindowManager::the().window(msg.window_id());
     if (!window) {
@@ -39,7 +39,7 @@ std::unique_ptr<Message> WServerDecoder::handle(const SetBufferMessage& msg)
     return nullptr;
 }
 
-std::unique_ptr<Message> WServerDecoder::handle(const DestroyWindowMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const DestroyWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -50,7 +50,7 @@ std::unique_ptr<Message> WServerDecoder::handle(const DestroyWindowMessage& msg)
     return new DestroyWindowMessageReply(msg.key(), 0);
 }
 
-std::unique_ptr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const InvalidateMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -64,7 +64,7 @@ std::unique_ptr<Message> WServerDecoder::handle(const InvalidateMessage& msg)
     return nullptr;
 }
 
-std::unique_ptr<Message> WServerDecoder::handle(const SetTitleMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -75,7 +75,7 @@ std::unique_ptr<Message> WServerDecoder::handle(const SetTitleMessage& msg)
     return nullptr;
 }
 
-std::unique_ptr<Message> WServerDecoder::handle(const SetBarStyleMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& msg)
 {
     // auto& wm = WindowManager::the();
     // auto* window = wm.window(msg.window_id());
@@ -86,7 +86,7 @@ std::unique_ptr<Message> WServerDecoder::handle(const SetBarStyleMessage& msg)
     return nullptr;
 }
 
-std::unique_ptr<Message> WServerDecoder::handle(const AskBringToFrontMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(const AskBringToFrontMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());

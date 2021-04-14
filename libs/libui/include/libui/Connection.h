@@ -29,8 +29,8 @@ private:
 
     int m_connection_fd;
     int m_connection_id;
-    ClientConnection<WindowServerDecoder, ClientDecoder> m_connection_with_server;
-    WindowServerDecoder m_server_decoder;
+    ClientConnection<BaseWindowServerDecoder, ClientDecoder> m_connection_with_server;
+    BaseWindowServerDecoder m_server_decoder;
     ClientDecoder m_client_decoder;
 };
 

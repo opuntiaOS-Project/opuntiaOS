@@ -6,8 +6,8 @@
  */
 
 #pragma once
+#include "ServerDecoder.h"
 #include "WSConnection.h"
-#include "WSServerDecoder.h"
 #include <libipc/ServerConnection.h>
 #include <vector>
 

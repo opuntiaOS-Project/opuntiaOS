@@ -6,8 +6,8 @@
  */
 
 #pragma once
+#include "ServerDecoder.h"
 #include "WSConnection.h"
-#include "WSServerDecoder.h"
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
 
@@ -30,9 +30,9 @@ public:
 private:
     int m_connection_fd;
     int m_connections_number { 0 };
-    ServerConnection<WServerDecoder, WindowClientDecoder> m_connection_with_clients;
-    WServerDecoder m_server_decoder;
-    WindowClientDecoder m_client_decoder;
+    ServerConnection<WindowServerDecoder, BaseWindowClientDecoder> m_connection_with_clients;
+    WindowServerDecoder m_server_decoder;
+    BaseWindowClientDecoder m_client_decoder;
 };
 
 } // namespace WinServer

@@ -6,19 +6,19 @@
  */
 
 #pragma once
-#include "../../../servers/window_server/WSConnection.h"
+#include "../../../servers/window_server/src/WSConnection.h"
 #include <libfoundation/EventLoop.h>
 
 namespace UI {
 
 class App;
 
-class ClientDecoder : public WindowClientDecoder {
+class ClientDecoder : public BaseWindowClientDecoder {
 public:
     ClientDecoder();
     ~ClientDecoder() = default;
 
-    using WindowClientDecoder::handle;
+    using BaseWindowClientDecoder::handle;
     virtual std::unique_ptr<Message> handle(const MouseMoveMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const MouseActionMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const MouseLeaveMessage& msg) override;

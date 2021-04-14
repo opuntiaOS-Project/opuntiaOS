@@ -1,6 +1,6 @@
 {
     KEYPROTECTED
-    NAME: WindowServerDecoder
+    NAME: BaseWindowServerDecoder
     MAGIC: 320
     GreetMessage() => GreetMessageReply(uint32_t connection_id)
     CreateWindowMessage(int type, uint32_t width, uint32_t height, int buffer_id, LG::string icon_path) => CreateWindowMessageReply(uint32_t window_id)
@@ -13,7 +13,7 @@
 }
 {
     KEYPROTECTED
-    NAME: WindowClientDecoder
+    NAME: BaseWindowClientDecoder
     MAGIC: 737
     MouseMoveMessage(int win_id, uint32_t x, uint32_t y)
     MouseActionMessage(int win_id, int type, uint32_t x, uint32_t y)
