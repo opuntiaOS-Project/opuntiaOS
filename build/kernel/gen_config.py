@@ -7,6 +7,7 @@ import glob
 import sys
 import json
 import subprocess
+from datetime import datetime
 
 def shell(cmd):
     return subprocess.check_output(cmd, shell=True).decode("ascii")
@@ -21,6 +22,7 @@ config = {}
 config['arch'] = arch
 config['host'] = host
 config['branch'] = branch
+config['time'] = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
 
 
 # Printing to the file
