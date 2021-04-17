@@ -13,6 +13,7 @@
 #include <libkern/log.h>
 #include <libkern/syscall_structs.h>
 #include <mem/kmalloc.h>
+#include <tasking/proc.h>
 #include <tasking/tasking.h>
 
 // #define VFS_DEBUG
@@ -547,11 +548,18 @@ proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
     return _vfs_do_mmap(fd, params);
 }
 
-int vfs_munmap(proc_zone_t* zone)
+int vfs_munmap(proc_t* p, proc_zone_t* zone)
 {
     if (!(zone->flags & ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !(zone->flags & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         return -EFAULT;
     }
+
     dentry_put(zone->file);
+
+    for (uint32_t vaddr = zone->start; vaddr < zone->start + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
+        system_flush_tlb_entry(vaddr);
+    }
+    proc_delete_zone(p, zone);
+
     return 0;
 }

@@ -61,6 +61,24 @@ static inline bool _proc_can_add_zone(proc_t* proc, uint32_t start, uint32_t len
     return true;
 }
 
+static inline void _proc_swap_zones(proc_zone_t* one, proc_zone_t* two)
+{
+    proc_zone_t tmp = *one;
+    one->file = two->file;
+    one->flags = two->flags;
+    one->len = two->len;
+    one->offset = two->offset;
+    one->start = two->start;
+    one->type = two->type;
+
+    two->file = tmp.file;
+    two->flags = tmp.flags;
+    two->len = tmp.len;
+    two->offset = tmp.offset;
+    two->start = tmp.start;
+    two->type = tmp.type;
+}
+
 /**
  * Inserts zone, which won't overlap with existing ones.
  */
@@ -195,4 +213,25 @@ proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, uint32_t addr)
 proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr)
 {
     return proc_find_zone_no_proc(&proc->zones, addr);
+}
+
+int proc_delete_zone_no_proc(dynamic_array_t* zones, proc_zone_t* givzone)
+{
+    uint32_t zones_count = zones->size;
+
+    for (uint32_t i = 0; i < zones_count; i++) {
+        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(zones, i);
+        if (givzone == zone) {
+            _proc_swap_zones(zone, dynamic_array_get(zones, zones_count - 1));
+            dynamic_array_pop(zones);
+            return 0;
+        }
+    }
+
+    return -EALREADY;
+}
+
+int proc_delete_zone(proc_t* proc, proc_zone_t* givzone)
+{
+    return proc_delete_zone_no_proc(&proc->zones, givzone);
 }

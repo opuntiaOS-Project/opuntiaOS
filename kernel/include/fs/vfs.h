@@ -213,7 +213,8 @@ int vfs_fstat(file_descriptor_t* fd, fstat_t* stat);
 int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
 int vfs_umount(dentry_t* mountpoint);
 
+struct proc;
 struct proc_zone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
-int vfs_munmap(struct proc_zone*);
+int vfs_munmap(struct proc* p, struct proc_zone*);
 
 #endif // _KERNEL_FS_VFS_H

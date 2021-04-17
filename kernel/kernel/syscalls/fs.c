@@ -375,7 +375,7 @@ void sys_munmap(trapframe_t* tf)
     }
 
     if ((zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY) || (zone->type & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
-        return_with_val(vfs_munmap(zone));
+        return_with_val(vfs_munmap(p, zone));
     }
 
     // TODO: Split or remove zone
