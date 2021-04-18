@@ -40,6 +40,8 @@ public:
     void add_ellipse(const Rect& rect);
 
     void set_draw_offset(const Point<int>& offset) { m_draw_offset = offset; }
+    Point<int>& draw_offset() { return m_draw_offset; }
+    const Point<int>& draw_offset() const { return m_draw_offset; }
     void set_fill_color(const Color& clr) { m_color = clr; }
 
     inline const Color& fill_color() const { return m_color; }

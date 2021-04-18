@@ -9,6 +9,8 @@
 #include "Connection.h"
 #include "CursorManager.h"
 #include "Devices.h"
+#include "MenuBar.h"
+#include "MenuWidgets/Clock/Clock.h"
 #include "ResourceManager.h"
 #include "Screen.h"
 #include "WindowManager.h"
@@ -34,9 +36,13 @@ int main()
     new WinServer::Connection(socket(PF_LOCAL, 0, 0));
     new WinServer::CursorManager();
     new WinServer::ResourceManager();
+    new WinServer::MenuBar();
     new WinServer::Compositor();
     new WinServer::WindowManager();
     new WinServer::Devices();
+
+    WinServer::MenuBar::the().add_widget<WinServer::Clock>();
+
     event_loop->run();
     return 0;
 }

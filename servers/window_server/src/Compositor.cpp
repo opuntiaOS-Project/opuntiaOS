@@ -7,6 +7,7 @@
 
 #include "Compositor.h"
 #include "CursorManager.h"
+#include "MenuBar.h"
 #include "ResourceManager.h"
 #include "Screen.h"
 #include "Window.h"
@@ -27,6 +28,7 @@ Compositor& Compositor::the()
 Compositor::Compositor()
     : m_cursor_manager(CursorManager::the())
     , m_resource_manager(ResourceManager::the())
+    , m_menu_bar(MenuBar::the())
 {
     s_the = this;
     invalidate(Screen::the().bounds());
@@ -97,6 +99,12 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
                 draw_window(window, invalidated_areas[i]);
             }
         }
+    }
+
+    for (int i = 0; i < invalidated_areas.size(); i++) {
+        ctx.add_clip(invalidated_areas[i]);
+        m_menu_bar.draw(ctx);
+        ctx.reset_clip();
     }
 
     auto mouse_draw_position = m_cursor_manager.draw_position();

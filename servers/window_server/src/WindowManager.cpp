@@ -59,7 +59,7 @@ bool WindowManager::continue_window_move()
 
     auto bounds = movable_window()->bounds();
     m_compositor.invalidate(movable_window()->bounds());
-    movable_window()->offset_by(m_cursor_manager.get<CursorManager::Params::OffsetX>(), m_cursor_manager.get<CursorManager::Params::OffsetY>());
+    move_window(movable_window().ptr(), m_cursor_manager.get<CursorManager::Params::OffsetX>(), m_cursor_manager.get<CursorManager::Params::OffsetY>());
     bounds.unite(movable_window()->bounds());
     m_compositor.invalidate(bounds);
     return true;

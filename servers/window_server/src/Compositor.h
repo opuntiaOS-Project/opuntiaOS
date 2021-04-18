@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "MenuBar.h"
 #include "ServerDecoder.h"
 #include "WSConnection.h"
 #include <libipc/ServerConnection.h>
@@ -46,10 +47,13 @@ public:
     inline const CursorManager& cursor_manager() const { return m_cursor_manager; }
     inline ResourceManager& resource_manager() { return m_resource_manager; }
     inline const ResourceManager& resource_manager() const { return m_resource_manager; }
+    inline MenuBar& menu_bar() { return m_menu_bar; }
+    inline const MenuBar& menu_bar() const { return m_menu_bar; }
 
 private:
     void copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas);
 
+    MenuBar& m_menu_bar;
     CursorManager& m_cursor_manager;
     ResourceManager& m_resource_manager;
     std::vector<LG::Rect> m_invalidated_areas;

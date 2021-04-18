@@ -8,6 +8,7 @@ oneOS_executable("window_server") {
     "src/Connection.cpp",
     "src/CursorManager.cpp",
     "src/Devices.cpp",
+    "src/MenuBar.cpp",
     "src/ResourceManager.cpp",
     "src/Screen.cpp",
     "src/ServerDecoder.cpp",

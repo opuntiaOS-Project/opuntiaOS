@@ -123,6 +123,13 @@ public:
     void notify_window_status_changed(int changed_window_id, WindowStatusUpdateType type);
     void notify_window_icon_changed(int changed_window_id);
 
+    void move_window(Window* window, int x_offset, int y_offset)
+    {
+        y_offset = std::max(y_offset, (int)m_compositor.menu_bar().height() - (int)WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
+        window->bounds().offset_by(x_offset, y_offset);
+        window->content_bounds().offset_by(x_offset, y_offset);
+    }
+
 private:
     void start_window_move(Window& window);
     bool continue_window_move();

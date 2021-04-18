@@ -24,6 +24,9 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& 
     window->frame().set_app_name("Unknown app");
     window->set_icon(msg.icon_path());
     wm.add_window(window);
+    if (window->type() == WindowType::Standard) {
+        wm.move_window(window, 8 * win_id, MenuBar::height() + 8 * win_id);
+    }
     wm.notify_window_icon_changed(window->id());
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
