@@ -21,6 +21,8 @@ MenuBar::MenuBar()
     : m_background_color(LG::Color(222, 222, 222, 180))
 {
     s_the = this;
+    LG::PNG::PNGLoader loader;
+    m_logo = loader.load_from_file("/res/system/logo_dark_12.png");
 }
 
 } // namespace WinServer

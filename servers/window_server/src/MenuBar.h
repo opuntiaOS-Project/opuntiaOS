@@ -45,17 +45,24 @@ public:
         ctx.set_draw_offset(offset);
     }
 
+    [[gnu::always_inline]] inline void draw_logo(LG::Context& ctx)
+    {
+        ctx.draw({4, 4}, m_logo);
+    }
+
     [[gnu::always_inline]] inline void draw(LG::Context& ctx)
     {
         ctx.set_fill_color(m_background_color);
         ctx.mix({ 0, 0, MenuBar::width(), MenuBar::height() });
 
+        draw_logo(ctx);
         draw_widgets(ctx);
     }
 
 private:
     std::vector<MenuWidget*> m_widgets;
     LG::Color m_background_color;
+    LG::PixelBitmap m_logo;
 };
 
 } // namespace WinServer
