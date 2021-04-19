@@ -9,6 +9,7 @@
 #include "../../Components/Helpers/TextDrawer.h"
 #include "../../MenuBar.h"
 #include "../MenuWidget.h"
+#include <libfoundation/Logger.h>
 #include <libg/Font.h>
 
 namespace WinServer {
@@ -35,7 +36,20 @@ public:
         Helpers::draw_text(ctx, { int(width() - twidth) / 2, 6 }, m_date, m_font);
     }
 
+    WidgetAnswer click_began(int x, int y) override
+    {
+        m_clicked = true;
+        return WidgetAnswer::InvalidateMe;
+    }
+
+    WidgetAnswer click_ended() override
+    {
+        m_clicked = false;
+        return WidgetAnswer::InvalidateMe;
+    }
+
 private:
+    bool m_clicked { false };
     char* m_date { nullptr };
     LG::Font& m_font { LG::Font::system_font() };
 };

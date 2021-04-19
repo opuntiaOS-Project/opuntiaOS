@@ -87,6 +87,18 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         goto end;
     }
 
+    // Checking and dispatching mouse move for MenuBar.
+    if (m_compositor.menu_bar().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+        m_compositor.menu_bar().on_mouse_move(m_cursor_manager);
+        if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
+            bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
+            m_compositor.menu_bar().on_mouse_status_change(m_cursor_manager);
+        }
+    } else if (m_compositor.menu_bar().is_hovered()) {
+        m_compositor.menu_bar().on_mouse_leave(m_cursor_manager);
+    }
+
+    // Checking and dispatching mouse move for windows/
     for (auto* window_ptr : m_windows) {
         auto& window = *window_ptr;
         if (window.bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {

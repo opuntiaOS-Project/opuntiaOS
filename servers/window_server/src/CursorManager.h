@@ -43,7 +43,7 @@ public:
     constexpr int get();
 
     template <Params param>
-    constexpr bool pressed();
+    constexpr bool pressed() const;
 
     template <Params param>
     constexpr bool is_changed();
@@ -72,8 +72,7 @@ public:
             }
             m_mouse_left_button_pressed = val;
         } else {
-            []<bool flag = false>() { static_assert(flag, "Could not call set() with such param!"); }
-            ();
+            []<bool flag = false>() { static_assert(flag, "Could not call set() with such param!"); } ();
         }
     }
 
@@ -135,7 +134,7 @@ inline constexpr int CursorManager::get()
 }
 
 template <CursorManager::Params param>
-inline constexpr bool CursorManager::pressed()
+inline constexpr bool CursorManager::pressed() const
 {
     if constexpr (param == CursorManager::Params::LeftButton) {
         return m_mouse_left_button_pressed;

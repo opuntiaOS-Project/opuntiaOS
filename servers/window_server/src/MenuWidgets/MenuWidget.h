@@ -10,13 +10,22 @@
 
 namespace WinServer {
 
+enum class WidgetAnswer {
+    Empty,
+    InvalidateMe,
+    Bad,
+};
+
 class MenuWidget {
 public:
     MenuWidget() = default;
     virtual ~MenuWidget() = default;
 
+    size_t height() { return 20; }
     virtual size_t width() { return 0; }
     virtual void draw(LG::Context& ctx) { }
+    virtual WidgetAnswer click_began(int x, int y) { return WidgetAnswer::Empty; }
+    virtual WidgetAnswer click_ended() { return WidgetAnswer::Empty; }
 };
 
 } // namespace WinServer
