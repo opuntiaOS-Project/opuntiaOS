@@ -11,8 +11,6 @@
 
 int main(int argc, char** argv)
 {
-    std::cout << "Hello" << std::endl;
-
     utsname_t uts;
     int rc = uname(&uts);
 

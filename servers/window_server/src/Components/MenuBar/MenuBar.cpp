@@ -6,7 +6,7 @@
  */
 
 #include "MenuBar.h"
-#include "Compositor.h"
+#include "../../Compositor.h"
 #include <libg/ImageLoaders/PNGLoader.h>
 
 namespace WinServer {
@@ -46,6 +46,19 @@ WidgetAnswer MenuBar::widget_recieve_mouse_status_change(const CursorManager& cu
     }
 
     return answer;
+}
+
+void MenuBar::invalidate_menubar_panel(Compositor& compositor)
+{
+    if (menubar_content()) {
+        size_t inv_len = menubar_panel_width(*m_menubar_content);
+        compositor.invalidate(LG::Rect(menubar_content_offset(), 0, inv_len, height()));
+    }
+}
+
+void MenuBar::invalidate_menubar_panel()
+{
+    invalidate_menubar_panel(Compositor::the());
 }
 
 } // namespace WinServer

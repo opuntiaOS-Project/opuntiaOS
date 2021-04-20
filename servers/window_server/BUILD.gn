@@ -3,12 +3,12 @@ import("//build/userland/TEMPLATE.gni")
 oneOS_executable("window_server") {
   install_path = "bin/"
   sources = [
-    "src/Button.cpp",
+    "src/Components/Elements/Button.cpp",
+    "src/Components/MenuBar/MenuBar.cpp",
     "src/Compositor.cpp",
     "src/Connection.cpp",
     "src/CursorManager.cpp",
     "src/Devices.cpp",
-    "src/MenuBar.cpp",
     "src/ResourceManager.cpp",
     "src/Screen.cpp",
     "src/ServerDecoder.cpp",

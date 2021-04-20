@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "Components/MenuBar/MenuItem.h"
 #include "Connection.h"
 #include "WindowFrame.h"
 #include <libfoundation/SharedBuffer.h>
@@ -91,6 +92,9 @@ public:
 
     inline const LG::string& icon_path() const { return m_icon_path; }
 
+    inline std::vector<MenuDir>& menubar_content() { return m_menubar_content; }
+    inline const std::vector<MenuDir>& menubar_content() const { return m_menubar_content; }
+
 private:
     int m_id { -1 };
     int m_connection_id { -1 };
@@ -103,6 +107,7 @@ private:
     WindowFrame m_frame;
     LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
     LG::string m_icon_path {};
+    std::vector<MenuDir> m_menubar_content;
 };
 
 } // namespace WinServer

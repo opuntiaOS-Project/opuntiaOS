@@ -5,12 +5,12 @@
  * found in the LICENSE file.
  */
 
+#include "Components/MenuBar/MenuBar.h"
+#include "Components/MenuBar/Widgets/Clock/Clock.h"
 #include "Compositor.h"
 #include "Connection.h"
 #include "CursorManager.h"
 #include "Devices.h"
-#include "MenuBar.h"
-#include "MenuWidgets/Clock/Clock.h"
 #include "ResourceManager.h"
 #include "Screen.h"
 #include "WindowManager.h"

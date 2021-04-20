@@ -6,8 +6,8 @@
  */
 
 #pragma once
+#include "../shared/Connections/WSConnection.h"
 #include "ServerDecoder.h"
-#include "WSConnection.h"
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>
 

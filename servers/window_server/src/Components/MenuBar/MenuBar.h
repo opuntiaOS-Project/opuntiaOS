@@ -6,8 +6,10 @@
  */
 
 #pragma once
-#include "CursorManager.h"
-#include "MenuWidgets/MenuWidget.h"
+#include "../../CursorManager.h"
+#include "../../Window.h"
+#include "MenuItem.h"
+#include "Widgets/BaseWidget.h"
 #include <libfoundation/Logger.h>
 #include <libg/Context.h>
 #include <libg/PixelBitmap.h>
@@ -23,6 +25,7 @@ public:
 
     static constexpr size_t height() { return 20; }
     static constexpr size_t width() { return 1024; }
+    static constexpr size_t menubar_content_offset() { return 20; }
 
     LG::Rect& bounds() { return m_bounds; }
     const LG::Rect& bounds() const { return m_bounds; }
@@ -37,7 +40,27 @@ public:
 
     inline bool is_hovered() const { return m_hovered; }
 
-    [[gnu::always_inline]] inline void draw_widgets(LG::Context& ctx)
+    inline void draw_bar_items(LG::Context& ctx)
+    {
+        if (!m_menubar_content) {
+            return;
+        }
+
+        auto offset = ctx.draw_offset();
+        size_t start_offset = menubar_content_offset();
+        auto& content = *m_menubar_content;
+
+        for (int ind = 0; ind < content.size(); ind++) {
+            start_offset += 4;
+            ctx.set_draw_offset(LG::Point<int>(start_offset, 0));
+            content[ind].draw(ctx);
+            start_offset += content[ind].width();
+        }
+
+        ctx.set_draw_offset(offset);
+    }
+
+    inline void draw_widgets(LG::Context& ctx)
     {
         auto offset = ctx.draw_offset();
         size_t start_offset = MenuBar::width();
@@ -52,7 +75,7 @@ public:
         ctx.set_draw_offset(offset);
     }
 
-    [[gnu::always_inline]] inline void draw_logo(LG::Context& ctx)
+    inline void draw_logo(LG::Context& ctx)
     {
         ctx.draw({ 4, 4 }, m_logo);
     }
@@ -63,6 +86,7 @@ public:
         ctx.mix({ 0, 0, MenuBar::width(), MenuBar::height() });
 
         draw_logo(ctx);
+        draw_bar_items(ctx);
         draw_widgets(ctx);
     }
 
@@ -85,7 +109,23 @@ public:
         }
     }
 
+    inline std::vector<MenuDir>* menubar_content() const { return m_menubar_content; }
+
+    inline void set_menubar_content(std::vector<MenuDir>* mc)
+    {
+        invalidate_menubar_panel();
+        m_menubar_content = mc;
+        invalidate_menubar_panel();
+    }
+    inline void set_menubar_content(std::vector<MenuDir>* mc, Compositor& compositor)
+    {
+        invalidate_menubar_panel(compositor);
+        m_menubar_content = mc;
+        invalidate_menubar_panel(compositor);
+    }
+
 private:
+    // Widgets
     WidgetAnswer widget_recieve_mouse_status_change(const CursorManager& cursor_manager, size_t wind);
     inline size_t start_of_widget(size_t index)
     {
@@ -111,8 +151,37 @@ private:
         return -1;
     }
 
+    // MenuBar Panel
+    void invalidate_menubar_panel();
+    void invalidate_menubar_panel(Compositor& compositor);
+    static inline size_t menubar_panel_width(const std::vector<MenuDir>& items)
+    {
+        size_t start_offset = 0;
+        for (int ind = 0; ind < items.size(); ind++) {
+            start_offset += 4;
+            start_offset += items[ind].width();
+        }
+        return start_offset;
+    }
+
+    inline size_t start_of_menubar_panel_item(size_t index)
+    {
+        if (!m_menubar_content) {
+            return 0;
+        }
+
+        auto& content = *m_menubar_content;
+        size_t start_offset = menubar_content_offset();
+        for (int ind = 0; ind < index; ind++) {
+            start_offset += 4;
+            start_offset += content[ind].width();
+        }
+        return start_offset;
+    }
+
     LG::Rect m_bounds;
-    std::vector<MenuWidget*> m_widgets;
+    std::vector<MenuDir>* m_menubar_content { nullptr };
+    std::vector<BaseWidget*> m_widgets;
     LG::Color m_background_color;
     LG::PixelBitmap m_logo;
 

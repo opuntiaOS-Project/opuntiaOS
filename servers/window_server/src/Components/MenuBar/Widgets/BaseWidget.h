@@ -16,10 +16,10 @@ enum class WidgetAnswer {
     Bad,
 };
 
-class MenuWidget {
+class BaseWidget {
 public:
-    MenuWidget() = default;
-    virtual ~MenuWidget() = default;
+    BaseWidget() = default;
+    virtual ~BaseWidget() = default;
 
     size_t height() { return 20; }
     virtual size_t width() { return 0; }

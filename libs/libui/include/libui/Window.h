@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "../../../servers/window_server/src/WSConnection.h"
+#include "../../../servers/window_server/shared/Connections/WSConnection.h"
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/SharedBuffer.h>

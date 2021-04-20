@@ -24,6 +24,9 @@ Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
     m_bounds = LG::Rect(0, 0, msg.width() + frame().left_border_size() + frame().right_border_size(), msg.height() + frame().top_border_size() + frame().bottom_border_size());
     m_content_bounds = LG::Rect(m_frame.left_border_size(), m_frame.top_border_size(), msg.width(), msg.height());
     m_content_bitmap = LG::PixelBitmap(m_buffer.data(), content_bounds().width(), content_bounds().height());
+
+    // Creating standard menubar directory entry.
+    m_menubar_content.push_back(MenuDir("App", 0));
 }
 
 Window::Window(Window&& win)
@@ -34,6 +37,7 @@ Window::Window(Window&& win)
     , m_content_bitmap(std::move(win.m_content_bitmap))
     , m_bounds(win.m_bounds)
     , m_content_bounds(win.m_content_bounds)
+    , m_menubar_content(std::move(win.m_menubar_content))
 {
 }
 

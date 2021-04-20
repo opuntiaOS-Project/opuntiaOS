@@ -6,9 +6,8 @@
  */
 
 #pragma once
-#include "MenuBar.h"
+#include "../shared/Connections/WSConnection.h"
 #include "ServerDecoder.h"
-#include "WSConnection.h"
 #include <libipc/ServerConnection.h>
 #include <vector>
 
@@ -16,6 +15,7 @@ namespace WinServer {
 
 class CursorManager;
 class ResourceManager;
+class MenuBar;
 
 class Compositor {
 public:

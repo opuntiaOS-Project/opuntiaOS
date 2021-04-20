@@ -6,8 +6,8 @@
  */
 
 #include "Compositor.h"
+#include "Components/MenuBar/MenuBar.h"
 #include "CursorManager.h"
-#include "MenuBar.h"
 #include "ResourceManager.h"
 #include "Screen.h"
 #include "Window.h"

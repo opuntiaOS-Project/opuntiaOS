@@ -75,6 +75,10 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
         return nullptr;
     }
     window->frame().set_app_name(msg.title());
+    window->menubar_content()[0].set_title(msg.title());
+
+    auto& compositor = Compositor::the();
+    compositor.invalidate(compositor.menu_bar().bounds());
     return nullptr;
 }
 

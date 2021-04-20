@@ -6,12 +6,13 @@
  */
 
 #pragma once
+#include "../shared/Connections/WSConnection.h"
+#include "Components/MenuBar/MenuBar.h"
 #include "Compositor.h"
 #include "Connection.h"
 #include "Event.h"
 #include "Screen.h"
 #include "ServerDecoder.h"
-#include "WSConnection.h"
 #include "Window.h"
 #include <algorithm>
 #include <libfoundation/EventLoop.h>
@@ -49,6 +50,7 @@ public:
             m_hovered_window = nullptr;
         }
         m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
+        m_compositor.menu_bar().set_menubar_content(&m_std_menubar_content, m_compositor);
         m_compositor.invalidate(window->bounds());
         notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
         delete window;
@@ -106,6 +108,9 @@ public:
             prev_window->frame().set_active(false);
             prev_window->frame().invalidate(m_compositor);
         }
+        if (window.type() == WindowType::Standard) {
+            m_compositor.menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
+        }
     }
 
     inline std::list<Window*>& windows() { return m_windows; }
@@ -152,6 +157,7 @@ private:
     Compositor& m_compositor;
     CursorManager& m_cursor_manager;
     LFoundation::EventLoop& m_event_loop;
+    std::vector<MenuDir> m_std_menubar_content;
 
     WeakPtr<Window> m_dock_window {}; // TODO: may be remove it from here?
     WeakPtr<Window> m_movable_window {};

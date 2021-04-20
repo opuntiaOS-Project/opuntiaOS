@@ -6,7 +6,7 @@
  */
 
 #include "Button.h"
-#include "Components/Helpers/TextDrawer.h"
+#include "../Helpers/TextDrawer.h"
 #include <algorithm>
 
 namespace WinServer {

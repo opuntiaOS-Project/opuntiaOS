@@ -6,15 +6,15 @@
  */
 
 #pragma once
-#include "../../Components/Helpers/TextDrawer.h"
+#include "../../../Helpers/TextDrawer.h"
+#include "../BaseWidget.h"
 #include "../../MenuBar.h"
-#include "../MenuWidget.h"
 #include <libfoundation/Logger.h>
 #include <libg/Font.h>
 
 namespace WinServer {
 
-class Clock : public MenuWidget {
+class Clock : public BaseWidget {
 public:
     Clock()
     {

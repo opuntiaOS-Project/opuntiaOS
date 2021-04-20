@@ -6,8 +6,8 @@
  */
 
 #include "WindowFrame.h"
-#include "Button.h"
 #include "Colors.h"
+#include "Components/Elements/Button.h"
 #include "Window.h"
 #include "WindowManager.h"
 #include <libg/Font.h>

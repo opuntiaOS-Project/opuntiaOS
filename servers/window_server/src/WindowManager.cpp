@@ -28,8 +28,10 @@ WindowManager::WindowManager()
     , m_compositor(Compositor::the())
     , m_cursor_manager(CursorManager::the())
     , m_event_loop(LFoundation::EventLoop::the())
+    , m_std_menubar_content()
 {
     s_the = this;
+    m_std_menubar_content.push_back(MenuDir("oneOS", 0));
 }
 
 void WindowManager::start_window_move(Window& window)
