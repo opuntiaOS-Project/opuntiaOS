@@ -7,8 +7,8 @@
 
 #pragma once
 #include "../../../Helpers/TextDrawer.h"
-#include "../BaseWidget.h"
 #include "../../MenuBar.h"
+#include "../BaseWidget.h"
 #include <libfoundation/Logger.h>
 #include <libg/Font.h>
 
@@ -36,17 +36,19 @@ public:
         Helpers::draw_text(ctx, { int(width() - twidth) / 2, 6 }, m_date, m_font);
     }
 
-    WidgetAnswer click_began(int x, int y) override
+    MenuItemAnswer click_began(int x, int y) override
     {
         m_clicked = true;
-        return WidgetAnswer::InvalidateMe;
+        return MenuItemAnswer::InvalidateMe;
     }
 
-    WidgetAnswer click_ended() override
+    MenuItemAnswer click_ended() override
     {
         m_clicked = false;
-        return WidgetAnswer::InvalidateMe;
+        return MenuItemAnswer::InvalidateMe;
     }
+
+    void popup_rect(LG::Rect& r) override { }
 
 private:
     bool m_clicked { false };

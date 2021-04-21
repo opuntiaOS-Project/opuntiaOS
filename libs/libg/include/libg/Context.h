@@ -31,11 +31,11 @@ public:
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
     void draw_with_bounds(const Rect& rect, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const GlyphBitmap& bitmap);
-    void draw_rounded(const Point<int>& start, const PixelBitmap& bitmap, const CornerMask& mask);
+    void draw_rounded(const Point<int>& start, const PixelBitmap& bitmap, const CornerMask& mask = { 0, false, false });
     void draw_shading(const Rect& rect, const Shading& shading);
     void draw_box_shading(const Rect& rect, const Shading& shading, const CornerMask& mask = { 0, false, false });
     void fill(const Rect& rect);
-    void fill_rounded(const Rect& rect, const CornerMask& mask);
+    void fill_rounded(const Rect& rect, const CornerMask& mask = { 0, false, false });
     void mix(const Rect& rect);
     void add_ellipse(const Rect& rect);
 

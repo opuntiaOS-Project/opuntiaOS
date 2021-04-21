@@ -27,13 +27,13 @@ MenuBar::MenuBar()
     m_logo = loader.load_from_file("/res/system/logo_dark_12.png");
 }
 
-WidgetAnswer MenuBar::widget_recieve_mouse_status_change(const CursorManager& cursor_manager, size_t wind)
+MenuItemAnswer MenuBar::widget_recieve_mouse_status_change(const CursorManager& cursor_manager, size_t wind)
 {
     if (wind >= m_widgets.size()) {
-        return WidgetAnswer::Bad;
+        return MenuItemAnswer::Bad;
     }
 
-    WidgetAnswer answer = WidgetAnswer::Empty;
+    MenuItemAnswer answer = MenuItemAnswer::Empty;
     size_t widget_min_x = start_of_widget(wind);
     if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
         answer = m_widgets[wind]->click_began(cursor_manager.x() - widget_min_x, cursor_manager.y());
@@ -41,8 +41,47 @@ WidgetAnswer MenuBar::widget_recieve_mouse_status_change(const CursorManager& cu
         answer = m_widgets[wind]->click_ended();
     }
 
-    if (answer == WidgetAnswer::InvalidateMe) {
+    if (answer & MenuItemAnswer::Bad) {
+        return answer;
+    }
+    if (answer & MenuItemAnswer::InvalidateMe) {
         Compositor::the().invalidate(LG::Rect(widget_min_x, 0, m_widgets[wind]->width(), height()));
+    }
+
+    return answer;
+}
+
+MenuItemAnswer MenuBar::panel_item_recieve_mouse_status_change(const CursorManager& cursor_manager, size_t ind)
+{
+    if (!m_menubar_content) {
+        return MenuItemAnswer::Bad;
+    }
+
+    auto& content = *m_menubar_content;
+    if (ind >= content.size()) {
+        return MenuItemAnswer::Bad;
+    }
+
+    MenuItemAnswer answer = MenuItemAnswer::Empty;
+    size_t widget_min_x = start_of_menubar_panel_item(ind);
+    if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+        answer = content[ind].click_began(cursor_manager.x() - widget_min_x, cursor_manager.y());
+    } else {
+        answer = content[ind].click_ended();
+    }
+
+    if (answer & MenuItemAnswer::Bad) {
+        return answer;
+    }
+    if (answer & MenuItemAnswer::InvalidateMe) {
+        Compositor::the().invalidate(LG::Rect(widget_min_x, 0, m_widgets[ind]->width(), height()));
+    }
+    if (answer & MenuItemAnswer::PopupShow) {
+        content[ind].popup_rect(m_popup_bounds);
+        popup_will_be_shown();
+    }
+    if (answer & MenuItemAnswer::PopupClose) {
+        popup_will_be_closed();
     }
 
     return answer;
