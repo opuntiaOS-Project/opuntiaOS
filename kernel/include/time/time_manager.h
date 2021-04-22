@@ -8,16 +8,12 @@
 #ifndef _KERNEL_TIME_TIME_MANAGER_H
 #define _KERNEL_TIME_TIME_MANAGER_H
 
+#include <drivers/generic/timer.h>
+#include <libkern/bits/time.h>
 #include <libkern/types.h>
 
 /* 32 bits is enough until 2106y */
 typedef unsigned int time_t;
-
-struct timeval {
-    time_t tv_sec;
-    uint32_t tv_usec;
-};
-typedef struct timeval timeval_t;
 
 bool timeman_is_leap_year(uint32_t year);
 uint32_t timeman_days_in_years_since_epoch(uint32_t year);
@@ -30,5 +26,6 @@ void timeman_timer_tick();
 time_t timeman_now();
 time_t timeman_seconds_since_boot();
 time_t timeman_get_ticks_from_last_second();
+static inline time_t timeman_ticks_per_second() { return TIMER_TICKS_PER_SECOND; };
 
 #endif /* _KERNEL_TIME_TIME_MANAGER_H */

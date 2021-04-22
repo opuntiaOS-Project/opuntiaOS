@@ -6,8 +6,10 @@
  */
 
 #pragma once
+#include <ctime>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
+#include <libfoundation/Logger.h>
 #include <memory>
 #include <vector>
 
@@ -95,23 +97,36 @@ public:
 
 class Timer : public EventReceiver {
 public:
+    static const bool Once = false;
+    static const bool Repeat = true;
+
     friend class EventLoop;
 
-    explicit Timer(std::function<void(void)> callback)
+    explicit Timer(std::function<void(void)> callback, std::time_t time_interval, bool repeat = false)
         : EventReceiver()
         , m_callback(callback)
+        , m_time_interval(time_interval)
+        , m_repeat(repeat)
     {
+        clock_gettime(CLOCK_MONOTONIC, &m_expire_time);
+        reload(m_expire_time);
     }
 
     Timer(const Timer& fdw)
         : EventReceiver()
         , m_callback(fdw.m_callback)
+        , m_time_interval(fdw.m_time_interval)
+        , m_repeat(fdw.m_repeat)
+        , m_expire_time(fdw.m_expire_time)
     {
     }
 
     Timer(Timer&& fdw)
         : EventReceiver()
         , m_callback(fdw.m_callback)
+        , m_time_interval(fdw.m_time_interval)
+        , m_repeat(fdw.m_repeat)
+        , m_expire_time(fdw.m_expire_time)
     {
     }
 
@@ -127,7 +142,18 @@ public:
         return *this;
     }
 
-    inline bool expired() { return true; } // FIXME
+    inline bool repeated() const { return m_repeat; }
+    inline bool expired(const std::timespec& now) const
+    {
+        return now.tv_sec > m_expire_time.tv_sec || (now.tv_sec == m_expire_time.tv_sec && now.tv_nsec >= m_expire_time.tv_nsec);
+    }
+
+    void reload(const std::timespec& now)
+    {
+        std::time_t secs = now.tv_nsec + (m_time_interval % 1000) * 1000000;
+        m_expire_time.tv_nsec = (secs % 1000000000);
+        m_expire_time.tv_sec = now.tv_sec + m_time_interval / 1000 + (secs / 1000000000);
+    }
 
     void receive_event(std::unique_ptr<Event> event) override
     {
@@ -136,6 +162,9 @@ public:
 
 private:
     std::function<void(void)> m_callback;
+    std::timespec m_expire_time;
+    std::time_t m_time_interval;
+    bool m_repeat { false };
 };
 
 class CallEvent final : public Event {

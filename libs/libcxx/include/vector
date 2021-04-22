@@ -129,6 +129,7 @@ public:
 
     inline size_t size() const { return m_size; }
     inline size_t capacity() const { return m_capacity; }
+    inline bool empty() const { return size() == 0; }
 
     inline reference operator[](size_t i) { return at(i); }
     inline const_reference operator[](size_t i) const { return at(i); }

@@ -24,6 +24,7 @@ oneOS_static_library("libcxx") {
     "../libc/sysdeps/unix/$target_cpu/crt0.s",
     "../libc/sysdeps/unix/generic/ioctl.c",
     "../libc/termios/termios.c",
+    "../libc/time/time.c",
 
     #private
     "init/_init.cpp",

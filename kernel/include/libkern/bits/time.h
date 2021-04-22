@@ -1,10 +1,7 @@
-#ifndef _LIBC_BITS_TIME_H
-#define _LIBC_BITS_TIME_H
+#ifndef _KERNEL_LIBKERN_BITS_TIME_H
+#define _KERNEL_LIBKERN_BITS_TIME_H
 
-#include <sys/cdefs.h>
-#include <sys/types.h>
-
-__BEGIN_DECLS
+#include <libkern/types.h>
 
 struct timeval {
     time_t tv_sec;
@@ -25,6 +22,4 @@ typedef enum {
     CLOCK_THREAD_CPUTIME_ID,
 } clockid_t;
 
-__END_DECLS
-
-#endif // _LIBC_BITS_TIME_H
+#endif // _KERNEL_LIBKERN_BITS_TIME_H

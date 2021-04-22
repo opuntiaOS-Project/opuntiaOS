@@ -6,7 +6,9 @@
  */
 
 #include <cstring>
+#include <ctime>
 #include <libfoundation/EventLoop.h>
+#include <libfoundation/Logger.h>
 #include <memory>
 #include <sched.h>
 #include <sys/select.h>
@@ -71,14 +73,27 @@ void EventLoop::check_fds()
 
 void EventLoop::check_timers()
 {
+    if (m_timers.empty()) {
+        return;
+    }
+
+    std::timespec tp;
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+
     for (auto& timer : m_timers) {
-        if (timer.expired()) {
-            m_event_queue.push_back(QueuedEvent(timer, new TimerEvent()));
+        if (!timer.expired(tp)) {
+            continue;
+        }
+
+        m_event_queue.push_back(QueuedEvent(timer, new TimerEvent()));
+
+        if (timer.repeated()) {
+            timer.reload(tp);
         }
     }
 }
 
-void EventLoop::pump()
+[[gnu::flatten]] void EventLoop::pump()
 {
     check_fds();
     check_timers();

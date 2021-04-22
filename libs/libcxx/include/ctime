@@ -1,0 +1,16 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_CTIME
+#define _LIBCXX_CTIME
+
+#include <__config>
+#include <time.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::time_t;
+using ::timespec;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_CTIME
