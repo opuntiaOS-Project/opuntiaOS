@@ -49,7 +49,7 @@ public:
         LatinExtendedA = 1
     };
 
-    Font(uint32_t* raw_data, uint8_t* m_width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width);
+    Font(uint32_t* raw_data, uint8_t* width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width, uint8_t glyph_spacing);
     ~Font() = default;
 
     static Font& system_font();
@@ -57,15 +57,17 @@ public:
     static Font* load_from_file(const char* path);
     static Font* load_from_mem(uint8_t* path);
 
-    uint8_t glyph_width(size_t ch) const { return m_dynamic_width ? m_width_data[ch] : m_width; }
-    uint8_t glyph_height() const { return m_height; }
+    inline size_t glyph_width(size_t ch) const { return m_dynamic_width ? m_width_data[ch] : m_width; }
+    inline size_t glyph_height() const { return m_height; }
+    inline size_t glyph_spacing() const { return m_spacing; }
     GlyphBitmap glyph_bitmap(size_t ch) const;
 
 private:
     uint32_t* m_raw_data;
     uint8_t* m_width_data;
-    uint8_t m_width;
-    uint8_t m_height;
+    size_t m_width;
+    size_t m_height;
+    size_t m_spacing;
     size_t m_count;
     bool m_dynamic_width;
 };

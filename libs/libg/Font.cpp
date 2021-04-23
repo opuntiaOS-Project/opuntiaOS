@@ -48,13 +48,14 @@ Font& Font::system_bold_font()
     return *s_system_bold_font_ptr;
 }
 
-Font::Font(uint32_t* raw_data, uint8_t* width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width)
+Font::Font(uint32_t* raw_data, uint8_t* width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width, uint8_t glyph_spacing)
     : m_raw_data(raw_data)
     , m_width_data(width_data)
     , m_width(width)
     , m_height(height)
     , m_count(count)
     , m_dynamic_width(dynamic_width)
+    , m_spacing(glyph_spacing)
 {
 }
 
@@ -106,7 +107,7 @@ Font* Font::load_from_mem(uint8_t* font_data)
         width_data = (uint8_t*)((uint8_t*)(raw_data) + count * bytes_per_glyph);
     }
 
-    return new Font(raw_data, width_data, header.glyph_width, header.glyph_height, count, header.is_variable_width);
+    return new Font(raw_data, width_data, header.glyph_width, header.glyph_height, count, header.is_variable_width, header.glyph_spacing);
 }
 
 GlyphBitmap Font::glyph_bitmap(size_t ch) const

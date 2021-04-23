@@ -32,10 +32,12 @@ void Button::display(const LG::Rect& rect)
     LG::Point<int> text_start { content_edge_insets().left(), content_edge_insets().top() };
 
     auto& f = font();
+    const size_t letter_spacing = f.glyph_spacing();
+
     ctx.set_fill_color(title_color());
     for (int i = 0; i < m_title.size(); i++) {
         ctx.draw(text_start, f.glyph_bitmap(m_title[i]));
-        text_start.offset_by(f.glyph_width(m_title[i]) + 2, 0);
+        text_start.offset_by(f.glyph_width(m_title[i]) + letter_spacing, 0);
     }
 }
 
@@ -75,8 +77,10 @@ size_t Button::text_width()
 {
     size_t width = 0;
     auto& f = font();
+    const size_t letter_spacing = f.glyph_spacing();
+
     for (int i = 0; i < m_title.size(); i++) {
-        width += f.glyph_width(m_title[i]) + 2; // FIXME
+        width += f.glyph_width(m_title[i]) + letter_spacing;
     }
     return width;
 }

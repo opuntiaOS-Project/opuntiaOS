@@ -22,7 +22,7 @@ void Label::display(const LG::Rect& rect)
     Context ctx(*this);
 
     auto& f = font();
-    const size_t letter_spacing = 2;
+    const size_t letter_spacing = f.glyph_spacing();
 
     size_t label_width = bounds().width() - content_edge_insets().left() - content_edge_insets().right();
     size_t txt_width = text_width();
@@ -71,10 +71,12 @@ size_t Label::text_width() const
 
     size_t width = 0;
     auto& f = font();
+    const size_t letter_spacing = f.glyph_spacing();
+
     for (int i = 0; i < m_text.size(); i++) {
-        width += f.glyph_width(m_text[i]) + 2; // FIXME
+        width += f.glyph_width(m_text[i]) + letter_spacing;
     }
-    return width - 2;
+    return width - letter_spacing;
 }
 
 size_t Label::text_height() const
