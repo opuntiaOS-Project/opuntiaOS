@@ -2,6 +2,7 @@ import("//build/libs/TEMPLATE.gni")
 
 oneOS_static_library("libc") {
   sources = [
+    "ctype/ctype.c",
     "dirent/dirent.c",
     "init/_lib.c",
     "malloc/malloc.c",
