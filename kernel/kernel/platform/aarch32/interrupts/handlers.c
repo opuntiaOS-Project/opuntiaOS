@@ -47,7 +47,7 @@ void gic_setup()
 void undefined_handler()
 {
 #ifdef FPU_ENABLED
-    if (!RUNNIG_THREAD) {
+    if (!RUNNING_THREAD) {
         goto undefined_h;
     }
 
@@ -59,9 +59,9 @@ void undefined_handler()
         fpu_save(THIS_CPU->fpu_for_thread->fpu_state);
     }
 
-    fpu_restore(RUNNIG_THREAD->fpu_state);
-    THIS_CPU->fpu_for_thread = RUNNIG_THREAD;
-    THIS_CPU->fpu_for_pid = RUNNIG_THREAD->tid;
+    fpu_restore(RUNNING_THREAD->fpu_state);
+    THIS_CPU->fpu_for_thread = RUNNING_THREAD;
+    THIS_CPU->fpu_for_pid = RUNNING_THREAD->tid;
     fpu_make_avail();
     return;
 #endif // FPU_ENABLED

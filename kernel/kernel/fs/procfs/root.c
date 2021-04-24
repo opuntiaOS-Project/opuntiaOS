@@ -28,6 +28,8 @@ int procfs_root_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t**
 /* FILES */
 static bool procfs_root_uptime_can_read(dentry_t* dentry, uint32_t start);
 static int procfs_root_uptime_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+static bool procfs_root_stat_can_read(dentry_t* dentry, uint32_t start);
+static int procfs_root_stat_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 
 /**
  * DATA
@@ -43,7 +45,13 @@ const file_ops_t procfs_root_uptime_ops = {
     .read = procfs_root_uptime_read,
 };
 
+const file_ops_t procfs_root_stat_ops = {
+    .can_read = procfs_root_stat_can_read,
+    .read = procfs_root_stat_read,
+};
+
 static const procfs_files_t static_procfs_files[] = {
+    { .name = "stat", .mode = 0, .ops = &procfs_root_stat_ops },
     { .name = "uptime", .mode = 0, .ops = &procfs_root_uptime_ops },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
@@ -186,6 +194,34 @@ static int procfs_root_uptime_read(dentry_t* dentry, uint8_t* buf, uint32_t star
 {
     char res[16];
     snprintf(res, 16, "%d", timeman_seconds_since_boot());
+    size_t size = strlen(res);
+
+    if (start == size) {
+        return 0;
+    }
+
+    if (len < size) {
+        return -EFAULT;
+    }
+
+    memcpy(buf, res, size);
+    return size;
+}
+
+static bool procfs_root_stat_can_read(dentry_t* dentry, uint32_t start)
+{
+    return true;
+}
+
+static int procfs_root_stat_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+{
+    char res[64];
+    for (int i = 0; i < CPU_CNT; i++) {
+        time_t user = cpus[i].stat_user_ticks;
+        time_t idle = cpus[i].idle_thread->stat_total_running_ticks;
+        time_t system = cpus[i].stat_system_and_idle_ticks - idle;
+        snprintf(res, 64, "cpu%d %u %u %u %u", i, user, 0, system, idle);
+    }
     size_t size = strlen(res);
 
     if (start == size) {

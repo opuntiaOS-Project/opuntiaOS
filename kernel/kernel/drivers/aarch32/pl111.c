@@ -74,7 +74,7 @@ static proc_zone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
         return 0;
     }
 
-    proc_zone_t* zone = proc_new_random_zone(RUNNIG_THREAD->process, pl111_screen_buffer_size);
+    proc_zone_t* zone = proc_new_random_zone(RUNNING_THREAD->process, pl111_screen_buffer_size);
     if (!zone) {
         return 0;
     }

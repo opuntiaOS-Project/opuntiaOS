@@ -58,6 +58,8 @@ struct thread {
     /* Scheduler data */
     struct thread* sched_prev;
     struct thread* sched_next;
+    time_t ticks_until_preemption;
+    time_t start_time_in_ticks; // Time when the task was put to run.
 
     /* Blocker data */
     blocker_t blocker;
@@ -69,6 +71,9 @@ struct thread {
     fd_set_t readfds;
     fd_set_t writefds;
     fd_set_t exceptfds;
+
+    /* Stat data */
+    time_t stat_total_running_ticks;
 
     uint32_t signals_mask;
     uint32_t pending_signals_mask;

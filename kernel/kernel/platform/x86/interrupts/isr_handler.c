@@ -60,10 +60,10 @@ void isr_handler(trapframe_t* tf)
     cpu_enter_kernel_space();
 
     proc_t* p = NULL;
-    if (likely(RUNNIG_THREAD)) {
-        p = RUNNIG_THREAD->process;
-        if (RUNNIG_THREAD->process->is_kthread) {
-            RUNNIG_THREAD->tf = tf;
+    if (likely(RUNNING_THREAD)) {
+        p = RUNNING_THREAD->process;
+        if (RUNNING_THREAD->process->is_kthread) {
+            RUNNING_THREAD->tf = tf;
         }
     }
 
@@ -84,7 +84,7 @@ void isr_handler(trapframe_t* tf)
             snprintf(err_buf, 64, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
             kpanic_tf(err_buf, tf);
         } else {
-            log_warn("Crash: invalid opcode in %d tid\n", RUNNIG_THREAD->tid);
+            log_warn("Crash: invalid opcode in %d tid\n", RUNNING_THREAD->tid);
             dump_and_kill(p);
         }
     } else {

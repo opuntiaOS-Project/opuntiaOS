@@ -90,7 +90,7 @@ static proc_zone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
         return 0;
     }
 
-    proc_zone_t* zone = proc_new_random_zone(RUNNIG_THREAD->process, bga_screen_buffer_size);
+    proc_zone_t* zone = proc_new_random_zone(RUNNING_THREAD->process, bga_screen_buffer_size);
     if (!zone) {
         return 0;
     }

@@ -120,7 +120,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after sgnal to the right state */
 
     /* TODO: Add support for SMP */
-    if (thread != RUNNIG_THREAD) {
+    if (thread != RUNNING_THREAD) {
         /* 
         If we are here that means that the thread was stopped while
         being in kernel (because of scheduler or blocker). That means,

@@ -26,9 +26,9 @@ void irq_handler(trapframe_t* tf)
     }
     port_byte_out(0x20, 0x20);
 
-    if (likely(RUNNIG_THREAD)) {
-        if (RUNNIG_THREAD->process->is_kthread) {
-            RUNNIG_THREAD->tf = tf;
+    if (likely(RUNNING_THREAD)) {
+        if (RUNNING_THREAD->process->is_kthread) {
+            RUNNING_THREAD->tf = tf;
         }
     }
 

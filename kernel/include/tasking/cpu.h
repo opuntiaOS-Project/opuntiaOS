@@ -10,6 +10,9 @@
 
 #include <drivers/generic/fpu.h>
 #include <tasking/bits/cpu.h>
+#include <tasking/bits/sched.h>
+#include <tasking/proc.h>
+#include <tasking/thread.h>
 
 static inline void cpu_enter_kernel_space()
 {
@@ -19,6 +22,15 @@ static inline void cpu_enter_kernel_space()
 static inline void cpu_leave_kernel_space()
 {
     THIS_CPU->current_state = CPU_IN_USERLAND;
+}
+
+static inline void cpu_tick()
+{
+    if (THIS_CPU->running_thread->process->is_kthread) {
+        THIS_CPU->stat_system_and_idle_ticks++;
+    } else {
+        THIS_CPU->stat_user_ticks++;
+    }
 }
 
 #endif // _KERNEL_TASKING_CPU_H

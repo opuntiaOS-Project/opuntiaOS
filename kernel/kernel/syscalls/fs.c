@@ -15,7 +15,7 @@
 
 void sys_open(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = proc_get_free_fd(p);
     const char* path = (char*)param1;
     char* kpath = 0;
@@ -71,7 +71,7 @@ void sys_open(trapframe_t* tf)
 
 void sys_close(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, param1);
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -81,12 +81,12 @@ void sys_close(trapframe_t* tf)
 /* TODO: copying to/from user! */
 void sys_read(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
     if (!fd) {
         return_with_val(-EBADF);
     }
 
-    init_read_blocker(RUNNIG_THREAD, fd);
+    init_read_blocker(RUNNING_THREAD, fd);
 
     int res = vfs_read(fd, (uint8_t*)param2, (uint32_t)param3);
     return_with_val(res);
@@ -95,12 +95,12 @@ void sys_read(trapframe_t* tf)
 /* TODO: copying to/from user! */
 void sys_write(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
     if (!fd) {
         return_with_val(-EBADF);
     }
 
-    init_write_blocker(RUNNIG_THREAD, fd);
+    init_write_blocker(RUNNING_THREAD, fd);
 
     int res = vfs_write(fd, (uint8_t*)param2, (uint32_t)param3);
     return_with_val(res);
@@ -108,7 +108,7 @@ void sys_write(trapframe_t* tf)
 
 void sys_lseek(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -138,7 +138,7 @@ void sys_lseek(trapframe_t* tf)
 
 void sys_unlink(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     const char* path = (char*)param1;
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
@@ -174,7 +174,7 @@ void sys_creat(trapframe_t* tf)
 
 void sys_fstat(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNIG_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
     fstat_t* stat = (fstat_t*)param2;
     if (!fd) {
         return_with_val(-EBADF);
@@ -188,7 +188,7 @@ void sys_fstat(trapframe_t* tf)
 
 void sys_mkdir(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     const char* path = (char*)param1;
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
@@ -219,7 +219,7 @@ void sys_mkdir(trapframe_t* tf)
 
 void sys_rmdir(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     const char* path = (char*)param1;
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
@@ -243,12 +243,12 @@ void sys_chdir(trapframe_t* tf)
 {
     /* proc lock */
     const char* path = (char*)param1;
-    return_with_val(proc_chdir(RUNNIG_THREAD->process, path));
+    return_with_val(proc_chdir(RUNNING_THREAD->process, path));
 }
 
 void sys_getdents(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
     int read = vfs_getdents(fd, (uint8_t*)param2, param3);
     return_with_val(read);
@@ -256,7 +256,7 @@ void sys_getdents(trapframe_t* tf)
 
 void sys_select(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd;
 
     int nfds = param1;
@@ -276,7 +276,7 @@ void sys_select(trapframe_t* tf)
         }
     }
 
-    init_select_blocker(RUNNIG_THREAD, nfds, readfds, writefds, exceptfds, timeout);
+    init_select_blocker(RUNNING_THREAD, nfds, readfds, writefds, exceptfds, timeout);
 
     if (readfds) {
         FD_ZERO(readfds);
@@ -290,12 +290,12 @@ void sys_select(trapframe_t* tf)
 
     for (int i = 0; i < nfds; i++) {
         fd = proc_get_fd(p, i);
-        if (readfds && FD_ISSET(i, &(RUNNIG_THREAD->readfds))) {
+        if (readfds && FD_ISSET(i, &(RUNNING_THREAD->readfds))) {
             if (fd->ops->can_read && fd->ops->can_read(fd->dentry, fd->offset)) {
                 FD_SET(i, readfds);
             }
         }
-        if (writefds && FD_ISSET(i, &(RUNNIG_THREAD->writefds))) {
+        if (writefds && FD_ISSET(i, &(RUNNING_THREAD->writefds))) {
             if (fd->ops->can_write && fd->ops->can_write(fd->dentry, fd->offset)) {
                 FD_SET(i, writefds);
             }
@@ -307,7 +307,7 @@ void sys_select(trapframe_t* tf)
 
 void sys_mmap(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     mmap_params_t* params = (mmap_params_t*)param1;
 
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
@@ -362,7 +362,7 @@ void sys_mmap(trapframe_t* tf)
 
 void sys_munmap(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     void* ptr = (void*)param1;
 
     proc_zone_t* zone = proc_find_zone(p, (uint32_t)ptr);

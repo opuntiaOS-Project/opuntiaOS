@@ -14,7 +14,7 @@
 
 #define CPU_CNT 1
 #define THIS_CPU (&cpus[0])
-#define RUNNIG_THREAD (THIS_CPU->running_thread)
+#define RUNNING_THREAD (THIS_CPU->running_thread)
 #define FPU_ENABLED
 
 struct thread;
@@ -29,6 +29,12 @@ typedef struct {
     context_t* scheduler; // context of sched's registers
     struct thread* running_thread;
     cpu_state_t current_state;
+    struct thread* idle_thread;
+
+    /* Stat */
+    time_t stat_system_and_idle_ticks;
+    time_t stat_user_ticks;
+
 #ifdef FPU_ENABLED
     // Information about current state of fpu.
     struct thread* fpu_for_thread;

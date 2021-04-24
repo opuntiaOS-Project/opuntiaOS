@@ -15,6 +15,9 @@
 /* 32 bits is enough until 2106y */
 typedef unsigned int time_t;
 
+extern time_t ticks_since_boot;
+extern time_t ticks_since_second;
+
 bool timeman_is_leap_year(uint32_t year);
 uint32_t timeman_days_in_years_since_epoch(uint32_t year);
 uint32_t timeman_days_in_months_since_soy(uint8_t month, uint32_t year);
@@ -27,5 +30,6 @@ time_t timeman_now();
 time_t timeman_seconds_since_boot();
 time_t timeman_get_ticks_from_last_second();
 static inline time_t timeman_ticks_per_second() { return TIMER_TICKS_PER_SECOND; };
+static inline time_t timeman_ticks_since_boot() { return ticks_since_boot; };
 
 #endif /* _KERNEL_TIME_TIME_MANAGER_H */

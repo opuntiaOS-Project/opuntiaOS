@@ -10,6 +10,7 @@
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 #include <platform/aarch32/interrupts.h>
+#include <tasking/cpu.h>
 #include <tasking/sched.h>
 #include <time/time_manager.h>
 
@@ -34,10 +35,9 @@ static inline void _sp804_clear_interrupt(volatile sp804_registers_t* timer)
 static void _sp804_int_handler()
 {
     _sp804_clear_interrupt(timer1);
+    cpu_tick();
     timeman_timer_tick();
-    if (RUNNIG_THREAD) {
-        resched();
-    }
+    sched_tick();
 }
 
 void sp804_install()

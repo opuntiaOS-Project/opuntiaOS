@@ -9,6 +9,7 @@
 #include <libkern/kassert.h>
 #include <libkern/log.h>
 #include <platform/generic/system.h>
+#include <tasking/cpu.h>
 #include <tasking/sched.h>
 #include <time/time_manager.h>
 
@@ -43,8 +44,7 @@ void pit_setup()
 
 void pit_handler()
 {
+    cpu_tick();
     timeman_timer_tick();
-    if (RUNNIG_THREAD) {
-        resched();
-    }
+    sched_tick();
 }

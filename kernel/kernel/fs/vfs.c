@@ -524,7 +524,7 @@ static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
     proc_zone_t* zone;
 
     if (map_private) {
-        zone = proc_new_random_zone(RUNNIG_THREAD->process, params->size);
+        zone = proc_new_random_zone(RUNNING_THREAD->process, params->size);
         zone->type = ZONE_TYPE_MAPPED_FILE_PRIVATLY;
         zone->file = dentry_duplicate(fd->dentry);
         zone->offset = params->offset;

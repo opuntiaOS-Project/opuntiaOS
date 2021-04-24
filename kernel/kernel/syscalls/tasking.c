@@ -39,29 +39,29 @@ void sys_exec(trapframe_t* tf)
 
 void sys_sigaction(trapframe_t* tf)
 {
-    int res = signal_set_handler(RUNNIG_THREAD, (int)param1, (void*)param2);
+    int res = signal_set_handler(RUNNING_THREAD, (int)param1, (void*)param2);
     return_with_val(res);
 }
 
 void sys_sigreturn(trapframe_t* tf)
 {
-    signal_restore_thread_after_handling_signal(RUNNIG_THREAD);
+    signal_restore_thread_after_handling_signal(RUNNING_THREAD);
 }
 
 void sys_raise(trapframe_t* tf)
 {
-    signal_set_pending(RUNNIG_THREAD, (int)param1);
-    signal_dispatch_pending(RUNNIG_THREAD);
+    signal_set_pending(RUNNING_THREAD, (int)param1);
+    signal_dispatch_pending(RUNNING_THREAD);
 }
 
 void sys_getpid(trapframe_t* tf)
 {
-    return_with_val(RUNNIG_THREAD->tid);
+    return_with_val(RUNNING_THREAD->tid);
 }
 
 void sys_getuid(trapframe_t* tf)
 {
-    return_with_val(RUNNIG_THREAD->process->uid);
+    return_with_val(RUNNING_THREAD->process->uid);
 }
 
 void sys_kill(trapframe_t* tf)
@@ -99,7 +99,7 @@ void sys_getpgid(trapframe_t* tf)
 
 void sys_create_thread(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     thread_t* thread = proc_create_thread(p);
     if (!thread) {
         return_with_val(-EFAULT);
@@ -116,7 +116,7 @@ void sys_create_thread(trapframe_t* tf)
 
 void sys_sleep(trapframe_t* tf)
 {
-    thread_t* p = RUNNIG_THREAD;
+    thread_t* p = RUNNING_THREAD;
     time_t time = param1;
 
     init_sleep_blocker(p, time);

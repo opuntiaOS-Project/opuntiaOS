@@ -16,12 +16,14 @@
 #include <tasking/cpu.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
+#include <time/time_manager.h>
 
 // #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT
 
 runqueue_t buf1[TOTAL_PRIOS_COUNT];
 runqueue_t buf2[TOTAL_PRIOS_COUNT];
+static time_t _sched_timeslices[];
 
 // TODO: Made them per-cpu.
 static int _buf_read_prio;
@@ -48,19 +50,22 @@ static void _idle_thread()
     }
 }
 
-static void _create_idle_thread()
+static inline time_t _sched_get_timeslice(thread_t* thread)
+{
+    return _sched_timeslices[thread->process->prio];
+}
+
+static void _create_idle_thread(cpu_t* cpu)
 {
     proc_t* idle_proc = tasking_create_kernel_thread(_idle_thread, NULL);
+    cpu->idle_thread = idle_proc->main_thread;
 
     // Changing prio.
     sched_dequeue(idle_proc->main_thread);
     idle_proc->prio = IDLE_PRIO;
 
-    // Idle thread is enqueued in 2 bufs.
     sched_enqueue(idle_proc->main_thread);
-    _sched_swap_buffers();
-    sched_enqueue(idle_proc->main_thread);
-    _enqueued_tasks -= 2; // Don't count idle thread.
+    _enqueued_tasks -= 1; // Don't count idle thread.
 }
 
 static void _init_cpu(cpu_t* cpu)
@@ -77,7 +82,7 @@ static void _init_cpu(cpu_t* cpu)
     cpu->fpu_for_thread = NULL;
     cpu->fpu_for_pid = 0;
 #endif // FPU_ENABLED
-    _create_idle_thread();
+    _create_idle_thread(cpu);
 }
 
 static inline void _sched_swap_buffers()
@@ -140,19 +145,21 @@ void sched_unblock_threads()
 
 void resched_dont_save_context()
 {
-    if (RUNNIG_THREAD && RUNNIG_THREAD->status == THREAD_RUNNING) {
-        _sched_add_to_end_of_runqueue(RUNNIG_THREAD);
+    if (RUNNING_THREAD && RUNNING_THREAD->status == THREAD_RUNNING) {
+        RUNNING_THREAD->stat_total_running_ticks += timeman_ticks_since_boot() - RUNNING_THREAD->start_time_in_ticks;
+        _sched_add_to_end_of_runqueue(RUNNING_THREAD);
     }
     switch_to_context(THIS_CPU->scheduler);
 }
 
 void resched()
 {
-    if (RUNNIG_THREAD) {
-        if (RUNNIG_THREAD->status == THREAD_RUNNING) {
-            _sched_add_to_end_of_runqueue(RUNNIG_THREAD);
+    if (RUNNING_THREAD) {
+        RUNNING_THREAD->stat_total_running_ticks += timeman_ticks_since_boot() - RUNNING_THREAD->start_time_in_ticks;
+        if (RUNNING_THREAD->status == THREAD_RUNNING) {
+            _sched_add_to_end_of_runqueue(RUNNING_THREAD);
         }
-        switch_contexts(&RUNNIG_THREAD->context, THIS_CPU->scheduler);
+        switch_contexts(&RUNNING_THREAD->context, THIS_CPU->scheduler);
     } else {
         switch_to_context(THIS_CPU->scheduler);
     }
@@ -208,14 +215,9 @@ void sched_dequeue(thread_t* thread)
 void sched()
 {
     for (;;) {
-        // Check if only idle thread is enqueued.
-        if (unlikely(_enqueued_tasks == 0)) {
-            _buf_read_prio = IDLE_PRIO;
-        }
-
         while (!_master_buf[_buf_read_prio].head) {
             _buf_read_prio++;
-            if (_buf_read_prio >= MIN_PRIO) {
+            if (_buf_read_prio >= IDLE_PRIO) {
                 tasking_kill_dying();
                 sched_unblock_threads();
                 _sched_swap_buffers();
@@ -235,6 +237,8 @@ void sched()
         log("[STAT] procs in buffer: %d", _debug_count_of_proc_in_buf(_master_buf));
 #endif
         ASSERT(thread->status == THREAD_RUNNING);
+        thread->start_time_in_ticks = timeman_ticks_since_boot();
+        thread->ticks_until_preemption = _sched_get_timeslice(thread);
         switchuvm(thread);
         switch_contexts(&(THIS_CPU->scheduler), thread->context);
     }
@@ -251,3 +255,18 @@ static void _debug_print_runqueue(runqueue_t* it)
         }
     }
 }
+
+static time_t _sched_timeslices[] = {
+    [0] = 5,
+    [1] = 5,
+    [2] = 4,
+    [3] = 4,
+    [4] = 4,
+    [5] = 3,
+    [6] = 3,
+    [7] = 3,
+    [8] = 3,
+    [9] = 2,
+    [10] = 2,
+    [11] = 1,
+};

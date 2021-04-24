@@ -1115,7 +1115,7 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
             }
 
 #ifdef VMM_DEBUG
-            log("Mmap page %x for %d pid: %x", vaddr, RUNNIG_THREAD->process->pid, zone->flags);
+            log("Mmap page %x for %d pid: %x", vaddr, RUNNING_THREAD->process->pid, zone->flags);
 #endif
             vmm_load_page(vaddr, zone->flags);
 

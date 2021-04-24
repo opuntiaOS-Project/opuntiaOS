@@ -16,7 +16,7 @@
 
 void sys_socket(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     int domain = param1;
     int type = param2;
     int protocol = param3;
@@ -38,7 +38,7 @@ void sys_socket(trapframe_t* tf)
 
 void sys_bind(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     int sockfd = param1;
     char* name = (char*)param2;
     uint32_t len = (uint32_t)param3;
@@ -57,7 +57,7 @@ void sys_bind(trapframe_t* tf)
 
 void sys_connect(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     int sockfd = param1;
     char* name = (char*)param2;
     uint32_t len = (uint32_t)param3;
@@ -76,7 +76,7 @@ void sys_connect(trapframe_t* tf)
 
 void sys_ioctl(trapframe_t* tf)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = proc_get_fd(p, param1);
 
     if (!fd) {

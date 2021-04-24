@@ -68,7 +68,7 @@ int local_socket_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t 
 
 int local_socket_bind(file_descriptor_t* sock, char* path, uint32_t len)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
 
     char* name = vfs_helper_split_path_with_name(path, strlen(path));
     dentry_t* location;
@@ -109,7 +109,7 @@ int local_socket_bind(file_descriptor_t* sock, char* path, uint32_t len)
 
 int local_socket_connect(file_descriptor_t* sock, char* path, uint32_t len)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
 
     dentry_t* bind_dentry;
     int res = vfs_resolve_path_start_from(p->cwd, path, &bind_dentry);

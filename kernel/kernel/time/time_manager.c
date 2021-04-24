@@ -8,11 +8,13 @@
 #include <drivers/generic/rtc.h>
 #include <drivers/generic/timer.h>
 #include <libkern/log.h>
+#include <tasking/cpu.h>
 #include <time/time_manager.h>
 
 // #define TIME_MANAGER_DEBUG
 
-static time_t ticks;
+time_t ticks_since_boot = 0;
+time_t ticks_since_second = 0;
 static time_t time_since_boot = 0;
 static time_t time_since_epoch = 0;
 
@@ -88,10 +90,13 @@ int timeman_setup()
 
 void timeman_timer_tick()
 {
-    if (++ticks >= TIMER_TICKS_PER_SECOND) {
+    ticks_since_boot++;
+    ticks_since_second++;
+
+    if (ticks_since_second >= TIMER_TICKS_PER_SECOND) {
         time_since_boot++;
         time_since_epoch++;
-        ticks = 0;
+        ticks_since_second = 0;
     }
 }
 
@@ -107,5 +112,5 @@ time_t timeman_seconds_since_boot()
 
 time_t timeman_get_ticks_from_last_second()
 {
-    return ticks;
+    return ticks_since_second;
 }

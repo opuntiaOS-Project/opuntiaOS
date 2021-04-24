@@ -16,7 +16,7 @@
 void switchuvm(thread_t* thread)
 {
     system_disable_interrupts();
-    RUNNIG_THREAD = thread;
+    RUNNING_THREAD = thread;
     vmm_switch_pdir(thread->process->pdir);
     fpu_make_unavail();
     system_enable_interrupts();

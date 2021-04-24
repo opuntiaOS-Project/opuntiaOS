@@ -101,7 +101,7 @@ static proc_t* _tasking_fork_proc_from_current()
 {
     proc_t* new_proc = _tasking_alloc_proc();
     new_proc->pdir = vmm_new_forked_user_pdir();
-    proc_copy_of(new_proc, RUNNIG_THREAD);
+    proc_copy_of(new_proc, RUNNING_THREAD);
     return new_proc;
 }
 
@@ -179,12 +179,12 @@ void tasking_fork(trapframe_t* tf)
 
     /* setting output */
     set_syscall_result(new_proc->main_thread->tf, 0);
-    set_syscall_result(RUNNIG_THREAD->tf, new_proc->pid);
+    set_syscall_result(RUNNING_THREAD->tf, new_proc->pid);
 
     new_proc->main_thread->status = THREAD_RUNNING;
 
 #ifdef TASKING_DEBUG
-    log("Fork %d to pid %d", RUNNIG_THREAD->tid, new_proc->pid);
+    log("Fork %d to pid %d", RUNNING_THREAD->tid, new_proc->pid);
 #endif
 
     sched_enqueue(new_proc->main_thread);
@@ -203,8 +203,8 @@ static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, 
 /* TODO: Posix & zeroing-on-demand */
 int tasking_exec(const char* path, const char** argv, const char** env)
 {
-    thread_t* thread = RUNNIG_THREAD;
-    proc_t* p = RUNNIG_THREAD->process;
+    thread_t* thread = RUNNING_THREAD;
+    proc_t* p = RUNNING_THREAD->process;
     char* kpath = NULL;
     int kargc = 0;
     char** kargv = NULL;
@@ -255,7 +255,7 @@ int tasking_exec(const char* path, const char** argv, const char** env)
 
 int tasking_waitpid(int pid)
 {
-    thread_t* thread = RUNNIG_THREAD;
+    thread_t* thread = RUNNING_THREAD;
     thread_t* joinee_thread = tasking_get_thread(pid);
     if (!joinee_thread) {
         return -ESRCH;
@@ -267,7 +267,7 @@ int tasking_waitpid(int pid)
 
 void tasking_exit(int exit_code)
 {
-    proc_t* p = RUNNIG_THREAD->process;
+    proc_t* p = RUNNING_THREAD->process;
     p->main_thread->exit_code = exit_code;
     proc_die(p);
     resched();
