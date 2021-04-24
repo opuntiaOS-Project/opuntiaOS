@@ -152,7 +152,7 @@ public:
     basic_string& operator+=(const basic_string& s)
     {
         ensure_capacity(size() + s.size() + 1);
-        Traits::copy(&m_str[m_size], s.m_str, m_size);
+        Traits::copy(&m_str[m_size], s.m_str, s.m_size);
         m_size += s.size();
         Traits::assign(m_str[m_size], '\0');
         return *this;
