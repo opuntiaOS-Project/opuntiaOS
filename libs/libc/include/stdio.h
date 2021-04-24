@@ -11,6 +11,7 @@ __BEGIN_DECLS
 #define _IOLBF 1 /* setvbuf should set line buffered */
 #define _IONBF 2 /* setvbuf should set unbuffered */
 #define BUFSIZ 1024 /* size of buffer used by setbuf */
+#define EOF (-1)
 
 struct __fbuf {
     char* base;
@@ -55,6 +56,12 @@ int putchar(int c);
 int fputs(const char* s, FILE* stream);
 int puts(const char* s);
 
+int fgetc(FILE* stream);
+int getc(FILE* stream);
+int getchar();
+
+char* fgets(char* s, int size, FILE* stream);
+
 int setvbuf(FILE* stream, char* buf, int mode, size_t size);
 void setbuf(FILE* stream, char* buf);
 void setlinebuf(FILE* stream);
@@ -65,6 +72,9 @@ int snprintf(char* s, size_t n, const char* format, ...);
 int sprintf(char* s, const char* format, ...);
 int fprintf(FILE* stream, const char* format, ...);
 int printf(const char* format, ...);
+
+int vsscanf(const char* buf, const char* format, va_list arg);
+int sscanf(const char* str, const char* fmt, ...);
 
 __END_DECLS
 

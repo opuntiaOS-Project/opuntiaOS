@@ -15,6 +15,7 @@ oneOS_static_library("libc") {
     "setjmp/$target_cpu/setjmp.s",
     "socket/socket.c",
     "stdio/printf.c",
+    "stdio/scanf.c",
     "stdio/stdio.c",
     "stdlib/exit.c",
     "stdlib/pts.c",

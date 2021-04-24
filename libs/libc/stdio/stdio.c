@@ -404,6 +404,37 @@ int puts(const char* s)
     return fputs(s, stdout);
 }
 
+int fgetc(FILE* stream)
+{
+    char c;
+    size_t res = fread(&c, 1, 1, stream);
+    if (res != 1) {
+        return EOF;
+    }
+    return c;
+}
+
+int getc(FILE* stream)
+{
+    return fgetc(stream);
+}
+
+int getchar()
+{
+    return fgetc(stdin);
+}
+
+char* fgets(char* s, int size, FILE* stream)
+{
+    if (!stream) {
+        set_errno(EINVAL);
+        return NULL;
+    }
+    
+    size_t count = fread(s, size, 1, stream);
+    return count ? s : NULL;
+}
+
 int setvbuf(FILE* stream, char* buf, int mode, size_t size)
 {
     if (!stream) {
