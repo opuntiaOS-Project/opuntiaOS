@@ -22,7 +22,9 @@ Context::Context(PixelBitmap& bitmap)
 
 void Context::add_clip(const Rect& rect)
 {
-    m_clip.intersect(rect);
+    auto r = rect;
+    r.offset_by(m_draw_offset);
+    m_clip.intersect(r);
 }
 
 void Context::reset_clip()

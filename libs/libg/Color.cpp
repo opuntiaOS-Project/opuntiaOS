@@ -43,6 +43,7 @@ Color::Color(Colors clr)
         rgb_color = { 235, 235, 235 };
         break;
     case LightSystemAccentButton:
+    case LightSystemBlue:
         rgb_color = { 62, 119, 233 };
         break;
     default:

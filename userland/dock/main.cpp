@@ -17,6 +17,7 @@ int main(int argc, char** argv)
     dock_view.new_fast_launch_entity("/res/icons/apps/logo.icon", "/bin/about"); // Launch launchpad instead of about app
     dock_view.new_fast_launch_entity("/res/icons/apps/about.icon", "/bin/about"); // FIXME: Parse some init file
     dock_view.new_fast_launch_entity("/res/icons/apps/terminal.icon", "/bin/terminal");
+    dock_view.new_fast_launch_entity("/res/icons/apps/activity_monitor.icon", "/bin/activity_monitor");
     window.set_title("Dock");
     return app.run();
 }

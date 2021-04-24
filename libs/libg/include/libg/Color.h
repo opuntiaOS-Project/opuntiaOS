@@ -26,6 +26,7 @@ public:
         LightSystemBackground,
         LightSystemButton,
         LightSystemAccentButton,
+        LightSystemBlue,
     };
 
     Color() = default;

@@ -22,6 +22,8 @@ public:
     App();
 
     inline int run() { return m_event_loop.run(); }
+    inline LFoundation::EventLoop& event_loop() { return m_event_loop; }
+    inline const LFoundation::EventLoop& event_loop() const { return m_event_loop; }
     void set_window(Window* window) { m_window = window; }
     inline Window& window() { return *m_window; }
     inline const Window& window() const { return *m_window; }

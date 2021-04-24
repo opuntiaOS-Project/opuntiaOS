@@ -79,6 +79,7 @@ config("userland_flags") {
 group("userland") {
   deps = [
     "//userland/about:about",
+    "//userland/activity_monitor:activity_monitor",
     "//userland/cat:cat",
     "//userland/dock:dock",
     "//userland/init:init",

@@ -1,0 +1,16 @@
+import("//build/userland/TEMPLATE.gni")
+
+oneOS_executable("activity_monitor") {
+  install_path = "bin/"
+  sources = [
+    "GraphView.cpp",
+    "main.cpp",
+  ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [
+    "libcxx",
+    "libfoundation",
+    "libg",
+    "libui",
+  ]
+}

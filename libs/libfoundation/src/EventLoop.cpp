@@ -7,12 +7,14 @@
 
 #include <cstring>
 #include <ctime>
+#include <iostream>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/Logger.h>
 #include <memory>
 #include <sched.h>
 #include <sys/select.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 namespace LFoundation {
 
