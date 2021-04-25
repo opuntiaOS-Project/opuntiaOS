@@ -206,7 +206,7 @@ void Context::draw(const Point<int>& start, const GlyphBitmap& bitmap)
     draw_with_bounds(LG::Rect(bottom_min_rx, max_ry + 1, bottom_rwidth, bottom_radius), bitmap);
 
     auto add_instant_clip = [&](int x, int y, size_t width, size_t height) {
-        add_clip(LG::Rect(x + m_draw_offset.x(), y + m_draw_offset.y(), width, height));
+        add_clip(LG::Rect(x, y, width, height));
     };
 
     auto orig_clip = m_clip;
@@ -448,7 +448,7 @@ void Context::shadow_rounded_helper(const Point<int>& start, size_t radius, cons
     fill(LG::Rect(bottom_min_rx, max_ry + 1, bottom_rwidth, bottom_radius));
 
     auto add_instant_clip = [&](int x, int y, size_t width, size_t height) {
-        add_clip(LG::Rect(x + m_draw_offset.x(), y + m_draw_offset.y(), width, height));
+        add_clip(LG::Rect(x, y, width, height));
     };
 
     auto orig_clip = m_clip;
@@ -684,7 +684,7 @@ void Context::draw_box_shading(const Rect& rect, const Shading& shading, const C
     draw_shading(LG::Rect(max_shading_x, top_min_ry, shading_spread, rheight), LG::Shading(LG::Shading::Type::LeftToRight, shading.final_alpha()));
 
     auto add_instant_clip = [&](int x, int y, size_t width, size_t height) {
-        add_clip(LG::Rect(x + m_draw_offset.x(), y + m_draw_offset.y(), width, height));
+        add_clip(LG::Rect(x, y, width, height));
     };
 
     auto orig_clip = m_clip;
