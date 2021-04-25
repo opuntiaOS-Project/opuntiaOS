@@ -13,5 +13,5 @@ int raise(int signo)
 
 int kill(pid_t pid, int signo)
 {
-    return DO_SYSCALL_2(SYSRAISE, pid, signo);
+    return DO_SYSCALL_2(SYSKILL, pid, signo);
 }
