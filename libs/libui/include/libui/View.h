@@ -112,7 +112,7 @@ public:
     virtual void receive_keyup_event(KeyUpEvent&) override;
     virtual void receive_keydown_event(KeyDownEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
-    virtual void receive_layout_event(const LayoutEvent&) override;
+    virtual bool receive_layout_event(const LayoutEvent&) override;
 
     inline LG::Color& background_color() { return m_background_color; }
     inline const LG::Color& background_color() const { return m_background_color; }

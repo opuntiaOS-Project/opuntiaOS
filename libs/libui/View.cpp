@@ -190,16 +190,18 @@ void View::receive_display_event(DisplayEvent& event)
     Responder::receive_display_event(event);
 }
 
-void View::receive_layout_event(const LayoutEvent& event)
+bool View::receive_layout_event(const LayoutEvent& event)
 {
     if (this == event.target()) {
         layout_subviews();
+        return true;
     }
 
     foreach_subview([&](View& subview) -> bool {
-        subview.receive_layout_event(event);
-        return true;
+        return !subview.receive_layout_event(event);
     });
+
+    return false;
 }
 
 } // namespace UI

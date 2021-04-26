@@ -27,7 +27,7 @@ public:
     virtual void receive_keyup_event(KeyUpEvent&) { }
     virtual void receive_keydown_event(KeyDownEvent&) { }
     virtual void receive_display_event(DisplayEvent&) { m_display_message_sent = false; }
-    virtual void receive_layout_event(const LayoutEvent&) { }
+    virtual bool receive_layout_event(const LayoutEvent&) { return false; }
 
 protected:
     bool m_display_message_sent { false };
