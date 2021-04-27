@@ -37,7 +37,7 @@ void launching()
 {
     tasking_create_kernel_thread(dentry_flusher, NULL);
     tasking_start_init_proc();
-    ksys1(SYSEXIT, 0);
+    ksys1(SYS_EXIT, 0);
 }
 
 void stage3(mem_desc_t* mem_desc)

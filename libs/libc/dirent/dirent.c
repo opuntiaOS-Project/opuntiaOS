@@ -36,5 +36,5 @@ int closedir(DIR* dir)
 
 ssize_t getdents(int fd, char* buf, size_t len)
 {
-    return (ssize_t)DO_SYSCALL_3(SYSGETDENTS, fd, buf, len);
+    return (ssize_t)DO_SYSCALL_3(SYS_GETDENTS, fd, buf, len);
 }

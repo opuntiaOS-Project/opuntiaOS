@@ -3,7 +3,7 @@
 
 uid_t getuid()
 {
-    return (uid_t)DO_SYSCALL_0(SYSGETUID);
+    return (uid_t)DO_SYSCALL_0(SYS_GETUID);
 }
 
 uid_t geteuid()

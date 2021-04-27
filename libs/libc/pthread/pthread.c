@@ -9,5 +9,5 @@ int pthread_create(void* func)
     params.stack_start = start;
     params.stack_size = 4096;
     params.entry_point = (uint32_t)func;
-    return DO_SYSCALL_1(SYSPTHREADCREATE, &params);
+    return DO_SYSCALL_1(SYS_PTHREADCREATE, &params);
 }

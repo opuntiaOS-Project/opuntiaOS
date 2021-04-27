@@ -99,7 +99,7 @@ static void dumper(proc_t* p)
 
 exit:
     proc_die(p);
-    ksys1(SYSEXIT, err);
+    ksys1(SYS_EXIT, err);
 }
 
 void dump_and_kill(proc_t* p)

@@ -239,7 +239,7 @@ void dentry_flusher()
             }
             dentry_cache_block = dentry_cache_block->next;
         }
-        ksys1(SYSSLEEP, 2);
+        ksys1(SYS_SLEEP, 2);
     }
 }
 

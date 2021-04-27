@@ -3,7 +3,7 @@
 
 void exit(int status)
 {
-    DO_SYSCALL_1(SYSEXIT, status);
+    DO_SYSCALL_1(SYS_EXIT, status);
     __builtin_unreachable();
 }
 
