@@ -18,6 +18,7 @@ enum __sysid {
     SYS_SIGACTION,
     SYS_SIGRETURN,
     SYS_RAISE,
+    SYS_GET_TIME_OF_DAY,
     SYS_LSEEK,
     SYS_GETPID,
     SYS_SETUID,

@@ -34,6 +34,7 @@ static const void* syscalls[] = {
     [SYS_SIGACTION] = sys_sigaction,
     [SYS_SIGRETURN] = sys_sigreturn,
     [SYS_RAISE] = sys_raise,
+    [SYS_GET_TIME_OF_DAY] = sys_gettimeofday,
     [SYS_LSEEK] = sys_lseek,
     [SYS_GETPID] = sys_getpid,
     [SYS_GETUID] = sys_getuid,

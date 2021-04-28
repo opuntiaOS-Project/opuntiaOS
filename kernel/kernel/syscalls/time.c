@@ -32,3 +32,21 @@ void sys_clock_gettime(trapframe_t* tf)
     }
     return_with_val(0);
 }
+
+void sys_gettimeofday(trapframe_t* tf)
+{
+    timeval_t* tv = (timeval_t*)param1;
+    timezone_t* tz = (timezone_t*)param2;
+
+    if (!tv || !tz) {
+        return_with_val(-EINVAL);
+    }
+
+    tv->tv_sec = timeman_now();
+    tv->tv_usec = timeman_get_ticks_from_last_second() * (1000000 / timeman_ticks_per_second());
+
+    tz->tz_dsttime = DST_NONE;
+    tz->tz_minuteswest = 0;
+
+    return_with_val(0);
+}

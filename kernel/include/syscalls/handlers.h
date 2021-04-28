@@ -34,6 +34,7 @@ void sys_chdir(trapframe_t* tf);
 void sys_sigaction(trapframe_t* tf);
 void sys_sigreturn(trapframe_t* tf);
 void sys_raise(trapframe_t* tf);
+void sys_gettimeofday(trapframe_t* tf);
 void sys_lseek(trapframe_t* tf);
 void sys_getpid(trapframe_t* tf);
 void sys_getuid(trapframe_t* tf);

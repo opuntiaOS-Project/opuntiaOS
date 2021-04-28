@@ -11,6 +11,7 @@ oneOS_static_library("libc") {
     "posix/signal.c",
     "posix/system.c",
     "posix/tasking.c",
+    "posix/time.c",
     "pthread/pthread.c",
     "setjmp/$target_cpu/setjmp.s",
     "socket/socket.c",
