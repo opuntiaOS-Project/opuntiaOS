@@ -76,5 +76,5 @@ void stage3(mem_desc_t* mem_desc)
     tasking_create_kernel_thread(launching, NULL);
     resched(); /* Starting a scheduler */
 
-    while (1) { }
+    system_stop();
 }
