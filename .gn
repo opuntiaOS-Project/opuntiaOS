@@ -8,4 +8,5 @@ default_args = {
   is_debug = true
   optimize = true
   host = "gnu"
+  device_type = "desktop"
 }

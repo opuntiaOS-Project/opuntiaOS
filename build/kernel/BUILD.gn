@@ -20,6 +20,13 @@ if (optimize) {
   kernel_c_flags += [ "-Os" ]
 }
 
+if (device_type == "desktop") {
+  kernel_c_flags += [ "-DTARGET_DESKTOP" ]
+}
+if (device_type == "mobile") {
+  kernel_c_flags += [ "-DTARGET_MOBILE" ]
+}
+
 if (target_cpu == "x86") {
   kernel_c_flags += [
     "-mno-80387",

@@ -6,16 +6,19 @@
  */
 
 #pragma once
-#include "Components/Elements/Button.h"
-#include "Event.h"
+#include "../Components/Elements/Button.h"
+#include "../Event.h"
 #include <libfoundation/EventReceiver.h>
 #include <libg/Context.h>
 #include <libg/PixelBitmap.h>
 
 namespace WinServer {
+class Compositor;
+}
+
+namespace WinServer::Desktop {
 
 class Window;
-class Compositor;
 
 class WindowFrame {
 public:
@@ -64,7 +67,7 @@ public:
     void set_active(bool active) { m_active = active; }
     bool active() const { return m_active; }
 
-    void invalidate(Compositor& compositor) const;
+    void invalidate(WinServer::Compositor& compositor) const;
 
     void reload_icon();
     const LG::PixelBitmap& icon() const { return m_icon; }

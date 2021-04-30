@@ -6,10 +6,10 @@
  */
 
 #include "WindowFrame.h"
-#include "Colors.h"
-#include "Components/Elements/Button.h"
+#include "../Colors.h"
+#include "../Components/Elements/Button.h"
+#include "../WindowManager.h"
 #include "Window.h"
-#include "WindowManager.h"
 #include <libg/Font.h>
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <libg/Rect.h>
@@ -19,7 +19,7 @@
 #define CONTROL_PANEL_MAXIMIZE 0x1
 #define CONTROL_PANEL_MINIMIZE 0x2
 
-namespace WinServer {
+namespace WinServer::Desktop {
 
 static const uint32_t s_close_button_glyph_data[10] = {
     0b1100000011,
@@ -105,7 +105,7 @@ void WindowFrame::set_app_name(std::string&& title)
         new_control->set_font(LG::Font::system_bold_font());
         m_control_panel_buttons.push_back(new_control);
     }
-    Compositor::the().invalidate(bounds());
+    WinServer::Compositor::the().invalidate(bounds());
 }
 
 void WindowFrame::add_control(const std::string& title)
@@ -113,7 +113,7 @@ void WindowFrame::add_control(const std::string& title)
     auto* new_control = new Button();
     new_control->set_title(title);
     m_control_panel_buttons.push_back(new_control);
-    Compositor::the().invalidate(bounds());
+    WinServer::Compositor::the().invalidate(bounds());
 }
 
 void WindowFrame::draw(LG::Context& ctx)
@@ -162,7 +162,7 @@ void WindowFrame::draw(LG::Context& ctx)
     }
 }
 
-void WindowFrame::invalidate(Compositor& compositor) const
+void WindowFrame::invalidate(WinServer::Compositor& compositor) const
 {
     if (!visible()) {
         return;

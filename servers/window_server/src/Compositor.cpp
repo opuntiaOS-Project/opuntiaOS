@@ -6,11 +6,11 @@
  */
 
 #include "Compositor.h"
+#include "Components/Base/BaseWindow.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "CursorManager.h"
 #include "ResourceManager.h"
 #include "Screen.h"
-#include "Window.h"
 #include "WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/Memory.h>
@@ -34,7 +34,8 @@ Compositor::Compositor()
     invalidate(Screen::the().bounds());
     LFoundation::EventLoop::the().add(LFoundation::Timer([] {
         Compositor::the().refresh();
-    }, 1000 / 60, LFoundation::Timer::Repeat));
+    },
+        1000 / 60, LFoundation::Timer::Repeat));
 }
 
 void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas)
@@ -79,13 +80,22 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
         ctx.reset_clip();
     };
 
-    auto draw_window = [&](Window& window, const LG::Rect& area) {
+#ifdef TARGET_DESKTOP
+    auto draw_window = [&](Desktop::Window& window, const LG::Rect& area) {
         ctx.add_clip(area);
         ctx.add_clip(window.bounds());
         window.frame().draw(ctx);
         ctx.draw_rounded(window.content_bounds().origin(), window.content_bitmap(), window.corner_mask());
         ctx.reset_clip();
     };
+#elif TARGET_MOBILE
+    auto draw_window = [&](Mobile::Window& window, const LG::Rect& area) {
+        ctx.add_clip(area);
+        ctx.add_clip(window.bounds());
+        ctx.draw(window.content_bounds().origin(), window.content_bitmap());
+        ctx.reset_clip();
+    };
+#endif // #ifdef TARGET_DESKTOP
 
     for (int i = 0; i < invalidated_areas.size(); i++) {
         draw_wallpaper_for_area(invalidated_areas[i]);

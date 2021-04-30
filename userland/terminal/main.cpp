@@ -33,7 +33,11 @@ int main(int argc, char** argv)
 {
     int ptmx = setup_shell();
     auto& app = std::oneos::construct<UI::App>();
+#ifdef TARGET_DESKTOP
     auto& window = std::oneos::construct<UI::Window>(400, 300, "/res/icons/apps/terminal.icon");
+#elif TARGET_MOBILE
+    auto& window = std::oneos::construct<UI::Window>(320, 548, "/res/icons/apps/terminal.icon");
+#endif
     auto& terminal_view = window.create_superview<TerminalView>(ptmx);
     window.set_focused_view(terminal_view);
     window.set_frame_style(LG::Color(0x181818));

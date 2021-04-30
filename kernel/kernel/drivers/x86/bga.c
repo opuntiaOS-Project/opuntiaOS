@@ -70,9 +70,10 @@ static int _bga_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 {
     uint32_t y_offset = 0;
     switch (cmd) {
-    case 0x1:
-        log("%x", arg);
-        return 0;
+    case BGA_GET_HEIGHT:
+        return bga_screen_height;
+    case BGA_GET_WIDTH:
+        return bga_screen_width;
     case BGA_SWAP_BUFFERS:
         y_offset = bga_screen_height * (arg & 1);
         _bga_write_reg(VBE_DISPI_INDEX_Y_OFFSET, (uint16_t)y_offset);

@@ -196,7 +196,7 @@ class Generator:
         self.out("#include <libipc/ServerConnection.h>")
         self.out("#include <libg/Rect.h>")
         self.out("#include <libg/string.h>")
-        self.out("#include <malloc.h>")
+        self.out("#include <new>")
         self.out("")
 
     def generate(self, filename, decoders):

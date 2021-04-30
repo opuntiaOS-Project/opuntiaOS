@@ -23,8 +23,11 @@ enum WindowType {
     Dock = 1,
 };
 
+class Connection;
+
 class Window : public LFoundation::EventReceiver {
     UI_OBJECT();
+    friend Connection;
 
 public:
     Window();

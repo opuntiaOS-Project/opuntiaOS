@@ -53,11 +53,11 @@ static int _pl111_init_buffer(uint32_t width, uint32_t height)
 
 static int _pl111_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 {
-    uint32_t y_offset = 0;
     switch (cmd) {
-    case 0x1:
-        log("%x", arg);
-        return 0;
+    case BGA_GET_HEIGHT:
+        return pl111_screen_height;
+    case BGA_GET_WIDTH:
+        return pl111_screen_width;
     case BGA_SWAP_BUFFERS:
         registers->lcd_upbase = (uint32_t)pl111_bufs_paddr[(arg & 1)];
         return 0;
@@ -92,7 +92,9 @@ static proc_zone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
 
 static void pl111_recieve_notification(uint32_t msg, uint32_t param)
 {
+#ifdef DEBUG_PL111
     log("PL111: Notific start");
+#endif
     if (msg == DM_NOTIFICATION_DEVFS_READY) {
         dentry_t* mp;
         if (vfs_resolve_path("/dev", &mp) < 0) {
@@ -106,11 +108,16 @@ static void pl111_recieve_notification(uint32_t msg, uint32_t param)
 
         dentry_put(mp);
     }
+#ifdef DEBUG_PL111
     log("PL111: Notific end");
+#endif
 }
 
 void pl111_set_resolution(uint32_t width, uint32_t height)
 {
+    pl111_screen_width = width;
+    pl111_screen_height = height;
+
     size_t ppl = width / 16 - 1;
     volatile uint32_t timing_reg = registers->lcd_timing_0;
     timing_reg &= ~PIXELS_PER_LINE_MASK;
@@ -128,8 +135,13 @@ void pl111_init(device_t* dev)
 #ifdef DEBUG_PL111
     log("PL111: Turning on");
 #endif
+#ifdef TARGET_DESKTOP
     _pl111_init_buffer(1024, 768);
     pl111_set_resolution(1024, 768);
+#elif TARGET_MOBILE
+    _pl111_init_buffer(320, 568);
+    pl111_set_resolution(320, 568);
+#endif
 
     volatile uint32_t ctl = registers->lcd_control;
     ctl &= ~LCD_POWER_MASK

@@ -20,7 +20,7 @@ MenuBar& MenuBar::the()
 
 MenuBar::MenuBar()
     : m_background_color(LG::Color(222, 222, 222, 180))
-    , m_bounds(0, 0, width(), height())
+    , m_bounds(0, 0, Screen::the().bounds().width(), height())
 {
     s_the = this;
     LG::PNG::PNGLoader loader;

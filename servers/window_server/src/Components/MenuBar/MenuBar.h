@@ -7,7 +7,7 @@
 
 #pragma once
 #include "../../CursorManager.h"
-#include "../../Window.h"
+#include "../../Desktop/Window.h"
 #include "MenuItem.h"
 #include "Widgets/BaseWidget.h"
 #include <libfoundation/Logger.h>
@@ -24,10 +24,10 @@ public:
     MenuBar();
 
     static constexpr size_t height() { return 20; }
-    static constexpr size_t width() { return 1024; }
     static constexpr size_t padding() { return 4; }
     static constexpr size_t menubar_content_offset() { return 20; }
 
+    size_t width() const { return m_bounds.width(); }
     LG::Rect& bounds() { return m_bounds; }
     const LG::Rect& bounds() const { return m_bounds; }
 

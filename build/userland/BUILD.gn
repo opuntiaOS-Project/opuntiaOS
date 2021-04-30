@@ -26,6 +26,13 @@ uland_cc_flags = [
 uland_asm_flags = []
 uland_ld_flags = []
 
+if (device_type == "desktop") {
+  uland_c_flags += [ "-DTARGET_DESKTOP" ]
+}
+if (device_type == "mobile") {
+  uland_c_flags += [ "-DTARGET_MOBILE" ]
+}
+
 if (target_cpu == "x86") {
   uland_asm_flags += [
     "-f",

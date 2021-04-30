@@ -6,7 +6,11 @@
  */
 
 #include "ServerDecoder.h"
-#include "Window.h"
+#ifdef TARGET_DESKTOP
+#include "Desktop/Window.h"
+#elif TARGET_MOBILE
+#include "Mobile/Window.h"
+#endif
 #include "WindowManager.h"
 
 namespace WinServer {
@@ -16,11 +20,12 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const GreetMessage& msg)
     return new GreetMessageReply(msg.key(), Connection::the().alloc_connection());
 }
 
+#ifdef TARGET_DESKTOP
 std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
     int win_id = wm.next_win_id();
-    auto* window = new Window(msg.key(), win_id, msg);
+    auto* window = new Desktop::Window(msg.key(), win_id, msg);
     window->frame().set_app_name("Unknown app");
     window->set_icon(msg.icon_path());
     wm.add_window(window);
@@ -30,6 +35,20 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& 
     wm.notify_window_icon_changed(window->id());
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
+#elif TARGET_MOBILE
+std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    int win_id = wm.next_win_id();
+    auto* window = new Mobile::Window(msg.key(), win_id, msg);
+    wm.add_window(window);
+    wm.notify_window_icon_changed(window->id());
+    if (window->type() == WindowType::Standard) {
+        wm.move_window(window, 0, MenuBar::height());
+    }
+    return new CreateWindowMessageReply(msg.key(), win_id);
+}
+#endif
 
 std::unique_ptr<Message> WindowServerDecoder::handle(const SetBufferMessage& msg)
 {
@@ -67,6 +86,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const InvalidateMessage& ms
     return nullptr;
 }
 
+#ifdef TARGET_DESKTOP
 std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
 {
     auto& wm = WindowManager::the();
@@ -81,6 +101,12 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
     compositor.invalidate(compositor.menu_bar().bounds());
     return nullptr;
 }
+#elif TARGET_MOBILE
+std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
+{
+    return nullptr;
+}
+#endif
 
 std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& msg)
 {

@@ -6,9 +6,8 @@
  */
 
 #pragma once
-#include "Components/MenuBar/MenuItem.h"
-#include "Connection.h"
-#include "WindowFrame.h"
+#include "../../Connection.h"
+#include "../MenuBar/MenuItem.h"
 #include <libfoundation/SharedBuffer.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
@@ -35,12 +34,18 @@ enum WindowEvent {
     IconChange = (1 << 1),
 };
 
-class Window : public Weakable<Window> {
+class BaseWindow {
 public:
-    Window(int connection_id, int id, const CreateWindowMessage& msg);
-    Window(Window&& win);
+    BaseWindow(int connection_id, int id, const CreateWindowMessage& msg);
+    BaseWindow(BaseWindow&& win);
+    ~BaseWindow() = default;
 
-    void set_buffer(int buffer_id);
+    inline void set_buffer(int buffer_id)
+    {
+        if (m_buffer.id() != buffer_id) {
+            m_buffer.open(buffer_id);
+        }
+    }
 
     inline int id() const { return m_id; }
     inline int connection_id() const { return m_connection_id; }
@@ -58,44 +63,13 @@ public:
     inline LG::Rect& bounds() { return m_bounds; }
     inline const LG::Rect& bounds() const { return m_bounds; }
 
-    inline WindowFrame& frame() { return m_frame; }
-    inline const WindowFrame& frame() const { return m_frame; }
-
-    inline void offset_by(int x_offset, int y_offset)
-    {
-        bounds().offset_by(x_offset, y_offset);
-        content_bounds().offset_by(x_offset, y_offset);
-    }
-
     inline void set_needs_display(const LG::Rect& rect) const
     {
         DisplayMessage msg(connection_id(), rect);
         Connection::the().send_async_message(msg);
     }
 
-    void make_frame();
-    void make_frameless();
-
-    inline void set_icon(LG::string&& name)
-    {
-        m_icon_path = std::move(name);
-        m_frame.reload_icon();
-    }
-
-    inline void set_icon(const LG::string& name)
-    {
-        m_icon_path = name;
-        m_frame.reload_icon();
-    }
-
-    inline const LG::CornerMask& corner_mask() const { return m_corner_mask; }
-
-    inline const LG::string& icon_path() const { return m_icon_path; }
-
-    inline std::vector<MenuDir>& menubar_content() { return m_menubar_content; }
-    inline const std::vector<MenuDir>& menubar_content() const { return m_menubar_content; }
-
-private:
+protected:
     int m_id { -1 };
     int m_connection_id { -1 };
     WindowType m_type { WindowType::Standard };
@@ -104,10 +78,6 @@ private:
     LG::Rect m_content_bounds;
     LG::PixelBitmap m_content_bitmap;
     LFoundation::SharedBuffer<LG::Color> m_buffer;
-    WindowFrame m_frame;
-    LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
-    LG::string m_icon_path {};
-    std::vector<MenuDir> m_menubar_content;
 };
 
 } // namespace WinServer

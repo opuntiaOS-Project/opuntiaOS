@@ -3,6 +3,7 @@ import("//build/userland/TEMPLATE.gni")
 oneOS_executable("window_server") {
   install_path = "bin/"
   sources = [
+    "src/Components/Base/BaseWindow.cpp",
     "src/Components/Elements/Button.cpp",
     "src/Components/MenuBar/MenuBar.cpp",
     "src/Compositor.cpp",
@@ -12,16 +13,26 @@ oneOS_executable("window_server") {
     "src/ResourceManager.cpp",
     "src/Screen.cpp",
     "src/ServerDecoder.cpp",
-    "src/Window.cpp",
-    "src/WindowFrame.cpp",
     "src/WindowManager.cpp",
     "src/main.cpp",
   ]
 
+  if (device_type == "desktop") {
+    cflags = [ "-DTARGET_DESKTOP" ]
+    sources += [
+      "src/Desktop/Window.cpp",
+      "src/Desktop/WindowFrame.cpp",
+    ]
+  }
+  if (device_type == "mobile") {
+    cflags = [ "-DTARGET_MOBILE" ]
+    sources += [ "src/Mobile/Window.cpp" ]
+  }
+
   configs = [ "//build/userland:userland_flags" ]
 
   if (host == "llvm") {
-    cflags = [ "-flto" ]
+    cflags += [ "-flto" ]
   }
 
   deplibs = [

@@ -10,6 +10,7 @@ declare_args() {
   static_analyze = false
   host = "gnu"
   llvm_bin_path = getenv("LLVM_BIN_PATH")
+  device_type = "desktop"
 }
 
 if (target_cpu == "") {
@@ -17,6 +18,12 @@ if (target_cpu == "") {
 }
 if (target_cpu == "arm") {
   target_cpu = "aarch32"
+}
+if (device_type == "m") {
+  device_type = "mobile"
+}
+if (device_type == "d") {
+  device_type = "desktop"
 }
 
 if (host == "gnu") {

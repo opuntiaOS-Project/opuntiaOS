@@ -39,6 +39,7 @@ void WindowManager::start_window_move(Window& window)
     m_movable_window = window.weak_ptr();
 }
 
+#ifdef TARGET_DESKTOP
 void WindowManager::setup_dock(Window* window)
 {
     window->make_frameless();
@@ -47,7 +48,17 @@ void WindowManager::setup_dock(Window* window)
     window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
     m_dock_window = window->weak_ptr();
 }
+#elif TARGET_MOBILE
+void WindowManager::setup_dock(Window* window)
+{
+    window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
+    window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
+    window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
+    m_dock_window = window->weak_ptr();
+}
+#endif // TARGET_MOBILE
 
+#ifdef TARGET_DESKTOP
 bool WindowManager::continue_window_move()
 {
     if (!movable_window()) {
@@ -66,6 +77,7 @@ bool WindowManager::continue_window_move()
     m_compositor.invalidate(bounds);
     return true;
 }
+#endif // TARGET_DESKTOP
 
 void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 {
@@ -79,6 +91,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
     m_compositor.invalidate(invalidate_bounds);
 }
 
+#ifdef TARGET_DESKTOP
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
     auto new_hovered_window = WeakPtr<Window>();
@@ -144,6 +157,15 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 end:
     delete mouse_event;
 }
+#endif // TARGET_DESKTOP
+#ifdef TARGET_MOBILE
+void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
+{
+    auto* mouse_event = (MouseEvent*)event.release();
+    update_mouse_position(mouse_event);
+    delete mouse_event;
+}
+#endif // TARGET_MOBILE
 
 void WindowManager::receive_keyboard_event(std::unique_ptr<LFoundation::Event> event)
 {
@@ -177,6 +199,7 @@ bool WindowManager::notify_listner_about_window_status(const Window& win, int ch
 
 bool WindowManager::notify_listner_about_changed_icon(const Window& win, int changed_window_id)
 {
+#ifdef TARGET_DESKTOP
 #ifdef WM_DEBUG
     Logger::debug << "notify_listner_about_changed_icon " << win.id() << " that " << changed_window_id << std::endl;
 #endif
@@ -185,6 +208,7 @@ bool WindowManager::notify_listner_about_changed_icon(const Window& win, int cha
         return false;
     }
     m_event_loop.add(m_connection, new SendEvent(new NotifyWindowIconChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->icon_path())));
+#endif
     return true;
 }
 

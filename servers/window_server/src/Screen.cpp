@@ -23,13 +23,13 @@ Screen& Screen::the()
 }
 
 Screen::Screen()
-    : m_bounds(0, 0, 1024, 768)
-    , m_depth(4)
+    : m_depth(4)
     , m_write_bitmap()
     , m_display_bitmap()
 {
     s_the = this;
     m_screen_fd = open("/dev/bga", O_RDWR);
+    m_bounds = LG::Rect(0, 0, ioctl(m_screen_fd, BGA_GET_WIDTH, 0), ioctl(m_screen_fd, BGA_GET_HEIGHT, 0));
 
     size_t screen_buffer_size = width() * height() * depth();
     auto* first_buffer = (LG::Color*)mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED, m_screen_fd, 0);

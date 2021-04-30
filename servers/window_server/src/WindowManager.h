@@ -10,10 +10,14 @@
 #include "Components/MenuBar/MenuBar.h"
 #include "Compositor.h"
 #include "Connection.h"
+#ifdef TARGET_DESKTOP
+#include "Desktop/Window.h"
+#elif TARGET_MOBILE
+#include "Mobile/Window.h"
+#endif
 #include "Event.h"
 #include "Screen.h"
 #include "ServerDecoder.h"
-#include "Window.h"
 #include <algorithm>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
@@ -24,6 +28,12 @@
 namespace WinServer {
 
 class WindowManager : public LFoundation::EventReceiver {
+#ifdef TARGET_DESKTOP
+    using Window = WinServer::Desktop::Window;
+#elif TARGET_MOBILE
+    using Window = WinServer::Mobile::Window;
+#endif
+
 public:
     static WindowManager& the();
     WindowManager();
@@ -102,6 +112,7 @@ public:
         if (m_dock_window) {
             do_bring_to_front(*m_dock_window);
         }
+#ifdef TARGET_DESKTOP
         window.frame().set_active(true);
         m_compositor.invalidate(window.bounds());
         if (prev_window && prev_window->id() != window.id()) {
@@ -111,6 +122,9 @@ public:
         if (window.type() == WindowType::Standard) {
             m_compositor.menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
         }
+#elif TARGET_MOBILE
+        m_active_window = window.weak_ptr();
+#endif // TARGET_DESKTOP
     }
 
     inline std::list<Window*>& windows() { return m_windows; }
@@ -130,7 +144,7 @@ public:
 
     void move_window(Window* window, int x_offset, int y_offset)
     {
-        y_offset = std::max(y_offset, (int)m_compositor.menu_bar().height() - (int)WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
+        y_offset = std::max(y_offset, (int)m_compositor.menu_bar().height() - (int)Desktop::WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
         window->bounds().offset_by(x_offset, y_offset);
         window->content_bounds().offset_by(x_offset, y_offset);
     }
