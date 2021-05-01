@@ -1,0 +1,16 @@
+import("//build/userland/TEMPLATE.gni")
+
+oneOS_executable("homescreen") {
+  install_path = "bin/"
+  sources = [
+    "AppDelegate.cpp",
+    "HomeScreenView.cpp",
+  ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [
+    "libcxx",
+    "libfoundation",
+    "libg",
+    "libui",
+  ]
+}

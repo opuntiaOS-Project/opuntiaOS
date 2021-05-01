@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#include "Screen.h"
 #include "Event.h"
+#include "Screen.h"
 #include <algorithm>
 #include <libg/PixelBitmap.h>
 #include <libg/Point.h>
@@ -34,9 +34,16 @@ public:
 
     inline const LG::PixelBitmap& current_cursor() const { return std_cursor(); }
     inline const LG::PixelBitmap& std_cursor() const { return m_std_cursor; }
+#ifdef TARGET_DESKTOP
     inline LG::Point<int> draw_position() { return { m_mouse_x - 2, m_mouse_y - 2 }; }
+#elif TARGET_MOBILE
+    inline LG::Point<int> draw_position() { return { m_mouse_x - 6, m_mouse_y - 6 }; }
+#endif
 
-    inline int x() const { return m_mouse_x; }
+    inline int x() const
+    {
+        return m_mouse_x;
+    }
     inline int y() const { return m_mouse_y; }
 
     template <Params param>
@@ -72,7 +79,8 @@ public:
             }
             m_mouse_left_button_pressed = val;
         } else {
-            []<bool flag = false>() { static_assert(flag, "Could not call set() with such param!"); } ();
+            []<bool flag = false>() { static_assert(flag, "Could not call set() with such param!"); }
+            ();
         }
     }
 
@@ -86,7 +94,8 @@ public:
         } else if constexpr (param == CursorManager::Params::LeftButton) {
             m_mask_changed_objects |= CursorManager::ChangedValues::LeftButton;
         } else {
-            []<bool flag = false>() { static_assert(flag, "Could not set_changed() for the param!"); } ();
+            []<bool flag = false>() { static_assert(flag, "Could not set_changed() for the param!"); }
+            ();
         }
     }
 
@@ -129,7 +138,8 @@ inline constexpr int CursorManager::get()
     } else if constexpr (param == CursorManager::Params::OffsetY) {
         return m_mouse_offset_y;
     } else {
-        []<bool flag = false>() { static_assert(flag, "Could call get() only for coords-like params!"); } ();
+        []<bool flag = false>() { static_assert(flag, "Could call get() only for coords-like params!"); }
+        ();
     }
 }
 
@@ -139,7 +149,8 @@ inline constexpr bool CursorManager::pressed() const
     if constexpr (param == CursorManager::Params::LeftButton) {
         return m_mouse_left_button_pressed;
     } else {
-        []<bool flag = false>() { static_assert(flag, "Could call pressed() only for buttons!"); } ();
+        []<bool flag = false>() { static_assert(flag, "Could call pressed() only for buttons!"); }
+        ();
     }
 }
 
@@ -157,7 +168,8 @@ inline constexpr bool CursorManager::is_changed()
     } else if constexpr (param == CursorManager::Params::Buttons) {
         return (m_mask_changed_objects & CursorManager::ChangedValues::LeftButton) | (m_mask_changed_objects & CursorManager::ChangedValues::RightButton);
     } else {
-        []<bool flag = false>() { static_assert(flag, "Could not call is_changed() for the param!"); } ();
+        []<bool flag = false>() { static_assert(flag, "Could not call is_changed() for the param!"); }
+        ();
     }
 }
 

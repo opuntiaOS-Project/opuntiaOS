@@ -1,0 +1,5 @@
+APPS += DOCK
+
+DOCK_NAME = dock
+DOCK_LIBS = cxx ui
+DOCK_INSTALL_PATH = bin/

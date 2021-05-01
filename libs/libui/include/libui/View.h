@@ -20,7 +20,11 @@ namespace UI {
 
 struct SafeArea {
     static const int Top = 8;
+#ifdef TARGET_DESKTOP
     static const int Bottom = 8;
+#elif TARGET_MOBILE
+    static const int Bottom = 20;
+#endif
     static const int Left = 8;
     static const int Right = 8;
 };

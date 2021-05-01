@@ -7,6 +7,7 @@
 
 #pragma once
 #include "../shared/Connections/WSConnection.h"
+#include "Components/ControlBar/ControlBar.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "Compositor.h"
 #include "Connection.h"
@@ -40,7 +41,7 @@ public:
 
     inline void add_window(Window* window)
     {
-        if (window->type() == WindowType::Dock) {
+        if (window->type() == WindowType::Homescreen) {
             setup_dock(window);
         }
         m_windows.push_back(window);
@@ -50,6 +51,9 @@ public:
 
     inline void remove_window(Window* window)
     {
+        if (m_dock_window.ptr() == window) {
+            return;
+        }
         if (movable_window().ptr() == window) {
             m_movable_window = nullptr;
         }
@@ -63,6 +67,12 @@ public:
         m_compositor.menu_bar().set_menubar_content(&m_std_menubar_content, m_compositor);
         m_compositor.invalidate(window->bounds());
         notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
+#ifdef TARGET_MOBILE
+        auto* top_window = get_top_standard_window_in_view();
+        if (top_window) {
+            m_active_window = top_window->weak_ptr();
+        }
+#endif
         delete window;
     }
 
@@ -109,10 +119,10 @@ public:
     {
         auto* prev_window = get_top_standard_window_in_view();
         do_bring_to_front(window);
+#ifdef TARGET_DESKTOP
         if (m_dock_window) {
             do_bring_to_front(*m_dock_window);
         }
-#ifdef TARGET_DESKTOP
         window.frame().set_active(true);
         m_compositor.invalidate(window.bounds());
         if (prev_window && prev_window->id() != window.id()) {

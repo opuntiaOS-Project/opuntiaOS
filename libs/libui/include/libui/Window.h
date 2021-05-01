@@ -22,7 +22,7 @@ namespace UI {
 
 enum WindowType {
     Standard = 0,
-    Dock = 1,
+    Homescreen = 1,
 };
 
 class Connection;

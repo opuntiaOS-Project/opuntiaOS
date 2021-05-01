@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include "Components/ControlBar/ControlBar.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "Components/MenuBar/Widgets/Clock/Clock.h"
 #include "Compositor.h"
@@ -23,7 +24,11 @@
 void start_dock()
 {
     if (fork()) {
+#ifdef TARGET_DESKTOP
         execve("/bin/dock", nullptr, nullptr);
+#elif TARGET_MOBILE
+        execve("/bin/homescreen", nullptr, nullptr);
+#endif
         std::abort();
     }
 }
@@ -37,6 +42,9 @@ int main()
     new WinServer::CursorManager();
     new WinServer::ResourceManager();
     new WinServer::MenuBar();
+#ifdef TARGET_MOBILE
+    new WinServer::ControlBar();
+#endif
     new WinServer::Compositor();
     new WinServer::WindowManager();
     new WinServer::Devices();

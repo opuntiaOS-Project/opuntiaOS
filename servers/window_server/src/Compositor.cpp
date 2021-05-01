@@ -7,6 +7,7 @@
 
 #include "Compositor.h"
 #include "Components/Base/BaseWindow.h"
+#include "Components/ControlBar/ControlBar.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "CursorManager.h"
 #include "ResourceManager.h"
@@ -29,6 +30,9 @@ Compositor::Compositor()
     : m_cursor_manager(CursorManager::the())
     , m_resource_manager(ResourceManager::the())
     , m_menu_bar(MenuBar::the())
+#ifdef TARGET_MOBILE
+    , m_control_bar(ControlBar::the())
+#endif // TARGET_MOBILE
 {
     s_the = this;
     invalidate(Screen::the().bounds());
@@ -95,7 +99,7 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
         ctx.draw(window.content_bounds().origin(), window.content_bitmap());
         ctx.reset_clip();
     };
-#endif // #ifdef TARGET_DESKTOP
+#endif // TARGET_DESKTOP
 
     for (int i = 0; i < invalidated_areas.size(); i++) {
         draw_wallpaper_for_area(invalidated_areas[i]);
@@ -116,6 +120,14 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
         m_menu_bar.draw(ctx);
         ctx.reset_clip();
     }
+
+#ifdef TARGET_MOBILE
+    for (int i = 0; i < invalidated_areas.size(); i++) {
+        ctx.add_clip(invalidated_areas[i]);
+        m_control_bar.draw(ctx);
+        ctx.reset_clip();
+    }
+#endif // TARGET_MOBILE
 
     auto mouse_draw_position = m_cursor_manager.draw_position();
     auto& current_mouse_bitmap = m_cursor_manager.current_cursor();

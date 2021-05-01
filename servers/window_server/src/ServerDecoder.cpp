@@ -43,9 +43,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& 
     auto* window = new Mobile::Window(msg.key(), win_id, msg);
     wm.add_window(window);
     wm.notify_window_icon_changed(window->id());
-    if (window->type() == WindowType::Standard) {
-        wm.move_window(window, 0, MenuBar::height());
-    }
+    wm.move_window(window, 0, MenuBar::height());
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
 #endif
@@ -127,7 +125,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const AskBringToFrontMessag
     if (!window || !target_window) {
         return nullptr;
     }
-    if (window->type() == WindowType::Dock) {
+    if (window->type() == WindowType::Homescreen) {
         // Only dock can ask for that now.
         wm.bring_to_front(*target_window);
     }

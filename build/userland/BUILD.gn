@@ -89,6 +89,7 @@ group("userland") {
     "//userland/activity_monitor:activity_monitor",
     "//userland/cat:cat",
     "//userland/dock:dock",
+    "//userland/homescreen:homescreen",
     "//userland/init:init",
     "//userland/initgui:initgui",
     "//userland/kill:kill",

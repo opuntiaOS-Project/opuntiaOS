@@ -16,6 +16,9 @@ namespace WinServer {
 class CursorManager;
 class ResourceManager;
 class MenuBar;
+#ifdef TARGET_MOBILE
+class ControlBar;
+#endif // TARGET_MOBILE
 
 class Compositor {
 public:
@@ -49,14 +52,21 @@ public:
     inline const ResourceManager& resource_manager() const { return m_resource_manager; }
     inline MenuBar& menu_bar() { return m_menu_bar; }
     inline const MenuBar& menu_bar() const { return m_menu_bar; }
+#ifdef TARGET_MOBILE
+    inline ControlBar& control_bar() { return m_control_bar; }
+    inline const ControlBar& control_bar() const { return m_control_bar; }
+#endif // TARGET_MOBILE
 
 private:
     void copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas);
 
+    std::vector<LG::Rect> m_invalidated_areas;
     MenuBar& m_menu_bar;
     CursorManager& m_cursor_manager;
     ResourceManager& m_resource_manager;
-    std::vector<LG::Rect> m_invalidated_areas;
+#ifdef TARGET_MOBILE
+    ControlBar& m_control_bar;
+#endif // TARGET_MOBILE
 };
 
 } // namespace WinServer

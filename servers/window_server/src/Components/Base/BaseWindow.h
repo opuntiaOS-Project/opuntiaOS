@@ -19,7 +19,7 @@ namespace WinServer {
 
 enum WindowType : int {
     Standard = 0,
-    Dock = 1,
+    Homescreen = 1,
 };
 
 enum WindowStatusUpdateType : int {

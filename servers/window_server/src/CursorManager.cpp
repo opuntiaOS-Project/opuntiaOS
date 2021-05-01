@@ -22,7 +22,11 @@ CursorManager::CursorManager()
 {
     s_the = this;
     LG::PNG::PNGLoader loader;
+#ifdef TARGET_DESKTOP
     m_std_cursor = loader.load_from_file("/res/system/arrow.png");
+#elif TARGET_MOBILE
+    m_std_cursor = loader.load_from_file("/res/system/mobile/cursor.png");
+#endif
 }
 
 } // namespace WinServer

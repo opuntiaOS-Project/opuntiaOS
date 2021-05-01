@@ -51,9 +51,6 @@ void WindowManager::setup_dock(Window* window)
 #elif TARGET_MOBILE
 void WindowManager::setup_dock(Window* window)
 {
-    window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
-    window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
-    window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
     m_dock_window = window->weak_ptr();
 }
 #endif // TARGET_MOBILE
@@ -163,6 +160,24 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 {
     auto* mouse_event = (MouseEvent*)event.release();
     update_mouse_position(mouse_event);
+
+    if (m_compositor.control_bar().control_button_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y()) && active_window()) {
+        if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+            remove_window(active_window().ptr());
+        }
+        goto end;
+    }
+
+    // Tap emulation
+    if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>() && active_window()) {
+        auto window = active_window();
+        LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
+        point.offset_by(-window->content_bounds().origin());
+        bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
+        Logger::debug << "Tapping " << point.x() << " " << point.y() << std::endl;
+        m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window->connection_id(), window->id(), !is_left_pressed, point.x(), point.y())));
+    }
+end:
     delete mouse_event;
 }
 #endif // TARGET_MOBILE

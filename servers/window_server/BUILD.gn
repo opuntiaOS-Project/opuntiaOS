@@ -26,7 +26,10 @@ oneOS_executable("window_server") {
   }
   if (device_type == "mobile") {
     cflags = [ "-DTARGET_MOBILE" ]
-    sources += [ "src/Mobile/Window.cpp" ]
+    sources += [
+      "src/Components/ControlBar/ControlBar.cpp",
+      "src/Mobile/Window.cpp",
+    ]
   }
 
   configs = [ "//build/userland:userland_flags" ]
