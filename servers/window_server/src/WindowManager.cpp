@@ -174,7 +174,6 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
         point.offset_by(-window->content_bounds().origin());
         bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
-        Logger::debug << "Tapping " << point.x() << " " << point.y() << std::endl;
         m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window->connection_id(), window->id(), !is_left_pressed, point.x(), point.y())));
     }
 end:

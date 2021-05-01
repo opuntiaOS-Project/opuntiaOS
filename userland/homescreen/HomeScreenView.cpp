@@ -10,8 +10,6 @@
 #include <unistd.h>
 
 static HomeScreenView* this_view;
-static int icons_per_line = 4;
-static int icons_per_column = 5;
 
 HomeScreenView::HomeScreenView(View* superview, const LG::Rect& frame)
     : View(superview, frame)
@@ -20,8 +18,6 @@ HomeScreenView::HomeScreenView(View* superview, const LG::Rect& frame)
 
 void HomeScreenView::display(const LG::Rect& rect)
 {
-    // FIXME: Rendering is a bit studip now, will rewrite it
-    //        completely when stackview is available.
     UI::Context ctx(*this);
     ctx.add_clip(rect);
 
@@ -29,19 +25,29 @@ void HomeScreenView::display(const LG::Rect& rect)
     ctx.fill(bounds());
 
     // Drawing launched icons
-    int spacing_x = (bounds().width() - 48 * icons_per_line) / 6;
-    int spacing_y = (bounds().height() - 48 * icons_per_column) / 7;
+    int spacing_x = (bounds().width() - grid_entities_size() * grid_entities_per_row()) / (grid_entities_per_row() + 2);
+    int spacing_y = (bounds().height() - dock_height() - grid_entities_size() * grid_entities_per_column()) / (grid_entities_per_column() + 2);
     int offsetx = spacing_x + 4;
     int offsety = spacing_y;
     int drawn = 0;
     for (auto& entity : m_fast_launch_entites) {
         ctx.draw({ offsetx, offsety }, entity.icon());
-        offsetx += entity.icon().bounds().width() + spacing_x;
+        offsetx += spacing_x + grid_entities_size();
         drawn++;
-        if (drawn == icons_per_line) {
+        if (drawn == grid_entities_per_row()) {
             offsetx = spacing_x + 4;
-            offsety += spacing_y;
+            offsety += grid_entities_size() + spacing_y;
         }
+    }
+
+    ctx.set_fill_color(LG::Color(222, 222, 222, 180));
+    offsety = bounds().height() - dock_height();
+    ctx.fill(LG::Rect(0, offsety, bounds().width(), dock_height()));
+    offsetx = (bounds().width() - (grid_entities_size() * m_fast_launch_entites.size() + spacing_x * (m_fast_launch_entites.size() - 1))) / 2;
+    offsety += 10;
+    for (auto& entity : m_fast_launch_entites) {
+        ctx.draw({ offsetx, offsety }, entity.icon());
+        offsetx += spacing_x + grid_entities_size();
     }
 }
 
@@ -64,21 +70,32 @@ void HomeScreenView::launch(const FastLaunchEntity& ent)
 
 void HomeScreenView::click_began(const LG::Point<int>& location)
 {
-    int spacing_x = (bounds().width() - 48 * icons_per_line) / 6;
-    int spacing_y = (bounds().height() - 48 * icons_per_column) / 7;
+    int spacing_x = (bounds().width() - grid_entities_size() * grid_entities_per_row()) / (grid_entities_per_row() + 2);
+    int spacing_y = (bounds().height() - dock_height() - grid_entities_size() * grid_entities_per_column()) / (grid_entities_per_column() + 2);
     int offsetx = spacing_x + 4;
     int offsety = spacing_y;
     int drawn = 0;
     for (auto& entity : m_fast_launch_entites) {
-        auto it = LG::Rect(offsetx, offsety, 48, 48);
+        auto it = LG::Rect(offsetx, offsety, grid_entities_size(), grid_entities_size());
         if (it.contains(location)) {
             launch(entity);
         }
-        offsetx += entity.icon().bounds().width() + spacing_x;
+        offsetx += spacing_x + grid_entities_size();
         drawn++;
-        if (drawn == icons_per_line) {
+        if (drawn == grid_entities_per_row()) {
             offsetx = spacing_x + 4;
-            offsety += spacing_y;
+            offsety += spacing_y + grid_entities_size();
         }
+    }
+
+    offsety = bounds().height() - dock_height();
+    offsetx = (bounds().width() - (grid_entities_size() * m_fast_launch_entites.size() + spacing_x * (m_fast_launch_entites.size() - 1))) / 2;
+    offsety += 10;
+    for (auto& entity : m_fast_launch_entites) {
+        auto it = LG::Rect(offsetx, offsety, grid_entities_size(), grid_entities_size());
+        if (it.contains(location)) {
+            launch(entity);
+        }
+        offsetx += spacing_x + grid_entities_size();
     }
 }
