@@ -1,13 +1,10 @@
-<p align="center">
-<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/banner/banner_opac.png" width="300">
-</p>
-
-## Screenshot
-Progress: March 2021
-![alt text](https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/images/progress_21_03.png)
+<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/banner/banner_progress_dark.png" width="100% ">
+Progress: April 2021</br></br>
 
 ## Features
+
 ### Kernel
+
 * x86-32 and ARMv7 kernel with pre-emptive multi-threading
 * Ext2 FS
 * Local sockets
@@ -16,17 +13,19 @@ Progress: March 2021
 * TTY
 
 ### Libraries
+
 * Custom LibC (in development)
 * Custom LibCXX
 * LibFoundation
 * LibG & LibUI
 
 ### Userland
+
 * Basic userland
-* Edit - a simple clone of vim
-* Composing windows manager
+* Composing windows manager for desktop and mobile
 * Simple gui-app "About"
 * Terminal
 
 ## How to build and run oneOS?
+
 See the [build instructions](https://github.com/nimelehin/oneOS/blob/master/docs/build.md)
