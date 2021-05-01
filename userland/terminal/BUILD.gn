@@ -3,16 +3,14 @@ import("//build/userland/TEMPLATE.gni")
 oneOS_executable("terminal") {
   install_path = "bin/"
   sources = [
+    "AppDelegate.cpp",
     "TerminalView.cpp",
-    "main.cpp",
   ]
-  configs = [
-    "//build/userland:userland_flags",
-  ]
+  configs = [ "//build/userland:userland_flags" ]
   deplibs = [
     "libcxx",
     "libfoundation",
     "libg",
-    "libui"
+    "libui",
   ]
 }

@@ -3,7 +3,7 @@ import("//build/userland/TEMPLATE.gni")
 oneOS_executable("about") {
   install_path = "bin/"
   sources = [
-    "main.cpp",
+    "AppDelegate.cpp",
   ]
   configs = [
     "//build/userland:userland_flags",

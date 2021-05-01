@@ -11,14 +11,9 @@
 
 namespace UI {
 
-Window::Window()
-    : Window(400, 300)
-{
-}
-
-Window::Window(uint32_t width, uint32_t height, WindowType type)
-    : m_bounds(0, 0, width, height)
-    , m_buffer(size_t(width * height * 4))
+Window::Window(const LG::Size& size, WindowType type)
+    : m_bounds(0, 0, size.width(), size.height())
+    , m_buffer(size_t(size.width() * size.height() * 4))
     , m_bitmap()
     , m_type(type)
 {
@@ -27,9 +22,9 @@ Window::Window(uint32_t width, uint32_t height, WindowType type)
     App::the().set_window(this);
 }
 
-Window::Window(uint32_t width, uint32_t height, const LG::string& icon_path)
-    : m_bounds(0, 0, width, height)
-    , m_buffer(size_t(width * height * 4))
+Window::Window(const LG::Size& size, const LG::string& icon_path)
+    : m_bounds(0, 0, size.width(), size.height())
+    , m_buffer(size_t(size.width() * size.height() * 4))
     , m_bitmap()
     , m_icon_path(icon_path)
 {

@@ -12,8 +12,10 @@
 #include <libfoundation/SharedBuffer.h>
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
+#include <libg/Size.h>
 #include <libg/string.h>
 #include <libui/View.h>
+#include <libui/ViewController.h>
 #include <sys/types.h>
 
 namespace UI {
@@ -30,9 +32,8 @@ class Window : public LFoundation::EventReceiver {
     friend Connection;
 
 public:
-    Window();
-    Window(uint32_t width, uint32_t height, WindowType type = WindowType::Standard);
-    Window(uint32_t width, uint32_t height, const LG::string& path);
+    Window(const LG::Size& size, WindowType type = WindowType::Standard);
+    Window(const LG::Size& size, const LG::string& path);
 
     int id() const { return m_id; }
     inline WindowType type() const { return m_type; }
@@ -45,13 +46,16 @@ public:
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
-    template <class T, class... Args>
-    inline T& create_superview(Args&&... args)
+    template <class ViewT, class ViewControllerT, class... Args>
+    inline ViewT& create_superview(Args&&... args)
     {
-        T* new_view = new T(nullptr, bounds(), args...);
-        new_view->set_window(this);
+        ViewT* new_view = new ViewT(nullptr, bounds(), args...);
         m_superview = new_view;
+        m_root_view_controller = new ViewControllerT(*new_view);
+
+        new_view->set_window(this);
         m_superview->set_needs_display();
+        LFoundation::EventLoop::the().add(*m_root_view_controller, new ViewDidLoadEvent());
         return *new_view;
     }
 
@@ -72,6 +76,7 @@ public:
 
 private:
     uint32_t m_id;
+    BaseViewController* m_root_view_controller { nullptr };
     WindowType m_type { WindowType::Standard };
     LG::Rect m_bounds;
     LG::PixelBitmap m_bitmap;

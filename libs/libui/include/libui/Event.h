@@ -36,6 +36,9 @@ public:
 
         NotifyWindowStatusChangedEvent,
         NotifyWindowIconChangedEvent,
+
+        ViewDidLoad,
+
         Other,
     };
 
@@ -236,6 +239,19 @@ public:
 private:
     uint32_t m_changed_window_id;
     LG::string m_icon_path;
+};
+
+// View Life Cycle Events
+class ViewDidLoadEvent : public Event {
+public:
+    ViewDidLoadEvent()
+        : Event(Event::Type::ViewDidLoad)
+    {
+    }
+
+    ~ViewDidLoadEvent() = default;
+
+private:
 };
 
 } // namespace UI

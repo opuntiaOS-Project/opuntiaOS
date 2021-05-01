@@ -9,7 +9,9 @@ oneOS_static_library("libui") {
     "Label.cpp",
     "Responder.cpp",
     "View.cpp",
+    "ViewController.cpp",
     "Window.cpp",
+    "main.cpp",
   ]
 
   deplibs = [
