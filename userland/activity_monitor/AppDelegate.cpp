@@ -14,7 +14,7 @@ public:
         auto& window = std::oneos::construct<UI::Window>(window_size(), icon_path());
         auto& superview = window.create_superview<UI::View, ViewController>();
 
-        window.set_title("About");
+        window.set_title("Monitor");
         return true;
     }
 
