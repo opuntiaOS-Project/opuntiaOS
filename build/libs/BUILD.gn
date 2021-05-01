@@ -26,6 +26,13 @@ lib_cc_flags = [
 
 lib_asm_flags = []
 
+if (device_type == "desktop") {
+  lib_c_flags += [ "-DTARGET_DESKTOP" ]
+}
+if (device_type == "mobile") {
+  lib_c_flags += [ "-DTARGET_MOBILE" ]
+}
+
 if (target_cpu == "x86") {
   lib_asm_flags += [
     "-f",

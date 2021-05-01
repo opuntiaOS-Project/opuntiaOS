@@ -30,8 +30,15 @@ public:
     AppDelegate() = default;
     virtual ~AppDelegate() = default;
 
-    LG::Size window_size() const { return preferred_window_size(); }
-    virtual LG::Size preferred_window_size() const { return LG::Size(400, 300); }
+    LG::Size window_size() const
+    {
+#ifdef TARGET_DESKTOP
+        return preferred_desktop_window_size();
+#elif TARGET_MOBILE
+        return LG::Size(320, 548);
+#endif
+    }
+    virtual LG::Size preferred_desktop_window_size() const { return LG::Size(400, 300); }
     virtual const char* icon_path() const { return "/res/icons/apps/missing.icon"; }
     virtual bool application() { return false; }
 

@@ -8,7 +8,7 @@ public:
     AppDelegate() = default;
     virtual ~AppDelegate() = default;
 
-    LG::Size preferred_window_size() const override { return LG::Size(400, 300); }
+    LG::Size preferred_desktop_window_size() const override { return LG::Size(400, 300); }
 
     bool application() override
     {
