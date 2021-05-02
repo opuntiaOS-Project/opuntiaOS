@@ -49,8 +49,8 @@ brew install i686-elf-gcc
 ***Aarch32***
 
 ```bash
-brew tap cesarvandevelde/homebrew-formulae
-brew install cesarvandevelde/homebrew-formulae/arm-none-eabi-gcc
+brew tap oneOS-Project/homebrew-formulae-arm-gcc
+brew install oneOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
 ```
 
 </br>

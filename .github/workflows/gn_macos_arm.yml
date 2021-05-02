@@ -15,8 +15,8 @@ jobs:
     - name: Pouring Deps
       run: |
         brew install llvm ninja nasm
-        brew tap cesarvandevelde/homebrew-formulae
-        brew install cesarvandevelde/homebrew-formulae/arm-none-eabi-gcc
+        brew tap oneOS-Project/homebrew-formulae-arm-gcc
+        brew install oneOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
     
     - name: Pouring GN
       run: |
