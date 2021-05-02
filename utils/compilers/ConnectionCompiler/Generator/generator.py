@@ -11,6 +11,7 @@ class Message:
         self.params = params
         self.protected = protected
 
+
 class Generator:
 
     def __init__(self):
@@ -32,12 +33,15 @@ class Generator:
 
     def message_create_std_funcs(self, msg):
         self.out("int id() const override {{ return {0}; }}".format(msg.id), 1)
-        self.out("int reply_id() const override {{ return {0}; }}".format(msg.reply_id), 1)
+        self.out("int reply_id() const override {{ return {0}; }}".format(
+            msg.reply_id), 1)
         if msg.protected:
             self.out("int key() const override { return m_key; }", 1)
-        self.out("int decoder_magic() const override {{ return {0}; }}".format(msg.decoder_magic), 1)
+        self.out("int decoder_magic() const override {{ return {0}; }}".format(
+            msg.decoder_magic), 1)
         for i in msg.params:
-            self.out("{0} {1}() const {{ return m_{1}; }}".format(i[0], i[1]), 1)
+            self.out(
+                "{0} {1}() const {{ return m_{1}; }}".format(i[0], i[1]), 1)
 
     def message_create_vars(self, msg):
         if msg.protected:
@@ -56,16 +60,17 @@ class Generator:
             for i in params:
                 self.out("{0} m_{1}({1})".format(sign, i[1]), 2)
                 sign = ','
-        
+
             self.out("{", 1)
             self.out("}", 1)
         else:
             self.out(res+" {}", 1)
 
     def message_create_encoder(self, msg):
-        self.out("EncodedMessage encode() const override".format(msg.decoder_magic), 1)
+        self.out("EncodedMessage encode() const override".format(
+            msg.decoder_magic), 1)
         self.out("{", 1)
-        
+
         self.out("EncodedMessage buffer;", 2)
         self.out("Encoder::append(buffer, decoder_magic());", 2)
         self.out("Encoder::append(buffer, id());", 2)
@@ -88,16 +93,15 @@ class Generator:
         self.out("};")
         self.out("")
 
-    def decoder_create_vars(self, messages, offset = 0):
+    def decoder_create_vars(self, messages, offset=0):
         var_names = set()
-        for (name,params) in messages.items():
+        for (name, params) in messages.items():
             for i in params:
                 if 'var_{0}'.format(i[1]) not in var_names:
                     self.out("{0} var_{1};".format(i[0], i[1]), offset)
                     var_names.add('var_{0}'.format(i[1]))
 
-
-    def decoder_decode_message(self, msg, offset = 0):
+    def decoder_decode_message(self, msg, offset=0):
         params_str = ""
         if msg.protected:
             params_str = "secret_key, "
@@ -107,14 +111,17 @@ class Generator:
         if len(params_str) > 0:
             params_str = params_str[:-2]
         for i in msg.params:
-            self.out("Encoder::decode(buf, decoded_msg_len, var_{0});".format(i[1]), offset)
+            self.out(
+                "Encoder::decode(buf, decoded_msg_len, var_{0});".format(i[1]), offset)
         self.out("return new {0}({1});".format(msg.name, params_str), offset)
 
     def decoder_create_std_funcs(self, decoder):
-        self.out("int magic() const {{ return {0}; }}".format(decoder.magic), 1)
+        self.out("int magic() const {{ return {0}; }}".format(
+            decoder.magic), 1)
 
     def decoder_create_decode(self, decoder):
-        self.out("std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override", 1)
+        self.out(
+            "std::unique_ptr<Message> decode(const char* buf, size_t size, size_t& decoded_msg_len) override", 1)
         self.out("{", 1)
         self.out("int msg_id, decoder_magic;", 2)
         self.out("size_t saved_dml = decoded_msg_len;", 2)
@@ -135,12 +142,13 @@ class Generator:
         unique_msg_id = 1
         self.out("", 2)
         self.out("switch(msg_id) {", 2)
-        for (name,params) in decoder.messages.items():
+        for (name, params) in decoder.messages.items():
             self.out("case {0}:".format(unique_msg_id), 2)
             # Here it doen't need to know the real reply_id, so we can put 0 here.
-            self.decoder_decode_message(Message(name, unique_msg_id, 0, decoder.magic, params, decoder.protected), 3)
+            self.decoder_decode_message(
+                Message(name, unique_msg_id, 0, decoder.magic, params, decoder.protected), 3)
             unique_msg_id += 1
-            
+
         self.out("default:", 2)
         self.out("decoded_msg_len = saved_dml;", 3)
         self.out("return nullptr;", 3)
@@ -158,13 +166,14 @@ class Generator:
         unique_msg_id = 1
         self.out("", 2)
         self.out("switch(msg.id()) {", 2)
-        for (name,params) in decoder.messages.items():
+        for (name, params) in decoder.messages.items():
             if name in decoder.functions:
                 self.out("case {0}:".format(unique_msg_id), 2)
-                self.out("return handle(static_cast<const {0}&>(msg));".format(name), 3)
-            
+                self.out(
+                    "return handle(static_cast<const {0}&>(msg));".format(name), 3)
+
             unique_msg_id += 1
-            
+
         self.out("default:", 2)
         self.out("return nullptr;", 3)
         self.out("}", 2)
@@ -172,8 +181,9 @@ class Generator:
         self.out("", 1)
 
     def decoder_create_virtual_handle(self, decoder):
-        for (accept,ret) in decoder.functions.items():
-            self.out("virtual std::unique_ptr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
+        for (accept, ret) in decoder.functions.items():
+            self.out(
+                "virtual std::unique_ptr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
 
     def generate_decoder(self, decoder):
         self.out("class {0} : public MessageDecoder {{".format(decoder.name))
@@ -205,17 +215,17 @@ class Generator:
         for decoder in decoders:
             msgd = {}
             unique_msg_id = 1
-            for (name,params) in decoder.messages.items():
+            for (name, params) in decoder.messages.items():
                 msgd[name] = unique_msg_id
                 unique_msg_id += 1
 
-            for (name,params) in decoder.messages.items():
+            for (name, params) in decoder.messages.items():
                 reply_name = decoder.functions.get(name, None)
                 reply_id = -1
                 if reply_name is not None:
                     reply_id = msgd[reply_name]
-                self.generate_message(Message(name, msgd[name], reply_id, decoder.magic, params, decoder.protected))
+                self.generate_message(
+                    Message(name, msgd[name], reply_id, decoder.magic, params, decoder.protected))
 
             self.generate_decoder(decoder)
         self.output.close()
-        

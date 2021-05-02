@@ -6,6 +6,7 @@ from token import Token
 from Lexer.reserved_symbols import *
 from type_file import Type
 
+
 class Lexer():
     MAX_OPERATION_SIZE = 2
 
@@ -29,6 +30,11 @@ class Lexer():
                 self.current_char = self.current_code_part[0]
             else:
                 self.current_char = None
+
+    def skip_rest_of_line(self):
+        start_with_line = self.current_code_line
+        while self.current_char is not None and self.current_code_line == start_with_line:
+            self.advance()
 
     def lookup(self, count):
         peek_pos = self.current_position + count
@@ -89,9 +95,12 @@ class Lexer():
 
         return token
 
-
     def next_token(self):
         self.skip_gaps()
+
+        while self.current_char == '#':
+            self.skip_rest_of_line()
+            self.skip_gaps()
 
         if self.current_char is None:
             return Token(Type.Special.EOF, None)

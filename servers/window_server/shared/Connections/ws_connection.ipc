@@ -1,3 +1,8 @@
+# .ipc files should be regenerated with connection compiler "PROJECT_ROOT/utils/compilers/ConnectionCompiler/connc {input} {output}"
+# or run "PROJECT_ROOT/utils/codeassistant/recompile_connections.py"
+# 
+# After regeneration you have to recompile the whole project to apply changes.
+
 {
     KEYPROTECTED
     NAME: BaseWindowServerDecoder

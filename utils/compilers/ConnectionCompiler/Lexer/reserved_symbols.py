@@ -24,4 +24,5 @@ reserved_words = {
     'KEYPROTECTED': Type.Reserved.KeyProtected,
 }
 
-available_var_types = [Type.Number.Integer, Type.Number.Real, Type.Number.Boolean]
+available_var_types = [Type.Number.Integer,
+                       Type.Number.Real, Type.Number.Boolean]

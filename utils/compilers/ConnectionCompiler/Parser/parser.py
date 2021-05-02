@@ -7,6 +7,7 @@ from token import Token
 from type_file import Type
 from connection import Connection
 
+
 class Parser:
 
     def set_code_lines(self, code: [str]):
@@ -21,7 +22,6 @@ class Parser:
     def next_token(self):
         self.current_token_id += 1
         self.token = self.get_token_at(self.current_token_id)
-        print(self.token)
 
     def get_token_at(self, pos):
         if pos >= self.read_tokens and not self.lexer_rich_the_end:
@@ -107,7 +107,6 @@ class Parser:
         self.next_token()
         return params
 
-
     def eat_message(self, decoder):
         self.must_next(Type.Word)
         msgname = self.token.value
@@ -125,14 +124,14 @@ class Parser:
             ms2 = self.eat_message(decoder)
 
         decoder.add_function(ms1, ms2)
-    
+
     def eat_decoder(self):
         self.must_next(Type.Reserved.Begin)
         self.next_token()
         is_protected = self.eat_protected()
         decoder = Connection(self.eat_name(), self.eat_magic(), is_protected)
         while not self.is_next(Type.Reserved.End):
-            print(self.eat_function(decoder))
+            self.eat_function(decoder)
         self.must_next(Type.Reserved.End)
         self.next_token()
         return decoder
@@ -141,4 +140,5 @@ class Parser:
         decoders = []
         while self.is_next(Type.Reserved.Begin):
             decoders.append(self.eat_decoder())
+        print("connc: {0} decoders parsed!".format(len(decoders)))
         return decoders
