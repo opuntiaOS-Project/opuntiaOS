@@ -2,6 +2,7 @@
 Progress: April 2021</br></br>
 
 ## Features
+<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/banner/features_opac.png" width="100% ">
 
 ### Kernel
 
