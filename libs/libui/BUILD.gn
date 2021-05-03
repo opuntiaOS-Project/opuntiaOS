@@ -2,16 +2,16 @@ import("//build/libs/TEMPLATE.gni")
 
 oneOS_static_library("libui") {
   sources = [
-    "App.cpp",
-    "Button.cpp",
-    "ClientDecoder.cpp",
-    "Connection.cpp",
-    "Label.cpp",
-    "Responder.cpp",
-    "View.cpp",
-    "ViewController.cpp",
-    "Window.cpp",
-    "main.cpp",
+    "src/App.cpp",
+    "src/Button.cpp",
+    "src/ClientDecoder.cpp",
+    "src/Connection.cpp",
+    "src/Label.cpp",
+    "src/Responder.cpp",
+    "src/View.cpp",
+    "src/ViewController.cpp",
+    "src/Window.cpp",
+    "src/main.cpp",
   ]
 
   deplibs = [

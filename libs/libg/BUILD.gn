@@ -2,12 +2,12 @@ import("//build/libs/TEMPLATE.gni")
 
 oneOS_static_library("libg") {
   sources = [
-    "Color.cpp",
-    "Context.cpp",
-    "Font.cpp",
-    "ImageLoaders/PNGLoader.cpp",
-    "PixelBitmap.cpp",
-    "Rect.cpp",
+    "src/Color.cpp",
+    "src/Context.cpp",
+    "src/Font.cpp",
+    "src/ImageLoaders/PNGLoader.cpp",
+    "src/PixelBitmap.cpp",
+    "src/Rect.cpp",
   ]
 
   deplibs = [
