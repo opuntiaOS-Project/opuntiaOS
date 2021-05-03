@@ -13,13 +13,12 @@
 #include <libfoundation/SharedBuffer.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
-#include <std/WeakPtr.h>
 #include <sys/types.h>
 #include <utility>
 
 namespace WinServer::Desktop {
 
-class Window : public BaseWindow, public Weakable<Window> {
+class Window : public BaseWindow {
 public:
     Window(int connection_id, int id, const CreateWindowMessage& msg);
     Window(Window&& win);

@@ -36,7 +36,7 @@ WindowManager::WindowManager()
 
 void WindowManager::start_window_move(Window& window)
 {
-    m_movable_window = window.weak_ptr();
+    m_movable_window = &window;
 }
 
 #ifdef TARGET_DESKTOP
@@ -46,12 +46,12 @@ void WindowManager::setup_dock(Window* window)
     window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
     window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
     window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
-    m_dock_window = window->weak_ptr();
+    m_dock_window = window;
 }
 #elif TARGET_MOBILE
 void WindowManager::setup_dock(Window* window)
 {
-    m_dock_window = window->weak_ptr();
+    m_dock_window = window;
 }
 #endif // TARGET_MOBILE
 
@@ -69,7 +69,7 @@ bool WindowManager::continue_window_move()
 
     auto bounds = movable_window()->bounds();
     m_compositor.invalidate(movable_window()->bounds());
-    move_window(movable_window().ptr(), m_cursor_manager.get<CursorManager::Params::OffsetX>(), m_cursor_manager.get<CursorManager::Params::OffsetY>());
+    move_window(movable_window(), m_cursor_manager.get<CursorManager::Params::OffsetX>(), m_cursor_manager.get<CursorManager::Params::OffsetY>());
     bounds.unite(movable_window()->bounds());
     m_compositor.invalidate(bounds);
     return true;
@@ -91,7 +91,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 #ifdef TARGET_DESKTOP
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
-    auto new_hovered_window = WeakPtr<Window>();
+    Window* new_hovered_window = nullptr;
     auto* mouse_event = (MouseEvent*)event.release();
     update_mouse_position(mouse_event);
 
@@ -124,7 +124,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                 LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
                 point.offset_by(-window.content_bounds().origin());
                 m_event_loop.add(m_connection, new SendEvent(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y())));
-                new_hovered_window = window.weak_ptr();
+                new_hovered_window = &window;
 
                 if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
                     // FIXME: only left button for now!
@@ -133,9 +133,9 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                 }
             }
 
-            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() && m_active_window.ptr() != &window) {
+            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() && m_active_window != &window) {
                 bring_to_front(window);
-                m_active_window = window.weak_ptr();
+                m_active_window = &window;
             }
 
             break;
@@ -163,7 +163,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 
     if (m_compositor.control_bar().control_button_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y()) && active_window()) {
         if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-            remove_window(active_window().ptr());
+            remove_window(active_window());
         }
         goto end;
     }

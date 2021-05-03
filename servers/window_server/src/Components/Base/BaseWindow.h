@@ -11,7 +11,6 @@
 #include <libfoundation/SharedBuffer.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
-#include <std/WeakPtr.h>
 #include <sys/types.h>
 #include <utility>
 

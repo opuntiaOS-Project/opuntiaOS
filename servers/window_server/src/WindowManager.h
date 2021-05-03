@@ -51,16 +51,16 @@ public:
 
     inline void remove_window(Window* window)
     {
-        if (m_dock_window.ptr() == window) {
+        if (m_dock_window == window) {
             return;
         }
-        if (movable_window().ptr() == window) {
+        if (movable_window() == window) {
             m_movable_window = nullptr;
         }
-        if (active_window().ptr() == window) {
+        if (active_window() == window) {
             m_active_window = nullptr;
         }
-        if (hovered_window().ptr() == window) {
+        if (hovered_window() == window) {
             m_hovered_window = nullptr;
         }
         m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
@@ -70,7 +70,7 @@ public:
 #ifdef TARGET_MOBILE
         auto* top_window = get_top_standard_window_in_view();
         if (top_window) {
-            m_active_window = top_window->weak_ptr();
+            m_active_window = top_window;
         }
 #endif
         delete window;
@@ -133,7 +133,7 @@ public:
             m_compositor.menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
         }
 #elif TARGET_MOBILE
-        m_active_window = window.weak_ptr();
+        m_active_window = &window;
 #endif // TARGET_DESKTOP
     }
 
@@ -167,12 +167,9 @@ private:
     void receive_mouse_event(std::unique_ptr<LFoundation::Event> event);
     void receive_keyboard_event(std::unique_ptr<LFoundation::Event> event);
 
-    inline WeakPtr<Window>& movable_window() { return m_movable_window; }
-    inline const WeakPtr<Window>& movable_window() const { return m_movable_window; }
-    inline WeakPtr<Window>& hovered_window() { return m_hovered_window; }
-    inline const WeakPtr<Window>& hovered_window() const { return m_hovered_window; }
-    inline WeakPtr<Window>& active_window() { return m_active_window; }
-    inline const WeakPtr<Window>& active_window() const { return m_active_window; }
+    inline Window* movable_window() { return m_movable_window; }
+    inline Window* hovered_window() { return m_hovered_window; }
+    inline Window* active_window() { return m_active_window; }
 
     std::list<Window*> m_windows;
 
@@ -183,10 +180,11 @@ private:
     LFoundation::EventLoop& m_event_loop;
     std::vector<MenuDir> m_std_menubar_content;
 
-    WeakPtr<Window> m_dock_window {}; // TODO: may be remove it from here?
-    WeakPtr<Window> m_movable_window {};
-    WeakPtr<Window> m_active_window {};
-    WeakPtr<Window> m_hovered_window {};
+    // TODO: implement with std::weak_ptr.
+    Window* m_dock_window {};
+    Window* m_movable_window {};
+    Window* m_active_window {};
+    Window* m_hovered_window {};
     int m_next_win_id { 0 };
 };
 
