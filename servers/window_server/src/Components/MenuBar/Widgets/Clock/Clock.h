@@ -9,8 +9,11 @@
 #include "../../../Helpers/TextDrawer.h"
 #include "../../MenuBar.h"
 #include "../BaseWidget.h"
+#include <ctime>
 #include <libfoundation/Logger.h>
 #include <libg/Font.h>
+
+#define DATA_BUF 32
 
 namespace WinServer {
 
@@ -18,9 +21,12 @@ class Clock : public BaseWidget {
 public:
     Clock()
     {
-        m_date = (char*)malloc(10);
-        memset(m_date, 0, 10);
-        memcpy(m_date, "Mon 09:41", 9);
+        m_date = (char*)malloc(DATA_BUF);
+        memset(m_date, 0, DATA_BUF);
+        update_time();
+        MenuBar::the().event_loop().add(LFoundation::Timer([this] {
+            this->update_time();
+        }, 5000, LFoundation::Timer::Repeat)); 
     }
 
     ~Clock()
@@ -28,7 +34,17 @@ public:
         free(m_date);
     }
 
-    size_t width() override { return 80; }
+    void update_time()
+    {
+        std::time_t new_time = std::time(nullptr);
+        if (new_time != cur_time) {
+            cur_time = new_time;
+            std::strftime(m_date, DATA_BUF, "%a %R", std::localtime(&cur_time));
+            MenuBar::the().invalidate_widget(this);
+        }
+    }
+
+    size_t width() override { return 70; }
     void draw(LG::Context& ctx) override
     {
         ctx.set_fill_color(LG::Color::Black);
@@ -53,6 +69,7 @@ public:
 private:
     bool m_clicked { false };
     char* m_date { nullptr };
+    std::time_t cur_time { 0 };
     LG::Font& m_font { LG::Font::system_font() };
 };
 

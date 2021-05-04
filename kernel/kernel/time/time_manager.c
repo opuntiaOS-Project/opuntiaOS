@@ -36,7 +36,7 @@ static uint32_t pref_sum_of_days_in_mounts[] = {
 
 bool timeman_is_leap_year(uint32_t year)
 {
-    return (year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0);
+    return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
 }
 
 uint32_t timeman_days_in_years_since_epoch(uint32_t year)

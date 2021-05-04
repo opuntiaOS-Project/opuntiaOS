@@ -8,6 +8,12 @@
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
+using ::gmtime;
+using ::gmtime_r;
+using ::localtime;
+using ::localtime_r;
+using ::strftime;
+using ::time;
 using ::time_t;
 using ::timespec;
 

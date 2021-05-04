@@ -226,7 +226,9 @@ dentry_t* dentry_get_parent(dentry_t* dentry)
 void dentry_flusher()
 {
     for (;;) {
+#ifdef DENTRY_DEBUG
         log("WORK dentry_flusher");
+#endif
         dentry_cache_list_t* dentry_cache_block = dentry_cache;
         while (dentry_cache_block) {
             int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);

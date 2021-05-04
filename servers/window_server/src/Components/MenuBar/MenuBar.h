@@ -10,6 +10,7 @@
 #include "../../Desktop/Window.h"
 #include "MenuItem.h"
 #include "Widgets/BaseWidget.h"
+#include <libfoundation/EventLoop.h>
 #include <libfoundation/Logger.h>
 #include <libg/Context.h>
 #include <libg/PixelBitmap.h>
@@ -38,6 +39,9 @@ public:
         m_widgets.push_back(widget);
         return *widget;
     }
+
+    inline LFoundation::EventLoop& event_loop() { return LFoundation::EventLoop::the(); }
+    void invalidate_widget(BaseWidget* wg);
 
     inline bool is_hovered() const { return m_hovered; }
     inline bool is_popup_opened() const { return m_popup_opened; }

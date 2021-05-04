@@ -21,6 +21,8 @@ tm_t* gmtime_r(const time_t* timep, tm_t* result);
 tm_t* localtime(const time_t* timep);
 tm_t* localtime_r(const time_t* timep, tm_t* result);
 
+size_t strftime(char* s, size_t max, const char* format, const tm_t* tm);
+
 time_t mktime(tm_t* tm);
 
 int clock_getres(clockid_t clk_id, timespec_t* res);

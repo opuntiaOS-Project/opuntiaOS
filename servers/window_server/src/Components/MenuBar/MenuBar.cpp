@@ -27,6 +27,17 @@ MenuBar::MenuBar()
     m_logo = loader.load_from_file("/res/system/logo_dark_12.png");
 }
 
+void MenuBar::invalidate_widget(BaseWidget* wg)
+{
+    for (int i = 0; i < m_widgets.size(); i++) {
+        if (m_widgets[i] == wg) {
+            size_t widget_min_x = start_of_widget(i);
+            Compositor::the().invalidate(LG::Rect(widget_min_x, 0, m_widgets[i]->width(), height()));
+            return;
+        }
+    }
+}
+
 MenuItemAnswer MenuBar::widget_recieve_mouse_status_change(const CursorManager& cursor_manager, size_t wind)
 {
     if (wind >= m_widgets.size()) {
