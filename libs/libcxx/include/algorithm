@@ -21,7 +21,7 @@ static inline constexpr T max(const T& a, const T& b)
 }
 
 template <class Iter, class T>
-static Iter find(Iter first, Iter last, const T& value)
+static constexpr Iter find(Iter first, Iter last, const T& value)
 {
     for (; first != last; ++first) {
         if (*first == value) {
@@ -29,6 +29,15 @@ static Iter find(Iter first, Iter last, const T& value)
         }
     }
     return last;
+}
+
+template <class InputIter, class OutputIter>
+static constexpr OutputIter copy(InputIter first, InputIter last, OutputIter dist)
+{
+    for (; first != last; ++first) {
+        *dist++ = *first;
+    }
+    return dist;
 }
 
 _LIBCXX_END_NAMESPACE_STD
