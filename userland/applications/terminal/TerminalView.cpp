@@ -22,7 +22,7 @@ TerminalView::TerminalView(UI::View* superview, const LG::Rect& frame, int ptmx)
 
 void TerminalView::recalc_dimensions(const LG::Rect& frame)
 {
-    m_max_rows = (frame.height() - 2 * padding()) / glyph_height();
+    m_max_rows = (frame.height() - padding() - UI::SafeArea::Bottom) / glyph_height();
     m_max_cols = (frame.width() - 2 * padding()) / glyph_width();
     // FIXME: Add copy and resize on window resize.
     m_display_data = (char*)malloc(m_max_rows * m_max_cols);
