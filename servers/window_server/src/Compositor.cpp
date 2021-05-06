@@ -39,7 +39,7 @@ Compositor::Compositor()
     LFoundation::EventLoop::the().add(LFoundation::Timer([] {
         Compositor::the().refresh();
     },
-        1000 / 60, LFoundation::Timer::Repeat));
+        1000 / 100, LFoundation::Timer::Repeat));
 }
 
 void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas)
@@ -101,11 +101,21 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
     };
 #endif // TARGET_DESKTOP
 
+#ifdef TARGET_DESKTOP
     for (int i = 0; i < invalidated_areas.size(); i++) {
         draw_wallpaper_for_area(invalidated_areas[i]);
     }
+#elif TARGET_MOBILE
+    // Draw wallpaper only in case when WM contains homescreen app.
+    if (wm.windows().size() <= 1) {
+        for (int i = 0; i < invalidated_areas.size(); i++) {
+            draw_wallpaper_for_area(invalidated_areas[i]);
+        }
+    }
+#endif // TARGET_DESKTOP
 
     auto& windows = wm.windows();
+#ifdef TARGET_DESKTOP
     for (auto it = windows.rbegin(); it != windows.rend(); it++) {
         auto& window = *(*it);
         if (is_window_area_invalidated(invalidated_areas, window.bounds())) {
@@ -114,6 +124,17 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
             }
         }
     }
+#elif TARGET_MOBILE
+    // Draw wallpaper only in case when WM contains homescreen app.
+    if (windows.begin() != windows.end()) {
+        auto& window = *(*windows.begin());
+        if (is_window_area_invalidated(invalidated_areas, window.bounds())) {
+            for (int i = 0; i < invalidated_areas.size(); i++) {
+                draw_window(window, invalidated_areas[i]);
+            }
+        }
+    }
+#endif // TARGET_DESKTOP
 
     for (int i = 0; i < invalidated_areas.size(); i++) {
         ctx.add_clip(invalidated_areas[i]);
