@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <libfoundation/Logger.h>
 #include <libg/Color.h>
 #include <libg/Point.h>
 #include <libg/Rect.h>
@@ -71,6 +72,8 @@ public:
 
     inline const LG::Rect& frame() const { return m_frame; }
     inline const LG::Rect& bounds() const { return m_bounds; }
+    inline LG::Rect& frame() { return m_frame; }
+    inline LG::Rect& bounds() { return m_bounds; }
     inline void set_width(size_t x) { m_frame.set_width(x), m_bounds.set_width(x), set_needs_display(); }
     inline void set_height(size_t x) { m_frame.set_height(x), m_bounds.set_height(x), set_needs_display(); }
 
@@ -129,9 +132,13 @@ public:
 protected:
     View(View* superview, const LG::Rect&);
 
-private:
-    inline LG::Rect& frame() { return m_frame; }
+    template <Constraint::Attribute attr>
+    inline void add_interpreted_constraint_to_mask() { m_applied_constraints_mask |= (1 << (int)attr); }
 
+    template <Constraint::Attribute attr>
+    inline bool has_interpreted_constraint_in_mask() { return (m_applied_constraints_mask & (1 << (int)attr)); }
+
+private:
     void set_window(Window* window) { m_window = window; }
     void set_superview(View* superview) { m_superview = superview; }
     inline void constraint_interpreter(const Constraint& constraint);
@@ -144,6 +151,7 @@ private:
 
     bool m_constraint_based_layout { false };
     std::vector<Constraint> m_constrints {};
+    uint32_t m_applied_constraints_mask { 0 }; // Constraints applied to this view;
 
     bool m_active { false };
     bool m_hovered { false };
@@ -173,34 +181,67 @@ inline void View::constraint_interpreter(const Constraint& constraint)
     switch (constraint.attribute()) {
     case Constraint::Attribute::Top:
         Constraint::set_attribute<Constraint::Attribute::Top>(constraint.item()->frame(), calc_new_value());
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::Top>();
         return;
 
-    case Constraint::Attribute::Bottom:
-        Constraint::set_attribute<Constraint::Attribute::Bottom>(constraint.item()->frame(), calc_new_value());
-        return;
+    case Constraint::Attribute::Bottom: {
+        uint32_t value = calc_new_value();
+        if (!constraint.rel_item()) {
+            value = constraint.item()->superview()->bounds().max_y() - constraint.constant();
+        }
 
+        if (constraint.item()->has_interpreted_constraint_in_mask<Constraint::Attribute::Top>()) {
+            uint32_t res = value - constraint.item()->frame().min_y();
+            Constraint::set_attribute<Constraint::Attribute::Height>(constraint.item()->frame(), res);
+            Constraint::set_attribute<Constraint::Attribute::Height>(constraint.item()->bounds(), res);
+        } else {
+            Constraint::set_attribute<Constraint::Attribute::Bottom>(constraint.item()->frame(), value);
+        }
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::Bottom>();
+        return;
+    }
     case Constraint::Attribute::Left:
         Constraint::set_attribute<Constraint::Attribute::Left>(constraint.item()->frame(), calc_new_value());
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::Left>();
         return;
 
-    case Constraint::Attribute::Right:
-        Constraint::set_attribute<Constraint::Attribute::Right>(constraint.item()->frame(), calc_new_value());
+    case Constraint::Attribute::Right: {
+        uint32_t value = calc_new_value();
+        if (!constraint.rel_item()) {
+            value = constraint.item()->superview()->bounds().max_x() - constraint.constant();
+        }
+
+        if (constraint.item()->has_interpreted_constraint_in_mask<Constraint::Attribute::Left>()) {
+            uint32_t res = value - constraint.item()->frame().min_x();
+            Constraint::set_attribute<Constraint::Attribute::Width>(constraint.item()->frame(), res);
+            Constraint::set_attribute<Constraint::Attribute::Width>(constraint.item()->bounds(), res);
+        } else {
+            Constraint::set_attribute<Constraint::Attribute::Right>(constraint.item()->frame(), value);
+        }
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::Right>();
         return;
+    }
 
     case Constraint::Attribute::CenterX:
         Constraint::set_attribute<Constraint::Attribute::CenterX>(constraint.item()->frame(), calc_new_value());
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::CenterX>();
         return;
 
     case Constraint::Attribute::CenterY:
         Constraint::set_attribute<Constraint::Attribute::CenterY>(constraint.item()->frame(), calc_new_value());
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::CenterY>();
         return;
 
     case Constraint::Attribute::Width:
         Constraint::set_attribute<Constraint::Attribute::Width>(constraint.item()->frame(), calc_new_value());
+        Constraint::set_attribute<Constraint::Attribute::Width>(constraint.item()->bounds(), calc_new_value());
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::Width>();
         return;
 
     case Constraint::Attribute::Height:
         Constraint::set_attribute<Constraint::Attribute::Height>(constraint.item()->frame(), calc_new_value());
+        Constraint::set_attribute<Constraint::Attribute::Height>(constraint.item()->bounds(), calc_new_value());
+        constraint.item()->add_interpreted_constraint_to_mask<Constraint::Attribute::Height>();
         return;
 
     default:

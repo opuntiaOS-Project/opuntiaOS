@@ -22,6 +22,7 @@ bool Responder::send_invalidate_message_to_server(const LG::Rect& rect) const
 void Responder::send_layout_message(Window& win, UI::View* for_view)
 {
     LFoundation::EventLoop::the().add(win, new LayoutEvent(for_view));
+    m_display_message_sent = false;
 }
 
 void Responder::send_display_message_to_self(Window& win, const LG::Rect& display_rect)

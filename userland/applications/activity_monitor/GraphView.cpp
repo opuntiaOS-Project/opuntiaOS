@@ -20,18 +20,21 @@ void GraphView::display(const LG::Rect& rect)
     UI::Context ctx(*this);
     ctx.add_clip(rect);
 
-    ctx.set_fill_color(LG::Color::White);
+    ctx.set_fill_color(LG::Color::LightSystemBackground);
     ctx.fill(bounds());
 
     ctx.set_fill_color(LG::Color::LightSystemBlue);
 
-    size_t left_padding = 0;
+    size_t left_padding = bounds().width();
     size_t height = bounds().height();
-    size_t column_width = bounds().width() / m_data.size();
+    size_t column_width = 3;
 
-    for (auto i : m_data) {
-        size_t column_height = (i * height) / 100;
+    for (int i = m_data.size() - 1; i >= 0; i--) {
+        left_padding -= column_width;
+        size_t column_height = (m_data[i] * height) / 100;
         ctx.fill(LG::Rect(left_padding, height - column_height, column_width, column_height));
-        left_padding += column_width;
+        if (left_padding < column_width) {
+            break;
+        }
     }
 }

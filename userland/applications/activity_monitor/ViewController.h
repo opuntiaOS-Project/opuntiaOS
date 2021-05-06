@@ -31,13 +31,15 @@ public:
         view().set_background_color(LG::Color::LightSystemBackground);
 
         auto& cpu_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 180, 16));
-        auto& cpu_graph = view().add_subview<GraphView>(LG::Rect(0, 0, 184, 100), 92);
+        auto& cpu_graph = view().add_subview<GraphView>(LG::Rect(0, 0, 184, 100), 200);
 
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
 
         view().add_constraint(UI::Constraint(cpu_graph, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
+        view().add_constraint(UI::Constraint(cpu_graph, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, UI::SafeArea::Right));
         view().add_constraint(UI::Constraint(cpu_graph, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, cpu_label, UI::Constraint::Attribute::Bottom, 1, 8));
+        view().add_constraint(UI::Constraint(cpu_graph, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, UI::SafeArea::Bottom));
 
         view().set_needs_layout();
 
