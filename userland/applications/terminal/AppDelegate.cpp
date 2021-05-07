@@ -1,23 +1,31 @@
 #include "TerminalView.h"
 #include "TerminalViewController.h"
+#include <csignal>
 #include <libui/AppDelegate.h>
+
+static int shell_pid = 0;
 
 int setup_shell()
 {
     int ptmx = posix_openpt(O_RDONLY);
+    if (ptmx < 0) {
+        std::abort();
+    }
+
     int f = fork();
     if (f == 0) {
         char* pname = ptsname(ptmx);
         if (!pname) {
             return -1;
         }
-        Logger::debug << "open " << pname << std::endl;
         close(0);
         close(1);
         open(pname, O_RDONLY);
         open(pname, O_WRONLY);
         execve("/bin/onesh", 0, 0);
     }
+
+    shell_pid = f;
     return ptmx;
 }
 
@@ -38,6 +46,11 @@ public:
         window.set_frame_style(LG::Color(0x181818));
         window.set_title("Terminal");
         return true;
+    }
+
+    void application_will_terminate() override
+    {
+        std::kill(shell_pid, 9);
     }
 
 private:

@@ -15,12 +15,13 @@
 #include <memory>
 #include <sys/types.h>
 
-#define SET_APP_DELEGATE(name)                    \
-    name* MainAppDelegatePtr;                     \
-    extern "C" bool __init_app_delegate()         \
-    {                                             \
-        MainAppDelegatePtr = new name();          \
-        return MainAppDelegatePtr->application(); \
+#define SET_APP_DELEGATE(name)                                 \
+    name* MainAppDelegatePtr;                                  \
+    extern "C" bool __init_app_delegate(UI::AppDelegate** res) \
+    {                                                          \
+        MainAppDelegatePtr = new name();                       \
+        *res = MainAppDelegatePtr;                             \
+        return MainAppDelegatePtr->application();              \
     }
 
 namespace UI {
@@ -41,6 +42,7 @@ public:
     virtual LG::Size preferred_desktop_window_size() const { return LG::Size(400, 300); }
     virtual const char* icon_path() const { return "/res/icons/apps/missing.icon"; }
     virtual bool application() { return false; }
+    virtual void application_will_terminate() { }
 
 private:
 };
