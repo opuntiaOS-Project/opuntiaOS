@@ -1,0 +1,17 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_CSIGNAL
+#define _LIBCXX_CSIGNAL
+
+#include <__config>
+#include <signal.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::kill;
+using ::raise;
+using ::sigaction;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_CSIGNAL
