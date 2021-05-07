@@ -116,7 +116,8 @@ time_t mktime(tm_t* tm)
 
 int clock_gettime(clockid_t clk_id, timespec_t* tp)
 {
-    return DO_SYSCALL_2(SYS_CLOCK_GETTIME, clk_id, tp);
+    int res = DO_SYSCALL_2(SYS_CLOCK_GETTIME, clk_id, tp);
+    RETURN_WITH_ERRNO(res, res, -1);
 }
 
 // TODO: Implement

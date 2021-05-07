@@ -2,6 +2,7 @@
 #define _LIBC_SYSDEP_H
 
 #include <bits/syscalls.h>
+#include <errno.h>
 #include <sys/cdefs.h>
 
 __BEGIN_DECLS
@@ -37,6 +38,15 @@ static inline int _syscall_impl(sysid_t sysid, int p1, int p2, int p3, int p4, i
 #define DO_SYSCALL_3(type, a, b, c) _syscall_impl(type, (int)a, (int)b, (int)c, 0, 0)
 #define DO_SYSCALL_4(type, a, b, c, d) _syscall_impl(type, (int)a, (int)b, (int)c, (int)d, 0)
 #define DO_SYSCALL_5(type, a, b, c, d, e) _syscall_impl(type, (int)a, (int)b, (int)c, (int)d, (int)e);
+#define RETURN_WITH_ERRNO(res, on_suc, on_fail) \
+    do {                                        \
+        if ((int)res < 0) {                     \
+            set_errno(res);                     \
+            return (on_fail);                   \
+        }                                       \
+        set_errno(0);                           \
+        return on_suc;                          \
+    } while (0);
 
 __END_DECLS
 

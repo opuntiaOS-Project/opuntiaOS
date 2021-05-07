@@ -7,17 +7,20 @@
 
 int open(const char* pathname, int flags)
 {
-    return DO_SYSCALL_3(SYS_OPEN, pathname, flags, S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO);
+    int res = DO_SYSCALL_3(SYS_OPEN, pathname, flags, S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO);
+    RETURN_WITH_ERRNO(res, res, -1);
 }
 
 int creat(const char* path, mode_t mode)
 {
-    return DO_SYSCALL_2(SYS_CREAT, path, mode);
+    int res = DO_SYSCALL_2(SYS_CREAT, path, mode);
+    RETURN_WITH_ERRNO(res, res, -1);
 }
 
 int close(int fd)
 {
-    return DO_SYSCALL_1(SYS_CLOSE, fd);
+    int res = DO_SYSCALL_1(SYS_CLOSE, fd);
+    RETURN_WITH_ERRNO(res, 0, -1);
 }
 
 ssize_t read(int fd, char* buf, size_t count)
@@ -37,32 +40,38 @@ off_t lseek(int fd, off_t off, int whence)
 
 int mkdir(const char* path)
 {
-    return DO_SYSCALL_1(SYS_MKDIR, path);
+    int res = DO_SYSCALL_1(SYS_MKDIR, path);
+    RETURN_WITH_ERRNO(res, 0, -1);
 }
 
 int rmdir(const char* path)
 {
-    return DO_SYSCALL_1(SYS_RMDIR, path);
+    int res = DO_SYSCALL_1(SYS_RMDIR, path);
+    RETURN_WITH_ERRNO(res, 0, -1);
 }
 
 int chdir(const char* path)
 {
-    return DO_SYSCALL_1(SYS_CHDIR, path);
+    int res = DO_SYSCALL_1(SYS_CHDIR, path);
+    RETURN_WITH_ERRNO(res, 0, -1);
 }
 
 int unlink(const char* path)
 {
-    return DO_SYSCALL_1(SYS_UNLINK, path);
+    int res = DO_SYSCALL_1(SYS_UNLINK, path);
+    RETURN_WITH_ERRNO(res, 0, -1);
 }
 
 int fstat(int nfds, fstat_t* stat)
 {
-    return DO_SYSCALL_2(SYS_FSTAT, nfds, stat);
+    int res = DO_SYSCALL_2(SYS_FSTAT, nfds, stat);
+    RETURN_WITH_ERRNO(res, 0, -1);
 }
 
 int select(int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout)
 {
-    return DO_SYSCALL_5(SYS_SELECT, nfds, readfds, writefds, exceptfds, timeout);
+    int res = DO_SYSCALL_5(SYS_SELECT, nfds, readfds, writefds, exceptfds, timeout);
+    RETURN_WITH_ERRNO(res, res, -1);
 }
 
 void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
@@ -79,5 +88,6 @@ void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
 
 int munmap(void* addr, size_t length)
 {
-    return DO_SYSCALL_2(SYS_MUNMAP, addr, length);
+    int res = DO_SYSCALL_2(SYS_MUNMAP, addr, length);
+    RETURN_WITH_ERRNO(res, 0, -1);
 }
