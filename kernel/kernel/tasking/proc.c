@@ -285,7 +285,7 @@ restore:
 
 int proc_free(proc_t* p)
 {
-    if (p->status == PROC_DEAD || p->status == PROC_INVALID || p->status == PROC_ALIVE || p->pid == 0) {
+    if (p->status != PROC_DYING || p->pid == 0) {
         return -ESRCH;
     }
 

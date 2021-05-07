@@ -11,7 +11,7 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 
-// #define PTY_DEBUG
+#define PTY_DEBUG
 
 bool ptmx_can_read(dentry_t* dentry, uint32_t start)
 {
@@ -38,8 +38,7 @@ int ptmx_open(dentry_t* dentry, struct file_descriptor* fd, uint32_t flags)
 #ifdef PTY_DEBUG
     log("Opening ptmx");
 #endif
-    pty_master_alloc(fd);
-    return 0;
+    return pty_master_alloc(fd);
 }
 
 int ptmx_install()
@@ -49,7 +48,7 @@ int ptmx_install()
         return -1;
     }
 
-    file_ops_t fops = {0};
+    file_ops_t fops = { 0 };
     fops.open = ptmx_open;
     fops.can_read = ptmx_can_read;
     fops.can_write = ptmx_can_write;

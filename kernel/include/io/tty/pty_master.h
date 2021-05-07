@@ -11,7 +11,7 @@
 #include <fs/vfs.h>
 
 #ifndef PTYS_COUNT
-#define PTYS_COUNT 4
+#define PTYS_COUNT 16
 #endif
 
 struct pty_slave_entry;

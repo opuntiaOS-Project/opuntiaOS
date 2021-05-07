@@ -12,8 +12,8 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 
-#define INODE2PTSNO(x) (x-1)
-#define PTSNO2INODE(x) (x+1)
+#define INODE2PTSNO(x) (x - 1)
+#define PTSNO2INODE(x) (x + 1)
 
 /**
  * Since pty masters are virtual files and don't present on real hd,
@@ -65,11 +65,14 @@ static pty_master_entry_t* _ptm_get(dentry_t* dentry)
             return &pty_masters[i];
         }
     }
-    return 0;
+    return NULL;
 }
 
 int _pty_master_free_dentry_data(dentry_t* dentry)
 {
+    pty_master_entry_t* ptm = _ptm_get(dentry);
+    ASSERT(ptm);
+    ptm->dentry.inode_indx = 0;
     return 0;
 }
 
@@ -110,6 +113,7 @@ int pty_master_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t le
 int pty_master_fstat(dentry_t* dentry, fstat_t* stat)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
+    ASSERT(ptm);
     stat->dev = MKDEV(128, INODE2PTSNO(dentry->inode_indx));
     return 0;
 }

@@ -20,7 +20,7 @@ static pty_slave_entry_t* _pts_get(dentry_t* dentry)
             return &pty_slaves[i];
         }
     }
-    return 0;
+    return NULL;
 }
 
 bool pty_slave_can_read(dentry_t* dentry, uint32_t start)
@@ -71,21 +71,25 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
         return 0;
     }
 
-    char name[8];
-    snprintf(name, 8, "pts%d", id);
-    file_ops_t fops = { 0 };
-    fops.can_read = pty_slave_can_read;
-    fops.can_write = pty_slave_can_write;
-    fops.read = pty_slave_read;
-    fops.write = pty_slave_write;
-    fops.ioctl = pty_slave_ioctl;
-    devfs_inode_t* res = devfs_register(mp, MKDEV(136, id), name, 4, 0, &fops);
-    pty_slaves[id].inode_indx = res->index;
-    pty_slaves[id].ptm = ptm;
-    pty_slaves[id].buffer = ringbuffer_create_std();
-    ASSERT(pty_slaves[id].buffer.zone.start);
-
-    ptm->pts = &pty_slaves[id];
+    // FIXME: Check if the we already have pty file created
+    if (!pty_slaves[id].inode_indx) {
+        char name[8];
+        snprintf(name, 8, "pts%d", id);
+        file_ops_t fops = { 0 };
+        fops.can_read = pty_slave_can_read;
+        fops.can_write = pty_slave_can_write;
+        fops.read = pty_slave_read;
+        fops.write = pty_slave_write;
+        fops.ioctl = pty_slave_ioctl;
+        devfs_inode_t* res = devfs_register(mp, MKDEV(136, id), name, 4, 0, &fops);
+        pty_slaves[id].inode_indx = res->index;
+        pty_slaves[id].ptm = ptm;
+        pty_slaves[id].buffer = ringbuffer_create_std();
+        ASSERT(pty_slaves[id].buffer.zone.start);
+        ptm->pts = &pty_slaves[id];
+    } else {
+        pty_slaves[id].buffer.start = pty_slaves[id].buffer.end = 0;
+    }
 
     dentry_put(mp);
     return 0;
