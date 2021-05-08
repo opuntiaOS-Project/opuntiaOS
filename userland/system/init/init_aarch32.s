@@ -10,4 +10,4 @@ loop:
     b loop
 .data
 .align
-msg: .asciz "/bin/initgui"
+msg: .asciz "/System/initgui"

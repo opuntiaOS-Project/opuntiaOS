@@ -1,7 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_executable("terminal") {
-  install_path = "bin/"
+oneOS_application("terminal") {
   sources = [
     "AppDelegate.cpp",
     "TerminalView.cpp",

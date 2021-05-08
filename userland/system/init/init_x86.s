@@ -25,4 +25,4 @@ exec:
     jmp loop
     ; since that we launch a new prgram
 
-pathToLaunch:  db "/bin/initgui", 0
+pathToLaunch:  db "/System/initgui", 0

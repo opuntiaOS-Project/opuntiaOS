@@ -2,57 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/userland/EXEC_TEMPLATE.gni")
+
 template("oneOS_executable") {
-  assert(defined(invoker.sources),
-         "Need sources in $target_name to build oneOS App")
-
   app_name = target_name
-  app_build_name = app_name + "_build"
-
-  deplibs = []
-  depbuilders = []
-  includes = []
-  confs = []
-  if (defined(invoker.libs)) {
-    deplibs = invoker.libs
-  }
-  if (defined(invoker.deps)) {
-    depbuilders = invoker.deps
-  }
-  if (defined(invoker.include_dirs)) {
-    includes = invoker.include_dirs
-  }
-  if (defined(invoker.configs)) {
-    confs = invoker.configs
-  }
-  if (defined(invoker.deplibs)) {
-    foreach(i, invoker.deplibs) {
-      deplibs += [ "$root_out_dir/base/libs/" + i + ".a" ]
-      depbuilders += [ "//libs/" + i + ":" + i ]
-      includes += [ "//libs/" + i + "/include" ]
-      confs += [ "//libs/" + i + ":" + i + "_include_config" ]
-
-      # Also adding libc includes.
-      # Note to add libc after libcxx.
-      if (i == "libcxx") {
-        includes += [ "//libs/libc/include" ]
-      }
-    }
-  }
-
-  executable(app_build_name) {
-    if (defined(invoker.install_path)) {
-      output_name = "base/" + invoker.install_path + app_name
-    } else {
-      output_name = "base/bin/" + app_name
-    }
-    sources = invoker.sources
-    libs = deplibs
-    deps = depbuilders
-    include_dirs = includes
-    configs = confs
+  oneOS_executable_template(app_name) {
     forward_variables_from(invoker,
                            [
+                             "install_path",
+                             "sources",
+                             "configs",
+                             "deplibs",
                              "cflags",
                              "cflags_c",
                              "cflags_cc",
@@ -63,6 +23,45 @@ template("oneOS_executable") {
   }
 
   group(app_name) {
-    deps = [ ":" + app_build_name ]
+    deps = [ ":$app_name" + "_build" ]
+  }
+}
+
+template("oneOS_application") {
+  app_name = target_name
+  root = "Applications/$app_name.app"
+  exec_file = "$root/Content/"
+
+  action("prepare_$app_name") {
+    script = "//build/userland/prepare_app.py"
+    outputs = [ "$root_out_dir/base/Applications/$app_name.app/Content" ]
+    args = [
+      rebase_path("$root_out_dir/base/Applications/$app_name.app/Content",
+                  root_build_dir),
+      app_name,
+    ]
+  }
+
+  oneOS_executable_template(app_name) {
+    install_path = "$exec_file"
+    forward_variables_from(invoker,
+                           [
+                             "sources",
+                             "configs",
+                             "deplibs",
+                             "cflags",
+                             "cflags_c",
+                             "cflags_cc",
+                             "asmflags",
+                             "ldflags",
+                             "public_deps",
+                           ])
+  }
+
+  group(app_name) {
+    deps = [
+      ":$app_name" + "_build",
+      ":prepare_$app_name",
+    ]
   }
 }

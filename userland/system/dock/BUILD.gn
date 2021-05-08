@@ -1,7 +1,7 @@
 import("//build/userland/TEMPLATE.gni")
 
 oneOS_executable("dock") {
-  install_path = "bin/"
+  install_path = "System/"
   sources = [
     "AppDelegate.cpp",
     "DockView.cpp",

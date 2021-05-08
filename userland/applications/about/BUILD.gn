@@ -1,7 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_executable("about") {
-  install_path = "bin/"
+oneOS_application("about") {
   sources = [
     "AppDelegate.cpp",
   ]

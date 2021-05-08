@@ -25,9 +25,9 @@ void start_dock()
 {
     if (fork()) {
 #ifdef TARGET_DESKTOP
-        execve("/bin/dock", nullptr, nullptr);
+        execve("/System/dock", nullptr, nullptr);
 #elif TARGET_MOBILE
-        execve("/bin/homescreen", nullptr, nullptr);
+        execve("/System/homescreen", nullptr, nullptr);
 #endif
         std::abort();
     }

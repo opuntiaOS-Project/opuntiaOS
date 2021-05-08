@@ -27,10 +27,10 @@ public:
     virtual void view_did_load() override
     {
         view().set_background_color(LG::Color(222, 222, 222, 180));
-        view().new_fast_launch_entity("/res/icons/apps/logo.icon", "/bin/about"); // Launch launchpad instead of about app
-        view().new_fast_launch_entity("/res/icons/apps/about.icon", "/bin/about"); // FIXME: Parse some init file
-        view().new_fast_launch_entity("/res/icons/apps/terminal.icon", "/bin/terminal");
-        view().new_fast_launch_entity("/res/icons/apps/activity_monitor.icon", "/bin/activity_monitor");
+        view().new_fast_launch_entity("/res/icons/apps/logo.icon", "/Applications/about.app/Content/about"); // Launch launchpad instead of about app
+        view().new_fast_launch_entity("/res/icons/apps/about.icon", "/Applications/about.app/Content/about"); // FIXME: Parse some init file
+        view().new_fast_launch_entity("/res/icons/apps/terminal.icon", "/Applications/terminal.app/Content/terminal");
+        view().new_fast_launch_entity("/res/icons/apps/activity_monitor.icon", "/Applications/activity_monitor.app/Content/activity_monitor");
         view().set_needs_display();
     }
 

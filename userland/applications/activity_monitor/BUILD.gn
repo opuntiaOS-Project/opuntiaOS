@@ -1,7 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_executable("activity_monitor") {
-  install_path = "bin/"
+oneOS_application("activity_monitor") {
   sources = [
     "AppDelegate.cpp",
     "GraphView.cpp",

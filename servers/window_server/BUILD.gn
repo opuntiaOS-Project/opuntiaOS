@@ -1,7 +1,7 @@
 import("//build/userland/TEMPLATE.gni")
 
 oneOS_executable("window_server") {
-  install_path = "bin/"
+  install_path = "System/"
   sources = [
     "src/Components/Base/BaseWindow.cpp",
     "src/Components/Elements/Button.cpp",
