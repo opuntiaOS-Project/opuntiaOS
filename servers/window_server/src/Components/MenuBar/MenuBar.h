@@ -19,6 +19,14 @@
 
 namespace WinServer {
 
+struct PopupContext {
+
+    void discard() { opened = false; }
+
+    bool opened { false };
+    int invoker_id { 0 };
+};
+
 class MenuBar {
 public:
     static MenuBar& the();
@@ -44,9 +52,10 @@ public:
     void invalidate_widget(BaseWidget* wg);
 
     inline bool is_hovered() const { return m_hovered; }
-    inline bool is_popup_opened() const { return m_popup_opened; }
+    inline PopupContext& popup_context() { return m_popup_context; }
+    inline const PopupContext& popup_context() const { return m_popup_context; }
 
-    void draw_bar_items(LG::Context& ctx);
+    void draw_panel_items(LG::Context& ctx);
     void draw_widgets(LG::Context& ctx);
     inline void draw_logo(LG::Context& ctx) { ctx.draw({ padding(), 4 }, m_logo); }
     [[gnu::always_inline]] inline void draw(LG::Context& ctx)
@@ -55,7 +64,7 @@ public:
         ctx.mix({ 0, 0, MenuBar::width(), MenuBar::height() });
 
         draw_logo(ctx);
-        draw_bar_items(ctx);
+        draw_panel_items(ctx);
         draw_widgets(ctx);
     }
 
@@ -69,24 +78,24 @@ public:
     void set_menubar_content(std::vector<MenuDir>* mc);
     void set_menubar_content(std::vector<MenuDir>* mc, Compositor& compositor);
 
-    inline void popup_will_be_closed() { m_popup_opened = false; }
-    inline void popup_will_be_shown() { m_popup_opened = true; } // m_popup_bounds must be set before calling this func.
-    inline void popup_will_be_shown(const LG::Rect& r)
+    inline void popup_will_be_shown(int invoker_id)
     {
-        m_popup_bounds = r;
-        m_popup_opened = true;
+        auto& content = *m_menubar_content;
+        popup_context().invoker_id = invoker_id;
+        m_popup.set_preferred_origin({ (int)panel_item_start_offset(invoker_id), height() });
+        m_popup.set_visible(true);
     }
 
-    inline void popup_will_be_shown(LG::Rect&& r)
+    inline void popup_will_be_closed()
     {
-        m_popup_bounds = std::move(r);
-        m_popup_opened = true;
+        popup_context().discard();
+        m_popup.set_visible(false);
     }
 
 private:
     // Widgets
     MenuItemAnswer widget_recieve_mouse_status_change(const CursorManager& cursor_manager, size_t wind);
-    size_t start_of_widget(size_t index);
+    size_t widget_start_offset(size_t index);
     int find_widget(int x, int y);
 
     // MenuBar Panel
@@ -103,21 +112,23 @@ private:
         return start_offset;
     }
 
-    size_t start_of_menubar_panel_item(size_t index);
+    size_t panel_item_start_offset(size_t index);
     int find_menubar_panel_item(int x, int y);
 
     LG::Rect m_bounds;
     std::vector<MenuDir>* m_menubar_content { nullptr };
     std::vector<BaseWidget*> m_widgets;
-    bool m_popup_opened { false };
-    LG::Rect m_popup_bounds;
+    Popup& m_popup;
+    PopupContext m_popup_context;
     LG::Color m_background_color;
     LG::PixelBitmap m_logo;
 
     bool m_hovered { false };
 };
 
-inline void MenuBar::draw_bar_items(LG::Context& ctx)
+// Implementation
+
+inline void MenuBar::draw_panel_items(LG::Context& ctx)
 {
     if (!m_menubar_content) {
         return;
@@ -173,15 +184,18 @@ inline void MenuBar::set_menubar_content(std::vector<MenuDir>* mc)
     invalidate_menubar_panel();
     m_menubar_content = mc;
     invalidate_menubar_panel();
+    popup_will_be_closed();
 }
+
 inline void MenuBar::set_menubar_content(std::vector<MenuDir>* mc, Compositor& compositor)
 {
     invalidate_menubar_panel(compositor);
     m_menubar_content = mc;
     invalidate_menubar_panel(compositor);
+    popup_will_be_closed();
 }
 
-inline size_t MenuBar::start_of_widget(size_t index)
+inline size_t MenuBar::widget_start_offset(size_t index)
 {
     size_t start_offset = MenuBar::width();
     for (int wind = m_widgets.size() - 1; wind >= (int)index; wind--) {
@@ -205,7 +219,7 @@ inline int MenuBar::find_widget(int x, int y)
     return -1;
 }
 
-inline size_t MenuBar::start_of_menubar_panel_item(size_t index)
+inline size_t MenuBar::panel_item_start_offset(size_t index)
 {
     if (!m_menubar_content) {
         return 0;

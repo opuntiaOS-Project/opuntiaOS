@@ -59,6 +59,7 @@ static const void* syscalls[] = {
     [SYS_CLOCK_GETTIME] = sys_clock_gettime,
     [SYS_CLOCK_SETTIME] = sys_none,
     [SYS_CLOCK_GETRES] = sys_none,
+    [SYS_NICE] = sys_nice,
     [SYS_SHBUF_CREATE] = sys_shbuf_create,
     [SYS_SHBUF_GET] = sys_shbuf_get,
     [SYS_SHBUF_FREE] = sys_shbuf_free,

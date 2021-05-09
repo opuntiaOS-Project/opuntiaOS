@@ -128,3 +128,14 @@ void sys_sched_yield(trapframe_t* tf)
 {
     resched();
 }
+
+void sys_nice(trapframe_t* tf)
+{
+    int inc = param1;
+    thread_t* thread = RUNNING_THREAD;
+    if ((thread->process->prio + inc) < MAX_PRIO || (thread->process->prio + inc) > MIN_PRIO) {
+        return_with_val(-1);
+    }
+    thread->process->prio += inc;
+    return_with_val(0);
+}

@@ -6,6 +6,7 @@ oneOS_executable("window_server") {
     "src/Components/Base/BaseWindow.cpp",
     "src/Components/Elements/Button.cpp",
     "src/Components/MenuBar/MenuBar.cpp",
+    "src/Components/Popup/Popup.cpp",
     "src/Compositor.cpp",
     "src/Connection.cpp",
     "src/CursorManager.cpp",

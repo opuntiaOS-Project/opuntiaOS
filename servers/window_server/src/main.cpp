@@ -8,6 +8,7 @@
 #include "Components/ControlBar/ControlBar.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "Components/MenuBar/Widgets/Clock/Clock.h"
+#include "Components/Popup/Popup.h"
 #include "Compositor.h"
 #include "Connection.h"
 #include "CursorManager.h"
@@ -35,12 +36,14 @@ void start_dock()
 
 int main()
 {
+    nice(-3);
     start_dock();
     auto* event_loop = new LFoundation::EventLoop();
     new WinServer::Screen();
     new WinServer::Connection(socket(PF_LOCAL, 0, 0));
     new WinServer::CursorManager();
     new WinServer::ResourceManager();
+    new WinServer::Popup();
     new WinServer::MenuBar();
 #ifdef TARGET_MOBILE
     new WinServer::ControlBar();

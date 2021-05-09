@@ -21,6 +21,7 @@ MenuBar& MenuBar::the()
 MenuBar::MenuBar()
     : m_background_color(LG::Color(222, 222, 222, 180))
     , m_bounds(0, 0, Screen::the().bounds().width(), height())
+    , m_popup(Popup::the())
 {
     s_the = this;
     LG::PNG::PNGLoader loader;
@@ -31,7 +32,7 @@ void MenuBar::invalidate_widget(BaseWidget* wg)
 {
     for (int i = 0; i < m_widgets.size(); i++) {
         if (m_widgets[i] == wg) {
-            size_t widget_min_x = start_of_widget(i);
+            size_t widget_min_x = widget_start_offset(i);
             Compositor::the().invalidate(LG::Rect(widget_min_x, 0, m_widgets[i]->width(), height()));
             return;
         }
@@ -45,7 +46,7 @@ MenuItemAnswer MenuBar::widget_recieve_mouse_status_change(const CursorManager& 
     }
 
     MenuItemAnswer answer = MenuItemAnswer::Empty;
-    size_t widget_min_x = start_of_widget(wind);
+    size_t widget_min_x = widget_start_offset(wind);
     if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
         answer = m_widgets[wind]->click_began(cursor_manager.x() - widget_min_x, cursor_manager.y());
     } else {
@@ -74,7 +75,7 @@ MenuItemAnswer MenuBar::panel_item_recieve_mouse_status_change(const CursorManag
     }
 
     MenuItemAnswer answer = MenuItemAnswer::Empty;
-    size_t widget_min_x = start_of_menubar_panel_item(ind);
+    size_t widget_min_x = panel_item_start_offset(ind);
     if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
         answer = content[ind].click_began(cursor_manager.x() - widget_min_x, cursor_manager.y());
     } else {
@@ -88,8 +89,7 @@ MenuItemAnswer MenuBar::panel_item_recieve_mouse_status_change(const CursorManag
         Compositor::the().invalidate(LG::Rect(widget_min_x, 0, m_widgets[ind]->width(), height()));
     }
     if (answer & MenuItemAnswer::PopupShow) {
-        content[ind].popup_rect(m_popup_bounds);
-        popup_will_be_shown();
+        popup_will_be_shown(ind);
     }
     if (answer & MenuItemAnswer::PopupClose) {
         popup_will_be_closed();

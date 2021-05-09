@@ -19,6 +19,7 @@ class MenuBar;
 #ifdef TARGET_MOBILE
 class ControlBar;
 #endif // TARGET_MOBILE
+class Popup;
 
 class Compositor {
 public:
@@ -50,10 +51,15 @@ public:
     inline const CursorManager& cursor_manager() const { return m_cursor_manager; }
     inline ResourceManager& resource_manager() { return m_resource_manager; }
     inline const ResourceManager& resource_manager() const { return m_resource_manager; }
+    inline Popup& popup() { return m_popup; }
+    inline const Popup& popup() const { return m_popup; }
     inline MenuBar& menu_bar() { return m_menu_bar; }
     inline const MenuBar& menu_bar() const { return m_menu_bar; }
 #ifdef TARGET_MOBILE
-    inline ControlBar& control_bar() { return m_control_bar; }
+    inline ControlBar& control_bar()
+    {
+        return m_control_bar;
+    }
     inline const ControlBar& control_bar() const { return m_control_bar; }
 #endif // TARGET_MOBILE
 
@@ -62,8 +68,10 @@ private:
 
     std::vector<LG::Rect> m_invalidated_areas;
     MenuBar& m_menu_bar;
+    Popup& m_popup;
     CursorManager& m_cursor_manager;
     ResourceManager& m_resource_manager;
+
 #ifdef TARGET_MOBILE
     ControlBar& m_control_bar;
 #endif // TARGET_MOBILE

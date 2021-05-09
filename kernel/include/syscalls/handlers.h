@@ -60,6 +60,7 @@ void sys_uname(trapframe_t* tf);
 void sys_clock_settime(trapframe_t* tf);
 void sys_clock_gettime(trapframe_t* tf);
 void sys_clock_getres(trapframe_t* tf);
+void sys_nice(trapframe_t* tf);
 void sys_shbuf_create(trapframe_t* tf);
 void sys_shbuf_get(trapframe_t* tf);
 void sys_shbuf_free(trapframe_t* tf);

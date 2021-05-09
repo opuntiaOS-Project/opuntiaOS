@@ -28,6 +28,9 @@ off_t lseek(int fd, off_t off, int whence);
 /* identity */
 uid_t getuid();
 
+/* sched */
+int nice(int inc);
+
 __END_DECLS
 
 #endif // _LIBC_UNISTD_H

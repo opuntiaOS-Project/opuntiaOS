@@ -99,6 +99,14 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         goto end;
     }
 
+    if (m_compositor.popup().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+
+    } else {
+        if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+            m_compositor.popup().set_visible(false);
+        }
+    }
+
     // Checking and dispatching mouse move for MenuBar.
     if (m_compositor.menu_bar().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
         m_compositor.menu_bar().on_mouse_move(m_cursor_manager);

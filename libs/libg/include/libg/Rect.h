@@ -44,6 +44,8 @@ public:
     inline void offset_by(int x, int y) { m_origin.offset_by(x, y); }
     inline void offset_by(const Point<int>& p) { m_origin.offset_by(p); }
 
+    inline void set_origin(const Point<int>& origin) { m_origin = origin; }
+    inline void set_origin(Point<int>&& origin) { m_origin = std::move(origin); }
     inline Point<int>& origin() { return m_origin; }
     inline const Point<int>& origin() const { return m_origin; }
 

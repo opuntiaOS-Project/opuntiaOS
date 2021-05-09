@@ -9,6 +9,7 @@
 #include "Components/Base/BaseWindow.h"
 #include "Components/ControlBar/ControlBar.h"
 #include "Components/MenuBar/MenuBar.h"
+#include "Components/Popup/Popup.h"
 #include "CursorManager.h"
 #include "ResourceManager.h"
 #include "Screen.h"
@@ -29,6 +30,7 @@ Compositor& Compositor::the()
 Compositor::Compositor()
     : m_cursor_manager(CursorManager::the())
     , m_resource_manager(ResourceManager::the())
+    , m_popup(Popup::the())
     , m_menu_bar(MenuBar::the())
 #ifdef TARGET_MOBILE
     , m_control_bar(ControlBar::the())
@@ -38,8 +40,7 @@ Compositor::Compositor()
     invalidate(Screen::the().bounds());
     LFoundation::EventLoop::the().add(LFoundation::Timer([] {
         Compositor::the().refresh();
-    },
-        1000 / 100, LFoundation::Timer::Repeat));
+    }, 1000 / 60, LFoundation::Timer::Repeat));
 }
 
 void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas)
@@ -135,6 +136,14 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
         }
     }
 #endif // TARGET_DESKTOP
+
+    if (m_popup.visible()) {
+        for (int i = 0; i < invalidated_areas.size(); i++) {
+            ctx.add_clip(invalidated_areas[i]);
+            m_popup.draw(ctx);
+            ctx.reset_clip();
+        }
+    }
 
     for (int i = 0; i < invalidated_areas.size(); i++) {
         ctx.add_clip(invalidated_areas[i]);
