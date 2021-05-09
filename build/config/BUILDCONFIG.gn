@@ -8,6 +8,7 @@ declare_args() {
   kernel_symbols = true
   userland_symbols = true
   static_analyze = false
+  bench_method = "none"
   host = "gnu"
   llvm_bin_path = getenv("LLVM_BIN_PATH")
   device_type = "desktop"

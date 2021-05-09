@@ -33,6 +33,10 @@ if (device_type == "mobile") {
   uland_c_flags += [ "-DTARGET_MOBILE" ]
 }
 
+if (bench_method == "external_script") {
+  uland_c_flags += [ "-DBENCHMARK" ]
+}
+
 if (target_cpu == "x86") {
   uland_asm_flags += [
     "-f",
@@ -93,6 +97,7 @@ group("userland") {
     "//userland/system/homescreen:homescreen",
     "//userland/system/init:init",
     "//userland/system/initgui:initgui",
+    "//userland/tests/bench:bench",
     "//userland/tests/utester:utester",
     "//userland/utilities/cat:cat",
     "//userland/utilities/kill:kill",

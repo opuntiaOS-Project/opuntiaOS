@@ -27,6 +27,7 @@ chmod +x out/build.sh
 chmod +x out/run.sh
 chmod +x out/sync.sh
 chmod +x out/all.sh
+chmod +x out/bench.sh
 chmod +x out/debug.sh
 chmod +x out/dll.sh
 

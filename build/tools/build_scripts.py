@@ -107,6 +107,26 @@ if [ $? -ne 0 ]; then echo -e "${ERROR} All command failed" && exit 1; fi
 """)
 allf.close()
 
+allf = open("{0}/bench.sh".format(out), "w")
+allf.write(
+    """#!/bin/bash
+GREEN='\\033[0;32m'
+RED='\\033[0;31m'
+NC='\\033[0m'
+ERROR="${{RED}}[ERROR]${{NC}}"
+SUCCESS="${{GREEN}}[SUCCESS]${{NC}}"
+
+./build.sh
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
+./sync.sh
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
+{2}="{3}"
+[[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
+{0} --nographic
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
+""".format(qemu_run_cmd, QEMU_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH))
+allf.close()
+
 allf = open("{0}/dll.sh".format(out), "w")
 allf.write(
     """#!/bin/bash
