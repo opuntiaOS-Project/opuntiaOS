@@ -91,6 +91,12 @@ public:
         push_back(T(el));
     }
 
+    inline void pop_back()
+    {
+        back().~T();
+        --m_size;
+    }
+
     inline const_reference at(size_type i) const
     {
         return data()[i];

@@ -28,22 +28,39 @@ public:
 
     void refresh();
 
-    void optimized_invalidate_insert(std::vector<LG::Rect>& data, const LG::Rect& area)
+    void optimized_invalidate_insert(std::vector<LG::Rect>& data, const LG::Rect& inv_area)
     {
-        LG::Rect area_union;
-        size_t area_square = area.square();
-        size_t inv_area_square = 0;
-
-        for (int i = 0; i < data.size(); i++) {
-            inv_area_square = data[i].square();
-            area_union = area.union_of(data[i]);
-            if (area_square + inv_area_square > area_union.square()) {
-                data[i].unite(area);
+        auto area = inv_area;
+        bool intersects = false;
+        int int_index = 0;
+        for (auto& rect : data) {
+            if (rect.contains(area)) {
                 return;
             }
         }
 
-        data.push_back(area);
+        for (auto& rect : data) {
+            if (rect.intersects(area)) {
+                intersects = true;
+                break;
+            }
+            int_index++;
+        }
+
+        if (!intersects) {
+            data.push_back(area);
+            return;
+        }
+
+        data[int_index].unite(area);
+        for (int i = int_index + 1; i < data.size(); i++) {
+            if (data[int_index].intersects(data[i])) {
+                data[int_index].unite(data[i]);
+                std::swap(data[i], data.back());
+                data.pop_back();
+                i--;
+            }
+        }
     }
 
     inline void invalidate(const LG::Rect& area) { optimized_invalidate_insert(m_invalidated_areas, area); }

@@ -40,7 +40,8 @@ Compositor::Compositor()
     invalidate(Screen::the().bounds());
     LFoundation::EventLoop::the().add(LFoundation::Timer([] {
         Compositor::the().refresh();
-    }, 1000 / 60, LFoundation::Timer::Repeat));
+    },
+        1000 / 60, LFoundation::Timer::Repeat));
 }
 
 void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& areas)

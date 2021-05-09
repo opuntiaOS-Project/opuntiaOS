@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <libg/Point.h>
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
@@ -22,6 +23,12 @@ public:
     Rect(int x, int y, size_t width, size_t height);
 
     ~Rect() = default;
+
+    Rect& operator=(const Rect& r)
+    {
+        m_origin = r.origin(), m_width = r.width(), m_height = r.height();
+        return *this;
+    }
 
     inline size_t width() const { return m_width; }
     inline size_t height() const { return m_height; }
@@ -41,6 +48,7 @@ public:
 
     inline bool contains(int x, int y) const { return min_x() <= x && x <= max_x() && min_y() <= y && y <= max_y(); }
     inline bool contains(const Point<int>& p) const { return contains(p.x(), p.y()); }
+    inline bool contains(const Rect& p) const { return contains(p.min_x(), p.min_y()) && contains(p.max_x(), p.max_y()); }
     inline void offset_by(int x, int y) { m_origin.offset_by(x, y); }
     inline void offset_by(const Point<int>& p) { m_origin.offset_by(p); }
 
@@ -73,5 +81,80 @@ private:
     size_t m_width { 0 };
     size_t m_height { 0 };
 };
+
+// Implementation
+
+inline void Rect::unite(const Rect& other)
+{
+    // (a, b) - top left corner
+    // (c, d) - bottom right corner
+    int a = std::min(min_x(), other.min_x());
+    int b = std::min(min_y(), other.min_y());
+    int c = std::max(max_x(), other.max_x());
+    int d = std::max(max_y(), other.max_y());
+
+    set_x(a);
+    set_y(b);
+    set_width(c - a + 1);
+    set_height(d - b + 1);
+}
+
+inline LG::Rect Rect::union_of(const Rect& other) const
+{
+    // (a, b) - top left corner
+    // (c, d) - bottom right corner
+    int a = std::min(min_x(), other.min_x());
+    int b = std::min(min_y(), other.min_y());
+    int c = std::max(max_x(), other.max_x());
+    int d = std::max(max_y(), other.max_y());
+    return LG::Rect(a, b, c - a + 1, d - b + 1);
+}
+
+inline void Rect::intersect(const Rect& other)
+{
+    // (a, b) - top left corner
+    // (c, d) - bottom right corner
+    int a = std::max(min_x(), other.min_x());
+    int b = std::max(min_y(), other.min_y());
+    int c = std::min(max_x(), other.max_x());
+    int d = std::min(max_y(), other.max_y());
+
+    if (a > c || b > d) {
+        set_width(0);
+        set_height(0);
+        return;
+    }
+
+    set_x(a);
+    set_y(b);
+    set_width(c - a + 1);
+    set_height(d - b + 1);
+}
+
+inline bool Rect::intersects(const Rect& other) const
+{
+    // (a, b) - top left corner
+    // (c, d) - bottom right corner
+    int a = std::max(min_x(), other.min_x());
+    int b = std::max(min_y(), other.min_y());
+    int c = std::min(max_x(), other.max_x());
+    int d = std::min(max_y(), other.max_y());
+    return c >= a && d >= b;
+}
+
+inline LG::Rect Rect::intersection(const Rect& other) const
+{
+    // (a, b) - top left corner
+    // (c, d) - bottom right corner
+    int a = std::max(min_x(), other.min_x());
+    int b = std::max(min_y(), other.min_y());
+    int c = std::min(max_x(), other.max_x());
+    int d = std::min(max_y(), other.max_y());
+
+    if (a > c || b > d) {
+        return LG::Rect(0, 0, 0, 0);
+    }
+    return LG::Rect(a, b, c - a + 1, d - b + 1);
+}
 
 } // namespace LG

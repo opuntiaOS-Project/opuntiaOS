@@ -37,7 +37,7 @@ public:
     void update_time()
     {
         std::time_t new_time = std::time(nullptr);
-        if (new_time != cur_time) {
+        if (new_time / 60 != cur_time / 60) {
             cur_time = new_time;
             std::strftime(m_date, DATA_BUF, "%a %R", std::localtime(&cur_time));
             MenuBar::the().invalidate_widget(this);
