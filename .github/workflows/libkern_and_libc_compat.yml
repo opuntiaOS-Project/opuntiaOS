@@ -1,12 +1,12 @@
 name: Checking compatability of libkern and libc
 
-on: [push]
+on: [push, pull_request]
 
 env:
   BUILD_TYPE: Release
 
 jobs:
-  build:
+  check:
     runs-on: macos-latest
 
     steps:

@@ -15,12 +15,12 @@ out = sys.argv[3]
 if arch == "x86":
     QEMU_ENV_VAR = "ONEOS_QEMU_X86"
     QEMU_STD_PATH = "qemu-system-i386"
-    qemu_run_cmd = "${2} -m 256M -fda {1}/os-image.bin -device piix3-ide,id=ide -drive id=disk,file={1}/one.img,if=none -device ide-drive,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std".format(
+    qemu_run_cmd = "${2} -m 256M --drive file={1}/os-image.bin,format=raw,index=0,if=floppy -device piix3-ide,id=ide -drive id=disk,format=raw,file={1}/one.img,if=none -device ide-hd,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std".format(
         base, out, QEMU_PATH_VAR)
 if arch == "aarch32":
     QEMU_ENV_VAR = "ONEOS_QEMU_ARM"
     QEMU_STD_PATH = "qemu-system-arm"
-    qemu_run_cmd = "${2} -M vexpress-a15 -cpu cortex-a15 -kernel {1}/base/boot/kernel.bin -serial mon:stdio -vga std -sd {1}/one.img".format(
+    qemu_run_cmd = "${2} -M vexpress-a15 -cpu cortex-a15 -kernel {1}/base/boot/kernel.bin -serial mon:stdio -vga std -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
         base, out, QEMU_PATH_VAR)
 
 if base[-1] == '/':
