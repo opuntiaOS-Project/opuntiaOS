@@ -30,7 +30,7 @@ public:
             return;
         }
 
-        auto* packet_buf = (MousePacket*)buf;
+        auto* packet_buf = reinterpret_cast<MousePacket*>(buf);
         for (int offset = 0, cnt = 0; offset < read_cnt; offset += sizeof(MousePacket), cnt++) {
             el.add(wm, new MouseEvent(packet_buf[cnt]));
         }
@@ -47,7 +47,7 @@ public:
             return;
         }
 
-        auto* packet_buf = (KeyboardPacket*)buf;
+        auto* packet_buf = reinterpret_cast<KeyboardPacket*>(buf);
         for (int offset = 0, cnt = 0; offset < read_cnt; offset += sizeof(KeyboardPacket), cnt++) {
             el.add(wm, new KeyboardEvent(packet_buf[cnt]));
         }

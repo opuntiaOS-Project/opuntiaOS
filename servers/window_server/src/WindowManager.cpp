@@ -92,7 +92,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
     Window* new_hovered_window = nullptr;
-    auto* mouse_event = (MouseEvent*)event.release();
+    auto* mouse_event = reinterpret_cast<MouseEvent*>(event.release());
     update_mouse_position(mouse_event);
 
     if (continue_window_move()) {
@@ -166,7 +166,7 @@ end:
 #ifdef TARGET_MOBILE
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
-    auto* mouse_event = (MouseEvent*)event.release();
+    auto* mouse_event = reinterpret_cast<MouseEvent*>(event.release());
     update_mouse_position(mouse_event);
 
     if (m_compositor.control_bar().control_button_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y()) && active_window()) {
@@ -191,7 +191,7 @@ end:
 
 void WindowManager::receive_keyboard_event(std::unique_ptr<LFoundation::Event> event)
 {
-    auto* keyboard_event = (KeyboardEvent*)event.release();
+    auto* keyboard_event = reinterpret_cast<KeyboardEvent*>(event.release());
     if (active_window()) {
         auto window = active_window();
         m_event_loop.add(m_connection, new SendEvent(new KeyboardMessage(window->connection_id(), window->id(), keyboard_event->packet().key)));

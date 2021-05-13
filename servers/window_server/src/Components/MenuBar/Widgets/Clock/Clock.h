@@ -21,7 +21,7 @@ class Clock : public BaseWidget {
 public:
     Clock()
     {
-        m_date = (char*)malloc(DATA_BUF);
+        m_date = static_cast<char*>(malloc(DATA_BUF));
         memset(m_date, 0, DATA_BUF);
         update_time();
         MenuBar::the().event_loop().add(LFoundation::Timer([this] {

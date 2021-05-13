@@ -32,8 +32,8 @@ Screen::Screen()
     m_bounds = LG::Rect(0, 0, ioctl(m_screen_fd, BGA_GET_WIDTH, 0), ioctl(m_screen_fd, BGA_GET_HEIGHT, 0));
 
     size_t screen_buffer_size = width() * height() * depth();
-    auto* first_buffer = (LG::Color*)mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED, m_screen_fd, 0);
-    auto* second_buffer = (LG::Color*)((uint8_t*)first_buffer + screen_buffer_size);
+    auto* first_buffer = reinterpret_cast<LG::Color*>(mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED, m_screen_fd, 0));
+    auto* second_buffer = reinterpret_cast<LG::Color*>(reinterpret_cast<uint8_t*>(first_buffer) + screen_buffer_size);
 
     m_display_bitmap = LG::PixelBitmap(first_buffer, width(), height());
     m_write_bitmap = LG::PixelBitmap(second_buffer, width(), height());
