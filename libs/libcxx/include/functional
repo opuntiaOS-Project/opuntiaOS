@@ -101,6 +101,30 @@ private:
     std::allocator<_alloc_type> m_allocator {};
 };
 
+template <class T = void>
+struct less {
+    constexpr bool operator()(const T& lhs, const T& rhs) const
+    {
+        return lhs < rhs;
+    }
+};
+
+template <class T = void>
+struct greater {
+    constexpr bool operator()(const T& lhs, const T& rhs) const
+    {
+        return lhs > rhs;
+    }
+};
+
+template <class T = void>
+struct equal_to {
+    constexpr bool operator()(const T& lhs, const T& rhs) const
+    {
+        return lhs > rhs;
+    }
+};
+
 _LIBCXX_END_NAMESPACE_STD
 
 #endif // _LIBCXX_FUNCTIONAL
