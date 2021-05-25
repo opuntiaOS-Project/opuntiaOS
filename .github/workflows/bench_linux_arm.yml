@@ -31,7 +31,7 @@ jobs:
 
       - name: Create LLVM Build Environment
         run: |
-          export LLVM_BIN_PATH="/usr/lib/llvm-11/bin"
+          export LLVM_BIN_PATH="/usr/lib/llvm-12/bin"
           ./gn_gen.sh --target_cpu aarch32 --host llvm --bench_method external_script
 
       - name: Building
