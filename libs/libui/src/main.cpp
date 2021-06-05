@@ -12,11 +12,14 @@ extern "C" bool __init_app_delegate(UI::AppDelegate** res);
 extern "C" int main(int argc, char** argv)
 {
     auto& app = std::oneos::construct<UI::App>();
-    UI::AppDelegate* app_delegate = 0;
+    UI::AppDelegate* app_delegate = nullptr;
     int res = __init_app_delegate(&app_delegate);
     if (res < 0) {
         return res;
     }
+
+    app.set_delegate(app_delegate);
+    app.set_state(UI::AppState::Active);
     int status = app.run();
     app_delegate->application_will_terminate();
     return status;
