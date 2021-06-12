@@ -133,7 +133,7 @@ void WindowFrame::draw(LG::Context& ctx)
     ctx.set_fill_color(color());
     ctx.fill_rounded(LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), top_border_size() - std_top_border_frame_size()), LG::CornerMask(4, true, false));
     if (active()) {
-        ctx.set_fill_color(LG::Color(Colors::ShadowColor));
+        ctx.set_fill_color(Color::Shadow);
 
         auto shading_rect = LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), height - std_top_border_frame_size() - std_bottom_border_size());
         ctx.draw_box_shading(shading_rect, LG::Shading(LG::Shading::Type::Box, 0, LG::Shading::SystemSpread), LG::CornerMask(LG::CornerMask::SystemRadius));
@@ -144,7 +144,7 @@ void WindowFrame::draw(LG::Context& ctx)
     if (active()) {
         ctx.set_fill_color(LG::Color::LightSystemText);
     } else {
-        ctx.set_fill_color(Colors::InactiveText);
+        ctx.set_fill_color(Color::InactiveText);
     }
     ctx.draw({ x + spacing(), y + icon_y_offset() }, icon());
 

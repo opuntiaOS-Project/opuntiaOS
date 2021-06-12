@@ -94,9 +94,10 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     Window* new_hovered_window = nullptr;
     auto* mouse_event = reinterpret_cast<MouseEvent*>(event.release());
     update_mouse_position(mouse_event);
+    delete mouse_event;
 
     if (continue_window_move()) {
-        goto end;
+        return;
     }
 
     if (m_compositor.popup().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
@@ -158,22 +159,19 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     }
 
     m_hovered_window = new_hovered_window;
-
-end:
-    delete mouse_event;
 }
-#endif // TARGET_DESKTOP
-#ifdef TARGET_MOBILE
+#elif TARGET_MOBILE
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
     auto* mouse_event = reinterpret_cast<MouseEvent*>(event.release());
     update_mouse_position(mouse_event);
+    delete mouse_event;
 
     if (m_compositor.control_bar().control_button_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y()) && active_window()) {
         if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
             remove_window(active_window());
         }
-        goto end;
+        return;
     }
 
     // Tap emulation
@@ -184,8 +182,6 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
         m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window->connection_id(), window->id(), !is_left_pressed, point.x(), point.y())));
     }
-end:
-    delete mouse_event;
 }
 #endif // TARGET_MOBILE
 
