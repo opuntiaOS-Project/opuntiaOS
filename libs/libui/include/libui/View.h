@@ -42,7 +42,7 @@ public:
     template <class T, class... Args>
     T& add_subview(Args&&... args)
     {
-        T* subview = new T(this, args...);
+        T* subview = new T(this, std::forward<Args>(args)...);
         m_subviews.push_back(subview);
         return *subview;
     }
