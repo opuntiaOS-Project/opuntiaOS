@@ -20,6 +20,7 @@ Label::Label(View* superview, const LG::Rect& frame)
 void Label::display(const LG::Rect& rect)
 {
     Context ctx(*this);
+    ctx.add_clip(rect);
 
     auto& f = font();
     const size_t letter_spacing = f.glyph_spacing();
