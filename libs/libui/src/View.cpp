@@ -184,24 +184,26 @@ void View::receive_display_event(DisplayEvent& event)
     did_display(event.bounds());
 
     if (!has_superview()) {
+        // Only superview send invalidate_message to server.
         bool success = send_invalidate_message_to_server(event.bounds());
     }
 
     Responder::receive_display_event(event);
 }
 
-bool View::receive_layout_event(const LayoutEvent& event)
+bool View::receive_layout_event(const LayoutEvent& event, bool force_layout_if_not_target)
 {
-    if (this == event.target()) {
+    bool need_to_layout = (this == event.target()) | force_layout_if_not_target;
+    if (need_to_layout) {
         layout_subviews();
-        return true;
     }
 
     foreach_subview([&](View& subview) -> bool {
-        return !subview.receive_layout_event(event);
+        bool found_target = subview.receive_layout_event(event, need_to_layout);
+        return force_layout_if_not_target || !found_target;
     });
 
-    return false;
+    return need_to_layout;
 }
 
 } // namespace UI

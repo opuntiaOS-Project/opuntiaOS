@@ -13,6 +13,7 @@
 #include <libui/Constraint.h>
 #include <libui/EdgeInsets.h>
 #include <libui/Responder.h>
+#include <utility>
 #include <vector>
 
 #define UI_OBJECT() friend class View
@@ -119,7 +120,7 @@ public:
     virtual void receive_keyup_event(KeyUpEvent&) override;
     virtual void receive_keydown_event(KeyDownEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
-    virtual bool receive_layout_event(const LayoutEvent&) override;
+    virtual bool receive_layout_event(const LayoutEvent&, bool force_layout_if_not_target = false) override;
 
     inline LG::Color& background_color() { return m_background_color; }
     inline const LG::Color& background_color() const { return m_background_color; }
