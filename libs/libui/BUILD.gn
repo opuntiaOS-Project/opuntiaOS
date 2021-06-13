@@ -8,6 +8,7 @@ oneOS_static_library("libui") {
     "src/Connection.cpp",
     "src/Label.cpp",
     "src/Responder.cpp",
+    "src/StackView.cpp", 
     "src/View.cpp",
     "src/ViewController.cpp",
     "src/Window.cpp",

@@ -139,10 +139,11 @@ protected:
     template <Constraint::Attribute attr>
     inline bool has_interpreted_constraint_in_mask() { return (m_applied_constraints_mask & (1 << (int)attr)); }
 
+    inline void constraint_interpreter(const Constraint& constraint);
+
 private:
     void set_window(Window* window) { m_window = window; }
     void set_superview(View* superview) { m_superview = superview; }
-    inline void constraint_interpreter(const Constraint& constraint);
 
     View* m_superview { nullptr };
     Window* m_window { nullptr };
