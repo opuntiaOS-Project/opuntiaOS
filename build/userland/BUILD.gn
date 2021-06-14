@@ -91,6 +91,7 @@ group("userland") {
   deps = [
     "//userland/applications/about:about",
     "//userland/applications/activity_monitor:activity_monitor",
+    "//userland/applications/calculator:calculator",
     "//userland/applications/terminal:terminal",
     "//userland/shell/onesh:onesh",
     "//userland/system/dock:dock",

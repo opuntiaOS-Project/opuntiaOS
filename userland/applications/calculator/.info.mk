@@ -1,0 +1,5 @@
+APPS += CALCULATOR
+
+ABOUT_NAME = calculator
+ABOUT_LIBS = cxx ui
+ABOUT_INSTALL_PATH = bin/

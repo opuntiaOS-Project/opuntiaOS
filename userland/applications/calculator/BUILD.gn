@@ -1,0 +1,16 @@
+import("//build/userland/TEMPLATE.gni")
+
+oneOS_application("calculator") {
+  sources = [
+    "AppDelegate.cpp",
+  ]
+  configs = [
+    "//build/userland:userland_flags",
+  ]
+  deplibs = [
+    "libcxx",
+    "libfoundation",
+    "libg",
+    "libui"
+  ]
+}
