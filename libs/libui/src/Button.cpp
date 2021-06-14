@@ -29,7 +29,14 @@ void Button::display(const LG::Rect& rect)
     }
     ctx.fill_rounded(bounds(), LG::CornerMask(4));
 
-    LG::Point<int> text_start { content_edge_insets().left(), content_edge_insets().top() };
+    size_t content_width = text_width();
+    size_t content_height = text_height();
+    LG::Point<int> text_start { content_edge_insets().left(), std::max(content_edge_insets().top(), int(bounds().height() - content_height) / 2) };
+    if (alignment() == Text::Alignment::Center) {
+        text_start.set_x((bounds().width() - content_width) / 2);
+    } else if (alignment() == Text::Alignment::Right) {
+        text_start.set_x(bounds().width() - content_width);
+    }
 
     auto& f = font();
     const size_t letter_spacing = f.glyph_spacing();
@@ -80,8 +87,9 @@ size_t Button::text_width()
     const size_t letter_spacing = f.glyph_spacing();
 
     for (int i = 0; i < m_title.size(); i++) {
-        width += f.glyph_width(m_title[i]) + letter_spacing;
+        width += f.glyph_width(m_title[i]);
     }
+    width += std::max(size_t(0), m_title.size() - 1) * letter_spacing;
     return width;
 }
 

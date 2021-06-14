@@ -31,7 +31,15 @@ void Label::display(const LG::Rect& rect)
 
     bool need_to_stop_rendering_text = (txt_width > label_width);
     size_t width_when_stop_rendering_text = content_edge_insets().left() + label_width - dots_width;
-    LG::Point<int> text_start { content_edge_insets().left(), content_edge_insets().top() };
+
+    size_t content_width = text_width();
+    size_t content_height = text_height();
+    LG::Point<int> text_start { content_edge_insets().left(), std::max(content_edge_insets().top(), int(bounds().height() - content_height) / 2) };
+    if (alignment() == Text::Alignment::Center) {
+        text_start.set_x((bounds().width() - content_width) / 2);
+    } else if (alignment() == Text::Alignment::Right) {
+        text_start.set_x(bounds().width() - content_width);
+    }
 
     ctx.set_fill_color(text_color());
     for (int i = 0; i < m_text.size(); i++) {

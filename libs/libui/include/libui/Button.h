@@ -7,6 +7,7 @@
 
 #pragma once
 #include <libg/Font.h>
+#include <libui/Constants/Text.h>
 #include <libui/Control.h>
 #include <libui/EdgeInsets.h>
 #include <string>
@@ -34,8 +35,11 @@ public:
     void set_content_edge_insets(const EdgeInsets& ei) { m_content_edge_insets = ei; }
     const EdgeInsets& content_edge_insets() const { return m_content_edge_insets; }
 
-    inline const LG::Font& font() const { return m_font; }
     void set_font(const LG::Font& font) { m_font = font, recalc_bounds(); }
+    inline const LG::Font& font() const { return m_font; }
+
+    void set_alignment(Text::Alignment alignment) { m_alignment = alignment; }
+    Text::Alignment alignment() const { return m_alignment; }
 
     virtual void display(const LG::Rect& rect) override;
     virtual void hover_begin(const LG::Point<int>& location) override;
@@ -61,6 +65,7 @@ private:
     LG::Color m_title_color { LG::Color::White };
     LG::Font m_font { LG::Font::system_font() };
 
+    Text::Alignment m_alignment { Text::Alignment::Left };
     EdgeInsets m_content_edge_insets { 12, 12, 12, 12 };
 };
 
