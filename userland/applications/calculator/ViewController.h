@@ -29,7 +29,7 @@ public:
         "c",
         "+/-",
         "%",
-        "/",
+        "÷",
         "7",
         "8",
         "9",
@@ -51,7 +51,7 @@ public:
     constexpr size_t button_size() { return 40; }
     constexpr size_t spacing_size() { return 16; }
 
-    bool is_operation(char a) { return a == '*' || a == '/' || a == '+' || a == '-'; }
+    bool is_operation(char a) { return a == '*' || a == '÷' || a == '+' || a == '-'; }
 
     void on_button_click(UI::Button* sender)
     {
@@ -93,7 +93,7 @@ public:
                 m_answer_label_ptr->set_text(m_current_number);
                 m_active_operation_button->set_background_color(LG::Color(244, 217, 130));
                 break;
-            case '/':
+            case '÷':
                 m_active_operation_button->set_background_color(LG::Color(244, 217, 130));
                 if (var_number2 == 0) {
                     m_current_number = "";
