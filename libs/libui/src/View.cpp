@@ -116,7 +116,7 @@ void View::receive_mouse_move_event(MouseEvent& event)
             point.offset_by(-subview.frame().origin());
             MouseLeaveEvent mle(point.x(), point.y());
             subview.receive_mouse_leave_event(mle);
-        } else if (!subview.is_hovered() && subview.frame().contains(event.x(), event.y())) {
+        } else if (subview.frame().contains(event.x(), event.y())) {
             LG::Point<int> point(event.x(), event.y());
             point.offset_by(-subview.frame().origin());
             MouseEvent me(point.x(), point.y());
