@@ -49,36 +49,16 @@ public:
         notify_window_status_changed(window->id(), WindowStatusUpdateType::Created);
     }
 
-    inline void remove_window(Window* window)
-    {
-        if (m_dock_window == window) {
-            return;
-        }
-        if (movable_window() == window) {
-            m_movable_window = nullptr;
-        }
-        if (active_window() == window) {
-            m_active_window = nullptr;
-        }
-        if (hovered_window() == window) {
-            m_hovered_window = nullptr;
-        }
-        m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
-        m_compositor.menu_bar().set_menubar_content(&m_std_menubar_content, m_compositor);
-        m_compositor.invalidate(window->bounds());
-        notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
-#ifdef TARGET_MOBILE
-        auto* top_window = get_top_standard_window_in_view();
-        if (top_window) {
-            m_active_window = top_window;
-        }
-#endif
-        delete window;
-    }
+    void remove_window(Window* window);
 
-    void close_window(Window& window)
+    void close_window(Window& window) { m_event_loop.add(m_connection, new SendEvent(new WindowCloseRequestMessage(window.connection_id(), window.id()))); }
+    void minimize_window(Window& window)
     {
-        m_event_loop.add(m_connection, new SendEvent(new WindowCloseRequestMessage(window.connection_id(), window.id())));
+        Window* window_ptr = &window;
+        remove_window_from_screen(window_ptr);
+        window.set_visible(false);
+        m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
+        m_windows.push_back(window_ptr);
     }
 
     inline Window* window(int id)
@@ -123,6 +103,7 @@ public:
         if (m_dock_window) {
             do_bring_to_front(*m_dock_window);
         }
+        window.set_visible(true);
         window.frame().set_active(true);
         m_compositor.invalidate(window.bounds());
         if (prev_window && prev_window->id() != window.id()) {
@@ -160,6 +141,8 @@ public:
     }
 
 private:
+    void remove_window_from_screen(Window* window);
+
     void start_window_move(Window& window);
     bool continue_window_move();
 

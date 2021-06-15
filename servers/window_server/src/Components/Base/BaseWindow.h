@@ -24,6 +24,7 @@ enum WindowType : int {
 enum WindowStatusUpdateType : int {
     Created,
     Changed,
+    Minimized,
     Removed,
 };
 
@@ -62,6 +63,9 @@ public:
     inline LG::Rect& bounds() { return m_bounds; }
     inline const LG::Rect& bounds() const { return m_bounds; }
 
+    inline bool visible() const { return m_visible; }
+    inline void set_visible(bool vis) { m_visible = vis; }
+
     inline void set_needs_display(const LG::Rect& rect) const
     {
         DisplayMessage msg(connection_id(), rect);
@@ -71,6 +75,7 @@ public:
 protected:
     int m_id { -1 };
     int m_connection_id { -1 };
+    bool m_visible { true };
     WindowType m_type { WindowType::Standard };
     WindowEventMask m_event_mask { 0 };
     LG::Rect m_bounds;

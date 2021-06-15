@@ -55,6 +55,37 @@ void WindowManager::setup_dock(Window* window)
 }
 #endif // TARGET_MOBILE
 
+void WindowManager::remove_window_from_screen(Window* window)
+{
+    if (m_dock_window == window) {
+        return;
+    }
+    if (movable_window() == window) {
+        m_movable_window = nullptr;
+    }
+    if (active_window() == window) {
+        m_active_window = nullptr;
+    }
+    if (hovered_window() == window) {
+        m_hovered_window = nullptr;
+    }
+    m_compositor.menu_bar().set_menubar_content(&m_std_menubar_content, m_compositor);
+    m_compositor.invalidate(window->bounds());
+}
+
+void WindowManager::remove_window(Window* window)
+{
+    remove_window_from_screen(window);
+    m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
+    notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
+#ifdef TARGET_MOBILE
+    if (auto* top_window = get_top_standard_window_in_view(); top_window) {
+        m_active_window = top_window;
+    }
+#endif
+    delete window;
+}
+
 #ifdef TARGET_DESKTOP
 bool WindowManager::continue_window_move()
 {
@@ -122,7 +153,16 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     // Checking and dispatching mouse move for windows/
     for (auto* window_ptr : m_windows) {
         auto& window = *window_ptr;
+        if (!window.visible()) {
+            continue;
+        }
+
         if (window.bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() && m_active_window != &window) {
+                bring_to_front(window);
+                m_active_window = &window;
+            }
+
             if (window.frame().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
                 if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
                     auto tap_point = LG::Point<int>(m_cursor_manager.x() - window.frame().bounds().min_x(), m_cursor_manager.y() - window.frame().bounds().min_y());
@@ -140,11 +180,6 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                     bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
                     m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window.connection_id(), window.id(), !is_left_pressed, point.x(), point.y())));
                 }
-            }
-
-            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() && m_active_window != &window) {
-                bring_to_front(window);
-                m_active_window = &window;
             }
 
             break;

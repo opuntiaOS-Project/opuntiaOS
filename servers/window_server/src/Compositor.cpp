@@ -120,7 +120,7 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
 #ifdef TARGET_DESKTOP
     for (auto it = windows.rbegin(); it != windows.rend(); it++) {
         auto& window = *(*it);
-        if (is_window_area_invalidated(invalidated_areas, window.bounds())) {
+        if (window.visible() && is_window_area_invalidated(invalidated_areas, window.bounds())) {
             for (int i = 0; i < invalidated_areas.size(); i++) {
                 draw_window(window, invalidated_areas[i]);
             }

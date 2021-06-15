@@ -209,6 +209,9 @@ void WindowFrame::handle_control_panel_tap(int button_id)
     case CONTROL_PANEL_CLOSE:
         wm.close_window(m_window);
         break;
+    case CONTROL_PANEL_MINIMIZE:
+        wm.minimize_window(m_window);
+        break;
     default:
         break;
     }

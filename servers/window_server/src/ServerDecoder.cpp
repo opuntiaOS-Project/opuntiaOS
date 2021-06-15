@@ -65,6 +65,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const DestroyWindowMessage&
     auto* window = wm.window(msg.window_id());
     if (window->connection_id() != msg.key()) {
         // TODO: security violation
+        return new DestroyWindowMessageReply(msg.key(), 1);
     }
     wm.remove_window(window);
     return new DestroyWindowMessageReply(msg.key(), 0);
