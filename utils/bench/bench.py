@@ -21,8 +21,8 @@ expected_benchmark_results = {
         "PNG LOADER": 1180000
     },
     "aarch32": {
-        "FORK": 840000,
-        "PNG LOADER": 3200000
+        "FORK": 954667,
+        "PNG LOADER": 5176000
     },
 }
 
