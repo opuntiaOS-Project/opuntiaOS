@@ -6,6 +6,7 @@
  */
 
 #include "WindowManager.h"
+#include "../shared/MessageContent/MouseAction.h"
 #include "CursorManager.h"
 #include "Screen.h"
 #include <libfoundation/KeyboardMapping.h>
@@ -176,9 +177,17 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                 new_hovered_window = &window;
 
                 if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
-                    // FIXME: only left button for now!
-                    bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
-                    m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window.connection_id(), window.id(), !is_left_pressed, point.x(), point.y())));
+                    auto buttons_state = MouseActionState();
+                    if (m_cursor_manager.is_changed<CursorManager::Params::LeftButton>()) {
+                        // TODO: May be remove if?
+                        if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+                            buttons_state.set(MouseActionType::LeftMouseButtonPressed);
+                        } else {
+                            buttons_state.set(MouseActionType::LeftMouseButtonReleased);
+                        }
+                    }
+
+                    m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window.connection_id(), window.id(), buttons_state.state(), point.x(), point.y())));
                 }
             }
 

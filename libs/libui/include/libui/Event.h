@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "../../../../servers/window_server/shared/MessageContent/MouseAction.h"
 #include <libfoundation/Event.h>
 #include <libg/Rect.h>
 #include <libg/string.h>
@@ -67,11 +68,6 @@ public:
 private:
     uint32_t m_x;
     uint32_t m_y;
-};
-
-enum MouseActionType {
-    ClickBegan,
-    ClickEnded,
 };
 
 class MouseActionEvent : public Event {

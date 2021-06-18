@@ -131,9 +131,9 @@ void View::receive_mouse_move_event(MouseEvent& event)
 
 void View::receive_mouse_action_event(MouseActionEvent& event)
 {
-    if (event.type() == MouseActionType::ClickBegan) {
+    if (event.type() == MouseActionType::LeftMouseButtonPressed) {
         click_began(LG::Point<int>(event.x(), event.y()));
-    } else if (event.type() == MouseActionType::ClickEnded) {
+    } else if (event.type() == MouseActionType::LeftMouseButtonReleased) {
         click_ended();
     }
 
