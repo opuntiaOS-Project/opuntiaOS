@@ -58,9 +58,6 @@ void WindowManager::setup_dock(Window* window)
 
 void WindowManager::remove_window_from_screen(Window* window)
 {
-    if (m_dock_window == window) {
-        return;
-    }
     if (movable_window() == window) {
         m_movable_window = nullptr;
     }
@@ -76,6 +73,9 @@ void WindowManager::remove_window_from_screen(Window* window)
 
 void WindowManager::remove_window(Window* window)
 {
+    if (m_dock_window == window) {
+        return;
+    }
     remove_window_from_screen(window);
     m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
     notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
