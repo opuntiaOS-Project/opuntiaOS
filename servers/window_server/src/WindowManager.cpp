@@ -221,10 +221,18 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     // Tap emulation
     if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>() && active_window()) {
         auto window = active_window();
+        auto buttons_state = MouseActionState();
         LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
         point.offset_by(-window->content_bounds().origin());
-        bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
-        m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window->connection_id(), window->id(), !is_left_pressed, point.x(), point.y())));
+        if (m_cursor_manager.is_changed<CursorManager::Params::LeftButton>()) {
+            // TODO: May be remove if?
+            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+                buttons_state.set(MouseActionType::LeftMouseButtonPressed);
+            } else {
+                buttons_state.set(MouseActionType::LeftMouseButtonReleased);
+            }
+        }
+        m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window->connection_id(), window->id(), buttons_state.state(), point.x(), point.y())));
     }
 }
 #endif // TARGET_MOBILE
