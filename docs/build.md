@@ -43,7 +43,7 @@ oneOS supports compilation both with GNU toolchains and LLVM.
 ***x86***
 
 ```bash
-brew install i686-elf-gcc
+brew install i686-elf-binutils
 ```
 
 ***Aarch32***
