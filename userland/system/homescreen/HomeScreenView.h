@@ -10,7 +10,8 @@ class HomeScreenView : public UI::View {
     UI_OBJECT();
 
 public:
-    HomeScreenView(View* superview, const LG::Rect& frame);
+    HomeScreenView(UI::View* superview, const LG::Rect& frame);
+    HomeScreenView(UI::View* superview, UI::Window* window, const LG::Rect& frame);
 
     static constexpr int dock_height() { return 80; }
     static constexpr int grid_entities_size() { return 48; }

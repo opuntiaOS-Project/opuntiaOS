@@ -60,6 +60,7 @@ public:
 
 protected:
     StackView(View* superview, const LG::Rect&);
+    StackView(View* superview, Window* window, const LG::Rect& frame);
 
 private:
     void recalc_subviews_positions();

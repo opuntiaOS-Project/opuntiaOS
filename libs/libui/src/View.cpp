@@ -20,6 +20,14 @@ View::View(View* superview, const LG::Rect& frame)
 {
 }
 
+View::View(View* superview, Window* window, const LG::Rect& frame)
+    : m_frame(frame)
+    , m_superview(superview)
+    , m_window(window)
+    , m_bounds(0, 0, frame.width(), frame.height())
+{
+}
+
 void View::remove_from_superview()
 {
 }

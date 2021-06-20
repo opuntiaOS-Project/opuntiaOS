@@ -13,6 +13,7 @@ class TerminalView : public UI::View {
 
 public:
     TerminalView(UI::View* superview, const LG::Rect&, int ptmx);
+    TerminalView(UI::View* superview, UI::Window* window, const LG::Rect&, int ptmx);
 
     const LG::Color& font_color() const { return m_font_color; }
     const LG::Color cursor_color() const { return LG::Color(200, 200, 200, 255); }
@@ -25,6 +26,9 @@ public:
     inline LG::Point<int> pos_on_screen() const { return { (int)m_col * glyph_width() + padding(), (int)m_row * glyph_height() + padding() }; }
     inline int pos_in_data() const { return m_max_cols * m_row + m_col; }
 
+    void put_char(char c);
+    void put_text(const std::string& data);
+
     void display(const LG::Rect& rect) override;
     void receive_keyup_event(UI::KeyUpEvent&) override;
     void receive_keydown_event(UI::KeyDownEvent&) override;
@@ -32,6 +36,8 @@ public:
     int ptmx() const { return m_ptmx; }
 
 private:
+    void terminal_init();
+
     WindowStatus cursor_positions_do_new_line();
     WindowStatus cursor_position_move_right();
     WindowStatus cursor_position_move_left();
@@ -47,8 +53,6 @@ private:
     void decrement_counter();
 
     void recalc_dimensions(const LG::Rect&);
-    void put_char(char c);
-    void put_text(const std::string& data);
     void push_back_char(char c);
     void send_input();
 

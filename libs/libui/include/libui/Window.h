@@ -49,11 +49,10 @@ public:
     template <class ViewT, class ViewControllerT, class... Args>
     inline ViewT& create_superview(Args&&... args)
     {
-        ViewT* new_view = new ViewT(nullptr, bounds(), args...);
+        ViewT* new_view = new ViewT(nullptr, this, bounds(), args...);
         m_superview = new_view;
         m_root_view_controller = new ViewControllerT(*new_view);
 
-        new_view->set_window(this);
         m_superview->set_needs_display();
         LFoundation::EventLoop::the().add(*m_root_view_controller, new ViewDidLoadEvent());
         return *new_view;

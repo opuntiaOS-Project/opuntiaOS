@@ -92,6 +92,7 @@ protected:
         : View(superview, r)
     {
     }
+    Control(View* superview, Window* window, const LG::Rect& r) = delete;
 
 private:
     std::vector<Target> m_targets {};

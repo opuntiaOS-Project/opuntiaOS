@@ -132,6 +132,7 @@ public:
 
 protected:
     View(View* superview, const LG::Rect&);
+    View(View* superview, Window* window, const LG::Rect&);
 
     template <Constraint::Attribute attr>
     inline void add_interpreted_constraint_to_mask() { m_applied_constraints_mask |= (1 << (int)attr); }

@@ -7,12 +7,18 @@
 #include <libg/ImageLoaders/PNGLoader.h>
 #include <libui/App.h>
 #include <libui/Context.h>
+#include <libui/StackView.h>
 #include <unistd.h>
 
 static HomeScreenView* this_view;
 
-HomeScreenView::HomeScreenView(View* superview, const LG::Rect& frame)
-    : View(superview, frame)
+HomeScreenView::HomeScreenView(UI::View* superview, const LG::Rect& frame)
+    : UI::View(superview, frame)
+{
+}
+
+HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG::Rect& frame)
+    : UI::View(superview, window, frame)
 {
 }
 

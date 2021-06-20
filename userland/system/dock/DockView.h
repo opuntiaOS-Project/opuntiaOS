@@ -10,7 +10,8 @@ class DockView : public UI::View {
     UI_OBJECT();
 
 public:
-    DockView(View* superview, const LG::Rect& frame);
+    DockView(UI::View* superview, const LG::Rect& frame);
+    DockView(UI::View* superview, UI::Window* window, const LG::Rect& frame);
 
     void display(const LG::Rect& rect) override;
     void click_began(const LG::Point<int>& location) override;

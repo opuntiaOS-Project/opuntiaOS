@@ -44,6 +44,7 @@ public:
 
 protected:
     Label(View* superview, const LG::Rect&);
+    Label(View* superview, Window* window, const LG::Rect&);
 
 private:
     void recalc_bounds();

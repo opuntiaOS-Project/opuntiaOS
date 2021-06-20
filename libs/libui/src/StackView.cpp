@@ -17,6 +17,11 @@ StackView::StackView(View* superview, const LG::Rect& frame)
 {
 }
 
+StackView::StackView(View* superview, Window* window, const LG::Rect& frame)
+    : View(superview, window, frame)
+{
+}
+
 bool StackView::receive_layout_event(const LayoutEvent& event, bool force_layout_if_not_target)
 {
     // StackView uses receive_layout_event to recalculate positions of

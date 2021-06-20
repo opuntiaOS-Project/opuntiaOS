@@ -17,6 +17,11 @@ Label::Label(View* superview, const LG::Rect& frame)
 {
 }
 
+Label::Label(View* superview, Window* window, const LG::Rect& frame)
+    : View(superview, window, frame)
+{
+}
+
 void Label::display(const LG::Rect& rect)
 {
     Context ctx(*this);

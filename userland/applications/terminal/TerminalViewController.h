@@ -10,6 +10,7 @@
 #include <libui/ViewController.h>
 #include <memory>
 #include <sys/types.h>
+#include <unistd.h>
 
 class TerminalViewController : public UI::ViewController<TerminalView> {
 public:
@@ -19,8 +20,21 @@ public:
     }
     virtual ~TerminalViewController() = default;
 
+    void init_listners()
+    {
+        LFoundation::EventLoop::the().add(
+            view().ptmx(), [this] {
+                char text[256];
+                int cnt = read(view().ptmx(), text, 255);
+                text[cnt] = '\0';
+                view().put_text(std::string(text, cnt));
+            },
+            nullptr);
+    }
+
     void view_did_load() override
     {
+        init_listners();
     }
 
 private:

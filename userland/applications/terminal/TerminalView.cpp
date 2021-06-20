@@ -9,14 +9,13 @@ TerminalView::TerminalView(UI::View* superview, const LG::Rect& frame, int ptmx)
     : UI::View(superview, frame)
     , m_ptmx(ptmx)
 {
-    LFoundation::EventLoop::the().add(
-        ptmx, [this] {
-            char text[256];
-            int cnt = read(this->ptmx(), text, 255);
-            text[cnt] = '\0';
-            this->put_text(std::string(text, cnt));
-        },
-        nullptr);
+    recalc_dimensions(frame);
+}
+
+TerminalView::TerminalView(UI::View* superview, UI::Window* window, const LG::Rect& frame, int ptmx)
+    : UI::View(superview, window, frame)
+    , m_ptmx(ptmx)
+{
     recalc_dimensions(frame);
 }
 
