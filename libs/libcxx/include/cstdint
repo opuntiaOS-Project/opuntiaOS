@@ -1,0 +1,40 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_CSTDINT
+#define _LIBCXX_CSTDINT
+
+#include <__config>
+#include <stdint.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::int8_t;
+using ::int16_t;
+using ::int32_t;
+using ::int64_t;
+using ::uint8_t;
+using ::uint16_t;
+using ::uint32_t;
+using ::uint64_t;
+
+using ::int_least8_t;
+using ::int_least16_t;
+using ::int_least32_t;
+using ::int_least64_t;
+using ::uint_least8_t;
+using ::uint_least16_t;
+using ::uint_least32_t;
+using ::uint_least64_t;
+
+using ::int_fast8_t;
+using ::int_fast16_t;
+using ::int_fast32_t;
+using ::int_fast64_t;
+using ::uint_fast8_t;
+using ::uint_fast16_t;
+using ::uint_fast32_t;
+using ::uint_fast64_t;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_CSTDINT

@@ -88,6 +88,16 @@ basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, int v
 }
 
 template <class CharT, class Traits>
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, long value)
+{
+    char buf[16];
+    std::sprintf(buf, "%d", value);
+    size_t len = std::strlen(buf);
+    os.write(buf, len);
+    return os;
+}
+
+template <class CharT, class Traits>
 basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, unsigned int value)
 {
     char buf[16];

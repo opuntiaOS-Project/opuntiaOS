@@ -1,5 +1,4 @@
 #pragma once
-#include <cstddef>
 
 enum MouseActionType {
     LeftMouseButtonPressed,
