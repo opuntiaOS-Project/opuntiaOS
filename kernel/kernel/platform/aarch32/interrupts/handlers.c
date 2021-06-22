@@ -55,6 +55,12 @@ void undefined_handler()
         goto undefined_h;
     }
 
+    fpu_make_avail();
+
+    if (RUNNING_THREAD->tid == THIS_CPU->fpu_for_pid) {
+        return;
+    }
+
     if (THIS_CPU->fpu_for_thread && THIS_CPU->fpu_for_thread->tid == THIS_CPU->fpu_for_pid) {
         fpu_save(THIS_CPU->fpu_for_thread->fpu_state);
     }
@@ -62,7 +68,6 @@ void undefined_handler()
     fpu_restore(RUNNING_THREAD->fpu_state);
     THIS_CPU->fpu_for_thread = RUNNING_THREAD;
     THIS_CPU->fpu_for_pid = RUNNING_THREAD->tid;
-    fpu_make_avail();
     return;
 #endif // FPU_ENABLED
 

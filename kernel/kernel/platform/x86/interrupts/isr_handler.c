@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <drivers/x86/fpu.h>
 #include <libkern/kassert.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
@@ -67,8 +68,53 @@ void isr_handler(trapframe_t* tf)
         }
     }
 
-    /* TODO: A thing to change */
-    if (tf->int_no == 14) {
+    if (tf->int_no == 0) {
+        log_warn("Crash: division by zero in %d tid\n", RUNNING_THREAD->tid);
+        dump_and_kill(p);
+    } else if (tf->int_no == 1) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 2) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 3) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 4) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 5) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 6) {
+        if (!p) {
+            snprintf(err_buf, 64, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
+            kpanic_tf(err_buf, tf);
+        } else {
+            log_warn("Crash: invalid opcode in %d tid\n", RUNNING_THREAD->tid);
+            dump_and_kill(p);
+        }
+    } else if (tf->int_no == 7) {
+        fpu_handler();
+    } else if (tf->int_no == 8) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 9) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 10) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 11) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 12) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 13) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
+    } else if (tf->int_no == 14) {
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
             if (!p) {
@@ -79,16 +125,12 @@ void isr_handler(trapframe_t* tf)
                 dump_and_kill(p);
             }
         }
-    } else if (tf->int_no == 6) {
-        if (!p) {
-            snprintf(err_buf, 64, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
-            kpanic_tf(err_buf, tf);
-        } else {
-            log_warn("Crash: invalid opcode in %d tid\n", RUNNING_THREAD->tid);
-            dump_and_kill(p);
-        }
+    } else if (tf->int_no == 15) {
+        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        system_stop();
     } else {
-        log_warn("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        log_error("Int w/o handler: %d: %d", tf->int_no, tf->err);
+        system_stop();
     }
 
     /* We are leaving interrupt, and later interrupts will be on,

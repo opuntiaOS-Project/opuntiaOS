@@ -23,4 +23,19 @@ static inline uint32_t read_ebp()
     return val;
 }
 
+static inline uint32_t read_cr0()
+{
+    uint32_t val;
+    asm volatile("movl %%cr0, %0"
+                 : "=r"(val));
+    return val;
+}
+
+static inline void write_cr0(uint32_t val)
+{
+    asm volatile("movl %0, %%cr0"
+                 :
+                 : "r"(val));
+}
+
 #endif /* _KERNEL_PLATFORM_X86_REGISTERS_H */

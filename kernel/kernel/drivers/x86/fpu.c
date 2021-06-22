@@ -9,8 +9,11 @@
 #include <libkern/log.h>
 #include <libkern/mem.h>
 #include <platform/x86/idt.h>
+#include <tasking/tasking.h>
 
 static fpu_state_t fpu_state;
+
+#define DEBUG_FPU
 
 void fpu_setup(void)
 {
@@ -29,7 +32,33 @@ void fpu_setup(void)
 
 void fpu_handler()
 {
-    asm volatile("clts");
+    if (!RUNNING_THREAD) {
+#ifdef DEBUG_FPU
+        log_warn("FPU: no running thread, but handler is called");
+#endif
+        return;
+    }
+
+    if (fpu_is_avail()) {
+#ifdef DEBUG_FPU
+        log_warn("FPU: is avail, but handler is called");
+#endif
+        return;
+    }
+
+    fpu_make_avail();
+
+    if (RUNNING_THREAD->tid == THIS_CPU->fpu_for_pid) {
+        return;
+    }
+
+    if (THIS_CPU->fpu_for_thread && THIS_CPU->fpu_for_thread->tid == THIS_CPU->fpu_for_pid) {
+        fpu_save(THIS_CPU->fpu_for_thread->fpu_state);
+    }
+
+    fpu_restore(RUNNING_THREAD->fpu_state);
+    THIS_CPU->fpu_for_thread = RUNNING_THREAD;
+    THIS_CPU->fpu_for_pid = RUNNING_THREAD->tid;
 }
 
 void fpu_init()
@@ -38,7 +67,6 @@ void fpu_init()
     asm volatile("fninit");
     asm volatile("fxsave %0"
                  : "=m"(fpu_state));
-    set_irq_handler(IRQ7, fpu_handler);
 }
 
 void fpu_init_state(fpu_state_t* new_fpu_state)
