@@ -33,7 +33,7 @@ public:
     void set_alignment(Text::Alignment alignment) { m_alignment = alignment; }
     Text::Alignment alignment() const { return m_alignment; }
 
-    void set_font(const LG::Font& font) { m_font = font, recalc_bounds(); }
+    void set_font(const LG::Font& font) { m_font = font, set_needs_display(); }
     inline const LG::Font& font() const { return m_font; }
 
     inline size_t preferred_width() const { return text_width() + m_content_edge_insets.left() + m_content_edge_insets.right(); }
