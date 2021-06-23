@@ -41,9 +41,11 @@ void Label::display(const LG::Rect& rect)
     size_t content_height = text_height();
     LG::Point<int> text_start { content_edge_insets().left(), std::max(content_edge_insets().top(), int(bounds().height() - content_height) / 2) };
     if (alignment() == Text::Alignment::Center) {
-        text_start.set_x((bounds().width() - content_width) / 2);
+        int preffered_start = ((int)bounds().width() - (int)content_width) / 2;
+        text_start.set_x(std::max(content_edge_insets().left(), preffered_start));
     } else if (alignment() == Text::Alignment::Right) {
-        text_start.set_x(bounds().width() - content_width);
+        int preffered_start = (int)bounds().width() - (int)content_width;
+        text_start.set_x(std::max(content_edge_insets().left(), preffered_start));
     }
 
     ctx.set_fill_color(text_color());
