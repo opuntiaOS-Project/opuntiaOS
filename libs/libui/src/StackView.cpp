@@ -95,7 +95,7 @@ size_t StackView::recalc_total_content_height()
 {
     size_t res = 0;
     for (int i = 0; i < m_views.size(); i++) {
-        res += m_views[i]->frame().width();
+        res += m_views[i]->frame().height();
     }
     return res;
 }
