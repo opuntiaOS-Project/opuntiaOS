@@ -7,7 +7,8 @@
 
 #pragma once
 
-#include <sys/types.h>
+#include <cstdint>
+#include <libfoundation/Logger.h>
 
 namespace LG {
 
@@ -85,7 +86,7 @@ public:
             return;
         }
 
-        if (clr.alpha() == 255) {
+        if (clr.alpha() == 255 || is_opaque()) {
             *this = clr;
             return;
         }

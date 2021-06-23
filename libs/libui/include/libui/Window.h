@@ -74,6 +74,8 @@ public:
     inline const LG::string& icon_path() const { return m_icon_path; }
 
 private:
+    void fill_with_opaque(const LG::Rect&);
+
     uint32_t m_id;
     BaseViewController* m_root_view_controller { nullptr };
     WindowType m_type { WindowType::Standard };

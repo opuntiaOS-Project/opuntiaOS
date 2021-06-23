@@ -262,6 +262,15 @@ void Context::mix(const Rect& rect)
 
 void Context::fill(const Rect& rect)
 {
+    if (fill_color().is_opaque()) {
+        return;
+    }
+
+    if (fill_color().alpha() != 255) {
+        mix(rect);
+        return;
+    }
+
     auto draw_bounds = rect;
     draw_bounds.offset_by(m_draw_offset);
     draw_bounds.intersect(m_clip);
@@ -352,11 +361,11 @@ void Context::fill_rounded_helper(const Point<int>& start, size_t radius)
             int y2 = (y - center.y()) * (y - center.y());
             int dist = x2 + y2;
             if (dist <= radius2) {
-                m_bitmap[y][x] = fill_color();
+                m_bitmap[y][x].mix_with(fill_color());
             } else {
                 float fdist = 0.5 - (LFoundation::fast_sqrt((float)(dist)) - radius);
                 fdist = std::max(std::min(fdist, 1.0f), 0.0f);
-                int alpha = int(255.0 * fdist);
+                int alpha = int(fill_color().alpha() * fdist);
                 color.set_alpha(alpha);
                 m_bitmap[y][x].mix_with(color);
             }

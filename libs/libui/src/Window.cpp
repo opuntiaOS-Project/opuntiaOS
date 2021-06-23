@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <libfoundation/Memory.h>
 #include <libui/App.h>
 #include <libui/Connection.h>
 #include <libui/Window.h>
@@ -47,6 +48,11 @@ bool Window::set_frame_style(const LG::Color& color)
 
 bool Window::did_format_change()
 {
+    if (bitmap().format() == LG::PixelBitmapFormat::RGBA) {
+        // Set full bitmap as opaque, to mix colors correctly.
+        fill_with_opaque(bounds());
+    }
+
     SetBufferMessage msg(Connection::the().key(), id(), buffer().id(), bitmap().format());
     return App::the().connection().send_async_message(msg);
 }
@@ -92,6 +98,14 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
     if (event->type() == Event::Type::DisplayEvent) {
         if (m_superview) {
             DisplayEvent& own_event = *(DisplayEvent*)event.get();
+
+            // If the window is in RGBA mode, we have to fill this rect
+            // with opaque color before superview will mix it's color on
+            // top of bitmap.
+            if (bitmap().format() == LG::PixelBitmapFormat::RGBA) {
+                fill_with_opaque(own_event.bounds());
+            }
+
             m_superview->receive_display_event(own_event);
         }
     }
@@ -101,6 +115,25 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
             LayoutEvent& own_event = *(LayoutEvent*)event.get();
             m_superview->receive_layout_event(own_event);
         }
+    }
+}
+
+void Window::fill_with_opaque(const LG::Rect& rect)
+{
+    const auto color = LG::Color(0, 0, 0, 0).u32();
+    auto draw_bounds = rect;
+    draw_bounds.intersect(bounds());
+    if (draw_bounds.empty()) {
+        return;
+    }
+
+    int min_x = draw_bounds.min_x();
+    int min_y = draw_bounds.min_y();
+    int max_x = draw_bounds.max_x();
+    int max_y = draw_bounds.max_y();
+    int len_x = max_x - min_x + 1;
+    for (int y = min_y; y <= max_y; y++) {
+        LFoundation::fast_set((uint32_t*)&m_bitmap[y][min_x], color, len_x);
     }
 }
 
