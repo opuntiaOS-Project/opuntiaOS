@@ -208,7 +208,7 @@ bool View::receive_layout_event(const LayoutEvent& event, bool force_layout_if_n
 
     foreach_subview([&](View& subview) -> bool {
         bool found_target = subview.receive_layout_event(event, need_to_layout);
-        return force_layout_if_not_target || !found_target;
+        return need_to_layout || !found_target;
     });
 
     return need_to_layout;
