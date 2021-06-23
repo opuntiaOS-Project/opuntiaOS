@@ -1,4 +1,5 @@
 #include "HomeScreenView.h"
+#include "IconView.h"
 #include <algorithm>
 #include <cstdlib>
 #include <libfoundation/EventLoop.h>
@@ -20,6 +21,35 @@ HomeScreenView::HomeScreenView(UI::View* superview, const LG::Rect& frame)
 HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG::Rect& frame)
     : UI::View(superview, window, frame)
 {
+    LG::Rect homegrid_frame = LG::Rect(0, grid_padding(), bounds().width(), bounds().height() - grid_padding() - dock_height_with_padding());
+    auto& vstack_view = add_subview<UI::StackView>(homegrid_frame);
+    vstack_view.set_background_color(LG::Color(0, 0, 0, 0));
+    vstack_view.set_axis(UI::LayoutConstraints::Axis::Vertical);
+    vstack_view.set_distribution(UI::StackView::Distribution::EqualSpacing);
+    vstack_view.set_alignment(UI::StackView::Alignment::Center);
+
+    for (int i = 0; i < grid_entities_per_column(); i++) {
+        auto& hstack_view = vstack_view.add_arranged_subview<UI::StackView>();
+        hstack_view.set_background_color(LG::Color(0, 0, 0, 0));
+        hstack_view.set_distribution(UI::StackView::Distribution::EqualSpacing);
+        vstack_view.add_constraint(UI::Constraint(hstack_view, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, vstack_view, UI::Constraint::Attribute::Left, 1, grid_padding()));
+        vstack_view.add_constraint(UI::Constraint(hstack_view, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, vstack_view, UI::Constraint::Attribute::Right, 1, -grid_padding()));
+        vstack_view.add_constraint(UI::Constraint(hstack_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
+        m_grid_stackviews.push_back(&hstack_view);
+    }
+
+    LG::Rect dock_frame = homegrid_frame;
+    dock_frame.set_x(grid_padding());
+    dock_frame.set_width(bounds().width() - 2 * grid_padding());
+    dock_frame.set_y(bounds().height() - dock_height_with_padding() + (dock_height() - icon_size()) / 2);
+    dock_frame.set_height(dock_height());
+    auto& dock_stack_view = add_subview<UI::StackView>(dock_frame);
+    dock_stack_view.set_background_color(LG::Color(0, 0, 0, 0));
+    dock_stack_view.set_axis(UI::LayoutConstraints::Axis::Horizontal);
+    dock_stack_view.set_distribution(UI::StackView::Distribution::EqualSpacing);
+    m_dock_stackview = &dock_stack_view;
+
+    vstack_view.set_needs_layout();
 }
 
 void HomeScreenView::display(const LG::Rect& rect)
@@ -27,81 +57,45 @@ void HomeScreenView::display(const LG::Rect& rect)
     UI::Context ctx(*this);
     ctx.add_clip(rect);
 
-    ctx.set_fill_color(LG::Color(222, 222, 222, 0));
+    ctx.set_fill_color(LG::Color(0, 0, 0, 0));
     ctx.fill(bounds());
 
-    // Drawing launched icons
-    int spacing_x = (bounds().width() - grid_entities_size() * grid_entities_per_row()) / (grid_entities_per_row() + 2);
-    int spacing_y = (bounds().height() - dock_height() - grid_entities_size() * grid_entities_per_column()) / (grid_entities_per_column() + 2);
-    int offsetx = spacing_x + 4;
-    int offsety = spacing_y;
-    int drawn = 0;
-    for (auto& entity : m_fast_launch_entites) {
-        ctx.draw({ offsetx, offsety }, entity.icon());
-        offsetx += spacing_x + grid_entities_size();
-        drawn++;
-        if (drawn == grid_entities_per_row()) {
-            offsetx = spacing_x + 4;
-            offsety += grid_entities_size() + spacing_y;
-        }
-    }
-
     ctx.set_fill_color(LG::Color(222, 222, 222, 180));
-    offsety = bounds().height() - dock_height();
-    ctx.fill(LG::Rect(0, offsety, bounds().width(), dock_height()));
-    offsetx = (bounds().width() - (grid_entities_size() * m_fast_launch_entites.size() + spacing_x * (m_fast_launch_entites.size() - 1))) / 2;
-    offsety += 10;
-    for (auto& entity : m_fast_launch_entites) {
-        ctx.draw({ offsetx, offsety }, entity.icon());
-        offsetx += spacing_x + grid_entities_size();
-    }
+    int offsety = bounds().height() - dock_height_with_padding();
+    ctx.fill_rounded(LG::Rect(grid_padding(), offsety, bounds().width() - 2 * grid_padding(), dock_height()), LG::CornerMask(16));
 }
 
-void HomeScreenView::new_fast_launch_entity(const LG::string& icon_path, LG::string&& exec_path)
+void HomeScreenView::new_grid_entity(const LG::string& title, const LG::string& icon_path, LG::string&& exec_path)
 {
+    // TODO: Add pages.
     LG::PNG::PNGLoader loader;
-    m_fast_launch_entites.push_back(FastLaunchEntity());
-    m_fast_launch_entites.back().set_icon(loader.load_from_file(icon_path + "/48x48.png"));
-    m_fast_launch_entites.back().set_path_to_exec(std::move(exec_path));
-    set_needs_display();
+    int row_to_put_to = 0;
+    for (int i = 0; i < grid_entities_per_column(); i++) {
+        if (m_grid_stackviews[i]->subviews().size() < grid_entities_per_row()) {
+            row_to_put_to = i;
+            break;
+        }
+    }
+    auto& icon_view = m_grid_stackviews[row_to_put_to]->add_arranged_subview<IconView>();
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, icon_view_size()));
+    icon_view.set_title(title);
+    icon_view.entity().set_icon(loader.load_from_file(icon_path + "/48x48.png"));
+    icon_view.entity().set_path_to_exec(std::move(exec_path));
+    set_needs_layout();
 }
 
-void HomeScreenView::launch(const FastLaunchEntity& ent)
+void HomeScreenView::new_fast_launch_entity(const LG::string& title, const LG::string& icon_path, LG::string&& exec_path)
 {
-    if (fork() == 0) {
-        execve(ent.path_to_exec().c_str(), 0, 0);
-        std::abort();
-    }
-}
-
-void HomeScreenView::click_began(const LG::Point<int>& location)
-{
-    int spacing_x = (bounds().width() - grid_entities_size() * grid_entities_per_row()) / (grid_entities_per_row() + 2);
-    int spacing_y = (bounds().height() - dock_height() - grid_entities_size() * grid_entities_per_column()) / (grid_entities_per_column() + 2);
-    int offsetx = spacing_x + 4;
-    int offsety = spacing_y;
-    int drawn = 0;
-    for (auto& entity : m_fast_launch_entites) {
-        auto it = LG::Rect(offsetx, offsety, grid_entities_size(), grid_entities_size());
-        if (it.contains(location)) {
-            launch(entity);
-        }
-        offsetx += spacing_x + grid_entities_size();
-        drawn++;
-        if (drawn == grid_entities_per_row()) {
-            offsetx = spacing_x + 4;
-            offsety += spacing_y + grid_entities_size();
-        }
+    if (m_dock_stackview->subviews().size() >= grid_entities_per_row()) {
+        return;
     }
 
-    offsety = bounds().height() - dock_height();
-    offsetx = (bounds().width() - (grid_entities_size() * m_fast_launch_entites.size() + spacing_x * (m_fast_launch_entites.size() - 1))) / 2;
-    offsety += 10;
-    for (auto& entity : m_fast_launch_entites) {
-        auto it = LG::Rect(offsetx, offsety, grid_entities_size(), grid_entities_size());
-        if (it.contains(location)) {
-            launch(entity);
-        }
-        offsetx += spacing_x + grid_entities_size();
-    }
+    LG::PNG::PNGLoader loader;
+    auto& icon_view = m_dock_stackview->add_arranged_subview<IconView>();
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, icon_view_size()));
+    icon_view.entity().set_icon(loader.load_from_file(icon_path + "/48x48.png"));
+    icon_view.entity().set_path_to_exec(std::move(exec_path));
+    set_needs_layout();
 }

@@ -5,6 +5,7 @@ oneOS_executable("homescreen") {
   sources = [
     "AppDelegate.cpp",
     "HomeScreenView.cpp",
+    "IconView.cpp",
   ]
   configs = [ "//build/userland:userland_flags" ]
   deplibs = [
