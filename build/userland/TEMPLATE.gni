@@ -36,9 +36,11 @@ template("oneOS_application") {
     script = "//build/userland/prepare_app.py"
     outputs = [ "$root_out_dir/base/Applications/$app_name.app/Content" ]
     args = [
+      app_name,
       rebase_path("$root_out_dir/base/Applications/$app_name.app/Content",
                   root_build_dir),
-      app_name,
+      rebase_path("//userland/applications/$app_name",
+                  root_build_dir),
     ]
   }
 
