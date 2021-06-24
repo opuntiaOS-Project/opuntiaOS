@@ -40,10 +40,7 @@ public:
     inline LG::Point<int> draw_position() { return { m_mouse_x - 6, m_mouse_y - 6 }; }
 #endif
 
-    inline int x() const
-    {
-        return m_mouse_x;
-    }
+    inline int x() const { return m_mouse_x; }
     inline int y() const { return m_mouse_y; }
 
     template <Params param>
