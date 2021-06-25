@@ -13,6 +13,9 @@ public:
     DockView(UI::View* superview, const LG::Rect& frame);
     DockView(UI::View* superview, UI::Window* window, const LG::Rect& frame);
 
+    static constexpr size_t padding() { return 8; }
+    static constexpr size_t dock_view_height() { return 36; }
+
     void display(const LG::Rect& rect) override;
     void click_began(const LG::Point<int>& location) override;
 

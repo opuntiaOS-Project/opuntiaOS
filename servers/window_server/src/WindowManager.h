@@ -136,6 +136,9 @@ public:
     void move_window(Window* window, int x_offset, int y_offset)
     {
         y_offset = std::max(y_offset, (int)m_compositor.menu_bar().height() - (int)Desktop::WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
+        if (m_dock_window) [[likely]] {
+            y_offset = std::min(y_offset, (int)(m_screen.height() - window->content_bounds().min_y() - m_dock_window->bounds().height()));
+        }
         window->bounds().offset_by(x_offset, y_offset);
         window->content_bounds().offset_by(x_offset, y_offset);
     }

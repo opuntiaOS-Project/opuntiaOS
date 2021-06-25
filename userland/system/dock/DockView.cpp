@@ -29,24 +29,27 @@ void DockView::display(const LG::Rect& rect)
     ctx.add_clip(rect);
 
     // Drawing fast-launch icons
-    ctx.set_fill_color(background_color());
-    ctx.fill(bounds());
+    auto fast_access_dock = LG::Rect(padding(), 0, padding() + 40 * m_fast_launch_entites.size(), dock_view_height());
+    auto opened_apps_dock = LG::Rect(fast_access_dock.width() + 2 * padding(), 0, bounds().width() - fast_access_dock.width() - 3 * padding(), dock_view_height());
 
-    ctx.set_fill_color(LG::Color(222, 222, 222, 255));
-    ctx.fill(LG::Rect(0, 0, 8 + 40 * m_fast_launch_entites.size(), bounds().height()));
+    ctx.set_fill_color(background_color());
+    ctx.fill_rounded(opened_apps_dock, LG::CornerMask(8));
+
+    ctx.set_fill_color(LG::Color(222, 222, 222, 180));
+    ctx.fill_rounded(fast_access_dock, LG::CornerMask(8));
 
     // Drawing launched icons
-    int offsetx = 8;
+    int offsetx = fast_access_dock.min_x() + padding();
     for (auto& entity : m_fast_launch_entites) {
         ctx.draw({ offsetx, 2 }, entity.icon());
-        offsetx += entity.icon().bounds().width() + 8;
+        offsetx += entity.icon().bounds().width() + padding();
     }
 
-    offsetx += 8;
+    offsetx = opened_apps_dock.min_x() + padding();
     for (auto& entity : m_dock_entites) {
         ctx.draw({ offsetx, 2 }, entity.icon());
         ctx.fill(LG::Rect(offsetx, 34, 32, 2));
-        offsetx += entity.icon().bounds().width() + 8;
+        offsetx += entity.icon().bounds().width() + padding();
     }
 }
 

@@ -7,6 +7,7 @@
 
 #pragma once
 #include "../../../servers/window_server/shared/Connections/WSConnection.h"
+#include "../../../servers/window_server/shared/MessageContent/Window.h"
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/SharedBuffer.h>
@@ -20,10 +21,8 @@
 
 namespace UI {
 
-enum WindowType {
-    Standard = 0,
-    Homescreen = 1,
-};
+using ::WindowStatusUpdateType;
+using ::WindowType;
 
 class Connection;
 

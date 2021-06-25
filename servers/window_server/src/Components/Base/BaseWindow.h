@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "../../../shared/MessageContent/Window.h"
 #include "../../Connection.h"
 #include "../MenuBar/MenuItem.h"
 #include <libfoundation/SharedBuffer.h>
@@ -15,18 +16,6 @@
 #include <utility>
 
 namespace WinServer {
-
-enum WindowType : int {
-    Standard = 0,
-    Homescreen = 1,
-};
-
-enum WindowStatusUpdateType : int {
-    Created,
-    Changed,
-    Minimized,
-    Removed,
-};
 
 typedef uint32_t WindowEventMask;
 enum WindowEvent {
