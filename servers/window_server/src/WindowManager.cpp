@@ -40,21 +40,16 @@ void WindowManager::start_window_move(Window& window)
     m_movable_window = &window;
 }
 
-#ifdef TARGET_DESKTOP
 void WindowManager::setup_dock(Window* window)
 {
+#ifdef TARGET_DESKTOP
     window->make_frameless();
     window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
     window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
     window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
+#endif // TARGET_DESKTOP
     m_dock_window = window;
 }
-#elif TARGET_MOBILE
-void WindowManager::setup_dock(Window* window)
-{
-    m_dock_window = window;
-}
-#endif // TARGET_MOBILE
 
 void WindowManager::remove_window_from_screen(Window* window)
 {
@@ -108,13 +103,13 @@ bool WindowManager::continue_window_move()
 }
 #endif // TARGET_DESKTOP
 
-void WindowManager::update_mouse_position(MouseEvent* mouse_event)
+void WindowManager::update_mouse_position(std::unique_ptr<LFoundation::Event> mouse_event)
 {
     auto invalidate_bounds = m_cursor_manager.current_cursor().bounds();
     invalidate_bounds.origin().set(m_cursor_manager.draw_position());
     m_compositor.invalidate(invalidate_bounds);
 
-    m_cursor_manager.update_position(mouse_event);
+    m_cursor_manager.update_position((WinServer::MouseEvent*)mouse_event.get());
 
     invalidate_bounds.origin().set(m_cursor_manager.draw_position());
     m_compositor.invalidate(invalidate_bounds);
@@ -124,9 +119,7 @@ void WindowManager::update_mouse_position(MouseEvent* mouse_event)
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
     Window* new_hovered_window = nullptr;
-    auto* mouse_event = reinterpret_cast<MouseEvent*>(event.release());
-    update_mouse_position(mouse_event);
-    delete mouse_event;
+    update_mouse_position(std::move(event));
 
     if (continue_window_move()) {
         return;
@@ -208,8 +201,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
     auto* mouse_event = reinterpret_cast<MouseEvent*>(event.release());
-    update_mouse_position(mouse_event);
-    delete mouse_event;
+    update_mouse_position(std::move(event));
 
     if (m_compositor.control_bar().control_button_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y()) && active_window()) {
         if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {

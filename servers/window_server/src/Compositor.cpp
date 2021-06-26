@@ -108,7 +108,7 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
         draw_wallpaper_for_area(invalidated_areas[i]);
     }
 #elif TARGET_MOBILE
-    // Draw wallpaper only in case when WM contains homescreen app.
+    // Draw wallpaper only in case when WM contains only homescreen app.
     if (wm.windows().size() <= 1) {
         for (int i = 0; i < invalidated_areas.size(); i++) {
             draw_wallpaper_for_area(invalidated_areas[i]);

@@ -149,7 +149,7 @@ private:
     void start_window_move(Window& window);
     bool continue_window_move();
 
-    void update_mouse_position(MouseEvent* mouse_event);
+    void update_mouse_position(std::unique_ptr<LFoundation::Event> mouse_event);
     void receive_mouse_event(std::unique_ptr<LFoundation::Event> event);
     void receive_keyboard_event(std::unique_ptr<LFoundation::Event> event);
 
