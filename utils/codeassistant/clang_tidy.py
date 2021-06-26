@@ -85,5 +85,5 @@ app_includes = ["libs/libc/include", "libs/libcxx/include", "libs/libfoundation/
                 "libs/libipc/include", "libs/libg/include", "libs/libui/include"]
 
 print(ClassTidyLauncher("kernel/kernel", kernel_includes).process())
-print(ClassTidyLauncher("servsers/", app_includes).process())
+print(ClassTidyLauncher("servers/", app_includes).process())
 print(ClassTidyLauncher("libs/", app_includes).process())

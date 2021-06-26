@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <sysdep.h>
 #include <unistd.h>
 
@@ -8,4 +9,6 @@ uid_t getuid()
 
 uid_t geteuid()
 {
+    assert(0);
+    return 0;
 }

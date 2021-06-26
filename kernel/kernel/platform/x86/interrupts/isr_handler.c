@@ -18,7 +18,8 @@
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 
-static char err_buf[64];
+#define ERR_BUF_SIZE 64
+static char err_buf[ERR_BUF_SIZE];
 
 static const char* exception_messages[32] = {
     "Division by zero",
@@ -69,8 +70,13 @@ void isr_handler(trapframe_t* tf)
     }
 
     if (tf->int_no == 0) {
-        log_warn("Crash: division by zero in %d tid\n", RUNNING_THREAD->tid);
-        dump_and_kill(p);
+        if (!p) {
+            log_warn("Crash: division by zero in %d tid\n", RUNNING_THREAD->tid);
+            dump_and_kill(p);
+        } else {
+            snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
+            kpanic_tf(err_buf, tf);
+        }
     } else if (tf->int_no == 1) {
         log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
         system_stop();
@@ -88,7 +94,7 @@ void isr_handler(trapframe_t* tf)
         system_stop();
     } else if (tf->int_no == 6) {
         if (!p) {
-            snprintf(err_buf, 64, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
+            snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
             kpanic_tf(err_buf, tf);
         } else {
             log_warn("Crash: invalid opcode in %d tid\n", RUNNING_THREAD->tid);
@@ -118,7 +124,7 @@ void isr_handler(trapframe_t* tf)
         int res = vmm_page_fault_handler(tf->err, read_cr2());
         if (res == SHOULD_CRASH) {
             if (!p) {
-                snprintf(err_buf, 64, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
+                snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
                 kpanic_tf(err_buf, tf);
             } else {
                 log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, read_cr2(), p->pid, tf->eip);

@@ -11,7 +11,7 @@ __BEGIN_DECLS
 
 #ifndef assert
 #define assert(x)                                              \
-    if (!(x)) {                                                \
+    if (!(x)) [[unlikely]] {                                   \
         printf("assert at line %d in %s", __LINE__, __FILE__); \
         abort();                                               \
     }
