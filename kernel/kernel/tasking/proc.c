@@ -18,7 +18,7 @@
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 
-static int proc_next_pid = 1;
+static uint32_t proc_next_pid = 1;
 
 /* TODO: Will be removed */
 thread_t thread_storage[512];
@@ -54,7 +54,7 @@ thread_t* thread_by_pid(uint32_t pid)
 
 uint32_t proc_alloc_pid()
 {
-    return proc_next_pid++;
+    return atomic_add_uint32(&proc_next_pid, 1);
 }
 
 /**

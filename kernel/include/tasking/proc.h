@@ -11,6 +11,8 @@
 #include <algo/dynamic_array.h>
 #include <fs/vfs.h>
 #include <io/tty/tty.h>
+#include <libkern/atomic.h>
+#include <libkern/lock.h>
 #include <libkern/types.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
@@ -68,6 +70,7 @@ struct proc {
     uint32_t prio;
     uint32_t status;
     struct thread* main_thread;
+    lock_t lock;
 
     uid_t uid;
     gid_t gid;
