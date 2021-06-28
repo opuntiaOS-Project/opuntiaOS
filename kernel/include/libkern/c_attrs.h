@@ -13,7 +13,7 @@
 #endif // PACKED
 
 #ifndef ALWAYS_INLINE
-#define ALWAYS_INLINE __attribute__((always_inline))
+#define ALWAYS_INLINE __attribute__((always_inline)) inline
 #endif // ALWAYS_INLINE
 
 #ifndef NORETURN
