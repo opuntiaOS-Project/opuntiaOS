@@ -11,6 +11,7 @@
 #include <algo/ringbuffer.h>
 #include <drivers/driver_manager.h>
 #include <fs/ext2/ext2.h>
+#include <libkern/lock.h>
 #include <libkern/syscall_structs.h>
 
 #define DENTRY_WAS_IN_CACHE 0
@@ -58,6 +59,7 @@ struct dentry {
     uint32_t flags;
     uint32_t inode_indx;
     inode_t* inode;
+    lock_t lock;
     fsdata_t fsdata;
     struct fs_ops* ops;
     uint32_t dev_indx;
@@ -76,6 +78,7 @@ struct dentry_cache_list {
     struct dentry_cache_list* next;
     dentry_t* data;
     uint32_t len;
+    lock_t lock;
 };
 typedef struct dentry_cache_list dentry_cache_list_t;
 
