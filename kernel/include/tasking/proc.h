@@ -96,6 +96,7 @@ typedef struct proc proc_t;
 uint32_t proc_alloc_pid();
 struct thread* thread_by_pid(uint32_t pid);
 
+int proc_init_storage();
 int proc_setup(proc_t* p);
 int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid);
 int proc_setup_tty(proc_t* p, tty_entry_t* tty);

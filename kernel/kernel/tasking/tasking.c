@@ -43,16 +43,20 @@ void _tasking_jumper()
  * TASK LOADING FUNCTIONS
  */
 
-extern thread_t thread_storage[512];
-extern int threads_cnt;
+extern thread_list_t thread_list;
 thread_t* tasking_get_thread(uint32_t tid)
 {
-    for (int i = 0; i < threads_cnt; i++) {
-        if (thread_storage[i].tid == tid) {
-            return &thread_storage[i];
+    thread_list_node_t* __thread_list_node = thread_list.head;
+    while (__thread_list_node) {
+        for (int i = 0; i < THREADS_PER_NODE; i++) {
+            if (__thread_list_node->thread_storage[i].tid == tid) {
+                return &__thread_list_node->thread_storage[i];
+            }
         }
+        __thread_list_node = __thread_list_node->next;
     }
-    return 0;
+
+    return NULL;
 }
 
 proc_t* tasking_get_proc(uint32_t pid)
@@ -153,6 +157,7 @@ proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
 void tasking_init()
 {
     nxt_proc = 0;
+    proc_init_storage();
     signal_init();
     dump_prepare_kernel_data();
 }

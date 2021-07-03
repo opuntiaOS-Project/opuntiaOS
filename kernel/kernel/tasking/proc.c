@@ -19,42 +19,95 @@
 #include <tasking/thread.h>
 
 static uint32_t proc_next_pid = 1;
-
-/* TODO: Will be removed */
-thread_t thread_storage[512];
+thread_list_t thread_list;
 int threads_cnt = 0;
+
+static thread_list_node_t* proc_alloc_thread_storage_node()
+{
+    thread_list_node_t* res = (thread_list_node_t*)kmalloc(sizeof(thread_list_node_t));
+    memset(res->thread_storage, 0, sizeof(res->thread_storage));
+    res->empty_spots = THREADS_PER_NODE;
+    res->next = NULL;
+    return res;
+}
+
+// TODO: Implement clear and think of race cond.
+static thread_t* _proc_alloc_thread()
+{
+    ASSERT(thread_list.next_empty_node != NULL);
+    lock_acquire(&thread_list.lock);
+    if (!thread_list.next_empty_node->empty_spots) {
+        thread_list_node_t* node = proc_alloc_thread_storage_node();
+        thread_list.tail->next = node;
+        thread_list.tail = node;
+        thread_list.next_empty_node = node;
+        thread_list.next_empty_index = 0;
+    }
+
+    for (int i = 0; i < THREADS_PER_NODE; i++) {
+        uint32_t thread_status = thread_list.next_empty_node->thread_storage[i].status;
+        if ((thread_status == THREAD_INVALID) || (thread_status == THREAD_DEAD)) {
+            thread_list.next_empty_node->empty_spots--;
+            thread_list.next_empty_index++;
+            lock_release(&thread_list.lock);
+            return &thread_list.next_empty_node->thread_storage[i];
+        }
+    }
+
+    ASSERT(false);
+}
 
 /**
  * HELPER FUNCTIONS
  */
 
-#define FOREACH_THREAD(p)                               \
-    for (int i = 0; i < threads_cnt; i++) {             \
-        if (thread_storage[i].process->pid == p->pid) { \
-            thread_t* thread = &thread_storage[i];
+#define FOREACH_THREAD(p)                                                       \
+    thread_list_node_t* __thread_list_node = thread_list.head;                  \
+    while (__thread_list_node) {                                                \
+        for (int i = 0; i < THREADS_PER_NODE; i++) {                            \
+            if (__thread_list_node->thread_storage[i].process->pid == p->pid) { \
+                thread_t* thread = &__thread_list_node->thread_storage[i];
 
-#define END_FOREACH \
-    }               \
+#define END_FOREACH                                \
+    }                                              \
+    }                                              \
+    __thread_list_node = __thread_list_node->next; \
     }
 
 thread_t* proc_alloc_thread()
 {
-    return &thread_storage[threads_cnt++];
+    return _proc_alloc_thread();
 }
 
 thread_t* thread_by_pid(uint32_t pid)
 {
-    for (int i = 0; i < threads_cnt; i++) {
-        if (thread_storage[i].tid == pid) {
-            return &thread_storage[i];
+    thread_list_node_t* __thread_list_node = thread_list.head;
+    while (__thread_list_node) {
+        for (int i = 0; i < THREADS_PER_NODE; i++) {
+            if (__thread_list_node->thread_storage[i].process->pid == pid) {
+                return &__thread_list_node->thread_storage[i];
+            }
         }
+        __thread_list_node = __thread_list_node->next;
     }
-    return 0;
+
+    return NULL;
 }
 
 uint32_t proc_alloc_pid()
 {
     return atomic_add_uint32(&proc_next_pid, 1);
+}
+
+int proc_init_storage()
+{
+    lock_init(&thread_list.lock);
+    thread_list_node_t* node = proc_alloc_thread_storage_node();
+    thread_list.head = node;
+    thread_list.tail = node;
+    thread_list.next_empty_node = node;
+    thread_list.next_empty_index = 0;
+    return 0;
 }
 
 /**

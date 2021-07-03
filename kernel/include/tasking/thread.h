@@ -10,6 +10,7 @@
 
 #include <drivers/generic/fpu.h>
 #include <fs/vfs.h>
+#include <libkern/lock.h>
 #include <libkern/types.h>
 #include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
@@ -80,6 +81,23 @@ struct thread {
     void* signal_handlers[SIGNALS_CNT];
 };
 typedef struct thread thread_t;
+
+#define THREADS_PER_NODE (128)
+struct thread_list_node {
+    thread_t thread_storage[THREADS_PER_NODE];
+    struct thread_list_node* next;
+    int empty_spots;
+};
+typedef struct thread_list_node thread_list_node_t;
+
+struct thread_list {
+    struct thread_list_node* head;
+    struct thread_list_node* next_empty_node;
+    int next_empty_index;
+    lock_t lock;
+    struct thread_list_node* tail;
+};
+typedef struct thread_list thread_list_t;
 
 /**
  * THREAD FUNCTIONS

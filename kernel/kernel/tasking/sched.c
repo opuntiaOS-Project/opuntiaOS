@@ -126,20 +126,24 @@ void scheduler_init()
     }
 }
 
-extern thread_t thread_storage[512];
-extern int threads_cnt;
+extern thread_list_t thread_list;
 void sched_unblock_threads()
 {
     thread_t* thread;
-    for (int i = 0; i < threads_cnt; i++) {
-        thread = &thread_storage[i];
-        if (thread->status == THREAD_BLOCKED && thread->blocker.reason != BLOCKER_INVALID) {
-            if (thread->blocker.should_unblock && thread->blocker.should_unblock(thread)) {
-                thread->status = THREAD_RUNNING;
-                thread->blocker.reason = BLOCKER_INVALID;
-                sched_enqueue(thread);
+
+    thread_list_node_t* __thread_list_node = thread_list.head;
+    while (__thread_list_node) {
+        for (int i = 0; i < THREADS_PER_NODE; i++) {
+            thread = &__thread_list_node->thread_storage[i];
+            if (thread->status == THREAD_BLOCKED && thread->blocker.reason != BLOCKER_INVALID) {
+                if (thread->blocker.should_unblock && thread->blocker.should_unblock(thread)) {
+                    thread->status = THREAD_RUNNING;
+                    thread->blocker.reason = BLOCKER_INVALID;
+                    sched_enqueue(thread);
+                }
             }
         }
+        __thread_list_node = __thread_list_node->next;
     }
 }
 
