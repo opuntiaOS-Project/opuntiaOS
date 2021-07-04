@@ -10,9 +10,10 @@
 
 #include <libkern/c_attrs.h>
 #include <libkern/kassert.h>
+#include <libkern/log.h>
 #include <libkern/types.h>
 
-#define DEBUG_LOCK
+// #define DEBUG_LOCK
 
 struct lock {
     int status;
@@ -39,5 +40,15 @@ static ALWAYS_INLINE void lock_release(lock_t* lock)
     ASSERT(lock->status == 1);
     __atomic_store_n(&lock->status, 0, __ATOMIC_RELEASE);
 }
+
+#ifdef DEBUG_LOCK
+#define lock_acquire(x)                                    \
+    log("acquire lock %s %s:%d ", #x, __FILE__, __LINE__); \
+    lock_acquire(x);
+
+#define lock_release(x)                                    \
+    log("release lock %s %s:%d ", #x, __FILE__, __LINE__); \
+    lock_release(x);
+#endif
 
 #endif // _KERNEL_LIBKERN_LOCK_H
