@@ -1,8 +1,8 @@
 #ifndef _BOOT_X86_STAGE2_DRIVERS_DISPLAY_H
 #define _BOOT_X86_STAGE2_DRIVERS_DISPLAY_H
 
-#include "port.h"
 #include "../types.h"
+#include "port.h"
 
 #define VIDEO_MEMORY (char*)(0xb8000)
 #define VIDEO_ADDRESS (char*)(0xb8000)

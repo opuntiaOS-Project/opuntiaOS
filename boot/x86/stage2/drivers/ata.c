@@ -8,7 +8,8 @@
 
 ata_t active_ata_drive;
 
-void init_ata(uint32_t port, char is_master) {
+void init_ata(uint32_t port, char is_master)
+{
     active_ata_drive.is_master = is_master;
     active_ata_drive.data_port = port;
     active_ata_drive.error_port = port + 0x1;
@@ -19,39 +20,40 @@ void init_ata(uint32_t port, char is_master) {
     active_ata_drive.device_port = port + 0x6;
     active_ata_drive.command_port = port + 0x7;
     active_ata_drive.control_port = port + 0x206;
-} 
+}
 
-int indentify_ata_device(drive_desc_t *drive_desc) {
+int indentify_ata_device(drive_desc_t* drive_desc)
+{
     port_8bit_out(active_ata_drive.device_port, active_ata_drive.is_master ? 0xA0 : 0xB0);
     port_8bit_out(active_ata_drive.sector_count_port, 0);
     port_8bit_out(active_ata_drive.lba_lo_port, 0);
     port_8bit_out(active_ata_drive.lba_mid_port, 0);
     port_8bit_out(active_ata_drive.lba_hi_port, 0);
     port_8bit_out(active_ata_drive.command_port, 0xEC);
-    
+
     // check the acceptance of a command
     uint8_t status = port_8bit_in(active_ata_drive.command_port);
     if (status == 0x00) {
         // printf("Cmd isn't accepted");
         return -1;
     }
-    
+
     // waiting for processing
     // while BSY is on
-    while((status & 0x80) == 0x80) {
+    while ((status & 0x80) == 0x80) {
         status = port_8bit_in(active_ata_drive.command_port);
     }
-        
+
     // check if drive isn't ready to transer DRQ
     if ((status & 0x08) != 0x08) {
         // printf("Don't ready for transport");
         return -1;
     }
-    
+
     // transfering 256 bytes of data
     for (int i = 0; i < 256; i++) {
         uint16_t data = port_16bit_in(active_ata_drive.data_port);
-        char *text = "  \0";
+        char* text = "  \0";
         text[0] = (data >> 8) & 0xFF;
         text[1] = data & 0xFF;
         if (i == 1) {
@@ -87,27 +89,28 @@ int indentify_ata_device(drive_desc_t *drive_desc) {
     return 0;
 }
 
-// Returning 2 head read bytes (used to get size of kernel) 
-int ata_read(uint32_t sector, uint8_t* read_to) {
+// Returning 2 head read bytes (used to get size of kernel)
+int ata_read(uint32_t sector, uint8_t* read_to)
+{
     uint8_t dev_config = 0xA0;
     // lba support
     dev_config |= (1 << 6);
-    if (!active_ata_drive.is_master) { 
+    if (!active_ata_drive.is_master) {
         dev_config |= (1 << 4);
     }
-    
+
     port_8bit_out(active_ata_drive.device_port, dev_config);
     port_8bit_out(active_ata_drive.sector_count_port, 1);
-    port_8bit_out(active_ata_drive.lba_lo_port,   sector & 0x000000FF);
+    port_8bit_out(active_ata_drive.lba_lo_port, sector & 0x000000FF);
     port_8bit_out(active_ata_drive.lba_mid_port, (sector & 0x0000FF00) >> 8);
-    port_8bit_out(active_ata_drive.lba_hi_port,  (sector & 0x00FF0000) >> 16);
+    port_8bit_out(active_ata_drive.lba_hi_port, (sector & 0x00FF0000) >> 16);
     port_8bit_out(active_ata_drive.error_port, 0);
     port_8bit_out(active_ata_drive.command_port, 0x21);
 
     // waiting for processing
     // while BSY is on and no Errors
     uint8_t status = port_8bit_in(active_ata_drive.command_port);
-    while(((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
+    while (((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
         status = port_8bit_in(active_ata_drive.command_port);
     }
 
@@ -122,8 +125,8 @@ int ata_read(uint32_t sector, uint8_t* read_to) {
 
     for (int i = 0; i < 256; i++) {
         uint16_t data = port_16bit_in(active_ata_drive.data_port);
-        read_to[2*i+1] = (data >> 8) & 0xFF;
-        read_to[2*i] = data & 0xFF;
+        read_to[2 * i + 1] = (data >> 8) & 0xFF;
+        read_to[2 * i] = data & 0xFF;
     }
 
     return 0;

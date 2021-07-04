@@ -2,8 +2,8 @@
 #define _BOOT_X86_STAGE2_MEM_VM_H
 
 #include "../types.h"
-#include "pte.h"
 #include "pde.h"
+#include "pte.h"
 
 #define VMM_PTE_COUNT (1024)
 #define VMM_PDE_COUNT (1024)
@@ -22,7 +22,6 @@ typedef struct {
 typedef struct pdirectory {
     table_desc_t entities[VMM_PDE_COUNT];
 } pdirectory_t;
-
 
 int vm_setup();
 

@@ -50,7 +50,6 @@ typedef struct {
     uint16_t e_shstrndx;
 } elf_header_32_t;
 
-
 enum P_TYPE_FIELDS {
     PT_NULL,
     PT_LOAD,
@@ -76,7 +75,6 @@ typedef struct {
     uint16_t p_flags;
     uint16_t p_align;
 } elf_program_header_32_t;
-
 
 enum SH_TYPE_FIELDS {
     SHT_NULL,
@@ -135,7 +133,7 @@ typedef struct {
     uint32_t sh_entsize;
 } elf_section_header_32_t;
 
-int elf_load_header(drive_desc_t *drive_desc, fs_desc_t *fs_desc, char *path);
-int elf_load_kernel(drive_desc_t *drive_desc, fs_desc_t *fs_desc, char *path, uint32_t *kernel_size);
+int elf_load_header(drive_desc_t* drive_desc, fs_desc_t* fs_desc, char* path);
+int elf_load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, char* path, uint32_t* kernel_size);
 
 #endif // STAGE2_ELF_LITE

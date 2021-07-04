@@ -31,6 +31,10 @@ executable("stage2") {
     "-ffreestanding",
     "-Werror",
     "-Wno-address-of-packed-member",
+    "-mno-80387",
+    "-mno-mmx",
+    "-mno-sse",
+    "-mno-sse2",
   ]
 
   asmflags = [
