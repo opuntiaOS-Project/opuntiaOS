@@ -99,6 +99,7 @@ group("userland") {
     "//userland/system/init:init",
     "//userland/system/initgui:initgui",
     "//userland/tests/bench:bench",
+    "//userland/tests/testlibcxx:testlibcxx",
     "//userland/tests/utester:utester",
     "//userland/utilities/cat:cat",
     "//userland/utilities/kill:kill",

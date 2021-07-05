@@ -28,6 +28,11 @@ static constexpr T&& forward(std::remove_reference_t<T>& t) { return static_cast
 template <class T>
 static constexpr T&& forward(std::remove_reference_t<T>&& t) { return static_cast<T&&>(t); }
 
+struct in_place_t {
+    explicit in_place_t() = default;
+};
+inline constexpr in_place_t in_place {};
+
 _LIBCXX_END_NAMESPACE_STD
 
 #endif // _LIBCXX_UTILITY

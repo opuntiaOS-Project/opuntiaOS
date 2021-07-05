@@ -1,0 +1,81 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_OPTIONAL
+#define _LIBCXX_OPTIONAL
+
+#include <__config>
+#include <type_traits>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+struct nullopt_t {
+    explicit constexpr nullopt_t() { }
+};
+inline constexpr nullopt_t nullopt {};
+
+template <typename T>
+class optional {
+public:
+    using value_type = T;
+
+    optional() = default;
+    optional(nullopt_t)
+        : m_has_value(false)
+        , m_value()
+    {
+    }
+
+    template <class U = T>
+    optional(U&& value)
+        : m_value(std::forward<U>(value))
+        , m_has_value(true)
+    {
+    }
+
+    template <class... Args>
+    optional(in_place_t, Args&&... args)
+        : m_value(std::forward<Args>(args)...)
+        , m_has_value(true)
+    {
+    }
+
+    ~optional() = default;
+
+    bool has_value() const { return m_has_value; }
+    operator bool() const { return has_value(); }
+
+    T* operator->() { return &m_value; }
+    const T* operator->() const { return &m_value; }
+
+    T& operator*() { return m_value; }
+    const T& operator*() const { return m_value; }
+
+    T& value() { return m_value; }
+    const T& value() const { return m_value; }
+
+    template <class U>
+    T value_or(U&& def)
+    {
+        if (has_value()) {
+            return m_value;
+        }
+        return def;
+    }
+
+    template <class U>
+    T value_or(U&& def) const
+    {
+        if (has_value()) {
+            return m_value;
+        }
+        return def;
+    }
+
+private:
+    bool m_has_value { false };
+    T m_value;
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_OPTIONAL
