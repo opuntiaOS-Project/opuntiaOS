@@ -114,6 +114,8 @@ int thread_kstack_free(thread_t* thread);
 int thread_free(thread_t* thread);
 int thread_die(thread_t* thread);
 
+static ALWAYS_INLINE int thread_is_free(thread_t* thread) { return (thread->status == THREAD_INVALID) || (thread->status == THREAD_DEAD); }
+
 /**
  * BLOCKER FUNCTIONS
  */

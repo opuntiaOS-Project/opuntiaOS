@@ -22,6 +22,24 @@ static uint32_t proc_next_pid = 1;
 thread_list_t thread_list;
 int threads_cnt = 0;
 
+/**
+ * LOCKLESS 
+ */
+
+static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, thread_t* gthread);
+static ALWAYS_INLINE void proc_kill_all_threads_lockless(proc_t* p);
+static ALWAYS_INLINE int proc_setup_lockless(proc_t* p);
+static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty);
+
+static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, const char* path);
+
+static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p);
+static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t index);
+
+/**
+ * THREAD STORAGE
+ */
+
 static thread_list_node_t* proc_alloc_thread_storage_node()
 {
     thread_list_node_t* res = (thread_list_node_t*)kmalloc(sizeof(thread_list_node_t));
@@ -45,8 +63,7 @@ static thread_t* _proc_alloc_thread()
     }
 
     for (int i = 0; i < THREADS_PER_NODE; i++) {
-        uint32_t thread_status = thread_list.next_empty_node->thread_storage[i].status;
-        if ((thread_status == THREAD_INVALID) || (thread_status == THREAD_DEAD)) {
+        if (thread_is_free(&thread_list.next_empty_node->thread_storage[i])) {
             thread_list.next_empty_node->empty_spots--;
             thread_list.next_empty_index++;
             lock_release(&thread_list.lock);
@@ -61,18 +78,11 @@ static thread_t* _proc_alloc_thread()
  * HELPER FUNCTIONS
  */
 
-#define FOREACH_THREAD(p)                                                       \
-    thread_list_node_t* __thread_list_node = thread_list.head;                  \
-    while (__thread_list_node) {                                                \
-        for (int i = 0; i < THREADS_PER_NODE; i++) {                            \
-            if (__thread_list_node->thread_storage[i].process->pid == p->pid) { \
-                thread_t* thread = &__thread_list_node->thread_storage[i];
-
-#define END_FOREACH                                \
-    }                                              \
-    }                                              \
-    __thread_list_node = __thread_list_node->next; \
-    }
+#define foreach_thread(p)                                                                                                                      \
+    for (thread_list_node_t* __thread_list_node = thread_list.head; __thread_list_node != NULL; __thread_list_node = __thread_list_node->next) \
+        for (int i = 0; i < THREADS_PER_NODE; i++)                                                                                             \
+            for (thread_t* thread = &__thread_list_node->thread_storage[i]; thread; thread = NULL)                                             \
+                if (thread->process->pid == p->pid)
 
 thread_t* proc_alloc_thread()
 {
@@ -114,7 +124,7 @@ int proc_init_storage()
  * INIT FUNCTIONS
  */
 
-int proc_setup(proc_t* p)
+static ALWAYS_INLINE int proc_setup_lockless(proc_t* p)
 {
     p->pid = proc_alloc_pid();
     p->pgid = p->pid;
@@ -151,23 +161,32 @@ int proc_setup(proc_t* p)
 
     p->status = PROC_ALIVE;
     p->prio = DEFAULT_PRIO;
-
     return 0;
+}
+
+int proc_setup(proc_t* p)
+{
+    lock_acquire(&p->lock);
+    int res = proc_setup_lockless(p);
+    lock_release(&p->lock);
+    return res;
 }
 
 int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid)
 {
-    int err = proc_setup(p);
+    lock_acquire(&p->lock);
+    int err = proc_setup_lockless(p);
     p->uid = uid;
     p->gid = gid;
     p->euid = uid;
     p->egid = gid;
     p->suid = uid;
     p->sgid = gid;
+    lock_release(&p->lock);
     return err;
 }
 
-int proc_setup_tty(proc_t* p, tty_entry_t* tty)
+static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty)
 {
     file_descriptor_t* fd0 = &p->fds[0];
     file_descriptor_t* fd1 = &p->fds[1];
@@ -189,6 +208,14 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     }
     dentry_put(tty_dentry);
     return 0;
+}
+
+int proc_setup_tty(proc_t* p, tty_entry_t* tty)
+{
+    lock_acquire(&p->lock);
+    int res = proc_setup_tty_lockless(p, tty);
+    lock_release(&p->lock);
+    return res;
 }
 
 int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
@@ -265,7 +292,7 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     return 0;
 }
 
-int proc_load(proc_t* p, thread_t* main_thread, const char* path)
+static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, const char* path)
 {
     file_descriptor_t fd;
     dentry_t* dentry;
@@ -302,7 +329,7 @@ success:
     p->main_thread = main_thread;
 
     // Clearing proc
-    proc_kill_all_threads_except(p, p->main_thread);
+    proc_kill_all_threads_except_lockless(p, p->main_thread);
     p->pid = p->main_thread->tid;
     if (p->proc_file) {
         dentry_put(p->proc_file);
@@ -332,13 +359,23 @@ restore:
     return err;
 }
 
+int proc_load(proc_t* p, thread_t* main_thread, const char* path)
+{
+    lock_acquire(&p->lock);
+    int res = proc_load_lockless(p, main_thread, path);
+    lock_release(&p->lock);
+    return res;
+}
+
 /**
  * PROC FREE FUNCTIONS
  */
 
 int proc_free(proc_t* p)
 {
+    lock_acquire(&p->lock);
     if (p->status != PROC_DYING || p->pid == 0) {
+        lock_release(&p->lock);
         return -ESRCH;
     }
 
@@ -361,7 +398,7 @@ int proc_free(proc_t* p)
     }
 
     /* Key parts deletion. After that line you can't work with this process. */
-    proc_kill_all_threads(p);
+    proc_kill_all_threads_lockless(p);
     p->pid = 0;
 
     if (!p->is_kthread) {
@@ -370,23 +407,26 @@ int proc_free(proc_t* p)
     }
 
     dynamic_array_free(&p->zones);
+    lock_release(&p->lock);
     return 0;
 }
 
 int proc_die(proc_t* p)
 {
-    FOREACH_THREAD(p)
+    lock_acquire(&p->lock);
+    foreach_thread(p)
     {
         thread_die(thread);
     }
-    END_FOREACH
     p->status = PROC_DYING;
+    lock_release(&p->lock);
     return 0;
 }
 
 int proc_block_all_threads(proc_t* p, blocker_t* blocker)
 {
-    FOREACH_THREAD(p)
+    lock_acquire(&p->lock);
+    foreach_thread(p)
     {
         thread->status = THREAD_BLOCKED;
         thread->blocker.reason = blocker->reason;
@@ -394,7 +434,7 @@ int proc_block_all_threads(proc_t* p, blocker_t* blocker)
         thread->blocker.should_unblock_for_signal = blocker->should_unblock_for_signal;
         sched_dequeue(thread);
     }
-    END_FOREACH
+    lock_release(&p->lock);
     return 0;
 }
 
@@ -404,29 +444,39 @@ int proc_block_all_threads(proc_t* p, blocker_t* blocker)
 
 thread_t* proc_create_thread(proc_t* p)
 {
+    lock_acquire(&p->lock);
     thread_t* thread = proc_alloc_thread();
     thread_setup(p, thread);
     sched_enqueue(thread);
+    lock_release(&p->lock);
     return thread;
 }
 
-void proc_kill_all_threads(proc_t* p)
+static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, thread_t* gthread)
 {
-    FOREACH_THREAD(p)
+    foreach_thread(p)
     {
-        thread_free(thread);
+        if (gthread && thread->tid != gthread->tid) {
+            thread_free(thread);
+        }
     }
-    END_FOREACH
+}
+
+static ALWAYS_INLINE void proc_kill_all_threads_lockless(proc_t* p)
+{
+    proc_kill_all_threads_except_lockless(p, NULL);
 }
 
 void proc_kill_all_threads_except(proc_t* p, thread_t* gthread)
 {
-    FOREACH_THREAD(p)
-    {
-        if (thread->tid != gthread->tid)
-            thread_free(thread);
-    }
-    END_FOREACH
+    lock_acquire(&p->lock);
+    proc_kill_all_threads_except_lockless(p, gthread);
+    lock_release(&p->lock);
+}
+
+void proc_kill_all_threads(proc_t* p)
+{
+    proc_kill_all_threads_except(p, NULL);
 }
 
 /**
@@ -435,6 +485,7 @@ void proc_kill_all_threads_except(proc_t* p, thread_t* gthread)
 
 int proc_chdir(proc_t* p, const char* path)
 {
+    lock_acquire(&p->lock);
     char* kpath = NULL;
     if (!str_validate_len(path, 128)) {
         return -EINVAL;
@@ -457,11 +508,13 @@ int proc_chdir(proc_t* p, const char* path)
         dentry_put(p->cwd);
     }
     p->cwd = new_cwd;
+    lock_release(&p->lock);
     return 0;
 }
 
 int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
 {
+    lock_acquire(&p->lock);
     ASSERT(p->fds);
     /* Calculating id with pointers */
     uint32_t start = (uint32_t)p->fds;
@@ -469,12 +522,14 @@ int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
     fd_ptr -= start;
     int fd_res = fd_ptr / sizeof(file_descriptor_t);
     if (!(fd_ptr % sizeof(file_descriptor_t))) {
+        lock_release(&p->lock);
         return fd_res;
     }
+    lock_release(&p->lock);
     return -1;
 }
 
-file_descriptor_t* proc_get_free_fd(proc_t* p)
+static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p)
 {
     ASSERT(p->fds);
 
@@ -487,7 +542,15 @@ file_descriptor_t* proc_get_free_fd(proc_t* p)
     return NULL;
 }
 
-file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
+file_descriptor_t* proc_get_free_fd(proc_t* p)
+{
+    lock_acquire(&p->lock);
+    file_descriptor_t* res = proc_get_free_fd_lockless(p);
+    lock_release(&p->lock);
+    return res;
+}
+
+static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t index)
 {
     ASSERT(p->fds);
 
@@ -500,4 +563,12 @@ file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
     }
 
     return &p->fds[index];
+}
+
+file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
+{
+    lock_acquire(&p->lock);
+    file_descriptor_t* res = proc_get_fd_lockless(p, index);
+    lock_release(&p->lock);
+    return res;
 }

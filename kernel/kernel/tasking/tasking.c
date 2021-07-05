@@ -68,7 +68,7 @@ proc_t* tasking_get_proc(uint32_t pid)
             return p;
         }
     }
-    return 0;
+    return NULL;
 }
 
 proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
@@ -76,15 +76,11 @@ proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
     proc_t* p;
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
-        if (p->status == PROC_DEAD || p->status == PROC_DYING || p->status == PROC_INVALID) {
-            continue;
-        }
-
-        if (p->pdir == pdir) {
+        if (p->status == PROC_ALIVE && p->pdir == pdir) {
             return p;
         }
     }
-    return 0;
+    return NULL;
 }
 
 static proc_t* _tasking_alloc_proc()
