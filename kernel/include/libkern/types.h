@@ -89,7 +89,7 @@ typedef unsigned int size_t;
 typedef int ssize_t;
 #endif
 
-#define bool char
+#define bool _Bool
 #define true (1)
 #define false (0)
 
