@@ -17,21 +17,18 @@ bool str_validate_len(const char* c, uint32_t len);
 uint32_t ptrarr_len(const char** s);
 bool ptrarr_validate_len(const char** s, uint32_t len);
 
-static inline int imax(int a, int b)
-{
-    return a > b ? a : b;
-}
-static inline int imin(int a, int b)
-{
-    return a < b ? a : b;
-}
-static inline uint32_t u32max(uint32_t a, uint32_t b)
-{
-    return a > b ? a : b;
-}
-static inline uint32_t u32min(uint32_t a, uint32_t b)
-{
-    return a < b ? a : b;
-}
+#ifndef max
+#define max(a, b) \
+    ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+#endif /* max */
+
+#ifndef min
+#define min(a, b) \
+    ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
+#endif /* min */
 
 #endif // _KERNEL_LIBKERN_LIBKERN_H
