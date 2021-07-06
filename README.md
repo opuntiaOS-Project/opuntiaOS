@@ -12,6 +12,7 @@ Progress: April 2021</br></br>
 * /dev filesystem
 * POSIX signals
 * TTY
+* [learn more](https://github.com/oneOS-Project/oneOS/blob/master/docs/kernel.md)
 
 ### Libraries
 
