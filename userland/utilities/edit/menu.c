@@ -3,7 +3,6 @@
 #include "lifetime.h"
 #include <unistd.h>
 #include <stdlib.h>
-#endif
 
 char cmd[SCREEN_X];
 int pos = 0;

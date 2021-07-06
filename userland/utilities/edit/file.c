@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
-#endif
 
 file_view_area_t view_area;
 
@@ -97,7 +96,7 @@ int file_open(char* path)
 {
     int n;
     if ((view_area.fd = open(path, O_RDWR)) < 0) {
-        return;
+        return -1;
     }
 
     _file_buf_reload(0);
@@ -145,7 +144,7 @@ int file_save()
 int file_scroll_up()
 {
     if (view_area.line == 0 || view_area.start == 0) {
-        return;
+        return -1;
     }
     view_area.line--;
     int old_offset_in_file = view_area.offset + view_area.start;

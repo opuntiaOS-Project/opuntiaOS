@@ -2,7 +2,6 @@
 #include "file.h"
 #include <unistd.h>
 #include <stdlib.h>
-#endif
 
 int out_x, out_y;
 int cursor_x, cursor_y;
