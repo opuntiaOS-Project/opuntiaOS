@@ -23,6 +23,10 @@ int should_unblock_join_block(thread_t* thread)
 
 int init_join_blocker(thread_t* thread)
 {
+    if (should_unblock_join_block(thread)) {
+        return 0;
+    }
+
     thread->status = THREAD_BLOCKED;
     thread->blocker.reason = BLOCKER_JOIN;
     thread->blocker.should_unblock = should_unblock_join_block;
