@@ -111,9 +111,9 @@ struct dentry_ops {
 typedef struct dentry_ops dentry_ops_t;
 
 struct fs_ops {
-    void* recognize;
-    void* prepare_fs;
-    void* eject_device;
+    int (*recognize)(vfs_device_t* dev);
+    int (*prepare_fs)(vfs_device_t* dev);
+    int (*eject_device)(vfs_device_t* dev);
 
     file_ops_t file;
     dentry_ops_t dentry;

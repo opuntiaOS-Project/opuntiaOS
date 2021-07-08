@@ -95,16 +95,16 @@ driver_desc_t _procfs_driver_info()
     fs_desc.is_device_driver = false;
     fs_desc.is_device_needed = false;
     fs_desc.is_driver_needed = false;
-    fs_desc.functions[DRIVER_NOTIFICATION] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = 0; /* No custom open, vfs will use its code */
+    fs_desc.functions[DRIVER_NOTIFICATION] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = NULL; /* No custom open, vfs will use its code */
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = procfs_can_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = procfs_read;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = NULL;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = procfs_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = procfs_write_inode;
@@ -113,9 +113,9 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = procfs_lookup;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = procfs_getdents;
 
-    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = NULL;
     return fs_desc;
 }
 

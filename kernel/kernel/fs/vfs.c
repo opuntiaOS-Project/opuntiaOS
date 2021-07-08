@@ -57,12 +57,11 @@ int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
             continue;
         }
 
-        bool (*is_capable)(vfs_device_t * nd) = fs->ops->recognize;
-        if (is_capable(vfs_dev)) {
+        int err = fs->ops->recognize(vfs_dev);
+        if (!err) {
             vfs_dev->fs = i;
             if (fs->ops->prepare_fs) {
-                int (*prepare_fs)(vfs_device_t * nd) = fs->ops->prepare_fs;
-                return prepare_fs(&_vfs_devices[vfs_dev->dev->id]);
+                return fs->ops->prepare_fs(&_vfs_devices[vfs_dev->dev->id]);
             }
             return 0;
         }
@@ -132,7 +131,7 @@ void vfs_eject_device(device_t* dev)
     int fs_id = _vfs_devices[dev->id].fs;
     fs_desc_t* fs = dynamic_array_get(&_vfs_fses, (int)fs_id);
     if (fs->ops->eject_device) {
-        bool (*eject)(vfs_device_t * nd) = fs->ops->eject_device;
+        int (*eject)(vfs_device_t * nd) = fs->ops->eject_device;
         eject(&_vfs_devices[dev->id]);
     }
     dentry_put_all_dentries_of_dev(dev->id);

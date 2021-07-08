@@ -86,9 +86,9 @@ static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode);
 static int _ext2_setup_file(dentry_t* file, mode_t mode);
 
 /* API FUNTIONS */
-bool ext2_recognize_drive(vfs_device_t* dev);
+int ext2_recognize_drive(vfs_device_t* dev);
 int ext2_prepare_fs(vfs_device_t* dev);
-void ext2_save_state(vfs_device_t* dev);
+int ext2_save_state(vfs_device_t* dev);
 fsdata_t get_fsdata(dentry_t* dentry);
 
 int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
@@ -1027,28 +1027,26 @@ int ext2_rm(dentry_t* dentry)
         return -EFAULT;
     }
 
-    log("free from ext2");
     return 0;
 }
 
-/* TODO return int */
-bool ext2_recognize_drive(vfs_device_t* dev)
+int ext2_recognize_drive(vfs_device_t* dev)
 {
     superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
 
     if (superblock->magic != 0xEF53) {
         kfree(superblock);
-        return false;
+        return -EINVAL;
     }
     if (superblock->rev_level != 0) {
         kfree(superblock);
-        return false;
+        return -EINVAL;
     }
 
     kfree(superblock);
 
-    return true;
+    return 0;
 }
 
 int ext2_prepare_fs(vfs_device_t* dev)
@@ -1057,7 +1055,6 @@ int ext2_prepare_fs(vfs_device_t* dev)
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     _ext2_superblocks[dev->dev->id] = superblock;
 
-    // FIXME: for now we consider that we have at max 5 groups
     uint32_t groups_cnt = _ext2_get_groups_cnt(dev, superblock);
     uint32_t group_table_len = groups_cnt * GROUP_LEN;
     group_desc_t* group_table = (group_desc_t*)kmalloc(group_table_len);
@@ -1069,15 +1066,14 @@ int ext2_prepare_fs(vfs_device_t* dev)
     return 0;
 }
 
-void ext2_save_state(vfs_device_t* dev)
+int ext2_save_state(vfs_device_t* dev)
 {
     if (!_ext2_superblocks[dev->dev->id]) {
-        return;
+        return -1;
     }
 
     superblock_t* superblock = _ext2_superblocks[dev->dev->id];
 
-    // FIXME: for now we consider that we have at max 5 groups
     uint32_t group_table_len = _ext2_group_table_info[dev->dev->id].count * GROUP_LEN;
     group_desc_t* group_table = _ext2_group_table_info[dev->dev->id].table;
     _ext2_write_to_dev(dev, (uint8_t*)group_table, _ext2_get_block_offset(superblock, 2), group_table_len);
@@ -1085,6 +1081,7 @@ void ext2_save_state(vfs_device_t* dev)
 
     _ext2_write_to_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     kfree(superblock);
+    return 0;
 }
 
 fsdata_t get_fsdata(dentry_t* dentry)
@@ -1107,14 +1104,14 @@ driver_desc_t _ext2_driver_info()
     fs_desc.is_device_driver = false;
     fs_desc.is_device_needed = false;
     fs_desc.is_driver_needed = false;
-    fs_desc.functions[DRIVER_NOTIFICATION] = 0;
+    fs_desc.functions[DRIVER_NOTIFICATION] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = ext2_recognize_drive;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = ext2_prepare_fs;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = ext2_can_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE] = ext2_can_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = ext2_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = ext2_write;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = 0; /* No custom open, vfs will use its code */
+    fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = NULL; /* No custom open, vfs will use its code */
     fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = ext2_truncate;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = ext2_mkdir;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RMDIR] = ext2_rmdir;
@@ -1129,9 +1126,9 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = ext2_create;
     fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = ext2_rm;
 
-    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = 0;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = 0;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = NULL;
 
     return fs_desc;
 }
