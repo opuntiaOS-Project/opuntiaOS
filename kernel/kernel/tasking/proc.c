@@ -190,6 +190,7 @@ static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty)
 {
     file_descriptor_t* fd0 = &p->fds[0];
     file_descriptor_t* fd1 = &p->fds[1];
+    file_descriptor_t* fd2 = &p->fds[2];
     p->tty = tty;
 
     char* path_to_tty = "/dev/tty ";
@@ -203,6 +204,10 @@ static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty)
         return err;
     }
     err = vfs_open(tty_dentry, fd1, O_RDWR);
+    if (err) {
+        return err;
+    }
+    err = vfs_open(tty_dentry, fd2, O_RDWR);
     if (err) {
         return err;
     }

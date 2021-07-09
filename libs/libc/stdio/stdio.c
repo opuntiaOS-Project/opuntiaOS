@@ -201,7 +201,7 @@ static int _parse_mode(const char* mode, mode_t* flags)
  * STREAM
  */
 
-static int _init_stream(FILE* file)
+static inline int _init_stream(FILE* file)
 {
     file->_file = -1;
     file->_flags = _IO_MAGIC;
@@ -209,6 +209,7 @@ static int _init_stream(FILE* file)
     file->_w = 0;
     file->_bf.base = NULL;
     file->_bf.size = 0;
+    file->_ungotc = UNGOTC_EMPTY;
     return 0;
 }
 
@@ -261,7 +262,7 @@ FILE* fopen(const char* path, const char* mode)
     return _fopen_internal(path, mode);
 }
 
-static size_t _do_system_read(void* ptr, size_t size, FILE* stream)
+static size_t _do_system_read(char* ptr, size_t size, FILE* stream)
 {
     ssize_t read_cnt = read(stream->_file, ptr, size);
     if (read_cnt < 0) {
@@ -270,13 +271,25 @@ static size_t _do_system_read(void* ptr, size_t size, FILE* stream)
     return (size_t)read_cnt;
 }
 
-static size_t _fread_internal(void* ptr, size_t size, FILE* stream)
+static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
 {
+    if (size == 0) {
+        return 0;
+    }
+
     if (!_can_use_buffer(stream)) {
         return _do_system_read(ptr, size, stream);
     }
 
     size_t total_size = 0;
+
+    if (stream->_ungotc != UNGOTC_EMPTY) {
+        ptr[0] = (char)stream->_ungotc;
+        ptr++;
+        size--;
+        total_size++;
+        stream->_ungotc = UNGOTC_EMPTY;
+    }
 
     if (stream->_r) {
         size_t read_from_buf = min(stream->_r, size);
@@ -424,13 +437,33 @@ int getchar()
     return fgetc(stdin);
 }
 
+int ungetc(int c, FILE* stream)
+{
+    if (c == EOF) {
+        return EOF;
+    }
+
+    if (!stream) {
+        set_errno(EINVAL);
+        return EOF;
+    }
+
+    if (stream->_ungotc != UNGOTC_EMPTY) {
+        set_errno(EBUSY);
+        return EOF;
+    }
+
+    stream->_ungotc = c;
+    return c;
+}
+
 char* fgets(char* s, int size, FILE* stream)
 {
     if (!stream) {
         set_errno(EINVAL);
         return NULL;
     }
-    
+
     size_t count = fread(s, size, 1, stream);
     return count ? s : NULL;
 }

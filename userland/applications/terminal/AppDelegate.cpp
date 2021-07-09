@@ -20,7 +20,9 @@ int setup_shell()
         }
         close(0);
         close(1);
+        close(2);
         open(pname, O_RDONLY);
+        open(pname, O_WRONLY);
         open(pname, O_WRONLY);
         execve("/bin/onesh", 0, 0);
     }

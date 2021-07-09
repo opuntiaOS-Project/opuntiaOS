@@ -12,6 +12,7 @@ __BEGIN_DECLS
 #define _IONBF 2 /* setvbuf should set unbuffered */
 #define BUFSIZ 1024 /* size of buffer used by setbuf */
 #define EOF (-1)
+#define UNGOTC_EMPTY (-0x400)
 
 struct __fbuf {
     char* base;
@@ -34,6 +35,7 @@ struct __file {
     size_t _r; /* read space left */
     size_t _w; /* write space left */
     __rwbuf_t _bf; /* rw buffer */
+    int _ungotc; /* ungot char. If spot is empty, it equals to UNGOTC_EMPTY */
 };
 typedef struct __file FILE;
 
@@ -59,6 +61,7 @@ int puts(const char* s);
 int fgetc(FILE* stream);
 int getc(FILE* stream);
 int getchar();
+int ungetc(int c, FILE* stream);
 
 char* fgets(char* s, int size, FILE* stream);
 
@@ -75,6 +78,7 @@ int printf(const char* format, ...);
 
 int vsscanf(const char* buf, const char* format, va_list arg);
 int sscanf(const char* str, const char* fmt, ...);
+int scanf(const char* fmt, ...);
 
 __END_DECLS
 
