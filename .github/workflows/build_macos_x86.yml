@@ -34,7 +34,7 @@ jobs:
 
     - name: Create LLVM Build Environment
       run: |
-        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/12.0.0_1/bin"
+        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/12.0.1/bin"
         gn gen out --args='target_cpu="x86" host="llvm"'
 
     - name: Build LLVM
@@ -47,7 +47,7 @@ jobs:
 
     - name: Create Mobile LLVM Build Environment
       run: |
-        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/12.0.0_1/bin"
+        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/12.0.1/bin"
         gn gen out --args='target_cpu="x86" host="llvm" device_type="m"'
 
     - name: Build Mobile with LLVM
