@@ -32,6 +32,7 @@ static ALWAYS_INLINE int proc_setup_lockless(proc_t* p);
 static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty);
 
 static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, const char* path);
+static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path);
 
 static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p);
 static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t index);
@@ -488,9 +489,8 @@ void proc_kill_all_threads(proc_t* p)
  * PROC FS FUNCTIONS
  */
 
-int proc_chdir(proc_t* p, const char* path)
+static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path)
 {
-    lock_acquire(&p->lock);
     char* kpath = NULL;
     if (!str_validate_len(path, 128)) {
         return -EINVAL;
@@ -513,8 +513,15 @@ int proc_chdir(proc_t* p, const char* path)
         dentry_put(p->cwd);
     }
     p->cwd = new_cwd;
-    lock_release(&p->lock);
     return 0;
+}
+
+int proc_chdir(proc_t* p, const char* path)
+{
+    lock_acquire(&p->lock);
+    int res = proc_chdir_lockless(p, path);
+    lock_release(&p->lock);
+    return res;
 }
 
 int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
