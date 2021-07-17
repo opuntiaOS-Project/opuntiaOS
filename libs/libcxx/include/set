@@ -30,7 +30,6 @@ public:
     using const_pointer = const value_type*;
     using node_type = typename __tree_type::node_type;
 
-public:
     set()
         : m_tree()
     {

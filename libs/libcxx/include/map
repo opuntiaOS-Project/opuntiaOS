@@ -1,0 +1,106 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_MAP
+#define _LIBCXX_MAP
+
+#include <__config>
+#include <__rbtree>
+#include <functional>
+#include <memory>
+#include <type_traits>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+namespace details {
+template <class Key, class T>
+struct map_key_finder {
+    constexpr bool operator()(const std::pair<Key, T>& lhs, const std::pair<Key, T>& rhs) const
+    {
+        return lhs.first == rhs.first;
+    }
+};
+};
+
+template <class Key, class T, class Compare = std::less<std::pair<Key, T>>, class Allocator = std::allocator<std::pair<Key, T>>>
+class map {
+private:
+    using __value_type = std::pair<Key, T>;
+    using __tree_type = __rbtree<__value_type, Compare, Allocator>;
+
+public:
+    using key_type = Key;
+    using mapped_type = T;
+    using value_type = std::pair<key_type, mapped_type>;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using key_compare = Compare;
+    using value_compare = Compare;
+    using allocator_type = Allocator;
+    using refernce = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using node_type = typename __tree_type::node_type;
+
+    map()
+        : m_tree()
+    {
+    }
+
+    map(const Compare& comp, const Allocator& alloc = Allocator())
+        : m_tree(comp, alloc)
+    {
+    }
+
+    explicit map(const Allocator& alloc)
+        : m_tree(alloc)
+    {
+    }
+
+    // TODO: Return std::pair<iterator, bool>
+    inline bool insert(const_reference value) { return m_tree.insert(value); }
+    inline bool insert(value_type&& value) { return m_tree.insert(std::move(value)); }
+
+    inline size_type erase(const key_type& key) { return m_tree.erase({ key, T() }, details::map_key_finder<Key, T>()); }
+
+    inline allocator_type get_allocator() const noexcept { return m_tree.get_allocator(); }
+    inline size_type size() const { return m_tree.size(); }
+    inline bool empty() const { return size() == 0; }
+
+    T& at(const Key& key)
+    {
+        // TODO: Exceptions are not supported
+        pointer res = m_tree.find({ key, T() }, details::map_key_finder<Key, T>());
+        if (!res) {
+            m_tree.insert({ key, T() });
+            res = m_tree.find({ key, T() }, details::map_key_finder<Key, T>());
+        }
+
+        return res->second;
+    }
+
+    const T& at(const Key& key) const
+    {
+        pointer res = m_tree.find({ key, T() }, details::map_key_finder<Key, T>());
+
+        // TODO: Exceptions are not supported, so we simply add this element for now
+        if (!res) {
+            m_tree.insert({ key, T() });
+            res = m_tree.find({ key, T() }, details::map_key_finder<Key, T>());
+        }
+
+        return res->second;
+    }
+
+    T& operator[](const Key& key)
+    {
+        return at(key);
+    }
+
+private:
+    __tree_type m_tree;
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_MAP

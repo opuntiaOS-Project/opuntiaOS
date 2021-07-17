@@ -55,7 +55,7 @@ public:
     bool is_black() const { return color() == color_type::Black; }
     bool is_nil_node() const { return m_is_nil_node; }
     const_reference value() const { return m_value; }
-    value_type&& value() { return std::move(m_value); }
+    value_type& value() { return m_value; }
 
 protected:
     __rbtree_node(bool is_nil_node, color_type color)
@@ -130,67 +130,27 @@ public:
         return true;
     }
 
-    size_type erase(const_reference value)
+    template <class EqComp>
+    size_type erase(const_reference value, EqComp comp) { return erase_node(_btree_find(value, comp)); }
+    size_type erase(const_reference value) { return erase_node(_btree_find(value)); }
+
+    pointer find(const_reference value)
     {
-        node_pointer node_to_delete = _btree_find(value);
-        if (!node_to_delete || node_to_delete->is_nil_node()) {
-            return 0;
+        node_pointer res = _btree_find(value);
+        if (!res) {
+            return nullptr;
         }
-        m_size--;
+        return &res->m_value;
+    }
 
-        auto children_count = [](node_pointer node) -> size_t {
-            return (size_t)(!node->left_child()->is_nil_node()) + (size_t)(!node->right_child()->is_nil_node());
-        };
-
-        auto destroy_node = [this](node_pointer node) {
-            if (node && node->is_nil_node()) {
-                return;
-            }
-            std::destroy_at(node);
-            this->m_node_allocator.deallocate(node, 1);
-        };
-
-        if (children_count(node_to_delete) == 0) {
-            if (is_root(node_to_delete)) {
-                m_root = nil_node();
-            } else {
-                if (is_left_child(node_to_delete)) {
-                    node_to_delete->parent()->set_left_child(nil_node());
-                } else {
-                    node_to_delete->parent()->set_right_child(nil_node());
-                }
-            }
-            return 1;
+    template <class EqComp>
+    pointer find(const_reference value, EqComp comp)
+    {
+        node_pointer res = _btree_find(value, comp);
+        if (!res) {
+            return nullptr;
         }
-
-        node_pointer left_most = _btree_left_most(node_to_delete->right_child());
-        node_pointer child = left_most->right_child();
-        if (left_most == nil_node()) {
-            child = nil_node();
-            left_most = node_to_delete->left_child();
-        }
-
-        child->set_parent(left_most->parent());
-        if (is_root(left_most)) {
-            m_root = child;
-        } else {
-            if (is_left_child(left_most)) {
-                left_most->parent()->set_left_child(child);
-            } else {
-                left_most->parent()->set_right_child(child);
-            }
-        }
-
-        if (node_to_delete != left_most) {
-            node_to_delete->set_value(std::move(left_most->value()));
-        }
-
-        if (left_most->is_black()) {
-            balance_after_delete(child);
-        }
-
-        destroy_node(left_most);
-        return 1;
+        return &res->m_value;
     }
 
     allocator_type get_allocator() const noexcept { return m_allocator; }
@@ -386,6 +346,68 @@ private:
         }
     }
 
+    size_type erase_node(node_pointer node_to_delete)
+    {
+        if (!node_to_delete || node_to_delete->is_nil_node()) {
+            return 0;
+        }
+        m_size--;
+
+        auto children_count = [](node_pointer node) -> size_t {
+            return (size_t)(!node->left_child()->is_nil_node()) + (size_t)(!node->right_child()->is_nil_node());
+        };
+
+        auto destroy_node = [this](node_pointer node) {
+            if (node && node->is_nil_node()) {
+                return;
+            }
+            std::destroy_at(node);
+            this->m_node_allocator.deallocate(node, 1);
+        };
+
+        if (children_count(node_to_delete) == 0) {
+            if (is_root(node_to_delete)) {
+                m_root = nil_node();
+            } else {
+                if (is_left_child(node_to_delete)) {
+                    node_to_delete->parent()->set_left_child(nil_node());
+                } else {
+                    node_to_delete->parent()->set_right_child(nil_node());
+                }
+            }
+            return 1;
+        }
+
+        node_pointer left_most = _btree_left_most(node_to_delete->right_child());
+        node_pointer child = left_most->right_child();
+        if (left_most == nil_node()) {
+            child = nil_node();
+            left_most = node_to_delete->left_child();
+        }
+
+        child->set_parent(left_most->parent());
+        if (is_root(left_most)) {
+            m_root = child;
+        } else {
+            if (is_left_child(left_most)) {
+                left_most->parent()->set_left_child(child);
+            } else {
+                left_most->parent()->set_right_child(child);
+            }
+        }
+
+        if (node_to_delete != left_most) {
+            node_to_delete->set_value(std::move(left_most->value()));
+        }
+
+        if (left_most->is_black()) {
+            balance_after_delete(child);
+        }
+
+        destroy_node(left_most);
+        return 1;
+    }
+
     node_pointer _btree_insert(value_type&& value)
     {
         node_pointer new_node = m_node_allocator.allocate(1);
@@ -429,6 +451,24 @@ private:
         node_pointer cur_node = m_root;
         while (cur_node && !cur_node->is_nil_node()) {
             if (cur_node->value() == value) {
+                return cur_node;
+            }
+
+            if (m_comp(value, cur_node->value())) {
+                cur_node = cur_node->left_child();
+            } else {
+                cur_node = cur_node->right_child();
+            }
+        }
+        return nullptr;
+    }
+
+    template <class EqComp>
+    node_pointer _btree_find(const_reference value, EqComp eq_comp)
+    {
+        node_pointer cur_node = m_root;
+        while (cur_node && !cur_node->is_nil_node()) {
+            if (eq_comp(cur_node->value(), value)) {
                 return cur_node;
             }
 
