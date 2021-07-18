@@ -7,6 +7,7 @@
 
 #include <algo/bitmap.h>
 #include <libkern/libkern.h>
+#include <libkern/lock.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
 #include <mem/vmm/zoner.h>
@@ -16,6 +17,7 @@ struct kmalloc_header {
 };
 typedef struct kmalloc_header kmalloc_header_t;
 
+static lock_t _kmalloc_lock;
 static zone_t _kmalloc_zone;
 static uint32_t _kmalloc_bitmap_len = 0;
 static uint8_t* _kmalloc_bitmap;
@@ -47,12 +49,14 @@ static void _kmalloc_init_bitmap()
 
 void kmalloc_init()
 {
+    lock_init(&_kmalloc_lock);
     _kmalloc_zone = zoner_new_zone(KMALLOC_SPACE_SIZE);
     _kmalloc_init_bitmap();
 }
 
 void* kmalloc(uint32_t size)
 {
+    lock_acquire(&_kmalloc_lock);
     int act_size = size + sizeof(kmalloc_header_t);
 
     int blocks_needed = (act_size + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
@@ -60,14 +64,14 @@ void* kmalloc(uint32_t size)
     int start = bitmap_find_space(bitmap, blocks_needed);
     if (start < 0) {
         log_error("[Err] NO SPACE AT KMALLOC");
-        while (1) { }
-        return 0;
+        system_stop();
     }
 
     kmalloc_header_t* space = (kmalloc_header_t*)kmalloc_to_vaddr(start);
     space->len = act_size;
     bitmap_set_range(bitmap, start, blocks_needed);
 
+    lock_release(&_kmalloc_lock);
     return (void*)&space[1];
 }
 
@@ -89,7 +93,9 @@ void kfree(void* ptr)
 {
     kmalloc_header_t* sptr = (kmalloc_header_t*)ptr;
     int blocks_to_delete = (sptr[-1].len + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
+    lock_acquire(&_kmalloc_lock);
     bitmap_unset_range(bitmap, kmalloc_to_index((uint32_t)&sptr[-1]), blocks_to_delete);
+    lock_release(&_kmalloc_lock);
 }
 
 void kfree_aligned(void* ptr)

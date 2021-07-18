@@ -59,7 +59,7 @@ static int _elf_load_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_progra
         for (int i = 0; i < PAGES_PER_COPING_BUFFER && mem_remaining; i++) {
             uint32_t mem_write_len = min(mem_remaining, VMM_PAGE_SIZE);
             if (proc_find_zone(p, mem_offset)) {
-                vmm_fast_copy_to_active_pdir(write_ptr, mem_offset, mem_write_len);
+                vmm_copy_to_user((void*)mem_offset, write_ptr, mem_write_len);
             }
             mem_offset += mem_write_len;
             mem_remaining -= mem_write_len;

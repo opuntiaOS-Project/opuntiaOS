@@ -22,6 +22,7 @@
 #include <algo/bitmap.h>
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
+#include <libkern/lock.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
 
@@ -31,20 +32,21 @@
 
 static uint32_t _zoner_next_vaddr;
 static uint8_t* _zoner_bitmap;
+static lock_t _zoner_lock;
 static bitmap_t bitmap;
 static bool _zoner_bitmap_set;
 
 /**
  * The function is used to allocate zones before bitmap is set.
  */
-static uint32_t _zoner_new_vzone(uint32_t size)
+static uint32_t _zoner_new_vzone_lockless(uint32_t size)
 {
     uint32_t res = _zoner_next_vaddr;
     _zoner_next_vaddr += size;
     return res;
 }
 
-static uint32_t _zoner_new_vzone_aligned(uint32_t size, uint32_t alignment)
+static uint32_t _zoner_new_vzone_aligned_lockless(uint32_t size, uint32_t alignment)
 {
     uint32_t res = _zoner_next_vaddr;
     _zoner_next_vaddr += size + alignment;
@@ -58,15 +60,18 @@ static uint32_t _zoner_new_vzone_aligned(uint32_t size, uint32_t alignment)
  */
 void zoner_place_bitmap()
 {
-    _zoner_bitmap = (uint8_t*)_zoner_new_vzone(ZONER_BITMAP_SIZE);
+    lock_acquire(&_zoner_lock);
+    _zoner_bitmap = (uint8_t*)_zoner_new_vzone_lockless(ZONER_BITMAP_SIZE);
     bitmap = bitmap_wrap(_zoner_bitmap, ZONER_BITMAP_SIZE * 8);
     memset(_zoner_bitmap, 0, ZONER_BITMAP_SIZE);
     _zoner_bitmap_set = true;
     bitmap_set_range(bitmap, 0, ZONER_TO_BITMAP_INDEX(_zoner_next_vaddr));
+    lock_release(&_zoner_lock);
 }
 
 void zoner_init(uint32_t start_vaddr)
 {
+    lock_init(&_zoner_lock);
     _zoner_next_vaddr = start_vaddr;
 }
 
@@ -76,6 +81,7 @@ void zoner_init(uint32_t start_vaddr)
  */
 zone_t zoner_new_zone(uint32_t size)
 {
+    lock_acquire(&_zoner_lock);
     if (size % VMM_PAGE_SIZE) {
         size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
     }
@@ -83,7 +89,7 @@ zone_t zoner_new_zone(uint32_t size)
     zone_t zone;
 
     if (!_zoner_bitmap_set) {
-        zone.start = _zoner_new_vzone(size);
+        zone.start = _zoner_new_vzone_lockless(size);
     } else {
         uint32_t blocks = size / VMM_PAGE_SIZE;
         int start = bitmap_find_space(bitmap, blocks);
@@ -91,6 +97,7 @@ zone_t zoner_new_zone(uint32_t size)
         if (start < 0) {
             zone.start = 0;
             zone.len = 0;
+            lock_release(&_zoner_lock);
             return zone;
         }
 
@@ -102,11 +109,13 @@ zone_t zoner_new_zone(uint32_t size)
     }
 
     zone.len = size;
+    lock_release(&_zoner_lock);
     return zone;
 }
 
 zone_t zoner_new_zone_aligned(uint32_t size, uint32_t alignment)
 {
+    lock_acquire(&_zoner_lock);
     if (size % VMM_PAGE_SIZE) {
         size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
     }
@@ -118,7 +127,7 @@ zone_t zoner_new_zone_aligned(uint32_t size, uint32_t alignment)
     zone_t zone;
 
     if (!_zoner_bitmap_set) {
-        zone.start = _zoner_new_vzone_aligned(size, alignment);
+        zone.start = _zoner_new_vzone_aligned_lockless(size, alignment);
     } else {
         uint32_t blocks = size / VMM_PAGE_SIZE;
         uint32_t blocks_alignment = alignment / VMM_PAGE_SIZE;
@@ -127,6 +136,7 @@ zone_t zoner_new_zone_aligned(uint32_t size, uint32_t alignment)
         if (start < 0) {
             zone.start = 0;
             zone.len = 0;
+            lock_release(&_zoner_lock);
             return zone;
         }
 
@@ -138,6 +148,7 @@ zone_t zoner_new_zone_aligned(uint32_t size, uint32_t alignment)
     }
 
     zone.len = size;
+    lock_release(&_zoner_lock);
     return zone;
 }
 
@@ -145,7 +156,7 @@ zone_t zoner_new_zone_aligned(uint32_t size, uint32_t alignment)
  * Returns new zone vaddr start.
  * Note, the function does NOT map this vaddr, it's on your own.
  */
-int zoner_free_zone(zone_t zone)
+static ALWAYS_INLINE int zoner_free_zone_lockless(zone_t zone)
 {
     /* Checking if it was allocated with bitmap */
     if (zone.start < _zoner_next_vaddr) {
@@ -155,4 +166,12 @@ int zoner_free_zone(zone_t zone)
     int start = ZONER_TO_BITMAP_INDEX(zone.start);
     uint32_t blocks = zone.len / VMM_PAGE_SIZE;
     return bitmap_unset_range(bitmap, start, blocks);
+}
+
+int zoner_free_zone(zone_t zone)
+{
+    lock_acquire(&_zoner_lock);
+    int res = zoner_free_zone_lockless(zone);
+    lock_release(&_zoner_lock);
+    return res;
 }

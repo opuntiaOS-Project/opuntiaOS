@@ -16,6 +16,7 @@
 
 #define KB (1024)
 #define MB (1024 * 1024)
+#define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
 
 /* Note: If you change them, change also proc zone flags */
 enum PAGE_FLAGS {
@@ -59,8 +60,6 @@ struct dynamic_array;
 
 int vmm_setup();
 
-table_desc_t* vmm_pdirectory_lookup(pdirectory_t* t_pdir, uint32_t t_addr);
-page_desc_t* vmm_ptable_lookup(ptable_t* t_ptable, uint32_t t_addr);
 int vmm_allocate_ptable(uint32_t vaddr);
 int vmm_free_ptable(uint32_t vaddr, struct dynamic_array* zones);
 int vmm_free_pdir(pdirectory_t* pdir, struct dynamic_array* zones);
@@ -75,25 +74,22 @@ pdirectory_t* vmm_new_user_pdir();
 pdirectory_t* vmm_new_forked_user_pdir();
 void* vmm_bring_to_kernel(uint8_t* src, uint32_t length);
 void vmm_prepare_active_pdir_for_copying_at(uint32_t dest_vaddr, uint32_t length);
-void vmm_fast_copy_to_active_pdir(void* src, uint32_t dest_vaddr, uint32_t length);
 void vmm_copy_to_user(void* dest, void* src, uint32_t length);
 void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uint32_t dest_vaddr, uint32_t length);
 void vmm_zero_user_pages(pdirectory_t* pdir);
+
 pdirectory_t* vmm_get_active_pdir();
 pdirectory_t* vmm_get_kernel_pdir();
 
 int vmm_load_page(uint32_t vaddr, uint32_t settings);
 int vmm_tune_page(uint32_t vaddr, uint32_t settings);
 int vmm_tune_pages(uint32_t vaddr, uint32_t length, uint32_t settings);
-
-int vmm_alloc_page(page_desc_t* page);
 int vmm_free_page(uint32_t vaddr, page_desc_t* page, struct dynamic_array* zones);
-int vmm_page_fault_handler(uint32_t info, uint32_t vaddr);
 
 int vmm_switch_pdir(pdirectory_t* pdir);
 void vmm_enable_paging();
 void vmm_disable_paging();
 
-int vmm_is_kernel_address(uint32_t add);
+int vmm_page_fault_handler(uint32_t info, uint32_t vaddr);
 
 #endif // _KERNEL_MEM_VMM_VMM_H

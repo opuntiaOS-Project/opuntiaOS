@@ -10,11 +10,11 @@
 
 #include <drivers/generic/fpu.h>
 #include <libkern/types.h>
+#include <mem/vmm/vmm.h>
 #include <platform/generic/tasking/context.h>
 
 #define CPU_CNT 1
 #define THIS_CPU (&cpus[0])
-#define RUNNING_THREAD (THIS_CPU->running_thread)
 #define FPU_ENABLED
 
 struct thread;
@@ -26,6 +26,7 @@ enum CPU_STATE {
 
 typedef struct {
     char* kstack;
+    pdirectory_t* pdir;
     context_t* scheduler; // context of sched's registers
     struct thread* running_thread;
     cpu_state_t current_state;

@@ -13,6 +13,7 @@
 #include <libkern/log.h>
 #include <libkern/syscall_structs.h>
 #include <mem/kmalloc.h>
+#include <tasking/cpu.h>
 #include <tasking/proc.h>
 #include <tasking/tasking.h>
 

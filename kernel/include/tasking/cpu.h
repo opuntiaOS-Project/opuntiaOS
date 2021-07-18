@@ -9,10 +9,12 @@
 #define _KERNEL_TASKING_CPU_H
 
 #include <drivers/generic/fpu.h>
-#include <tasking/bits/cpu.h>
+#include <platform/generic/cpu.h>
 #include <tasking/bits/sched.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
+
+#define RUNNING_THREAD (THIS_CPU->running_thread)
 
 static inline void cpu_enter_kernel_space()
 {

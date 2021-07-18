@@ -15,7 +15,7 @@
 #include <mem/vmm/zoner.h>
 #include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
-#include <tasking/bits/cpu.h>
+#include <tasking/cpu.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>
 
