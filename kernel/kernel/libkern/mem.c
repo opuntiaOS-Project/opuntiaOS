@@ -8,6 +8,7 @@
 #include <libkern/libkern.h>
 #include <mem/kmalloc.h>
 
+#ifdef __i386__
 void* memset(void* dest, uint8_t fll, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
@@ -15,6 +16,7 @@ void* memset(void* dest, uint8_t fll, uint32_t nbytes)
     }
     return dest;
 }
+#endif
 
 void* memcpy(void* dest, const void* src, uint32_t nbytes)
 {
