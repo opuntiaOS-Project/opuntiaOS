@@ -1,5 +1,6 @@
 #include <string.h>
 
+#ifdef __i386__
 void* memset(void* dest, int fll, size_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
@@ -7,6 +8,7 @@ void* memset(void* dest, int fll, size_t nbytes)
     }
     return dest;
 }
+#endif //__i386__
 
 void* memmove(void* dest, const void* src, size_t nbytes)
 {

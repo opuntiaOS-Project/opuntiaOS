@@ -36,6 +36,10 @@ oneOS_static_library("libcxx") {
     "src/iostream.cpp",
   ]
 
+  if (target_cpu == "aarch32") {
+    sources += [ "../libc/string/routines/aarch32/memset.S" ]
+  }
+
   include_dirs = [
     "include/",
     "//libs/libc/include/",

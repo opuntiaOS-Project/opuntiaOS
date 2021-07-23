@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-// Target ARMv7.
+// Target ARMv7
 
 .global memset
 
