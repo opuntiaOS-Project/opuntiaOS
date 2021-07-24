@@ -24,8 +24,6 @@ memset:
 memset_byte:
     subs	r2, r2, #1
     strb    r1, [r3], #1
-    
-    cmp     r2, #0
     beq     memset_exit
     
     tst     r3, #3

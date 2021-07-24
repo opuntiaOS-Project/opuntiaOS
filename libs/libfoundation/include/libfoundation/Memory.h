@@ -36,9 +36,45 @@ namespace LFoundation {
         : "D"(dest), "c"(count), "a"(val)
         : "memory");
 #elif __arm__
-    while (count--) {
-        *dest++ = val;
-    }
+    asm volatile(
+        "cmp     %[count], #0\n"
+        "beq     fast_set_exit%=\n"
+        "tst     %[ptr], #15\n"
+        "beq     fast_set_16bytes_aligned_entry%=\n"
+        "fast_set_4bytes_aligned_loop%=:\n"
+        "subs	 %[count], %[count], #1\n"
+        "str     %[value], [%[ptr]], #4\n"
+        "beq     fast_set_exit%=\n"
+        "tst     %[ptr], #15\n"
+        "bne     fast_set_4bytes_aligned_loop%=\n"
+        "fast_set_16bytes_aligned_entry%=:\n"
+        "cmp     %[count], #4\n"
+        "blt     fast_set_16bytes_aligned_exit%=\n"
+        "fast_set_16bytes_aligned_preloop%=:\n"
+        "mov     r4, %[value]\n"
+        "mov     r5, %[value]\n"
+        "mov     r6, %[value]\n"
+        "mov     r7, %[value]\n"
+        "fast_set_16bytes_aligned_loop%=:\n"
+        "subs	 %[count], %[count], #4\n"
+        "stmia	 %[ptr]!, {r4,r5,r6,r7}\n"
+        "cmp     %[count], #4\n"
+        "bge     fast_set_16bytes_aligned_loop%=\n"
+        "fast_set_16bytes_aligned_exit%=:\n"
+        "cmp     %[count], #0\n"
+        "beq     fast_set_exit%=\n"
+        "fast_set_4bytes_aligned_loop_2_%=:\n"
+        "subs	 %[count], %[count], #1\n"
+        "str     %[value], [%[ptr]], #4\n"
+        "bne     fast_set_4bytes_aligned_loop_2_%=\n"
+        "fast_set_exit%=:"
+        : [value] "=r"(val),
+        [ptr] "=r"(dest),
+        [count] "=r"(count)
+        : "[value]"(val),
+        "[ptr]"(dest),
+        "[count]"(count)
+        : "r4", "r5", "r6", "r7", "memory", "cc");
 #endif
 }
 } // namespace LFoundation
