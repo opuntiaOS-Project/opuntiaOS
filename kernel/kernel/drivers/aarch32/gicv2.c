@@ -18,6 +18,11 @@
 #define IS_SGI_OR_PPI(id) ((id) < 32)
 #define IS_SPI(id) ((id) < 1020 && (id) >= 32)
 
+static gic_descritptor_t gicv2_descriptor = {
+    .interrupt_descriptor = gicv2_interrupt_descriptor,
+    .end_interrupt = gicv2_end,
+    .enable_irq = gicv2_enable_irq,
+};
 static zone_t distributor_zone;
 static zone_t cpu_interface_zone;
 volatile gicv2_distributor_registers_t* distributor_registers;
@@ -35,11 +40,6 @@ static inline int _gicv2_map_itself()
     vmm_map_page(cpu_interface_zone.start, cbar + GICv2_CPU_INTERFACE_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     cpu_interface_registers = (gicv2_cpu_interface_registers_t*)cpu_interface_zone.ptr;
     return 0;
-}
-
-static inline void _gicv2_clear_flags()
-{
-    // registers->clear = 0x5FF;
 }
 
 void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_type_t type)
@@ -85,6 +85,8 @@ void gicv2_install()
 #endif
         return;
     }
+
+    irq_set_gic_desc(gicv2_descriptor);
 
 #ifdef DEBUG_GICv2
     log("Gic type %x", distributor_registers->typer);
