@@ -200,7 +200,6 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 #elif TARGET_MOBILE
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
-    auto* mouse_event = reinterpret_cast<MouseEvent*>(event.release());
     update_mouse_position(std::move(event));
 
     if (m_compositor.control_bar().control_button_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y()) && active_window()) {
