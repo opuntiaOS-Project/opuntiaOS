@@ -23,6 +23,7 @@ public:
         Standard,
         FillEqually,
         EqualSpacing,
+        EqualCentering,
     };
 
     enum class Alignment {
@@ -70,6 +71,7 @@ private:
     size_t recalc_subview_min_x(View*);
     size_t recalc_subview_min_y(View*);
     size_t recalc_spacing();
+    size_t recalc_initial_spacing(size_t element_spacing);
     size_t recalc_equal_spacing_horizontal() { return m_views.size() > 2 ? (bounds().width() - recalc_total_content_width()) / (m_views.size() - 1) : 0; }
     size_t recalc_equal_spacing_vertical() { return m_views.size() > 2 ? (bounds().height() - recalc_total_content_height()) / (m_views.size() - 1) : 0; }
 

@@ -100,10 +100,30 @@ size_t StackView::recalc_total_content_height()
     return res;
 }
 
+size_t StackView::recalc_initial_spacing(size_t element_spacing)
+{
+    size_t total_spacing = element_spacing * (m_views.size() - 1);
+
+    switch (distribution()) {
+    case Distribution::EqualCentering:
+        if (axis() == LayoutConstraints::Axis::Horizontal) {
+            int content_width = recalc_total_content_width() + total_spacing;
+            return (bounds().width() - content_width) / 2;
+        } else {
+            int content_height = recalc_total_content_height() + total_spacing;
+            return (bounds().height() - content_height) / 2;
+        }
+    default:
+        return 0;
+    }
+    return 0;
+}
+
 size_t StackView::recalc_spacing()
 {
     switch (distribution()) {
     case Distribution::Standard:
+    case Distribution::EqualCentering:
         return spacing();
     case Distribution::EqualSpacing:
         if (axis() == LayoutConstraints::Axis::Horizontal) {
@@ -125,7 +145,8 @@ size_t StackView::recalc_spacing()
 void StackView::recalc_subviews_positions()
 {
     size_t spacing = recalc_spacing();
-    size_t primary_coord = 0;
+    size_t initial_spacing = recalc_initial_spacing(spacing);
+    size_t primary_coord = initial_spacing;
     if (axis() == LayoutConstraints::Axis::Horizontal) {
         for (int i = 0; i < m_views.size(); i++) {
             m_views[i]->frame().set_y(recalc_subview_min_y(m_views[i]));

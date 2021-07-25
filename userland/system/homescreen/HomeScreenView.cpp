@@ -44,9 +44,10 @@ HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG
     dock_frame.set_y(bounds().height() - dock_height_with_padding() + (dock_height() - icon_size()) / 2);
     dock_frame.set_height(dock_height());
     auto& dock_stack_view = add_subview<UI::StackView>(dock_frame);
+    dock_stack_view.set_spacing(12); // TODO: Set spacing which depends on screen width.
     dock_stack_view.set_background_color(LG::Color(0, 0, 0, 0));
     dock_stack_view.set_axis(UI::LayoutConstraints::Axis::Horizontal);
-    dock_stack_view.set_distribution(UI::StackView::Distribution::EqualSpacing);
+    dock_stack_view.set_distribution(UI::StackView::Distribution::EqualCentering);
     m_dock_stackview = &dock_stack_view;
 
     vstack_view.set_needs_layout();

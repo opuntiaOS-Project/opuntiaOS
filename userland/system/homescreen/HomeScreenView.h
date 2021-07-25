@@ -15,7 +15,7 @@ public:
     HomeScreenView(UI::View* superview, const LG::Rect& frame);
     HomeScreenView(UI::View* superview, UI::Window* window, const LG::Rect& frame);
 
-    static constexpr int dock_height() { return 80; }
+    static constexpr int dock_height() { return 70; }
     static constexpr int dock_height_with_padding() { return dock_height() + grid_padding() + 4; }
     static constexpr int grid_entities_size() { return 48; }
     static constexpr int icon_size() { return 48; }
