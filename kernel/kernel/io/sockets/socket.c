@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <algo/sync_ringbuffer.h>
 #include <io/sockets/socket.h>
 #include <libkern/kassert.h>
 
@@ -16,7 +17,7 @@ static socket_t* _socket_create(int domain, int type, int protocol)
     socket_list[next_socket].domain = domain;
     socket_list[next_socket].type = type;
     socket_list[next_socket].protocol = protocol;
-    socket_list[next_socket].buffer = ringbuffer_create_std();
+    socket_list[next_socket].buffer = sync_ringbuffer_create_std();
     socket_list[next_socket].d_count = 1;
     return &socket_list[next_socket++];
 }
@@ -43,7 +44,7 @@ int socket_put(socket_t* sock)
     sock->d_count--;
     ASSERT(sock->d_count > 0);
     if (sock->d_count == 0) {
-        ringbuffer_free(&sock->buffer);
+        sync_ringbuffer_free(&sock->buffer);
     }
     return 0;
 }

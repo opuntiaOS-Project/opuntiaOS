@@ -8,7 +8,7 @@
 #ifndef _KERNEL_FS_VFS_H
 #define _KERNEL_FS_VFS_H
 
-#include <algo/ringbuffer.h>
+#include <algo/sync_ringbuffer.h>
 #include <drivers/driver_manager.h>
 #include <fs/ext2/ext2.h>
 #include <libkern/lock.h>
@@ -148,7 +148,7 @@ struct socket {
     int domain;
     int type;
     int protocol;
-    ringbuffer_t buffer;
+    sync_ringbuffer_t buffer;
     file_descriptor_t bind_file;
 };
 typedef struct socket socket_t;

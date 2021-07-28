@@ -36,7 +36,7 @@ static tty_entry_t* _tty_get(dentry_t* dentry)
 static inline void _tty_flush_input(tty_entry_t* tty)
 {
     tty->lines_avail = 0;
-    ringbuffer_clear(&tty->buffer);
+    sync_ringbuffer_clear(&tty->buffer);
 }
 
 inline static tty_entry_t* _tty_active()
@@ -50,7 +50,7 @@ bool tty_can_read(dentry_t* dentry, uint32_t start)
     if (tty->termios.c_lflag & ICANON) {
         return tty->lines_avail > 0;
     }
-    return ringbuffer_space_to_read(&tty->buffer) >= 1;
+    return sync_ringbuffer_space_to_read(&tty->buffer) >= 1;
 }
 
 bool tty_can_write(dentry_t* dentry, uint32_t start)
@@ -61,11 +61,11 @@ bool tty_can_write(dentry_t* dentry, uint32_t start)
 int tty_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     tty_entry_t* tty = _tty_get(dentry);
-    uint32_t leno = ringbuffer_space_to_read(&tty->buffer);
+    uint32_t leno = sync_ringbuffer_space_to_read(&tty->buffer);
     if (leno > len) {
         leno = len;
     }
-    int res = ringbuffer_read(&tty->buffer, buf, leno);
+    int res = sync_ringbuffer_read(&tty->buffer, buf, leno);
     if (tty->termios.c_lflag & ICANON && res == leno) {
         tty->lines_avail--;
     }
@@ -190,10 +190,10 @@ tty_entry_t* tty_new()
     devfs_inode_t* res = devfs_register(mp, MKDEV(4, next_tty), name, 4, 0, &fops);
     ttys[next_tty].id = next_tty;
     ttys[next_tty].inode_indx = res->index;
-    ttys[next_tty].buffer = ringbuffer_create_std();
+    ttys[next_tty].buffer = sync_ringbuffer_create_std();
     ttys[next_tty].lines_avail = 0;
     _tty_setup_termios(&ttys[next_tty]);
-    if (!ttys[next_tty].buffer.zone.start) {
+    if (!ttys[next_tty].buffer.ringbuffer.zone.start) {
         log_error("Error: tty buffer allocation");
         while (1) { }
     }
@@ -225,15 +225,15 @@ void tty_eat_key(key_t key)
 
     if (key == KEY_RETURN) {
         _tty_echo_key(tty, '\n');
-        ringbuffer_write_one(&tty->buffer, '\n');
+        sync_ringbuffer_write_one(&tty->buffer, '\n');
         tty->lines_avail++;
     } else if (key == KEY_BACKSPACE) {
-        if (ringbuffer_space_to_read(&tty->buffer) > 0) {
+        if (sync_ringbuffer_space_to_read(&tty->buffer) > 0) {
             // delete_char(WHITE_ON_BLACK, -1, -1, 1);
-            tty->buffer.end--;
+            tty->buffer.ringbuffer.end--;
         }
     } else {
-        ringbuffer_write_one(&tty->buffer, (char)key);
+        sync_ringbuffer_write_one(&tty->buffer, (char)key);
         _tty_echo_key(tty, key);
     }
 }

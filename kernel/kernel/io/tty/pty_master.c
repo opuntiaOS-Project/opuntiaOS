@@ -80,25 +80,25 @@ bool pty_master_can_read(dentry_t* dentry, uint32_t start)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    return ringbuffer_space_to_read(&ptm->buffer) >= 1;
+    return sync_ringbuffer_space_to_read(&ptm->buffer) >= 1;
 }
 
 bool pty_master_can_write(dentry_t* dentry, uint32_t start)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    return ringbuffer_space_to_write(&ptm->pts->buffer) >= 0;
+    return sync_ringbuffer_space_to_write(&ptm->pts->buffer) >= 0;
 }
 
 int pty_master_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    uint32_t leno = ringbuffer_space_to_read(&ptm->buffer);
+    uint32_t leno = sync_ringbuffer_space_to_read(&ptm->buffer);
     if (leno > len) {
         leno = len;
     }
-    int res = ringbuffer_read(&ptm->buffer, buf, leno);
+    int res = sync_ringbuffer_read(&ptm->buffer, buf, leno);
     return leno;
 }
 
@@ -106,7 +106,7 @@ int pty_master_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t le
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    ringbuffer_write(&ptm->pts->buffer, buf, len);
+    sync_ringbuffer_write(&ptm->pts->buffer, buf, len);
     return len;
 }
 
@@ -152,7 +152,7 @@ int pty_master_alloc(file_descriptor_t* fd)
     fd->type = FD_TYPE_FILE;
 
     pty_slave_create(INODE2PTSNO(ptm->dentry.inode_indx), ptm);
-    ptm->buffer = ringbuffer_create_std();
+    ptm->buffer = sync_ringbuffer_create_std();
 
     return 0;
 }

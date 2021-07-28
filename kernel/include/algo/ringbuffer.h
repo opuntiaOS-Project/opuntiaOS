@@ -8,8 +8,11 @@
 #ifndef _KERNEL_ALGO_RINGBUFFER_H
 #define _KERNEL_ALGO_RINGBUFFER_H
 
-#include <libkern/types.h>
+#include <libkern/libkern.h>
+#include <libkern/lock.h>
 #include <mem/vmm/zoner.h>
+
+#define RINGBUFFER_STD_SIZE (16 * KB)
 
 struct __ringbuffer {
     zone_t zone;
@@ -19,7 +22,7 @@ struct __ringbuffer {
 typedef struct __ringbuffer ringbuffer_t;
 
 ringbuffer_t ringbuffer_create(uint32_t size);
-ringbuffer_t ringbuffer_create_std();
+#define ringbuffer_create_std() ringbuffer_create(RINGBUFFER_STD_SIZE)
 void ringbuffer_free(ringbuffer_t* buf);
 
 uint32_t ringbuffer_space_to_read(ringbuffer_t* buf);

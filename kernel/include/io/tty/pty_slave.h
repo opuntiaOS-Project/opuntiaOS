@@ -8,6 +8,8 @@
 #ifndef _KERNEL_IO_TTY_PTY_SLAVE_H
 #define _KERNEL_IO_TTY_PTY_SLAVE_H
 
+#include <algo/sync_ringbuffer.h>
+
 #ifndef PTYS_COUNT
 #define PTYS_COUNT 4
 #endif
@@ -16,7 +18,7 @@ struct pty_master_entry;
 struct pty_slave_entry {
     int inode_indx;
     struct pty_master_entry* ptm;
-    ringbuffer_t buffer;
+    sync_ringbuffer_t buffer;
 };
 typedef struct pty_slave_entry pty_slave_entry_t;
 

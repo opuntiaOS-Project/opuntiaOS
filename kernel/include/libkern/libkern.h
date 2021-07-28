@@ -5,6 +5,9 @@
 #include <libkern/mem.h>
 #include <libkern/types.h>
 
+#define KB (1024)
+#define MB (1024 * 1024)
+
 int stoi(void* str, int len);
 void htos(uint32_t hex, char str[]);
 void dtos(uint32_t dec, char str[]);

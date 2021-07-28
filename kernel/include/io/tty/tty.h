@@ -8,7 +8,7 @@
 #ifndef _KERNEL_IO_TTY_TTY_H
 #define _KERNEL_IO_TTY_TTY_H
 
-#include <algo/ringbuffer.h>
+#include <algo/sync_ringbuffer.h>
 #include <drivers/x86/keyboard.h>
 #include <libkern/types.h>
 
@@ -78,7 +78,7 @@ typedef struct termios termios_t;
 struct tty_entry {
     int id;
     int inode_indx;
-    ringbuffer_t buffer;
+    sync_ringbuffer_t buffer;
     int lines_avail;
     uint32_t pgid;
     termios_t termios;

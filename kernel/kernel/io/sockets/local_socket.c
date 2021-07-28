@@ -41,13 +41,13 @@ int local_socket_create(int type, int protocol, file_descriptor_t* fd)
 bool local_socket_can_read(dentry_t* dentry, uint32_t start)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    return ringbuffer_space_to_read_with_custom_start(&sock_entry->buffer, start) != 0;
+    return sync_ringbuffer_space_to_read_with_custom_start(&sock_entry->buffer, start) != 0;
 }
 
 int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    uint32_t read = ringbuffer_read_with_start(&sock_entry->buffer, start, buf, len);
+    uint32_t read = sync_ringbuffer_read_with_start(&sock_entry->buffer, start, buf, len);
     return read;
 }
 
@@ -62,7 +62,7 @@ bool local_socket_can_write(dentry_t* dentry, uint32_t start)
 int local_socket_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    uint32_t written = ringbuffer_write_ignore_bounds(&sock_entry->buffer, buf, len);
+    uint32_t written = sync_ringbuffer_write_ignore_bounds(&sock_entry->buffer, buf, len);
     return 0;
 }
 
@@ -130,7 +130,7 @@ int local_socket_connect(file_descriptor_t* sock, char* path, uint32_t len)
         return -EBADF;
     }
     sock->sock_entry = socket_duplicate(bind_dentry->sock);
-    sock->offset = bind_dentry->sock->buffer.end; /* Starting to read from the end */
+    sock->offset = bind_dentry->sock->buffer.ringbuffer.end; /* Starting to read from the end */
 #ifdef LOCAL_SOCKET_DEBUG
     log("Connected to local socket at %x : %d pid", bind_dentry->sock, p->pid);
 #endif

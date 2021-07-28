@@ -6,26 +6,11 @@
  */
 
 #include <algo/ringbuffer.h>
-#include <mem/vmm/vmm.h>
-
-#define BUFFER_STD_SIZE (16 * KB)
 
 ringbuffer_t ringbuffer_create(uint32_t size)
 {
     ringbuffer_t buf;
     buf.zone = zoner_new_zone(size);
-    if (!buf.zone.start) {
-        return buf;
-    }
-    buf.start = 0;
-    buf.end = 0;
-    return buf;
-}
-
-ringbuffer_t ringbuffer_create_std()
-{
-    ringbuffer_t buf;
-    buf.zone = zoner_new_zone(BUFFER_STD_SIZE);
     if (!buf.zone.start) {
         return buf;
     }
@@ -43,27 +28,30 @@ void ringbuffer_free(ringbuffer_t* buf)
 
 uint32_t ringbuffer_space_to_read(ringbuffer_t* buf)
 {
+    uint32_t res = buf->zone.len - buf->start + buf->end;
     if (buf->start <= buf->end) {
-        return buf->end - buf->start;
+        res = buf->end - buf->start;
     }
-    return buf->zone.len - buf->start + buf->end;
+    return res;
 }
 
 uint32_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, uint32_t start)
 {
     start %= buf->zone.len;
+    uint32_t res = buf->zone.len - start + buf->end;
     if (start <= buf->end) {
-        return buf->end - start;
+        res = buf->end - start;
     }
-    return buf->zone.len - start + buf->end;
+    return res;
 }
 
 uint32_t ringbuffer_space_to_write(ringbuffer_t* buf)
 {
+    uint32_t res = buf->zone.len - buf->end + buf->start;
     if (buf->start > buf->end) {
-        return buf->start - buf->end;
+        res = buf->start - buf->end;
     }
-    return buf->zone.len - buf->end + buf->start;
+    return res;
 }
 
 uint32_t ringbuffer_read(ringbuffer_t* buf, uint8_t* holder, uint32_t siz)
