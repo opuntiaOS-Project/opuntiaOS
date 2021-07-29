@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
     int fs;
     device_t* dev;
+    lock_t lock;
 } vfs_device_t;
 
 struct dirent {
@@ -131,6 +132,7 @@ enum FD_TYPE {
     FD_TYPE_SOCKET,
 };
 
+// TODO: Locks might be implemented as RWLocks.
 struct file_descriptor {
     uint32_t type;
     union {
@@ -140,6 +142,7 @@ struct file_descriptor {
     uint32_t offset;
     uint32_t flags;
     file_ops_t* ops;
+    lock_t lock;
 };
 typedef struct file_descriptor file_descriptor_t;
 

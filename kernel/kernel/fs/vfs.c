@@ -93,6 +93,7 @@ int vfs_add_dev(device_t* dev)
     }
 
     _vfs_devices[dev->id].dev = dev;
+    lock_init(&_vfs_devices[dev->id].lock);
     if (!dev->is_virtual) {
         if (vfs_choose_fs_of_dev(&_vfs_devices[dev->id]) < 0) {
             return -ENOENT;
@@ -209,6 +210,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
     fd->dentry = dentry_duplicate(file);
     fd->offset = 0;
     fd->ops = &file->ops->file;
+    lock_init(&fd->lock);
     return 0;
 }
 
@@ -302,31 +304,40 @@ int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 
 bool vfs_can_read(file_descriptor_t* fd)
 {
-    if (!fd->ops->can_read) {
-        return true;
+    lock_acquire(&fd->lock);
+    bool res = true;
+    if (fd->ops->can_read) {
+        res = fd->ops->can_read(fd->dentry, fd->offset);
     }
-    return fd->ops->can_read(fd->dentry, fd->offset);
+    lock_release(&fd->lock);
+    return res;
 }
 
 bool vfs_can_write(file_descriptor_t* fd)
 {
-    if (!fd->ops->can_write) {
-        return true;
+    lock_acquire(&fd->lock);
+    bool res = true;
+    if (fd->ops->can_write) {
+        res = fd->ops->can_write(fd->dentry, fd->offset);
     }
-    return fd->ops->can_write(fd->dentry, fd->offset);
+    lock_release(&fd->lock);
+    return res;
 }
 
 int vfs_read(file_descriptor_t* fd, void* buf, uint32_t len)
 {
+    lock_acquire(&fd->lock);
     int read = fd->ops->read(fd->dentry, (uint8_t*)buf, fd->offset, len);
     if (read > 0) {
         fd->offset += read;
     }
+    lock_release(&fd->lock);
     return read;
 }
 
 int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
 {
+    lock_acquire(&fd->lock);
     int written = fd->ops->write(fd->dentry, (uint8_t*)buf, fd->offset, len);
     if (written > 0) {
         fd->offset += written;
@@ -338,6 +349,7 @@ int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
         }
     }
 
+    lock_release(&fd->lock);
     return written;
 }
 
