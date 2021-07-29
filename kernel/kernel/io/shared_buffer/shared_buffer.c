@@ -9,6 +9,7 @@
 #include <io/shared_buffer/shared_buffer.h>
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
+#include <libkern/lock.h>
 #include <libkern/log.h>
 #include <mem/vmm/vmm.h>
 #include <mem/vmm/zoner.h>
@@ -26,6 +27,7 @@ struct shared_buffer_header {
 };
 typedef struct shared_buffer_header shared_buffer_header_t;
 
+static lock_t _shared_buffer_lock;
 static zone_t _shared_buffer_zone;
 static uint32_t _shared_buffer_bitmap_len = 0;
 static uint8_t* _shared_buffer_bitmap;
@@ -68,13 +70,16 @@ int shared_buffer_init()
 {
     _shared_buffer_zone = zoner_new_zone(SHBUF_SPACE_SIZE);
     _shared_buffer_init_bitmap();
+    lock_init(&_shared_buffer_lock);
     return 0;
 }
 
 int shared_buffer_create(uint8_t** res_buffer, size_t size)
 {
+    lock_acquire(&_shared_buffer_lock);
     int buf_id = _shared_buffer_alloc_id();
     if (buf_id < 0) {
+        lock_release(&_shared_buffer_lock);
         return -ENOMEM;
     }
 
@@ -83,6 +88,7 @@ int shared_buffer_create(uint8_t** res_buffer, size_t size)
     int blocks_needed = (act_size + SHBUF_BLOCK_SIZE - 1) / SHBUF_BLOCK_SIZE;
     int start = bitmap_find_space(bitmap, blocks_needed);
     if (start < 0) {
+        lock_release(&_shared_buffer_lock);
         return -ENOMEM;
     }
 
@@ -96,6 +102,7 @@ int shared_buffer_create(uint8_t** res_buffer, size_t size)
 #ifdef SHARED_BUFFER_DEBUG
     log("Buffer created at %x %d", buffers[buf_id], buf_id);
 #endif
+    lock_release(&_shared_buffer_lock);
     return buf_id;
 }
 
@@ -104,13 +111,17 @@ int shared_buffer_get(int id, uint8_t** res_buffer)
     if (unlikely(id < 0 || SHBUF_MAX_BUFFERS <= id)) {
         return -EINVAL;
     }
+
+    lock_acquire(&_shared_buffer_lock);
     if (unlikely(buffers[id] == 0)) {
+        lock_release(&_shared_buffer_lock);
         return -EINVAL;
     }
 #ifdef SHARED_BUFFER_DEBUG
     log("Buffer opened at %x %d", buffers[id], id);
 #endif
     *res_buffer = buffers[id];
+    lock_release(&_shared_buffer_lock);
     return 0;
 }
 
@@ -119,7 +130,10 @@ int shared_buffer_free(int id)
     if (unlikely(id < 0 || SHBUF_MAX_BUFFERS <= id)) {
         return -EINVAL;
     }
+
+    lock_acquire(&_shared_buffer_lock);
     if (unlikely(buffers[id] == 0)) {
+        lock_release(&_shared_buffer_lock);
         return -EINVAL;
     }
 
@@ -127,5 +141,6 @@ int shared_buffer_free(int id)
     size_t blocks_to_delete = (sptr[-1].len + SHBUF_BLOCK_SIZE - 1) / SHBUF_BLOCK_SIZE;
     bitmap_unset_range(bitmap, _shared_buffer_to_index((uint32_t)&sptr[-1]), blocks_to_delete);
     buffers[id] = 0;
+    lock_release(&_shared_buffer_lock);
     return 0;
 }
