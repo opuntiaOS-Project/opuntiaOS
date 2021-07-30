@@ -141,7 +141,7 @@ void pl050_mouse_init(device_t* dev)
     registers->cr = 0x4 | 0x10;
     _mouse_send_cmd(0xF6);
     _mouse_send_cmd(0xF4);
-    irq_register_handler(PL050_MOUSE_IRQ_LINE, 0, 0, _pl050_mouse_int_handler);
+    irq_register_handler(PL050_MOUSE_IRQ_LINE, 0, 0, _pl050_mouse_int_handler, BOOT_CPU_MASK);
     mouse_buffer = ringbuffer_create_std();
 }
 

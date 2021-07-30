@@ -63,7 +63,7 @@ void pl050_keyboard_init(device_t* dev)
     _keybaord_send_cmd(0xF0);
     _keybaord_send_cmd(0x01);
 
-    irq_register_handler(PL050_KEYBOARD_IRQ_LINE, 0, 0, _pl050_keyboard_int_handler);
+    irq_register_handler(PL050_KEYBOARD_IRQ_LINE, 0, 0, _pl050_keyboard_int_handler, BOOT_CPU_MASK);
     generic_keyboard_init();
 }
 

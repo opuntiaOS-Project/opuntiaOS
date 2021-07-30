@@ -33,16 +33,16 @@ static inline int _gicv2_map_itself()
     uint32_t cbar = read_cbar();
 
     distributor_zone = zoner_new_zone(VMM_PAGE_SIZE);
-    vmm_map_page(distributor_zone.start, cbar + GICv2_DISTRIBUTOR_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page(distributor_zone.start, cbar + GICv2_DISTRIBUTOR_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_NOT_CACHEABLE);
     distributor_registers = (gicv2_distributor_registers_t*)distributor_zone.ptr;
 
     cpu_interface_zone = zoner_new_zone(VMM_PAGE_SIZE);
-    vmm_map_page(cpu_interface_zone.start, cbar + GICv2_CPU_INTERFACE_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page(cpu_interface_zone.start, cbar + GICv2_CPU_INTERFACE_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_NOT_CACHEABLE);
     cpu_interface_registers = (gicv2_cpu_interface_registers_t*)cpu_interface_zone.ptr;
     return 0;
 }
 
-void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_type_t type)
+void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_type_t type, int cpu_mask)
 {
     int id_1bit_offset = id / 32;
     int id_1bit_bitpos = id % 32;
@@ -68,9 +68,7 @@ void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_type_t type)
     distributor_registers->icfgr[id_2bit_offset] |= (0b11 << id_2bit_bitpos);
 
     if (IS_SPI(id)) {
-        // FIXME: Cpu num
-        int cpu_num = 0x1;
-        distributor_registers->itargetsr[id_8bit_offset] |= (cpu_num << id_8bit_bitpos);
+        distributor_registers->itargetsr[id_8bit_offset] |= (cpu_mask << id_8bit_bitpos);
     }
 
     /* Enabling */

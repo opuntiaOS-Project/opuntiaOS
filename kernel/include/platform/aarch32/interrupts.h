@@ -12,6 +12,8 @@
 #include <libkern/types.h>
 
 #define IRQ_HANDLERS_MAX 256
+#define ALL_CPU_MASK 0xff
+#define BOOT_CPU_MASK 0x01
 
 typedef int irq_type_t;
 typedef int irq_line_t;
@@ -25,7 +27,7 @@ enum IRQTypeMasks {
 struct gic_descritptor {
     uint32_t (*interrupt_descriptor)();
     void (*end_interrupt)(uint32_t int_desc);
-    void (*enable_irq)(irq_line_t line, irq_priority_t prior, irq_type_t type);
+    void (*enable_irq)(irq_line_t line, irq_priority_t prior, irq_type_t type, int cpu_mask);
 };
 typedef struct gic_descritptor gic_descritptor_t;
 
@@ -51,7 +53,7 @@ extern void data_abort_handler();
 extern void irq_handler();
 extern void fast_irq_handler();
 
-void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_type_t type, irq_handler_t func);
+void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_type_t type, irq_handler_t func, int cpu_mask);
 void irq_set_gic_desc(gic_descritptor_t gic_desc);
 
 void gic_setup();

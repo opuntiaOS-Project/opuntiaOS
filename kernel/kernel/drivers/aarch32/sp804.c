@@ -45,5 +45,5 @@ void sp804_install()
     _sp804_map_itself();
     timer1->load = SP804_CLK_HZ / TIMER_TICKS_PER_SECOND;
     timer1->control = SP804_ENABLE_MASK | SP804_PERIODIC_MASK | SP804_32_BIT_MASK | SP804_INTS_ENABLED_MASK;
-    irq_register_handler(SP804_TIMER1_IRQ_LINE, 0, IRQ_TYPE_EDGE_TRIGGERED_MASK, _sp804_int_handler);
+    irq_register_handler(SP804_TIMER1_IRQ_LINE, 0, IRQ_TYPE_EDGE_TRIGGERED_MASK, _sp804_int_handler, ALL_CPU_MASK);
 }

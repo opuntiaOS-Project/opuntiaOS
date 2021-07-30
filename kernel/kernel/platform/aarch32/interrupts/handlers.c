@@ -173,8 +173,8 @@ void fast_irq_handler()
     ASSERT(false);
 }
 
-void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_type_t type, irq_handler_t func)
+void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_type_t type, irq_handler_t func, int cpu_mask)
 {
     _irq_handlers[line] = func;
-    gic_descriptor.enable_irq(line, prior, type);
+    gic_descriptor.enable_irq(line, prior, type, cpu_mask);
 }
