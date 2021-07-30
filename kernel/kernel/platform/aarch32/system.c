@@ -7,28 +7,27 @@
 
 /* FIXME: Only for one cpu now */
 
-#include <platform/aarch32/system.h>
 #include <libkern/libkern.h>
-
-static int depth_counter = 0;
+#include <platform/aarch32/system.h>
+#include <tasking/tasking.h>
 
 void system_disable_interrupts()
 {
-    depth_counter++;
+    THIS_CPU->int_depth_counter++;
     asm volatile("cpsid i");
 }
 
 void system_enable_interrupts()
 {
-    depth_counter--;
-    ASSERT(depth_counter >= 0);
-    if (depth_counter == 0) {
+    THIS_CPU->int_depth_counter--;
+    ASSERT(THIS_CPU->int_depth_counter >= 0);
+    if (THIS_CPU->int_depth_counter == 0) {
         asm volatile("cpsie i");
     }
 }
 
 void system_enable_interrupts_only_counter()
 {
-    depth_counter--;
-    ASSERT(depth_counter >= 0);
+    THIS_CPU->int_depth_counter--;
+    ASSERT(THIS_CPU->int_depth_counter >= 0);
 }

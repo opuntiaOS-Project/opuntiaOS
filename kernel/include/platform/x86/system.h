@@ -82,4 +82,13 @@ NORETURN inline static void system_stop()
     while (1) { }
 }
 
+/**
+ * CPU
+ */
+
+inline static int system_cpu_id()
+{
+    return 0;
+}
+
 #endif /* _KERNEL_PLATFORM_X86_SYSTEM_H */

@@ -90,6 +90,10 @@ int timeman_setup()
 
 void timeman_timer_tick()
 {
+    if (system_cpu_id() != 0) {
+        return;
+    }
+
     ticks_since_boot++;
     ticks_since_second++;
 

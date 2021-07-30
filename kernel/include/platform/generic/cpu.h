@@ -13,8 +13,8 @@
 #include <mem/vmm/vmm.h>
 #include <platform/generic/tasking/context.h>
 
-#define CPU_CNT 1
-#define THIS_CPU (&cpus[0])
+#define CPU_CNT 4
+#define THIS_CPU (&cpus[system_cpu_id()])
 #define FPU_ENABLED
 
 struct thread;
@@ -25,6 +25,8 @@ enum CPU_STATE {
 };
 
 typedef struct {
+    int int_depth_counter;
+
     char* kstack;
     pdirectory_t* pdir;
     context_t* scheduler; // context of sched's registers

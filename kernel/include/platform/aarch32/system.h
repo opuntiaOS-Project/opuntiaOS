@@ -103,4 +103,18 @@ NORETURN inline static void system_stop()
     while (1) { }
 }
 
+/**
+ * CPU
+ */
+
+inline static int system_cpu_id()
+{
+    // inlined read_cpu_id_register();
+    uint32_t res;
+    asm volatile("mrc p15, 0, %0, c0, c0, 5"
+                 : "=r"(res)
+                 :);
+    return res & 0x3;
+}
+
 #endif /* _KERNEL_PLATFORM_AARCH32_SYSTEM_H */

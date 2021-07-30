@@ -5,27 +5,24 @@
  * found in the LICENSE file.
  */
 
-/* FIXME: Only for one cpu now */
-
 #include <platform/x86/system.h>
-
-static int depth_counter = 0;
+#include <tasking/tasking.h>
 
 void system_disable_interrupts()
 {
-    depth_counter++;
+    THIS_CPU->int_depth_counter++;
     asm volatile("cli");
 }
 
 void system_enable_interrupts()
 {
-    depth_counter--;
-    if (depth_counter == 0) {
+    THIS_CPU->int_depth_counter--;
+    if (THIS_CPU->int_depth_counter == 0) {
         asm volatile("sti");
     }
 }
 
 void system_enable_interrupts_only_counter()
 {
-    depth_counter--;
+    THIS_CPU->int_depth_counter--;
 }
