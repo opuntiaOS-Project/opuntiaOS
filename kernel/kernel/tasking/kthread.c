@@ -10,6 +10,7 @@
 #include <libkern/libkern.h>
 #include <mem/kmalloc.h>
 #include <tasking/proc.h>
+#include <tasking/tasking.h>
 #include <tasking/thread.h>
 
 /**
@@ -46,6 +47,7 @@ int kthread_setup(proc_t* p)
     p->main_thread = proc_alloc_thread();
     p->main_thread->tid = p->pid;
     p->main_thread->process = p;
+    p->main_thread->last_cpu = LAST_CPU_NOT_SET;
 
     p->main_thread->kstack = zoner_new_zone(KSTACK_ZONE_SIZE);
     if (!p->main_thread->kstack.start) {

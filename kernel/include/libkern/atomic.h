@@ -22,4 +22,9 @@ static ALWAYS_INLINE uint32_t atomic_add_uint32(uint32_t* dst, uint32_t val)
     return __atomic_add_fetch(dst, val, __ATOMIC_SEQ_CST) + val;
 }
 
+static ALWAYS_INLINE uint32_t atomic_load_uint32(uint32_t* dst)
+{
+    return __atomic_load_n(dst, __ATOMIC_SEQ_CST);
+}
+
 #endif // _KERNEL_LIBKERN_LOCK_H

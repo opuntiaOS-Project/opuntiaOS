@@ -73,6 +73,7 @@ void stage3(mem_desc_t* mem_desc)
     // init scheduling
     tasking_init();
     scheduler_init();
+    schedule_activate_cpu();
     tasking_create_kernel_thread(launching, NULL);
     resched(); /* Starting a scheduler */
 

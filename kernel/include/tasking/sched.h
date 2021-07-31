@@ -13,13 +13,8 @@
 #include <tasking/bits/sched.h>
 #include <tasking/tasking.h>
 
-struct runqueue {
-    thread_t* head;
-    thread_t* tail;
-};
-typedef struct runqueue runqueue_t;
-
 void scheduler_init();
+void schedule_activate_cpu();
 void resched_dont_save_context();
 void resched();
 void sched();

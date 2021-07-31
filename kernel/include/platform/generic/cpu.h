@@ -12,6 +12,7 @@
 #include <libkern/types.h>
 #include <mem/vmm/vmm.h>
 #include <platform/generic/tasking/context.h>
+#include <tasking/bits/sched.h>
 
 #define CPU_CNT 4
 #define THIS_CPU (&cpus[system_cpu_id()])
@@ -25,14 +26,17 @@ enum CPU_STATE {
 };
 
 typedef struct {
+    int id;
     int int_depth_counter;
 
     char* kstack;
     pdirectory_t* pdir;
-    context_t* scheduler; // context of sched's registers
+    context_t* sched_context; // context of sched's registers
     struct thread* running_thread;
     cpu_state_t current_state;
     struct thread* idle_thread;
+
+    sched_data_t sched;
 
     /* Stat */
     time_t stat_system_and_idle_ticks;

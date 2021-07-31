@@ -59,6 +59,7 @@ struct thread {
     /* Scheduler data */
     struct thread* sched_prev;
     struct thread* sched_next;
+    int last_cpu;
     time_t ticks_until_preemption;
     time_t start_time_in_ticks; // Time when the task was put to run.
 

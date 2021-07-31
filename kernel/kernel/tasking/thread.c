@@ -51,6 +51,7 @@ int thread_setup_main(proc_t* p, thread_t* thread)
 
     thread->process = p;
     thread->tid = p->pid;
+    thread->last_cpu = LAST_CPU_NOT_SET;
 
     /* setting signal handlers to 0 */
     thread->signals_mask = 0xffffffff; /* for now all signals are legal */
@@ -77,6 +78,7 @@ int thread_setup(proc_t* p, thread_t* thread)
 
     thread->process = p;
     thread->tid = proc_alloc_pid();
+    thread->last_cpu = LAST_CPU_NOT_SET;
 
     /* setting signal handlers to 0 */
     thread->signals_mask = 0xffffffff; /* for now all signals are legal */
