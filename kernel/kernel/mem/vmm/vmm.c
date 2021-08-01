@@ -1341,8 +1341,10 @@ int vmm_free_page(uint32_t vaddr, page_desc_t* page, dynamic_array_t* zones)
 
 int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
 {
+    lock_acquire(&_vmm_lock);
     if (_vmm_is_table_not_present(info) || _vmm_is_page_not_present(info)) {
         int res = _vmm_load_page_with_perm(vaddr);
+        lock_release(&_vmm_lock);
         if (PAGE_CHOOSE_OWNER(vaddr) == PAGE_USER && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
             proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
             if (!holder_proc) {
@@ -1356,7 +1358,9 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
 
             if (zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
                 uint32_t offset = zone->offset + (PAGE_START(vaddr) - zone->start);
+                lock_acquire(&zone->file->lock);
                 zone->file->ops->file.read(zone->file, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
+                lock_release(&zone->file->lock);
             }
         }
         return res;
@@ -1377,10 +1381,12 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
         //     visited++;
         // }
         if (!visited) {
+            lock_release(&_vmm_lock);
             return SHOULD_CRASH;
         }
     }
 
+    lock_release(&_vmm_lock);
     return OK;
 }
 
