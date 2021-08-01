@@ -20,6 +20,7 @@ void resched();
 void sched();
 void sched_enqueue(thread_t* thread);
 void sched_dequeue(thread_t* thread);
+uint32_t active_cpu_count();
 
 static inline void sched_tick()
 {

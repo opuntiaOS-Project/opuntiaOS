@@ -9,6 +9,7 @@
 #include <fs/vfs.h>
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
+#include <tasking/sched.h>
 #include <tasking/tasking.h>
 #include <time/time_manager.h>
 
@@ -215,12 +216,14 @@ static bool procfs_root_stat_can_read(dentry_t* dentry, uint32_t start)
 
 static int procfs_root_stat_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
-    char res[64];
-    for (int i = 0; i < CPU_CNT; i++) {
+    char res[128];
+    int offset = 0;
+    for (int i = 0; i < active_cpu_count(); i++) {
         time_t user = cpus[i].stat_user_ticks;
         time_t idle = cpus[i].idle_thread->stat_total_running_ticks;
         time_t system = cpus[i].stat_system_and_idle_ticks - idle;
-        snprintf(res, 64, "cpu%d %u %u %u %u", i, user, 0, system, idle);
+        snprintf(res + offset, 128 - offset, "cpu%d %u %u %u %u\n", i, user, 0, system, idle);
+        offset = strlen(res);
     }
     size_t size = strlen(res);
 
