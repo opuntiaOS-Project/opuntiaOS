@@ -127,6 +127,8 @@ So to build oneOS for Arm with LLVM you have to generate Ninja files with `./gn_
 
 Another option how to configure the project is environment variables.
 
+* `ONEOS_QEMU_SMP`
+  * Provide cpu cores count in the system.
 * `ONEOS_QEMU_X86`
   * Provide path to *qemu-system-i386* executable
 * `ONEOS_QEMU_ARM`

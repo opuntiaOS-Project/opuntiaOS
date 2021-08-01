@@ -5,7 +5,9 @@
 import sys
 import os
 QEMU_PATH_VAR = "qemu_exec"
-QEMU_ENV_VAR = ""
+QEMU_PATH_ENV_VAR = ""
+QEMU_SMP_VAR = "qemu_smp"
+QEMU_SMP_ENV_VAR = "ONEOS_QEMU_SMP"
 QEMU_STD_PATH = ""
 qemu_run_cmd = ""
 arch = sys.argv[1]
@@ -13,15 +15,15 @@ base = sys.argv[2]
 out = sys.argv[3]
 
 if arch == "x86":
-    QEMU_ENV_VAR = "ONEOS_QEMU_X86"
+    QEMU_PATH_ENV_VAR = "ONEOS_QEMU_X86"
     QEMU_STD_PATH = "qemu-system-i386"
     qemu_run_cmd = "${2} -m 256M --drive file={1}/os-image.bin,format=raw,index=0,if=floppy -device piix3-ide,id=ide -drive id=disk,format=raw,file={1}/one.img,if=none -device ide-hd,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std".format(
         base, out, QEMU_PATH_VAR)
 if arch == "aarch32":
-    QEMU_ENV_VAR = "ONEOS_QEMU_ARM"
+    QEMU_PATH_ENV_VAR = "ONEOS_QEMU_ARM"
     QEMU_STD_PATH = "qemu-system-arm"
-    qemu_run_cmd = "${2} -M vexpress-a15 -cpu cortex-a15 -kernel {1}/base/boot/kernel.bin -serial mon:stdio -vga std -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
-        base, out, QEMU_PATH_VAR)
+    qemu_run_cmd = "${2} -M vexpress-a15 -cpu cortex-a15 -kernel {1}/base/boot/kernel.bin  -smp ${3} -serial mon:stdio -vga std -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
+        base, out, QEMU_PATH_VAR, QEMU_SMP_VAR)
 
 if base[-1] == '/':
     base = base[:-1]
@@ -73,9 +75,11 @@ run = open("{0}/run.sh".format(out), "w")
 run.write(
     """#!/bin/bash
 {2}="{3}"
+{4}=1
 [[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
+[[ -z "${5}" ]] && {4}=1 || {4}="${5}"
 {0}
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Run command failed" && exit 1; fi""".format(qemu_run_cmd, QEMU_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH)
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} Run command failed" && exit 1; fi""".format(qemu_run_cmd, QEMU_PATH_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH, QEMU_SMP_VAR, QEMU_SMP_ENV_VAR)
 )
 run.close()
 
@@ -83,9 +87,11 @@ debug = open("{0}/debug.sh".format(out), "w")
 debug.write(
     """#!/bin/bash
 {2}="{3}"
+{4}=1
 [[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
+[[ -z "${5}" ]] && {4}=1 || {4}="${5}"
 {0} -s -S
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Debug Run command failed" && exit 1; fi""".format(qemu_run_cmd, QEMU_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH)
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} Debug Run command failed" && exit 1; fi""".format(qemu_run_cmd, QEMU_PATH_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH, QEMU_SMP_VAR, QEMU_SMP_ENV_VAR)
 )
 debug.close()
 
@@ -124,7 +130,7 @@ if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
 [[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
 {0} --nographic
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
-""".format(qemu_run_cmd, QEMU_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH))
+""".format(qemu_run_cmd, QEMU_PATH_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH))
 allf.close()
 
 allf = open("{0}/dll.sh".format(out), "w")
