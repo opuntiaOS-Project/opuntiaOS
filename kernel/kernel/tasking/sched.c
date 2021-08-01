@@ -61,10 +61,9 @@ static void _create_idle_thread(cpu_t* cpu)
     idle_proc->prio = IDLE_PRIO;
 
     _sched_enqueue_impl(&cpu->sched, idle_proc->main_thread);
-    _enqueued_tasks -= 1; // Don't count idle thread.
 }
 
-static inline uint32_t _active_cpu_count()
+uint32_t active_cpu_count()
 {
     return atomic_load_uint32(&_active_cpus);
 }
@@ -87,6 +86,8 @@ static void _init_cpu(cpu_t* cpu)
 
     cpu->sched.master_buf = kmalloc(sizeof(runqueue_t) * TOTAL_PRIOS_COUNT);
     cpu->sched.slave_buf = kmalloc(sizeof(runqueue_t) * TOTAL_PRIOS_COUNT);
+    memset(cpu->sched.master_buf, 0, sizeof(runqueue_t) * TOTAL_PRIOS_COUNT);
+    memset(cpu->sched.slave_buf, 0, sizeof(runqueue_t) * TOTAL_PRIOS_COUNT);
     cpu->sched.next_read_prio = 0;
 
 #ifdef FPU_ENABLED
@@ -166,7 +167,7 @@ int _sched_find_cpu_with_less_load()
 {
     int mx = cpus[0].sched.enqueued_tasks;
     int id = 0;
-    for (int i = 1; i < _active_cpu_count(); i++) {
+    for (int i = 1; i < active_cpu_count(); i++) {
         if (mx > cpus[i].sched.enqueued_tasks) {
             mx = cpus[i].sched.enqueued_tasks;
             id = i;
@@ -271,9 +272,11 @@ void sched()
         sched_data_t* sched = &THIS_CPU->sched;
         while (!sched->master_buf[sched->next_read_prio].head) {
             sched->next_read_prio++;
-            if (sched->next_read_prio >= IDLE_PRIO) {
-                tasking_kill_dying();
-                sched_unblock_threads();
+            if (sched->next_read_prio > TOTAL_PRIOS_COUNT) {
+                if (THIS_CPU->id == 0) {
+                    tasking_kill_dying();
+                    sched_unblock_threads();
+                }
                 _sched_swap_buffers(sched);
             }
         }
@@ -285,10 +288,10 @@ void sched()
         }
         thread->sched_next = thread->sched_prev = NULL;
 #ifdef SCHED_DEBUG
-        log("next to run %d %x %x", thread->tid, get_instruction_pointer(thread->tf), thread->tf);
+        log("next to run %d %x %x [cpu %d]", thread->tid, thread->process->prio, thread->tf, THIS_CPU->id);
 #endif
 #ifdef SCHED_SHOW_STAT
-        log("[STAT] procs in buffer: %d", _debug_count_of_proc_in_buf(_master_buf));
+        log("[STAT] procs in buffer: %d", _debug_count_of_proc_in_buf(sched->master_buf));
 #endif
         ASSERT(thread->status == THREAD_RUNNING);
         thread->last_cpu = THIS_CPU->id;
@@ -324,4 +327,5 @@ static time_t _sched_timeslices[] = {
     [9] = 2,
     [10] = 2,
     [11] = 1,
+    [12] = 1,
 };
