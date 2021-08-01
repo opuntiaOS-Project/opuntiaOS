@@ -164,8 +164,14 @@ void tasking_kill_dying()
     for (int i = 0; i < nxt_proc; i++) {
         p = &proc[i];
         if (p->status == PROC_DYING) {
-            proc_free(p);
+            lock_acquire(&p->lock);
+            if (unlikely(p->status != PROC_DYING)) {
+                lock_release(&p->lock);
+                continue;
+            }
+            proc_free_lockless(p);
             p->status = PROC_DEAD;
+            lock_release(&p->lock);
         }
     }
 }

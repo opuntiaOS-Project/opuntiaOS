@@ -102,6 +102,7 @@ int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid);
 int proc_setup_tty(proc_t* p, tty_entry_t* tty);
 int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env);
 int proc_free(proc_t* p);
+int proc_free_lockless(proc_t* p);
 
 struct thread* proc_alloc_thread();
 struct thread* proc_create_thread(proc_t* p);

@@ -377,11 +377,9 @@ int proc_load(proc_t* p, thread_t* main_thread, const char* path)
  * PROC FREE FUNCTIONS
  */
 
-int proc_free(proc_t* p)
+int proc_free_lockless(proc_t* p)
 {
-    lock_acquire(&p->lock);
     if (p->status != PROC_DYING || p->pid == 0) {
-        lock_release(&p->lock);
         return -ESRCH;
     }
 
@@ -413,8 +411,15 @@ int proc_free(proc_t* p)
     }
 
     dynamic_array_free(&p->zones);
-    lock_release(&p->lock);
     return 0;
+}
+
+int proc_free(proc_t* p)
+{
+    lock_acquire(&p->lock);
+    int res = proc_free_lockless(p);
+    lock_release(&p->lock);
+    return res;
 }
 
 int proc_die(proc_t* p)

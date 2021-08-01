@@ -366,6 +366,7 @@ void dentry_force_put(dentry_t* dentry)
 {
     lock_acquire(&dentry->lock);
     if (dentry_test_flag_lockless(dentry, DENTRY_MOUNTPOINT)) {
+        lock_release(&dentry->lock);
         return;
     }
 
