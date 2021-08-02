@@ -17,6 +17,7 @@ public:
             m_data[i] = m_data[i + 1];
         }
         m_data[m_data.size() - 1] = val;
+        set_needs_display();
     }
 
 private:

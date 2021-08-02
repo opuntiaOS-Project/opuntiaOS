@@ -20,7 +20,7 @@ void GraphView::display(const LG::Rect& rect)
     UI::Context ctx(*this);
     ctx.add_clip(rect);
 
-    ctx.set_fill_color(LG::Color::LightSystemBackground);
+    ctx.set_fill_color(LG::Color(233, 233, 233));
     ctx.fill(bounds());
 
     ctx.set_fill_color(LG::Color::LightSystemBlue);
