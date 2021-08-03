@@ -1,4 +1,5 @@
 #include <iostream>
+#include <libfoundation/ProcessInfo.h>
 #include <libui/App.h>
 #include <libui/AppDelegate.h>
 #include <libui/View.h>
@@ -11,6 +12,7 @@ extern "C" bool __init_app_delegate(UI::AppDelegate** res);
 // main() with this flag. Have to mark it as extern "C".
 extern "C" int main(int argc, char** argv)
 {
+    auto process_info = LFoundation::ProcessInfo(argc, argv);
     auto& app = std::oneos::construct<UI::App>();
     UI::AppDelegate* app_delegate = nullptr;
     int res = __init_app_delegate(&app_delegate);

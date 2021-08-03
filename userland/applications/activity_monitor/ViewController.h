@@ -7,6 +7,7 @@
 
 #pragma once
 #include "GraphView.h"
+#include <libfoundation/ProcessInfo.h>
 #include <libui/App.h>
 #include <libui/Button.h>
 #include <libui/Label.h>
@@ -23,11 +24,12 @@ class ViewController : public UI::ViewController<UI::View> {
 public:
     ViewController(UI::View& view)
         : UI::ViewController<UI::View>(view)
+        , m_cpu_count(LFoundation::ProcessInfo::the().processor_count())
     {
     }
     virtual ~ViewController() = default;
 
-    int cpu_count() { return 1; }
+    inline int cpu_count() const { return m_cpu_count; }
 
     void view_did_load() override
     {
@@ -103,6 +105,7 @@ public:
     }
 
 private:
+    int m_cpu_count;
     int fd_proc_stat;
     std::vector<GraphView*> cpu_graphs;
 
