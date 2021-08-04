@@ -11,6 +11,12 @@
 #include <libkern/log.h>
 #include <libkern/stdarg.h>
 
+// Turn off lock debug output for log.
+#ifdef DEBUG_LOCK
+#undef lock_acquire
+#undef lock_release
+#endif
+
 typedef int (*_putch_callback)(char ch, char* buf_base, size_t* written, void* callback_params);
 
 static lock_t _log_lock;
