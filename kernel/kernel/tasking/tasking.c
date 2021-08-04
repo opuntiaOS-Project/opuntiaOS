@@ -213,7 +213,7 @@ int tasking_exec(const char* path, const char** argv, const char** env)
     thread_t* thread = RUNNING_THREAD;
     proc_t* p = RUNNING_THREAD->process;
     char* kpath = NULL;
-    int kargc = 0;
+    int kargc = 1;
     char** kargv = NULL;
     char** kenv = NULL;
 
@@ -224,23 +224,33 @@ int tasking_exec(const char* path, const char** argv, const char** env)
 
     if (argv) {
         if (!ptrarr_validate_len(argv, 128)) {
+            kfree(kpath);
             return -EINVAL;
         }
-        kargc = ptrarr_len(argv);
+
+        int argc = ptrarr_len(argv);
+        kargc += argc;
 
         /* Validating arguments size */
         uint32_t data_len = 0;
-        for (int argi = 0; argi < kargc; argi++) {
+        for (int argi = 0; argi < argc; argi++) {
             if (!str_validate_len(argv[argi], 128)) {
+                kfree(kpath);
                 return -EINVAL;
             }
             data_len += strlen(argv[argi]) + 1;
             if (data_len > 128) {
+                kfree(kpath);
                 return -EINVAL;
             }
         }
+    }
+    kargv = kmalloc(kargc * sizeof(char*));
+    kargv[0] = kpath;
 
-        kargv = kmem_bring_to_kernel_ptrarr(argv, kargc);
+    // Inlined part of kmem_bring_to_kernel_ptrarr
+    for (int i = 1; i < kargc; i++) {
+        kargv[i] = kmem_bring_to_kernel(argv[i - 1], strlen(argv[i - 1]) + 1);
     }
 
     int err = _tasking_do_exec(p, thread, kpath, kargc, kargv, 0);

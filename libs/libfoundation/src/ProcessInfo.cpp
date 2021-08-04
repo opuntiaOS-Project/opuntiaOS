@@ -22,9 +22,18 @@ ProcessInfo& ProcessInfo::the()
 }
 
 ProcessInfo::ProcessInfo(int argc, char** argv)
-    : m_process_name(argv[0])
 {
     s_the = this;
+
+    // Parse argv[0] to get a process name.
+    int process_name_start = 0;
+    for (int i = 0; i < strlen(argv[0]) - 1; i++) {
+        if (argv[0][i] == '/') {
+            process_name_start = i + 1;
+        }
+    }
+    m_process_name = std::string(&argv[0][process_name_start]);
+
     for (int i = 1; i < argc; i++) {
         m_args.push_back(std::string(argv[i]));
     }

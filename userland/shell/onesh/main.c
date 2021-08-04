@@ -105,7 +105,8 @@ void _cmd_processor()
 
         int res = fork();
         if (!res) {
-            execve(_cmd_app, _cmd_parsed_buffer, 0);
+            // We don't pass an app name to args.
+            execve(_cmd_app, &_cmd_parsed_buffer[1], 0);
             exit(-1);
         } else {
             running_job = res;
