@@ -15,7 +15,12 @@ namespace WinServer {
 
 class Devices {
 public:
-    static Devices& the();
+    inline static Devices& the()
+    {
+        extern Devices* s_WinServer_Devices_the;
+        return *s_WinServer_Devices_the;
+    }
+
     Devices();
     ~Devices() = default;
 

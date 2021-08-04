@@ -24,7 +24,12 @@ enum class AppState {
 
 class App : public LFoundation::EventReceiver {
 public:
-    static App& the();
+    inline static App& the()
+    {
+        extern App* s_UI_App_the;
+        return *s_UI_App_the;
+    }
+
     App();
 
     inline int run() { return m_event_loop.run(); }

@@ -23,7 +23,12 @@ class Popup;
 
 class Compositor {
 public:
-    static Compositor& the();
+    inline static Compositor& the()
+    {
+        extern Compositor* s_WinServer_Compositor_the;
+        return *s_WinServer_Compositor_the;
+    }
+
     Compositor();
 
     void refresh();

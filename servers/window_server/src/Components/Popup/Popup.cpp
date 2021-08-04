@@ -11,16 +11,11 @@
 
 namespace WinServer {
 
-static Popup* s_the;
-
-Popup& Popup::the()
-{
-    return *s_the;
-}
+Popup* s_WinServer_Popup_the = nullptr;
 
 Popup::Popup()
 {
-    s_the = this;
+    s_WinServer_Popup_the = this;
 }
 
 void Popup::draw(LG::Context& ctx)

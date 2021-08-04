@@ -36,7 +36,12 @@ class WindowManager : public LFoundation::EventReceiver {
 #endif
 
 public:
-    static WindowManager& the();
+    inline static WindowManager& the()
+    {
+        extern WindowManager* s_WinServer_WindowManager_the;
+        return *s_WinServer_WindowManager_the;
+    }
+
     WindowManager();
 
     inline void add_window(Window* window)

@@ -20,12 +20,7 @@
 
 namespace WinServer {
 
-static Compositor* s_the;
-
-Compositor& Compositor::the()
-{
-    return *s_the;
-}
+Compositor* s_WinServer_Compositor_the = nullptr;
 
 Compositor::Compositor()
     : m_cursor_manager(CursorManager::the())
@@ -36,7 +31,7 @@ Compositor::Compositor()
     , m_control_bar(ControlBar::the())
 #endif // TARGET_MOBILE
 {
-    s_the = this;
+    s_WinServer_Compositor_the = this;
     invalidate(Screen::the().bounds());
     LFoundation::EventLoop::the().add(LFoundation::Timer([] {
         Compositor::the().refresh();

@@ -13,7 +13,12 @@ namespace WinServer {
 
 class ResourceManager {
 public:
-    static ResourceManager& the();
+    inline static ResourceManager& the()
+    {
+        extern ResourceManager* s_WinServer_ResourceManager_the;
+        return *s_WinServer_ResourceManager_the;
+    }
+
     ResourceManager();
 
     inline const LG::PixelBitmap& background() const { return m_background; }

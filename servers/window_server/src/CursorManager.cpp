@@ -10,17 +10,12 @@
 
 namespace WinServer {
 
-static CursorManager* s_the;
-
-CursorManager& CursorManager::the()
-{
-    return *s_the;
-}
+CursorManager* s_WinServer_CursorManager_the = nullptr;
 
 CursorManager::CursorManager()
     : m_screen(Screen::the())
 {
-    s_the = this;
+    s_WinServer_CursorManager_the = this;
     LG::PNG::PNGLoader loader;
 #ifdef TARGET_DESKTOP
     m_std_cursor = loader.load_from_file("/res/system/arrow.png");

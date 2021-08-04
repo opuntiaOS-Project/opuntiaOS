@@ -11,17 +11,12 @@
 
 namespace WinServer {
 
-static ControlBar* s_the;
-
-ControlBar& ControlBar::the()
-{
-    return *s_the;
-}
+ControlBar* s_WinServer_ControlBar_the = nullptr;
 
 ControlBar::ControlBar()
     : m_bounds(0, Screen::the().bounds().height() - height(), Screen::the().bounds().width(), height())
 {
-    s_the = this;
+    s_WinServer_ControlBar_the = this;
     LG::PNG::PNGLoader loader;
     m_logo = loader.load_from_file("/res/system/mobile/control.png");
     int x = width() / 2 - m_logo.width() / 2;

@@ -11,11 +11,11 @@
 
 namespace WinServer {
 
-static Devices* s_the;
+Devices* s_WinServer_Devices_the = nullptr;
 
 Devices::Devices()
 {
-    s_the = this;
+    s_WinServer_Devices_the = this;
     m_mouse_fd = open("/dev/mouse", O_RDONLY);
     if (m_mouse_fd < 0) {
         Logger::debug << "Can't open mouse" << std::endl;
@@ -39,11 +39,6 @@ Devices::Devices()
             Devices::the().pump_keyboard();
         },
         nullptr);
-}
-
-Devices& Devices::the()
-{
-    return *s_the;
 }
 
 } // namespace WinServer

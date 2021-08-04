@@ -18,7 +18,12 @@ namespace WinServer {
 
 class ControlBar {
 public:
-    static ControlBar& the();
+    inline static ControlBar& the()
+    {
+        extern ControlBar* s_WinServer_ControlBar_the;
+        return *s_WinServer_ControlBar_the;
+    }
+
     ControlBar();
 
     static constexpr size_t height() { return 20; }

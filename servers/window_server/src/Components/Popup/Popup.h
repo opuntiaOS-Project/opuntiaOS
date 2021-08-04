@@ -24,9 +24,14 @@ using PopupData = std::vector<PopupItem>;
 
 class Popup {
 public:
+    inline static Popup& the()
+    {
+        extern Popup* s_WinServer_Popup_the;
+        return *s_WinServer_Popup_the;
+    }
+
     Popup();
     ~Popup() = default;
-    static Popup& the();
 
     inline void set_preferred_origin(const LG::Point<int>& origin) { m_bounds.set_origin(origin); }
     inline void set_preferred_origin(LG::Point<int>&& origin) { m_bounds.set_origin(origin); }
@@ -45,7 +50,7 @@ public:
     void draw(LG::Context& ctx);
 
 private:
-    LG::Rect m_bounds { 0, 0, 200, 170};
+    LG::Rect m_bounds { 0, 0, 200, 170 };
     bool m_visible { false };
     PopupData m_data;
 };

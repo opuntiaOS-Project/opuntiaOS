@@ -29,7 +29,12 @@ struct PopupContext {
 
 class MenuBar {
 public:
-    static MenuBar& the();
+    inline static MenuBar& the()
+    {
+        extern MenuBar* s_WinServer_MenuBar_the;
+        return *s_WinServer_MenuBar_the;
+    }
+
     MenuBar();
 
     static constexpr size_t height() { return 20; }

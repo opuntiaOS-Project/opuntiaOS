@@ -18,7 +18,7 @@
 
 namespace UI {
 
-static Connection* s_the = 0;
+static Connection* s_the = nullptr;
 
 Connection& Connection::the()
 {

@@ -14,7 +14,11 @@ namespace LFoundation {
 
 class ProcessInfo {
 public:
-    static ProcessInfo& the();
+    inline static ProcessInfo& the()
+    {
+        extern ProcessInfo* s_LFoundation_ProcessInfo_the;
+        return *s_LFoundation_ProcessInfo_the;
+    }
 
     ProcessInfo(int argc, char** argv);
     ~ProcessInfo() = default;

@@ -14,7 +14,12 @@ namespace WinServer {
 
 class Screen {
 public:
-    static Screen& the();
+    inline static Screen& the()
+    {
+        extern Screen* s_WinServer_Screen_the;
+        return *s_WinServer_Screen_the;
+    }
+
     Screen();
 
     void swap_buffers();

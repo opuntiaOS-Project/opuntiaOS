@@ -29,7 +29,12 @@ public:
         Buttons,
     };
 
-    static CursorManager& the();
+    inline static CursorManager& the()
+    {
+        extern CursorManager* s_WinServer_CursorManager_the;
+        return *s_WinServer_CursorManager_the;
+    }
+
     CursorManager();
 
     inline const LG::PixelBitmap& current_cursor() const { return std_cursor(); }

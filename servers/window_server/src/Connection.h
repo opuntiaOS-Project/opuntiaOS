@@ -15,7 +15,12 @@ namespace WinServer {
 
 class Connection : public LFoundation::EventReceiver {
 public:
-    static Connection& the();
+    inline static Connection& the()
+    {
+        extern Connection* s_WinServer_Connection_the;
+        return *s_WinServer_Connection_the;
+    }
+
     explicit Connection(int connection_fd);
 
     inline void listen()

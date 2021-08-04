@@ -12,12 +12,7 @@
 
 namespace WinServer {
 
-static Connection* s_the;
-
-Connection& Connection::the()
-{
-    return *s_the;
-}
+Connection* s_WinServer_Connection_the = nullptr;
 
 Connection::Connection(int connection_fd)
     : m_connection_fd(connection_fd)
@@ -25,7 +20,7 @@ Connection::Connection(int connection_fd)
     , m_client_decoder()
     , m_connection_with_clients(m_connection_fd, m_server_decoder, m_client_decoder)
 {
-    s_the = this;
+    s_WinServer_Connection_the = this;
     int err = bind(m_connection_fd, "/tmp/win.sock", 9);
     if (!err) {
         LFoundation::EventLoop::the().add(

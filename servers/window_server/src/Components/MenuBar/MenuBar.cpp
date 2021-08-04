@@ -11,19 +11,14 @@
 
 namespace WinServer {
 
-static MenuBar* s_the;
-
-MenuBar& MenuBar::the()
-{
-    return *s_the;
-}
+MenuBar* s_WinServer_MenuBar_the = nullptr;
 
 MenuBar::MenuBar()
     : m_background_color(LG::Color(222, 222, 222, 180))
     , m_bounds(0, 0, Screen::the().bounds().width(), height())
     , m_popup(Popup::the())
 {
-    s_the = this;
+    s_WinServer_MenuBar_the = this;
     LG::PNG::PNGLoader loader;
     m_logo = loader.load_from_file("/res/system/logo_dark_12.png");
 }

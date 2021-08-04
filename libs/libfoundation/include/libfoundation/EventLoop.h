@@ -45,7 +45,12 @@ public:
 
 class EventLoop {
 public:
-    static EventLoop& the();
+    inline static EventLoop& the()
+    {
+        extern EventLoop* s_LFoundation_EventLoop_the;
+        return *s_LFoundation_EventLoop_the;
+    }
+
     EventLoop();
 
     inline void add(int fd, std::function<void(void)> on_read, std::function<void(void)> on_write)

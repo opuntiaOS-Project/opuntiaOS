@@ -14,16 +14,11 @@
 
 namespace LFoundation {
 
-static ProcessInfo* s_the = nullptr;
-
-ProcessInfo& ProcessInfo::the()
-{
-    return *s_the;
-}
+ProcessInfo* s_LFoundation_ProcessInfo_the = nullptr;
 
 ProcessInfo::ProcessInfo(int argc, char** argv)
 {
-    s_the = this;
+    s_LFoundation_ProcessInfo_the = this;
 
     // Parse argv[0] to get a process name.
     int process_name_start = 0;

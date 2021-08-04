@@ -15,19 +15,14 @@
 
 namespace WinServer {
 
-static Screen* s_the;
-
-Screen& Screen::the()
-{
-    return *s_the;
-}
+Screen* s_WinServer_Screen_the = nullptr;
 
 Screen::Screen()
     : m_depth(4)
     , m_write_bitmap()
     , m_display_bitmap()
 {
-    s_the = this;
+    s_WinServer_Screen_the = this;
     m_screen_fd = open("/dev/bga", O_RDWR);
     m_bounds = LG::Rect(0, 0, ioctl(m_screen_fd, BGA_GET_WIDTH, 0), ioctl(m_screen_fd, BGA_GET_HEIGHT, 0));
 

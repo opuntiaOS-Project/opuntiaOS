@@ -18,16 +18,11 @@
 
 namespace LFoundation {
 
-static EventLoop* s_the = nullptr;
-
-EventLoop& EventLoop::the()
-{
-    return *s_the;
-}
+EventLoop* s_LFoundation_EventLoop_the = nullptr;
 
 EventLoop::EventLoop()
 {
-    s_the = this;
+    s_LFoundation_EventLoop_the = this;
 }
 
 void EventLoop::check_fds()

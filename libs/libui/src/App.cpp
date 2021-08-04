@@ -10,19 +10,14 @@
 #include <sys/socket.h>
 
 namespace UI {
-
-static App* s_the = nullptr;
-
-App& App::the()
-{
-    return *s_the;
-}
+ 
+App* s_UI_App_the = nullptr;
 
 App::App()
     : m_event_loop()
     , m_server_connection(socket(PF_LOCAL, 0, 0))
 {
-    s_the = this;
+    s_UI_App_the = this;
 }
 
 void App::receive_event(std::unique_ptr<LFoundation::Event> event)

@@ -10,16 +10,11 @@
 
 namespace WinServer {
 
-static ResourceManager* s_the;
-
-ResourceManager& ResourceManager::the()
-{
-    return *s_the;
-}
+ResourceManager* s_WinServer_ResourceManager_the = nullptr;
 
 ResourceManager::ResourceManager()
 {
-    s_the = this;
+    s_WinServer_ResourceManager_the = this;
     LG::PNG::PNGLoader loader;
     m_background = loader.load_from_file("/res/wallpapers/island.png");
 }

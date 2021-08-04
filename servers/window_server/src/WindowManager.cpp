@@ -16,12 +16,7 @@
 
 namespace WinServer {
 
-static WindowManager* s_the;
-
-WindowManager& WindowManager::the()
-{
-    return *s_the;
-}
+WindowManager* s_WinServer_WindowManager_the;
 
 WindowManager::WindowManager()
     : m_screen(Screen::the())
@@ -31,7 +26,7 @@ WindowManager::WindowManager()
     , m_event_loop(LFoundation::EventLoop::the())
     , m_std_menubar_content()
 {
-    s_the = this;
+    s_WinServer_WindowManager_the = this;
     m_std_menubar_content.push_back(MenuDir("oneOS", 0));
 }
 
