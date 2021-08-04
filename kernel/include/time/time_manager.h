@@ -9,11 +9,10 @@
 #define _KERNEL_TIME_TIME_MANAGER_H
 
 #include <drivers/generic/timer.h>
+#include <libkern/atomic.h>
 #include <libkern/bits/time.h>
 #include <libkern/types.h>
-
-/* 32 bits is enough until 2106y */
-typedef unsigned int time_t;
+#include <platform/generic/cpu.h>
 
 extern time_t ticks_since_boot;
 extern time_t ticks_since_second;
@@ -30,6 +29,6 @@ time_t timeman_now();
 time_t timeman_seconds_since_boot();
 time_t timeman_get_ticks_from_last_second();
 static inline time_t timeman_ticks_per_second() { return TIMER_TICKS_PER_SECOND; };
-static inline time_t timeman_ticks_since_boot() { return ticks_since_boot; };
+static inline time_t timeman_ticks_since_boot() { return THIS_CPU->stat_ticks_since_boot; };
 
 #endif /* _KERNEL_TIME_TIME_MANAGER_H */

@@ -8,7 +8,6 @@
 #include <drivers/generic/rtc.h>
 #include <drivers/generic/timer.h>
 #include <libkern/log.h>
-#include <tasking/cpu.h>
 #include <time/time_manager.h>
 
 // #define TIME_MANAGER_DEBUG
@@ -90,31 +89,31 @@ int timeman_setup()
 
 void timeman_timer_tick()
 {
+    THIS_CPU->stat_ticks_since_boot++;
     if (system_cpu_id() != 0) {
         return;
     }
 
-    ticks_since_boot++;
-    ticks_since_second++;
+    atomic_add_uint32(&ticks_since_second, 1);
 
     if (ticks_since_second >= TIMER_TICKS_PER_SECOND) {
-        time_since_boot++;
-        time_since_epoch++;
-        ticks_since_second = 0;
+        atomic_add_uint32(&time_since_boot, 1);
+        atomic_add_uint32(&time_since_epoch, 1);
+        atomic_store_uint32(&ticks_since_second, 0);
     }
 }
 
 time_t timeman_now()
 {
-    return time_since_epoch;
+    return atomic_load_uint32(&time_since_epoch);
 }
 
 time_t timeman_seconds_since_boot()
 {
-    return time_since_boot;
+    return atomic_load_uint32(&time_since_boot);
 }
 
 time_t timeman_get_ticks_from_last_second()
 {
-    return ticks_since_second;
+    return atomic_load_uint32(&ticks_since_second);
 }

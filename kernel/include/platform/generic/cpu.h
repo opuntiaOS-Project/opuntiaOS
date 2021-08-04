@@ -39,6 +39,7 @@ typedef struct {
     sched_data_t sched;
 
     /* Stat */
+    time_t stat_ticks_since_boot;
     time_t stat_system_and_idle_ticks;
     time_t stat_user_ticks;
 
