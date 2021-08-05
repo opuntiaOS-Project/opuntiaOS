@@ -33,11 +33,6 @@ static uint32_t stat_cached_inodes_area_size = 0; /* Sum of all areas which is u
 static dentry_cache_list_t* dentry_cache;
 static uint16_t* dentry_cahced;
 
-static inline void dentry_set_flag_lockless(dentry_t* dentry, uint32_t flag);
-static inline bool dentry_test_flag_lockless(dentry_t* dentry, uint32_t flag);
-static inline void dentry_rem_flag_lockless(dentry_t* dentry, uint32_t flag);
-static inline bool dentry_inode_test_flag_lockless(dentry_t* dentry, mode_t mode);
-
 static inline bool need_to_free_inode_cache()
 {
     return (stat_cached_inodes_area_size > DENTRY_SWAP_THRESHOLD_FOR_INODE_CACHE);
@@ -130,7 +125,7 @@ static dentry_t* dentry_cache_find_empty_entry()
 
 static inline void dentry_delete_inode(dentry_t* dentry)
 {
-    ASSERT(dentry->d_count == 0 && dentry_test_flag(dentry, DENTRY_INODE_TO_BE_DELETED));
+    ASSERT(dentry->d_count == 0 && dentry_test_flag_lockless(dentry, DENTRY_INODE_TO_BE_DELETED));
     dentry->ops->dentry.free_inode(dentry);
 }
 
@@ -375,15 +370,20 @@ void dentry_force_put(dentry_t* dentry)
     lock_release(&dentry->lock);
 }
 
-void dentry_put(dentry_t* dentry)
+inline void dentry_put_lockless(dentry_t* dentry)
 {
-    lock_acquire(&dentry->lock);
     ASSERT(dentry->d_count > 0);
     dentry->d_count--;
 
     if (dentry->d_count == 0) {
         dentry_put_impl(dentry);
     }
+}
+
+void dentry_put(dentry_t* dentry)
+{
+    lock_acquire(&dentry->lock);
+    dentry_put_lockless(dentry);
     lock_release(&dentry->lock);
 }
 
@@ -403,22 +403,22 @@ void dentry_put_all_dentries_of_dev(uint32_t dev_indx)
     }
 }
 
-static inline void dentry_set_flag_lockless(dentry_t* dentry, uint32_t flag)
+inline void dentry_set_flag_lockless(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags |= flag;
 }
 
-static inline bool dentry_test_flag_lockless(dentry_t* dentry, uint32_t flag)
+inline bool dentry_test_flag_lockless(dentry_t* dentry, uint32_t flag)
 {
     return (dentry->flags & flag) > 0;
 }
 
-static inline void dentry_rem_flag_lockless(dentry_t* dentry, uint32_t flag)
+inline void dentry_rem_flag_lockless(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags &= ~flag;
 }
 
-static inline bool dentry_inode_test_flag_lockless(dentry_t* dentry, mode_t mode)
+inline bool dentry_inode_test_flag_lockless(dentry_t* dentry, mode_t mode)
 {
     return (dentry->inode->mode & mode) > 0;
 }

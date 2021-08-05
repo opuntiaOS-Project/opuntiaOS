@@ -232,7 +232,10 @@ int vfs_close(file_descriptor_t* fd)
     if (!fd) {
         return -EFAULT;
     }
-    return _int_vfs_do_close(fd);
+    lock_acquire(&fd->lock);
+    int res = _int_vfs_do_close(fd);
+    lock_release(&fd->lock);
+    return res;
 }
 
 int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
@@ -353,6 +356,9 @@ int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
     return written;
 }
 
+/**
+ * A caller to vfs_mkdir should garantee that dentry_t* dir is alive.
+ */
 int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode)
 {
     if (!dentry_inode_test_flag(dir, S_IFDIR)) {
@@ -361,6 +367,9 @@ int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode)
     return dir->ops->file.mkdir(dir, name, len, mode | S_IFDIR);
 }
 
+/**
+ * A caller to vfs_rmdir should garantee that dentry_t* dir is alive.
+ */
 int vfs_rmdir(dentry_t* dir)
 {
     if (!dentry_inode_test_flag(dir, S_IFDIR)) {
@@ -383,15 +392,20 @@ int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len)
     if (!dentry_inode_test_flag(dir_fd->dentry, S_IFDIR)) {
         return -ENOTDIR;
     }
+    lock_acquire(&dir_fd->lock);
     int res = dir_fd->ops->getdents(dir_fd->dentry, buf, &dir_fd->offset, len);
+    lock_release(&dir_fd->lock);
     return res;
 }
 
 int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
 {
+    lock_acquire(&fd->lock);
     // Check if we have a custom fstat
     if (fd->ops->fstat) {
-        return fd->ops->fstat(fd->dentry, stat);
+        int res = fd->ops->fstat(fd->dentry, stat);
+        lock_release(&fd->lock);
+        return res;
     }
 
     // For drives we set MAJOR=0 and MINOR=drive's id.
@@ -401,6 +415,7 @@ int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
     stat->size = fd->dentry->inode->size;
     // FIXME: Fill more stat data here.
 
+    lock_release(&fd->lock);
     return 0;
 }
 
@@ -496,35 +511,39 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 
 int vfs_umount(dentry_t* mounted_dentry)
 {
-    if (!dentry_test_flag(mounted_dentry, DENTRY_MOUNTED)) {
+    lock_acquire(&mounted_dentry->lock);
+    if (!dentry_test_flag_lockless(mounted_dentry, DENTRY_MOUNTED)) {
 #ifdef VFS_DEBUG
         log_warn("[VFS] Not mounted\n");
 #endif
+        lock_release(&mounted_dentry->lock);
         return -EPERM;
     }
 
     dentry_t* mountpoint = mounted_dentry->mountpoint;
 
-    if (!dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
+    if (!dentry_test_flag_lockless(mountpoint, DENTRY_MOUNTPOINT)) {
 #ifdef VFS_DEBUG
         log_warn("[VFS] Not a mountpoint\n");
 #endif
+        lock_release(&mounted_dentry->lock);
         return -EPERM;
     }
 
-    dentry_rem_flag(mounted_dentry, DENTRY_MOUNTED);
+    dentry_rem_flag_lockless(mounted_dentry, DENTRY_MOUNTED);
     dentry_rem_flag(mountpoint, DENTRY_MOUNTPOINT);
 
-    mounted_dentry->mountpoint = 0;
-    mountpoint->mounted_dentry = 0;
+    mounted_dentry->mountpoint = NULL;
+    mountpoint->mounted_dentry = NULL;
 
-    dentry_put(mounted_dentry);
+    dentry_put_lockless(mounted_dentry);
     dentry_put(mountpoint);
 
     if (dentry_test_flag(mountpoint, DENTRY_MOUNTED)) {
         vfs_umount(mountpoint);
     }
 
+    lock_release(&mounted_dentry->lock);
     return 0;
 }
 
@@ -550,14 +569,18 @@ static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
 
 proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
+    lock_acquire(&fd->lock);
     /* Check if we have a custom mmap for a dentry */
     if (fd->dentry->ops->file.mmap) {
         proc_zone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
         if ((uint32_t)res != VFS_USE_STD_MMAP) {
+            lock_release(&fd->lock);
             return res;
         }
     }
-    return _vfs_do_mmap(fd, params);
+    proc_zone_t* res = _vfs_do_mmap(fd, params);
+    lock_release(&fd->lock);
+    return res;
 }
 
 int vfs_munmap(proc_t* p, proc_zone_t* zone)
