@@ -36,6 +36,7 @@ public:
     }
 
     CursorManager();
+    ~CursorManager() = default;
 
     inline const LG::PixelBitmap& current_cursor() const { return std_cursor(); }
     inline const LG::PixelBitmap& std_cursor() const { return m_std_cursor; }
