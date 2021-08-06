@@ -153,6 +153,7 @@ struct socket {
     int protocol;
     sync_ringbuffer_t buffer;
     file_descriptor_t bind_file;
+    lock_t lock;
 };
 typedef struct socket socket_t;
 
