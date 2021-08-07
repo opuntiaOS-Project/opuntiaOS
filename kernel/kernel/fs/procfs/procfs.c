@@ -11,6 +11,8 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 
+// #define PROCFS_DEBUG
+
 /**
  * ProcFS works with caches differently. It does NOT allow reading 
  * of random inode in it's current implementation. Instead of 
@@ -22,7 +24,9 @@ extern const file_ops_t procfs_root_ops;
 int procfs_read_inode(dentry_t* dentry)
 {
     if (dentry->inode_indx != 2) {
+#ifdef PROCFS_DEBUG
         log_warn("NOT ROOT ENTRY ID READ IN PROCFS");
+#endif
         return -1;
     }
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
@@ -132,10 +136,14 @@ int procfs_mount()
     }
     int driver_id = vfs_get_fs_id("procfs");
     if (driver_id < 0) {
+#ifdef PROCFS_DEBUG
         log("Procfs: no driver is installed, exiting");
+#endif
         return -ENOENT;
     }
+#ifdef PROCFS_DEBUG
     log("procfs: %x", driver_id);
+#endif
     int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), driver_id);
     dentry_put(mp);
     return err;
