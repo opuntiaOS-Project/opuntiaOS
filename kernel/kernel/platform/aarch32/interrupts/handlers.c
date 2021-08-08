@@ -127,8 +127,13 @@ void prefetch_abort_handler()
     asm volatile("mov %0, lr"
                  : "=r"(val)
                  :);
-    log("prefetch_abort_handler address : %x", val);
-    system_stop();
+    if (THIS_CPU->current_state == CPU_IN_USERLAND && RUNNING_THREAD) {
+        log("prefetch_abort_handler pid: %d", RUNNING_THREAD->tid);
+        dump_and_kill(RUNNING_THREAD->process);
+    } else {
+        log("prefetch_abort_handler address : %x", val);
+        system_stop();
+    }
 }
 
 void data_abort_handler(trapframe_t* tf)
