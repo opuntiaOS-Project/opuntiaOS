@@ -40,11 +40,13 @@ inline static void system_data_memory_barrier()
 
 inline static void system_flush_tlb_entry(uint32_t vaddr)
 {
+    system_data_synchronise_barrier();
     asm volatile("mcr p15, 0, %0, c8, c7, 3"
                  :
                  : "r"(vaddr)
                  : "memory");
     system_data_synchronise_barrier();
+    system_instruction_barrier();
 }
 
 inline static void system_flush_whole_tlb()
