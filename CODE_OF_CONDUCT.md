@@ -1,8 +1,8 @@
-<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/logo/logo_blue_512.png" width="20"> <b> CODE OF CONDUCT</b></br></br>
+<img src="https://raw.githubusercontent.com/opuntiaOS-Project/opuntiaOS/master/assets/logo/logo_512.png" width="20"> <b> CODE OF CONDUCT</b></br></br>
 
-# oneOS Code of conduct
+# opuntiaOS Code of conduct
 
-oneOS Project is committed to preserving and fostering a diverse, welcoming community. Below is our community code of conduct, which applies to this project and related parts of it.
+opuntiaOS Project is committed to preserving and fostering a diverse, welcoming community. Below is our community code of conduct, which applies to this project and related parts of it.
 
 ## Be respectful and constructive
 

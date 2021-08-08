@@ -1,6 +1,6 @@
 import("//build/libs/TEMPLATE.gni")
 
-oneOS_static_library("libcxxabi") {
+opuntiaOS_static_library("libcxxabi") {
   sources = [ "src/cxa_runtime.cpp" ]
 
   if (target_cpu == "aarch32") {

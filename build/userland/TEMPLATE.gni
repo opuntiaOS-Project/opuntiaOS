@@ -4,9 +4,9 @@
 
 import("//build/userland/EXEC_TEMPLATE.gni")
 
-template("oneOS_executable") {
+template("opuntiaOS_executable") {
   app_name = target_name
-  oneOS_executable_template(app_name) {
+  opuntiaOS_executable_template(app_name) {
     forward_variables_from(invoker,
                            [
                              "install_path",
@@ -27,7 +27,7 @@ template("oneOS_executable") {
   }
 }
 
-template("oneOS_application") {
+template("opuntiaOS_application") {
   app_name = target_name
   root = "Applications/$app_name.app"
   exec_file = "$root/Content/"
@@ -44,7 +44,7 @@ template("oneOS_application") {
     ]
   }
 
-  oneOS_executable_template(app_name) {
+  opuntiaOS_executable_template(app_name) {
     install_path = "$exec_file"
     forward_variables_from(invoker,
                            [

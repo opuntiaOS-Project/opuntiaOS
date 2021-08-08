@@ -1,6 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_application("activity_monitor") {
+opuntiaOS_application("activity_monitor") {
   sources = [
     "AppDelegate.cpp",
     "GraphView.cpp",

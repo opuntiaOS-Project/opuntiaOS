@@ -1,6 +1,6 @@
 import("//build/libs/TEMPLATE.gni")
 
-oneOS_static_library("libfoundation") {
+opuntiaOS_static_library("libfoundation") {
   sources = [
     "src/EventLoop.cpp",
     "src/Logger.cpp",

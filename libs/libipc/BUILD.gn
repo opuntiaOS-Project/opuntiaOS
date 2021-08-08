@@ -1,6 +1,6 @@
 import("//build/libs/TEMPLATE.gni")
 
-oneOS_static_library("libipc") {
+opuntiaOS_static_library("libipc") {
   sources = []
   configs = [ "//build/libs:libcxx_flags" ]
 }

@@ -16,7 +16,7 @@
 
 namespace WinServer {
 
-WindowManager* s_WinServer_WindowManager_the;
+WindowManager* s_WinServer_WindowManager_the = nullptr;
 
 WindowManager::WindowManager()
     : m_screen(Screen::the())
@@ -27,7 +27,7 @@ WindowManager::WindowManager()
     , m_std_menubar_content()
 {
     s_WinServer_WindowManager_the = this;
-    m_std_menubar_content.push_back(MenuDir("oneOS", 0));
+    m_std_menubar_content.push_back(MenuDir("opuntiaOS", 0));
 }
 
 void WindowManager::start_window_move(Window& window)

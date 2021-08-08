@@ -1,6 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_executable("bench") {
+opuntiaOS_executable("bench") {
   install_path = "bin/"
   sources = [
     "main.cpp",

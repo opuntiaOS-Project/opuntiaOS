@@ -1,6 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_executable("init") {
+opuntiaOS_executable("init") {
   install_path = "boot/"
   sources = [ "init_$target_cpu.s" ]
   configs = [ "//build/userland:userland_flags" ]

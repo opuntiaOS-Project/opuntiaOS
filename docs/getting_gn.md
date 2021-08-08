@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/logo/logo_blue_512.png" width="20"> <b> DOCS</b></br></br>
+<img src="https://raw.githubusercontent.com/opuntiaOS-Project/opuntiaOS/master/assets/logo/logo_512.png" width="20"> <b> DOCS</b></br></br>
 
 # Getting GN
 

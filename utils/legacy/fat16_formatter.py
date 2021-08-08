@@ -1,6 +1,6 @@
 # implemented in python to support all platforms
-# oneOS
-# fat16 in oneOS
+# opuntiaOS
+# fat16 in opuntiaOS
 
 from config import format_settings
 
@@ -33,7 +33,7 @@ def merge(res, plus, offset):
 
 def test_id():
     result = bytearray(8)
-    textCode = 'oneOSToP'
+    textCode = 'opuntiaOSToP'
     for (id,el) in enumerate(textCode):
         result[id] = ord(el)
     return result
@@ -172,7 +172,7 @@ def print_g(result):
 
 
 if __name__ == "__main__":
-    print("oneOS Formatter")
+    print("opuntiaOS Formatter")
     print("To change setting change config file")
     open_file()
 

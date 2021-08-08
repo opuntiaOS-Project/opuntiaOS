@@ -1,10 +1,10 @@
-<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/logo/logo_blue_512.png" width="20"> <b> DOCS</b></br></br>
+<img src="https://raw.githubusercontent.com/opuntiaOS-Project/opuntiaOS/master/assets/logo/logo_512.png" width="20"> <b> DOCS</b></br></br>
 
 # Builidng OS
 
 ## Prerequisites
 
-The project uses GN Build System, please ensure that you have `gn` binary. If your system doesn't have the build system, please visit [instructions how to get a binary](https://github.com/nimelehin/oneOS/blob/master/docs/getting_gn.md)
+The project uses GN Build System, please ensure that you have `gn` binary. If your system doesn't have the build system, please visit [instructions how to get a binary](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_gn.md)
 
 ### Tools for MacOS
 
@@ -34,7 +34,7 @@ apt install build-essential curl libmpfr-dev libmpc-dev libgmp-dev e2fsprogs qem
 
 ## Cross-compiler
 
-oneOS supports compilation both with GNU toolchains and LLVM. 
+opuntiaOS supports compilation both with GNU toolchains and LLVM. 
 
 *Note* that in GNU world, every host/target combination has its own set of binaries, headers, libraries, etc. So, choose GNU Toolchain based on target architecture you want to compile the OS to.
 
@@ -49,8 +49,8 @@ brew install i686-elf-gcc
 ***Aarch32***
 
 ```bash
-brew tap oneOS-Project/homebrew-formulae-arm-gcc
-brew install oneOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
+brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
+brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
 ```
 
 </br>
@@ -97,7 +97,7 @@ Now we are ready to build the OS :)
 
 To generate ninja just run `./gn_gen.sh`. This command creates build directory `out/` and disk image for the OS.
 
-***Note*** you can set some environment variables before running `./gn_gen.sh` to change some parameters, visit [Environment varibles](https://github.com/nimelehin/oneOS/blob/master/docs/build.md#environment-variables) to learn more.
+***Note*** you can set some environment variables before running `./gn_gen.sh` to change some parameters, visit [Environment varibles](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/build.md#environment-variables) to learn more.
 
 #### **Options of ./gn.gen**
 
@@ -121,7 +121,7 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
     * none *(default)*
     * external_script
 
-So to build oneOS for Arm with LLVM you have to generate Ninja files with `./gn_gen.sh --target_cpu aarch32 --host llvm`
+So to build opuntiaOS for Arm with LLVM you have to generate Ninja files with `./gn_gen.sh --target_cpu aarch32 --host llvm`
 
 #### **Environment variables**
 

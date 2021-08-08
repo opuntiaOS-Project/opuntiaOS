@@ -1,9 +1,9 @@
-<img src="https://raw.githubusercontent.com/nimelehin/oneOS/master/assets/logo/logo_blue_512.png" width="20"> <b> CONTRIBUTING</b></br></br>
+<img src="https://raw.githubusercontent.com/opuntiaOS-Project/opuntiaOS/master/assets/logo/logo_512.png" width="20"> <b> CONTRIBUTING</b></br></br>
 
-# Contributing to oneOS
+# Contributing to opuntiaOS
 
-oneOS lets anyone contribute to the project.
+opuntiaOS lets anyone contribute to the project.
 
 ## Community guidelines
 
-* [Code of conduct](https://github.com/nimelehin/oneOS/blob/master/CODE_OF_CONDUCT.md)
+* [Code of conduct](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/CODE_OF_CONDUCT.md)

@@ -84,7 +84,7 @@ config("userland_flags") {
   cflags_cc = uland_cc_flags
   asmflags = uland_asm_flags
   ldflags = uland_ld_flags
-  defines = [ "oneOS" ]
+  defines = [ "opuntiaOS" ]
 }
 
 group("userland") {

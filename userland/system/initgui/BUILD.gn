@@ -1,6 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_executable("initgui") {
+opuntiaOS_executable("initgui") {
   install_path = "System/"
   sources = [ "main.c" ]
   configs = [ "//build/userland:userland_flags" ]

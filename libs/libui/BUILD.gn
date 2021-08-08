@@ -1,6 +1,6 @@
 import("//build/libs/TEMPLATE.gni")
 
-oneOS_static_library("libui") {
+opuntiaOS_static_library("libui") {
   sources = [
     "src/App.cpp",
     "src/Button.cpp",

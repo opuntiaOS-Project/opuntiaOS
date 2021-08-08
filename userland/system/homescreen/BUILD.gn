@@ -1,6 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_executable("homescreen") {
+opuntiaOS_executable("homescreen") {
   install_path = "System/"
   sources = [
     "AppDelegate.cpp",

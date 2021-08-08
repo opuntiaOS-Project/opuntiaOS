@@ -1,6 +1,6 @@
 import("//build/libs/TEMPLATE.gni")
 
-oneOS_static_library("libg") {
+opuntiaOS_static_library("libg") {
   sources = [
     "src/Color.cpp",
     "src/Context.cpp",

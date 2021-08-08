@@ -2,7 +2,7 @@
 #define _USERLAND_EDIT_MODE_H
 
 #include "viewer.h"
-#ifdef __oneOS__
+#ifdef __opuntiaOS__
 #include <sys/types.h>
 #else
 #include <stdint.h>

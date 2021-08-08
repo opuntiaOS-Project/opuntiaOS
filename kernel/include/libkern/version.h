@@ -1,7 +1,7 @@
 #ifndef _KERNEL_LIBKERN_VERSION_H
 #define _KERNEL_LIBKERN_VERSION_H
 
-#define OSTYPE "oneOS"
+#define OSTYPE "opuntiaOS"
 #define OSRELEASE "1.0.0-dev"
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0

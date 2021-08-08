@@ -1,6 +1,6 @@
 import("//build/libs/TEMPLATE.gni")
 
-oneOS_static_library("libcxx") {
+opuntiaOS_static_library("libcxx") {
   sources = [
     # shared (with LibC)
     "../libc/ctype/ctype.c",

@@ -30,7 +30,7 @@ def print_header(config_file):
     config_file.write(
         """#
 # Automatically generated file; DO NOT EDIT.
-# oneOS Kernel Configuration
+# opuntiaOS Kernel Configuration
 #
 
 """)

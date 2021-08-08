@@ -1,6 +1,6 @@
 import("//build/libs/TEMPLATE.gni")
 
-oneOS_static_library("libc") {
+opuntiaOS_static_library("libc") {
   sources = [
     "ctype/ctype.c",
     "dirent/dirent.c",

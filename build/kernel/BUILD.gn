@@ -83,7 +83,7 @@ config("kernel_flags") {
   cflags = kernel_c_flags
   asmflags = kernel_asm_flags
   ldflags = kernel_ld_flags
-  defines = [ "oneOS_kernel" ]
+  defines = [ "opuntiaOS_kernel" ]
 }
 
 kernel_src = exec_script("get_kernel_files.py",

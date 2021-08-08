@@ -1,6 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_application("terminal") {
+opuntiaOS_application("terminal") {
   sources = [
     "AppDelegate.cpp",
     "TerminalView.cpp",

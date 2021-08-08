@@ -1,6 +1,6 @@
 import("//build/userland/TEMPLATE.gni")
 
-oneOS_application("about") {
+opuntiaOS_application("about") {
   sources = [
     "AppDelegate.cpp",
   ]

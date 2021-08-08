@@ -1,7 +1,7 @@
 #ifndef _USERLAND_EDIT_FILE_H
 #define _USERLAND_EDIT_FILE_H
 
-#ifdef __oneOS__
+#ifdef __opuntiaOS__
 #include <sys/types.h>
 #else
 #include <stdint.h>

@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-template("oneOS_executable_template") {
+template("opuntiaOS_executable_template") {
   assert(defined(invoker.sources),
-         "Need sources in $target_name to build oneOS App")
+         "Need sources in $target_name to build opuntiaOS App")
 
   app_name = target_name
   app_build_name = app_name + "_build"
