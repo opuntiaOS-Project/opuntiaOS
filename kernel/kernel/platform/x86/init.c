@@ -18,13 +18,21 @@
 #include <platform/x86/idt.h>
 #include <platform/x86/init.h>
 
-void platform_setup()
+void platform_init_boot_cpu()
 {
-    clean_screen();
     gdt_setup();
     interrupts_setup();
+}
+
+void platform_setup_boot_cpu()
+{
+    clean_screen();
     pit_setup();
     fpu_init();
+}
+
+void platform_setup_secondary_cpu()
+{
 }
 
 void platform_drivers_setup()

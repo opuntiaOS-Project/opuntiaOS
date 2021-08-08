@@ -15,16 +15,30 @@
 #include <platform/aarch32/init.h>
 #include <platform/aarch32/interrupts.h>
 
-void platform_setup()
+/**
+ * platform_init_boot_cpu initializes bare minimum to setup VM.
+ */
+void platform_init_boot_cpu()
 {
     interrupts_setup();
+}
+
+void platform_setup_boot_cpu()
+{
     fpuv4_install();
+    gic_setup();
+}
+
+void platform_setup_secondary_cpu()
+{
+    interrupts_setup_secondary_cpu();
+    fpuv4_install();
+    gic_setup_secondary_cpu();
 }
 
 void platform_drivers_setup()
 {
     uart_remap();
-    gic_setup();
     sp804_install();
     pl181_install();
     pl111_install();

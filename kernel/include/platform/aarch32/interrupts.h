@@ -32,6 +32,7 @@ struct gic_descritptor {
 typedef struct gic_descritptor gic_descritptor_t;
 
 void interrupts_setup();
+void interrupts_setup_secondary_cpu();
 
 extern char STACK_ABORT_TOP;
 extern char STACK_UNDEFINED_TOP;
@@ -57,5 +58,6 @@ void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_type_t type
 void irq_set_gic_desc(gic_descritptor_t gic_desc);
 
 void gic_setup();
+void gic_setup_secondary_cpu();
 
 #endif /* _KERNEL_PLATFORM_AARCH32_INTERRUPTS_H */

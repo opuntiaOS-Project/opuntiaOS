@@ -57,6 +57,7 @@ struct dynamic_array;
  */
 
 int vmm_setup();
+int vmm_setup_secondary_cpu();
 
 int vmm_allocate_ptable(uint32_t vaddr);
 int vmm_free_ptable(uint32_t vaddr, struct dynamic_array* zones);

@@ -45,9 +45,31 @@ void interrupts_setup()
     init_irq_handlers();
 }
 
+static uint32_t new_zone_for_secondary_cpu()
+{
+    zone_t zone = zoner_new_zone(VMM_PAGE_SIZE);
+    vmm_load_page(zone.start, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    return zone.start + zone.len;
+}
+
+void interrupts_setup_secondary_cpu()
+{
+    system_disable_interrupts();
+    system_enable_interrupts_only_counter(); // Reset counter
+    set_abort_stack(new_zone_for_secondary_cpu());
+    set_undefined_stack(new_zone_for_secondary_cpu());
+    set_svc_stack(new_zone_for_secondary_cpu());
+    set_irq_stack(new_zone_for_secondary_cpu());
+}
+
 void gic_setup()
 {
     gicv2_install();
+}
+
+void gic_setup_secondary_cpu()
+{
+    gicv2_install_secondary_cpu();
 }
 
 void irq_set_gic_desc(gic_descritptor_t gic_desc)

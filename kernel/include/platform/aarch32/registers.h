@@ -119,4 +119,13 @@ static inline void write_hcptr(uint32_t val)
     system_instruction_barrier();
 }
 
+static inline uint32_t read_cpu_id_register()
+{
+    uint32_t res;
+    asm volatile("mrc p15, 0, %0, c0, c0, 5"
+                 : "=r"(res)
+                 :);
+    return res;
+}
+
 #endif /* _KERNEL_PLATFORM_AARCH32_REGISTERS_H */

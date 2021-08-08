@@ -427,6 +427,12 @@ int vmm_setup()
     return 0;
 }
 
+int vmm_setup_secondary_cpu()
+{
+    _vmm_init_switch_to_kernel_pdir();
+    return 0;
+}
+
 /**
  * VM TOOLS
  */

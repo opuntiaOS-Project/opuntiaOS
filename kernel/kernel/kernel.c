@@ -33,6 +33,22 @@
 
 #include <syscalls/handlers.h>
 
+static int __boot_cpu_launched = 0;
+static int __boot_cpu_setup_devices = 0;
+static int __boot_cpu_setup_drivers = 0;
+static int __boot_cpu_setup_tasking = 0;
+
+static inline void boot_cpu_finish(int* wt)
+{
+    __atomic_store_n(wt, 1, __ATOMIC_RELEASE);
+}
+
+static inline void wait_for_boot_cpu_to_finish(int* wt)
+{
+    while (__atomic_load_n(wt, __ATOMIC_ACQUIRE) == 0) {
+    }
+}
+
 void launching()
 {
     tasking_create_kernel_thread(dentry_flusher, NULL);
@@ -42,13 +58,16 @@ void launching()
 
 void stage3(mem_desc_t* mem_desc)
 {
+    boot_cpu_finish(&__boot_cpu_launched);
     system_disable_interrupts();
     logger_setup();
-    platform_setup();
+    platform_init_boot_cpu();
 
     // mem setup
     pmm_setup(mem_desc);
     vmm_setup();
+    platform_setup_boot_cpu();
+    boot_cpu_finish(&__boot_cpu_setup_devices);
 
     // installing drivers
     driver_manager_init();
@@ -59,6 +78,7 @@ void stage3(mem_desc_t* mem_desc)
     procfs_install();
     devfs_install();
     drivers_run();
+    boot_cpu_finish(&__boot_cpu_setup_drivers);
 
     // mounting filesystems
     procfs_mount();
@@ -75,6 +95,7 @@ void stage3(mem_desc_t* mem_desc)
     scheduler_init();
     schedule_activate_cpu();
     tasking_create_kernel_thread(launching, NULL);
+    boot_cpu_finish(&__boot_cpu_setup_tasking);
     resched(); /* Starting a scheduler */
 
     system_stop();
@@ -82,4 +103,15 @@ void stage3(mem_desc_t* mem_desc)
 
 void boot_secondary_cpu()
 {
+    system_disable_interrupts();
+
+    wait_for_boot_cpu_to_finish(&__boot_cpu_setup_devices);
+    vmm_setup_secondary_cpu();
+    platform_setup_secondary_cpu();
+
+    wait_for_boot_cpu_to_finish(&__boot_cpu_setup_tasking);
+    schedule_activate_cpu();
+    resched();
+
+    system_stop();
 }

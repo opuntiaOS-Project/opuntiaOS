@@ -96,6 +96,17 @@ void gicv2_install()
     cpu_interface_registers->control = GICC_ENABLE_GR1_MASK;
 }
 
+void gicv2_install_secondary_cpu()
+{
+#ifdef DEBUG_GICv2
+    log("Gic type %x", distributor_registers->typer);
+#endif
+    distributor_registers->control = GICD_ENABLE_MASK;
+    cpu_interface_registers->pmr = 0xff;
+    cpu_interface_registers->bpr = 0x0;
+    cpu_interface_registers->control = GICC_ENABLE_GR1_MASK;
+}
+
 uint32_t gicv2_interrupt_descriptor()
 {
     return cpu_interface_registers->iar;
