@@ -14,13 +14,13 @@ namespace WinServer {
 MenuBar* s_WinServer_MenuBar_the = nullptr;
 
 MenuBar::MenuBar()
-    : m_background_color(LG::Color(222, 222, 222, 180))
+    : m_background_color(LG::Color(255, 255, 255, 0))
     , m_bounds(0, 0, Screen::the().bounds().width(), height())
     , m_popup(Popup::the())
 {
     s_WinServer_MenuBar_the = this;
     LG::PNG::PNGLoader loader;
-    m_logo = loader.load_from_file("/res/system/logo_dark_12.png");
+    m_logo = loader.load_from_file("/res/system/menu_12.png");
 }
 
 void MenuBar::invalidate_widget(BaseWidget* wg)

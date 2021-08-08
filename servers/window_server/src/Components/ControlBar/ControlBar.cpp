@@ -18,10 +18,10 @@ ControlBar::ControlBar()
 {
     s_WinServer_ControlBar_the = this;
     LG::PNG::PNGLoader loader;
-    m_logo = loader.load_from_file("/res/system/mobile/control.png");
-    int x = width() / 2 - m_logo.width() / 2;
-    int y = Screen::the().bounds().height() - height() / 2 - m_logo.height() / 2;
-    m_button_bounds = LG::Rect(x, y, m_logo.width(), m_logo.height());
+    m_menu_icon = loader.load_from_file("/res/system/mobile/control.png");
+    int x = width() / 2 - m_menu_icon.width() / 2;
+    int y = Screen::the().bounds().height() - height() / 2 - m_menu_icon.height() / 2;
+    m_button_bounds = LG::Rect(x, y, m_menu_icon.width(), m_menu_icon.height());
 }
 
 } // namespace WinServer

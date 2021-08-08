@@ -24,8 +24,8 @@ void Popup::draw(LG::Context& ctx)
         return;
     }
 
-    ctx.set_fill_color(LG::Color(222, 222, 222, 180));
-    ctx.mix(bounds());
+    ctx.set_fill_color(LG::Color(255, 255, 255));
+    ctx.fill_rounded(bounds(), LG::CornerMask(8));
 }
 
 } // namespace WinServer

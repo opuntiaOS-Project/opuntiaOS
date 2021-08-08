@@ -61,7 +61,7 @@ void HomeScreenView::display(const LG::Rect& rect)
     ctx.set_fill_color(LG::Color(0, 0, 0, 0));
     ctx.fill(bounds());
 
-    ctx.set_fill_color(LG::Color(222, 222, 222, 180));
+    ctx.set_fill_color(LG::Color(255, 255, 255, 135));
     int offsety = bounds().height() - dock_height_with_padding();
     ctx.fill_rounded(LG::Rect(grid_padding(), offsety, bounds().width() - 2 * grid_padding(), dock_height()), LG::CornerMask(16));
 }

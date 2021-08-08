@@ -35,7 +35,7 @@ void DockView::display(const LG::Rect& rect)
     ctx.set_fill_color(background_color());
     ctx.fill_rounded(opened_apps_dock, LG::CornerMask(8));
 
-    ctx.set_fill_color(LG::Color(222, 222, 222, 180));
+    ctx.set_fill_color(LG::Color(255, 255, 255, 135));
     ctx.fill_rounded(fast_access_dock, LG::CornerMask(8));
 
     // Drawing launched icons

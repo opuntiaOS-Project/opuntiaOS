@@ -37,13 +37,13 @@ public:
 
     [[gnu::always_inline]] inline void draw(LG::Context& ctx)
     {
-        ctx.draw({ control_button_bounds().min_x(), control_button_bounds().min_y() }, m_logo);
+        ctx.draw({ control_button_bounds().min_x(), control_button_bounds().min_y() }, m_menu_icon);
     }
 
 private:
     LG::Rect m_bounds;
     LG::Rect m_button_bounds;
-    LG::PixelBitmap m_logo;
+    LG::PixelBitmap m_menu_icon;
 };
 
 } // namespace WinServer

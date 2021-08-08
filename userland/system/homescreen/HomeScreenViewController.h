@@ -38,7 +38,7 @@ public:
 
     virtual void view_did_load() override
     {
-        view().set_background_color(LG::Color(222, 222, 222, 180));
+        view().set_background_color(LG::Color(255, 255, 255, 135));
         init_data();
         view().set_needs_display();
     }
