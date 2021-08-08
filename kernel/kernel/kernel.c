@@ -79,3 +79,7 @@ void stage3(mem_desc_t* mem_desc)
 
     system_stop();
 }
+
+void boot_secondary_cpu()
+{
+}

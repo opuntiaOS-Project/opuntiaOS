@@ -42,6 +42,12 @@
 
 	.stack ALIGN(4K) : AT (ADDR(.stack) - 0xc0000000 + phys_passed)
 	{
+		STACK_SECONDARY_BASE = .;
+		STACK_SECONDARY_PHYZ_BASE = . - 0xc0000000 + phys_passed;
+		. += 0x1000;
+		STACK_SECONDARY_TOP =  .;
+		STACK_SECONDARY_PHYZ_TOP = . - 0xc0000000 + phys_passed;
+
 		STACK_BASE = .;
 		STACK_PHYZ_BASE = . - 0xc0000000 + phys_passed;
 		. += 0x1000;

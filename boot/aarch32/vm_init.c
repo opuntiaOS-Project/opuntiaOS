@@ -47,6 +47,7 @@ typedef struct pdirectory {
 } pdirectory_t;
 
 void vm_setup() __attribute__((section(".init_code")));
+void vm_setup_secondary_cpu() __attribute__((section(".init_code")));
 static ptable_t* map_page() __attribute__((section(".init_code")));
 static void write_ttbcr() __attribute__((section(".init_code")));
 static void write_ttbr0() __attribute__((section(".init_code")));
@@ -54,6 +55,7 @@ static void mmu_enable() __attribute__((section(".init_code")));
 static void write_dacr() __attribute__((section(".init_code")));
 static pdirectory_t* __attribute__((section(".init_data"))) dir = (pdirectory_t*)0x80000000;
 static ptable_t* __attribute__((section(".init_data"))) next_table = (ptable_t*)0x80004000;
+static int __attribute__((section(".init_data"))) sync = 0;
 
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 20) & 0xfff)
 #define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0xff)
@@ -144,6 +146,16 @@ void vm_setup()
     map_page(0x80200000, 0x80200000); // kernel to self
     map_page(0x80300000, 0x80300000); // kernel to self
 
+    write_ttbr0((uint32_t)(0x80000000));
+    write_dacr(0x55555555);
+    mmu_enable();
+    __atomic_store_n(&sync, 1, __ATOMIC_RELEASE);
+}
+
+void vm_setup_secondary_cpu()
+{
+    while (__atomic_load_n(&sync, __ATOMIC_ACQUIRE) == 0) {
+    }
     write_ttbr0((uint32_t)(0x80000000));
     write_dacr(0x55555555);
     mmu_enable();
