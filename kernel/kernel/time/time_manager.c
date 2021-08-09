@@ -94,26 +94,26 @@ void timeman_timer_tick()
         return;
     }
 
-    atomic_add_uint32(&ticks_since_second, 1);
+    atomic_add(&ticks_since_second, 1);
 
     if (ticks_since_second >= TIMER_TICKS_PER_SECOND) {
-        atomic_add_uint32(&time_since_boot, 1);
-        atomic_add_uint32(&time_since_epoch, 1);
-        atomic_store_uint32(&ticks_since_second, 0);
+        atomic_add(&time_since_boot, 1);
+        atomic_add(&time_since_epoch, 1);
+        atomic_store(&ticks_since_second, 0);
     }
 }
 
 time_t timeman_now()
 {
-    return atomic_load_uint32(&time_since_epoch);
+    return atomic_load(&time_since_epoch);
 }
 
 time_t timeman_seconds_since_boot()
 {
-    return atomic_load_uint32(&time_since_boot);
+    return atomic_load(&time_since_boot);
 }
 
 time_t timeman_get_ticks_from_last_second()
 {
-    return atomic_load_uint32(&ticks_since_second);
+    return atomic_load(&ticks_since_second);
 }

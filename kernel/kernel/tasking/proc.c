@@ -107,7 +107,7 @@ thread_t* thread_by_pid(uint32_t pid)
 
 uint32_t proc_alloc_pid()
 {
-    return atomic_add_uint32(&proc_next_pid, 1);
+    return atomic_add(&proc_next_pid, 1);
 }
 
 int proc_init_storage()

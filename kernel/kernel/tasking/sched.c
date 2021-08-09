@@ -65,12 +65,12 @@ static void _create_idle_thread(cpu_t* cpu)
 
 uint32_t active_cpu_count()
 {
-    return atomic_load_uint32(&_active_cpus);
+    return atomic_load(&_active_cpus);
 }
 
 static inline void _add_cpu_count()
 {
-    atomic_add_uint32(&_active_cpus, 1);
+    atomic_add(&_active_cpus, 1);
 }
 
 static void _init_cpu(cpu_t* cpu)
