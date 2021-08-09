@@ -36,6 +36,7 @@ public:
     inline void set_title(std::string&& title) { m_title = std::move(title); }
     inline const std::string& title() const { return m_title; }
     inline const PopupData& items() const { return m_items; }
+    inline PopupData& items() { return m_items; }
 
     inline size_t width() const { return Helpers::text_width(m_title, m_font); }
 

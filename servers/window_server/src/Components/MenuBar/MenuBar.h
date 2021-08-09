@@ -87,14 +87,13 @@ public:
     {
         auto& content = *m_menubar_content;
         popup_context().invoker_id = invoker_id;
-        m_popup.set_preferred_origin({ (int)panel_item_start_offset(invoker_id), height() });
-        m_popup.set_visible(true);
+        m_popup.show({ (int)panel_item_start_offset(invoker_id), height() }, content[invoker_id].items());
     }
 
     inline void popup_will_be_closed()
     {
         popup_context().discard();
-        m_popup.set_visible(false);
+        m_popup.hide();
     }
 
 private:

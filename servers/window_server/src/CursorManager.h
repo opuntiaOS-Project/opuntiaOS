@@ -81,6 +81,11 @@ public:
                 set_changed<CursorManager::Params::LeftButton>();
             }
             m_mouse_left_button_pressed = val;
+        } else if constexpr (param == CursorManager::Params::RightButton) {
+            if (m_mouse_right_button_pressed != val) {
+                set_changed<CursorManager::Params::RightButton>();
+            }
+            m_mouse_right_button_pressed = val;
         } else {
             []<bool flag = false>() { static_assert(flag, "Could not call set() with such param!"); }
             ();
@@ -96,6 +101,8 @@ public:
             m_mask_changed_objects |= CursorManager::ChangedValues::MouseCoords;
         } else if constexpr (param == CursorManager::Params::LeftButton) {
             m_mask_changed_objects |= CursorManager::ChangedValues::LeftButton;
+        } else if constexpr (param == CursorManager::Params::RightButton) {
+            m_mask_changed_objects |= CursorManager::ChangedValues::RightButton;
         } else {
             []<bool flag = false>() { static_assert(flag, "Could not set_changed() for the param!"); }
             ();
@@ -108,6 +115,7 @@ public:
         set<Params::OffsetX>(mouse_event->packet().x_offset);
         set<Params::OffsetY>(-mouse_event->packet().y_offset);
         set<Params::LeftButton>((mouse_event->packet().button_states & 1));
+        set<Params::RightButton>((mouse_event->packet().button_states & 2) >> 1);
     }
 
 private:
@@ -122,6 +130,7 @@ private:
     int m_mouse_offset_x { 0 };
     int m_mouse_offset_y { 0 };
     bool m_mouse_left_button_pressed { false };
+    bool m_mouse_right_button_pressed { false };
     uint32_t m_mask_changed_objects { 0 };
     bool m_mouse_changed_button_status { false };
 
@@ -151,6 +160,8 @@ inline constexpr bool CursorManager::pressed() const
 {
     if constexpr (param == CursorManager::Params::LeftButton) {
         return m_mouse_left_button_pressed;
+    } else if constexpr (param == CursorManager::Params::RightButton) {
+        return m_mouse_right_button_pressed;
     } else {
         []<bool flag = false>() { static_assert(flag, "Could call pressed() only for buttons!"); }
         ();
@@ -166,6 +177,8 @@ inline constexpr bool CursorManager::is_changed()
         return (m_mask_changed_objects & CursorManager::ChangedValues::MouseCoords);
     } else if constexpr (param == CursorManager::Params::LeftButton) {
         return (m_mask_changed_objects & CursorManager::ChangedValues::LeftButton);
+    } else if constexpr (param == CursorManager::Params::RightButton) {
+        return (m_mask_changed_objects & CursorManager::ChangedValues::RightButton);
     } else if constexpr (param == CursorManager::Params::Coords) {
         return (m_mask_changed_objects & CursorManager::ChangedValues::MouseCoords);
     } else if constexpr (param == CursorManager::Params::Buttons) {

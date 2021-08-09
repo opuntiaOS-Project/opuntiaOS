@@ -16,6 +16,8 @@
 
 namespace WinServer {
 
+static PopupData WindowPopupData {};
+
 WindowManager* s_WinServer_WindowManager_the = nullptr;
 
 WindowManager::WindowManager()
@@ -28,6 +30,8 @@ WindowManager::WindowManager()
 {
     s_WinServer_WindowManager_the = this;
     m_std_menubar_content.push_back(MenuDir("opuntiaOS", 0));
+    WindowPopupData.push_back(PopupItem { "Close", [this](int) { this->close_window(*this->active_window()); } });
+    WindowPopupData.push_back(PopupItem { "Minimize", [this](int) { this->minimize_window(*this->active_window()); } });
 }
 
 void WindowManager::start_window_move(Window& window)
@@ -120,9 +124,14 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         return;
     }
 
-    if (m_compositor.popup().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
-
+    if (m_compositor.popup().visible() && m_compositor.popup().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+        m_compositor.popup().on_mouse_move(m_cursor_manager);
+        if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
+            m_compositor.popup().on_mouse_status_change(m_cursor_manager);
+        }
+        return;
     } else {
+        m_compositor.popup().on_mouse_leave(m_cursor_manager);
         if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
             m_compositor.popup().set_visible(false);
         }
@@ -132,7 +141,6 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     if (m_compositor.menu_bar().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
         m_compositor.menu_bar().on_mouse_move(m_cursor_manager);
         if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
-            bool is_left_pressed = m_cursor_manager.pressed<CursorManager::Params::LeftButton>();
             m_compositor.menu_bar().on_mouse_status_change(m_cursor_manager);
         }
     } else if (m_compositor.menu_bar().is_hovered()) {
@@ -151,12 +159,20 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                 bring_to_front(window);
                 m_active_window = &window;
             }
+            if (m_cursor_manager.pressed<CursorManager::Params::RightButton>() && m_active_window != &window) {
+                bring_to_front(window);
+                m_active_window = &window;
+            }
 
             if (window.frame().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
                 if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
                     auto tap_point = LG::Point<int>(m_cursor_manager.x() - window.frame().bounds().min_x(), m_cursor_manager.y() - window.frame().bounds().min_y());
                     window.frame().receive_tap_event(tap_point);
                     start_window_move(window);
+                }
+
+                if (m_cursor_manager.pressed<CursorManager::Params::RightButton>()) {
+                    m_compositor.popup().show({ m_cursor_manager.x(), m_cursor_manager.y() }, WindowPopupData);
                 }
             } else if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
                 LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
