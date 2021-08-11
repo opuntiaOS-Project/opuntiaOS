@@ -26,6 +26,12 @@ public:
     inline WindowFrame& frame() { return m_frame; }
     inline const WindowFrame& frame() const { return m_frame; }
 
+    inline void set_name(const std::string& name)
+    {
+        frame().set_app_name(name);
+        menubar_content()[0].set_title(name);
+    }
+
     inline void offset_by(int x_offset, int y_offset)
     {
         bounds().offset_by(x_offset, y_offset);

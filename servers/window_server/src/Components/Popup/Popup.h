@@ -53,6 +53,7 @@ public:
 
     void show(const LG::Point<int>& origin, PopupData& data)
     {
+        set_visible(false);
         set_preferred_origin(origin);
         set_data(data);
         set_visible(true);

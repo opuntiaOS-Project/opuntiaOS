@@ -66,6 +66,18 @@ public:
         m_windows.push_back(window_ptr);
     }
 
+    template<typename Callback>
+    void minimize_windows(Callback callback)
+    {
+        for (auto* window : m_windows) {
+            if (window->type() == WindowType::Standard) {
+                if (callback(window)) {
+                    minimize_window(*window);
+                }
+            }
+        }
+    }
+
     inline Window* window(int id)
     {
         for (auto* window : m_windows) {

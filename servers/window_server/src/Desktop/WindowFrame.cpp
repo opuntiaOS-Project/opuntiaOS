@@ -93,6 +93,7 @@ void WindowFrame::set_app_name(const std::string& title)
         new_control->set_title(title);
         m_control_panel_buttons.push_back(new_control);
     }
+    WinServer::Compositor::the().invalidate(bounds());
 }
 
 void WindowFrame::set_app_name(std::string&& title)

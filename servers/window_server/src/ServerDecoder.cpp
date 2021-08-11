@@ -26,7 +26,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& 
     auto& wm = WindowManager::the();
     int win_id = wm.next_win_id();
     auto* window = new Desktop::Window(msg.key(), win_id, msg);
-    window->frame().set_app_name("Unknown app");
+    window->set_name("App");
     window->set_icon(msg.icon_path());
     wm.add_window(window);
     if (window->type() == WindowType::Standard) {
@@ -93,8 +93,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
     if (!window) {
         return nullptr;
     }
-    window->frame().set_app_name(msg.title());
-    window->menubar_content()[0].set_title(msg.title());
+    window->set_name(msg.title());
 
     auto& compositor = Compositor::the();
     compositor.invalidate(compositor.menu_bar().bounds());

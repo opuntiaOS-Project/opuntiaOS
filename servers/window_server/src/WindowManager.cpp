@@ -30,8 +30,6 @@ WindowManager::WindowManager()
 {
     s_WinServer_WindowManager_the = this;
     m_std_menubar_content.push_back(MenuDir("opuntiaOS", 0));
-    WindowPopupData.push_back(PopupItem { "Close", [this](int) { this->close_window(*this->active_window()); } });
-    WindowPopupData.push_back(PopupItem { "Minimize", [this](int) { this->minimize_window(*this->active_window()); } });
 }
 
 void WindowManager::start_window_move(Window& window)
@@ -169,10 +167,6 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                     auto tap_point = LG::Point<int>(m_cursor_manager.x() - window.frame().bounds().min_x(), m_cursor_manager.y() - window.frame().bounds().min_y());
                     window.frame().receive_tap_event(tap_point);
                     start_window_move(window);
-                }
-
-                if (m_cursor_manager.pressed<CursorManager::Params::RightButton>()) {
-                    m_compositor.popup().show({ m_cursor_manager.x(), m_cursor_manager.y() }, WindowPopupData);
                 }
             } else if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
                 LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
