@@ -48,18 +48,28 @@ void WindowManager::setup_dock(Window* window)
     m_dock_window = window;
 }
 
+void WindowManager::add_window(Window* window)
+{
+    if (window->type() == WindowType::Homescreen) {
+        setup_dock(window);
+    }
+    m_windows.push_back(window);
+    set_active_window(window);
+    notify_window_status_changed(window->id(), WindowStatusUpdateType::Created);
+}
+
 void WindowManager::remove_window_from_screen(Window* window)
 {
     if (movable_window() == window) {
         m_movable_window = nullptr;
     }
     if (active_window() == window) {
+        m_compositor.menu_bar().set_menubar_content(&m_std_menubar_content, m_compositor);
         m_active_window = nullptr;
     }
     if (hovered_window() == window) {
         m_hovered_window = nullptr;
     }
-    m_compositor.menu_bar().set_menubar_content(&m_std_menubar_content, m_compositor);
     m_compositor.invalidate(window->bounds());
 }
 
@@ -77,6 +87,54 @@ void WindowManager::remove_window(Window* window)
     }
 #endif
     delete window;
+}
+void WindowManager::minimize_window(Window& window)
+{
+    Window* window_ptr = &window;
+    remove_window_from_screen(window_ptr);
+    window.set_visible(false);
+    m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
+    m_windows.push_back(window_ptr);
+}
+
+WindowManager::Window* WindowManager::get_top_standard_window_in_view() const
+{
+    if (m_windows.empty()) {
+        return nullptr;
+    }
+
+    auto it = m_windows.begin();
+    if (m_dock_window) {
+        it++;
+    }
+
+    if (it == m_windows.end()) {
+        return *m_windows.begin();
+    }
+    return *it;
+}
+
+void WindowManager::bring_to_front(Window& window)
+{
+    auto* prev_window = get_top_standard_window_in_view();
+    do_bring_to_front(window);
+#ifdef TARGET_DESKTOP
+    if (m_dock_window) {
+        do_bring_to_front(*m_dock_window);
+    }
+    window.set_visible(true);
+    window.frame().set_active(true);
+    m_compositor.invalidate(window.bounds());
+    if (prev_window && prev_window->id() != window.id()) {
+        prev_window->frame().set_active(false);
+        prev_window->frame().invalidate(m_compositor);
+    }
+    if (window.type() == WindowType::Standard) {
+        m_compositor.menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
+    }
+#elif TARGET_MOBILE
+    m_active_window = &window;
+#endif // TARGET_DESKTOP
 }
 
 #ifdef TARGET_DESKTOP
@@ -154,12 +212,10 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 
         if (window.bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
             if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() && m_active_window != &window) {
-                bring_to_front(window);
-                m_active_window = &window;
+                set_active_window(window);
             }
             if (m_cursor_manager.pressed<CursorManager::Params::RightButton>() && m_active_window != &window) {
-                bring_to_front(window);
-                m_active_window = &window;
+                set_active_window(window);
             }
 
             if (window.frame().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {

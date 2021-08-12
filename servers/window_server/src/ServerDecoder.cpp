@@ -127,7 +127,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const AskBringToFrontMessag
     }
     if (window->type() == WindowType::Homescreen) {
         // Only dock can ask for that now.
-        wm.bring_to_front(*target_window);
+        wm.ask_to_set_active_window(*target_window);
     }
     return nullptr;
 }

@@ -44,40 +44,31 @@ public:
 
     WindowManager();
 
-    inline void add_window(Window* window)
-    {
-        if (window->type() == WindowType::Homescreen) {
-            setup_dock(window);
-        }
-        m_windows.push_back(window);
-        bring_to_front(*window);
-        notify_window_status_changed(window->id(), WindowStatusUpdateType::Created);
-    }
-
+    void add_window(Window* window);
     void remove_window(Window* window);
 
     void close_window(Window& window) { m_event_loop.add(m_connection, new SendEvent(new WindowCloseRequestMessage(window.connection_id(), window.id()))); }
-    void minimize_window(Window& window)
-    {
-        Window* window_ptr = &window;
-        remove_window_from_screen(window_ptr);
-        window.set_visible(false);
-        m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
-        m_windows.push_back(window_ptr);
-    }
+    void minimize_window(Window& window);
 
-    template<typename Callback>
+    template <typename Callback>
     void minimize_windows(Callback callback)
     {
+        std::vector<Window*> hided;
         for (auto* window : m_windows) {
-            if (window->type() == WindowType::Standard) {
-                if (callback(window)) {
-                    minimize_window(*window);
-                }
+            if (window && window->type() == WindowType::Standard && callback(window)) {
+                remove_window_from_screen(window);
+                window->set_visible(false);
+                hided.push_back(window);
             }
+        }
+
+        for (auto* window : hided) {
+            m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
+            m_windows.push_back(window);
         }
     }
 
+    Window* get_top_standard_window_in_view() const;
     inline Window* window(int id)
     {
         for (auto* window : m_windows) {
@@ -88,52 +79,23 @@ public:
         return nullptr;
     }
 
+    inline void move_window(Window* window, int x_offset, int y_offset)
+    {
+        y_offset = std::max(y_offset, (int)m_compositor.menu_bar().height() - (int)Desktop::WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
+        if (m_dock_window) [[likely]] {
+            y_offset = std::min(y_offset, (int)(m_screen.height() - window->content_bounds().min_y() - m_dock_window->bounds().height()));
+        }
+        window->bounds().offset_by(x_offset, y_offset);
+        window->content_bounds().offset_by(x_offset, y_offset);
+    }
+
     inline void do_bring_to_front(Window& window)
     {
         auto* window_ptr = &window;
         m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
         m_windows.push_front(window_ptr);
     }
-
-    Window* get_top_standard_window_in_view() const
-    {
-        if (m_windows.empty()) {
-            return nullptr;
-        }
-
-        auto it = m_windows.begin();
-        if (m_dock_window) {
-            it++;
-        }
-
-        if (it == m_windows.end()) {
-            return *m_windows.begin();
-        }
-        return *it;
-    }
-
-    void bring_to_front(Window& window)
-    {
-        auto* prev_window = get_top_standard_window_in_view();
-        do_bring_to_front(window);
-#ifdef TARGET_DESKTOP
-        if (m_dock_window) {
-            do_bring_to_front(*m_dock_window);
-        }
-        window.set_visible(true);
-        window.frame().set_active(true);
-        m_compositor.invalidate(window.bounds());
-        if (prev_window && prev_window->id() != window.id()) {
-            prev_window->frame().set_active(false);
-            prev_window->frame().invalidate(m_compositor);
-        }
-        if (window.type() == WindowType::Standard) {
-            m_compositor.menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
-        }
-#elif TARGET_MOBILE
-        m_active_window = &window;
-#endif // TARGET_DESKTOP
-    }
+    void bring_to_front(Window& window);
 
     inline std::list<Window*>& windows() { return m_windows; }
     inline const std::list<Window*>& windows() const { return m_windows; }
@@ -150,15 +112,8 @@ public:
     void notify_window_status_changed(int changed_window_id, WindowStatusUpdateType type);
     void notify_window_icon_changed(int changed_window_id);
 
-    void move_window(Window* window, int x_offset, int y_offset)
-    {
-        y_offset = std::max(y_offset, (int)m_compositor.menu_bar().height() - (int)Desktop::WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
-        if (m_dock_window) [[likely]] {
-            y_offset = std::min(y_offset, (int)(m_screen.height() - window->content_bounds().min_y() - m_dock_window->bounds().height()));
-        }
-        window->bounds().offset_by(x_offset, y_offset);
-        window->content_bounds().offset_by(x_offset, y_offset);
-    }
+    inline void ask_to_set_active_window(Window* win) { set_active_window(win); }
+    inline void ask_to_set_active_window(Window& win) { set_active_window(win); }
 
 private:
     void remove_window_from_screen(Window* window);
@@ -173,6 +128,8 @@ private:
     inline Window* movable_window() { return m_movable_window; }
     inline Window* hovered_window() { return m_hovered_window; }
     inline Window* active_window() { return m_active_window; }
+    inline void set_active_window(Window* win) { bring_to_front(*win), m_active_window = win; }
+    inline void set_active_window(Window& win) { bring_to_front(win), m_active_window = &win; }
 
     std::list<Window*> m_windows;
 

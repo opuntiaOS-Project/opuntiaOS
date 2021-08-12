@@ -70,7 +70,7 @@ public:
     void on_mouse_move(const CursorManager& cursor_manager)
     {
         // A simple implemetation to get hover effect and clicks.
-        if (!m_data) {
+        if (!m_data || !visible()) {
             return;
         }
 
@@ -100,19 +100,24 @@ public:
             return;
         }
 
-        if (!m_data) {
+        if (!m_data || !visible()) {
             return;
         }
 
         auto& data = *m_data;
         if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
             data[m_hovered_item].callback(0);
+            hide();
         }
     }
 
     void on_mouse_leave(const CursorManager& cursor_manager)
     {
         if (m_hovered_item == HoveredItem::No) {
+            return;
+        }
+
+        if (!m_data || !visible()) {
             return;
         }
 
