@@ -32,6 +32,7 @@ public:
         DisplayEvent,
         LayoutEvent,
         WindowCloseRequestEvent,
+        MenuBarActionEvent,
 
         UIHandlerInvoke,
 
@@ -191,6 +192,24 @@ public:
 
 private:
     uint32_t m_window_id;
+};
+
+class MenuBarActionEvent : public Event {
+public:
+    MenuBarActionEvent(uint32_t window_id, int item_id)
+        : Event(Event::Type::MenuBarActionEvent)
+        , m_window_id(window_id)
+        , m_item_id(item_id)
+    {
+    }
+
+    ~MenuBarActionEvent() = default;
+    uint32_t window_id() const { return m_window_id; }
+    int item_id() const { return m_item_id; }
+
+private:
+    uint32_t m_window_id;
+    int m_item_id;
 };
 
 // Notifiers

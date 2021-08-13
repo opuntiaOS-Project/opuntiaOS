@@ -70,9 +70,9 @@ MenuItemAnswer MenuBar::panel_item_recieve_mouse_status_change(const CursorManag
     }
 
     MenuItemAnswer answer = MenuItemAnswer::Empty;
-    size_t widget_min_x = panel_item_start_offset(ind);
+    size_t item_min_x = panel_item_start_offset(ind);
     if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-        answer = content[ind].click_began(cursor_manager.x() - widget_min_x, cursor_manager.y());
+        answer = content[ind].click_began(cursor_manager.x() - item_min_x, cursor_manager.y());
     } else {
         answer = content[ind].click_ended();
     }
@@ -81,7 +81,7 @@ MenuItemAnswer MenuBar::panel_item_recieve_mouse_status_change(const CursorManag
         return answer;
     }
     if (answer & MenuItemAnswer::InvalidateMe) {
-        Compositor::the().invalidate(LG::Rect(widget_min_x, 0, m_widgets[ind]->width(), height()));
+        Compositor::the().invalidate(LG::Rect(item_min_x, 0, content[ind].width(), height()));
     }
     if (answer & MenuItemAnswer::PopupShow) {
         popup_will_be_shown(ind);

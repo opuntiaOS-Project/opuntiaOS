@@ -19,6 +19,7 @@ Window::Window(const LG::Size& size, WindowType type)
     , m_type(type)
 {
     m_id = Connection::the().new_window(*this);
+    m_menubar.set_host_window_id(m_id);
     m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
     App::the().set_window(this);
 }
@@ -30,6 +31,7 @@ Window::Window(const LG::Size& size, const LG::string& icon_path)
     , m_icon_path(icon_path)
 {
     m_id = Connection::the().new_window(*this);
+    m_menubar.set_host_window_id(m_id);
     m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
     App::the().set_window(this);
 }
@@ -114,6 +116,13 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
         if (m_superview) {
             LayoutEvent& own_event = *(LayoutEvent*)event.get();
             m_superview->receive_layout_event(own_event);
+        }
+    }
+
+    if (event->type() == Event::Type::MenuBarActionEvent) {
+        MenuBarActionEvent& own_event = *(MenuBarActionEvent*)event.get();
+        if (own_event.item_id() < menubar().menu_items().size()) [[likely]] {
+            menubar().menu_items()[own_event.item_id()].invoke();
         }
     }
 }

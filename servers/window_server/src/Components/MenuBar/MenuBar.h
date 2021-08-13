@@ -38,8 +38,8 @@ public:
     MenuBar();
 
     static constexpr size_t height() { return 20; }
-    static constexpr size_t padding() { return 4; }
-    static constexpr size_t menubar_content_offset() { return 20; }
+    static constexpr size_t padding() { return 8; }
+    static constexpr size_t menubar_content_offset() { return 12 + 2 * padding(); }
 
     size_t width() const { return m_bounds.width(); }
     LG::Rect& bounds() { return m_bounds; }
@@ -108,12 +108,12 @@ private:
     MenuItemAnswer panel_item_recieve_mouse_status_change(const CursorManager& cursor_manager, size_t ind);
     static inline size_t menubar_panel_width(const std::vector<MenuDir>& items)
     {
-        size_t start_offset = 0;
+        size_t width = 0;
         for (int ind = 0; ind < items.size(); ind++) {
-            start_offset += padding();
-            start_offset += items[ind].width();
+            width += padding();
+            width += items[ind].width();
         }
-        return start_offset;
+        return width;
     }
 
     size_t panel_item_start_offset(size_t index);
@@ -143,10 +143,10 @@ inline void MenuBar::draw_panel_items(LG::Context& ctx)
     auto& content = *m_menubar_content;
 
     for (int ind = 0; ind < content.size(); ind++) {
-        start_offset += padding();
         ctx.set_draw_offset(LG::Point<int>(start_offset, 0));
         content[ind].draw(ctx);
         start_offset += content[ind].width();
+        start_offset += padding();
     }
 
     ctx.set_draw_offset(offset);
@@ -203,7 +203,7 @@ inline size_t MenuBar::widget_start_offset(size_t index)
 {
     size_t start_offset = MenuBar::width();
     for (int wind = m_widgets.size() - 1; wind >= (int)index; wind--) {
-        start_offset -= 4;
+        start_offset -= padding();
         start_offset -= m_widgets[wind]->width();
     }
     return start_offset;
@@ -213,7 +213,7 @@ inline int MenuBar::find_widget(int x, int y)
 {
     size_t start_offset = MenuBar::width();
     for (int wind = m_widgets.size() - 1; wind >= 0; wind--) {
-        start_offset -= 4;
+        start_offset -= padding();
         int end_offset = start_offset;
         start_offset -= m_widgets[wind]->width();
         if (start_offset <= x && x <= end_offset) {

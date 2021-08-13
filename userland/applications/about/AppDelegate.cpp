@@ -1,5 +1,6 @@
 #include "ViewController.h"
 #include <libui/AppDelegate.h>
+#include <libui/MenuBar.h>
 
 class AppDelegate : public UI::AppDelegate {
 public:
@@ -15,6 +16,9 @@ public:
         auto& superview = window.create_superview<UI::View, ViewController>();
 
         window.set_title("About");
+
+        window.menubar().add_menu("Demo").add_item(UI::MenuItem("Say hello", [] { Logger::debug << "Hello!" << std::endl; }));
+
         return true;
     }
 

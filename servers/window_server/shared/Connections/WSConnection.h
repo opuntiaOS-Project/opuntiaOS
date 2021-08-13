@@ -346,6 +346,134 @@ private:
     uint32_t m_target_window_id;
 };
 
+class MenuBarCreateMenuMessage : public Message {
+public:
+    MenuBarCreateMenuMessage(message_key_t key, uint32_t window_id, LG::string title)
+        : m_key(key)
+        , m_window_id(window_id)
+        , m_title(title)
+    {
+    }
+    int id() const override { return 12; }
+    int reply_id() const override { return 13; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 320; }
+    uint32_t window_id() const { return m_window_id; }
+    LG::string title() const { return m_title; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_window_id);
+        Encoder::append(buffer, m_title);
+        return buffer;
+    }
+
+private:
+    message_key_t m_key;
+    uint32_t m_window_id;
+    LG::string m_title;
+};
+
+class MenuBarCreateMenuMessageReply : public Message {
+public:
+    MenuBarCreateMenuMessageReply(message_key_t key, int status, uint32_t menu_id)
+        : m_key(key)
+        , m_status(status)
+        , m_menu_id(menu_id)
+    {
+    }
+    int id() const override { return 13; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 320; }
+    int status() const { return m_status; }
+    uint32_t menu_id() const { return m_menu_id; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_status);
+        Encoder::append(buffer, m_menu_id);
+        return buffer;
+    }
+
+private:
+    message_key_t m_key;
+    int m_status;
+    uint32_t m_menu_id;
+};
+
+class MenuBarCreateItemMessage : public Message {
+public:
+    MenuBarCreateItemMessage(message_key_t key, uint32_t window_id, uint32_t menu_id, int item_id, LG::string title)
+        : m_key(key)
+        , m_window_id(window_id)
+        , m_menu_id(menu_id)
+        , m_item_id(item_id)
+        , m_title(title)
+    {
+    }
+    int id() const override { return 14; }
+    int reply_id() const override { return 15; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 320; }
+    uint32_t window_id() const { return m_window_id; }
+    uint32_t menu_id() const { return m_menu_id; }
+    int item_id() const { return m_item_id; }
+    LG::string title() const { return m_title; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_window_id);
+        Encoder::append(buffer, m_menu_id);
+        Encoder::append(buffer, m_item_id);
+        Encoder::append(buffer, m_title);
+        return buffer;
+    }
+
+private:
+    message_key_t m_key;
+    uint32_t m_window_id;
+    uint32_t m_menu_id;
+    int m_item_id;
+    LG::string m_title;
+};
+
+class MenuBarCreateItemMessageReply : public Message {
+public:
+    MenuBarCreateItemMessageReply(message_key_t key, int status)
+        : m_key(key)
+        , m_status(status)
+    {
+    }
+    int id() const override { return 15; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 320; }
+    int status() const { return m_status; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_status);
+        return buffer;
+    }
+
+private:
+    message_key_t m_key;
+    int m_status;
+};
+
 class BaseWindowServerDecoder : public MessageDecoder {
 public:
     BaseWindowServerDecoder() { }
@@ -377,6 +505,8 @@ public:
         LG::string var_title;
         LG::Rect var_rect;
         uint32_t var_target_window_id;
+        uint32_t var_menu_id;
+        int var_item_id;
 
         switch (msg_id) {
         case 1:
@@ -422,6 +552,23 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_target_window_id);
             return new AskBringToFrontMessage(secret_key, var_window_id, var_target_window_id);
+        case 12:
+            Encoder::decode(buf, decoded_msg_len, var_window_id);
+            Encoder::decode(buf, decoded_msg_len, var_title);
+            return new MenuBarCreateMenuMessage(secret_key, var_window_id, var_title);
+        case 13:
+            Encoder::decode(buf, decoded_msg_len, var_status);
+            Encoder::decode(buf, decoded_msg_len, var_menu_id);
+            return new MenuBarCreateMenuMessageReply(secret_key, var_status, var_menu_id);
+        case 14:
+            Encoder::decode(buf, decoded_msg_len, var_window_id);
+            Encoder::decode(buf, decoded_msg_len, var_menu_id);
+            Encoder::decode(buf, decoded_msg_len, var_item_id);
+            Encoder::decode(buf, decoded_msg_len, var_title);
+            return new MenuBarCreateItemMessage(secret_key, var_window_id, var_menu_id, var_item_id, var_title);
+        case 15:
+            Encoder::decode(buf, decoded_msg_len, var_status);
+            return new MenuBarCreateItemMessageReply(secret_key, var_status);
         default:
             decoded_msg_len = saved_dml;
             return nullptr;
@@ -451,6 +598,10 @@ public:
             return handle(static_cast<const InvalidateMessage&>(msg));
         case 11:
             return handle(static_cast<const AskBringToFrontMessage&>(msg));
+        case 12:
+            return handle(static_cast<const MenuBarCreateMenuMessage&>(msg));
+        case 14:
+            return handle(static_cast<const MenuBarCreateItemMessage&>(msg));
         default:
             return nullptr;
         }
@@ -464,6 +615,8 @@ public:
     virtual std::unique_ptr<Message> handle(const SetTitleMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const InvalidateMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const AskBringToFrontMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const MenuBarCreateMenuMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const MenuBarCreateItemMessage& msg) { return nullptr; }
 };
 
 class MouseMoveMessage : public Message {
@@ -687,6 +840,37 @@ private:
     int m_reason;
 };
 
+class MenuBarActionMessage : public Message {
+public:
+    MenuBarActionMessage(message_key_t key, int win_id, int item_id)
+        : m_key(key)
+        , m_win_id(win_id)
+        , m_item_id(item_id)
+    {
+    }
+    int id() const override { return 8; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 737; }
+    int win_id() const { return m_win_id; }
+    int item_id() const { return m_item_id; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_win_id);
+        Encoder::append(buffer, m_item_id);
+        return buffer;
+    }
+
+private:
+    message_key_t m_key;
+    int m_win_id;
+    int m_item_id;
+};
+
 class NotifyWindowStatusChangedMessage : public Message {
 public:
     NotifyWindowStatusChangedMessage(message_key_t key, int win_id, int changed_window_id, int type)
@@ -696,7 +880,7 @@ public:
         , m_type(type)
     {
     }
-    int id() const override { return 8; }
+    int id() const override { return 9; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -731,7 +915,7 @@ public:
         , m_icon_path(icon_path)
     {
     }
-    int id() const override { return 9; }
+    int id() const override { return 10; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -781,6 +965,7 @@ public:
         uint32_t var_kbd_key;
         LG::Rect var_rect;
         int var_reason;
+        int var_item_id;
         int var_changed_window_id;
         LG::string var_icon_path;
 
@@ -816,10 +1001,14 @@ public:
             return new DisconnectMessage(secret_key, var_reason);
         case 8:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
+            Encoder::decode(buf, decoded_msg_len, var_item_id);
+            return new MenuBarActionMessage(secret_key, var_win_id, var_item_id);
+        case 9:
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
             Encoder::decode(buf, decoded_msg_len, var_type);
             return new NotifyWindowStatusChangedMessage(secret_key, var_win_id, var_changed_window_id, var_type);
-        case 9:
+        case 10:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
             Encoder::decode(buf, decoded_msg_len, var_icon_path);
@@ -852,8 +1041,10 @@ public:
         case 7:
             return handle(static_cast<const DisconnectMessage&>(msg));
         case 8:
-            return handle(static_cast<const NotifyWindowStatusChangedMessage&>(msg));
+            return handle(static_cast<const MenuBarActionMessage&>(msg));
         case 9:
+            return handle(static_cast<const NotifyWindowStatusChangedMessage&>(msg));
+        case 10:
             return handle(static_cast<const NotifyWindowIconChangedMessage&>(msg));
         default:
             return nullptr;
@@ -867,6 +1058,7 @@ public:
     virtual std::unique_ptr<Message> handle(const DisplayMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const WindowCloseRequestMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const MenuBarActionMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const NotifyWindowStatusChangedMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const NotifyWindowIconChangedMessage& msg) { return nullptr; }
 };

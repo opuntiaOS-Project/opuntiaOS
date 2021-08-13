@@ -18,8 +18,11 @@
 namespace WinServer {
 
 struct PopupItem {
+    int id;
     std::string text;
     std::function<void(int)> callback;
+
+    static const int InternalId = -1;
 };
 using PopupData = std::vector<PopupItem>;
 
@@ -62,6 +65,7 @@ public:
     void hide()
     {
         m_data = nullptr;
+        m_hovered_item = HoveredItem::No;
         set_visible(false);
     }
 
@@ -106,7 +110,7 @@ public:
 
         auto& data = *m_data;
         if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-            data[m_hovered_item].callback(0);
+            data[m_hovered_item].callback((int)data[m_hovered_item].id);
             hide();
         }
     }

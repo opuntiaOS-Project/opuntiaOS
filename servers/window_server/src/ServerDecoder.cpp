@@ -117,6 +117,49 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& m
     return nullptr;
 }
 
+#ifdef TARGET_DESKTOP
+std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateMenuMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    auto* window = wm.window(msg.window_id());
+    if (!window) {
+        return new MenuBarCreateMenuMessageReply(msg.key(), -1, 0);
+    }
+
+    int id = window->menubar_content().size();
+    window->menubar_content().push_back(MenuDir(msg.title(), id));
+    return new MenuBarCreateMenuMessageReply(msg.key(), 0, id);
+}
+
+std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateItemMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    auto* window = wm.window(msg.window_id());
+    if (!window) {
+        return new MenuBarCreateItemMessageReply(msg.key(), -1);
+    }
+
+    if (msg.menu_id() == 0 || window->menubar_content().size() <= msg.menu_id()) {
+        return new MenuBarCreateItemMessageReply(msg.key(), -2);
+    }
+
+    auto callback = [window](int item_id) { LFoundation::EventLoop::the().add(Connection::the(),
+                                                new SendEvent(new MenuBarActionMessage(window->connection_id(), window->id(), item_id))); };
+    window->menubar_content()[msg.menu_id()].add_item(PopupItem { msg.item_id(), msg.title(), callback });
+    return new MenuBarCreateItemMessageReply(msg.key(), 0);
+}
+#elif TARGET_MOBILE
+std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateMenuMessage& msg)
+{
+    return new MenuBarCreateMenuMessageReply(msg.key(), -100, 0);
+}
+
+std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateItemMessage& msg)
+{
+    return new MenuBarCreateMenuMessageReply(msg.key(), -100, 0);
+}
+#endif
+
 std::unique_ptr<Message> WindowServerDecoder::handle(const AskBringToFrontMessage& msg)
 {
     auto& wm = WindowManager::the();

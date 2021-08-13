@@ -24,6 +24,8 @@ public:
     virtual std::unique_ptr<Message> handle(const SetTitleMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const SetBufferMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const InvalidateMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const MenuBarCreateMenuMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const MenuBarCreateItemMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const AskBringToFrontMessage& msg) override;
 };
 

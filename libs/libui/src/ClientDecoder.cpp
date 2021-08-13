@@ -70,6 +70,14 @@ std::unique_ptr<Message> ClientDecoder::handle(const WindowCloseRequestMessage& 
     return nullptr;
 }
 
+std::unique_ptr<Message> ClientDecoder::handle(const MenuBarActionMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the().window(), new MenuBarActionEvent(msg.win_id(), msg.item_id()));
+    }
+    return nullptr;
+}
+
 // Notifiers
 std::unique_ptr<Message> ClientDecoder::handle(const NotifyWindowStatusChangedMessage& msg)
 {

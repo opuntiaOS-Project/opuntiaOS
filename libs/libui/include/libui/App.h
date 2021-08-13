@@ -11,11 +11,12 @@
 #include <libfoundation/EventReceiver.h>
 #include <libui/AppDelegate.h>
 #include <libui/Connection.h>
-#include <libui/Window.h>
 #include <memory>
 #include <sys/types.h>
 
 namespace UI {
+
+class Window;
 
 enum class AppState {
     Active,
@@ -42,6 +43,7 @@ public:
     void set_delegate(AppDelegate* delegate) { m_delegate = delegate; }
     inline AppDelegate* delegate() { return m_delegate; }
 
+    inline Connection& connection() { return m_server_connection; }
     inline const Connection& connection() const { return m_server_connection; }
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
