@@ -156,7 +156,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateMenuMess
 
 std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateItemMessage& msg)
 {
-    return new MenuBarCreateMenuMessageReply(msg.key(), -100, 0);
+    return new MenuBarCreateItemMessageReply(msg.key(), -100);
 }
 #endif
 
