@@ -73,7 +73,7 @@ void View::set_needs_display(const LG::Rect& rect)
 
 void View::display(const LG::Rect& rect)
 {
-    Context ctx(*this);
+    LG::Context ctx = graphics_current_context();
     ctx.set_fill_color(background_color());
     ctx.fill(rect);
 }
@@ -202,16 +202,18 @@ void View::receive_display_event(DisplayEvent& event)
     foreach_subview([&](View& subview) -> bool {
         auto bounds = event.bounds();
         if (bounds.intersects(subview.frame())) {
+            graphics_push_context(Context(subview, Context::RelativeToCurrentContext::Yes));
             bounds.offset_by(-subview.frame().origin());
             DisplayEvent own_event(bounds);
             subview.receive_display_event(own_event);
+            graphics_pop_context();
         }
         return true;
     });
     did_display(event.bounds());
 
     if (!has_superview()) {
-        // Only superview send invalidate_message to server.
+        // Only superview sends invalidate_message to server.
         bool success = send_invalidate_message_to_server(event.bounds());
     }
 

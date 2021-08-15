@@ -8,6 +8,7 @@
 #include <libfoundation/Memory.h>
 #include <libui/App.h>
 #include <libui/Connection.h>
+#include <libui/Context.h>
 #include <libui/Window.h>
 
 namespace UI {
@@ -132,6 +133,11 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
             menubar().menu_items()[own_event.item_id()].invoke();
         }
     }
+}
+
+void Window::setup_superview()
+{
+    graphics_push_context(Context(*m_superview));
 }
 
 void Window::fill_with_opaque(const LG::Rect& rect)

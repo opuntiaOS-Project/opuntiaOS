@@ -11,6 +11,7 @@
 #include <libg/Point.h>
 #include <libg/Rect.h>
 #include <libui/Constraint.h>
+#include <libui/ContextManager.h>
 #include <libui/EdgeInsets.h>
 #include <libui/Responder.h>
 #include <utility>
@@ -44,8 +45,10 @@ public:
     {
         T* subview = new T(this, std::forward<Args>(args)...);
         m_subviews.push_back(subview);
+        did_add_subview(*subview);
         return *subview;
     }
+    virtual void did_add_subview(View& view) { }
 
     void remove_from_superview();
 
@@ -126,7 +129,7 @@ public:
 
     inline LG::Color& background_color() { return m_background_color; }
     inline const LG::Color& background_color() const { return m_background_color; }
-    virtual inline void set_background_color(const LG::Color& background_color)
+    inline void set_background_color(const LG::Color& background_color)
     {
         m_background_color = background_color;
         set_needs_display();

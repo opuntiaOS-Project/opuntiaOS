@@ -53,6 +53,7 @@ public:
         m_superview = new_view;
         m_root_view_controller = new ViewControllerT(*new_view);
 
+        setup_superview();
         m_superview->set_needs_display();
         LFoundation::EventLoop::the().add(*m_root_view_controller, new ViewDidLoadEvent());
         return *new_view;
@@ -73,6 +74,7 @@ public:
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
 private:
+    void setup_superview();
     void fill_with_opaque(const LG::Rect&);
 
     uint32_t m_id;

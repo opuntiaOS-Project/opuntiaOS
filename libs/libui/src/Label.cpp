@@ -24,7 +24,7 @@ Label::Label(View* superview, Window* window, const LG::Rect& frame)
 
 void Label::display(const LG::Rect& rect)
 {
-    Context ctx(*this);
+    LG::Context ctx = graphics_current_context();
     ctx.add_clip(rect);
 
     auto& f = font();

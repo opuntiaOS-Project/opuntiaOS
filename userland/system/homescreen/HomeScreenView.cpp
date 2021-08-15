@@ -55,7 +55,7 @@ HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG
 
 void HomeScreenView::display(const LG::Rect& rect)
 {
-    UI::Context ctx(*this);
+    LG::Context ctx = UI::graphics_current_context();
     ctx.add_clip(rect);
 
     ctx.set_fill_color(LG::Color(0, 0, 0, 0));

@@ -13,7 +13,7 @@ IconView::IconView(View* superview, const LG::Rect& frame)
 void IconView::display(const LG::Rect& rect)
 {
     const int offset_x = (HomeScreenView::icon_view_size() - HomeScreenView::icon_size()) / 2;
-    UI::Context ctx(*this);
+    LG::Context ctx = UI::graphics_current_context();
     ctx.add_clip(rect);
     ctx.draw({ offset_x, 0 }, m_launch_entity.icon());
 }

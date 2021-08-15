@@ -25,7 +25,7 @@ void DockView::display(const LG::Rect& rect)
 {
     // FIXME: Rendering is a bit studip now, will rewrite it
     //        completely when stackview is available.
-    UI::Context ctx(*this);
+    LG::Context ctx = UI::graphics_current_context();
     ctx.add_clip(rect);
 
     // Drawing fast-launch icons

@@ -40,6 +40,14 @@ std::unique_ptr<Message> ClientDecoder::handle(const MouseLeaveMessage& msg)
     return nullptr;
 }
 
+std::unique_ptr<Message> ClientDecoder::handle(const MouseWheelMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the().window(), new MouseWheelEvent(msg.x(), msg.y(), msg.wheel_data()));
+    }
+    return nullptr;
+}
+
 std::unique_ptr<Message> ClientDecoder::handle(const KeyboardMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {

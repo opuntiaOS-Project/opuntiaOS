@@ -17,7 +17,7 @@ GraphView::GraphView(UI::View* superview, const LG::Rect& frame, int data_size)
 
 void GraphView::display(const LG::Rect& rect)
 {
-    UI::Context ctx(*this);
+    LG::Context ctx = UI::graphics_current_context();
     ctx.add_clip(rect);
 
     ctx.set_fill_color(LG::Color(233, 233, 233));

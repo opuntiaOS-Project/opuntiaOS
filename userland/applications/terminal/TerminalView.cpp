@@ -30,7 +30,7 @@ void TerminalView::recalc_dimensions(const LG::Rect& frame)
 
 void TerminalView::display(const LG::Rect& rect)
 {
-    UI::Context ctx(*this);
+    LG::Context ctx = UI::graphics_current_context();
     ctx.add_clip(rect);
 
     ctx.set_fill_color(background_color());

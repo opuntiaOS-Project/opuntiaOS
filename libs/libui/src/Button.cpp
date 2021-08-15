@@ -19,7 +19,8 @@ Button::Button(View* superview, const LG::Rect& frame)
 
 void Button::display(const LG::Rect& rect)
 {
-    Context ctx(*this);
+    LG::Context& ctx = graphics_current_context();
+    ctx.add_clip(rect);
 
     ctx.set_fill_color(background_color());
     if (m_button_type == Type::System) {
