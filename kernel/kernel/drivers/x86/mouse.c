@@ -102,6 +102,16 @@ static inline void _mouse_send_cmd(uint8_t cmd)
     ASSERT(_mouse_wait_then_read(0x60) == 0xfa);
 }
 
+static void _mouse_send_cmd_and_data(uint8_t cmd, uint8_t data)
+{
+    _mouse_wait_then_write(0x64, 0xD4);
+    _mouse_wait_then_write(0x60, cmd);
+    ASSERT(_mouse_wait_then_read(0x60) == 0xfa);
+    _mouse_wait_then_write(0x64, 0xD4);
+    _mouse_wait_then_write(0x60, data);
+    ASSERT(_mouse_wait_then_read(0x60) == 0xfa);
+}
+
 static inline void _mouse_enable_aux()
 {
     _mouse_wait_then_write(0x64, 0x20);
@@ -121,6 +131,7 @@ void mouse_handler()
     uint8_t resp = port_8bit_in(0x60);
     uint8_t xm = port_8bit_in(0x60);
     uint8_t ym = port_8bit_in(0x60);
+    int8_t wheel = port_8bit_in(0x60);
 
     uint8_t y_overflow = (resp >> 7) & 1;
     uint8_t x_overflow = (resp >> 6) & 1;
@@ -131,6 +142,7 @@ void mouse_handler()
     packet.x_offset = xm;
     packet.y_offset = ym;
     packet.button_states = resp & 0b111;
+    packet.wheel_data = wheel;
 
     if (packet.x_offset && x_sign) {
         packet.x_offset -= 0x100;
@@ -166,6 +178,9 @@ void mouse_run()
     _mouse_enable_aux();
     _mouse_send_cmd(0xF6);
     _mouse_send_cmd(0xF4);
+    _mouse_send_cmd_and_data(0xF3, 200);
+    _mouse_send_cmd_and_data(0xF3, 100);
+    _mouse_send_cmd_and_data(0xF3, 80);
     set_irq_handler(IRQ12, mouse_handler);
 
     mouse_buffer = ringbuffer_create_std();

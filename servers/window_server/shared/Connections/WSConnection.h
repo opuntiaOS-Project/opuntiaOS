@@ -728,6 +728,45 @@ private:
     uint32_t m_y;
 };
 
+class MouseWheelMessage : public Message {
+public:
+    MouseWheelMessage(message_key_t key, int win_id, int wheel_data, uint32_t x, uint32_t y)
+        : m_key(key)
+        , m_win_id(win_id)
+        , m_wheel_data(wheel_data)
+        , m_x(x)
+        , m_y(y)
+    {
+    }
+    int id() const override { return 4; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 737; }
+    int win_id() const { return m_win_id; }
+    int wheel_data() const { return m_wheel_data; }
+    uint32_t x() const { return m_x; }
+    uint32_t y() const { return m_y; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_win_id);
+        Encoder::append(buffer, m_wheel_data);
+        Encoder::append(buffer, m_x);
+        Encoder::append(buffer, m_y);
+        return buffer;
+    }
+
+private:
+    message_key_t m_key;
+    int m_win_id;
+    int m_wheel_data;
+    uint32_t m_x;
+    uint32_t m_y;
+};
+
 class KeyboardMessage : public Message {
 public:
     KeyboardMessage(message_key_t key, int win_id, uint32_t kbd_key)
@@ -736,7 +775,7 @@ public:
         , m_kbd_key(kbd_key)
     {
     }
-    int id() const override { return 4; }
+    int id() const override { return 5; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -766,7 +805,7 @@ public:
         , m_rect(rect)
     {
     }
-    int id() const override { return 5; }
+    int id() const override { return 6; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -793,7 +832,7 @@ public:
         , m_win_id(win_id)
     {
     }
-    int id() const override { return 6; }
+    int id() const override { return 7; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -820,7 +859,7 @@ public:
         , m_reason(reason)
     {
     }
-    int id() const override { return 7; }
+    int id() const override { return 8; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -848,7 +887,7 @@ public:
         , m_item_id(item_id)
     {
     }
-    int id() const override { return 8; }
+    int id() const override { return 9; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -880,7 +919,7 @@ public:
         , m_type(type)
     {
     }
-    int id() const override { return 9; }
+    int id() const override { return 10; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -915,7 +954,7 @@ public:
         , m_icon_path(icon_path)
     {
     }
-    int id() const override { return 10; }
+    int id() const override { return 11; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -962,6 +1001,7 @@ public:
         uint32_t var_x;
         uint32_t var_y;
         int var_type;
+        int var_wheel_data;
         uint32_t var_kbd_key;
         LG::Rect var_rect;
         int var_reason;
@@ -988,27 +1028,33 @@ public:
             return new MouseLeaveMessage(secret_key, var_win_id, var_x, var_y);
         case 4:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
+            Encoder::decode(buf, decoded_msg_len, var_wheel_data);
+            Encoder::decode(buf, decoded_msg_len, var_x);
+            Encoder::decode(buf, decoded_msg_len, var_y);
+            return new MouseWheelMessage(secret_key, var_win_id, var_wheel_data, var_x, var_y);
+        case 5:
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_kbd_key);
             return new KeyboardMessage(secret_key, var_win_id, var_kbd_key);
-        case 5:
+        case 6:
             Encoder::decode(buf, decoded_msg_len, var_rect);
             return new DisplayMessage(secret_key, var_rect);
-        case 6:
+        case 7:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             return new WindowCloseRequestMessage(secret_key, var_win_id);
-        case 7:
+        case 8:
             Encoder::decode(buf, decoded_msg_len, var_reason);
             return new DisconnectMessage(secret_key, var_reason);
-        case 8:
+        case 9:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_item_id);
             return new MenuBarActionMessage(secret_key, var_win_id, var_item_id);
-        case 9:
+        case 10:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
             Encoder::decode(buf, decoded_msg_len, var_type);
             return new NotifyWindowStatusChangedMessage(secret_key, var_win_id, var_changed_window_id, var_type);
-        case 10:
+        case 11:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
             Encoder::decode(buf, decoded_msg_len, var_icon_path);
@@ -1033,18 +1079,20 @@ public:
         case 3:
             return handle(static_cast<const MouseLeaveMessage&>(msg));
         case 4:
-            return handle(static_cast<const KeyboardMessage&>(msg));
+            return handle(static_cast<const MouseWheelMessage&>(msg));
         case 5:
-            return handle(static_cast<const DisplayMessage&>(msg));
+            return handle(static_cast<const KeyboardMessage&>(msg));
         case 6:
-            return handle(static_cast<const WindowCloseRequestMessage&>(msg));
+            return handle(static_cast<const DisplayMessage&>(msg));
         case 7:
-            return handle(static_cast<const DisconnectMessage&>(msg));
+            return handle(static_cast<const WindowCloseRequestMessage&>(msg));
         case 8:
-            return handle(static_cast<const MenuBarActionMessage&>(msg));
+            return handle(static_cast<const DisconnectMessage&>(msg));
         case 9:
-            return handle(static_cast<const NotifyWindowStatusChangedMessage&>(msg));
+            return handle(static_cast<const MenuBarActionMessage&>(msg));
         case 10:
+            return handle(static_cast<const NotifyWindowStatusChangedMessage&>(msg));
+        case 11:
             return handle(static_cast<const NotifyWindowIconChangedMessage&>(msg));
         default:
             return nullptr;
@@ -1054,6 +1102,7 @@ public:
     virtual std::unique_ptr<Message> handle(const MouseMoveMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const MouseActionMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const MouseLeaveMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const MouseWheelMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const KeyboardMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const DisplayMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const WindowCloseRequestMessage& msg) { return nullptr; }

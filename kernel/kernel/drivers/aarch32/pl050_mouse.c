@@ -64,6 +64,17 @@ static void pl050_mouse_recieve_notification(uint32_t msg, uint32_t param)
     }
 }
 
+static void _mouse_send_cmd_and_data(uint8_t cmd, uint8_t data)
+{
+    registers->data = cmd;
+    while ((registers->stat) & (1 << 5)) { }
+    int tmp = registers->data;
+    ASSERT(tmp == 0xfa);
+    registers->data = data;
+    int tmp2 = registers->data;
+    ASSERT(tmp2 == 0xfa);
+}
+
 static inline void _mouse_send_cmd(uint8_t cmd)
 {
     registers->data = cmd;
@@ -74,6 +85,11 @@ static inline void _mouse_send_cmd(uint8_t cmd)
 
 #define KMIIR_RXINTR (1 << 0)
 #define RXFULL (1 << 4)
+
+static inline int16_t int8_to_int16_t_safe_convert(int8_t x)
+{
+    return x < 128 ? x : x - 256;
+}
 
 static void _pl050_mouse_int_handler()
 {
@@ -94,6 +110,7 @@ static void _pl050_mouse_int_handler()
     uint8_t resp = buffer[0];
     uint8_t xm = buffer[1];
     uint8_t ym = buffer[2];
+    int16_t wheel = int8_to_int16_t_safe_convert(buffer[3]);
 
     uint8_t y_overflow = (resp >> 7) & 1;
     uint8_t x_overflow = (resp >> 6) & 1;
@@ -104,6 +121,7 @@ static void _pl050_mouse_int_handler()
     packet.x_offset = xm;
     packet.y_offset = ym;
     packet.button_states = resp & 0b111;
+    packet.wheel_data = wheel;
 
     if (packet.x_offset && x_sign) {
         packet.x_offset -= 0x100;
@@ -141,6 +159,9 @@ void pl050_mouse_init(device_t* dev)
     registers->cr = 0x4 | 0x10;
     _mouse_send_cmd(0xF6);
     _mouse_send_cmd(0xF4);
+    _mouse_send_cmd_and_data(0xF3, 200);
+    _mouse_send_cmd_and_data(0xF3, 100);
+    _mouse_send_cmd_and_data(0xF3, 80);
     irq_register_handler(PL050_MOUSE_IRQ_LINE, 0, 0, _pl050_mouse_int_handler, BOOT_CPU_MASK);
     mouse_buffer = ringbuffer_create_std();
 }

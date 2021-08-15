@@ -255,8 +255,13 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
             m_event_loop.add(m_connection, new SendEvent(new MouseLeaveMessage(window->connection_id(), window->id(), 0, 0)));
         }
     }
-
     m_hovered_window = new_hovered_window;
+
+    if (hovered_window() && m_cursor_manager.is_changed<CursorManager::Params::Wheel>()) {
+        auto* window = hovered_window();
+        auto data = m_cursor_manager.get<CursorManager::Params::Wheel>();
+        m_event_loop.add(m_connection, new SendEvent(new MouseWheelMessage(window->connection_id(), window->id(), data, m_cursor_manager.x(), m_cursor_manager.y())));
+    }
 }
 #elif TARGET_MOBILE
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)

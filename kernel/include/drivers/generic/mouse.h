@@ -12,7 +12,8 @@
 struct mouse_packet {
     int16_t x_offset;
     int16_t y_offset;
-    uint32_t button_states;
+    uint16_t button_states;
+    int16_t wheel_data;
 };
 typedef struct mouse_packet mouse_packet_t;
 

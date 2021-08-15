@@ -83,6 +83,13 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
         }
     }
 
+    if (event->type() == Event::Type::MouseWheelEvent) {
+        if (m_superview) {
+            MouseWheelEvent& own_event = *(MouseWheelEvent*)event.get();
+            m_superview->receive_mouse_wheel_event(own_event);
+        }
+    }
+
     if (event->type() == Event::Type::KeyUpEvent) {
         if (m_focused_view) {
             KeyUpEvent& own_event = *(KeyUpEvent*)event.get();

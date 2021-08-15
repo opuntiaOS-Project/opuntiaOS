@@ -22,6 +22,7 @@ public:
     virtual std::unique_ptr<Message> handle(const MouseMoveMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const MouseActionMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const MouseLeaveMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const MouseWheelMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const KeyboardMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const DisplayMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const WindowCloseRequestMessage& msg) override;

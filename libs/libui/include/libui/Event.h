@@ -27,6 +27,7 @@ public:
         MouseActionEvent,
         MouseEnterEvent,
         MouseLeaveEvent,
+        MouseWheelEvent,
         KeyUpEvent,
         KeyDownEvent,
         DisplayEvent,
@@ -110,6 +111,28 @@ public:
 private:
     uint32_t m_x;
     uint32_t m_y;
+};
+
+class MouseWheelEvent : public Event {
+public:
+    MouseWheelEvent(uint32_t x, uint32_t y, int data)
+        : Event(Event::Type::MouseWheelEvent)
+        , m_x(x)
+        , m_y(y)
+        , m_wheel_data(data)
+    {
+    }
+
+    ~MouseWheelEvent() = default;
+
+    uint32_t x() const { return m_x; }
+    uint32_t y() const { return m_y; }
+    int wheel_data() const { return m_wheel_data; }
+
+private:
+    uint32_t m_x;
+    uint32_t m_y;
+    int m_wheel_data;
 };
 
 typedef uint32_t key_t;

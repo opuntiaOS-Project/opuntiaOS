@@ -27,6 +27,7 @@
     MouseMoveMessage(int win_id, uint32_t x, uint32_t y)
     MouseActionMessage(int win_id, int type, uint32_t x, uint32_t y)
     MouseLeaveMessage(int win_id, uint32_t x, uint32_t y)
+    MouseWheelMessage(int win_id, int wheel_data, uint32_t x, uint32_t y)
     KeyboardMessage(int win_id, uint32_t kbd_key)
 
     # Service Messages

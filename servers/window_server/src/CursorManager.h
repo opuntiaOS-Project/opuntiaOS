@@ -23,6 +23,7 @@ public:
         RightButton,
         OffsetX,
         OffsetY,
+        Wheel,
 
         // Only for getters of conditions changes.
         Coords,
@@ -73,9 +74,17 @@ public:
             m_mouse_y = val;
             set_changed<CursorManager::Params::Y>();
         } else if constexpr (param == CursorManager::Params::OffsetX) {
-            set<CursorManager::Params::X>(m_mouse_x + val);
+            if (val != 0) {
+                set<CursorManager::Params::X>(m_mouse_x + val);
+            } else {
+                m_mouse_offset_x = 0;
+            }
         } else if constexpr (param == CursorManager::Params::OffsetY) {
-            set<CursorManager::Params::Y>(m_mouse_y + val);
+            if (val != 0) {
+                set<CursorManager::Params::Y>(m_mouse_y + val);
+            } else {
+                m_mouse_offset_y = 0;
+            }
         } else if constexpr (param == CursorManager::Params::LeftButton) {
             if (m_mouse_left_button_pressed != val) {
                 set_changed<CursorManager::Params::LeftButton>();
@@ -86,6 +95,11 @@ public:
                 set_changed<CursorManager::Params::RightButton>();
             }
             m_mouse_right_button_pressed = val;
+        } else if constexpr (param == CursorManager::Params::Wheel) {
+            if (val != 0) {
+                set_changed<CursorManager::Params::Wheel>();
+            }
+            m_wheel = val;
         } else {
             []<bool flag = false>() { static_assert(flag, "Could not call set() with such param!"); }
             ();
@@ -103,6 +117,8 @@ public:
             m_mask_changed_objects |= CursorManager::ChangedValues::LeftButton;
         } else if constexpr (param == CursorManager::Params::RightButton) {
             m_mask_changed_objects |= CursorManager::ChangedValues::RightButton;
+        } else if constexpr (param == CursorManager::Params::Wheel) {
+            m_mask_changed_objects |= CursorManager::ChangedValues::Wheel;
         } else {
             []<bool flag = false>() { static_assert(flag, "Could not set_changed() for the param!"); }
             ();
@@ -116,6 +132,7 @@ public:
         set<Params::OffsetY>(-mouse_event->packet().y_offset);
         set<Params::LeftButton>((mouse_event->packet().button_states & 1));
         set<Params::RightButton>((mouse_event->packet().button_states & 2) >> 1);
+        set<Params::Wheel>(mouse_event->packet().wheel_data);
     }
 
 private:
@@ -123,12 +140,14 @@ private:
         MouseCoords = 0x1,
         LeftButton = 0x2,
         RightButton = 0x4,
+        Wheel = 0x8,
     };
 
     int m_mouse_x { 0 };
     int m_mouse_y { 0 };
     int m_mouse_offset_x { 0 };
     int m_mouse_offset_y { 0 };
+    int m_wheel { 0 };
     bool m_mouse_left_button_pressed { false };
     bool m_mouse_right_button_pressed { false };
     uint32_t m_mask_changed_objects { 0 };
@@ -149,6 +168,8 @@ inline constexpr int CursorManager::get()
         return m_mouse_offset_x;
     } else if constexpr (param == CursorManager::Params::OffsetY) {
         return m_mouse_offset_y;
+    } else if constexpr (param == CursorManager::Params::Wheel) {
+        return m_wheel;
     } else {
         []<bool flag = false>() { static_assert(flag, "Could call get() only for coords-like params!"); }
         ();
@@ -183,6 +204,8 @@ inline constexpr bool CursorManager::is_changed()
         return (m_mask_changed_objects & CursorManager::ChangedValues::MouseCoords);
     } else if constexpr (param == CursorManager::Params::Buttons) {
         return (m_mask_changed_objects & CursorManager::ChangedValues::LeftButton) | (m_mask_changed_objects & CursorManager::ChangedValues::RightButton);
+    } else if constexpr (param == CursorManager::Params::Wheel) {
+        return (m_mask_changed_objects & CursorManager::ChangedValues::Wheel);
     } else {
         []<bool flag = false>() { static_assert(flag, "Could not call is_changed() for the param!"); }
         ();

@@ -111,6 +111,10 @@ void View::click_ended()
     set_needs_display();
 }
 
+void View::mouse_wheel_event(int wheel_data)
+{
+}
+
 void View::receive_mouse_move_event(MouseEvent& event)
 {
     auto location = LG::Point<int>(event.x(), event.y());
@@ -166,6 +170,21 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
 
     hover_end();
     Responder::receive_mouse_leave_event(event);
+}
+
+void View::receive_mouse_wheel_event(MouseWheelEvent& event)
+{
+    foreach_subview([&](View& subview) -> bool {
+        if (subview.is_hovered()) {
+            LG::Point<int> point(event.x(), event.y());
+            point.offset_by(-subview.frame().origin());
+            MouseWheelEvent mwe(point.x(), point.y(), event.wheel_data());
+            subview.receive_mouse_wheel_event(mwe);
+        }
+        return true;
+    });
+
+    mouse_wheel_event(event.wheel_data());
 }
 
 void View::receive_keyup_event(KeyUpEvent&)
