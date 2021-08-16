@@ -35,6 +35,54 @@ void ScrollView::mouse_wheel_event(int wheel_data)
     set_needs_display();
 }
 
+std::optional<LG::Point<int>> ScrollView::subview_location(const View& subview) const
+{
+    auto frame_origin = subview.frame().origin();
+    frame_origin.offset_by(m_content_offset);
+    return frame_origin;
+}
+
+std::optional<View*> ScrollView::subview_at(const LG::Point<int>& point) const
+{
+    for (int i = subviews().size() - 1; i >= 0; --i) {
+        auto frame = subviews()[i]->frame();
+        frame.offset_by(m_content_offset);
+        if (frame.contains(point)) {
+            return subviews()[i];
+        }
+    }
+    return {};
+}
+
+void ScrollView::receive_mouse_move_event(MouseEvent& event)
+{
+    auto location = LG::Point<int>(event.x(), event.y());
+    if (!is_hovered()) {
+        hover_begin(location);
+    }
+
+    foreach_subview([&](View& subview) -> bool {
+        auto frame = subview.frame();
+        frame.offset_by(m_content_offset);
+        bool event_hits_subview = frame.contains(event.x(), event.y());
+        if (subview.is_hovered() && !event_hits_subview) {
+            LG::Point<int> point(event.x(), event.y());
+            point.offset_by(-frame.origin());
+            MouseLeaveEvent mle(point.x(), point.y());
+            subview.receive_mouse_leave_event(mle);
+        } else if (event_hits_subview) {
+            LG::Point<int> point(event.x(), event.y());
+            point.offset_by(-frame.origin());
+            MouseEvent me(point.x(), point.y());
+            subview.receive_mouse_move_event(me);
+        }
+        return true;
+    });
+
+    mouse_moved(location);
+    Responder::receive_mouse_move_event(event);
+}
+
 void ScrollView::receive_display_event(DisplayEvent& event)
 {
     event.bounds().intersect(bounds());

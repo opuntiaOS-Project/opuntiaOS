@@ -25,7 +25,10 @@ public:
     inline const LG::Point<int>& content_offset() const { return m_content_offset; }
     inline void set_content_offset(const LG::Point<int>& offset) { m_content_offset = offset; }
 
+    virtual std::optional<View*> subview_at(const LG::Point<int>& point) const override;
+
     virtual void mouse_wheel_event(int wheel_data) override;
+    virtual void receive_mouse_move_event(MouseEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
 
 protected:
@@ -33,6 +36,11 @@ protected:
     ScrollView(View* superview, Window* window, const LG::Rect& frame);
 
     void display_scroll_indicators();
+
+    // The location of a subview relativly to its superview could
+    // differ from it's frame() (e.g when scrolling), to determine
+    // the right location we ask the superview to return it.
+    virtual std::optional<LG::Point<int>> subview_location(const View& subview) const override;
 
 private:
     void recalc_content_props();

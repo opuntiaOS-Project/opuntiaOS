@@ -72,8 +72,8 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
     if (event->type() == Event::Type::MouseActionEvent) {
         if (m_superview) {
             MouseActionEvent& own_event = *(MouseActionEvent*)event.get();
-            auto* view = m_superview->hit_test({ (int)own_event.x(), (int)own_event.y() });
-            view->receive_mouse_action_event(own_event);
+            auto& view = m_superview->hit_test({ (int)own_event.x(), (int)own_event.y() });
+            view.receive_mouse_action_event(own_event);
         }
     }
 

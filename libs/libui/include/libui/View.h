@@ -14,6 +14,7 @@
 #include <libui/ContextManager.h>
 #include <libui/EdgeInsets.h>
 #include <libui/Responder.h>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -62,17 +63,8 @@ public:
         }
     }
 
-    inline View* subview_at(const LG::Point<int>& point) const
-    {
-        for (int i = subviews().size() - 1; i >= 0; --i) {
-            if (subviews()[i]->frame().contains(point)) {
-                return subviews()[i];
-            }
-        }
-        return nullptr;
-    }
-
-    View* hit_test(const LG::Point<int>& point);
+    virtual std::optional<View*> subview_at(const LG::Point<int>& point) const;
+    View& hit_test(const LG::Point<int>& point);
 
     inline const LG::Rect& frame() const { return m_frame; }
     inline const LG::Rect& bounds() const { return m_bounds; }
@@ -138,6 +130,8 @@ public:
 protected:
     View(View* superview, const LG::Rect&);
     View(View* superview, Window* window, const LG::Rect&);
+
+    virtual std::optional<LG::Point<int>> subview_location(const View& subview) const;
 
     template <Constraint::Attribute attr>
     inline void add_interpreted_constraint_to_mask() { m_applied_constraints_mask |= (1 << (int)attr); }

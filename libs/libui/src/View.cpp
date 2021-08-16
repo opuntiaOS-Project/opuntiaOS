@@ -32,12 +32,23 @@ void View::remove_from_superview()
 {
 }
 
-View* View::hit_test(const LG::Point<int>& point)
+std::optional<View*> View::subview_at(const LG::Point<int>& point) const
 {
-    if (auto* subview = subview_at(point)) {
-        return subview->hit_test(point - subview->frame().origin());
+    for (int i = subviews().size() - 1; i >= 0; --i) {
+        if (subviews()[i]->frame().contains(point)) {
+            return subviews()[i];
+        }
     }
-    return this;
+    return {};
+}
+
+View& View::hit_test(const LG::Point<int>& point)
+{
+    auto subview = subview_at(point);
+    if (subview.has_value()) {
+        return subview.value()->hit_test(point - subview.value()->frame().origin());
+    }
+    return *this;
 }
 
 LG::Rect View::frame_in_window()
@@ -59,12 +70,18 @@ void View::layout_subviews()
     }
 }
 
+std::optional<LG::Point<int>> View::subview_location(const View& subview) const
+{
+    return subview.frame().origin();
+}
+
 void View::set_needs_display(const LG::Rect& rect)
 {
     auto display_rect = rect;
     display_rect.intersect(bounds());
     if (has_superview()) {
-        display_rect.offset_by(frame().origin());
+        auto location = superview()->subview_location(*this);
+        display_rect.offset_by(location.value());
         superview()->set_needs_display(display_rect);
     } else {
         send_display_message_to_self(*window(), display_rect);
@@ -123,12 +140,13 @@ void View::receive_mouse_move_event(MouseEvent& event)
     }
 
     foreach_subview([&](View& subview) -> bool {
-        if (subview.is_hovered() && !subview.frame().contains(event.x(), event.y())) {
+        bool event_hits_subview = subview.frame().contains(event.x(), event.y());
+        if (subview.is_hovered() && !event_hits_subview) {
             LG::Point<int> point(event.x(), event.y());
             point.offset_by(-subview.frame().origin());
             MouseLeaveEvent mle(point.x(), point.y());
             subview.receive_mouse_leave_event(mle);
-        } else if (subview.frame().contains(event.x(), event.y())) {
+        } else if (event_hits_subview) {
             LG::Point<int> point(event.x(), event.y());
             point.offset_by(-subview.frame().origin());
             MouseEvent me(point.x(), point.y());
