@@ -29,16 +29,26 @@ ScrollView::ScrollView(View* superview, Window* window, const LG::Rect& frame)
 
 // }
 
+void ScrollView::did_scroll(int n_x, int n_y)
+{
+    int x = content_offset().x();
+    int y = content_offset().y();
+    int max_x = std::max(0, (int)content_size().width() - (int)bounds().width());
+    int max_y = std::max(0, (int)content_size().height() - (int)bounds().height());
+    content_offset().set_x(std::max(0, std::min(x + n_x, max_x)));
+    content_offset().set_y(std::max(0, std::min(y + n_y, max_y)));
+    set_needs_display();
+}
+
 void ScrollView::mouse_wheel_event(int wheel_data)
 {
-    m_content_offset.offset_by(0, wheel_data * 10);
-    set_needs_display();
+    did_scroll(0, wheel_data * 10);
 }
 
 std::optional<LG::Point<int>> ScrollView::subview_location(const View& subview) const
 {
     auto frame_origin = subview.frame().origin();
-    frame_origin.offset_by(m_content_offset);
+    frame_origin.offset_by(-m_content_offset);
     return frame_origin;
 }
 
@@ -46,7 +56,7 @@ std::optional<View*> ScrollView::subview_at(const LG::Point<int>& point) const
 {
     for (int i = subviews().size() - 1; i >= 0; --i) {
         auto frame = subviews()[i]->frame();
-        frame.offset_by(m_content_offset);
+        frame.offset_by(-m_content_offset);
         if (frame.contains(point)) {
             return subviews()[i];
         }
@@ -63,7 +73,7 @@ void ScrollView::receive_mouse_move_event(MouseEvent& event)
 
     foreach_subview([&](View& subview) -> bool {
         auto frame = subview.frame();
-        frame.offset_by(m_content_offset);
+        frame.offset_by(-m_content_offset);
         bool event_hits_subview = frame.contains(event.x(), event.y());
         if (subview.is_hovered() && !event_hits_subview) {
             LG::Point<int> point(event.x(), event.y());
@@ -90,7 +100,7 @@ void ScrollView::receive_display_event(DisplayEvent& event)
     foreach_subview([&](View& subview) -> bool {
         auto bounds = event.bounds();
         auto frame = subview.frame();
-        frame.offset_by(m_content_offset);
+        frame.offset_by(-m_content_offset);
         bounds.intersect(frame);
         if (!bounds.empty()) {
             graphics_push_context(Context(subview, frame, Context::RelativeToCurrentContext::Yes));

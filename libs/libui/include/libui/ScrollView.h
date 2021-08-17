@@ -22,8 +22,9 @@ public:
     ~ScrollView() = default;
 
     inline const LG::Size& content_size() const { return m_content_size; }
+    inline LG::Size& content_size() { return m_content_size; }
     inline const LG::Point<int>& content_offset() const { return m_content_offset; }
-    inline void set_content_offset(const LG::Point<int>& offset) { m_content_offset = offset; }
+    inline LG::Point<int>& content_offset() { return m_content_offset; }
 
     virtual std::optional<View*> subview_at(const LG::Point<int>& point) const override;
 
@@ -43,6 +44,7 @@ protected:
     virtual std::optional<LG::Point<int>> subview_location(const View& subview) const override;
 
 private:
+    void did_scroll(int x, int y);
     void recalc_content_props();
 
     LG::Size m_content_size {};
