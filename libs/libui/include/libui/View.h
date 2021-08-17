@@ -104,11 +104,11 @@ public:
 
     virtual void mouse_moved(const LG::Point<int>& new_location);
     virtual void mouse_wheel_event(int wheel_data);
-    virtual void hover_begin(const LG::Point<int>& location);
-    virtual void hover_end();
+    virtual void mouse_entered(const LG::Point<int>& location);
+    virtual void mouse_exited();
 
-    virtual void click_began(const LG::Point<int>& location);
-    virtual void click_ended();
+    virtual void mouse_down(const LG::Point<int>& location);
+    virtual void mouse_up();
 
     virtual void receive_mouse_move_event(MouseEvent&) override;
     virtual void receive_mouse_action_event(MouseActionEvent&) override;

@@ -58,7 +58,7 @@ void ScrollView::receive_mouse_move_event(MouseEvent& event)
 {
     auto location = LG::Point<int>(event.x(), event.y());
     if (!is_hovered()) {
-        hover_begin(location);
+        mouse_entered(location);
     }
 
     foreach_subview([&](View& subview) -> bool {

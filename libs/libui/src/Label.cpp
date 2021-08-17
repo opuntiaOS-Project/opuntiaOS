@@ -63,11 +63,11 @@ void Label::display(const LG::Rect& rect)
     }
 }
 
-void Label::hover_begin(const LG::Point<int>& location)
+void Label::mouse_entered(const LG::Point<int>& location)
 {
 }
 
-void Label::hover_end()
+void Label::mouse_exited()
 {
 }
 

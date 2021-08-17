@@ -42,11 +42,11 @@ public:
     Text::Alignment alignment() const { return m_alignment; }
 
     virtual void display(const LG::Rect& rect) override;
-    virtual void hover_begin(const LG::Point<int>& location) override;
-    virtual void hover_end() override;
+    virtual void mouse_entered(const LG::Point<int>& location) override;
+    virtual void mouse_exited() override;
 
-    virtual void click_began(const LG::Point<int>& location) override;
-    virtual void click_ended() override;
+    virtual void mouse_down(const LG::Point<int>& location) override;
+    virtual void mouse_up() override;
 
     void set_type(Type type) { m_button_type = type; }
 

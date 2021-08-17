@@ -52,13 +52,13 @@ public:
         Helpers::draw_text(ctx, { int(width() - twidth) / 2, 6 }, m_date, m_font);
     }
 
-    MenuItemAnswer click_began(int x, int y) override
+    MenuItemAnswer mouse_down(int x, int y) override
     {
         m_clicked = true;
         return MenuItemAnswer::InvalidateMe;
     }
 
-    MenuItemAnswer click_ended() override
+    MenuItemAnswer mouse_up() override
     {
         m_clicked = false;
         return MenuItemAnswer::InvalidateMe;

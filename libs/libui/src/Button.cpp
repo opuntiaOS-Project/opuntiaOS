@@ -49,28 +49,28 @@ void Button::display(const LG::Rect& rect)
     }
 }
 
-void Button::hover_begin(const LG::Point<int>& location)
+void Button::mouse_entered(const LG::Point<int>& location)
 {
     send_actions(UI::Event::Type::MouseEnterEvent);
-    View::hover_begin(location);
+    View::mouse_entered(location);
 }
 
-void Button::hover_end()
+void Button::mouse_exited()
 {
     send_actions(UI::Event::Type::MouseLeaveEvent);
-    View::hover_end();
+    View::mouse_exited();
 }
 
-void Button::click_began(const LG::Point<int>& location)
+void Button::mouse_down(const LG::Point<int>& location)
 {
     send_actions(UI::Event::Type::MouseDownEvent);
-    View::click_began(location);
+    View::mouse_down(location);
 }
 
-void Button::click_ended()
+void Button::mouse_up()
 {
     send_actions(UI::Event::Type::MouseUpEvent);
-    View::click_ended();
+    View::mouse_up();
 }
 
 void Button::recalc_bounds()

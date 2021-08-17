@@ -17,7 +17,7 @@ public:
     static constexpr size_t dock_view_height() { return 36; }
 
     void display(const LG::Rect& rect) override;
-    void click_began(const LG::Point<int>& location) override;
+    void mouse_down(const LG::Point<int>& location) override;
 
     DockEntity* find_entity(int window_id);
     void new_entity(int window_id);

@@ -103,26 +103,26 @@ void View::mouse_moved(const LG::Point<int>& location)
 {
 }
 
-void View::hover_begin(const LG::Point<int>& location)
+void View::mouse_entered(const LG::Point<int>& location)
 {
     m_hovered = true;
     set_needs_display();
 }
 
-void View::hover_end()
+void View::mouse_exited()
 {
     m_hovered = false;
     m_active = false;
     set_needs_display();
 }
 
-void View::click_began(const LG::Point<int>& location)
+void View::mouse_down(const LG::Point<int>& location)
 {
     m_active = true;
     set_needs_display();
 }
 
-void View::click_ended()
+void View::mouse_up()
 {
     m_active = false;
     set_needs_display();
@@ -136,7 +136,7 @@ void View::receive_mouse_move_event(MouseEvent& event)
 {
     auto location = LG::Point<int>(event.x(), event.y());
     if (!is_hovered()) {
-        hover_begin(location);
+        mouse_entered(location);
     }
 
     foreach_subview([&](View& subview) -> bool {
@@ -162,9 +162,9 @@ void View::receive_mouse_move_event(MouseEvent& event)
 void View::receive_mouse_action_event(MouseActionEvent& event)
 {
     if (event.type() == MouseActionType::LeftMouseButtonPressed) {
-        click_began(LG::Point<int>(event.x(), event.y()));
+        mouse_down(LG::Point<int>(event.x(), event.y()));
     } else if (event.type() == MouseActionType::LeftMouseButtonReleased) {
-        click_ended();
+        mouse_up();
     }
 
     Responder::receive_mouse_action_event(event);
@@ -186,7 +186,7 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
         return true;
     });
 
-    hover_end();
+    mouse_exited();
     Responder::receive_mouse_leave_event(event);
 }
 

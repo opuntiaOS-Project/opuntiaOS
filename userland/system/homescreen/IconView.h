@@ -15,7 +15,7 @@ public:
     IconView(View* superview, const LG::Rect& frame);
 
     void display(const LG::Rect& rect) override;
-    void click_began(const LG::Point<int>& location) override { launch(m_launch_entity.path_to_exec()); }
+    void mouse_down(const LG::Point<int>& location) override { launch(m_launch_entity.path_to_exec()); }
 
     void set_title(const std::string& title)
     {

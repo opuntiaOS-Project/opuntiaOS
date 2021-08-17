@@ -43,9 +43,9 @@ MenuItemAnswer MenuBar::widget_recieve_mouse_status_change(const CursorManager& 
     MenuItemAnswer answer = MenuItemAnswer::Empty;
     size_t widget_min_x = widget_start_offset(wind);
     if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-        answer = m_widgets[wind]->click_began(cursor_manager.x() - widget_min_x, cursor_manager.y());
+        answer = m_widgets[wind]->mouse_down(cursor_manager.x() - widget_min_x, cursor_manager.y());
     } else {
-        answer = m_widgets[wind]->click_ended();
+        answer = m_widgets[wind]->mouse_up();
     }
 
     if (answer & MenuItemAnswer::Bad) {
@@ -72,9 +72,9 @@ MenuItemAnswer MenuBar::panel_item_recieve_mouse_status_change(const CursorManag
     MenuItemAnswer answer = MenuItemAnswer::Empty;
     size_t item_min_x = panel_item_start_offset(ind);
     if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-        answer = content[ind].click_began(cursor_manager.x() - item_min_x, cursor_manager.y());
+        answer = content[ind].mouse_down(cursor_manager.x() - item_min_x, cursor_manager.y());
     } else {
-        answer = content[ind].click_ended();
+        answer = content[ind].mouse_up();
     }
 
     if (answer & MenuItemAnswer::Bad) {

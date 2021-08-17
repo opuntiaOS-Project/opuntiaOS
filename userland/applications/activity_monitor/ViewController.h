@@ -11,6 +11,7 @@
 #include <libui/App.h>
 #include <libui/Button.h>
 #include <libui/Label.h>
+#include <libui/ScrollView.h>
 #include <libui/StackView.h>
 #include <libui/View.h>
 #include <libui/ViewController.h>
@@ -41,9 +42,11 @@ public:
         view().set_background_color(LG::Color::LightSystemBackground);
 
         auto& cpu_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 180, 16));
-        auto& cpu_graphs_stackview = view().add_subview<UI::StackView>(LG::Rect(0, 0, 184, 100));
-        cpu_graphs_stackview.set_distribution(UI::StackView::Distribution::FillEqually);
-        cpu_graphs_stackview.set_spacing(10);
+        // auto& demo_cpu_shit = view().add_subview<UI::ScrollView>(LG::Rect(0, 0, 180, 60));
+        auto& cpu_graphs_stackview = view().add_subview<UI::ScrollView>(LG::Rect(0, 0, 184, 100));
+        cpu_graphs_stackview.set_background_color(LG::Color::Red);
+        // cpu_graphs_stackview.set_distribution(UI::StackView::Distribution::FillEqually);
+        // cpu_graphs_stackview.set_spacing(10);
 
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
@@ -53,20 +56,27 @@ public:
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, cpu_label, UI::Constraint::Attribute::Bottom, 1, 8));
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, UI::SafeArea::Bottom));
 
-        for (int i = 0; i < cpu_count(); i++) {
-            auto& graph = cpu_graphs_stackview.add_arranged_subview<GraphView>(200);
-            cpu_graphs_stackview.add_constraint(UI::Constraint(graph, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, cpu_graphs_stackview, UI::Constraint::Attribute::Height, 1, 0));
-            cpu_graphs.push_back(&graph);
+        for (int i = 0; i < 10; i++) {
+            auto& cpu_label = cpu_graphs_stackview.add_subview<UI::Button>(LG::Rect(0, i * 40, 180, 30));
+            cpu_label.set_background_color(LG::Color::Red);
+            cpu_label.set_title_color(LG::Color::Blue);
+            cpu_label.set_title("PressMe");
         }
+
+        // for (int i = 0; i < cpu_count(); i++) {
+        //     auto& graph = cpu_graphs_stackview.add_arranged_subview<GraphView>(200);
+        //     cpu_graphs_stackview.add_constraint(UI::Constraint(graph, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, cpu_graphs_stackview, UI::Constraint::Attribute::Height, 1, 0));
+        //     cpu_graphs.push_back(&graph);
+        // }
 
         view().set_needs_layout();
 
-        UI::App::the().event_loop().add(LFoundation::Timer([&] {
-            update_data();
-            cpu_label.set_text(std::string("Load ") + std::to_string(state.cpu_load[0]) + "%");
-            cpu_label.set_needs_display();
-        },
-            1000, LFoundation::Timer::Repeat));
+        // UI::App::the().event_loop().add(LFoundation::Timer([&] {
+        //     update_data();
+        //     cpu_label.set_text(std::string("Load ") + std::to_string(state.cpu_load[0]) + "%");
+        //     cpu_label.set_needs_display();
+        // },
+        //     1000, LFoundation::Timer::Repeat));
     }
 
     int update_cpu_load()

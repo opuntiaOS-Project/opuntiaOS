@@ -46,13 +46,13 @@ public:
         Helpers::draw_text(ctx, { 0, 6 }, m_title, m_font);
     }
 
-    inline MenuItemAnswer click_began(int x, int y)
+    inline MenuItemAnswer mouse_down(int x, int y)
     {
         m_active = true;
         return MenuItemAnswer(MenuItemAnswer::InvalidateMe | MenuItemAnswer::PopupShow);
     }
 
-    inline MenuItemAnswer click_ended()
+    inline MenuItemAnswer mouse_up()
     {
         return MenuItemAnswer::InvalidateMe;
     }

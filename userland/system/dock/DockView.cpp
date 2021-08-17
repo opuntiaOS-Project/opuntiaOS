@@ -105,7 +105,7 @@ void DockView::launch(const FastLaunchEntity& ent)
     }
 }
 
-void DockView::click_began(const LG::Point<int>& location)
+void DockView::mouse_down(const LG::Point<int>& location)
 {
     // Check if it is a tap on fast-launch icons
     int offsetx = 8;
