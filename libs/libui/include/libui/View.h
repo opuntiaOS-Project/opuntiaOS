@@ -95,6 +95,7 @@ public:
     inline void set_needs_display() { set_needs_display(bounds()); }
 
     inline bool is_hovered() const { return m_hovered; }
+    inline bool is_active() const { return m_active; }
 
     inline void set_focusable(bool val) { m_focusable = val; }
     inline bool is_focusable() const { return m_focusable; }
@@ -130,6 +131,9 @@ public:
 protected:
     View(View* superview, const LG::Rect&);
     View(View* superview, Window* window, const LG::Rect&);
+
+    inline void set_hovered(bool value) { m_hovered = value; }
+    inline void set_active(bool value) { m_active = value; }
 
     virtual std::optional<LG::Point<int>> subview_location(const View& subview) const;
 

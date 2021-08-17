@@ -28,6 +28,7 @@ public:
 
     virtual std::optional<View*> subview_at(const LG::Point<int>& point) const override;
 
+    virtual void display(const LG::Rect& rect) override;
     virtual void mouse_wheel_event(int wheel_data) override;
     virtual void receive_mouse_move_event(MouseEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
@@ -36,7 +37,7 @@ protected:
     ScrollView(View* superview, const LG::Rect&);
     ScrollView(View* superview, Window* window, const LG::Rect& frame);
 
-    void display_scroll_indicators();
+    void display_scroll_indicators(LG::Context&);
 
     // The location of a subview relativly to its superview could
     // differ from it's frame() (e.g when scrolling), to determine

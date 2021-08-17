@@ -65,10 +65,12 @@ void Label::display(const LG::Rect& rect)
 
 void Label::mouse_entered(const LG::Point<int>& location)
 {
+    set_hovered(true);
 }
 
 void Label::mouse_exited()
 {
+    set_hovered(false);
 }
 
 void Label::recalc_bounds()

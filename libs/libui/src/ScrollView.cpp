@@ -22,12 +22,13 @@ ScrollView::ScrollView(View* superview, Window* window, const LG::Rect& frame)
 {
 }
 
-// void ScrollView::display(const LG::Rect& rect)
-// {
-//     Context ctx(*this);
-//     ctx.add_clip(rect);
+void ScrollView::display(const LG::Rect& rect)
+{
+    LG::Context ctx = graphics_current_context();
+    ctx.add_clip(rect);
 
-// }
+    display_scroll_indicators(ctx);
+}
 
 void ScrollView::did_scroll(int n_x, int n_y)
 {
@@ -133,6 +134,16 @@ void ScrollView::recalc_content_props()
 
     m_content_size.set_width(max_width);
     m_content_size.set_height(max_height);
+}
+
+void ScrollView::display_scroll_indicators(LG::Context& ctx)
+{
+    float ratio = (float)bounds().height() / (float)content_size().height();
+    int line_height = bounds().height() * ratio;
+    int start_y = content_offset().y() * ratio;
+    int start_x = bounds().max_x() - 6;
+    ctx.set_fill_color(LG::Color(30, 30, 30, 100));
+    ctx.fill(LG::Rect(start_x, start_y, 4, line_height));
 }
 
 } // namespace UI

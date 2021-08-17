@@ -105,14 +105,14 @@ void View::mouse_moved(const LG::Point<int>& location)
 
 void View::mouse_entered(const LG::Point<int>& location)
 {
-    m_hovered = true;
+    set_hovered(true);
     set_needs_display();
 }
 
 void View::mouse_exited()
 {
-    m_hovered = false;
-    m_active = false;
+    set_hovered(false);
+    set_active(false);
     set_needs_display();
 }
 
@@ -130,6 +130,7 @@ void View::mouse_up()
 
 void View::mouse_wheel_event(int wheel_data)
 {
+    Logger::debug << "HT" << std::endl;
 }
 
 void View::receive_mouse_move_event(MouseEvent& event)
@@ -192,17 +193,21 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
 
 void View::receive_mouse_wheel_event(MouseWheelEvent& event)
 {
+    bool found = false;
     foreach_subview([&](View& subview) -> bool {
         if (subview.is_hovered()) {
             LG::Point<int> point(event.x(), event.y());
             point.offset_by(-subview.frame().origin());
             MouseWheelEvent mwe(point.x(), point.y(), event.wheel_data());
             subview.receive_mouse_wheel_event(mwe);
+            found = true;
         }
         return true;
     });
 
-    mouse_wheel_event(event.wheel_data());
+    if (!found) {
+        mouse_wheel_event(event.wheel_data());
+    }
 }
 
 void View::receive_keyup_event(KeyUpEvent&)
