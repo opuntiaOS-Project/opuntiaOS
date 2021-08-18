@@ -70,11 +70,13 @@ public:
     inline const LG::Rect& bounds() const { return m_bounds; }
     inline LG::Rect& frame() { return m_frame; }
     inline LG::Rect& bounds() { return m_bounds; }
+    inline LG::Point<int> center() { return LG::Point<int>(frame().mid_x(), frame().mid_y()); }
     inline void set_width(size_t x) { m_frame.set_width(x), m_bounds.set_width(x), set_needs_display(); }
     inline void set_height(size_t x) { m_frame.set_height(x), m_bounds.set_height(x), set_needs_display(); }
 
     inline void turn_on_constraint_based_layout(bool b) { m_constraint_based_layout = b; }
     void add_constraint(const Constraint& constraint) { m_constrints.push_back(constraint); }
+    const std::vector<UI::Constraint>& constraints() const { return m_constrints; }
 
     virtual void layout_subviews();
     inline void set_needs_layout()
@@ -122,11 +124,7 @@ public:
 
     inline LG::Color& background_color() { return m_background_color; }
     inline const LG::Color& background_color() const { return m_background_color; }
-    inline void set_background_color(const LG::Color& background_color)
-    {
-        m_background_color = background_color;
-        set_needs_display();
-    }
+    inline void set_background_color(const LG::Color& background_color) { m_background_color = background_color, set_needs_display(); }
 
 protected:
     View(View* superview, const LG::Rect&);
