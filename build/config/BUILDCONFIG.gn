@@ -5,6 +5,7 @@
 declare_args() {
   is_debug = true
   optimize = true
+  objc_support = false
   kernel_symbols = true
   userland_symbols = true
   static_analyze = false
@@ -32,5 +33,6 @@ if (host == "gnu") {
 }
 
 if (host == "llvm") {
+  objc_support = true
   set_default_toolchain("//toolchains:llvm-cross-compiler")
 }

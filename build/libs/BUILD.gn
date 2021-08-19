@@ -16,6 +16,8 @@ if (optimize) {
   lib_c_flags += [ "-Os" ]
 }
 
+lib_objcc_flags = [ "-Wno-nullability-completeness" ]
+
 lib_cc_flags = [
   "-std=c++2a",
   "-fno-sized-deallocation",
@@ -61,6 +63,13 @@ config("lib_flags") {
   asmflags = lib_asm_flags
 }
 
+config("libobjcc_flags") {
+  cflags = lib_c_flags
+  cflags_objcc = lib_objcc_flags
+  cflags_cc = lib_cc_flags
+  asmflags = lib_asm_flags
+}
+
 config("libcxx_flags") {
   cflags = lib_c_flags
   asmflags = lib_asm_flags
@@ -76,4 +85,8 @@ group("libs") {
     "//libs/libg:libg",
     "//libs/libui:libui",
   ]
+
+  if (objc_support) {
+    deps += [ "//libs/libobjc:libobjc" ]
+  }
 }

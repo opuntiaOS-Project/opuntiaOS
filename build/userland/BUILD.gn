@@ -110,4 +110,8 @@ group("userland") {
     "//userland/utilities/touch:touch",
     "//userland/utilities/uname:uname",
   ]
+
+  if (objc_support) {
+    # deps += [ "//userland/utilities/testobjc:testobjc" ]
+  }
 }

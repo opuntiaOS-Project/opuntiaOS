@@ -7,6 +7,7 @@ buildconfig = "//build/config/BUILDCONFIG.gn"
 default_args = {
   is_debug = true
   optimize = true
+  objc_support = false
   bench_method = "none"
   host = "gnu"
   device_type = "desktop"
