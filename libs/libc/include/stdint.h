@@ -43,6 +43,12 @@ typedef uint32_t uint_fast32_t;
 typedef uint64_t uint_fast64_t;
 #endif // __stdfastints_defined
 
+#ifndef __stdptrints_defined
+#define __stdptrints_defined
+typedef int32_t intptr_t;
+typedef uint32_t uintptr_t;
+#endif // __stdptrints_defined
+
 #ifndef __stdmaxints_defined
 #define __stdmaxints_defined
 typedef int64_t intmax_t;
