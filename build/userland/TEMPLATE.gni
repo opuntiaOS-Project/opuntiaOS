@@ -16,6 +16,8 @@ template("opuntiaOS_executable") {
                              "cflags",
                              "cflags_c",
                              "cflags_cc",
+                             "cflags_objc",
+                             "cflags_objcc",
                              "asmflags",
                              "ldflags",
                              "public_deps",

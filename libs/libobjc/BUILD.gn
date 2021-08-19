@@ -1,0 +1,19 @@
+import("//build/libs/TEMPLATE.gni")
+
+opuntiaOS_static_library("libobjc") {
+  sources = [ "src/NSObject.mm" ]
+
+  include_dirs = [
+    "include/",
+    "//libs/libc/include/",
+    "//libs/",
+  ]
+
+  deplibs = [ "libc" ]
+
+  configs = [ "//build/libs:libobjcc_flags" ]
+
+  if (host == "llvm") {
+    cflags = [ "-flto" ]
+  }
+}

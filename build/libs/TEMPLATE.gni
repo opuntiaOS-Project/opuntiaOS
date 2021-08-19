@@ -79,6 +79,8 @@ template("opuntiaOS_static_library") {
                              "cflags",
                              "cflags_c",
                              "cflags_cc",
+                             "cflags_objc",
+                             "cflags_objcc",
                              "asmflags",
                              "deps",
                              "public_deps",
