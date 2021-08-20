@@ -93,6 +93,22 @@ int memcmp(const void* src1, const void* src2, size_t nbytes)
     return 0;
 }
 
+int strcmp(const char* a, const char* b)
+{
+    while (*a == *b && *a != '\0' && *b != '\0') {
+        a++;
+        b++;
+    }
+
+    if (a < b) {
+        return -1;
+    }
+    if (a > b) {
+        return 1;
+    }
+    return 0;
+}
+
 size_t strlen(const char* str)
 {
     size_t i = 0;

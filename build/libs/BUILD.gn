@@ -16,8 +16,6 @@ if (optimize) {
   lib_c_flags += [ "-Os" ]
 }
 
-lib_objcc_flags = [ "-Wno-nullability-completeness" ]
-
 lib_cc_flags = [
   "-std=c++2a",
   "-fno-sized-deallocation",
@@ -25,6 +23,8 @@ lib_cc_flags = [
   "-fno-exceptions",
   "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS",
 ]
+
+lib_objcc_flags = lib_cc_flags + [ "-Wno-nullability-completeness" ]
 
 lib_asm_flags = []
 

@@ -40,6 +40,7 @@ size_t strlen(const char* str);
    Note that this is dangerous because it writes memory no matter the size
    the 'dest' buffer is. */
 char* strcpy(char* dest, const char* src);
+int strcmp(const char* a, const char* b);
 
 /* Copy 'src' into 'dest' until it finds a null byte or reaches the 'nbytes'
    limit provided by the user. This is the recommended way of copying strings,

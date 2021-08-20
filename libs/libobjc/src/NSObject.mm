@@ -6,7 +6,7 @@ OBJC_EXPORT IMP objc_msg_lookup(id receiver, SEL op)
     return nil_method;
 }
 
-id objc_msgSend(id reciever, SEL selector)
+OBJC_EXPORT id objc_msgSend(id reciever, SEL selector)
 {
     // FIXME
     return reciever;
