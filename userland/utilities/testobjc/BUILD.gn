@@ -4,6 +4,8 @@ opuntiaOS_executable("testobjc") {
   install_path = "bin/"
   sources = [ "main.mm" ]
   configs = [ "//build/userland:userland_flags" ]
-  deplibs = [ "libobjc" ]
-  cflags_objcc = [ "-Wno-objc-method-access", "-Wno-objc-root-class" ]
+  deplibs = [
+    "libobjc",
+    "libcxx",
+  ]
 }

@@ -100,7 +100,7 @@ toolchain("llvm-cross-compiler") {
   }
   tool("objcxx") {
     depfile = "{{output}}.d"
-    command = "$llvm_cc -MMD -MF $depfile $llvm_ccpp_target_flag {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} {{cflags_objcc}} -c {{source}} -o {{output}}"
+    command = "$llvm_cxx -MMD -MF $depfile $llvm_ccpp_target_flag {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} {{cflags_objcc}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "OBJCXX {{output}}"
     outputs =

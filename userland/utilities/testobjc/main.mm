@@ -2,6 +2,7 @@
 
 @interface SampleClass
 - (void)sampleMethod;
+- (void)sampleMethod:(int)val;
 @end
 
 @implementation SampleClass
@@ -10,10 +11,15 @@
    printf("Hello, Obj-C!");
 }
 
+- (void)sampleMethod:(int)val {
+   printf("Hello, Obj-C!");
+}
+
 @end
 
 int main() {
    SampleClass *sampleClass = [[SampleClass alloc]init];
    [sampleClass sampleMethod];
+   [sampleClass sampleMethod:5];
    return 0;
 }

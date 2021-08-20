@@ -23,6 +23,13 @@ uland_cc_flags = [
   "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS",
 ]
 
+uland_objcc_flags = uland_cc_flags + [
+                      "-Wno-objc-method-access",
+                      "-Wno-objc-root-class",
+                      "-fno-objc-exceptions",
+                      "-fno-objc-arc",
+                    ]
+
 uland_asm_flags = []
 uland_ld_flags = []
 
@@ -82,6 +89,7 @@ if (target_cpu == "aarch32") {
 config("userland_flags") {
   cflags = uland_c_flags
   cflags_cc = uland_cc_flags
+  cflags_objcc = uland_objcc_flags
   asmflags = uland_asm_flags
   ldflags = uland_ld_flags
   defines = [ "opuntiaOS" ]
@@ -112,6 +120,6 @@ group("userland") {
   ]
 
   if (objc_support) {
-    # deps += [ "//userland/utilities/testobjc:testobjc" ]
+    deps += [ "//userland/utilities/testobjc:testobjc" ]
   }
 }
