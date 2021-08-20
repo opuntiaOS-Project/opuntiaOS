@@ -1,4 +1,4 @@
-section .oneos_kernel_boot
+section .opuntiaos_kernel_boot
 
 [bits 32]
 extern stage3

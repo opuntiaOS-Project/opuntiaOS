@@ -12,7 +12,7 @@ public:
 
     bool application() override
     {
-        auto& window = std::oneos::construct<HomeScreenWindow>(window_size());
+        auto& window = std::opuntiaos::construct<HomeScreenWindow>(window_size());
         window.set_bitmap_format(LG::PixelBitmapFormat::RGBA); // Turning on Alpha channel
         auto& dock_view = window.create_superview<HomeScreenView, HomeScreenViewController>();
 

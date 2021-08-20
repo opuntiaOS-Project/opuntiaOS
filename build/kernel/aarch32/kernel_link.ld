@@ -4,7 +4,7 @@
 	. = 0x80010000;
 	.init :
 	{
-		*(.oneos_load_section)
+		*(.opuntiaos_load_section)
 		*(.init_code)
 		*(.init_data)
 	}

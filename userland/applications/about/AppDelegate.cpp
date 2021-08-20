@@ -12,7 +12,7 @@ public:
 
     virtual bool application() override
     {
-        auto& window = std::oneos::construct<UI::Window>(window_size(), icon_path());
+        auto& window = std::opuntiaos::construct<UI::Window>(window_size(), icon_path());
         auto& superview = window.create_superview<UI::View, ViewController>();
 
         window.set_title("About");

@@ -5,7 +5,7 @@ SECTIONS
 
 	.text ALIGN(4K) : AT (ADDR(.text) - 0xc0000000 + 1M)
 	{
-		*(.oneos_kernel_boot)
+		*(.opuntiaos_kernel_boot)
 		*(.text)
 	}
 

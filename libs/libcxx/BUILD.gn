@@ -23,7 +23,7 @@ opuntiaOS_static_library("libcxx") {
     "../libc/stdlib/pts.c",
     "../libc/stdlib/tools.c",
     "../libc/string/string.c",
-    "../libc/sysdeps/oneos/generic/shared_buffer.c",
+    "../libc/sysdeps/opuntiaos/generic/shared_buffer.c",
     "../libc/sysdeps/unix/$target_cpu/crt0.s",
     "../libc/sysdeps/unix/generic/ioctl.c",
     "../libc/termios/termios.c",

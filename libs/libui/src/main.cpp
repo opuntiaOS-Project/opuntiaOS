@@ -13,7 +13,7 @@ extern "C" bool __init_app_delegate(UI::AppDelegate** res);
 extern "C" int main(int argc, char** argv)
 {
     auto process_info = LFoundation::ProcessInfo(argc, argv);
-    auto& app = std::oneos::construct<UI::App>();
+    auto& app = std::opuntiaos::construct<UI::App>();
     UI::AppDelegate* app_delegate = nullptr;
     int res = __init_app_delegate(&app_delegate);
     if (res < 0) {

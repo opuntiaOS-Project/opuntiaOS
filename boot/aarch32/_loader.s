@@ -2,8 +2,8 @@
 .extern _start_secondary_cpu
 .extern vector_table
 
-.section ".oneos_load_section"
-oneos_loader:
+.section ".opuntiaos_load_section"
+opuntiaos_loader:
     ldr     sp, =STACK_PHYZ_TOP
 
     // The same as reset cpu 0
