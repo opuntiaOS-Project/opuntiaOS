@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <libobjc/NSObject.h>
 
-@interface SampleClass
+@interface SampleClass : NSObject
 - (void)sampleMethod;
 - (void)sampleMethod:(int)val;
 @end
