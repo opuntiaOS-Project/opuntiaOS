@@ -1,13 +1,8 @@
 #ifndef _LIBOBJC_SELECTOR_H
 #define _LIBOBJC_SELECTOR_H
 
+#include <libobjc/v1/decls.h>
 #include <stddef.h>
-
-struct objc_selector {
-    void* id;
-    const char* types;
-};
-typedef struct objc_selector* SEL;
 
 static inline bool sel_equal(SEL s1, SEL s2)
 {
@@ -17,7 +12,9 @@ static inline bool sel_equal(SEL s1, SEL s2)
     return s1->id == s2->id;
 }
 
-void selector_init_table();
+void selector_table_init();
 void selector_add_from_module(struct objc_selector*);
+void selector_add_from_method_list(struct objc_method_list*);
+void selector_add_from_class(Class);
 
 #endif // _LIBOBJC_SELECTOR_H

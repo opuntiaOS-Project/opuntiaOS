@@ -1,5 +1,6 @@
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
+#include <libobjc/NSObject.h>
 
 OBJC_EXPORT IMP objc_msg_lookup(id receiver, SEL op)
 {
@@ -34,3 +35,12 @@ OBJC_EXPORT id objc_alloc_init(Class cls)
     // return [call_alloc(cls, true, false) init];
     return call_alloc(cls, true, false);
 }
+
+@implementation NSObject
+
+- (Class) class
+{
+  return object_getClass(self);
+}
+
+@end

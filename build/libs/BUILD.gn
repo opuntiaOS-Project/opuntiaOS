@@ -24,7 +24,12 @@ lib_cc_flags = [
   "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS",
 ]
 
-lib_objcc_flags = lib_cc_flags + [ "-Wno-nullability-completeness" ]
+lib_objcc_flags = lib_cc_flags + [
+                    "-Wno-nullability-completeness",
+                    "-Wno-deprecated-objc-isa-usage",
+                    "-Wno-objc-root-class",
+                    "-Wno-cast-of-sel-type",
+                  ]
 
 lib_asm_flags = []
 
