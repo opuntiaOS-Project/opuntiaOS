@@ -92,8 +92,7 @@ void class_add_from_module(struct objc_symtab* symtab)
         Class cls = (Class)symtab->defs[i];
         const char* superclass = (char*)cls->superclass;
 
-        printf("Installing classes (%d of %d): %s\n", i + 1, symtab->cls_def_cnt, cls->name);
-        fflush(stdout);
+        OBJC_DEBUGPRINT("Installing classes (%d of %d): %s\n", i + 1, symtab->cls_def_cnt, cls->name);
 
         // Fix clang flags
         if (cls->is_class()) {
