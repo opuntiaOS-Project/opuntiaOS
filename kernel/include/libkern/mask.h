@@ -6,7 +6,7 @@
     N##_SIZE = (S),         \
     N##_MASK = ((~(~0 << (S))) << (P))
 
-#define TOKEN_PASTE_IMPL(x, y) x ## y
+#define TOKEN_PASTE_IMPL(x, y) x##y
 #define TOKEN_PASTE(x, y) TOKEN_PASTE_IMPL(x, y)
 #define SKIP(x, y) char TOKEN_PASTE(prefix, __LINE__)[y - x - 8]
 

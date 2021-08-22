@@ -7,7 +7,6 @@
 #include <stdint.h>
 #endif
 
-
 struct file_view_area {
     char* buffer;
     int start; /* offset in buffer where the line starts */

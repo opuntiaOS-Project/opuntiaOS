@@ -13,6 +13,6 @@
 #include <platform/x86/idt.h>
 
 void ide_install();
-void ide_find_devices(device_t *t_device);
+void ide_find_devices(device_t* t_device);
 
 #endif // _KERNEL_DRIVERS_X86_IDE_H

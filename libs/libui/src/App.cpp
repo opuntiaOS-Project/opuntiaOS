@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 
 namespace UI {
- 
+
 App* s_UI_App_the = nullptr;
 
 App::App()

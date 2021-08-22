@@ -48,7 +48,7 @@ void Popup::draw(LG::Context& ctx)
     for (int i = 0; i < data.size(); i++) {
         if (i == m_hovered_item) {
             ctx.set_fill_color(LG::Color::LightSystemAccentButton);
-            ctx.fill(LG::Rect(bounds().min_x(), height - spacing()/2, bounds().width(), line_height));
+            ctx.fill(LG::Rect(bounds().min_x(), height - spacing() / 2, bounds().width(), line_height));
             ctx.set_fill_color(LG::Color::White);
         } else {
             ctx.set_fill_color(LG::Color::LightSystemText);

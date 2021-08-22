@@ -3,9 +3,9 @@
 #include "menu.h"
 #include "mode.h"
 #include "viewer.h"
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdlib.h>
 
 #define STDIN 0
 #define STDOUT 1
@@ -35,8 +35,7 @@ void viewing_accept_key(char key)
         viewer_cursor_right();
         return;
     }
-    
-    
+
     file_paste_char(key, viewer_get_cursor_offset_in_file());
 }
 

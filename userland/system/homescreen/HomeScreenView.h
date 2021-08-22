@@ -25,12 +25,11 @@ public:
     static constexpr int grid_entities_per_column() { return 5; }
 
     void display(const LG::Rect& rect) override;
-    
+
     void new_grid_entity(const LG::string& title, const LG::string& icon_path, LG::string&& exec_path);
     void new_fast_launch_entity(const LG::string& title, const LG::string& icon_path, LG::string&& exec_path);
 
 private:
-
     std::vector<UI::StackView*> m_grid_stackviews;
     UI::StackView* m_dock_stackview {};
     std::list<FastLaunchEntity> m_grid_entites {};

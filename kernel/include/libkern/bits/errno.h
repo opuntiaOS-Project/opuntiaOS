@@ -1,6 +1,7 @@
 #ifndef _KERNEL_LIBKERN_BITS_ERRNO_H
 #define _KERNEL_LIBKERN_BITS_ERRNO_H
 
+// clang-format off
 #define EPERM            1      /* Operation not permitted */
 #define ENOENT           2      /* No such file or directory */
 #define ESRCH            3      /* No such process */
@@ -129,5 +130,6 @@
 #define ENOMEDIUM       123     /* No medium found */
 #define EMEDIUMTYPE     124     /* Wrong medium type */
 #define EBADARCH        125     /* Bad arch */
+// clang-format on
 
 #endif // _KERNEL_LIBKERN_BITS_ERRNO_H

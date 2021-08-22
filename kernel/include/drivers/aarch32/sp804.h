@@ -9,9 +9,9 @@
 #define _KERNEL_DRIVERS_AARCH32_SP804_H
 
 #include <drivers/driver_manager.h>
-#include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <libkern/types.h>
 #include <libkern/mask.h>
+#include <libkern/types.h>
+#include <platform/aarch32/target/cortex-a15/device_settings.h>
 
 #define SP804_TIMER1_BASE SP804_BASE
 #define SP804_TIMER2_BASE (SP804_TIMER1_BASE + 0x20)

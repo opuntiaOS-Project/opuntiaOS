@@ -40,16 +40,16 @@ typedef struct {
     uint32_t feature_compat;
     uint32_t feature_incompat;
     uint32_t feature_ro_compat;
-    uint8_t  uuid[16];
-    uint8_t  volume_name[16];
-    uint8_t  last_mounted[64];
+    uint8_t uuid[16];
+    uint8_t volume_name[16];
+    uint8_t last_mounted[64];
     uint32_t algo_bitmap;
 
-    uint8_t  prealloc_blocks;
-    uint8_t  prealloc_dir_blocks;
+    uint8_t prealloc_blocks;
+    uint8_t prealloc_dir_blocks;
 
     // current jurnalling is unsupported
-    uint8_t unused[1024-206];
+    uint8_t unused[1024 - 206];
 } superblock_t;
 
 #define GROUP_LEN (sizeof(group_desc_t))
@@ -61,7 +61,7 @@ typedef struct {
     uint16_t free_inodes_count;
     uint16_t used_dirs_count;
     uint16_t pad;
-    uint8_t  reserved[12];
+    uint8_t reserved[12];
 } group_desc_t;
 
 #define S_IFSOCK 0xC000
@@ -109,7 +109,6 @@ typedef struct {
     uint32_t osd2[3];
 } inode_t;
 
-    
 typedef struct {
     uint32_t inode;
     uint16_t rec_len;
@@ -118,9 +117,8 @@ typedef struct {
     char* name; // may be a problematic for 64bit versions
 } dir_entry_t;
 
-
-int ext2_lite_init(drive_desc_t *drive_desc, fs_desc_t *fs_desc);
-int ext2_lite_get_inode(drive_desc_t *drive_desc, char *path, inode_t *file_inode);
-int ext2_lite_read(drive_desc_t *drive_desc, char *path, uint8_t *buf, uint32_t from, uint32_t len);
+int ext2_lite_init(drive_desc_t* drive_desc, fs_desc_t* fs_desc);
+int ext2_lite_get_inode(drive_desc_t* drive_desc, char* path, inode_t* file_inode);
+int ext2_lite_read(drive_desc_t* drive_desc, char* path, uint8_t* buf, uint32_t from, uint32_t len);
 
 #endif // STAGE2_EXT2_LITE

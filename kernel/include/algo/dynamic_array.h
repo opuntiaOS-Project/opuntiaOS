@@ -18,12 +18,11 @@
 
 #include <libkern/types.h>
 
-struct dynamic_array
-{
-  void* data;
-  uint32_t capacity; /* current allocated memory */
-  uint32_t size; /* number of elements in vector */
-  uint32_t element_size; /* size of elements in bytes */
+struct dynamic_array {
+    void* data;
+    uint32_t capacity; /* current allocated memory */
+    uint32_t size; /* number of elements in vector */
+    uint32_t element_size; /* size of elements in bytes */
 };
 typedef struct dynamic_array dynamic_array_t;
 

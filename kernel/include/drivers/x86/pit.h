@@ -18,4 +18,3 @@ void pit_setup();
 void pit_handler();
 
 #endif /* _KERNEL_DRIVERS_X86_PIT_H */
-

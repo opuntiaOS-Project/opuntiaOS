@@ -26,7 +26,8 @@ public:
         update_time();
         MenuBar::the().event_loop().add(LFoundation::Timer([this] {
             this->update_time();
-        }, 5000, LFoundation::Timer::Repeat)); 
+        },
+            5000, LFoundation::Timer::Repeat));
     }
 
     ~Clock()

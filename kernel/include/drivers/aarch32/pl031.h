@@ -9,10 +9,10 @@
 #define _KERNEL_DRIVERS_AARCH32_PL031_H
 
 #include <drivers/driver_manager.h>
+#include <libkern/mask.h>
+#include <libkern/types.h>
 #include <platform/aarch32/interrupts.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
-#include <libkern/types.h>
-#include <libkern/mask.h>
 
 struct pl031_registers {
     uint32_t data;

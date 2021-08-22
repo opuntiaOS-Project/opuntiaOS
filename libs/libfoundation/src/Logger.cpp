@@ -4,9 +4,12 @@
 namespace LFoundation {
 
 namespace Logger {
-    _ALIGNAS_TYPE(std::ostream) char debug[sizeof(std::ostream)];
-    _ALIGNAS_TYPE(std::ostream) char info[sizeof(std::ostream)];
-    _ALIGNAS_TYPE(std::ostream) char error[sizeof(std::ostream)];
+    _ALIGNAS_TYPE(std::ostream)
+    char debug[sizeof(std::ostream)];
+    _ALIGNAS_TYPE(std::ostream)
+    char info[sizeof(std::ostream)];
+    _ALIGNAS_TYPE(std::ostream)
+    char error[sizeof(std::ostream)];
 };
 
 class LoggerInit final {

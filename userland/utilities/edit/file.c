@@ -1,9 +1,9 @@
 #include "file.h"
 #include "viewer.h"
-#include <unistd.h>
-#include <stdlib.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 file_view_area_t view_area;
 

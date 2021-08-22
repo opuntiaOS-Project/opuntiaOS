@@ -10,10 +10,9 @@
 
 #include <libkern/types.h>
 
-struct bitmap
-{
-  uint8_t* data;
-  uint32_t len;
+struct bitmap {
+    uint8_t* data;
+    uint32_t len;
 };
 typedef struct bitmap bitmap_t;
 

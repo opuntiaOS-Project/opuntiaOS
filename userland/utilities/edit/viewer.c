@@ -1,7 +1,7 @@
 #include "viewer.h"
 #include "file.h"
-#include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int out_x, out_y;
 int cursor_x, cursor_y;
@@ -120,7 +120,6 @@ void viewer_display(char* buf, int start, int len)
         if (!_viewer_display_one(buf[i])) {
             goto out;
         }
-        
     }
 
     while (out_y < SCREEN_Y - 1) {
@@ -190,14 +189,13 @@ void viewer_cursor_next()
     if (cursor_x == SCREEN_X) {
         cursor_y++;
         cursor_x = 0;
-    }   
+    }
 }
 
 int viewer_get_cursor_offset_in_file()
 {
     return working_with_offset;
 }
-
 
 void viewer_enter_menu_mode()
 {

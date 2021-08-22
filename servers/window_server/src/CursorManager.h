@@ -42,12 +42,21 @@ public:
     inline const LG::PixelBitmap& current_cursor() const { return std_cursor(); }
     inline const LG::PixelBitmap& std_cursor() const { return m_std_cursor; }
 #ifdef TARGET_DESKTOP
-    inline LG::Point<int> draw_position() { return { m_mouse_x - 2, m_mouse_y - 2 }; }
+    inline LG::Point<int> draw_position()
+    {
+        return { m_mouse_x - 2, m_mouse_y - 2 };
+    }
 #elif TARGET_MOBILE
-    inline LG::Point<int> draw_position() { return { m_mouse_x - 6, m_mouse_y - 6 }; }
+    inline LG::Point<int> draw_position()
+    {
+        return { m_mouse_x - 6, m_mouse_y - 6 };
+    }
 #endif
 
-    inline int x() const { return m_mouse_x; }
+    inline int x() const
+    {
+        return m_mouse_x;
+    }
     inline int y() const { return m_mouse_y; }
 
     template <Params param>
