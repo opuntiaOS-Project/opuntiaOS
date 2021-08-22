@@ -1,8 +1,7 @@
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
 #include <libobjc/selector.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <libobjc/memory.h>
 #include <string.h>
 
 static struct objc_selector* selector_pool_start;
@@ -34,14 +33,14 @@ static SEL selector_table_add(char* name, const char* types, bool const_data)
         sel->types = types;
     } else {
         int name_len = strlen(name);
-        char* name_data = (char*)malloc(name_len + 1);
+        char* name_data = (char*)objc_malloc(name_len + 1);
         memcpy(name_data, name, name_len);
         name_data[name_len] = '\0';
         sel->id = name_data;
 
         if (types) {
             int types_len = strlen(types);
-            char* types_data = (char*)malloc(types_len + 1);
+            char* types_data = (char*)objc_malloc(types_len + 1);
             memcpy(types_data, types, types_len);
             types_data[types_len] = '\0';
             sel->types = types_data;
