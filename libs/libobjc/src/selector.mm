@@ -74,8 +74,7 @@ void selector_add_from_method_list(struct objc_method_list* method_list)
         if (method->method_name) {
             char* name = (char*)method->method_name;
             const char* types = method->method_types;
-            printf("    method %s %s\n", name, types);
-            fflush(stdout);
+            OBJC_DEBUGPRINT("    method %s %s\n", name, types);
             method->method_name = selector_table_add(name, types, CONST_DATA);
         }
     }
