@@ -3,8 +3,6 @@
 #include <libobjc/selector.h>
 #include <libobjc/module.h>
 #include <libobjc/class.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 struct class_node {
