@@ -1,53 +1,3 @@
-global isr0
-global isr1
-global isr2
-global isr3
-global isr4
-global isr5
-global isr6
-global isr7
-global isr8
-global isr9
-global isr10
-global isr11
-global isr12
-global isr13
-global isr14
-global isr15
-global isr16
-global isr17
-global isr18
-global isr19
-global isr20
-global isr21
-global isr22
-global isr23
-global isr24
-global isr25
-global isr26
-global isr27
-global isr28
-global isr29
-global isr30
-global isr31
-; IRQs
-global irq0
-global irq1
-global irq2
-global irq3
-global irq4
-global irq5
-global irq6
-global irq7
-global irq8
-global irq9
-global irq10
-global irq11
-global irq12
-global irq13
-global irq14
-global irq15
-
 global syscall
 
 extern isr_handler
@@ -130,290 +80,71 @@ trap_return:
     sti
     iret
 
-isr0:
+%macro ADD_ISR 1
+  global isr%1
+  isr%1:
     push 0
-    push 0
+    push %1
     jmp isr_common
+%endmacro
 
-
-isr1:
+%macro ADD_IRQ 2
+  global isr%1
+  isr%1:
     push 0
-    push 1
-    jmp isr_common
-
-
-isr2:
-    push 0
-    push 2
-    jmp  isr_common
-
-
-isr3:
-    push 0
-    push 3
-    jmp  isr_common
-
-
-isr4:
-    push 0
-    push 4
-    jmp  isr_common
-
-
-isr5:
-    push 0
-    push 5
-    jmp  isr_common
-
-
-isr6:
-    push 0
-    push 6
-    jmp  isr_common
-
-
-isr7:
-    push 0
-    push 7
-    jmp  isr_common
-
-
-isr8:
-    push 0
-    push 8
-    jmp  isr_common
-
-
-isr9:
-    push 0
-    push 9
-    jmp  isr_common
-
-
-isr10:
-    push 0
-    push 10
-    jmp  isr_common
-
-
-isr11:
-    push 0
-    push 11
-    jmp  isr_common
-
-
-isr12:
-    push 0
-    push 12
-    jmp  isr_common
-
-
-isr13:
-    push 13
-    jmp  isr_common
-
-
-isr14:
-    push 14
-    jmp  isr_common
-
-
-isr15:
-    push 0
-    push 15
-    jmp  isr_common
-
-
-isr16:
-    push 0
-    push 16
-    jmp  isr_common
-
-
-isr17:
-    push 0
-    push 17
-    jmp  isr_common
-
-
-isr18:
-    push 0
-    push 18
-    jmp  isr_common
-
-
-isr19:
-    push 0
-    push 19
-    jmp  isr_common
-
-
-isr20:
-    push 0
-    push 20
-    jmp  isr_common
-
-
-isr21:
-    push 0
-    push 21
-    jmp  isr_common
-
-
-isr22:
-    push 0
-    push 22
-    jmp  isr_common
-
-
-isr23:
-    push 0
-    push 23
-    jmp  isr_common
-
-
-isr24:
-    push 0
-    push 24
-    jmp  isr_common
-
-
-isr25:
-    push 0
-    push 25
-    jmp  isr_common
-
-
-isr26:
-    push 0
-    push 26
-    jmp  isr_common
-
-
-isr27:
-    push 0
-    push 27
-    jmp  isr_common
-
-
-isr28:
-    push 0
-    push 28
-    jmp  isr_common
-
-
-isr29:
-    push 0
-    push 29
-    jmp  isr_common
-
-
-isr30:
-    push 0
-    push 30
-    jmp  isr_common
-
-
-isr31:
-    push 0
-    push 31
-    jmp  isr_common
-
-
-irq0:
-    push 0
-    push 32
-    jmp  irq_common
-
-
-irq1:
-    push 0
-    push 33
-    jmp  irq_common
-
-
-irq2:
-    push 0
-    push 34
-    jmp  irq_common
-
-
-irq3:
-    push 0
-    push 35
-    jmp  irq_common
-
-
-irq4:
-    push 0
-    push 36
-    jmp  irq_common
-
-
-irq5:
-    push 0
-    push 37
-    jmp  irq_common
-
-
-irq6:
-    push 0
-    push 38
-    jmp  irq_common
-
-
-irq7:
-    push 0
-    push 39
-    jmp  irq_common
-
-
-irq8:
-    push 0
-    push 40
-    jmp  irq_common
-
-
-irq9:
-    push 0
-    push 41
-    jmp  irq_common
-
-
-irq10:
-    push 0
-    push 42
-    jmp  irq_common
-
-
-irq11:
-    push 0
-    push 43
-    jmp  irq_common
-
-
-irq12:
-    push 0
-    push 44
-    jmp  irq_common
-
-
-irq13:
-    push 0
-    push 45
-    jmp  irq_common
-
-
-irq14:
-    push 0
-    push 46
-    jmp  irq_common
-
-
-irq15:
-    push 0
-    push 47
-    jmp  irq_common
+    push %2
+    jmp irq_common
+%endmacro
+
+ADD_ISR 0
+ADD_ISR 1
+ADD_ISR 2
+ADD_ISR 3
+ADD_ISR 4
+ADD_ISR 5
+ADD_ISR 6
+ADD_ISR 7
+ADD_ISR 8
+ADD_ISR 9
+ADD_ISR 10
+ADD_ISR 11
+ADD_ISR 12
+ADD_ISR 14
+ADD_ISR 15
+ADD_ISR 16
+ADD_ISR 17
+ADD_ISR 18
+ADD_ISR 19
+ADD_ISR 20
+ADD_ISR 21
+ADD_ISR 22
+ADD_ISR 23
+ADD_ISR 24
+ADD_ISR 25
+ADD_ISR 26
+ADD_ISR 27
+ADD_ISR 28
+ADD_ISR 29
+ADD_ISR 30
+ADD_ISR 31
+
+
+ADD_IRQ 0, 32
+ADD_IRQ 1, 33
+ADD_IRQ 2, 34
+ADD_IRQ 3, 35
+ADD_IRQ 4, 36
+ADD_IRQ 5, 37
+ADD_IRQ 6, 38
+ADD_IRQ 7, 39
+ADD_IRQ 8, 40
+ADD_IRQ 9, 41
+ADD_IRQ 10, 42
+ADD_IRQ 11, 43
+ADD_IRQ 12, 44
+ADD_IRQ 13, 45
+ADD_IRQ 14, 46
+ADD_IRQ 15, 47
 
 syscall:
     push 0
