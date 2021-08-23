@@ -3,8 +3,9 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
+ *
+ * Modified by: bellrise
  */
-
 #include <drivers/generic/keyboard.h>
 #include <drivers/generic/keyboard_mappings/scancode_set1.h>
 #include <fs/devfs/devfs.h>
@@ -21,27 +22,35 @@ static uint32_t _gkeyboard_last_scancode = KEY_UNKNOWN;
 
 static key_t _generic_keyboard_apply_modifiers(key_t key);
 
+/* Simple struct to store the alternative key when a modifier key is presed. */
+struct alternative_key {
+    key_t old;
+    key_t new;
+};
+
 static bool _generic_keyboard_can_read(dentry_t* dentry, uint32_t start)
 {
     return ringbuffer_space_to_read(&gkeyboard_buffer) >= 1;
 }
 
-static int _generic_keyboard_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+static int _generic_keyboard_read(dentry_t* dentry, uint8_t* buf,
+    uint32_t start, uint32_t len)
 {
-    uint32_t leno = ringbuffer_space_to_read(&gkeyboard_buffer);
-    if (leno > len) {
-        leno = len;
-    }
-    int res = ringbuffer_read(&gkeyboard_buffer, buf, leno);
-    return leno;
+    uint32_t read_len;
+
+    read_len = ringbuffer_space_to_read(&gkeyboard_buffer);
+    if (read_len > len)
+        read_len = len;
+
+    ringbuffer_read(&gkeyboard_buffer, buf, read_len);
+    return read_len;
 }
 
 int generic_keyboard_create_devfs()
 {
     dentry_t* mp;
-    if (vfs_resolve_path("/dev", &mp) < 0) {
+    if (vfs_resolve_path("/dev", &mp) < 0)
         return -1;
-    }
 
     file_ops_t fops = { 0 };
     fops.can_read = _generic_keyboard_can_read;
@@ -63,6 +72,7 @@ void generic_emit_key_set1(uint32_t scancode)
         _gkeyboard_has_prefix_e0 = true;
         return;
     }
+
     if (_gkeyboard_has_prefix_e0) {
         scancode |= 0x100;
         _gkeyboard_has_prefix_e0 = false;
@@ -71,10 +81,12 @@ void generic_emit_key_set1(uint32_t scancode)
     key_t key;
     kbd_packet_t packet;
 
+    /* Add modifiers */
     if (scancode & 0x80) {
         scancode -= 0x80;
         key = generic_keyboard_get_keycode_set1(scancode);
         packet.key = key | (1 << 31);
+
         switch (key) {
         case KEY_LCTRL:
         case KEY_RCTRL:
@@ -95,6 +107,7 @@ void generic_emit_key_set1(uint32_t scancode)
             key = _generic_keyboard_apply_modifiers(key);
             packet.key = key | (1 << 31);
         }
+
     } else {
         _gkeyboard_last_scancode = scancode;
         key = generic_keyboard_get_keycode_set1(scancode);
@@ -125,98 +138,53 @@ void generic_emit_key_set1(uint32_t scancode)
     ringbuffer_write(&gkeyboard_buffer, (uint8_t*)&packet, sizeof(kbd_packet_t));
 }
 
-// TODO: Implement with table
 static key_t _generic_keyboard_apply_modifiers(key_t key)
 {
+    static const struct alternative_key shift_keys[] = {
+        { KEY_GRAVE, KEY_TILDE },
+        { KEY_1, KEY_EXCLAMATION },
+        { KEY_2, KEY_AT },
+        { KEY_3, KEY_HASH },
+        { KEY_4, KEY_DOLLAR },
+        { KEY_5, KEY_PERCENT },
+        { KEY_6, KEY_PERCENT },
+        { KEY_7, KEY_PERCENT },
+        { KEY_8, KEY_PERCENT },
+        { KEY_9, KEY_PERCENT },
+        { KEY_0, KEY_RIGHTPARENTHESIS },
+        { KEY_MINUS, KEY_EQUAL },
+        { KEY_EQUAL, KEY_PLUS },
+        { KEY_LEFTBRACKET, KEY_LEFTCURL },
+        { KEY_RIGHTBRACKET, KEY_RIGHTCURL },
+        { KEY_BACKSLASH, KEY_BAR },
+        { KEY_SEMICOLON, KEY_COLON },
+        { KEY_QUOTE, KEY_QUOTEDOUBLE },
+        { KEY_COMMA, KEY_LESS },
+        { KEY_DOT, KEY_GREATER },
+        { KEY_SLASH, KEY_QUESTION },
+    };
+
+    static const size_t shift_keys_l = sizeof(shift_keys)
+        / sizeof(struct alternative_key);
+
     if (_gkeyboard_ctrl_enabled) {
-        if (key == 'c') {
+        if (key == 'c')
             key = KEY_CTRLC;
-        }
         return key;
     }
 
     if (_gkeyboard_shift_enabled || _gkeyboard_caps_enabled) {
-        if (key >= 'a' && key <= 'z') {
+        if (key >= 'a' && key <= 'z')
             key -= 32;
-        }
     }
 
-    if (_gkeyboard_shift_enabled) {
-        switch (key) {
-        case KEY_0:
-            key = KEY_RIGHTPARENTHESIS;
-            break;
-        case KEY_1:
-            key = KEY_EXCLAMATION;
-            break;
-        case KEY_2:
-            key = KEY_AT;
-            break;
-        case KEY_3:
-            key = KEY_EXCLAMATION;
-            break;
-        case KEY_4:
-            key = KEY_HASH;
-            break;
-        case KEY_5:
-            key = KEY_PERCENT;
-            break;
-        case KEY_6:
-            key = KEY_CARRET;
-            break;
-        case KEY_7:
-            key = KEY_AMPERSAND;
-            break;
-        case KEY_8:
-            key = KEY_ASTERISK;
-            break;
-        case KEY_9:
-            key = KEY_LEFTPARENTHESIS;
-            break;
-        case KEY_COMMA:
-            key = KEY_LESS;
-            break;
+    if (!_gkeyboard_shift_enabled)
+        return key;
 
-        case KEY_DOT:
-            key = KEY_GREATER;
-            break;
-
-        case KEY_SLASH:
-            key = KEY_QUESTION;
-            break;
-
-        case KEY_SEMICOLON:
-            key = KEY_COLON;
-            break;
-
-        case KEY_QUOTE:
-            key = KEY_QUOTEDOUBLE;
-            break;
-
-        case KEY_LEFTBRACKET:
-            key = KEY_LEFTCURL;
-            break;
-
-        case KEY_RIGHTBRACKET:
-            key = KEY_RIGHTCURL;
-            break;
-
-        case KEY_GRAVE:
-            key = KEY_TILDE;
-            break;
-
-        case KEY_MINUS:
-            key = KEY_UNDERSCORE;
-            break;
-
-        case KEY_EQUAL:
-            key = KEY_PLUS;
-            break;
-
-        case KEY_BACKSLASH:
-            key = KEY_BAR;
-            break;
-        }
+    for (unsigned int i = 0; i < shift_keys_l; i++) {
+        if (shift_keys[i].old == key)
+            return shift_keys[i].new;
     }
+
     return key;
 }
