@@ -3,6 +3,8 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
+ *
+ * Modified by: bellrise
  */
 
 #include <drivers/x86/fpu.h>
@@ -56,91 +58,107 @@ static const char* exception_messages[32] = {
     "Reserved"
 };
 
-void isr_handler(trapframe_t* tf)
+void isr_handler(trapframe_t* frame)
 {
+    int res;
+    proc_t* proc;
+
     system_disable_interrupts();
     cpu_enter_kernel_space();
 
-    proc_t* p = NULL;
+    proc = NULL;
     if (likely(RUNNING_THREAD)) {
-        p = RUNNING_THREAD->process;
-        if (RUNNING_THREAD->process->is_kthread) {
-            RUNNING_THREAD->tf = tf;
-        }
+        proc = RUNNING_THREAD->process;
+        if (RUNNING_THREAD->process->is_kthread)
+            RUNNING_THREAD->tf = frame;
     }
 
-    if (tf->int_no == 0) {
-        if (!p) {
-            log_warn("Crash: division by zero in %d tid\n", RUNNING_THREAD->tid);
-            dump_and_kill(p);
+    switch (frame->int_no) {
+    /* Division by 0 or kernel trap (if no process). */
+    case 0:
+        if (proc) {
+            log_warn("Crash: division by zero in T%d\n", RUNNING_THREAD->tid);
+            dump_and_kill(proc);
         } else {
-            snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
-            kpanic_tf(err_buf, tf);
+            snprintf(
+                err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s",
+                frame->eip, frame->int_no,
+                &exception_messages[frame->int_no]);
+            kpanic_tf(err_buf, frame);
         }
-    } else if (tf->int_no == 1) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        break;
+
+    /* Debug, non-maskable interrupt, breakpoint, detected overflow,
+           out of bounds. */
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+        log_error("Int w/o handler: %d: %s: %d", frame->int_no,
+            exception_messages[frame->int_no], frame->err);
         system_stop();
-    } else if (tf->int_no == 2) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 3) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 4) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 5) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 6) {
-        if (!p) {
-            snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
-            kpanic_tf(err_buf, tf);
-        } else {
+        break;
+
+    /* Invalid opcode or kernel trap (if no process). */
+    case 6:
+        if (proc) {
             log_warn("Crash: invalid opcode in %d tid\n", RUNNING_THREAD->tid);
-            dump_and_kill(p);
+            dump_and_kill(proc);
+        } else {
+            snprintf(
+                err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s",
+                frame->eip, frame->int_no, &exception_messages[frame->int_no]);
+            kpanic_tf(err_buf, frame);
         }
-    } else if (tf->int_no == 7) {
+        break;
+
+    /* No coprocessor */
+    case 7:
         fpu_handler();
-    } else if (tf->int_no == 8) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        break;
+
+    /* Double fault and other. */
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+        log_error("Int w/o handler: %d: %s: %d", frame->int_no,
+            exception_messages[frame->int_no], frame->err);
         system_stop();
-    } else if (tf->int_no == 9) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 10) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 11) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 12) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 13) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
-        system_stop();
-    } else if (tf->int_no == 14) {
-        int res = vmm_page_fault_handler(tf->err, read_cr2());
-        if (res == SHOULD_CRASH) {
-            if (!p) {
-                snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s", tf->eip, tf->int_no, &exception_messages[tf->int_no]);
-                kpanic_tf(err_buf, tf);
-            } else {
-                log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", tf->err, read_cr2(), p->pid, tf->eip);
-                dump_and_kill(p);
-            }
+        break;
+
+    case 14:
+        res = vmm_page_fault_handler(frame->err, read_cr2());
+        if (res != SHOULD_CRASH)
+            break;
+
+        if (proc) {
+            log_warn("Crash: pf err %d at %x: %d pid, %x eip\n",
+                frame->err, read_cr2(), proc->pid, frame->eip);
+            dump_and_kill(proc);
+        } else {
+            snprintf(
+                err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s",
+                frame->eip, frame->int_no, &exception_messages[frame->int_no]);
+            kpanic_tf(err_buf, frame);
         }
-    } else if (tf->int_no == 15) {
-        log_error("Int w/o handler: %d: %s: %d", tf->int_no, exception_messages[tf->int_no], tf->err);
+        break;
+
+    case 15:
+        log_error("Int w/o handler: %d: %s: %d", frame->int_no,
+            exception_messages[frame->int_no], frame->err);
         system_stop();
-    } else {
-        log_error("Int w/o handler: %d: %d", tf->int_no, tf->err);
+        break;
+    default:
+        log_error("Int w/o handler: %d: %d", frame->int_no, frame->err);
         system_stop();
     }
 
-    /* We are leaving interrupt, and later interrupts will be on,
-       when flags are restored */
+    /* When we are leaving the interrupt handler, we want to jump back into
+       user space and enable the x86 PIC again */
     cpu_leave_kernel_space();
     system_enable_interrupts_only_counter();
 }
