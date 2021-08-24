@@ -5,19 +5,16 @@
 
 #include <cstdlib>
 
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+enum class nothrow_t {};
+enum class align_val_t : std::size_t {};
+
+_LIBCXX_END_NAMESPACE_STD
+
 inline void* operator new(size_t size)
 {
     return std::malloc(size);
-}
-
-inline void operator delete(void* ptr)
-{
-    return std::free(ptr);
-}
-
-inline void operator delete(void* ptr, size_t)
-{
-    return std::free(ptr);
 }
 
 inline void* operator new[](size_t size)
@@ -25,24 +22,84 @@ inline void* operator new[](size_t size)
     return std::malloc(size);
 }
 
-inline void operator delete[](void* ptr)
+inline void* operator new(size_t size, const std::nothrow_t&) noexcept
 {
-    return std::free(ptr);
+    return std::malloc(size);
 }
 
-inline void operator delete[](void* ptr, size_t)
+inline void* operator new[](size_t size, const std::nothrow_t&) noexcept
 {
-    return std::free(ptr);
+    return std::malloc(size);
 }
 
-inline void* operator new(size_t, void* ptr)
+inline void* operator new(size_t size, std::align_val_t alignment)
+{
+    size_t aln = static_cast<size_t>(alignment);
+    void* ptr = std::malloc(size + sizeof(void*) + aln);
+    size_t max_addr = (size_t)ptr + sizeof(void*) + aln;
+    void* aligned_ptr = (void*)(max_addr - (max_addr % aln));
+    ((void**)aligned_ptr)[-1] = ptr;
+    return aligned_ptr;
+}
+
+inline void* operator new[](size_t size, std::align_val_t alignment)
+{
+    return ::operator new(size, alignment);
+}
+
+inline void* operator new(size_t size, std::align_val_t alignment, const std::nothrow_t&) noexcept
+{
+    size_t aln = static_cast<size_t>(alignment);
+    void* ptr = std::malloc(size + sizeof(void*) + aln);
+    size_t max_addr = (size_t)ptr + sizeof(void*) + aln;
+    void* aligned_ptr = (void*)(max_addr - (max_addr % aln));
+    ((void**)aligned_ptr)[-1] = ptr;
+    return aligned_ptr;
+}
+
+inline void* operator new[](size_t size, std::align_val_t alignment, const std::nothrow_t& nothrow) noexcept
+{
+    return ::operator new(size, alignment, nothrow);
+}
+
+inline void* operator new(size_t, void* ptr) noexcept
 {
     return ptr;
 }
 
-inline void* operator new[](size_t, void* ptr)
+inline void* operator new[](size_t, void* ptr) noexcept
 {
     return ptr;
+}
+
+inline void operator delete(void* ptr) noexcept
+{
+    return std::free(ptr);
+}
+
+inline void operator delete(void* ptr, size_t) noexcept
+{
+    return std::free(ptr);
+}
+
+inline void operator delete[](void* ptr) noexcept
+{
+    return std::free(ptr);
+}
+
+inline void operator delete[](void* ptr, size_t) noexcept
+{
+    return std::free(ptr);
+}
+
+inline void operator delete(void* ptr, std::align_val_t alignment) noexcept
+{
+    std::free(((void**)ptr)[-1]);
+}
+
+inline void operator delete[](void* ptr, std::align_val_t alignment) noexcept
+{
+    ::operator delete(ptr, alignment);
 }
 
 #endif // _LIBCXX_NEW
