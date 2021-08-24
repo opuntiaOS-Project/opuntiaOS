@@ -78,7 +78,7 @@ void* kmalloc(uint32_t size)
 void* kmalloc_aligned(uint32_t size, uint32_t alignment)
 {
     void* ptr = kmalloc(size + alignment + sizeof(void*));
-    uint32_t max_addr = (uint32_t)ptr + alignment;
+    uint32_t max_addr = (uint32_t)ptr + sizeof(void*) + alignment;
     void* aligned_ptr = (void*)(max_addr - (max_addr % alignment));
     ((void**)aligned_ptr)[-1] = ptr;
     return aligned_ptr;
