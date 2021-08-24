@@ -1,6 +1,6 @@
+#include <libobjc/NSObject.h>
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
-#include <libobjc/NSObject.h>
 
 OBJC_EXPORT IMP objc_msg_lookup(id receiver, SEL op)
 {
@@ -13,7 +13,7 @@ OBJC_EXPORT id objc_msgSend(id reciever, SEL selector)
     return reciever;
 }
 
-static inline id call_alloc(Class cls, bool checkNil, bool allocWithZone=false)
+static inline id call_alloc(Class cls, bool checkNil, bool allocWithZone = false)
 {
     if (allocWithZone) {
         // TODO: Implement me
@@ -38,9 +38,9 @@ OBJC_EXPORT id objc_alloc_init(Class cls)
 
 @implementation NSObject
 
-- (Class) class
+- (Class)class
 {
-  return object_getClass(self);
+    return object_getClass(self);
 }
 
 @end

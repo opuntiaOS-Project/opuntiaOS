@@ -1,7 +1,7 @@
+#include <libobjc/memory.h>
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
 #include <libobjc/selector.h>
-#include <libobjc/memory.h>
 #include <string.h>
 
 static struct objc_selector* selector_pool_start;
@@ -17,14 +17,14 @@ static SEL selector_table_add(char* name, const char* types, bool const_data)
         if (strcmp(name, (char*)cur_sel->id) == 0) {
             if (cur_sel->types == 0 || types == 0) {
                 if (cur_sel->types == types) {
-                    return (SEL)cur_sel; 
+                    return (SEL)cur_sel;
                 }
             } else {
                 if (strcmp(types, cur_sel->types)) {
                     return (SEL)cur_sel;
                 }
             }
-        } 
+        }
     }
 
     SEL sel = (SEL)selector_pool_next++;
@@ -60,7 +60,6 @@ void selector_table_init()
 {
     selector_pool_start = selector_pool_next = (struct objc_selector*)malloc(1024);
 }
-
 
 void selector_add_from_module(struct objc_selector* selectors)
 {

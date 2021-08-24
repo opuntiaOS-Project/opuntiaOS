@@ -1,15 +1,14 @@
+#include <libobjc/class.h>
+#include <libobjc/module.h>
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
-#include <libobjc/module.h>
-#include <libobjc/class.h>
 
 // The function is called by constructor of each module.
 OBJC_EXPORT void __objc_exec_class(struct objc_module* module)
 {
     static bool prepared_data_structures = false;
-    
+
     OBJC_DEBUGPRINT("Called __objc_exec_class, starting to init module\n");
-    
 
     if (!prepared_data_structures) {
         OBJC_DEBUGPRINT("    Prepearing ENV");
@@ -17,7 +16,6 @@ OBJC_EXPORT void __objc_exec_class(struct objc_module* module)
         class_table_init();
         prepared_data_structures = true;
     }
-
 
     struct objc_symtab* symtab = module->symtab;
     struct objc_selector* selectors = symtab->refs;
@@ -27,7 +25,6 @@ OBJC_EXPORT void __objc_exec_class(struct objc_module* module)
     }
 
     class_add_from_module(symtab);
-    
-    while (1) { }
 
+    while (1) { }
 }
