@@ -16,5 +16,6 @@ void selector_table_init();
 void selector_add_from_module(struct objc_selector*);
 void selector_add_from_method_list(struct objc_method_list*);
 void selector_add_from_class(Class);
+bool selector_is_valid(SEL sel);
 
 #endif // _LIBOBJC_SELECTOR_H

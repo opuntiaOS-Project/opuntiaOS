@@ -117,6 +117,7 @@ struct objc_class final {
 
     inline bool is_class() { return has_info(CLS_CLASS); }
     inline bool is_meta() { return has_info(CLS_META); }
+    inline bool is_root() { return (bool)superclass; }
 
     inline void set_number(int num) { info = (info & ((1 << CLS_NUMBER_OFFSET) - 1)) | (num << CLS_NUMBER_OFFSET); }
     inline int number() { return get_info() >> CLS_NUMBER_OFFSET; }

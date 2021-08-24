@@ -50,6 +50,11 @@ static SEL selector_table_add(char* name, const char* types, bool const_data)
     return sel;
 }
 
+bool selector_is_valid(SEL sel)
+{
+    return (uintptr_t)selector_pool_start < (uintptr_t)sel && (uintptr_t)sel < (uintptr_t)selector_pool_next;
+}
+
 // TODO: We currently do it really stupid
 void selector_table_init()
 {
