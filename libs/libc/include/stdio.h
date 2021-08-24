@@ -23,9 +23,9 @@ __BEGIN_DECLS
 #define UNGOTC_EMPTY (-0x400)
 
 /* Define stdin, stdout and stderr macros for better readability. */
-#define STDIN   0
-#define STDOUT  1
-#define STDERR  2
+#define STDIN 0
+#define STDOUT 1
+#define STDERR 2
 
 typedef struct __fbuf __fbuf_t;
 typedef struct __rwbuf __rwbuf_t;
