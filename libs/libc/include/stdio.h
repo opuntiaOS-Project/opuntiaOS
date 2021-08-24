@@ -27,32 +27,8 @@ __BEGIN_DECLS
 #define STDOUT  1
 #define STDERR  2
 
-/* Single read/write buffer. */
-struct __fbuf {
-    char* base;
-    char* ptr; /* current pointer */
-    size_t size;
-};
 typedef struct __fbuf __fbuf_t;
-
-/* Read/write buffer. */
-struct __rwbuf {
-    __fbuf_t rbuf;
-    __fbuf_t wbuf;
-    char* base;
-    size_t size;
-};
 typedef struct __rwbuf __rwbuf_t;
-
-/* Structure representing a file. */
-struct __file {
-    int _flags; /* flags, below; this FILE is free if 0 */
-    int _file; /* fileno, if Unix descriptor, else -1 */
-    size_t _r; /* read space left */
-    size_t _w; /* write space left */
-    __rwbuf_t _bf; /* rw buffer */
-    int _ungotc; /* ungot char. If spot is empty, it equals to UNGOTC_EMPTY */
-};
 typedef struct __file FILE;
 
 extern FILE* stdin;
