@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ * Copyright (C) 2020-2021 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *  + Contributed by bellrise <bellrise.dev@gmail.com>
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
- *
- * Modified by: bellrise
  */
 #include "_internal.h"
 #include <errno.h>
