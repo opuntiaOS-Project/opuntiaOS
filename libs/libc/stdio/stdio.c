@@ -61,13 +61,13 @@ FILE* stdout = &_stdstreams[1];
 FILE* stderr = &_stdstreams[2];
 
 /* Static functions */
-static inline int _can_read(FILE *file);
-static inline int _can_write(FILE *file);
-static inline int _can_use_buffer(FILE *file);
+static inline int _can_read(FILE* file);
+static inline int _can_write(FILE* file);
+static inline int _can_use_buffer(FILE* file);
 static int _parse_mode(const char* mode, mode_t* flags);
 
 /* Buffer */
-static inline int _free_buf(FILE *stream);
+static inline int _free_buf(FILE* stream);
 static size_t _do_system_write(const void* ptr, size_t size, FILE* stream);
 static int _resize_buf(FILE* stream, size_t size);
 static ssize_t _flush_wbuf(FILE* stream);
@@ -85,7 +85,6 @@ static size_t _do_system_read(char* ptr, size_t size, FILE* stream);
 static size_t _do_system_write(const void* ptr, size_t size, FILE* stream);
 static size_t _fread_internal(char* ptr, size_t size, FILE* stream);
 static size_t _fwrite_internal(const void* ptr, size_t size, FILE* stream);
-
 
 /* Public functions */
 
@@ -321,7 +320,7 @@ static int _parse_mode(const char* mode, mode_t* flags)
         *flags = O_APPEND | O_CREAT;
         return 0;
 
-    /* TODO: Add binary mode when the rest will support such option. */
+        /* TODO: Add binary mode when the rest will support such option. */
 
     default:
         return -1;
@@ -348,8 +347,8 @@ static void _split_rwbuf(FILE* stream)
 {
     size_t rsize, wsize;
 
-    rsize = ((stream->_bf.size + 1) / 2) & (size_t) ~0x03;
-    wsize = (stream->_bf.size - rsize) & (size_t) ~0x03;
+    rsize = ((stream->_bf.size + 1) / 2) & (size_t)~0x03;
+    wsize = (stream->_bf.size - rsize) & (size_t)~0x03;
 
     /* TODO: Base on stream flags. */
     stream->_bf.rbuf.base = stream->_bf.base;
@@ -440,7 +439,7 @@ static int _open_file(FILE* file, const char* path, const char* mode)
 
 static FILE* _fopen_internal(const char* path, const char* mode)
 {
-    FILE *file = malloc(sizeof(FILE));
+    FILE* file = malloc(sizeof(FILE));
     if (!file)
         return NULL;
 
@@ -455,7 +454,7 @@ static FILE* _fopen_internal(const char* path, const char* mode)
 static size_t _do_system_read(char* ptr, size_t size, FILE* stream)
 {
     ssize_t read_size = read(stream->_file, ptr, size);
-    return read_size < 0 ? 0 : (size_t) read_size;
+    return read_size < 0 ? 0 : (size_t)read_size;
 }
 
 static size_t _do_system_write(const void* ptr, size_t size, FILE* stream)
@@ -465,7 +464,7 @@ static size_t _do_system_write(const void* ptr, size_t size, FILE* stream)
     if (write_size < 0)
         return 0;
 
-    return (size_t) write_size;
+    return (size_t)write_size;
 }
 
 static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
@@ -504,8 +503,7 @@ static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
     while (size > 0) {
         stream->_bf.rbuf.ptr = stream->_bf.rbuf.base;
         stream->_r = _do_system_read(
-            stream->_bf.rbuf.ptr, stream->_bf.rbuf.size, stream
-        );
+            stream->_bf.rbuf.ptr, stream->_bf.rbuf.size, stream);
 
         if (!stream->_r)
             return total_size;
