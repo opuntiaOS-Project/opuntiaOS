@@ -155,7 +155,7 @@ int vsscanf(const char* buf, const char* format, va_list arg)
 static int lookup_callback_stream(void* callback_params)
 {
     FILE* file = (FILE*)callback_params;
-    int res = getc(file);
+    int res = fgetc(file);
     ungetc(res, file);
     return res;
 }
@@ -163,7 +163,7 @@ static int lookup_callback_stream(void* callback_params)
 static int getch_callback_stream(void* callback_params)
 {
     FILE* file = (FILE*)callback_params;
-    int res = getc(file);
+    int res = fgetc(file);
     return res;
 }
 
