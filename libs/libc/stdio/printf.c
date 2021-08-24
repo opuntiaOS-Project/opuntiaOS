@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020-2021 Nikita Melekhin. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ *
+ * Modified by: bellrise
+ */
 #include "_internal.h"
 #include <errno.h>
 #include <stdarg.h>
@@ -313,7 +321,7 @@ static int putch_callback_stream(char c, char* buf_base, size_t* written, void* 
     if (!stream) {
         return -1;
     }
-    return putc(c, stream);
+    return fputc(c, stream);
 }
 
 static int vfprintf(FILE* stream, const char* format, va_list arg)
