@@ -33,6 +33,28 @@
 /* 0x4000  No longer used, reserved for compat.  */
 #define _IO_USER_LOCK 0x8000
 
+struct __fbuf {
+    char* base;
+    char* ptr; /* current pointer */
+    size_t size;
+};
+
+struct __rwbuf {
+    __fbuf_t rbuf;
+    __fbuf_t wbuf;
+    char* base;
+    size_t size;
+};
+
+struct __file {
+    int _flags; /* flags, below; this FILE is free if 0 */
+    int _file; /* fileno, if Unix descriptor, else -1 */
+    size_t _r; /* read space left */
+    size_t _w; /* write space left */
+    __rwbuf_t _bf; /* rw buffer */
+    int _ungotc; /* ungot char. If spot is empty, it equals to UNGOTC_EMPTY */
+};
+
 static FILE _stdstreams[3];
 FILE* stdin = &_stdstreams[0];
 FILE* stdout = &_stdstreams[1];
