@@ -85,11 +85,9 @@ int memcmp(const void* src1, const void* src2, size_t nbytes)
         first = (uint8_t*)src1 + i;
         second = (uint8_t*)src2 + i;
 
-        if (*first < *second)
-            return first - second;
-
-        if (*first > *second)
-            return first - second;
+        /* Return the difference if the byte does not match. */
+        if (*first != *second)
+            return *first - *second;
     }
 
     return 0;
