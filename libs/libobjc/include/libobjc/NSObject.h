@@ -3,12 +3,11 @@
 
 #include <libobjc/runtime.h>
 
-@interface NSObject
-{
+@interface NSObject {
     Class isa;
 }
 
-- (Class) class;
+- (Class)class;
 
 @end
 

@@ -1,13 +1,13 @@
+#include <libobjc/class.h>
+#include <libobjc/memory.h>
+#include <libobjc/module.h>
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
 #include <libobjc/selector.h>
-#include <libobjc/module.h>
-#include <libobjc/class.h>
-#include <libobjc/memory.h>
 #include <string.h>
 
 struct class_node {
-    const char *name;
+    const char* name;
     int length;
     Class cls;
 };
@@ -66,7 +66,7 @@ static Method class_lookup_method_in_list(struct objc_method_list* objc_method_l
     if (!selector_is_valid(sel) || !objc_method_list) {
         return (Method)NULL;
     }
-    
+
     while (objc_method_list) {
         for (int i = 0; i < objc_method_list->method_count; i++) {
             SEL method_name = objc_method_list->method_list[i].method_name;
@@ -149,7 +149,7 @@ bool class_init(Class cls)
 
         return true;
     }
-    
+
     return false;
 }
 
@@ -176,14 +176,11 @@ void class_add_from_module(struct objc_symtab* symtab)
         }
 
         if (class_init(cls)) {
-            
         }
-        
-        
     }
 }
 
-OBJC_EXPORT Class objc_lookup_class(const char *name)
+OBJC_EXPORT Class objc_lookup_class(const char* name)
 {
     return objc_getClass(name);
 }
