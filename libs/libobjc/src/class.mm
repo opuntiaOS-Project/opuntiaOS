@@ -3,6 +3,7 @@
 #include <libobjc/selector.h>
 #include <libobjc/module.h>
 #include <libobjc/class.h>
+#include <libobjc/memory.h>
 #include <string.h>
 
 struct class_node {
@@ -60,6 +61,78 @@ static inline void class_disp_table_preinit(Class cls)
     cls->disp_table = DISPATCH_TABLE_NOT_INITIALIZED;
 }
 
+static Method class_lookup_method_in_list(struct objc_method_list* objc_method_list, SEL sel)
+{
+    if (!selector_is_valid(sel) || !objc_method_list) {
+        return (Method)NULL;
+    }
+    
+    while (objc_method_list) {
+        for (int i = 0; i < objc_method_list->method_count; i++) {
+            SEL method_name = objc_method_list->method_list[i].method_name;
+            if (method_name && method_name->id == sel->id) {
+                return &objc_method_list->method_list[i];
+            }
+        }
+        objc_method_list = objc_method_list->method_next;
+    }
+
+    return (Method)NULL;
+}
+
+static Method class_lookup_method_in_hierarchy(Class cls, SEL sel)
+{
+    if (!selector_is_valid(sel)) {
+        return (Method)NULL;
+    }
+
+    Method method;
+    for (Class cli = cls; cli; cli = cli->superclass) {
+        method = class_lookup_method_in_list(cli->methods, sel);
+        if (method) {
+            return method;
+        }
+    }
+
+    return (Method)NULL;
+}
+
+// Add instance methods only to root class.
+static void class_root_add_instance_methods(Class cls)
+{
+    int max_methods_allocated = 8;
+    struct objc_method_list* new_list = (struct objc_method_list*)objc_malloc(sizeof(struct objc_method_list) + sizeof(struct objc_method[max_methods_allocated]));
+    struct objc_method_list* objc_method_list = cls->methods;
+
+    new_list->method_count = 0;
+
+    while (objc_method_list) {
+        for (int i = 0; i < objc_method_list->method_count; i++) {
+            SEL method_name = objc_method_list->method_list[i].method_name;
+            if (method_name) {
+                // The instance method isn't a class method yet, so add it.
+                if (!class_lookup_method_in_list(cls->get_isa()->methods, method_name)) {
+                    new_list->method_list[new_list->method_count++] = objc_method_list->method_list[i];
+                    if (new_list->method_count == max_methods_allocated) {
+                        max_methods_allocated += 8;
+                        new_list = (struct objc_method_list*)objc_realloc(new_list, sizeof(struct objc_method_list) + sizeof(struct objc_method[max_methods_allocated]));
+                    }
+                }
+            }
+        }
+        objc_method_list = objc_method_list->method_next;
+    }
+
+    if (new_list->method_count) {
+        new_list->method_next = cls->get_isa()->methods;
+        cls->get_isa()->methods = new_list;
+    } else {
+        objc_free(new_list);
+    }
+
+    // TODO: Update dispatch table.
+}
+
 bool class_init(Class cls)
 {
     if (class_add(cls)) {
@@ -70,6 +143,9 @@ bool class_init(Class cls)
         class_disp_table_preinit(cls->get_isa());
 
         // TODO: Init methods and dispatch tables.
+        if (cls->is_root()) {
+            class_root_add_instance_methods(cls);
+        }
 
         return true;
     }
