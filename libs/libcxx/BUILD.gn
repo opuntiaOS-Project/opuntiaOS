@@ -7,6 +7,7 @@ opuntiaOS_static_library("libcxx") {
     "../libc/dirent/dirent.c",
     "../libc/init/_lib.c",
     "../libc/malloc/malloc.c",
+    "../libc/malloc/slab.c",
     "../libc/posix/fs.c",
     "../libc/posix/sched.c",
     "../libc/posix/signal.c",

@@ -1,9 +1,11 @@
 #include "malloc.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/mman.h>
 
-#define BLOCK_ALLOCATED (0)
-#define BLOCK_FREE (1)
+#define ALIGNMENT (4)
+#define DEVIDE_SPACE_BOUNDARY (32)
 
 static malloc_header_t* memory[MALLOC_MAX_ALLOCATED_BLOCKS];
 static size_t allocated_blocks = 0;
@@ -22,7 +24,7 @@ static int _alloc_new_block(size_t sz)
         return -1;
     }
     memory[allocated_blocks] = (void*)ret; // allocating a new block of memory
-    memory[allocated_blocks]->free = BLOCK_FREE;
+    memory[allocated_blocks]->flags = 0;
     memory[allocated_blocks]->next = 0;
     memory[allocated_blocks]->prev = 0;
     memory[allocated_blocks]->size = allocated_sz - sizeof(malloc_header_t);
@@ -33,7 +35,7 @@ static int _alloc_new_block(size_t sz)
 
 static inline char _malloc_need_to_divide_space(malloc_header_t* space, size_t alloc_size)
 {
-    return alloc_size + 32 <= space->size;
+    return alloc_size + DEVIDE_SPACE_BOUNDARY <= space->size;
 }
 
 static inline char _malloc_can_fit_allocation(malloc_header_t* space, size_t alloc_size)
@@ -47,17 +49,23 @@ void* malloc(size_t sz)
     if (!sz) {
         return NULL;
     }
-    sz += 3;
-    sz &= ~(uint32_t)0x3;
+    sz += (ALIGNMENT - 1);
+    sz &= ~(uint32_t)(ALIGNMENT - 1);
+
+    void* res = slab_alloc(sz);
+    if (res) {
+        return res;
+    }
+
     /* iterating over allocated by mmap blocks
        and finding a first fit memory chunk */
     malloc_header_t* first_fit = 0;
     for (size_t i = 0; i < allocated_blocks; i++) {
         malloc_header_t* cur_block = memory[i];
-        while (cur_block->next && !(cur_block->free && _malloc_can_fit_allocation(cur_block, sz))) {
+        while (cur_block->next && !(block_is_free(cur_block) && _malloc_can_fit_allocation(cur_block, sz))) {
             cur_block = cur_block->next;
         }
-        if (cur_block->free && _malloc_can_fit_allocation(cur_block, sz)) {
+        if (block_is_free(cur_block) && _malloc_can_fit_allocation(cur_block, sz)) {
             first_fit = cur_block;
             break;
         }
@@ -66,7 +74,6 @@ void* malloc(size_t sz)
     if (!first_fit) {
         int err = _alloc_new_block(sz);
         if (err) {
-            /* TODO: Write to log this */
             return NULL;
         }
         first_fit = memory[allocated_blocks - 1];
@@ -75,13 +82,13 @@ void* malloc(size_t sz)
     malloc_header_t* copy_next = first_fit->next;
     size_t copy_size = first_fit->size;
 
-    first_fit->free = BLOCK_ALLOCATED;
+    first_fit->flags |= FLAG_ALLOCATED;
     if (_malloc_need_to_divide_space(first_fit, sz)) {
         first_fit->size = sz;
-        first_fit->next = (malloc_header_t*)((size_t)first_fit + sz + sizeof(malloc_header_t));
+        first_fit->next = (malloc_header_t*)((uintptr_t)first_fit + sz + sizeof(malloc_header_t));
 
         // adjust the firstfit chunk
-        first_fit->next->free = BLOCK_FREE;
+        first_fit->next->flags = 0;
         first_fit->next->size = copy_size - sz - sizeof(malloc_header_t);
         first_fit->next->next = copy_next;
         first_fit->next->prev = first_fit;
@@ -91,7 +98,7 @@ void* malloc(size_t sz)
         }
     }
 
-    return (void*)((uint32_t)first_fit + sizeof(malloc_header_t));
+    return (void*)&((malloc_header_t*)first_fit)[1];
 }
 
 void free(void* mem)
@@ -100,15 +107,19 @@ void free(void* mem)
         return;
     }
 
-    malloc_header_t* mem_header = (malloc_header_t*)((uint32_t)mem - sizeof(malloc_header_t));
+    malloc_header_t* mem_header = &((malloc_header_t*)mem)[-1];
 
-    mem_header->free = BLOCK_FREE;
-    if (mem_header->prev && mem_header->prev->free) {
+    if (block_is_slab(mem_header)) {
+        return slab_free(mem_header);
+    }
+
+    block_rem_flags(mem_header, FLAG_ALLOCATED);
+    while (mem_header->prev && block_is_free(mem_header->prev)) {
         mem_header = mem_header->prev;
     }
 
     // Trying to glue the freed chunk with its neighbours.
-    if (mem_header->next && mem_header->next->free) {
+    while (mem_header->next && block_is_free(mem_header->next)) {
         mem_header->size += mem_header->next->size + sizeof(malloc_header_t);
 
         if (mem_header->next->next) {
@@ -149,4 +160,9 @@ void* realloc(void* ptr, size_t new_size)
     free(ptr);
 
     return new_area;
+}
+
+void _malloc_init()
+{
+    _slab_init();
 }
