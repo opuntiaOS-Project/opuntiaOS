@@ -6,6 +6,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+#include <bits/errno.h>
 #include <bits/fcntl.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -94,6 +95,23 @@ FILE* fopen(const char* path, const char* mode)
         return NULL;
 
     return _fopen_internal(path, mode);
+}
+
+int fclose(FILE *stream)
+{
+    int res;
+
+    /* Flush & close the stream, and then free any allocated memory. */
+    fflush(stream);
+    res = close(stream->_file);
+
+    if (res == -EBADF || res == -EFAULT)
+        return EOF;
+
+    _free_buf(stream);
+    free(stream);
+
+    return 0;
 }
 
 size_t fread(void* ptr, size_t size, size_t count, FILE* stream)
