@@ -97,7 +97,7 @@ FILE* fopen(const char* path, const char* mode)
     return _fopen_internal(path, mode);
 }
 
-int fclose(FILE *stream)
+int fclose(FILE* stream)
 {
     int res;
 
@@ -292,12 +292,12 @@ int fflush(FILE* stream)
     return _flush_wbuf(stream);
 }
 
-int __stream_info(FILE *stream)
+int __stream_info(FILE* stream)
 {
-    static const char *names[] = {"(STDIN) ", "(STDOUT) ", "(STDERR) "};
+    static const char* names[] = { "(STDIN) ", "(STDOUT) ", "(STDERR) " };
     char rwinfo[4] = "-/-";
     __fbuf_t *rbuf, *wbuf;
-    const char *name;
+    const char* name;
 
     if (!stream)
         return 1;
@@ -317,22 +317,21 @@ int __stream_info(FILE *stream)
 
     printf("__stream_info():\n");
     printf("  fd=%d %sflags=%s\n", stream->_file, name, rwinfo);
-    printf("  ungotc=%s val=%x\n", stream->_ungotc == UNGOTC_EMPTY ? "False"
-        : "True", stream->_ungotc);
+    printf("  ungotc=%s val=%x\n", stream->_ungotc == UNGOTC_EMPTY ? "False" : "True", stream->_ungotc);
 
     if (_can_read(stream)) {
         printf("  read space left=%u\n", stream->_r);
-        printf("  rbuf.base=%x rbuf.size=%u rbuf.ptr=%x\n", (size_t) rbuf->base,
-            rbuf->size, (size_t) rbuf->ptr);
+        printf("  rbuf.base=%x rbuf.size=%u rbuf.ptr=%x\n", (size_t)rbuf->base,
+            rbuf->size, (size_t)rbuf->ptr);
     }
 
     if (_can_write(stream)) {
         printf("  write space left=%u\n", stream->_w);
-        printf("  wbuf.base=%x wbuf.size=%u wbuf.ptr=%x\n", (size_t) wbuf->base,
-            wbuf->size, (size_t) wbuf->ptr);
+        printf("  wbuf.base=%x wbuf.size=%u wbuf.ptr=%x\n", (size_t)wbuf->base,
+            wbuf->size, (size_t)wbuf->ptr);
     }
 
-    printf("  rwbuf.base=%x rwbuf.size=%u\n", (size_t) stream->_bf.base,
+    printf("  rwbuf.base=%x rwbuf.size=%u\n", (size_t)stream->_bf.base,
         stream->_bf.size);
 
     return 0;

@@ -107,7 +107,7 @@ int sscanf(const char* buf, const char* fmt, ...);
 int scanf(const char* fmt, ...);
 
 /* Dump information about the stream to stdout. */
-int __stream_info(FILE *stream);
+int __stream_info(FILE* stream);
 
 __END_DECLS
 

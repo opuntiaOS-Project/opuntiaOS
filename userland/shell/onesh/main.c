@@ -94,7 +94,7 @@ void _cmd_processor()
     }
 
     /* Remove \n */
-    _cmd_buffer[_cmd_buffer_position-1] = '\0';
+    _cmd_buffer[_cmd_buffer_position - 1] = '\0';
     _cmd_parsed_buffer[_cmd_parsed_buffer_position] = 0;
 
     /* We try to launch an app */
