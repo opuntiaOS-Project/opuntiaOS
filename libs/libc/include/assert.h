@@ -13,6 +13,7 @@ __BEGIN_DECLS
 #define assert(x)                                              \
     if (!(x)) [[unlikely]] {                                   \
         printf("assert at line %d in %s", __LINE__, __FILE__); \
+        fflush(stdout);                                        \
         abort();                                               \
     }
 #endif // assert
