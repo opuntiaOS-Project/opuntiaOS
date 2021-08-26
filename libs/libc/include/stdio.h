@@ -40,7 +40,8 @@ extern FILE* stderr;
    if anything goes wrong. */
 FILE* fopen(const char* filename, const char* mode);
 
-/* Deallocate the file and close it. */
+/* Deallocate the file and close it. Any remaining data is flushed. Returns 0
+   on success, or EOF on failure. */
 int fclose(FILE* stream);
 
 /* Read up to 'count' objects, each of 'size' size into 'buf' from 'stream' */
