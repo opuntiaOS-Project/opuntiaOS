@@ -24,8 +24,6 @@ uland_cc_flags = [
 ]
 
 uland_objcc_flags = uland_cc_flags + [
-                      "-Wno-objc-method-access",
-                      "-Wno-objc-root-class",
                       "-fno-objc-exceptions",
                       "-fno-objc-arc",
                     ]

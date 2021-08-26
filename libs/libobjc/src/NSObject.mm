@@ -1,16 +1,18 @@
 #include <libobjc/NSObject.h>
+#include <libobjc/class.h>
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
 
-OBJC_EXPORT IMP objc_msg_lookup(id receiver, SEL op)
+OBJC_EXPORT IMP objc_msg_lookup(id receiver, SEL sel)
 {
-    return nil_method;
+    IMP impl = class_get_implementation(receiver->get_isa(), sel);
+    return impl;
 }
 
-OBJC_EXPORT id objc_msgSend(id reciever, SEL selector)
+OBJC_EXPORT void objc_msgSend(id reciever, SEL sel)
 {
-    // FIXME
-    return reciever;
+    IMP impl = objc_msg_lookup(reciever, sel);
+    impl(reciever, sel);
 }
 
 static inline id call_alloc(Class cls, bool checkNil, bool allocWithZone = false)
@@ -37,6 +39,27 @@ OBJC_EXPORT id objc_alloc_init(Class cls)
 }
 
 @implementation NSObject
+
++ (id)init
+{
+    return (id)self;
+}
+
+- (id)init
+{
+    // Init root classes
+    return (id)self;
+}
+
++ (id)alloc
+{
+    return call_alloc(self, false);
+}
+
++ (id)new
+{
+    return [call_alloc(self, false) init];
+}
 
 - (Class)class
 {

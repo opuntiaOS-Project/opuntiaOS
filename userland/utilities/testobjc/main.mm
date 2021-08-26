@@ -1,29 +1,27 @@
 #include <libobjc/NSObject.h>
+#include <libobjc/helpers.h>
 #include <stdio.h>
 
 @interface SampleClass : NSObject
-- (void)sampleMethod;
-- (void)sampleMethod:(int)val;
++ (void)sampleMethod;
 @end
 
 @implementation SampleClass
 
-- (void)sampleMethod
++ (void)sampleMethod
 {
-    printf("Hello, Obj-C!");
+    printf("Calling static: Hello, from Obj-C!");
 }
 
-- (void)sampleMethod:(int)val
-{
-    printf("Hello, Obj-C!");
-}
+// - (void)sampleMethod:(int)val
+// {
+//     printf("Hello, Obj-C! %d", val);
+// }
 
 @end
 
 int main()
 {
-    SampleClass* sampleClass = [[SampleClass alloc] init];
-    [sampleClass sampleMethod];
-    [sampleClass sampleMethod:5];
+    [SampleClass sampleMethod];
     return 0;
 }

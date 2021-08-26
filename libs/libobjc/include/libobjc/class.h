@@ -7,5 +7,6 @@
 
 void class_table_init();
 void class_add_from_module(struct objc_symtab* symtab);
+IMP class_get_implementation(Class cls, SEL sel);
 
 #endif // _LIBOBJC_CLASS_H

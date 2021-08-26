@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <libobjc/class.h>
 #include <libobjc/memory.h>
 #include <libobjc/module.h>
@@ -25,7 +26,7 @@ Class class_table_find(const char* name)
     int len = strlen(name);
     for (int i = 0; i < class_table_next_free; i++) {
         if (len == class_tabel_storage[i].length) {
-            if (strcmp(name, class_tabel_storage[i].name)) {
+            if (strcmp(name, class_tabel_storage[i].name) == 0) {
                 return class_tabel_storage[i].cls;
             }
         }
@@ -63,8 +64,12 @@ static inline void class_disp_table_preinit(Class cls)
 
 static Method class_lookup_method_in_list(struct objc_method_list* objc_method_list, SEL sel)
 {
-    if (!selector_is_valid(sel) || !objc_method_list) {
+    if (!objc_method_list) {
         return (Method)NULL;
+    }
+
+    if (!selector_is_valid(sel)) {
+        sel = sel_registerTypedName((char*)sel->id, sel->types);
     }
 
     while (objc_method_list) {
@@ -83,7 +88,7 @@ static Method class_lookup_method_in_list(struct objc_method_list* objc_method_l
 static Method class_lookup_method_in_hierarchy(Class cls, SEL sel)
 {
     if (!selector_is_valid(sel)) {
-        return (Method)NULL;
+        sel = sel_registerTypedName((char*)sel->id, sel->types);
     }
 
     Method method;
@@ -133,6 +138,28 @@ static void class_root_add_instance_methods(Class cls)
     // TODO: Update dispatch table.
 }
 
+static void class_send_initialize(Class cls)
+{
+    assert(cls->is_class() && !cls->is_meta());
+    if (!cls->is_initialized()) {
+        cls->add_info(CLS_INITIALIZED);
+        if (cls->superclass) {
+            class_send_initialize(cls->superclass);
+        }
+
+        SEL sel = sel_registerName("initialize");
+        Method method = class_lookup_method_in_hierarchy(cls->get_isa(), sel);
+
+        if (method) {
+            OBJC_DEBUGPRINT("start [%s +initialize]", cls->name);
+            (*method->method_imp)((id)cls, sel);
+            OBJC_DEBUGPRINT("end [%s +initialize]", cls->name);
+        } else {
+            OBJC_DEBUGPRINT("class %s has no +initialize", cls->name);
+        }
+    }
+}
+
 bool class_init(Class cls)
 {
     if (class_add(cls)) {
@@ -156,7 +183,6 @@ bool class_init(Class cls)
 Class objc_getClass(const char* name)
 {
     Class cls = class_table_find(name);
-    // TODO: If not found call callbacks.
     return cls;
 }
 
@@ -166,14 +192,14 @@ void class_add_from_module(struct objc_symtab* symtab)
         Class cls = (Class)symtab->defs[i];
         const char* superclass = (char*)cls->superclass;
 
-        OBJC_DEBUGPRINT("Installing classes (%d of %d): %s\n", i + 1, symtab->cls_def_cnt, cls->name);
-
         // Fix clang flags
         if (cls->is_class()) {
             cls->set_info(CLS_CLASS);
         } else {
             cls->set_info(CLS_META);
         }
+
+        OBJC_DEBUGPRINT("Installing classes %x (%d of %d): %s :: %d\n", (uintptr_t)cls, i + 1, symtab->cls_def_cnt, cls->name, cls->get_info());
 
         if (class_init(cls)) {
         }
@@ -183,4 +209,21 @@ void class_add_from_module(struct objc_symtab* symtab)
 OBJC_EXPORT Class objc_lookup_class(const char* name)
 {
     return objc_getClass(name);
+}
+
+IMP class_get_implementation(Class cls, SEL sel)
+{
+    // TODO: Can't init it here, since meta classes are passed here.
+    // if (!cls->is_initialized()) {
+    //     class_send_initialize(cls);
+    // }
+
+    sel = sel_registerTypedName((char*)sel->id, sel->types);
+    Method method = class_lookup_method_in_hierarchy(cls, sel);
+
+    if (!method) {
+        return nil_method;
+    }
+
+    return method->method_imp;
 }
