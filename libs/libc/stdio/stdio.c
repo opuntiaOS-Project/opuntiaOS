@@ -199,12 +199,25 @@ int ungetc(int c, FILE* stream)
 
 char* fgets(char* s, int size, FILE* stream)
 {
+    unsigned int rd = 0;
+    char c;
+
     if (!stream) {
         set_errno(EINVAL);
         return NULL;
     }
 
-    return fread(s, size, 1, stream) ? s : NULL;
+    /* We need to flush the stdout and stderr streams before reading. */
+    fflush(stdout);
+    fflush(stderr);
+
+    while (c != '\n' && rd < size) {
+        if ((c = fgetc(stream)) == EOF)
+            return NULL;
+        s[rd++] = c;
+    }
+
+    return s;
 }
 
 int setvbuf(FILE* stream, char* buf, int mode, size_t size)
@@ -259,6 +272,52 @@ int fflush(FILE* stream)
         return -EBADF;
 
     return _flush_wbuf(stream);
+}
+
+int __stream_info(FILE *stream)
+{
+    static const char *names[] = {"(STDIN) ", "(STDOUT) ", "(STDERR) "};
+    char rwinfo[4] = "-/-";
+    __fbuf_t *rbuf, *wbuf;
+    const char *name;
+
+    if (!stream)
+        return 1;
+
+    if (stream->_file >= 0 && stream->_file <= 2)
+        name = names[stream->_file];
+
+    if (_can_read(stream)) {
+        rwinfo[0] = 'r';
+        rbuf = &stream->_bf.rbuf;
+    }
+
+    if (_can_write(stream)) {
+        rwinfo[2] = 'w';
+        wbuf = &stream->_bf.wbuf;
+    }
+
+    printf("__stream_info():\n");
+    printf("  fd=%d %sflags=%s\n", stream->_file, name, rwinfo);
+    printf("  ungotc=%s val=%x\n", stream->_ungotc == UNGOTC_EMPTY ? "False"
+        : "True", stream->_ungotc);
+
+    if (_can_read(stream)) {
+        printf("  read space left=%u\n", stream->_r);
+        printf("  rbuf.base=%x rbuf.size=%u rbuf.ptr=%x\n", (size_t) rbuf->base,
+            rbuf->size, (size_t) rbuf->ptr);
+    }
+
+    if (_can_write(stream)) {
+        printf("  write space left=%u\n", stream->_w);
+        printf("  wbuf.base=%x wbuf.size=%u wbuf.ptr=%x\n", (size_t) wbuf->base,
+            wbuf->size, (size_t) wbuf->ptr);
+    }
+
+    printf("  rwbuf.base=%x rwbuf.size=%u\n", (size_t) stream->_bf.base,
+        stream->_bf.size);
+
+    return 0;
 }
 
 int _stdio_init()
