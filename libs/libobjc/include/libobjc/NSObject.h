@@ -7,6 +7,11 @@
     Class isa;
 }
 
++ (id)init;
++ (id)new;
++ (id)alloc;
+
+- (id)init;
 - (Class)class;
 
 @end
