@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -34,7 +35,7 @@ enum internal_cmd_code {
 
 uint32_t _is_cmd_internal()
 {
-    if (memcmp(_cmd_buffer, "cd", 3) == 0) {
+    if (memcmp(_cmd_buffer, "cd ", 3) == 0) {
         return CMD_CD;
     }
     return CMD_NONE;
@@ -65,11 +66,10 @@ void _cmd_loop()
 
 void _cmd_input()
 {
-    _cmd_buffer_position = read(0, _cmd_buffer, 256);
-    while (_cmd_buffer_position < 0) {
-        _cmd_buffer_position = read(0, _cmd_buffer, 256);
-    }
-    _cmd_buffer[_cmd_buffer_position] = '\0';
+    _cmd_buffer_position = read(STDIN, _cmd_buffer, 256);
+
+    while (_cmd_buffer_position < 0)
+        _cmd_buffer_position = read(STDIN, _cmd_buffer, 256);
 }
 
 void _cmd_processor()
@@ -93,8 +93,8 @@ void _cmd_processor()
         }
     }
 
-    _cmd_buffer[_cmd_buffer_position - 1] = '\0'; // remove \n
-    _cmd_buffer[_cmd_buffer_position] = '\0';
+    /* Remove \n */
+    _cmd_buffer[_cmd_buffer_position-1] = '\0';
     _cmd_parsed_buffer[_cmd_parsed_buffer_position] = 0;
 
     /* We try to launch an app */
@@ -149,9 +149,6 @@ int main()
     _cmd_parsed_buffer = malloc(256 * sizeof(char*));
     memcpy(_cmd_app, "/bin/", 5);
     _cmd_loop();
-    // while (1) {
-    //     _cmd_buffer_position = read(0, _cmd_buffer, 256);
-    //     _cmd_buffer[_cmd_buffer_position] = '\0';
-    // }
+
     return 0;
 }

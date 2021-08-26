@@ -188,7 +188,7 @@ void TerminalView::put_text(const std::string& data)
 
 void TerminalView::send_input()
 {
-    write(ptmx(), m_input.c_str(), m_input.size() + 1);
+    write(ptmx(), m_input.c_str(), m_input.size());
     m_input.clear();
 }
 
@@ -206,6 +206,7 @@ void TerminalView::receive_keydown_event(UI::KeyDownEvent& event)
             put_char(' ');
         }
     } else if (event.key() == LFoundation::Keycode::KEY_RETURN) {
+        m_input.push_back('\n');
         push_back_char('\n');
         send_input();
     } else if (event.key() < 128) {
