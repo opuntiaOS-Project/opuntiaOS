@@ -230,7 +230,7 @@ char* fgets(char* s, int size, FILE* stream)
     fflush(stderr);
 
     while (c != '\n' && rd < size) {
-        if ((c = fgetc(stream)) == EOF)
+        if ((c = fgetc(stream)) < 0)
             return NULL;
         s[rd++] = c;
     }
