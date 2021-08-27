@@ -1,5 +1,6 @@
 #include <libobjc/NSObject.h>
 #include <libobjc/class.h>
+#include <libobjc/memory.h>
 #include <libobjc/objc.h>
 #include <libobjc/runtime.h>
 
@@ -53,7 +54,7 @@ OBJC_EXPORT id objc_alloc_init(Class cls)
 
 + (id)alloc
 {
-    return call_alloc(self, false);
+    return alloc_instance(self);
 }
 
 + (id)new

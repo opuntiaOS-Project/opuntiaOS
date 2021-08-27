@@ -13,15 +13,17 @@
     printf("Calling static: Hello, from Obj-C!");
 }
 
-// - (void)sampleMethod:(int)val
-// {
-//     printf("Hello, Obj-C! %d", val);
-// }
+- (void)sampleMethod
+{
+    printf("Calling method: Hello, Obj-C! %d", 55);
+}
 
 @end
 
 int main()
 {
+    id objectAlloc = [[SampleClass alloc] init];
+    [objectAlloc sampleMethod];
     [SampleClass sampleMethod];
     return 0;
 }

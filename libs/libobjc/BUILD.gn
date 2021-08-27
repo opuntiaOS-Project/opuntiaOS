@@ -5,6 +5,7 @@ opuntiaOS_static_library("libobjc") {
     "src/NSObject.mm",
     "src/class.mm",
     "src/init.mm",
+    "src/memory.mm",
     "src/selector.mm",
   ]
 

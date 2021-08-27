@@ -36,6 +36,7 @@ struct objc_module {
 struct objc_object final {
     Class isa;
 
+    inline void set_isa(Class nisa) { isa = nisa; }
     inline Class get_isa() { return isa; }
 };
 
@@ -103,11 +104,12 @@ struct objc_class final {
     struct objc_ivar_list* ivars;
     struct objc_method_list* methods;
     void* disp_table;
-    struct objc_class* subclass_list;
-    struct objc_class* sibling_class;
+    struct objc_class* subclass_list; // TODO: Currently unresolved
+    struct objc_class* sibling_class; // TODO: Currently unresolved
     struct objc_protocol_list* protocols;
     void* gc_object_type;
 
+    inline void set_isa(Class nisa) { isa = nisa; }
     inline Class get_isa() { return isa; }
 
     inline void set_info(unsigned long mask) { info = mask; }
@@ -118,11 +120,15 @@ struct objc_class final {
 
     inline bool is_class() { return has_info(CLS_CLASS); }
     inline bool is_meta() { return has_info(CLS_META); }
+    inline bool is_resolved() { return has_info(CLS_RESOLVED); }
     inline bool is_initialized() { return has_info(CLS_INITIALIZED); }
     inline bool is_root() { return (bool)superclass; }
 
     inline void set_number(int num) { info = (info & ((1 << CLS_NUMBER_OFFSET) - 1)) | (num << CLS_NUMBER_OFFSET); }
     inline int number() { return get_info() >> CLS_NUMBER_OFFSET; }
+
+    inline long size() { return instance_size; }
+    inline long aligned_size() { return instance_size; } // FIXME
 };
 
 struct objc_selector {
