@@ -26,5 +26,7 @@ OBJC_EXPORT void __objc_exec_class(struct objc_module* module)
 
     class_add_from_module(symtab);
 
-    // Many thing to init here.
+    // Many things to init here.
+
+    class_resolve_all_unresolved();
 }

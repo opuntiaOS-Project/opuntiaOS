@@ -17,6 +17,9 @@ struct class_node {
 static class_node class_tabel_storage[512];
 static int class_table_next_free = 0;
 
+static Class unresolved_classes[128];
+static int unresolved_classes_next = 0;
+
 void class_table_init()
 {
 }
@@ -160,6 +163,64 @@ static void class_send_initialize(Class cls)
     }
 }
 
+bool class_can_resolve(Class cls)
+{
+    if (cls->is_resolved()) {
+        return true;
+    }
+
+    if (!objc_getClass("NSObject")) {
+        return false;
+    }
+
+    const char* superclass = (char*)cls->superclass;
+    return !superclass || (superclass && objc_getClass(superclass));
+}
+
+bool class_resolve_links(Class cls)
+{
+    assert(cls->is_class());
+
+    // TODO: Fill subclass list
+    if (cls->is_resolved()) {
+        return true;
+    }
+
+    Class object_class = objc_getClass("NSObject");
+    if (!object_class) {
+        return false;
+    }
+
+    cls->get_isa()->set_isa(object_class);
+
+    if (!cls->superclass) {
+        // TODO: Check that
+        cls->superclass = nil;
+        cls->get_isa()->superclass = nil;
+        cls->set_info(CLS_RESOLVED);
+        cls->get_isa()->set_info(CLS_RESOLVED);
+        return true;
+    }
+
+    Class supcls = objc_getClass((char*)cls->superclass);
+    if (supcls) {
+        cls->superclass = supcls;
+        cls->get_isa()->superclass = supcls->get_isa();
+        cls->set_info(CLS_RESOLVED);
+        cls->get_isa()->set_info(CLS_RESOLVED);
+        return true;
+    }
+
+    return false;
+}
+
+void class_resolve_all_unresolved()
+{
+    for (int i = 0; i < unresolved_classes_next; i++) {
+        class_resolve_links(unresolved_classes[i]);
+    }
+}
+
 bool class_init(Class cls)
 {
     if (class_add(cls)) {
@@ -173,6 +234,8 @@ bool class_init(Class cls)
         if (cls->is_root()) {
             class_root_add_instance_methods(cls);
         }
+
+        class_resolve_links(cls);
 
         return true;
     }
@@ -190,7 +253,6 @@ void class_add_from_module(struct objc_symtab* symtab)
 {
     for (int i = 0; i < symtab->cls_def_cnt; i++) {
         Class cls = (Class)symtab->defs[i];
-        const char* superclass = (char*)cls->superclass;
 
         // Fix clang flags
         if (cls->is_class()) {
@@ -202,6 +264,9 @@ void class_add_from_module(struct objc_symtab* symtab)
         OBJC_DEBUGPRINT("Installing classes %x (%d of %d): %s :: %d\n", (uintptr_t)cls, i + 1, symtab->cls_def_cnt, cls->name, cls->get_info());
 
         if (class_init(cls)) {
+            if (!class_can_resolve(cls)) {
+                unresolved_classes[unresolved_classes_next++] = cls;
+            }
         }
     }
 }
@@ -224,6 +289,8 @@ IMP class_get_implementation(Class cls, SEL sel)
     if (!method) {
         return nil_method;
     }
+
+    // TODO: Message forwarding
 
     return method->method_imp;
 }
