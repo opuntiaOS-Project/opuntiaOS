@@ -10,12 +10,6 @@ OBJC_EXPORT IMP objc_msg_lookup(id receiver, SEL sel)
     return impl;
 }
 
-OBJC_EXPORT void objc_msgSend(id reciever, SEL sel)
-{
-    IMP impl = objc_msg_lookup(reciever, sel);
-    impl(reciever, sel);
-}
-
 static inline id call_alloc(Class cls, bool checkNil, bool allocWithZone = false)
 {
     if (allocWithZone) {

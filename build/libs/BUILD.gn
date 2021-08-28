@@ -29,6 +29,9 @@ lib_objcc_flags = lib_cc_flags + [
                     "-Wno-deprecated-objc-isa-usage",
                     "-Wno-objc-root-class",
                     "-Wno-cast-of-sel-type",
+                    "-fno-objc-exceptions",
+                    "-fno-objc-arc",
+                    "-fno-unwind-tables"
                   ]
 
 lib_asm_flags = []

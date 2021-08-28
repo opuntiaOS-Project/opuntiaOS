@@ -2,8 +2,13 @@
 #include <libobjc/helpers.h>
 #include <stdio.h>
 
-@interface SampleClass : NSObject
+@interface SampleClass : NSObject {
+@public
+    int last_val;
+}
 + (void)sampleMethod;
+- (void)sampleMethod:(int)val;
+- (int)get_last;
 @end
 
 @implementation SampleClass
@@ -13,9 +18,15 @@
     printf("Calling static: Hello, from Obj-C!");
 }
 
-- (void)sampleMethod
+- (void)sampleMethod:(int)val
 {
-    printf("Calling method: Hello, Obj-C! %d", 55);
+    last_val = val;
+    printf("Calling method: Hello, Obj-C! %d", val);
+}
+
+- (int)get_last
+{
+    return last_val;
 }
 
 @end
@@ -23,7 +34,8 @@
 int main()
 {
     id objectAlloc = [[SampleClass alloc] init];
-    [objectAlloc sampleMethod];
+    [objectAlloc sampleMethod:22];
     [SampleClass sampleMethod];
+    printf("Last called with %d", [objectAlloc get_last]);
     return 0;
 }
