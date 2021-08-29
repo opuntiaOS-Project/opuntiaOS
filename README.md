@@ -18,16 +18,15 @@
 
 ### Libraries
 
-* Custom LibC (in development)
-* Custom LibCXX
-* LibFoundation
-* LibG & LibUI
+* Runtime & support: LibC, LibCxx, LibObjC
+* Rich functionality: LibFoundation
+* UI functionality & rendering: LibG, LibUI
+* [learn more](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/libs.md)
 
 ### Userland
 
-* Basic userland
 * Composing windows manager for desktop and mobile
-* Simple gui-app "About"
+* Simple UI apps
 * Terminal
 
 ## How to build and run opuntiaOS?

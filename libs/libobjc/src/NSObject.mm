@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-#include <libobjc/NSObject.h>
+#include <libfoundation/NSObject.h>
 #include <libobjc/class.h>
 #include <libobjc/memory.h>
 #include <libobjc/objc.h>
