@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020-2021 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <libobjc/NSObject.h>
 #include <libobjc/class.h>
 #include <libobjc/memory.h>
@@ -13,8 +21,7 @@ OBJC_EXPORT IMP objc_msg_lookup(id receiver, SEL sel)
 static inline id call_alloc(Class cls, bool checkNil, bool allocWithZone = false)
 {
     if (allocWithZone) {
-        // TODO: Implement me
-        // return ((id(*)(id, SEL, struct _NSZone *))objc_msgSend)(cls, @selector(allocWithZone:), nil);
+        return ((id(*)(id, SEL, void*))objc_msgSend)(cls, @selector(allocWithZone:), NULL);
     }
     return ((id(*)(id, SEL))objc_msgSend)(cls, @selector(alloc));
 }
@@ -28,9 +35,7 @@ OBJC_EXPORT id objc_alloc(Class cls)
 // Called with [[Class alloc] init]
 OBJC_EXPORT id objc_alloc_init(Class cls)
 {
-    // TODO: Implement me
-    // return [call_alloc(cls, true, false) init];
-    return call_alloc(cls, true, false);
+    return [call_alloc(cls, true, false) init];
 }
 
 @implementation NSObject
