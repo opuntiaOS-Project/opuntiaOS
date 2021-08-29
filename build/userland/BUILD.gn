@@ -104,9 +104,6 @@ group("userland") {
     "//userland/system/homescreen:homescreen",
     "//userland/system/init:init",
     "//userland/system/initgui:initgui",
-    "//userland/tests/bench:bench",
-    "//userland/tests/testlibcxx:testlibcxx",
-    "//userland/tests/utester:utester",
     "//userland/utilities/cat:cat",
     "//userland/utilities/kill:kill",
     "//userland/utilities/ls:ls",
@@ -117,7 +114,15 @@ group("userland") {
     "//userland/utilities/uname:uname",
   ]
 
-  if (objc_support) {
-    deps += [ "//userland/utilities/testobjc:testobjc" ]
+  if (compile_tests) {
+    deps += [
+      "//userland/tests/bench:bench",
+      "//userland/tests/testlibcxx:testlibcxx",
+      "//userland/tests/utester:utester",
+    ]
+
+    if (objc_support) {
+      deps += [ "//userland/tests/testobjc:testobjc" ]
+    }
   }
 }

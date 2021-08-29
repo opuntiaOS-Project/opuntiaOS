@@ -6,6 +6,7 @@ buildconfig = "//build/config/BUILDCONFIG.gn"
 
 default_args = {
   is_debug = true
+  compile_tests = true
   optimize = true
   objc_support = false
   bench_method = "none"
