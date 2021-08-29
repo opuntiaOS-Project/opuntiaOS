@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020-2021 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <libobjc/class.h>
 #include <libobjc/module.h>
 #include <libobjc/objc.h>
@@ -11,7 +19,6 @@ OBJC_EXPORT void __objc_exec_class(struct objc_module* module)
     OBJC_DEBUGPRINT("Called __objc_exec_class, starting to init module\n");
 
     if (!prepared_data_structures) {
-        OBJC_DEBUGPRINT("    Prepearing ENV");
         selector_table_init();
         class_table_init();
         prepared_data_structures = true;
@@ -26,7 +33,7 @@ OBJC_EXPORT void __objc_exec_class(struct objc_module* module)
 
     class_add_from_module(symtab);
 
-    // Many things to init here.
+    // TODO: Many things to init here.
 
     class_resolve_all_unresolved();
 }

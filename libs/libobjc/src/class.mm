@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020-2021 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #include <assert.h>
 #include <libobjc/class.h>
 #include <libobjc/memory.h>
@@ -154,11 +162,11 @@ static void class_send_initialize(Class cls)
         Method method = class_lookup_method_in_hierarchy(cls->get_isa(), sel);
 
         if (method) {
-            OBJC_DEBUGPRINT("start [%s +initialize]", cls->name);
+            OBJC_DEBUGPRINT("start [%s +initialize]\n", cls->name);
             (*method->method_imp)((id)cls, sel);
-            OBJC_DEBUGPRINT("end [%s +initialize]", cls->name);
+            OBJC_DEBUGPRINT("end [%s +initialize]\n", cls->name);
         } else {
-            OBJC_DEBUGPRINT("class %s has no +initialize", cls->name);
+            OBJC_DEBUGPRINT("class %s has no +initialize\n", cls->name);
         }
     }
 }
@@ -169,7 +177,7 @@ bool class_can_resolve(Class cls)
         return true;
     }
 
-    if (!objc_getClass("NSObject")) {
+    if (!objc_getClass(ROOT_CLASS)) {
         return false;
     }
 
@@ -181,12 +189,11 @@ bool class_resolve_links(Class cls)
 {
     assert(cls->is_class());
 
-    // TODO: Fill subclass list
     if (cls->is_resolved()) {
         return true;
     }
 
-    Class object_class = objc_getClass("NSObject");
+    Class object_class = objc_getClass(ROOT_CLASS);
     if (!object_class) {
         return false;
     }
@@ -194,7 +201,6 @@ bool class_resolve_links(Class cls)
     cls->get_isa()->set_isa(object_class);
 
     if (!cls->superclass) {
-        // TODO: Check that
         cls->superclass = nil;
         cls->get_isa()->superclass = nil;
         cls->set_info(CLS_RESOLVED);
@@ -204,6 +210,7 @@ bool class_resolve_links(Class cls)
 
     Class supcls = objc_getClass((char*)cls->superclass);
     if (supcls) {
+        // TODO: Fill subclass list
         cls->superclass = supcls;
         cls->get_isa()->superclass = supcls->get_isa();
         cls->set_info(CLS_RESOLVED);
