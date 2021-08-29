@@ -4,12 +4,17 @@
 
 declare_args() {
   is_debug = true
-  optimize = true
-  objc_support = false
+  compile_tests = true
   kernel_symbols = true
   userland_symbols = true
   static_analyze = false
+
+  optimize = true
+
+  objc_support = false
+
   bench_method = "none"
+
   host = "gnu"
   llvm_bin_path = getenv("LLVM_BIN_PATH")
   device_type = "desktop"
