@@ -32,8 +32,9 @@ _start_secondary_cpu_return:
     ldr     sp, =STACK_SECONDARY_TOP
     mov     r9, #512
     mrc     p15, #0, r8, c0, c0, #5 // Read CPU ID register.
+    and     r8, r8, #3
 2:
-    add     r8, r8, #1
+    sub     r8, r8, #1
     cmp     r8, #0
     beq     _start_secondary_cpu_exit
     add     r9, r9, #512

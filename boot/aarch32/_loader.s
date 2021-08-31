@@ -34,8 +34,9 @@ secondary_cpu_loader:
     ldr     sp, =STACK_SECONDARY_PHYZ_TOP
     mov     r9, #512
     mrc     p15, #0, r8, c0, c0, #5 // Read CPU ID register.
+    and     r8, r8, #3
 1:
-    add     r8, r8, #1
+    sub     r8, r8, #1
     cmp     r8, #0
     beq     secondary_cpu_loader_exit
     add     r9, r9, #512
