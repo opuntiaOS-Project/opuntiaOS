@@ -96,6 +96,7 @@ static void _init_cpu(cpu_t* cpu)
     cpu->fpu_for_pid = 0;
 #endif // FPU_ENABLED
     _create_idle_thread(cpu);
+    _add_cpu_count();
 }
 
 static inline void _sched_swap_buffers(sched_data_t* sched)
@@ -179,16 +180,14 @@ int _sched_find_cpu_with_less_load()
 
 void scheduler_init()
 {
-    for (int i = 0; i < CPU_CNT; i++) {
-        _init_cpu(&cpus[i]);
-    }
 }
 
 void schedule_activate_cpu()
 {
     int id = system_cpu_id();
+    ASSERT(id < CPU_CNT);
+    _init_cpu(&cpus[id]);
     cpus[id].id = id;
-    _add_cpu_count();
 }
 
 extern thread_list_t thread_list;
