@@ -39,9 +39,9 @@ Connection::Connection(int connection_fd)
     s_the = this;
     if (m_connection_fd > 0) {
         bool connected = false;
-        // Trying to connect for 5 times. If unsuccesfull, it crashes.
-        for (int i = 0; i < 5; i++) {
-            if (connect(m_connection_fd, "/tmp/win.sock", 9) == 0) {
+        // Trying to connect for 100 times. If unsuccesfull, it crashes.
+        for (int i = 0; i < 100; i++) {
+            if (connect(m_connection_fd, "/tmp/win.sock", 13) == 0) {
                 connected = true;
                 break;
             }

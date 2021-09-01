@@ -5,6 +5,7 @@ opuntiaOS_executable("window_server") {
   sources = [
     "src/Components/Base/BaseWindow.cpp",
     "src/Components/Elements/Button.cpp",
+    "src/Components/LoadingScreen/LoadingScreen.cpp",
     "src/Components/MenuBar/MenuBar.cpp",
     "src/Components/Popup/Popup.cpp",
     "src/Compositor.cpp",

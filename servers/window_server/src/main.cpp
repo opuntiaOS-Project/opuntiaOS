@@ -7,6 +7,7 @@
  */
 
 #include "Components/ControlBar/ControlBar.h"
+#include "Components/LoadingScreen/LoadingScreen.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "Components/MenuBar/Widgets/Clock/Clock.h"
 #include "Components/Popup/Popup.h"
@@ -35,26 +36,46 @@ void start_dock()
     }
 }
 
+void screen_init()
+{
+    start_dock();
+    nice(-3);
+    new WinServer::Screen();
+    new WinServer::LoadingScreen();
+}
+
+template <class T, int Cost = 1, class... Args>
+constexpr inline void load_core_component(Args&&... args)
+{
+    new T(std::forward<Args>(args)...);
+    WinServer::LoadingScreen::the().move_progress<T, Cost>();
+}
+
+template <class T, int Cost = 1, class... Args>
+constexpr inline void add_widget(Args&&... args)
+{
+    WinServer::MenuBar::the().add_widget<T>(std::forward<Args>(args)...);
+    WinServer::LoadingScreen::the().move_progress<T, Cost>();
+}
+
 int main()
 {
-    nice(-3);
-    start_dock();
+    screen_init();
     auto* event_loop = new LFoundation::EventLoop();
-    new WinServer::Screen();
-    new WinServer::Connection(socket(PF_LOCAL, 0, 0));
-    new WinServer::CursorManager();
-    new WinServer::ResourceManager();
-    new WinServer::Popup();
-    new WinServer::MenuBar();
+    load_core_component<WinServer::Connection>(socket(PF_LOCAL, 0, 0));
+    load_core_component<WinServer::CursorManager>();
+    load_core_component<WinServer::ResourceManager, 4>();
+    load_core_component<WinServer::Popup>();
+    load_core_component<WinServer::MenuBar>();
 #ifdef TARGET_MOBILE
-    new WinServer::ControlBar();
+    load_core_component<WinServer::ControlBar>();
 #endif
-    new WinServer::Compositor();
-    new WinServer::WindowManager();
-    new WinServer::Devices();
+    load_core_component<WinServer::Compositor>();
+    load_core_component<WinServer::WindowManager>();
+    load_core_component<WinServer::Devices>();
 
-    WinServer::MenuBar::the().add_widget<WinServer::Clock>();
+    add_widget<WinServer::Clock>();
 
-    event_loop->run();
-    return 0;
+    WinServer::LoadingScreen::destroy_the();
+    return event_loop->run();
 }
