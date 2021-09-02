@@ -34,6 +34,7 @@ public:
         DisplayEvent,
         LayoutEvent,
         WindowCloseRequestEvent,
+        ResizeEvent,
         MenuBarActionEvent,
 
         UIHandlerInvoke,
@@ -216,6 +217,24 @@ public:
 
 private:
     uint32_t m_window_id;
+};
+
+class ResizeEvent : public Event {
+public:
+    ResizeEvent(uint32_t window_id, const LG::Rect& bounds)
+        : Event(Event::Type::ResizeEvent)
+        , m_window_id(window_id)
+        , m_bounds(bounds)
+    {
+    }
+
+    ~ResizeEvent() = default;
+    uint32_t window_id() const { return m_window_id; }
+    const LG::Rect& bounds() const { return m_bounds; }
+
+private:
+    uint32_t m_window_id;
+    LG::Rect m_bounds;
 };
 
 class MenuBarActionEvent : public Event {

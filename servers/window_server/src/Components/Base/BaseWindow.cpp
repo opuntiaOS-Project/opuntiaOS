@@ -33,4 +33,11 @@ BaseWindow::BaseWindow(BaseWindow&& win)
 {
 }
 
+void BaseWindow::set_buffer(int buffer_id, LG::Size sz, LG::PixelBitmapFormat fmt)
+{
+    m_buffer.open(buffer_id);
+    m_content_bitmap = LG::PixelBitmap(m_buffer.data(), sz.width(), sz.height());
+    m_content_bitmap.set_format(fmt);
+}
+
 } // namespace WinServer

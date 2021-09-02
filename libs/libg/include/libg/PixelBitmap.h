@@ -11,6 +11,7 @@
 #include <cstring>
 #include <libg/Color.h>
 #include <libg/Rect.h>
+#include <libg/Size.h>
 #include <new>
 #include <sys/types.h>
 
@@ -76,7 +77,18 @@ public:
     inline size_t height() const { return m_bounds.height(); }
     inline LG::Rect& bounds() { return m_bounds; }
     inline const LG::Rect& bounds() const { return m_bounds; }
+    inline void set_size(LG::Size size) { m_bounds.set_height(size.height()), m_bounds.set_width(size.width()); }
+
     inline Color* data() const { return m_data; }
+    inline void set_data(Color* data)
+    {
+        if (m_should_free) {
+            delete m_data;
+        }
+        m_data = data;
+        m_should_free = false;
+    }
+
     inline Color* line(size_t i) { return m_data + i * width(); }
     inline const Color* line(size_t i) const { return m_data + i * width(); }
     inline Color* operator[](size_t i) { return line(i); }

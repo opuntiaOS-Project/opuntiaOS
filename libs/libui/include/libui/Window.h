@@ -69,12 +69,14 @@ public:
     bool set_title(const LG::string& title);
     bool set_frame_style(const LG::Color& color);
     bool did_format_change();
+    bool did_buffer_change();
 
     inline const LG::string& icon_path() const { return m_icon_path; }
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
 private:
+    void resize(ResizeEvent&);
     void setup_superview();
     void fill_with_opaque(const LG::Rect&);
 

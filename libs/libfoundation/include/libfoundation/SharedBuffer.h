@@ -10,7 +10,7 @@ public:
     SharedBuffer(size_t size)
         : m_size(size)
     {
-        m_id = shared_buffer_create((uint8_t**)&m_data, m_size);
+        m_id = shared_buffer_create((uint8_t**)&m_data, m_size * sizeof(T));
     }
 
     SharedBuffer(int id)
@@ -25,13 +25,13 @@ public:
     {
     }
 
-    void create(size_t size)
+    inline void create(size_t size)
     {
         m_size = size;
-        m_id = shared_buffer_create((uint8_t**)&m_data, m_size);
+        m_id = shared_buffer_create((uint8_t**)&m_data, m_size * sizeof(T));
     }
 
-    void open(int id)
+    inline void open(int id)
     {
         m_id = id;
         if (shared_buffer_get(m_id, (uint8_t**)&m_data) != 0) {
@@ -47,17 +47,16 @@ public:
         }
     }
 
+    inline void resize(size_t new_size)
+    {
+        free();
+        create(new_size);
+    }
+
     inline bool alive() const { return m_id >= 0; }
 
-    inline const T& at(size_t i) const
-    {
-        return data()[i];
-    }
-
-    inline T& at(size_t i)
-    {
-        return data()[i];
-    }
+    inline const T& at(size_t i) const { return data()[i]; }
+    inline T& at(size_t i) { return data()[i]; }
 
     inline size_t size() const { return m_size; }
 

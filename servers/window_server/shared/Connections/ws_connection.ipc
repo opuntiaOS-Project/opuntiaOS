@@ -10,7 +10,7 @@
     GreetMessage() => GreetMessageReply(uint32_t connection_id)
     CreateWindowMessage(int type, uint32_t width, uint32_t height, int buffer_id, LG::string icon_path) => CreateWindowMessageReply(uint32_t window_id)
     DestroyWindowMessage(uint32_t window_id) => DestroyWindowMessageReply(uint32_t status)
-    SetBufferMessage(uint32_t window_id, int buffer_id, int format)
+    SetBufferMessage(uint32_t window_id, int buffer_id, int format, LG::Rect bounds)
     SetBarStyleMessage(uint32_t window_id, uint32_t color, int text_style)
     SetTitleMessage(uint32_t window_id, LG::string title)
     InvalidateMessage(uint32_t window_id, LG::Rect rect)
@@ -33,6 +33,7 @@
     # Service Messages
     DisplayMessage(LG::Rect rect)
     WindowCloseRequestMessage(int win_id)
+    ResizeMessage(int win_id, LG::Rect rect)
     DisconnectMessage(int reason)
 
     # MenuBar

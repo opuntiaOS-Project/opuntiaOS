@@ -61,7 +61,11 @@ public:
     inline std::vector<MenuDir>& menubar_content() { return m_menubar_content; }
     inline const std::vector<MenuDir>& menubar_content() const { return m_menubar_content; }
 
+    virtual void did_size_change(const LG::Size& size) override;
+
 private:
+    void recalc_bounds(const LG::Size& size);
+
     WindowFrame m_frame;
     LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
     LG::string m_icon_path {};

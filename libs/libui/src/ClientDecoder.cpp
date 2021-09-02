@@ -79,6 +79,14 @@ std::unique_ptr<Message> ClientDecoder::handle(const WindowCloseRequestMessage& 
     return nullptr;
 }
 
+std::unique_ptr<Message> ClientDecoder::handle(const ResizeMessage& msg)
+{
+    if (App::the().window().id() == msg.win_id()) {
+        m_event_loop.add(App::the().window(), new ResizeEvent(msg.win_id(), msg.rect()));
+    }
+    return nullptr;
+}
+
 std::unique_ptr<Message> ClientDecoder::handle(const MenuBarActionMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {

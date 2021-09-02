@@ -27,6 +27,7 @@ public:
     virtual std::unique_ptr<Message> handle(const KeyboardMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const DisplayMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const WindowCloseRequestMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(const ResizeMessage& msg) override;
     virtual std::unique_ptr<Message> handle(const MenuBarActionMessage& msg) override;
 
     // Notifiers

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <libg/Point.h>
+#include <libg/Size.h>
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
 #include <libipc/Encoder.h>
@@ -34,6 +35,7 @@ public:
     inline size_t width() const { return m_width; }
     inline size_t height() const { return m_height; }
     inline size_t square() const { return width() * height(); }
+    inline LG::Size size() const { return LG::Size(m_width, m_height); }
     inline int min_x() const { return m_origin.x(); }
     inline int mid_x() const { return m_origin.x() + width() / 2; }
     inline int max_x() const { return m_origin.x() + width() - 1; }

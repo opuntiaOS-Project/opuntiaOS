@@ -45,6 +45,16 @@ public:
         Encoder::decode(buf, offset, m_height);
     }
 
+    bool operator==(const Size& r) const
+    {
+        return m_width == r.m_width && m_height == r.m_height;
+    }
+
+    bool operator!=(const Size& r) const
+    {
+        return !(*this == r);
+    }
+
 private:
     size_t m_width { 0 };
     size_t m_height { 0 };

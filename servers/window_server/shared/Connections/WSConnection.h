@@ -185,11 +185,12 @@ private:
 
 class SetBufferMessage : public Message {
 public:
-    SetBufferMessage(message_key_t key, uint32_t window_id, int buffer_id, int format)
+    SetBufferMessage(message_key_t key, uint32_t window_id, int buffer_id, int format, LG::Rect bounds)
         : m_key(key)
         , m_window_id(window_id)
         , m_buffer_id(buffer_id)
         , m_format(format)
+        , m_bounds(bounds)
     {
     }
     int id() const override { return 7; }
@@ -199,6 +200,7 @@ public:
     uint32_t window_id() const { return m_window_id; }
     int buffer_id() const { return m_buffer_id; }
     int format() const { return m_format; }
+    LG::Rect bounds() const { return m_bounds; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -208,6 +210,7 @@ public:
         Encoder::append(buffer, m_window_id);
         Encoder::append(buffer, m_buffer_id);
         Encoder::append(buffer, m_format);
+        Encoder::append(buffer, m_bounds);
         return buffer;
     }
 
@@ -216,6 +219,7 @@ private:
     uint32_t m_window_id;
     int m_buffer_id;
     int m_format;
+    LG::Rect m_bounds;
 };
 
 class SetBarStyleMessage : public Message {
@@ -500,6 +504,7 @@ public:
         uint32_t var_window_id;
         uint32_t var_status;
         int var_format;
+        LG::Rect var_bounds;
         uint32_t var_color;
         int var_text_style;
         LG::string var_title;
@@ -534,7 +539,8 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
             Encoder::decode(buf, decoded_msg_len, var_format);
-            return new SetBufferMessage(secret_key, var_window_id, var_buffer_id, var_format);
+            Encoder::decode(buf, decoded_msg_len, var_bounds);
+            return new SetBufferMessage(secret_key, var_window_id, var_buffer_id, var_format, var_bounds);
         case 8:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_color);
@@ -852,6 +858,37 @@ private:
     int m_win_id;
 };
 
+class ResizeMessage : public Message {
+public:
+    ResizeMessage(message_key_t key, int win_id, LG::Rect rect)
+        : m_key(key)
+        , m_win_id(win_id)
+        , m_rect(rect)
+    {
+    }
+    int id() const override { return 8; }
+    int reply_id() const override { return -1; }
+    int key() const override { return m_key; }
+    int decoder_magic() const override { return 737; }
+    int win_id() const { return m_win_id; }
+    LG::Rect rect() const { return m_rect; }
+    EncodedMessage encode() const override
+    {
+        EncodedMessage buffer;
+        Encoder::append(buffer, decoder_magic());
+        Encoder::append(buffer, id());
+        Encoder::append(buffer, key());
+        Encoder::append(buffer, m_win_id);
+        Encoder::append(buffer, m_rect);
+        return buffer;
+    }
+
+private:
+    message_key_t m_key;
+    int m_win_id;
+    LG::Rect m_rect;
+};
+
 class DisconnectMessage : public Message {
 public:
     DisconnectMessage(message_key_t key, int reason)
@@ -859,7 +896,7 @@ public:
         , m_reason(reason)
     {
     }
-    int id() const override { return 8; }
+    int id() const override { return 9; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -887,7 +924,7 @@ public:
         , m_item_id(item_id)
     {
     }
-    int id() const override { return 9; }
+    int id() const override { return 10; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -919,7 +956,7 @@ public:
         , m_type(type)
     {
     }
-    int id() const override { return 10; }
+    int id() const override { return 11; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -954,7 +991,7 @@ public:
         , m_icon_path(icon_path)
     {
     }
-    int id() const override { return 11; }
+    int id() const override { return 12; }
     int reply_id() const override { return -1; }
     int key() const override { return m_key; }
     int decoder_magic() const override { return 737; }
@@ -1043,18 +1080,22 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             return new WindowCloseRequestMessage(secret_key, var_win_id);
         case 8:
+            Encoder::decode(buf, decoded_msg_len, var_win_id);
+            Encoder::decode(buf, decoded_msg_len, var_rect);
+            return new ResizeMessage(secret_key, var_win_id, var_rect);
+        case 9:
             Encoder::decode(buf, decoded_msg_len, var_reason);
             return new DisconnectMessage(secret_key, var_reason);
-        case 9:
+        case 10:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_item_id);
             return new MenuBarActionMessage(secret_key, var_win_id, var_item_id);
-        case 10:
+        case 11:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
             Encoder::decode(buf, decoded_msg_len, var_type);
             return new NotifyWindowStatusChangedMessage(secret_key, var_win_id, var_changed_window_id, var_type);
-        case 11:
+        case 12:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
             Encoder::decode(buf, decoded_msg_len, var_icon_path);
@@ -1087,12 +1128,14 @@ public:
         case 7:
             return handle(static_cast<const WindowCloseRequestMessage&>(msg));
         case 8:
-            return handle(static_cast<const DisconnectMessage&>(msg));
+            return handle(static_cast<const ResizeMessage&>(msg));
         case 9:
-            return handle(static_cast<const MenuBarActionMessage&>(msg));
+            return handle(static_cast<const DisconnectMessage&>(msg));
         case 10:
-            return handle(static_cast<const NotifyWindowStatusChangedMessage&>(msg));
+            return handle(static_cast<const MenuBarActionMessage&>(msg));
         case 11:
+            return handle(static_cast<const NotifyWindowStatusChangedMessage&>(msg));
+        case 12:
             return handle(static_cast<const NotifyWindowIconChangedMessage&>(msg));
         default:
             return nullptr;
@@ -1106,6 +1149,7 @@ public:
     virtual std::unique_ptr<Message> handle(const KeyboardMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const DisplayMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const WindowCloseRequestMessage& msg) { return nullptr; }
+    virtual std::unique_ptr<Message> handle(const ResizeMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const DisconnectMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const MenuBarActionMessage& msg) { return nullptr; }
     virtual std::unique_ptr<Message> handle(const NotifyWindowStatusChangedMessage& msg) { return nullptr; }

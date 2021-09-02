@@ -89,6 +89,7 @@ void WindowManager::remove_window(Window* window)
 #endif
     delete window;
 }
+
 void WindowManager::minimize_window(Window& window)
 {
     Window* window_ptr = &window;
@@ -96,6 +97,28 @@ void WindowManager::minimize_window(Window& window)
     window.set_visible(false);
     m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
     m_windows.push_back(window_ptr);
+}
+
+void WindowManager::resize_window(Window& window, const LG::Size& size)
+{
+    window.did_size_change(size);
+    send_event(new ResizeMessage(window.connection_id(), window.id(), LG::Rect(0, 0, size.width(), size.height())));
+    m_compositor.invalidate(window.bounds());
+}
+
+void WindowManager::maximize_window(Window& window)
+{
+    size_t fullscreen_h = m_screen.height();
+    fullscreen_h -= m_compositor.menu_bar().height();
+    if (m_dock_window) [[likely]] {
+        fullscreen_h -= (m_screen.height() - m_dock_window->bounds().min_y());
+    }
+
+    const size_t vertical_borders = Desktop::WindowFrame::std_top_border_size() + Desktop::WindowFrame::std_bottom_border_size();
+    const size_t horizontal_borders = Desktop::WindowFrame::std_left_border_size() + Desktop::WindowFrame::std_right_border_size();
+
+    move_window(&window, -window.bounds().min_x(), -(window.bounds().min_y() - m_compositor.menu_bar().height()));
+    resize_window(window, { m_screen.width() - horizontal_borders, fullscreen_h - vertical_borders });
 }
 
 WindowManager::Window* WindowManager::get_top_standard_window_in_view() const
@@ -228,7 +251,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
             } else if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
                 LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
                 point.offset_by(-window.content_bounds().origin());
-                m_event_loop.add(m_connection, new SendEvent(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y())));
+                send_event(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y()));
                 new_hovered_window = &window;
 
                 if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
@@ -242,7 +265,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                         }
                     }
 
-                    m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window.connection_id(), window.id(), buttons_state.state(), point.x(), point.y())));
+                    send_event(new MouseActionMessage(window.connection_id(), window.id(), buttons_state.state(), point.x(), point.y()));
                 }
             }
 
@@ -253,7 +276,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     if (hovered_window()) {
         auto window = hovered_window();
         if (window->id() != new_hovered_window->id()) {
-            m_event_loop.add(m_connection, new SendEvent(new MouseLeaveMessage(window->connection_id(), window->id(), 0, 0)));
+            send_event(new MouseLeaveMessage(window->connection_id(), window->id(), 0, 0));
         }
     }
     m_hovered_window = new_hovered_window;
@@ -261,7 +284,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     if (hovered_window() && m_cursor_manager.is_changed<CursorManager::Params::Wheel>()) {
         auto* window = hovered_window();
         auto data = m_cursor_manager.get<CursorManager::Params::Wheel>();
-        m_event_loop.add(m_connection, new SendEvent(new MouseWheelMessage(window->connection_id(), window->id(), data, m_cursor_manager.x(), m_cursor_manager.y())));
+        send_event(new MouseWheelMessage(window->connection_id(), window->id(), data, m_cursor_manager.x(), m_cursor_manager.y()));
     }
 }
 #elif TARGET_MOBILE
@@ -290,7 +313,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
                 buttons_state.set(MouseActionType::LeftMouseButtonReleased);
             }
         }
-        m_event_loop.add(m_connection, new SendEvent(new MouseActionMessage(window->connection_id(), window->id(), buttons_state.state(), point.x(), point.y())));
+        send_event(new MouseActionMessage(window->connection_id(), window->id(), buttons_state.state(), point.x(), point.y()));
     }
 }
 #endif // TARGET_MOBILE
@@ -300,7 +323,7 @@ void WindowManager::receive_keyboard_event(std::unique_ptr<LFoundation::Event> e
     auto* keyboard_event = reinterpret_cast<KeyboardEvent*>(event.release());
     if (active_window()) {
         auto window = active_window();
-        m_event_loop.add(m_connection, new SendEvent(new KeyboardMessage(window->connection_id(), window->id(), keyboard_event->packet().key)));
+        send_event(new KeyboardMessage(window->connection_id(), window->id(), keyboard_event->packet().key));
     }
     delete keyboard_event;
 }
@@ -321,7 +344,7 @@ bool WindowManager::notify_listner_about_window_status(const Window& win, int ch
 #ifdef WM_DEBUG
     Logger::debug << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << std::endl;
 #endif
-    m_event_loop.add(m_connection, new SendEvent(new NotifyWindowStatusChangedMessage(win.connection_id(), win.id(), changed_window_id, (int)type)));
+    send_event(new NotifyWindowStatusChangedMessage(win.connection_id(), win.id(), changed_window_id, (int)type));
     return true;
 }
 
@@ -335,7 +358,7 @@ bool WindowManager::notify_listner_about_changed_icon(const Window& win, int cha
     if (!changed_window_ptr) {
         return false;
     }
-    m_event_loop.add(m_connection, new SendEvent(new NotifyWindowIconChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->icon_path())));
+    send_event(new NotifyWindowIconChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->icon_path()));
 #endif
     return true;
 }

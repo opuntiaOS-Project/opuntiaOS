@@ -55,8 +55,10 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetBufferMessage& msg
     if (!window) {
         return nullptr;
     }
-    window->set_buffer(msg.buffer_id());
-    window->content_bitmap().set_format(LG::PixelBitmapFormat(msg.format()));
+
+    LG::Size new_size = { msg.bounds().width(), msg.bounds().height() };
+    window->did_size_change(new_size);
+    window->set_buffer(msg.buffer_id(), new_size, LG::PixelBitmapFormat(msg.format()));
     return nullptr;
 }
 

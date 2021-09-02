@@ -16,7 +16,7 @@ namespace UI {
 
 Window::Window(const LG::Size& size, WindowType type)
     : m_bounds(0, 0, size.width(), size.height())
-    , m_buffer(size_t(size.width() * size.height() * 4))
+    , m_buffer(size_t(size.width() * size.height()))
     , m_bitmap()
     , m_type(type)
 {
@@ -28,7 +28,7 @@ Window::Window(const LG::Size& size, WindowType type)
 
 Window::Window(const LG::Size& size, const LG::string& icon_path)
     : m_bounds(0, 0, size.width(), size.height())
-    , m_buffer(size_t(size.width() * size.height() * 4))
+    , m_buffer(size_t(size.width() * size.height()))
     , m_bitmap()
     , m_icon_path(icon_path)
 {
@@ -50,6 +50,22 @@ bool Window::set_frame_style(const LG::Color& color)
     return App::the().connection().send_async_message(msg);
 }
 
+bool Window::did_buffer_change()
+{
+    m_bitmap.set_data(buffer().data());
+    m_bitmap.set_size({ bounds().width(), bounds().height() });
+
+    // If we have a superview, we also have a context for the superview.
+    // This context should be updated, since the superview is resized.
+    if (m_superview) {
+        graphics_pop_context();
+        graphics_push_context(Context(*m_superview));
+    }
+
+    SetBufferMessage msg(Connection::the().key(), id(), buffer().id(), bitmap().format(), bounds());
+    return App::the().connection().send_async_message(msg);
+}
+
 bool Window::did_format_change()
 {
     if (bitmap().format() == LG::PixelBitmapFormat::RGBA) {
@@ -57,8 +73,7 @@ bool Window::did_format_change()
         fill_with_opaque(bounds());
     }
 
-    SetBufferMessage msg(Connection::the().key(), id(), buffer().id(), bitmap().format());
-    return App::the().connection().send_async_message(msg);
+    return did_buffer_change();
 }
 
 void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
@@ -133,6 +148,28 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
         if (own_event.item_id() < menubar().menu_items().size()) [[likely]] {
             menubar().menu_items()[own_event.item_id()].invoke();
         }
+    }
+
+    if (event->type() == Event::Type::ResizeEvent) {
+        ResizeEvent& own_event = *(ResizeEvent*)event.get();
+        resize(own_event);
+    }
+}
+
+void Window::resize(ResizeEvent& resize_event)
+{
+    m_bounds = resize_event.bounds();
+
+    if (m_superview) [[likely]] {
+        m_superview->frame() = resize_event.bounds();
+        m_superview->bounds() = resize_event.bounds();
+        m_superview->set_needs_layout();
+    }
+
+    size_t new_size = resize_event.bounds().width() * resize_event.bounds().height();
+    if (m_buffer.size() != new_size) [[likely]] {
+        m_buffer.resize(resize_event.bounds().width() * resize_event.bounds().height());
+        did_buffer_change();
     }
 }
 

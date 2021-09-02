@@ -56,4 +56,18 @@ void Window::make_frameless()
     m_frame.set_visible(false);
 }
 
+void Window::recalc_bounds(const LG::Size& size)
+{
+    m_content_bounds.set_width(size.width());
+    m_content_bounds.set_height(size.height());
+
+    m_bounds.set_width(size.width() + frame().left_border_size() + frame().right_border_size());
+    m_bounds.set_height(size.height() + frame().top_border_size() + frame().bottom_border_size());
+}
+
+void Window::did_size_change(const LG::Size& size)
+{
+    recalc_bounds(size);
+}
+
 } // namespace WinServer
