@@ -13,6 +13,12 @@
 #include <libg/PixelBitmap.h>
 #include <libg/Point.h>
 
+#ifdef TARGET_DESKTOP
+#define CURSOR_OFFSET (2)
+#elif TARGET_MOBILE
+#define CURSOR_OFFSET (6)
+#endif
+
 namespace WinServer {
 
 class CursorManager {
@@ -42,17 +48,7 @@ public:
 
     inline const LG::PixelBitmap& current_cursor() const { return std_cursor(); }
     inline const LG::PixelBitmap& std_cursor() const { return m_std_cursor; }
-#ifdef TARGET_DESKTOP
-    inline LG::Point<int> draw_position()
-    {
-        return { m_mouse_x - 2, m_mouse_y - 2 };
-    }
-#elif TARGET_MOBILE
-    inline LG::Point<int> draw_position()
-    {
-        return { m_mouse_x - 6, m_mouse_y - 6 };
-    }
-#endif
+    inline LG::Point<int> draw_position() { return { m_mouse_x - CURSOR_OFFSET, m_mouse_y - CURSOR_OFFSET }; }
 
     inline int x() const
     {

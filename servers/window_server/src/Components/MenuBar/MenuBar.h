@@ -67,7 +67,7 @@ public:
     [[gnu::always_inline]] inline void draw(LG::Context& ctx)
     {
         ctx.set_fill_color(m_background_color);
-        ctx.mix({ 0, 0, MenuBar::width(), MenuBar::height() });
+        ctx.fill({ 0, 0, MenuBar::width(), MenuBar::height() });
 
         draw_logo(ctx);
         draw_panel_items(ctx);

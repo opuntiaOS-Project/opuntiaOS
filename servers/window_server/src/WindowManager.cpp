@@ -138,11 +138,12 @@ WindowManager::Window* WindowManager::get_top_standard_window_in_view() const
     return *it;
 }
 
+#ifdef TARGET_DESKTOP
 void WindowManager::bring_to_front(Window& window)
 {
     auto* prev_window = get_top_standard_window_in_view();
     do_bring_to_front(window);
-#ifdef TARGET_DESKTOP
+
     if (m_dock_window) {
         do_bring_to_front(*m_dock_window);
     }
@@ -156,10 +157,15 @@ void WindowManager::bring_to_front(Window& window)
     if (window.type() == WindowType::Standard) {
         m_compositor.menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
     }
-#elif TARGET_MOBILE
-    m_active_window = &window;
-#endif // TARGET_DESKTOP
 }
+#elif TARGET_MOBILE
+void WindowManager::bring_to_front(Window& window)
+{
+    auto* prev_window = get_top_standard_window_in_view();
+    do_bring_to_front(window);
+    m_active_window = &window;
+}
+#endif // TARGET_DESKTOP
 
 #ifdef TARGET_DESKTOP
 bool WindowManager::continue_window_move()

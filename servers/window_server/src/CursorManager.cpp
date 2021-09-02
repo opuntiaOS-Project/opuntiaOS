@@ -9,6 +9,12 @@
 #include "CursorManager.h"
 #include <libg/ImageLoaders/PNGLoader.h>
 
+#ifdef TARGET_DESKTOP
+#define CURSOR_PATH "/res/system/arrow.png"
+#elif TARGET_MOBILE
+#define CURSOR_PATH "/res/system/mobile/cursor.png"
+#endif
+
 namespace WinServer {
 
 CursorManager* s_WinServer_CursorManager_the = nullptr;
@@ -18,11 +24,7 @@ CursorManager::CursorManager()
 {
     s_WinServer_CursorManager_the = this;
     LG::PNG::PNGLoader loader;
-#ifdef TARGET_DESKTOP
-    m_std_cursor = loader.load_from_file("/res/system/arrow.png");
-#elif TARGET_MOBILE
-    m_std_cursor = loader.load_from_file("/res/system/mobile/cursor.png");
-#endif
+    m_std_cursor = loader.load_from_file(CURSOR_PATH);
 }
 
 } // namespace WinServer

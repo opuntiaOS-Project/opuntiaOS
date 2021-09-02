@@ -12,12 +12,9 @@
 #include "Components/MenuBar/MenuBar.h"
 #include "Compositor.h"
 #include "Connection.h"
-#ifdef TARGET_DESKTOP
 #include "Desktop/Window.h"
-#elif TARGET_MOBILE
-#include "Mobile/Window.h"
-#endif
 #include "Event.h"
+#include "Mobile/Window.h"
 #include "Screen.h"
 #include "ServerDecoder.h"
 #include <algorithm>

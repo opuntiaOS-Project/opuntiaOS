@@ -35,7 +35,7 @@ enum internal_cmd_code {
 
 uint32_t _is_cmd_internal()
 {
-    if (memcmp(_cmd_buffer, "cd ", 3) == 0) {
+    if (memcmp(_cmd_buffer, "cd", 2) == 0) {
         return CMD_CD;
     }
     return CMD_NONE;

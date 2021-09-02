@@ -79,15 +79,13 @@ void* memccpy(void* dest, const void* src, int stop, size_t nbytes)
 
 int memcmp(const void* src1, const void* src2, size_t nbytes)
 {
-    uint8_t *first, *second;
+    const uint8_t* first = src1;
+    const uint8_t* second = src2;
 
     for (int i = 0; i < nbytes; i++) {
-        first = (uint8_t*)src1 + i;
-        second = (uint8_t*)src2 + i;
-
         /* Return the difference if the byte does not match. */
-        if (*first != *second)
-            return *first - *second;
+        if (first[i] != second[i])
+            return (int)first[i] - (int)second[i];
     }
 
     return 0;
