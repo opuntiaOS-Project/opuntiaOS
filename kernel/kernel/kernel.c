@@ -52,7 +52,7 @@ static inline void wait_for_boot_cpu_to_finish(int* wt)
 
 void launching()
 {
-    tasking_create_kernel_thread(dentry_flusher, NULL);
+    tasking_run_kernel_thread(dentry_flusher, NULL);
     tasking_start_init_proc();
     ksys1(SYS_EXIT, 0);
 }
@@ -95,7 +95,7 @@ void stage3(mem_desc_t* mem_desc)
     tasking_init();
     scheduler_init();
     schedule_activate_cpu();
-    tasking_create_kernel_thread(launching, NULL);
+    tasking_run_kernel_thread(launching, NULL);
     boot_cpu_finish(&__boot_cpu_setup_tasking);
     resched(); /* Starting a scheduler */
 

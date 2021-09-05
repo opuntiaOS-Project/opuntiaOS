@@ -110,7 +110,7 @@ void dump_and_kill(proc_t* p)
     blocker.should_unblock = NULL;
     blocker.should_unblock_for_signal = false;
     proc_block_all_threads(p, &blocker);
-    proc_t* dumper_p = tasking_create_kernel_thread(dumper, p);
+    proc_t* dumper_p = tasking_run_kernel_thread(dumper, p);
 
     // Kthread does NOT clean it's pdir, so we can share the pdir of
     // the blocked proc to read it's content.

@@ -129,10 +129,10 @@ void prefetch_abort_handler()
                  : "=r"(val)
                  :);
     if (THIS_CPU->current_state == CPU_IN_USERLAND && RUNNING_THREAD) {
-        log("prefetch_abort_handler pid: %d", RUNNING_THREAD->tid);
+        log("[cpu %d] prefetch_abort_handler pid: %d", system_cpu_id(), RUNNING_THREAD->tid);
         dump_and_kill(RUNNING_THREAD->process);
     } else {
-        log("prefetch_abort_handler address : %x", val);
+        log("[cpu %d] prefetch_abort_handler address : %x", system_cpu_id(), val);
         system_stop();
     }
 }

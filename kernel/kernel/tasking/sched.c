@@ -56,11 +56,7 @@ static void _create_idle_thread(cpu_t* cpu)
 {
     proc_t* idle_proc = tasking_create_kernel_thread(_idle_thread, NULL);
     cpu->idle_thread = idle_proc->main_thread;
-
-    // Changing prio.
-    sched_dequeue(idle_proc->main_thread);
     idle_proc->prio = IDLE_PRIO;
-
     _sched_enqueue_impl(&cpu->sched, idle_proc->main_thread);
 }
 
@@ -90,6 +86,7 @@ static void _init_cpu(cpu_t* cpu)
     memset(cpu->sched.master_buf, 0, sizeof(runqueue_t) * TOTAL_PRIOS_COUNT);
     memset(cpu->sched.slave_buf, 0, sizeof(runqueue_t) * TOTAL_PRIOS_COUNT);
     cpu->sched.next_read_prio = 0;
+    cpu->sched.enqueued_tasks = 0;
 
 #ifdef FPU_ENABLED
     cpu->fpu_for_thread = NULL;
@@ -236,9 +233,6 @@ void resched()
 void sched_enqueue(thread_t* thread)
 {
     thread->status = THREAD_RUNNING;
-#ifdef SCHED_DEBUG
-    log("enqueue task %d\n", thread->tid);
-#endif
     if (thread->process->prio > MIN_PRIO) {
         thread->process->prio = MIN_PRIO;
     }
@@ -251,18 +245,21 @@ void sched_enqueue(thread_t* thread)
         thread->last_cpu = cpu;
     }
 
+#ifdef SCHED_DEBUG
+    log("enqueue task %d to cpu %d", thread->tid, thread->last_cpu);
+#endif
     _enqueued_tasks++;
 }
 
 void sched_dequeue(thread_t* thread)
 {
 #ifdef SCHED_DEBUG
-    log("dequeue task %d\n", thread->tid);
+    log("dequeue task %d", thread->tid);
 #endif
     if (likely(thread->last_cpu != LAST_CPU_NOT_SET)) {
         _sched_dequeue_impl(&cpus[thread->last_cpu].sched, thread);
     } else {
-        log("dequeue error task %d\n", thread->tid);
+        log("dequeue error task %d", thread->tid);
     }
 }
 
@@ -272,7 +269,7 @@ void sched()
         sched_data_t* sched = &THIS_CPU->sched;
         while (!sched->master_buf[sched->next_read_prio].head) {
             sched->next_read_prio++;
-            if (sched->next_read_prio > TOTAL_PRIOS_COUNT) {
+            if (sched->next_read_prio >= TOTAL_PRIOS_COUNT) {
                 if (THIS_CPU->id == 0) {
                     tasking_kill_dying();
                     sched_unblock_threads();
@@ -291,7 +288,7 @@ void sched()
         log("next to run %d %x %x [cpu %d]", thread->tid, thread->process->prio, thread->tf, THIS_CPU->id);
 #endif
 #ifdef SCHED_SHOW_STAT
-        log("[STAT] procs in buffer: %d", _debug_count_of_proc_in_buf(sched->master_buf));
+        _debug_print_runqueue(sched->master_buf);
 #endif
         ASSERT(thread->status == THREAD_RUNNING);
         thread->last_cpu = THIS_CPU->id;
@@ -304,7 +301,7 @@ void sched()
 
 static void _debug_print_runqueue(runqueue_t* it)
 {
-    for (int i = 0; i < PROC_PRIOS_COUNT; i++) {
+    for (int i = 0; i < TOTAL_PRIOS_COUNT; i++) {
         log(" Prio %d", i);
         thread_t* tmp = it[i].head;
         while (tmp) {

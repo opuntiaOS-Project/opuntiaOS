@@ -26,8 +26,6 @@
 #define SIGNALS_CNT 32
 
 extern proc_t proc[MAX_PROCESS_COUNT];
-extern uint32_t nxt_proc;
-extern uint32_t ended_proc;
 
 proc_t* tasking_get_proc(uint32_t pid);
 proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir);
@@ -44,6 +42,7 @@ void switchuvm(thread_t* p);
 
 void tasking_start_init_proc();
 proc_t* tasking_create_kernel_thread(void* entry_point, void* data);
+proc_t* tasking_run_kernel_thread(void* entry_point, void* data);
 
 /**
  * TASKING RELATED FUNCTIONS

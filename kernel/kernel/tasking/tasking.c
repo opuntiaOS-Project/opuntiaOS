@@ -25,7 +25,17 @@
 
 cpu_t cpus[CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
-uint32_t nxt_proc;
+static uint32_t nxt_proc = 0;
+
+static inline uint32_t _tasking_next_proc_id()
+{
+    return atomic_add(&nxt_proc, 1) - 1;
+}
+
+static inline uint32_t _tasking_get_proc_count()
+{
+    return atomic_load(&nxt_proc);
+}
 
 /**
  * used to jump to trapend
@@ -63,7 +73,7 @@ thread_t* tasking_get_thread(uint32_t tid)
 proc_t* tasking_get_proc(uint32_t pid)
 {
     proc_t* p;
-    for (int i = 0; i < nxt_proc; i++) {
+    for (int i = 0; i < _tasking_get_proc_count(); i++) {
         p = &proc[i];
         if (p->pid == pid) {
             return p;
@@ -75,7 +85,7 @@ proc_t* tasking_get_proc(uint32_t pid)
 proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
 {
     proc_t* p;
-    for (int i = 0; i < nxt_proc; i++) {
+    for (int i = 0; i < _tasking_get_proc_count(); i++) {
         p = &proc[i];
         if (p->status == PROC_ALIVE && p->pdir == pdir) {
             return p;
@@ -84,23 +94,30 @@ proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
     return NULL;
 }
 
-static proc_t* _tasking_alloc_proc()
+static inline proc_t* _tasking_alloc_proc()
 {
-    proc_t* p = &proc[nxt_proc++];
+    proc_t* p = &proc[_tasking_next_proc_id()];
+    lock_init(&p->lock);
+    return p;
+}
+
+static proc_t* _tasking_setup_proc()
+{
+    proc_t* p = _tasking_alloc_proc();
     proc_setup(p);
     return p;
 }
 
-static proc_t* _tasking_alloc_proc_with_uid(uid_t uid, gid_t gid)
+static proc_t* _tasking_setup_proc_with_uid(uid_t uid, gid_t gid)
 {
-    proc_t* p = &proc[nxt_proc++];
+    proc_t* p = _tasking_alloc_proc();
     proc_setup_with_uid(p, uid, gid);
     return p;
 }
 
 static proc_t* _tasking_fork_proc_from_current()
 {
-    proc_t* new_proc = _tasking_alloc_proc();
+    proc_t* new_proc = _tasking_setup_proc();
     new_proc->pdir = vmm_new_forked_user_pdir();
     proc_copy_of(new_proc, RUNNING_THREAD);
     return new_proc;
@@ -108,7 +125,7 @@ static proc_t* _tasking_fork_proc_from_current()
 
 static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
 {
-    proc_t* p = &proc[nxt_proc++];
+    proc_t* p = _tasking_alloc_proc();
     kthread_setup(p);
     kthread_setup_regs(p, entry_point);
     return p;
@@ -123,11 +140,8 @@ void tasking_start_init_proc()
     // We need to stop interrupts here, since this part of code
     // is NOT interruptable.
     system_disable_interrupts();
-    proc_t* p = _tasking_alloc_proc_with_uid(0, 0);
+    proc_t* p = _tasking_setup_proc_with_uid(0, 0);
     proc_setup_tty(p, tty_new());
-
-    /* creating new pdir */
-    p->pdir = vmm_new_user_pdir();
 
     if (proc_load(p, p->main_thread, "/boot/init") < 0) {
         kpanic("Failed to load init proc");
@@ -143,6 +157,12 @@ proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
     p->pdir = vmm_get_kernel_pdir();
     kthread_fill_up_stack(p->main_thread, data);
     p->main_thread->status = THREAD_RUNNING;
+    return p;
+}
+
+proc_t* tasking_run_kernel_thread(void* entry_point, void* data)
+{
+    proc_t* p = tasking_create_kernel_thread(entry_point, data);
     sched_enqueue(p->main_thread);
     return p;
 }
@@ -153,7 +173,6 @@ proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
 
 void tasking_init()
 {
-    nxt_proc = 0;
     proc_init_storage();
     signal_init();
     dump_prepare_kernel_data();
@@ -162,7 +181,7 @@ void tasking_init()
 void tasking_kill_dying()
 {
     proc_t* p;
-    for (int i = 0; i < nxt_proc; i++) {
+    for (int i = 0; i < _tasking_get_proc_count(); i++) {
         p = &proc[i];
         if (p->status == PROC_DYING) {
             lock_acquire(&p->lock);

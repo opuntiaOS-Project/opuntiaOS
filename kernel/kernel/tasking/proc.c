@@ -68,6 +68,7 @@ static thread_t* _proc_alloc_thread()
         if (thread_is_free(&thread_list.next_empty_node->thread_storage[i])) {
             thread_list.next_empty_node->empty_spots--;
             thread_list.next_empty_index++;
+            thread_list.next_empty_node->thread_storage[i].status = THREAD_ALLOCATED;
             lock_release(&thread_list.lock);
             return &thread_list.next_empty_node->thread_storage[i];
         }
@@ -344,7 +345,10 @@ success:
 #ifdef FPU_ENABLED
     fpu_init_state(p->main_thread->fpu_state);
 #endif
-    vmm_free_pdir(old_pdir, &old_zones);
+
+    if (old_pdir) {
+        vmm_free_pdir(old_pdir, &old_zones);
+    }
     dynamic_array_clear(&old_zones);
 
     // Setting up proc

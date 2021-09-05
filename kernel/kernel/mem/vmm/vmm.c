@@ -886,8 +886,7 @@ static int _vmm_load_page_with_perm(uint32_t vaddr)
     } else {
         /* FIXME: Now we have a standard zone for kernel, but it's better to do the same thing as for user's pages */
 
-        //Should keep lockless, since kernel interrupt could happen while setting VMM.
-        // log("Fault for address", vaddr, RUNNING_THREAD->process->pid, zone->flags);
+        // Should keep lockless, since kernel interrupt could happen while setting VMM.
         vmm_load_page_lockless(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     }
     return OK;
@@ -1104,7 +1103,7 @@ void* vmm_bring_to_kernel(uint8_t* src, uint32_t length)
 
 static ALWAYS_INLINE void vmm_prepare_active_pdir_for_copying_at_lockless(uint32_t dest_vaddr, uint32_t length)
 {
-    _vmm_ensure_cow_for_range(dest_vaddr, length);
+    _vmm_ensure_write_to_range(dest_vaddr, length);
 }
 
 void vmm_prepare_active_pdir_for_copying_at(uint32_t dest_vaddr, uint32_t length)
@@ -1116,14 +1115,14 @@ void vmm_prepare_active_pdir_for_copying_at(uint32_t dest_vaddr, uint32_t length
 
 static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, uint32_t length)
 {
-    _vmm_ensure_cow_for_range((uint32_t)dest, length);
+    vmm_prepare_active_pdir_for_copying_at_lockless((uint32_t)dest, length);
     memcpy(dest, src, length);
 }
 
 void vmm_copy_to_user(void* dest, void* src, uint32_t length)
 {
     lock_acquire(&_vmm_lock);
-    _vmm_ensure_cow_for_range((uint32_t)dest, length);
+    vmm_prepare_active_pdir_for_copying_at_lockless((uint32_t)dest, length);
     lock_release(&_vmm_lock);
     memcpy(dest, src, length);
 }
@@ -1141,7 +1140,7 @@ static ALWAYS_INLINE void vmm_copy_to_pdir_lockless(pdirectory_t* pdir, void* sr
 
     vmm_switch_pdir_lockless(pdir);
 
-    _vmm_ensure_write_to_range(dest_vaddr, length);
+    vmm_prepare_active_pdir_for_copying_at_lockless(dest_vaddr, length);
     uint8_t* dest = (uint8_t*)dest_vaddr;
     memcpy(dest, ksrc, length);
 
@@ -1165,7 +1164,7 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uint32_t dest_vaddr, uint32
 
     lock_acquire(&_vmm_lock);
     vmm_switch_pdir_lockless(pdir);
-    _vmm_ensure_cow_for_range(dest_vaddr, length);
+    vmm_prepare_active_pdir_for_copying_at_lockless(dest_vaddr, length);
     lock_release(&_vmm_lock);
 
     uint8_t* dest = (uint8_t*)dest_vaddr;
