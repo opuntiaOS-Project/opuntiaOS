@@ -33,12 +33,6 @@ public:
         menubar_content()[0].set_title(name);
     }
 
-    inline void offset_by(int x_offset, int y_offset)
-    {
-        bounds().offset_by(x_offset, y_offset);
-        content_bounds().offset_by(x_offset, y_offset);
-    }
-
     void make_frame();
     void make_frameless();
 
@@ -62,6 +56,10 @@ public:
     inline const std::vector<MenuDir>& menubar_content() const { return m_menubar_content; }
 
     virtual void did_size_change(const LG::Size& size) override;
+
+    inline void set_color(const LG::Color& clr) { m_frame.set_color(clr); }
+    inline LG::Color& color() { return m_frame.color(); }
+    inline const LG::Color& color() const { return m_frame.color(); }
 
 private:
     void recalc_bounds(const LG::Size& size);

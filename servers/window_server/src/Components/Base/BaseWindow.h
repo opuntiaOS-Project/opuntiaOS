@@ -58,6 +58,12 @@ public:
         Connection::the().send_async_message(msg);
     }
 
+    inline void offset_by(int x_offset, int y_offset)
+    {
+        bounds().offset_by(x_offset, y_offset);
+        content_bounds().offset_by(x_offset, y_offset);
+    }
+
     virtual void did_size_change(const LG::Size& size) { }
 
 protected:

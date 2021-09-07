@@ -15,7 +15,7 @@ namespace WinServer {
 MenuBar* s_WinServer_MenuBar_the = nullptr;
 
 MenuBar::MenuBar()
-    : m_background_color(LG::Color(255, 255, 255, 0))
+    : m_background_color(LG::Color::Opaque)
     , m_bounds(0, 0, Screen::the().bounds().width(), height())
     , m_popup(Popup::the())
 {

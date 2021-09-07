@@ -108,14 +108,13 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
 
 std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& msg)
 {
-#ifdef TARGET_MOBILE
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
     if (!window) {
         return nullptr;
     }
-#endif
 
+    window->set_color(LG::Color(msg.color()));
     return nullptr;
 }
 

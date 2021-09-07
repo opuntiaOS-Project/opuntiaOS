@@ -65,7 +65,15 @@ void WindowManager::remove_window_from_screen(Window* window)
         m_movable_window = nullptr;
     }
     if (active_window() == window) {
-        m_compositor.menu_bar().set_menubar_content(&m_std_menubar_content, m_compositor);
+        auto& menu_bar = m_compositor.menu_bar();
+#ifdef TARGET_DESKTOP
+        menu_bar.set_menubar_content(&m_std_menubar_content, m_compositor);
+#elif TARGET_MOBILE
+        if (window->type() == WindowType::Standard) {
+            menu_bar.set_background_color(LG::Color::Opaque);
+            m_compositor.invalidate(menu_bar.bounds());
+        }
+#endif
         m_active_window = nullptr;
     }
     if (hovered_window() == window) {
@@ -164,6 +172,11 @@ void WindowManager::bring_to_front(Window& window)
     auto* prev_window = get_top_standard_window_in_view();
     do_bring_to_front(window);
     m_active_window = &window;
+    if (window.type() == WindowType::Standard) {
+        auto& menu_bar = m_compositor.menu_bar();
+        menu_bar.set_background_color(window.color());
+        m_compositor.invalidate(menu_bar.bounds());
+    }
 }
 #endif // TARGET_DESKTOP
 
