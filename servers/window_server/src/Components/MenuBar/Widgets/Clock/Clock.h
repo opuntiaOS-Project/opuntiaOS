@@ -49,7 +49,6 @@ public:
     size_t width() override { return 70; }
     void draw(LG::Context& ctx) override
     {
-        ctx.set_fill_color(LG::Color::Black);
         size_t twidth = Helpers::text_width(m_date, m_font);
         Helpers::draw_text(ctx, { int(width() - twidth) / 2, 6 }, m_date, m_font);
     }

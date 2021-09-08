@@ -70,4 +70,9 @@ void Window::did_size_change(const LG::Size& size)
     recalc_bounds(size);
 }
 
+void Window::on_style_change()
+{
+    WindowManager::the().on_window_style_change(*this);
+}
+
 } // namespace WinServer

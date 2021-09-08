@@ -114,7 +114,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& m
         return nullptr;
     }
 
-    window->set_color(LG::Color(msg.color()));
+    window->set_style(LG::Color(msg.color()), TextStyle(msg.text_style()));
     return nullptr;
 }
 

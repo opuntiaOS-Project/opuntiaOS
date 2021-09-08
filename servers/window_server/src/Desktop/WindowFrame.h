@@ -7,6 +7,8 @@
  */
 
 #pragma once
+#include "../../shared/MessageContent/MenuBar.h"
+#include "../Colors.h"
 #include "../Components/Elements/Button.h"
 #include "../Event.h"
 #include <libfoundation/EventReceiver.h>
@@ -58,6 +60,9 @@ public:
     inline const LG::Color& color() const { return m_color; }
     inline void set_color(const LG::Color& clr) { m_color = clr; }
 
+    inline TextStyle text_style() const { return m_text_style; }
+    void set_text_style(TextStyle ts);
+
     void set_visible(bool visible)
     {
         m_top_border_size = visible ? std_top_border_size() : 0;
@@ -83,11 +88,14 @@ private:
     Window& m_window;
     std::vector<Button*> m_window_control_buttons;
     std::vector<Button*> m_control_panel_buttons;
+    LG::Color m_text_colors[2];
     LG::Color m_color { LG::Color::LightSystemBackground };
     LG::PixelBitmap m_icon {};
     size_t m_top_border_size { std_top_border_size() };
     bool m_visible { true };
     bool m_active { true };
+
+    TextStyle m_text_style;
 };
 
 } // namespace WinServer

@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include "../../../shared/MessageContent/MenuBar.h"
 #include "../../../shared/MessageContent/Window.h"
 #include "../../Connection.h"
 #include "../MenuBar/MenuItem.h"

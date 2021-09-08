@@ -16,7 +16,7 @@ public:
     TerminalView(UI::View* superview, UI::Window* window, const LG::Rect&, int ptmx);
 
     const LG::Color& font_color() const { return m_font_color; }
-    const LG::Color cursor_color() const { return LG::Color(200, 200, 200, 255); }
+    const LG::Color cursor_color() const { return LG::Color(80, 80, 80, 255); }
     const LG::Color& background_color() const { return m_background_color; }
     inline const LG::Font& font() const { return *m_font_ptr; }
 
@@ -68,8 +68,8 @@ private:
         set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + spacing(), glyph_height()));
     }
 
-    LG::Color m_background_color { 0xE9E9EA };
-    LG::Color m_font_color { LG::Color::LightSystemText };
+    LG::Color m_background_color { LG::Color(47, 47, 53) };
+    LG::Color m_font_color { LG::Color::DarkSystemText };
     LG::Font* m_font_ptr { LG::Font::load_from_file("/res/fonts/Liza.font/10/regular.font") };
 
     constexpr int padding() const { return 2; }

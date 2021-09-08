@@ -57,12 +57,15 @@ public:
 
     virtual void did_size_change(const LG::Size& size) override;
 
-    inline void set_color(const LG::Color& clr) { m_frame.set_color(clr); }
+    inline void set_style(const LG::Color& clr, TextStyle ts) { m_frame.set_color(clr), m_frame.set_text_style(ts), on_style_change(); }
     inline LG::Color& color() { return m_frame.color(); }
     inline const LG::Color& color() const { return m_frame.color(); }
 
+    inline TextStyle text_style() { return m_frame.text_style(); }
+
 private:
     void recalc_bounds(const LG::Size& size);
+    void on_style_change();
 
     WindowFrame m_frame;
     LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };

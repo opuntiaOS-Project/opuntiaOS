@@ -43,6 +43,7 @@ public:
     static constexpr size_t menubar_content_offset() { return 12 + 2 * padding(); }
 
     void set_background_color(const LG::Color& clr) { m_background_color = clr; }
+    void set_text_style(TextStyle ts);
 
     size_t width() const { return m_bounds.width(); }
     LG::Rect& bounds() { return m_bounds; }
@@ -65,13 +66,14 @@ public:
 
     void draw_panel_items(LG::Context& ctx);
     void draw_widgets(LG::Context& ctx);
-    inline void draw_logo(LG::Context& ctx) { ctx.draw({ padding(), 4 }, m_logo); }
+    inline void draw_menu(LG::Context& ctx) { ctx.draw({ padding(), 4 }, m_logo); }
     [[gnu::always_inline]] inline void draw(LG::Context& ctx)
     {
         ctx.set_fill_color(m_background_color);
         ctx.fill({ 0, 0, MenuBar::width(), MenuBar::height() });
 
-        draw_logo(ctx);
+        ctx.set_fill_color(m_text_color);
+        draw_menu(ctx);
         draw_panel_items(ctx);
         draw_widgets(ctx);
     }
@@ -128,7 +130,8 @@ private:
     Popup& m_popup;
     PopupContext m_popup_context;
     LG::Color m_background_color;
-    LG::PixelBitmap m_logo;
+    LG::Color m_text_color;
+    LG::GlyphBitmap m_logo;
 
     bool m_hovered { false };
 };

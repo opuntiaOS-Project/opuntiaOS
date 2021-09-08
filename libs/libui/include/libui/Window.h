@@ -67,7 +67,7 @@ public:
     MenuBar& menubar() { return m_menubar; }
 
     bool set_title(const LG::string& title);
-    bool set_frame_style(const LG::Color& color);
+    bool set_frame_style(const LG::Color& color, TextStyle ts);
     bool did_format_change();
     bool did_buffer_change();
 

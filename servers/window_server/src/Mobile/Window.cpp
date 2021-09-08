@@ -25,4 +25,9 @@ Window::Window(Window&& win)
 {
 }
 
+void Window::on_style_change()
+{
+    WindowManager::the().on_window_style_change(*this);
+}
+
 } // namespace WinServer

@@ -7,7 +7,6 @@
  */
 
 #include "WindowFrame.h"
-#include "../Colors.h"
 #include "../Components/Elements/Button.h"
 #include "../WindowManager.h"
 #include "Window.h"
@@ -66,6 +65,8 @@ WindowFrame::WindowFrame(Window& window)
     , m_window_control_buttons()
     , m_control_panel_buttons()
 {
+    set_text_style(TextStyle::Dark);
+
     auto* close = new Button();
     close->set_icon(LG::GlyphBitmap(s_close_button_glyph_data, 10, 10));
     auto* maximize = new Button();
@@ -143,11 +144,7 @@ void WindowFrame::draw(LG::Context& ctx)
 
     // Drawing labels, icons.
     // Drawing positions are calculated using a start of the frame.
-    if (active()) {
-        ctx.set_fill_color(LG::Color::LightSystemText);
-    } else {
-        ctx.set_fill_color(Color::InactiveText);
-    }
+    ctx.set_fill_color(m_text_colors[(int)active()]);
     ctx.draw({ x + spacing(), y + icon_y_offset() }, icon());
 
     constexpr int start_controls_offset = icon_width() + 2 * spacing();
@@ -216,6 +213,22 @@ void WindowFrame::handle_control_panel_tap(int button_id)
         break;
     case CONTROL_PANEL_MINIMIZE:
         wm.minimize_window(m_window);
+        break;
+    default:
+        break;
+    }
+}
+
+void WindowFrame::set_text_style(TextStyle ts)
+{
+    switch (ts) {
+    case TextStyle::Light:
+        m_text_colors[0] = Color::InactiveText;
+        m_text_colors[1] = LG::Color::DarkSystemText;
+        break;
+    case TextStyle::Dark:
+        m_text_colors[0] = Color::InactiveText;
+        m_text_colors[1] = LG::Color::LightSystemText;
         break;
     default:
         break;

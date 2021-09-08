@@ -43,10 +43,11 @@ public:
     {
         int ptmx = setup_shell();
         auto& window = std::opuntiaos::construct<UI::Window>(window_size(), icon_path());
+        window.set_frame_style(LG::Color(58, 58, 64), TextStyle::Light);
+        window.set_title("Terminal");
+
         auto& superview = window.create_superview<TerminalView, TerminalViewController>(ptmx);
         window.set_focused_view(superview);
-        window.set_frame_style(LG::Color(0x181818));
-        window.set_title("Terminal");
         return true;
     }
 

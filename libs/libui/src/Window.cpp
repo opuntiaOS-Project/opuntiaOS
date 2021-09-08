@@ -44,9 +44,9 @@ bool Window::set_title(const LG::string& title)
     return App::the().connection().send_async_message(msg);
 }
 
-bool Window::set_frame_style(const LG::Color& color)
+bool Window::set_frame_style(const LG::Color& color, TextStyle ts)
 {
-    SetBarStyleMessage msg(Connection::the().key(), id(), color.u32(), 0);
+    SetBarStyleMessage msg(Connection::the().key(), id(), color.u32(), (int)ts);
     return App::the().connection().send_async_message(msg);
 }
 

@@ -12,16 +12,31 @@
 
 namespace WinServer {
 
+static const uint32_t s_menu_button_glyph_data[12] = {
+    0b000000000000,
+    0b000000000000,
+    0b011111111110,
+    0b011111111110,
+    0b000000000000,
+    0b011111100000,
+    0b011111100000,
+    0b000000000000,
+    0b011111111110,
+    0b011111111110,
+    0b000000000000,
+    0b000000000000,
+};
+
 MenuBar* s_WinServer_MenuBar_the = nullptr;
 
 MenuBar::MenuBar()
     : m_background_color(LG::Color::Opaque)
     , m_bounds(0, 0, Screen::the().bounds().width(), height())
     , m_popup(Popup::the())
+    , m_logo(s_menu_button_glyph_data, 12, 12)
 {
     s_WinServer_MenuBar_the = this;
     LG::PNG::PNGLoader loader;
-    m_logo = loader.load_from_file("/res/system/menu_12.png");
 }
 
 void MenuBar::invalidate_widget(BaseWidget* wg)
@@ -105,6 +120,21 @@ void MenuBar::invalidate_menubar_panel(Compositor& compositor)
 void MenuBar::invalidate_menubar_panel()
 {
     invalidate_menubar_panel(Compositor::the());
+}
+
+void MenuBar::set_text_style(TextStyle ts)
+{
+    // FIXME: A color mess
+    switch (ts) {
+    case TextStyle::Light:
+        m_text_color = LG::Color::DarkSystemText;
+        break;
+    case TextStyle::Dark:
+        m_text_color = LG::Color::LightSystemText;
+        break;
+    default:
+        break;
+    }
 }
 
 } // namespace WinServer

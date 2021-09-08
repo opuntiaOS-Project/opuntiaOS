@@ -71,6 +71,7 @@ void WindowManager::remove_window_from_screen(Window* window)
 #elif TARGET_MOBILE
         if (window->type() == WindowType::Standard) {
             menu_bar.set_background_color(LG::Color::Opaque);
+            menu_bar.set_text_style(TextStyle::Dark);
             m_compositor.invalidate(menu_bar.bounds());
         }
 #endif
@@ -175,6 +176,7 @@ void WindowManager::bring_to_front(Window& window)
     if (window.type() == WindowType::Standard) {
         auto& menu_bar = m_compositor.menu_bar();
         menu_bar.set_background_color(window.color());
+        menu_bar.set_text_style(window.text_style());
         m_compositor.invalidate(menu_bar.bounds());
     }
 }
@@ -401,5 +403,24 @@ void WindowManager::notify_window_icon_changed(int changed_window_id)
         }
     }
 }
+
+#ifdef TARGET_DESKTOP
+void WindowManager::on_window_style_change(Window& window)
+{
+    if (window.visible()) {
+        window.frame().invalidate(m_compositor);
+    }
+}
+#elif TARGET_MOBILE
+void WindowManager::on_window_style_change(Window& window)
+{
+    if (active_window() == &window && window.type() == WindowType::Standard) {
+        auto& menu_bar = m_compositor.menu_bar();
+        menu_bar.set_background_color(window.color());
+        menu_bar.set_text_style(window.text_style());
+        m_compositor.invalidate(menu_bar.bounds());
+    }
+}
+#endif
 
 } // namespace WinServer
