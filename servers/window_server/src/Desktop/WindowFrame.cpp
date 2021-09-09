@@ -35,16 +35,16 @@ static const uint32_t s_close_button_glyph_data[10] = {
 };
 
 static const uint32_t s_maximise_button_glyph_data[10] = {
-    0b1111111111,
-    0b1111111111,
-    0b1100000011,
-    0b1100000011,
-    0b1100000011,
-    0b1100000011,
-    0b1100000011,
-    0b1100000011,
-    0b1111111111,
-    0b1111111111
+    0b1111100000,
+    0b1111000000,
+    0b1110000000,
+    0b1100000000,
+    0b1000000000,
+    0b0000000001,
+    0b0000000011,
+    0b0000000111,
+    0b0000001111,
+    0b0000011111
 };
 
 static const uint32_t s_minimise_button_glyph_data[10] = {
@@ -73,6 +73,8 @@ WindowFrame::WindowFrame(Window& window)
     maximize->set_icon(LG::GlyphBitmap(s_maximise_button_glyph_data, 10, 10));
     auto* minimize = new Button();
     minimize->set_icon(LG::GlyphBitmap(s_minimise_button_glyph_data, 10, 10));
+
+    close->set_title_color(LG::Color(196, 128, 128));
 
     m_window_control_buttons.push_back(close);
     m_window_control_buttons.push_back(maximize);
@@ -156,6 +158,12 @@ void WindowFrame::draw(LG::Context& ctx)
 
     int start_buttons = right_x - spacing() - m_window_control_buttons[0]->bounds().width();
     for (int i = 0; i < m_window_control_buttons.size(); i++) {
+        if (active() && i == 0) {
+            ctx.set_fill_color(m_window_control_buttons[i]->title_color());
+        } else {
+            ctx.set_fill_color(m_text_colors[(int)active()]);
+        }
+
         m_window_control_buttons[i]->display(ctx, { start_buttons, y + button_y_offset() });
         start_buttons += -spacing() - m_window_control_buttons[i]->bounds().width();
     }
