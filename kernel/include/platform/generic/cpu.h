@@ -12,6 +12,7 @@
 #include <drivers/generic/fpu.h>
 #include <libkern/types.h>
 #include <mem/vmm/vmm.h>
+#include <mem/vmm/zoner.h>
 #include <platform/generic/tasking/context.h>
 #include <tasking/bits/sched.h>
 
@@ -30,8 +31,8 @@ typedef struct {
     int id;
     int int_depth_counter;
 
-    char* kstack;
     pdirectory_t* pdir;
+    zone_t sched_stack_zone;
     context_t* sched_context; // context of sched's registers
     struct thread* running_thread;
     cpu_state_t current_state;
