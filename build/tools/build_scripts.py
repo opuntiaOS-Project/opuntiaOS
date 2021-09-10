@@ -40,7 +40,7 @@ NC='\\033[0m'
 ERROR="${{RED}}[ERROR]${{NC}}"
 SUCCESS="${{GREEN}}[SUCCESS]${{NC}}"
 
-sudo mkdir -p {0}/mountpoint
+mkdir -p {0}/mountpoint
 sudo fuse-ext2 {1}/one.img {0}/mountpoint -o rw+
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't mount one.img to {0}/mountpoint" && exit 1; fi
 sudo mkdir -p {0}/mountpoint/boot

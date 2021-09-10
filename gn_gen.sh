@@ -43,6 +43,6 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 else
     echo "Please provide path to MKFS in gn_gen.sh"
 fi
-sudo $MKFS -t ext2 -r 0 -b 1024 out/one.img
+$MKFS -t ext2 -r 0 -b 1024 out/one.img
 if [ $? -ne 0 ]; then echo -e "${ERROR} Can't create an out/one.img" && exit 1; fi
 echo -e "${SUCCESS} Generated files with args: $*"
