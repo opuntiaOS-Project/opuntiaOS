@@ -79,7 +79,7 @@ void drivers_run()
     for (int i = 0; i < _drivers_count; i++) {
         if (drivers[i].desc.auto_start) {
             drivers[i].is_active = true;
-            void (*rd)() = (void*)drivers[i].desc.functions[DM_FUNC_DRIVER_START];
+            void (*rd)() = dm_driver_function(i, DM_FUNC_DRIVER_START);
             rd();
         }
     }
@@ -95,7 +95,7 @@ void pass_drivers_to_master_drivers()
                 if (drivers[i].desc.type_of_needed_driver == drivers[j].desc.type) {
                     drivers[i].is_active = true;
                     drivers[j].is_active = true;
-                    void (*rd)(driver_t * nd) = (void*)drivers[i].desc.functions[DM_FUNC_DRIVER_EMIT_DRIVER];
+                    void (*rd)(driver_t * nd) = dm_driver_function(i, DM_FUNC_DRIVER_EMIT_DRIVER);
                     rd(&drivers[j]);
                 }
             }
@@ -110,7 +110,7 @@ void pass_devices_to_master_drivers()
             for (int j = 0; j < _devices_count; j++) {
                 if (drivers[i].desc.type_of_needed_device == devices[j].type) {
                     drivers[i].is_active = true;
-                    void (*rd)(device_t * nd) = (void*)drivers[i].desc.functions[DM_FUNC_DRIVER_EMIT_DEVICE];
+                    void (*rd)(device_t * nd) = dm_driver_function(i, DM_FUNC_DRIVER_EMIT_DEVICE);
                     rd(&devices[j]);
                 }
             }
@@ -132,7 +132,7 @@ void device_install(device_desc_t device_info)
         _dm_no_driver_for_device(device_info);
     } else {
         devices[dev_id].type = drivers[devices[dev_id].driver_id].desc.type;
-        void (*rd)(device_t * nd) = (void*)drivers[devices[dev_id].driver_id].desc.functions[DM_FUNC_DEVICE_START];
+        void (*rd)(device_t * nd) = dm_function_handler(&devices[dev_id], DM_FUNC_DEVICE_START);
         rd(&devices[dev_id]);
     }
 }
@@ -142,7 +142,7 @@ void device_install(device_desc_t device_info)
 void _ask_driver_to_eject_device(uint8_t driver_id, uint8_t dev_id)
 {
     if (drivers[driver_id].desc.type == DRIVER_VIRTUAL_FILE_SYSTEM) {
-        void (*ej)(device_t * nd) = (void*)drivers[driver_id].desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE];
+        void (*ej)(device_t * nd) = dm_driver_function(driver_id, DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE);
         ej(&devices[dev_id]);
     }
 }
@@ -193,8 +193,8 @@ device_t* new_virtual_device(uint8_t type)
 void dm_send_notification(uint32_t msg, uint32_t param)
 {
     for (int i = 0; i < _drivers_count; i++) {
-        if (drivers[i].desc.functions[DM_FUNC_NOTIFY]) {
-            void (*notify)(uint32_t, uint32_t) = (void*)drivers[i].desc.functions[DM_FUNC_NOTIFY];
+        if (dm_driver_function(i, DM_FUNC_NOTIFY)) {
+            void (*notify)(uint32_t, uint32_t) = dm_driver_function(i, DM_FUNC_NOTIFY);
             notify(msg, param);
         }
     }

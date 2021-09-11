@@ -189,4 +189,14 @@ device_t* new_virtual_device(uint8_t type);
 int dm_get_driver_id_by_name();
 void dm_send_notification(uint32_t msg, uint32_t param);
 
+static inline void* dm_driver_function(int driver_id, int function_id)
+{
+    return drivers[driver_id].desc.functions[function_id];
+}
+
+static inline void* dm_function_handler(device_t* dev, int function_id)
+{
+    return dm_driver_function(dev->driver_id, function_id);
+}
+
 #endif // _KERNEL_DRIVERS_DRIVER_MANAGER_H
