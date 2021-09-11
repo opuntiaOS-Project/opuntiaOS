@@ -183,7 +183,7 @@ int elf_check_header(elf_header_32_t* header)
         return -ENOEXEC;
     }
 
-    // FIXME: Currently we support only 32bit execs
+    // Currently we support only 32bit execs
     if (header->e_ident[EI_CLASS] != ELF_CLASS_32) {
         return -EBADARCH;
     }

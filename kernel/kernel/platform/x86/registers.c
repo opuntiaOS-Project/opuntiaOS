@@ -6,8 +6,6 @@
  * found in the LICENSE file.
  */
 
-/* FIXME: Only for one cpu now */
-
 #include <platform/x86/registers.h>
 
 uint32_t read_cr2()

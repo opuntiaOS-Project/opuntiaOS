@@ -6,8 +6,6 @@
  * found in the LICENSE file.
  */
 
-/* FIXME: Only for one cpu now */
-
 #include <libkern/libkern.h>
 #include <platform/aarch32/system.h>
 #include <tasking/tasking.h>

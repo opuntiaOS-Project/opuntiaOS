@@ -130,8 +130,9 @@ void generic_emit_key_set1(uint32_t scancode)
         default:
             key = _generic_keyboard_apply_modifiers(key);
             packet.key = key;
-            /* FIXME: ifdef here to support console mode */
-            /* tty_eat_key(key); */
+#ifdef KERNEL_TEXT_MODE
+            tty_eat_key(key);
+#endif
         }
     }
 

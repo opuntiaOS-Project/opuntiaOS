@@ -6,6 +6,4 @@
  * found in the LICENSE file.
  */
 
-/* FIXME: Only for one cpu now */
-
 #include <platform/aarch32/registers.h>
