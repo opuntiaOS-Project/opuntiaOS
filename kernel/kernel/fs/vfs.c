@@ -239,7 +239,7 @@ int vfs_close(file_descriptor_t* fd)
     return res;
 }
 
-int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
+int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, uid_t gid)
 {
     /* Check if there is a file with the same name */
     dentry_t* tmp;
@@ -248,7 +248,7 @@ int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
         return -EEXIST;
     }
 
-    return dir->ops->file.create(dir, name, len, mode);
+    return dir->ops->file.create(dir, name, len, mode, uid, gid);
 }
 
 int vfs_unlink(dentry_t* file)
@@ -360,12 +360,12 @@ int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
 /**
  * A caller to vfs_mkdir should garantee that dentry_t* dir is alive.
  */
-int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode)
+int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, uid_t gid)
 {
     if (!dentry_inode_test_flag(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
-    return dir->ops->file.mkdir(dir, name, len, mode | S_IFDIR);
+    return dir->ops->file.mkdir(dir, name, len, mode | S_IFDIR, uid, gid);
 }
 
 /**
@@ -414,7 +414,7 @@ int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
     stat->ino = fd->dentry->inode_indx;
     stat->mode = fd->dentry->inode->mode;
     stat->size = fd->dentry->inode->size;
-    // FIXME: Fill more stat data here.
+    // TODO: Fill more stat data here.
 
     lock_release(&fd->lock);
     return 0;

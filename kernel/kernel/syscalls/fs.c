@@ -46,7 +46,7 @@ void sys_open(trapframe_t* tf)
             return_with_val(-ENOENT);
         }
 
-        int err = vfs_create(dir, kname, name_len, mode);
+        int err = vfs_create(dir, kname, name_len, mode, p->uid, p->gid);
         if (err && (flags & O_EXCL)) {
             dentry_put(dir);
             kfree(kname);
@@ -212,7 +212,7 @@ void sys_mkdir(trapframe_t* tf)
     }
 
     mode_t dir_mode = S_IFDIR | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-    int res = vfs_mkdir(dir, kname, name_len, dir_mode);
+    int res = vfs_mkdir(dir, kname, name_len, dir_mode, p->uid, p->gid);
     kfree(kname);
     kfree(kpath);
     return_with_val(res);

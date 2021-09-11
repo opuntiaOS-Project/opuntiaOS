@@ -85,10 +85,10 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
 
 static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* name, int len);
 static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry);
-static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode);
+static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode, uid_t uid, uid_t gid);
 
 /* FILE FUNCTIONS */
-static int _ext2_setup_file(dentry_t* file, mode_t mode);
+static int _ext2_setup_file(dentry_t* file, mode_t mode, uid_t uid, uid_t gid);
 
 /* API FUNTIONS */
 int ext2_recognize_drive(vfs_device_t* dev);
@@ -100,9 +100,9 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
 int ext2_truncate(dentry_t* dentry, uint32_t len);
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
-int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
+int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, uid_t gid);
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
-int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode);
+int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, uid_t gid);
 int ext2_rm(dentry_t* dentry);
 
 /**
@@ -769,10 +769,11 @@ static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
     return -ENOENT;
 }
 
-static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode)
+static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode, uid_t uid, uid_t gid)
 {
     dir->inode->mode = mode;
-    dir->inode->uid = 0; // FIXME: uid of real user
+    dir->inode->uid = uid;
+    dir->inode->gid = gid;
     dir->inode->links_count = 0;
     dir->inode->blocks = 0;
     dentry_set_flag(dir, DENTRY_DIRTY);
@@ -789,10 +790,11 @@ static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode)
  * FILE FUNCTIONS
  */
 
-static int _ext2_setup_file(dentry_t* file, mode_t mode)
+static int _ext2_setup_file(dentry_t* file, mode_t mode, uid_t uid, uid_t gid)
 {
     file->inode->mode = mode;
-    file->inode->uid = 0; // FIXME: uid of real user
+    file->inode->uid = uid;
+    file->inode->gid = gid;
     file->inode->links_count = 0;
     file->inode->blocks = 0;
     file->inode->size = 0;
@@ -923,10 +925,9 @@ int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result
     return -ENOENT;
 }
 
-int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
+int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, uid_t gid)
 {
     lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
-    log("in mkdir");
     uint32_t new_dir_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_dir_inode_indx, 0) < 0) {
         lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
@@ -935,7 +936,7 @@ int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
 
     dentry_t* new_dir = dentry_get(dir->dev_indx, new_dir_inode_indx);
 
-    if (_ext2_setup_dir(new_dir, dir, mode) < 0) {
+    if (_ext2_setup_dir(new_dir, dir, mode, uid, gid) < 0) {
         dentry_put(new_dir);
         lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -EFAULT;
@@ -1027,7 +1028,7 @@ int ext2_getdents(dentry_t* dentry, uint8_t* buf, uint32_t* offset, uint32_t len
     return already_read;
 }
 
-int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
+int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, uid_t gid)
 {
     lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     uint32_t new_file_inode_indx = 0;
@@ -1037,7 +1038,7 @@ int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
     }
     dentry_t* new_file = dentry_get(dir->dev_indx, new_file_inode_indx);
 
-    if (_ext2_setup_file(new_file, mode) < 0) {
+    if (_ext2_setup_file(new_file, mode, uid, gid) < 0) {
         dentry_put(new_file);
         lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -EFAULT;

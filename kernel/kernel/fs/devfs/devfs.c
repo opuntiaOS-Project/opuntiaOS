@@ -407,7 +407,7 @@ int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** resul
     return -ENOENT;
 }
 
-int devfs_mkdir_dummy(dentry_t* dir, const char* name, uint32_t len, mode_t mode)
+int devfs_mkdir_dummy(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid)
 {
     return -1;
 }
