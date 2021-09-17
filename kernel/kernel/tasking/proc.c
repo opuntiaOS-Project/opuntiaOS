@@ -302,13 +302,14 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
 
 static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, const char* path)
 {
+    int err;
     file_descriptor_t fd;
     dentry_t* dentry;
 
-    if (vfs_resolve_path_start_from(p->cwd, path, &dentry) < 0) {
+    if (vfs_resolve_path_start_from(p->cwd, path, &dentry) != 0) {
         return -ENOENT;
     }
-    if (vfs_open(dentry, &fd, O_RDONLY) < 0) {
+    if (vfs_open(dentry, &fd, O_EXEC) != 0) {
         dentry_put(dentry);
         return -ENOENT;
     }
@@ -328,7 +329,7 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
         return -ENOMEM;
     }
 
-    int err = elf_load(p, &fd);
+    err = elf_load(p, &fd);
     if (err) {
         goto restore;
     }

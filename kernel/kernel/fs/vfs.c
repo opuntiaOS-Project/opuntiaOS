@@ -181,6 +181,8 @@ void vfs_add_fs(driver_t* new_driver)
 
 int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
 {
+    thread_t* cur_thread = RUNNING_THREAD;
+
     if (!file) {
         return -EFAULT;
     }
@@ -193,8 +195,29 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
         return -EPERM;
     }
 
-    if (!dentry_inode_test_flag(file, S_IFSOCK) && dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
+    if (dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
         return -EISDIR;
+    }
+
+    if (flags & O_EXEC) {
+        if (vfs_perm_to_execute(fd, cur_thread) != 0) {
+            return -EACCES;
+        }
+    }
+
+    if (flags & O_WRONLY) {
+        if (vfs_perm_to_write(fd, cur_thread) != 0) {
+            return -EACCES;
+        }
+        if (dentry_inode_test_flag(file, S_IFDIR)) {
+            return -EISDIR;
+        }
+    }
+
+    if (flags & O_RDONLY) {
+        if (vfs_perm_to_read(fd, cur_thread) != 0) {
+            return -EACCES;
+        }
     }
 
     /* If it has custom open, let's use it */
@@ -598,4 +621,91 @@ int vfs_munmap(proc_t* p, proc_zone_t* zone)
     proc_delete_zone(p, zone);
 
     return 0;
+}
+
+int vfs_perm_to_read(file_descriptor_t* fd, thread_t* thread)
+{
+    // If no running, so call is from kernel
+    uid_t uid = 0;
+    gid_t gid = 0;
+    if (likely(thread)) {
+        uid = thread->process->uid;
+        gid = thread->process->gid;
+    }
+
+    mode_t mode = fd->dentry->inode->mode;
+    uid_t fuid = fd->dentry->inode->uid;
+    gid_t fgid = fd->dentry->inode->gid;
+    if (uid == 0) {
+        return 0;
+    }
+    if (uid == fuid && (mode & S_IRUSR) == S_IRUSR) {
+        return 0;
+    }
+    if (gid == fgid && (mode & S_IRGRP) == S_IRGRP) {
+        return 0;
+    }
+    if (uid != fuid && gid != fgid && (mode & S_IROTH) == S_IROTH) {
+        return 0;
+    }
+
+    return -EPERM;
+}
+
+int vfs_perm_to_write(file_descriptor_t* fd, thread_t* thread)
+{
+    // If no running, so call is from kernel
+    uid_t uid = 0;
+    gid_t gid = 0;
+    if (likely(thread)) {
+        uid = thread->process->uid;
+        gid = thread->process->gid;
+    }
+
+    mode_t mode = fd->dentry->inode->mode;
+    uid_t fuid = fd->dentry->inode->uid;
+    gid_t fgid = fd->dentry->inode->gid;
+    if (uid == 0) {
+        return 0;
+    }
+    if (uid == fuid && (mode & S_IWUSR) == S_IWUSR) {
+        return 0;
+    }
+    if (gid == fgid && (mode & S_IWGRP) == S_IWGRP) {
+        return 0;
+    }
+    if (uid != fuid && gid != fgid && (mode & S_IWOTH) == S_IWOTH) {
+        return 0;
+    }
+
+    return -EPERM;
+}
+
+int vfs_perm_to_execute(file_descriptor_t* fd, thread_t* thread)
+{
+    // If no running, so call is from kernel
+    uid_t uid = 0;
+    gid_t gid = 0;
+    if (likely(thread)) {
+        uid = thread->process->uid;
+        gid = thread->process->gid;
+    }
+
+    mode_t mode = fd->dentry->inode->mode;
+    uid_t fuid = fd->dentry->inode->uid;
+    gid_t fgid = fd->dentry->inode->gid;
+    if (uid == 0) {
+        return 0;
+    }
+    if (uid == fuid && (mode & S_IXUSR) == S_IXUSR) {
+        return 0;
+    }
+    if (gid == fgid && (mode & S_IXGRP) == S_IXGRP) {
+        return 0;
+    }
+    if (uid != fuid && gid != fgid && (mode & S_IXOTH) == S_IXOTH) {
+        return 0;
+    }
+
+    return -EPERM;
 }

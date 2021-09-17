@@ -18,6 +18,7 @@ void sys_open(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = proc_get_free_fd(p);
+    dentry_t* file;
     const char* path = (char*)param1;
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
@@ -28,8 +29,8 @@ void sys_open(trapframe_t* tf)
     size_t path_len = strlen(path);
     kpath = kmem_bring_to_kernel(path, path_len + 1);
 
-    mode_t mode = param3;
-    dentry_t* file;
+    // Only permission flags
+    mode_t mode = param3 & 0x777;
 
     if (flags & O_CREAT) {
         char* kname = vfs_helper_split_path_with_name(kpath, path_len);

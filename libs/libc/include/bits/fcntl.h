@@ -14,5 +14,6 @@
 #define O_TRUNC 0x20
 #define O_APPEND 0x40
 #define O_EXCL 0x80
+#define O_EXEC 0x100
 
 #endif // _LIBC_BITS_FCNTL_H

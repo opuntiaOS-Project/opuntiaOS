@@ -220,14 +220,13 @@ void tasking_fork(trapframe_t* tf)
 
 static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, int argc, char** argv, char** env)
 {
-    int res = proc_load(p, main_thread, path);
-    if (res == 0) {
-        thread_fill_up_stack(p->main_thread, argc, argv, env);
+    int err = proc_load(p, main_thread, path);
+    if (err) {
+        return err;
     }
-    return res;
+    return thread_fill_up_stack(p->main_thread, argc, argv, env);
 }
 
-/* TODO: Posix & zeroing-on-demand */
 int tasking_exec(const char* path, const char** argv, const char** env)
 {
     thread_t* thread = RUNNING_THREAD;

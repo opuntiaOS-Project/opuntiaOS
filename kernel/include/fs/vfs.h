@@ -231,4 +231,9 @@ struct proc;
 struct proc_zone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
 int vfs_munmap(struct proc* p, struct proc_zone*);
 
+struct thread;
+int vfs_perm_to_read(file_descriptor_t* fd, struct thread* t);
+int vfs_perm_to_write(file_descriptor_t* fd, struct thread* t);
+int vfs_perm_to_execute(file_descriptor_t* fd, struct thread* t);
+
 #endif // _KERNEL_FS_VFS_H
