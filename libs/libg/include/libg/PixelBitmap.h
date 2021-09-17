@@ -27,7 +27,7 @@ public:
     PixelBitmap() = default;
     PixelBitmap(size_t width, size_t height, PixelBitmapFormat format = RGB);
     PixelBitmap(Color* buffer, size_t width, size_t height, PixelBitmapFormat format = RGB);
-    PixelBitmap(PixelBitmap& bitmap);
+    PixelBitmap(const PixelBitmap& bitmap);
     PixelBitmap(PixelBitmap&& moved_bitmap) noexcept;
     ~PixelBitmap()
     {

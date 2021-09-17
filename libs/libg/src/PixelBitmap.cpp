@@ -26,8 +26,7 @@ PixelBitmap::PixelBitmap(size_t width, size_t height, PixelBitmapFormat format)
 {
 }
 
-// FIXME: Possible mem leak.
-PixelBitmap::PixelBitmap(PixelBitmap& bitmap)
+PixelBitmap::PixelBitmap(const PixelBitmap& bitmap)
     : m_data(nullptr)
     , m_bounds(bitmap.m_bounds)
     , m_should_free(bitmap.m_should_free)

@@ -67,7 +67,7 @@ bool selector_is_valid(SEL sel)
 // TODO: We currently do it really stupid
 void selector_table_init()
 {
-    selector_pool_start = selector_pool_next = (struct objc_selector*)malloc(1024);
+    selector_pool_start = selector_pool_next = (struct objc_selector*)objc_malloc(1024);
 }
 
 void selector_add_from_module(struct objc_selector* selectors)
