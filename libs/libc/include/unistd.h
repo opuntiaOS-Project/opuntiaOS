@@ -27,6 +27,7 @@ off_t lseek(int fd, off_t off, int whence);
 
 /* identity */
 uid_t getuid();
+char* getlogin();
 
 /* sched */
 int nice(int inc);

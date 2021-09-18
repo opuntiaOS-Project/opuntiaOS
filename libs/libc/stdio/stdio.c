@@ -160,7 +160,6 @@ int putchar(int c)
 
 int fputs(const char* s, FILE* stream)
 {
-    // HERE
     size_t len = strlen(s);
 
     int res = fwrite(s, len, 1, stream);
@@ -211,6 +210,7 @@ int ungetc(int c, FILE* stream)
         return EOF;
     }
 
+    stream->_flags &= ~_IO_EOF_SEEN;
     stream->_ungotc = c;
     return c;
 }
@@ -230,8 +230,14 @@ char* fgets(char* s, int size, FILE* stream)
     fflush(stderr);
 
     while (c != '\n' && rd < size) {
-        if ((c = fgetc(stream)) < 0)
-            return NULL;
+        if ((c = fgetc(stream)) < 0) {
+            if (rd == 0) {
+                return NULL;
+            }
+            // EOF should be set
+            s[rd] = '\0';
+            break;
+        }
         s[rd++] = c;
     }
 
@@ -290,6 +296,11 @@ int fflush(FILE* stream)
         return -EBADF;
 
     return _flush_wbuf(stream);
+}
+
+int feof(FILE* stream)
+{
+    return stream->_flags & _IO_EOF_SEEN;
 }
 
 int __stream_info(FILE* stream)
@@ -550,8 +561,13 @@ static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
     if (!size)
         return 0;
 
-    if (!_can_use_buffer(stream))
-        return _do_system_read(ptr, size, stream);
+    if (!_can_use_buffer(stream)) {
+        total_size = _do_system_read(ptr, size, stream);
+        if (total_size != size) {
+            stream->_flags |= _IO_EOF_SEEN;
+        }
+        return total_size;
+    }
 
     total_size = 0;
 
@@ -581,8 +597,12 @@ static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
         stream->_r = _do_system_read(
             stream->_bf.rbuf.ptr, stream->_bf.rbuf.size, stream);
 
-        if (!stream->_r)
+        if (!stream->_r) {
+            if (total_size != size) {
+                stream->_flags |= _IO_EOF_SEEN;
+            }
             return total_size;
+        }
 
         read_from_buf = min(stream->_r, size);
         memcpy(ptr, stream->_bf.rbuf.ptr, read_from_buf);
@@ -593,6 +613,9 @@ static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
         total_size += read_from_buf;
     }
 
+    if (total_size != size) {
+        stream->_flags |= _IO_EOF_SEEN;
+    }
     return total_size;
 }
 

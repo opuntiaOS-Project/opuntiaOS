@@ -112,6 +112,7 @@ group("userland") {
     "//userland/utilities/rmdir:rmdir",
     "//userland/utilities/touch:touch",
     "//userland/utilities/uname:uname",
+    "//userland/utilities/whoami:whoami",
   ]
 
   if (compile_tests) {

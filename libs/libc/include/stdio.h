@@ -77,6 +77,10 @@ int ungetc(int c, FILE* stream);
 /* Get a string from the given stream, of max 'size'. */
 char* fgets(char* str, int size, FILE* stream);
 
+/* Checks whether the end-of-File indicator associated with stream is set, 
+   returning a value different from zero if it is. */
+int feof(FILE* stream);
+
 /* Set the buffering mode of the stream. 'mode' can either be _IOFBF, _IOLBF
    or _IONBF. If 'buf' is NULL, resize the internal buffer to 'size'. If 'buf'
    is instead not NULL, it changes the internal buffer to the user provided
