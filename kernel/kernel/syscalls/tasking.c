@@ -49,22 +49,6 @@ void sys_sigreturn(trapframe_t* tf)
     signal_restore_thread_after_handling_signal(RUNNING_THREAD);
 }
 
-void sys_raise(trapframe_t* tf)
-{
-    signal_set_pending(RUNNING_THREAD, (int)param1);
-    signal_dispatch_pending(RUNNING_THREAD);
-}
-
-void sys_getpid(trapframe_t* tf)
-{
-    return_with_val(RUNNING_THREAD->tid);
-}
-
-void sys_getuid(trapframe_t* tf)
-{
-    return_with_val(RUNNING_THREAD->process->uid);
-}
-
 void sys_kill(trapframe_t* tf)
 {
     thread_t* thread = thread_by_pid(param1);

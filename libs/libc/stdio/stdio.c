@@ -563,7 +563,7 @@ static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
 
     if (!_can_use_buffer(stream)) {
         total_size = _do_system_read(ptr, size, stream);
-        if (total_size != size) {
+        if (total_size < size) {
             stream->_flags |= _IO_EOF_SEEN;
         }
         return total_size;
@@ -598,7 +598,7 @@ static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
             stream->_bf.rbuf.ptr, stream->_bf.rbuf.size, stream);
 
         if (!stream->_r) {
-            if (total_size != size) {
+            if (size) {
                 stream->_flags |= _IO_EOF_SEEN;
             }
             return total_size;
@@ -613,9 +613,6 @@ static size_t _fread_internal(char* ptr, size_t size, FILE* stream)
         total_size += read_from_buf;
     }
 
-    if (total_size != size) {
-        stream->_flags |= _IO_EOF_SEEN;
-    }
     return total_size;
 }
 

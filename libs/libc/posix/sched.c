@@ -4,7 +4,7 @@
 
 void sched_yield()
 {
-    DO_SYSCALL_0(SYS_SCHEDYIELD);
+    DO_SYSCALL_0(SYS_SCHED_YIELD);
 }
 
 int nice(int inc)

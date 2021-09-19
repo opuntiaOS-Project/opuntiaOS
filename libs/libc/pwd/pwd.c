@@ -30,6 +30,7 @@ static passwd_t* parse_passwd_entry(char* res)
             }
         }
     }
+    passwd_buf[len] = '\0';
 
     if (nxt_part != 7) {
         return NULL;
@@ -96,7 +97,7 @@ passwd_t* getpwuid(uid_t uid)
 {
     passwd_t* passwd;
     setpwent();
-    while (passwd = getpwent()) {
+    while ((passwd = getpwent())) {
         if (passwd->pw_uid == uid) {
             return passwd;
         }
@@ -108,7 +109,7 @@ passwd_t* getpwnam(const char* name)
 {
     passwd_t* passwd;
     setpwent();
-    while (passwd = getpwent()) {
+    while ((passwd = getpwent())) {
         if (!strcmp(passwd->pw_name, name)) {
             return passwd;
         }

@@ -9,7 +9,7 @@ int fork()
 
 int execve(const char* path, char** argv, char** env)
 {
-    int res = DO_SYSCALL_3(SYS_EXEC, (int)path, (int)argv, (int)env);
+    int res = DO_SYSCALL_3(SYS_EXECVE, (int)path, (int)argv, (int)env);
     RETURN_WITH_ERRNO(res, -1, -1);
 }
 

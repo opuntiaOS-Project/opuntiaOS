@@ -3,7 +3,7 @@
 
 int gettimeofday(timeval_t* tv, timezone_t* tz)
 {
-    int res = DO_SYSCALL_2(SYS_GET_TIME_OF_DAY, tv, tz);
+    int res = DO_SYSCALL_2(SYS_GETTIMEOFDAY, tv, tz);
     RETURN_WITH_ERRNO(res, res, -1);
 }
 

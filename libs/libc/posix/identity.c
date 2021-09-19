@@ -14,6 +14,26 @@ uid_t geteuid()
     return 0;
 }
 
+int setuid(uid_t uid)
+{
+    return DO_SYSCALL_1(SYS_SETUID, uid);
+}
+
+int setgid(gid_t gid)
+{
+    return DO_SYSCALL_1(SYS_SETGID, gid);
+}
+
+int setreuid(uid_t ruid, uid_t euid)
+{
+    return DO_SYSCALL_2(SYS_SETREUID, ruid, euid);
+}
+
+int setregid(gid_t rgid, gid_t egid)
+{
+    return DO_SYSCALL_2(SYS_SETREGID, rgid, egid);
+}
+
 static char loginbuf[128];
 char* getlogin()
 {

@@ -148,4 +148,10 @@ proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, uint32_t addr);
 int proc_delete_zone_no_proc(dynamic_array_t*, proc_zone_t*);
 int proc_delete_zone(proc_t*, proc_zone_t*);
 
+/**
+ * PROC HELPER FUNCTIONS
+ */
+
+static inline bool proc_is_su(proc_t* p) { return p->euid == 0; }
+
 #endif // _KERNEL_TASKING_PROC_H

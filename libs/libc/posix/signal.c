@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <sysdep.h>
+#include <unistd.h>
 
 int sigaction(int signo, void* callback)
 {
@@ -9,8 +10,7 @@ int sigaction(int signo, void* callback)
 
 int raise(int signo)
 {
-    int res = DO_SYSCALL_1(SYS_RAISE, signo);
-    RETURN_WITH_ERRNO(res, 0, res);
+    return kill(getpid(), signo);
 }
 
 int kill(pid_t pid, int signo)

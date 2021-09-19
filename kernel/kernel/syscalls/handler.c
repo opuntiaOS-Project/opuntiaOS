@@ -15,11 +15,8 @@
 #include <syscalls/handlers.h>
 #include <tasking/cpu.h>
 
-/* From Linux 4.14.0 headers. */
-/* https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#x86-32_bit */
-
 static const void* syscalls[] = {
-    [SYS_RESTART] = sys_restart_syscall,
+    [SYS_RESTART_SYSCALL] = sys_restart_syscall,
     [SYS_EXIT] = sys_exit,
     [SYS_FORK] = sys_fork,
     [SYS_READ] = sys_read,
@@ -30,15 +27,18 @@ static const void* syscalls[] = {
     [SYS_CREAT] = sys_creat,
     [SYS_LINK] = sys_none, // sys_link
     [SYS_UNLINK] = sys_unlink,
-    [SYS_EXEC] = sys_exec,
+    [SYS_EXECVE] = sys_exec,
     [SYS_CHDIR] = sys_chdir,
     [SYS_SIGACTION] = sys_sigaction,
     [SYS_SIGRETURN] = sys_sigreturn,
-    [SYS_RAISE] = sys_raise,
-    [SYS_GET_TIME_OF_DAY] = sys_gettimeofday,
+    [SYS_GETTIMEOFDAY] = sys_gettimeofday,
     [SYS_LSEEK] = sys_lseek,
     [SYS_GETPID] = sys_getpid,
     [SYS_GETUID] = sys_getuid,
+    [SYS_SETUID] = sys_setuid,
+    [SYS_SETGID] = sys_setgid,
+    [SYS_SETREUID] = sys_setreuid,
+    [SYS_SETREGID] = sys_setregid,
     [SYS_KILL] = sys_kill,
     [SYS_MKDIR] = sys_mkdir,
     [SYS_RMDIR] = sys_rmdir,
@@ -51,11 +51,11 @@ static const void* syscalls[] = {
     [SYS_IOCTL] = sys_ioctl,
     [SYS_SETPGID] = sys_setpgid,
     [SYS_GETPGID] = sys_getpgid,
-    [SYS_PTHREADCREATE] = sys_create_thread,
-    [SYS_SLEEP] = sys_sleep,
+    [SYS_PTHREAD_CREATE] = sys_create_thread,
+    [SYS_NANOSLEEP] = sys_sleep,
     [SYS_SELECT] = sys_select,
     [SYS_FSTAT] = sys_fstat,
-    [SYS_SCHEDYIELD] = sys_sched_yield,
+    [SYS_SCHED_YIELD] = sys_sched_yield,
     [SYS_UNAME] = sys_uname,
     [SYS_CLOCK_GETTIME] = sys_clock_gettime,
     [SYS_CLOCK_SETTIME] = sys_none,
