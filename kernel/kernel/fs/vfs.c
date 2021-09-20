@@ -200,13 +200,15 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
     }
 
     if (flags & O_EXEC) {
-        if (vfs_perm_to_execute(fd, cur_thread) != 0) {
+        if (vfs_perm_to_execute(file, cur_thread) != 0) {
+            log("can't open exec");
             return -EACCES;
         }
     }
 
     if (flags & O_WRONLY) {
-        if (vfs_perm_to_write(fd, cur_thread) != 0) {
+        if (vfs_perm_to_write(file, cur_thread) != 0) {
+            log("can't open write");
             return -EACCES;
         }
         if (dentry_inode_test_flag(file, S_IFDIR)) {
@@ -215,7 +217,8 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
     }
 
     if (flags & O_RDONLY) {
-        if (vfs_perm_to_read(fd, cur_thread) != 0) {
+        if (vfs_perm_to_read(file, cur_thread) != 0) {
+            log("can't open read");
             return -EACCES;
         }
     }
@@ -623,7 +626,7 @@ int vfs_munmap(proc_t* p, proc_zone_t* zone)
     return 0;
 }
 
-int vfs_perm_to_read(file_descriptor_t* fd, thread_t* thread)
+int vfs_perm_to_read(dentry_t* dentry, thread_t* thread)
 {
     // If no running, so call is from kernel
     uid_t uid = 0;
@@ -633,9 +636,9 @@ int vfs_perm_to_read(file_descriptor_t* fd, thread_t* thread)
         gid = thread->process->gid;
     }
 
-    mode_t mode = fd->dentry->inode->mode;
-    uid_t fuid = fd->dentry->inode->uid;
-    gid_t fgid = fd->dentry->inode->gid;
+    mode_t mode = dentry->inode->mode;
+    uid_t fuid = dentry->inode->uid;
+    gid_t fgid = dentry->inode->gid;
     if (uid == 0) {
         return 0;
     }
@@ -652,7 +655,7 @@ int vfs_perm_to_read(file_descriptor_t* fd, thread_t* thread)
     return -EPERM;
 }
 
-int vfs_perm_to_write(file_descriptor_t* fd, thread_t* thread)
+int vfs_perm_to_write(dentry_t* dentry, thread_t* thread)
 {
     // If no running, so call is from kernel
     uid_t uid = 0;
@@ -662,9 +665,9 @@ int vfs_perm_to_write(file_descriptor_t* fd, thread_t* thread)
         gid = thread->process->gid;
     }
 
-    mode_t mode = fd->dentry->inode->mode;
-    uid_t fuid = fd->dentry->inode->uid;
-    gid_t fgid = fd->dentry->inode->gid;
+    mode_t mode = dentry->inode->mode;
+    uid_t fuid = dentry->inode->uid;
+    gid_t fgid = dentry->inode->gid;
     if (uid == 0) {
         return 0;
     }
@@ -681,7 +684,7 @@ int vfs_perm_to_write(file_descriptor_t* fd, thread_t* thread)
     return -EPERM;
 }
 
-int vfs_perm_to_execute(file_descriptor_t* fd, thread_t* thread)
+int vfs_perm_to_execute(dentry_t* dentry, thread_t* thread)
 {
     // If no running, so call is from kernel
     uid_t uid = 0;
@@ -691,9 +694,9 @@ int vfs_perm_to_execute(file_descriptor_t* fd, thread_t* thread)
         gid = thread->process->gid;
     }
 
-    mode_t mode = fd->dentry->inode->mode;
-    uid_t fuid = fd->dentry->inode->uid;
-    gid_t fgid = fd->dentry->inode->gid;
+    mode_t mode = dentry->inode->mode;
+    uid_t fuid = dentry->inode->uid;
+    gid_t fgid = dentry->inode->gid;
     if (uid == 0) {
         return 0;
     }

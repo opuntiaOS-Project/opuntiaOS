@@ -55,7 +55,7 @@ int generic_keyboard_create_devfs()
     file_ops_t fops = { 0 };
     fops.can_read = _generic_keyboard_can_read;
     fops.read = _generic_keyboard_read;
-    devfs_inode_t* res = devfs_register(mp, MKDEV(11, 0), "kbd", 3, 0, &fops);
+    devfs_inode_t* res = devfs_register(mp, MKDEV(11, 0), "kbd", 3, 0400, &fops);
 
     dentry_put(mp);
     return 0;

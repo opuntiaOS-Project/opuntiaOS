@@ -49,6 +49,19 @@ sudo mkdir -p {0}/mountpoint/dev
 sudo mkdir -p {0}/mountpoint/tmp
 sudo cp -r {0}/base/* {0}/mountpoint/
 sudo cp -r {1}/base/* {0}/mountpoint/
+
+sudo chmod -R 644 {0}/mountpoint/proc
+sudo chmod -R 644 {0}/mountpoint/dev
+sudo chmod -R 666 {0}/mountpoint/tmp
+sudo chmod -R 755 {0}/mountpoint/bin
+sudo chmod -R 700 {0}/mountpoint/home
+sudo chmod 777 {0}/mountpoint/home
+sudo chmod -R 755 {0}/mountpoint/System
+sudo chmod -R 755 {0}/mountpoint/Applications
+
+sudo chown -R 0 {0}/mountpoint/home/root
+sudo chown -R 10 {0}/mountpoint/home/user
+
 sudo umount {0}/mountpoint
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't umount {0}/mountpoint" && exit 1; fi
 echo -e "${{SUCCESS}} Sync"

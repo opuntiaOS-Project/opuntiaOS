@@ -55,7 +55,7 @@ int ptmx_install()
     fops.can_write = ptmx_can_write;
     fops.read = ptmx_read;
     fops.write = ptmx_write;
-    devfs_inode_t* res = devfs_register(mp, MKDEV(5, 2), "ptmx", 4, 0, &fops);
+    devfs_inode_t* res = devfs_register(mp, MKDEV(5, 2), "ptmx", 4, 0777, &fops);
     dentry_put(mp);
     return 0;
 }

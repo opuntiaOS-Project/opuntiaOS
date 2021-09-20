@@ -100,6 +100,9 @@ void DockView::set_icon(int window_id, const LG::string& path)
 void DockView::launch(const FastLaunchEntity& ent)
 {
     if (fork() == 0) {
+        // Switching to test "user"
+        setuid(10);
+        setgid(10);
         execve(ent.path_to_exec().c_str(), 0, 0);
         std::abort();
     }

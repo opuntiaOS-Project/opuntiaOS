@@ -306,6 +306,7 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
     file_descriptor_t fd;
     dentry_t* dentry;
 
+    log("starting %s", path);
     if (vfs_resolve_path_start_from(p->cwd, path, &dentry) != 0) {
         return -ENOENT;
     }
