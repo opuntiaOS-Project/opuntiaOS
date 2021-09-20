@@ -396,11 +396,11 @@ static int _parse_mode(const char* mode, mode_t* flags)
 
     switch (mode[0]) {
     case 'r':
-        *flags = has_plus ? O_RDWR : O_RDONLY;
+        *flags = has_plus ? O_RDONLY : O_RDWR;
         return 0;
 
     case 'w':
-        *flags = has_plus ? O_RDWR | O_CREAT : O_WRONLY | O_CREAT;
+        *flags = has_plus ? (O_WRONLY | O_CREAT) : (O_RDWR | O_CREAT);
         return 0;
 
     case 'a':
