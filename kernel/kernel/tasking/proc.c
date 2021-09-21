@@ -306,7 +306,6 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
     file_descriptor_t fd;
     dentry_t* dentry;
 
-    log("starting %s", path);
     if (vfs_resolve_path_start_from(p->cwd, path, &dentry) != 0) {
         return -ENOENT;
     }
@@ -358,6 +357,16 @@ success:
     if (!p->cwd) {
         p->cwd = dentry_get_parent(p->proc_file);
     }
+
+    if ((fd.dentry->inode->mode & S_ISUID) == S_ISUID) {
+        p->euid = fd.dentry->inode->uid;
+        p->suid = fd.dentry->inode->uid;
+    }
+    if ((fd.dentry->inode->mode & S_ISGID) == S_ISGID) {
+        p->egid = fd.dentry->inode->gid;
+        p->sgid = fd.dentry->inode->gid;
+    }
+
     vfs_close(&fd);
     return 0;
 

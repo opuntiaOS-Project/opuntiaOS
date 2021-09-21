@@ -629,17 +629,18 @@ int vfs_munmap(proc_t* p, proc_zone_t* zone)
 int vfs_perm_to_read(dentry_t* dentry, thread_t* thread)
 {
     // If no running, so call is from kernel
-    uid_t uid = 0;
-    gid_t gid = 0;
-    if (likely(thread)) {
-        uid = thread->process->uid;
-        gid = thread->process->gid;
+    if (!thread) {
+        return 0;
     }
+
+    proc_t* proc = thread->process;
+    uid_t uid = proc->uid;
+    gid_t gid = proc->gid;
 
     mode_t mode = dentry->inode->mode;
     uid_t fuid = dentry->inode->uid;
     gid_t fgid = dentry->inode->gid;
-    if (uid == 0) {
+    if (proc_is_su(proc)) {
         return 0;
     }
     if (uid == fuid && (mode & S_IRUSR) == S_IRUSR) {
@@ -658,17 +659,18 @@ int vfs_perm_to_read(dentry_t* dentry, thread_t* thread)
 int vfs_perm_to_write(dentry_t* dentry, thread_t* thread)
 {
     // If no running, so call is from kernel
-    uid_t uid = 0;
-    gid_t gid = 0;
-    if (likely(thread)) {
-        uid = thread->process->uid;
-        gid = thread->process->gid;
+    if (!thread) {
+        return 0;
     }
+
+    proc_t* proc = thread->process;
+    uid_t uid = proc->uid;
+    gid_t gid = proc->gid;
 
     mode_t mode = dentry->inode->mode;
     uid_t fuid = dentry->inode->uid;
     gid_t fgid = dentry->inode->gid;
-    if (uid == 0) {
+    if (proc_is_su(proc)) {
         return 0;
     }
     if (uid == fuid && (mode & S_IWUSR) == S_IWUSR) {
@@ -687,17 +689,18 @@ int vfs_perm_to_write(dentry_t* dentry, thread_t* thread)
 int vfs_perm_to_execute(dentry_t* dentry, thread_t* thread)
 {
     // If no running, so call is from kernel
-    uid_t uid = 0;
-    gid_t gid = 0;
-    if (likely(thread)) {
-        uid = thread->process->uid;
-        gid = thread->process->gid;
+    if (!thread) {
+        return 0;
     }
+
+    proc_t* proc = thread->process;
+    uid_t uid = proc->uid;
+    gid_t gid = proc->gid;
 
     mode_t mode = dentry->inode->mode;
     uid_t fuid = dentry->inode->uid;
     gid_t fgid = dentry->inode->gid;
-    if (uid == 0) {
+    if (proc_is_su(proc)) {
         return 0;
     }
     if (uid == fuid && (mode & S_IXUSR) == S_IXUSR) {
