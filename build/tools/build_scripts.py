@@ -60,6 +60,9 @@ sudo chmod -R 755 {0}/mountpoint/System
 sudo chmod -R 755 {0}/mountpoint/Applications
 
 sudo chown -R 0 {0}/mountpoint/home/root
+sudo chown -R 0 {0}/mountpoint/bin/sudo
+sudo chmod 4755 {0}/mountpoint/bin/sudo
+
 sudo chown -R 10 {0}/mountpoint/home/user
 
 sudo umount {0}/mountpoint

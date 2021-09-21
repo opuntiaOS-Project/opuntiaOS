@@ -17,6 +17,7 @@ opuntiaOS_static_library("libcxx") {
     "../libc/posix/time.c",
     "../libc/pthread/pthread.c",
     "../libc/pwd/pwd.c",
+    "../libc/pwd/shadow.c",
     "../libc/setjmp/$target_cpu/setjmp.s",
     "../libc/socket/socket.c",
     "../libc/stdio/printf.c",

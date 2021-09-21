@@ -1,0 +1,8 @@
+import("//build/userland/TEMPLATE.gni")
+
+opuntiaOS_executable("sudo") {
+  install_path = "bin/"
+  sources = [ "main.c" ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [ "libc" ]
+}
