@@ -76,6 +76,7 @@ int ungetc(int c, FILE* stream);
 
 /* Get a string from the given stream, of max 'size'. */
 char* fgets(char* str, int size, FILE* stream);
+char* gets(char* str);
 
 /* Checks whether the end-of-File indicator associated with stream is set, 
    returning a value different from zero if it is. */

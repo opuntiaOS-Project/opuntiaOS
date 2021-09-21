@@ -244,6 +244,12 @@ char* fgets(char* s, int size, FILE* stream)
     return s;
 }
 
+char* gets(char* str)
+{
+    // Currently the max size of gets is 4096.
+    return fgets(str, 4096, stdout);
+}
+
 int setvbuf(FILE* stream, char* buf, int mode, size_t size)
 {
     if (!stream) {
