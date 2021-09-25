@@ -59,7 +59,7 @@ static void pl050_mouse_recieve_notification(uint32_t msg, uint32_t param)
         file_ops_t fops = { 0 };
         fops.can_read = _mouse_can_read;
         fops.read = _mouse_read;
-        devfs_inode_t* res = devfs_register(mp, MKDEV(10, 1), "mouse", 5, 0600, &fops);
+        devfs_inode_t* res = devfs_register(mp, MKDEV(10, 1), "mouse", 5, 0400, &fops);
 
         dentry_put(mp);
     }

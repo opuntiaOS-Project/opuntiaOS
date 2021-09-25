@@ -51,7 +51,6 @@ static thread_list_node_t* proc_alloc_thread_storage_node()
     return res;
 }
 
-// TODO: Implement clear and think of race cond.
 static thread_t* _proc_alloc_thread()
 {
     ASSERT(thread_list.next_empty_node != NULL);
