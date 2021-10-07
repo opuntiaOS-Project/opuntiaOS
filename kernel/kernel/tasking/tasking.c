@@ -27,6 +27,8 @@ cpu_t cpus[CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
 static uint32_t nxt_proc = 0;
 
+static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, int argc, char** argv, int envc, char** envp);
+
 static inline uint32_t _tasking_next_proc_id()
 {
     return atomic_add(&nxt_proc, 1) - 1;
@@ -143,7 +145,8 @@ void tasking_start_init_proc()
     proc_t* p = _tasking_setup_proc_with_uid(0, 0);
     proc_setup_tty(p, tty_new());
 
-    if (proc_load(p, p->main_thread, "/boot/init") < 0) {
+    int err = _tasking_do_exec(p, p->main_thread, "/boot/init", 0, NULL, 0, NULL);
+    if (err) {
         kpanic("Failed to load init proc");
     }
 
@@ -218,22 +221,59 @@ void tasking_fork(trapframe_t* tf)
     resched();
 }
 
-static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, int argc, char** argv, char** env)
+static int _tasking_validate_exec_params(const char** argv, int* kargc, char*** kargv)
+{
+    int start_with = *kargc;
+    if (argv) {
+        if (!ptrarr_validate_len(argv, 128)) {
+            return -EINVAL;
+        }
+
+        int argc = ptrarr_len(argv);
+        *kargc += argc;
+
+        /* Validating arguments size */
+        uint32_t data_len = 0;
+        for (int argi = 0; argi < argc; argi++) {
+            if (!str_validate_len(argv[argi], 128)) {
+                return -EINVAL;
+            }
+            data_len += strlen(argv[argi]) + 1;
+            if (data_len > 128) {
+                return -EINVAL;
+            }
+        }
+    }
+
+    char** res = NULL;
+    res = kmalloc(*kargc * sizeof(char*));
+
+    // Inlined part of kmem_bring_to_kernel_ptrarr
+    for (int i = start_with; i < *kargc; i++) {
+        res[i] = kmem_bring_to_kernel(argv[i - 1], strlen(argv[i - 1]) + 1);
+    }
+
+    *kargv = res;
+    return 0;
+}
+
+static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, int argc, char** argv, int envc, char** envp)
 {
     int err = proc_load(p, main_thread, path);
     if (err) {
         return err;
     }
-    return thread_fill_up_stack(p->main_thread, argc, argv, env);
+    return thread_fill_up_stack(p->main_thread, argc, argv, envc, envp);
 }
 
-int tasking_exec(const char* path, const char** argv, const char** env)
+int tasking_exec(const char* path, const char** argv, const char** envp)
 {
     thread_t* thread = RUNNING_THREAD;
     proc_t* p = RUNNING_THREAD->process;
     char* kpath = NULL;
     int kargc = 1;
     char** kargv = NULL;
+    int kenvc = 0;
     char** kenv = NULL;
 
     if (!str_validate_len(path, 128)) {
@@ -241,38 +281,18 @@ int tasking_exec(const char* path, const char** argv, const char** env)
     }
     kpath = kmem_bring_to_kernel(path, strlen(path) + 1);
 
-    if (argv) {
-        if (!ptrarr_validate_len(argv, 128)) {
-            kfree(kpath);
-            return -EINVAL;
-        }
-
-        int argc = ptrarr_len(argv);
-        kargc += argc;
-
-        /* Validating arguments size */
-        uint32_t data_len = 0;
-        for (int argi = 0; argi < argc; argi++) {
-            if (!str_validate_len(argv[argi], 128)) {
-                kfree(kpath);
-                return -EINVAL;
-            }
-            data_len += strlen(argv[argi]) + 1;
-            if (data_len > 128) {
-                kfree(kpath);
-                return -EINVAL;
-            }
-        }
+    int err = _tasking_validate_exec_params(argv, &kargc, &kargv);
+    if (err) {
+        goto exit;
     }
-    kargv = kmalloc(kargc * sizeof(char*));
     kargv[0] = kpath;
 
-    // Inlined part of kmem_bring_to_kernel_ptrarr
-    for (int i = 1; i < kargc; i++) {
-        kargv[i] = kmem_bring_to_kernel(argv[i - 1], strlen(argv[i - 1]) + 1);
+    err = _tasking_validate_exec_params(envp, &kenvc, &kenv);
+    if (err) {
+        goto exit;
     }
 
-    int err = _tasking_do_exec(p, thread, kpath, kargc, kargv, 0);
+    err = _tasking_do_exec(p, thread, kpath, kargc, kargv, kenvc, kenv);
 
 #ifdef TASKING_DEBUG
     if (!err) {
@@ -280,11 +300,22 @@ int tasking_exec(const char* path, const char** argv, const char** env)
     }
 #endif
 
-    kfree(kpath);
-    for (int argi = 0; argi < kargc; argi++) {
-        kfree(kargv[argi]);
+exit:
+    if (kpath) {
+        kfree(kpath);
     }
-    kfree(kargv);
+    if (kargv) {
+        for (int argi = 0; argi < kargc; argi++) {
+            kfree(kargv[argi]);
+        }
+        kfree(kargv);
+    }
+    if (kenv) {
+        for (int argi = 0; argi < kenvc; argi++) {
+            kfree(kenv[argi]);
+        }
+        kfree(kenv);
+    }
 
     return err;
 }

@@ -20,6 +20,8 @@ loop: ; for main proc
     jmp loop
 exec:
     mov ebx, pathToLaunch
+    xor ecx, ecx
+    xor edx, edx
     mov eax, 11 ; exec
     int 0x80 ; syscall
     jmp loop

@@ -41,12 +41,16 @@ size_t strlen(const char* str);
    the 'dest' buffer is. */
 char* strcpy(char* dest, const char* src);
 int strcmp(const char* a, const char* b);
+int strncmp(const char* a, const char* b, size_t nbytes);
 
 /* Copy 'src' into 'dest' until it finds a null byte or reaches the 'nbytes'
    limit provided by the user. This is the recommended way of copying strings,
    instead of using regular strcpy. Note that this will fill the 'dest' buffer
    with null bytes if the amount of copied bytes is lower than 'nbytes'. */
 char* strncpy(char* dest, const char* src, size_t nbytes);
+
+/* Returns a pointer to the first occurrence of character in the C string str. */
+char* strchr(const char* s, int c);
 
 __END_DECLS
 

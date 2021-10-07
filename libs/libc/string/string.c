@@ -107,6 +107,27 @@ int strcmp(const char* a, const char* b)
     return 0;
 }
 
+int strncmp(const char* a, const char* b, size_t num)
+{
+    while (*a == *b && *a != 0 && *b != 0 && num) {
+        a++;
+        b++;
+        num--;
+    }
+
+    if (!num) {
+        return 0;
+    }
+
+    if (*a < *b) {
+        return -1;
+    }
+    if (*a > *b) {
+        return 1;
+    }
+    return 0;
+}
+
 size_t strlen(const char* str)
 {
     size_t i = 0;
@@ -137,4 +158,16 @@ char* strncpy(char* dest, const char* src, size_t nbytes)
         dest[i] = 0;
 
     return dest;
+}
+
+char* strchr(const char* s, int c)
+{
+    for (;; s++) {
+        if (*s == c) {
+            return (char*)s;
+        }
+        if (!(*s)) {
+            return NULL;
+        }
+    }
 }

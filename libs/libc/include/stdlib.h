@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <sys/cdefs.h>
+#include <sys/environ.h>
 #include <sys/types.h>
 
 __BEGIN_DECLS
@@ -45,6 +46,9 @@ void exit(int status) __attribute__((noreturn));
 int posix_openpt(int flags);
 int ptsname_r(int fd, char* buf, size_t buflen);
 char* ptsname(int fd);
+
+/* env */
+char* getenv(const char* name);
 
 __END_DECLS
 

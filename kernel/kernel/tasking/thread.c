@@ -109,9 +109,8 @@ int thread_copy_of(thread_t* thread, thread_t* from_thread)
  * STACK FUNCTIONS
  */
 
-int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
+int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count, char** envp)
 {
-    /* TODO: Add env */
     uint32_t argv_data_size = 0;
     for (int i = 0; i < argc; i++) {
         argv_data_size += strlen(argv[i]) + 1;
@@ -121,50 +120,96 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, char** env)
         argv_data_size += 4 - (argv_data_size % 4);
     }
 
-    uint32_t data_size_on_stack = argv_data_size + (argc + 1) * sizeof(char*) + sizeof(argc) + sizeof(char*);
-    int* tmp_buf = (int*)kmalloc(data_size_on_stack);
+    uint32_t envp_data_size = 0;
+    for (int i = 0; i < envp_count; i++) {
+        envp_data_size += strlen(envp[i]) + 1;
+    }
+
+    if (envp_data_size % 4) {
+        envp_data_size += 4 - (envp_data_size % 4);
+    }
+
+    const uint32_t envp_array_size = (envp_count + 1) * sizeof(char*);
+    const uint32_t argv_array_size = (argc + 1) * sizeof(char*);
+
+#ifdef __i386__
+    const uint32_t pointers_size = sizeof(argc) + sizeof(char*) + sizeof(char*); // argc + pointer to argv array + pointer to envp array.
+#elif __arm__
+    const uint32_t pointers_size = 0;
+#endif
+    const uint32_t arrays_size = argv_array_size + envp_array_size;
+    const uint32_t data_size = argv_data_size + envp_data_size;
+    const uint32_t total_size_on_stack = data_size + arrays_size + pointers_size;
+    int* tmp_buf = (int*)kmalloc(total_size_on_stack);
     if (!tmp_buf) {
         return -EAGAIN;
     }
-    memset((void*)tmp_buf, 0, data_size_on_stack);
+    memset((void*)tmp_buf, 0, total_size_on_stack);
 
-    char* tmp_buf_ptr = ((char*)tmp_buf) + data_size_on_stack;
-    char* tmp_buf_data_ptr = tmp_buf_ptr - argv_data_size;
-    uint32_t* tmp_buf_array_ptr = (uint32_t*)((char*)tmp_buf_data_ptr - (argc + 1) * sizeof(char*));
-    int* tmp_buf_argv_ptr = (int*)((char*)tmp_buf_array_ptr - sizeof(char*));
+    // Resolve pointers from the start of stack
+    char* tmp_buf_ptr = ((char*)tmp_buf) + total_size_on_stack;
+    char* tmp_buf_envp_data_ptr = tmp_buf_ptr - envp_data_size;
+    uint32_t* tmp_buf_envp_array_ptr = (uint32_t*)((char*)tmp_buf_envp_data_ptr - envp_array_size);
+    char* tmp_buf_argv_data_ptr = (char*)tmp_buf_envp_array_ptr - argv_data_size;
+    uint32_t* tmp_buf_argv_array_ptr = (uint32_t*)((char*)tmp_buf_argv_data_ptr - argv_array_size);
+    int* tmp_buf_envp_ptr = (int*)((char*)tmp_buf_argv_array_ptr - sizeof(char*));
+    int* tmp_buf_argv_ptr = (int*)((char*)tmp_buf_envp_ptr - sizeof(char*));
     int* tmp_buf_argc_ptr = (int*)((char*)tmp_buf_argv_ptr - sizeof(int));
 
-    uint32_t data_esp = get_stack_pointer(thread->tf) - argv_data_size;
-    uint32_t array_esp = data_esp - (argc + 1) * sizeof(char*);
-    uint32_t argv_esp = array_esp - 4;
-    uint32_t argc_esp = argv_esp - 4;
-    uint32_t end_esp = argc_esp; // Points to the end on the stack
-
-    for (int i = argc - 1; i >= 0; i--) {
-        uint32_t len = strlen(argv[i]);
-        tmp_buf_ptr -= len + 1;
-        tf_move_stack_pointer(thread->tf, -(len + 1));
-        memcpy(tmp_buf_ptr, argv[i], len);
-        tmp_buf_ptr[len] = 0;
-
-        tmp_buf_array_ptr[i] = get_stack_pointer(thread->tf);
-    }
-    tmp_buf_array_ptr[argc] = 0;
-
-    // FIXME: Remove these elements from stack for ARM
-    *tmp_buf_argv_ptr = array_esp;
-    *tmp_buf_argc_ptr = argc;
-
-    set_stack_pointer(thread->tf, end_esp);
-#ifdef __arm__
-    thread->tf->r[0] = argc;
-    thread->tf->r[1] = array_esp;
+    uint32_t envp_data_sp = get_stack_pointer(thread->tf) - envp_data_size;
+    uint32_t envp_array_sp = envp_data_sp - envp_array_size;
+    uint32_t argv_data_sp = envp_array_sp - argv_data_size;
+    uint32_t argv_array_sp = argv_data_sp - argv_array_size;
+#ifdef __i386__
+    uint32_t envp_sp = argv_array_sp - sizeof(char*);
+    uint32_t argv_sp = envp_sp - sizeof(char*);
+    uint32_t argc_sp = argv_sp - sizeof(int);
+    uint32_t end_sp = argc_sp;
+#elif __arm__
+    uint32_t end_sp = argv_array_sp;
 #endif
 
-    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, get_stack_pointer(thread->tf), data_size_on_stack);
+    // Fill argv
+    char* top_of_argv_data = tmp_buf_argv_data_ptr + argv_data_size;
+    set_stack_pointer(thread->tf, argv_data_sp + argv_data_size);
+    for (int i = argc - 1; i >= 0; i--) {
+        uint32_t len = strlen(argv[i]);
+        top_of_argv_data -= len + 1;
+        tf_move_stack_pointer(thread->tf, -(len + 1));
+        memcpy(top_of_argv_data, argv[i], len);
+        top_of_argv_data[len] = 0;
 
+        tmp_buf_argv_array_ptr[i] = get_stack_pointer(thread->tf);
+    }
+    tmp_buf_argv_array_ptr[argc] = 0;
+
+    // Fill envp
+    char* top_of_envp_data = tmp_buf_envp_data_ptr + envp_data_size;
+    set_stack_pointer(thread->tf, envp_data_sp + envp_data_size);
+    for (int i = envp_count - 1; i >= 0; i--) {
+        uint32_t len = strlen(envp[i]);
+        top_of_envp_data -= len + 1;
+        tf_move_stack_pointer(thread->tf, -(len + 1));
+        memcpy(top_of_envp_data, envp[i], len);
+        top_of_envp_data[len] = 0;
+
+        tmp_buf_envp_array_ptr[i] = get_stack_pointer(thread->tf);
+    }
+    tmp_buf_envp_array_ptr[envp_count] = 0;
+
+#ifdef __i386__
+    *tmp_buf_envp_ptr = envp_array_sp;
+    *tmp_buf_argv_ptr = argv_array_sp;
+    *tmp_buf_argc_ptr = argc;
+#elif __arm__
+    thread->tf->r[0] = argc;
+    thread->tf->r[1] = argv_array_sp;
+    thread->tf->r[2] = envp_array_sp;
+#endif
+    set_stack_pointer(thread->tf, end_sp);
+
+    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, get_stack_pointer(thread->tf), total_size_on_stack);
     kfree(tmp_buf);
-
     return 0;
 }
 

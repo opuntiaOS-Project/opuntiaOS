@@ -11,6 +11,7 @@ __BEGIN_DECLS
 /* tasking */
 int fork();
 int execve(const char* path, char** argv, char** env);
+int execvpe(const char* path, char** argv, char** env);
 int wait(int pid);
 pid_t getpid();
 int setpgid(pid_t cmd, pid_t arg);
@@ -35,6 +36,12 @@ char* getlogin();
 
 /* sched */
 int nice(int inc);
+
+/* conf */
+#define _CS_GNU_LIBC_VERSION 1
+#define _CS_GNU_LIBPTHREAD_VERSION 2
+#define _CS_PATH 3
+size_t confstr(int name, char* buf, size_t len);
 
 __END_DECLS
 

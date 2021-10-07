@@ -7,9 +7,9 @@
 
 .global _start
 _start:
-	push {r0-r1}
+	push {r0-r2}
 	bl _init
-	pop {r0-r1}
+	pop {r0-r2}
 	bl main
 	push {r0}
 	bl _deinit

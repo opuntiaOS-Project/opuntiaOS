@@ -22,6 +22,7 @@ opuntiaOS_static_library("libc") {
     "stdio/printf.c",
     "stdio/scanf.c",
     "stdio/stdio.c",
+    "stdlib/env.c",
     "stdlib/exit.c",
     "stdlib/pts.c",
     "stdlib/tools.c",

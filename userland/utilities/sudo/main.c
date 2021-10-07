@@ -27,6 +27,7 @@ int auth(char* uname)
 
 int main(int argc, char** argv)
 {
+    char* envp[] = { "PATH=/bin:/usr/bin", NULL };
     if (auth("root") != 0) {
         printf("Incorrect password\n");
         return -1;
@@ -44,6 +45,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    execve(argv[1], &argv[2], NULL);
+    execvpe(argv[1], &argv[2], envp);
     return 0;
 }
