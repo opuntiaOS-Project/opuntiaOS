@@ -219,7 +219,6 @@ void tty_eat_key(key_t key)
         proc_t* p = tasking_get_proc(tty->pgid);
         if (p) {
             signal_set_pending(p->main_thread, SIGINT);
-            signal_dispatch_pending(p->main_thread);
         }
         return;
     }

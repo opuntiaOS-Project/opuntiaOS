@@ -346,6 +346,12 @@ int tasking_kill(thread_t* thread, int signo)
         return -EINVAL;
     }
     signal_set_pending(thread, signo);
-    signal_dispatch_pending(thread);
+
+    // If the target thread is a one that issued kill to self,
+    // dispatch the signal right now. Overwise scheduler will
+    // dispatch when it switches to the task.
+    if (RUNNING_THREAD == thread) {
+        signal_dispatch_pending(thread);
+    }
     return 0;
 }

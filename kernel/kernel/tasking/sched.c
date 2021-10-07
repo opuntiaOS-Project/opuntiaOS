@@ -265,6 +265,23 @@ void sched_dequeue(thread_t* thread)
     }
 }
 
+void enter_thread(thread_t* thread)
+{
+    if (thread->pending_signals_mask) {
+        signal_dispatch_pending(thread);
+        if (thread->status != THREAD_STATUS_RUNNING) {
+            // Signal could terminate the thread, so check if it's runnanble.
+            return;
+        }
+    }
+
+    thread->last_cpu = THIS_CPU->id;
+    thread->start_time_in_ticks = timeman_ticks_since_boot();
+    thread->ticks_until_preemption = _sched_get_timeslice(thread);
+    switchuvm(thread);
+    switch_contexts(&(THIS_CPU->sched_context), thread->context);
+}
+
 void sched()
 {
     for (;;) {
@@ -292,12 +309,8 @@ void sched()
 #ifdef SCHED_SHOW_STAT
         _debug_print_runqueue(sched->master_buf);
 #endif
-        thread->last_cpu = THIS_CPU->id;
-        thread->start_time_in_ticks = timeman_ticks_since_boot();
-        thread->ticks_until_preemption = _sched_get_timeslice(thread);
-        switchuvm(thread);
-        switch_contexts(&(THIS_CPU->sched_context), thread->context);
         ASSERT(thread->status == THREAD_STATUS_RUNNING);
+        enter_thread(thread);
     }
 }
 

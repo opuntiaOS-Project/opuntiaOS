@@ -118,14 +118,13 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     vmm_prepare_active_pdir_for_copying_at((uint32_t)thread->tf, 1);
 
     uint32_t old_sp = get_stack_pointer(thread->tf);
-    uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after sgnal to the right state */
+    uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */
 
-    /* TODO: Add support for SMP */
     if (thread != RUNNING_THREAD) {
         /* 
         If we are here that means that the thread was stopped while
         being in kernel (because of scheduler or blocker). That means,
-        we need not corrupt it's kernel state, so we create a new state
+        we need not to corrupt it's kernel state, so we create a new state
         to send signal.
 
         We setup a new kernel state upper the previous one
@@ -184,14 +183,14 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
         log_error("SPs are diff after signal");
     }
 
-    /* If our thread was blocked, that means that it already has a context on stack, we need not to overwrite it */
+    // If our thread is blocked, that means that it already has a context on stack, no need to overwrite it.
     if (thread->blocker.reason != BLOCKER_INVALID) {
         thread->status = THREAD_STATUS_BLOCKED;
         sched_dequeue(thread);
         resched_dont_save_context();
     }
 
-    /* Since we already have a context on stack, we need not to overwrite it */
+    // Since we already have a context on the stack, no need to overwrite it.
     if (magic == MAGIC_STATE_NEW_STACK) {
         resched_dont_save_context();
     }
