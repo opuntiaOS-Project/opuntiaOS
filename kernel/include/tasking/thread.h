@@ -19,13 +19,13 @@
 #include <time/time_manager.h>
 
 enum THREAD_STATUS {
-    THREAD_INVALID = 0,
-    THREAD_ALLOCATED,
-    THREAD_RUNNING,
-    THREAD_DEAD,
-    THREAD_STOPPED,
-    THREAD_BLOCKED,
-    THREAD_DYING,
+    THREAD_STATUS_INVALID = 0,
+    THREAD_STATUS_ALLOCATED,
+    THREAD_STATUS_RUNNING,
+    THREAD_STATUS_DEAD,
+    THREAD_STATUS_STOPPED,
+    THREAD_STATUS_BLOCKED,
+    THREAD_STATUS_DYING,
 };
 
 struct thread;
@@ -117,7 +117,7 @@ int thread_kstack_free(thread_t* thread);
 int thread_free(thread_t* thread);
 int thread_die(thread_t* thread);
 
-static ALWAYS_INLINE int thread_is_free(thread_t* thread) { return (thread->status == THREAD_INVALID) || (thread->status == THREAD_DEAD); }
+static ALWAYS_INLINE int thread_is_free(thread_t* thread) { return (thread->status == THREAD_STATUS_INVALID) || (thread->status == THREAD_STATUS_DEAD); }
 
 /**
  * BLOCKER FUNCTIONS

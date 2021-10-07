@@ -159,7 +159,7 @@ proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
     proc_t* p = _tasking_alloc_kernel_thread(entry_point);
     p->pdir = vmm_get_kernel_pdir();
     kthread_fill_up_stack(p->main_thread, data);
-    p->main_thread->status = THREAD_RUNNING;
+    p->main_thread->status = THREAD_STATUS_RUNNING;
     return p;
 }
 
@@ -211,7 +211,7 @@ void tasking_fork(trapframe_t* tf)
     set_syscall_result(new_proc->main_thread->tf, 0);
     set_syscall_result(RUNNING_THREAD->tf, new_proc->pid);
 
-    new_proc->main_thread->status = THREAD_RUNNING;
+    new_proc->main_thread->status = THREAD_STATUS_RUNNING;
 
 #ifdef TASKING_DEBUG
     log("Fork %d to pid %d", RUNNING_THREAD->tid, new_proc->pid);
@@ -342,7 +342,7 @@ void tasking_exit(int exit_code)
 
 int tasking_kill(thread_t* thread, int signo)
 {
-    if (thread->status == THREAD_INVALID || thread->status == THREAD_DEAD || thread->status == THREAD_DYING) {
+    if (thread->status == THREAD_STATUS_INVALID || thread->status == THREAD_STATUS_DEAD || thread->status == THREAD_STATUS_DYING) {
         return -EINVAL;
     }
     signal_set_pending(thread, signo);

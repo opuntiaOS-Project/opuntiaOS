@@ -198,9 +198,9 @@ void sched_unblock_threads()
     while (__thread_list_node) {
         for (int i = 0; i < THREADS_PER_NODE; i++) {
             thread = &__thread_list_node->thread_storage[i];
-            if (thread->status == THREAD_BLOCKED && thread->blocker.reason != BLOCKER_INVALID) {
+            if (thread->status == THREAD_STATUS_BLOCKED && thread->blocker.reason != BLOCKER_INVALID) {
                 if (thread->blocker.should_unblock && thread->blocker.should_unblock(thread)) {
-                    thread->status = THREAD_RUNNING;
+                    thread->status = THREAD_STATUS_RUNNING;
                     thread->blocker.reason = BLOCKER_INVALID;
                     sched_enqueue(thread);
                 }
@@ -212,7 +212,7 @@ void sched_unblock_threads()
 
 void resched_dont_save_context()
 {
-    if (RUNNING_THREAD && RUNNING_THREAD->status == THREAD_RUNNING) {
+    if (RUNNING_THREAD && RUNNING_THREAD->status == THREAD_STATUS_RUNNING) {
         RUNNING_THREAD->stat_total_running_ticks += timeman_ticks_since_boot() - RUNNING_THREAD->start_time_in_ticks;
         _sched_add_to_end_of_runqueue(&cpus[RUNNING_THREAD->last_cpu].sched, RUNNING_THREAD);
     }
@@ -223,7 +223,7 @@ void resched()
 {
     if (RUNNING_THREAD) {
         RUNNING_THREAD->stat_total_running_ticks += timeman_ticks_since_boot() - RUNNING_THREAD->start_time_in_ticks;
-        if (RUNNING_THREAD->status == THREAD_RUNNING) {
+        if (RUNNING_THREAD->status == THREAD_STATUS_RUNNING) {
             _sched_add_to_end_of_runqueue(&cpus[RUNNING_THREAD->last_cpu].sched, RUNNING_THREAD);
         }
         switch_contexts(&RUNNING_THREAD->context, THIS_CPU->sched_context);
@@ -234,7 +234,7 @@ void resched()
 
 void sched_enqueue(thread_t* thread)
 {
-    thread->status = THREAD_RUNNING;
+    thread->status = THREAD_STATUS_RUNNING;
     if (thread->process->prio > MIN_PRIO) {
         thread->process->prio = MIN_PRIO;
     }
@@ -292,12 +292,12 @@ void sched()
 #ifdef SCHED_SHOW_STAT
         _debug_print_runqueue(sched->master_buf);
 #endif
-        ASSERT(thread->status == THREAD_RUNNING);
         thread->last_cpu = THIS_CPU->id;
         thread->start_time_in_ticks = timeman_ticks_since_boot();
         thread->ticks_until_preemption = _sched_get_timeslice(thread);
         switchuvm(thread);
         switch_contexts(&(THIS_CPU->sched_context), thread->context);
+        ASSERT(thread->status == THREAD_STATUS_RUNNING);
     }
 }
 

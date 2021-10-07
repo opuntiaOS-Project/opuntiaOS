@@ -16,7 +16,7 @@
 int should_unblock_join_block(thread_t* thread)
 {
     // TODO: Add more checks here.
-    if (thread->joinee->status == THREAD_DYING || thread->joinee->status == THREAD_DEAD) {
+    if (thread->joinee->status == THREAD_STATUS_DYING || thread->joinee->status == THREAD_STATUS_DEAD) {
         return 1;
     }
     return 0;
@@ -28,7 +28,7 @@ int init_join_blocker(thread_t* thread)
         return 0;
     }
 
-    thread->status = THREAD_BLOCKED;
+    thread->status = THREAD_STATUS_BLOCKED;
     thread->blocker.reason = BLOCKER_JOIN;
     thread->blocker.should_unblock = should_unblock_join_block;
     thread->blocker.should_unblock_for_signal = true;
@@ -50,7 +50,7 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
         return 0;
     }
 
-    thread->status = THREAD_BLOCKED;
+    thread->status = THREAD_STATUS_BLOCKED;
     thread->blocker.reason = BLOCKER_READ;
     thread->blocker.should_unblock = should_unblock_read_block;
     thread->blocker.should_unblock_for_signal = true;
@@ -72,7 +72,7 @@ int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
         return 0;
     }
 
-    thread->status = THREAD_BLOCKED;
+    thread->status = THREAD_STATUS_BLOCKED;
     thread->blocker.reason = BLOCKER_WRITE;
     thread->blocker.should_unblock = should_unblock_write_block;
     thread->blocker.should_unblock_for_signal = true;
@@ -94,7 +94,7 @@ int init_sleep_blocker(thread_t* thread, uint32_t time)
         return 0;
     }
 
-    thread->status = THREAD_BLOCKED;
+    thread->status = THREAD_STATUS_BLOCKED;
     thread->blocker.reason = BLOCKER_SLEEP;
     thread->blocker.should_unblock = should_unblock_sleep_block;
     thread->blocker.should_unblock_for_signal = true;
@@ -155,7 +155,7 @@ int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t*
         return 0;
     }
 
-    thread->status = THREAD_BLOCKED;
+    thread->status = THREAD_STATUS_BLOCKED;
     thread->blocker.reason = BLOCKER_SELECT;
     thread->blocker.should_unblock = should_unblock_select_block;
     thread->blocker.should_unblock_for_signal = true;

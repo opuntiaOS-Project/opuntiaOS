@@ -224,12 +224,12 @@ int thread_kstack_free(thread_t* thread)
 
 int thread_free(thread_t* thread)
 {
-    if (thread->status != THREAD_DYING) {
+    if (thread->status != THREAD_STATUS_DYING) {
         return -EINVAL;
     }
 
     thread_kstack_free(thread);
-    thread->status = THREAD_DEAD;
+    thread->status = THREAD_STATUS_DEAD;
     return 0;
 }
 
@@ -239,7 +239,7 @@ int thread_die(thread_t* thread)
         return -EINVAL;
     }
 
-    thread->status = THREAD_DYING;
+    thread->status = THREAD_STATUS_DYING;
     sched_dequeue(thread);
     return 0;
 }

@@ -186,7 +186,7 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
 
     /* If our thread was blocked, that means that it already has a context on stack, we need not to overwrite it */
     if (thread->blocker.reason != BLOCKER_INVALID) {
-        thread->status = THREAD_BLOCKED;
+        thread->status = THREAD_STATUS_BLOCKED;
         sched_dequeue(thread);
         resched_dont_save_context();
     }
@@ -247,7 +247,7 @@ int signal_dispatch_pending(thread_t* thread)
     }
 
     if (ret == UNBLOCK) {
-        if (thread && thread->status == THREAD_BLOCKED && thread->blocker.should_unblock_for_signal) {
+        if (thread && thread->status == THREAD_STATUS_BLOCKED && thread->blocker.should_unblock_for_signal) {
             sched_enqueue(thread);
         }
     }

@@ -67,7 +67,7 @@ static thread_t* _proc_alloc_thread()
         if (thread_is_free(&thread_list.next_empty_node->thread_storage[i])) {
             thread_list.next_empty_node->empty_spots--;
             thread_list.next_empty_index++;
-            thread_list.next_empty_node->thread_storage[i].status = THREAD_ALLOCATED;
+            thread_list.next_empty_node->thread_storage[i].status = THREAD_STATUS_ALLOCATED;
             lock_release(&thread_list.lock);
             return &thread_list.next_empty_node->thread_storage[i];
         }
@@ -454,7 +454,7 @@ int proc_block_all_threads(proc_t* p, blocker_t* blocker)
     lock_acquire(&p->lock);
     foreach_thread(p)
     {
-        thread->status = THREAD_BLOCKED;
+        thread->status = THREAD_STATUS_BLOCKED;
         thread->blocker.reason = blocker->reason;
         thread->blocker.should_unblock = blocker->should_unblock;
         thread->blocker.should_unblock_for_signal = blocker->should_unblock_for_signal;
