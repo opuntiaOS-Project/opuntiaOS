@@ -129,7 +129,7 @@ if [ $? -ne 0 ]; then echo -e "${ERROR} All command failed" && exit 1; fi
 """)
 allf.close()
 
-allf = open("{0}/bench.sh".format(out), "w")
+allf = open("{0}/run_tester.sh".format(out), "w")
 allf.write(
     """#!/bin/bash
 GREEN='\\033[0;32m'

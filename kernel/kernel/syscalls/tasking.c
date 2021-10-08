@@ -26,7 +26,7 @@ void sys_fork(trapframe_t* tf)
 
 void sys_waitpid(trapframe_t* tf)
 {
-    int ret = tasking_waitpid(param1);
+    int ret = tasking_waitpid(param1, (int*)param2);
     return_with_val(ret);
 }
 

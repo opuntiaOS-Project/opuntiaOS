@@ -320,7 +320,7 @@ exit:
     return err;
 }
 
-int tasking_waitpid(int pid)
+int tasking_waitpid(int pid, int* status)
 {
     thread_t* thread = RUNNING_THREAD;
     thread_t* joinee_thread = tasking_get_thread(pid);
@@ -329,6 +329,12 @@ int tasking_waitpid(int pid)
     }
     thread->joinee = joinee_thread;
     init_join_blocker(thread);
+
+    // FIXME: Status just return exit code.
+    int kstatus = thread->joinee->exit_code;
+    if (status) {
+        vmm_copy_to_user(status, &kstatus, sizeof(int));
+    }
     return 0;
 }
 

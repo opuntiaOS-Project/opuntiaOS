@@ -58,7 +58,7 @@ void tasking_kill_dying();
 void tasking_fork(trapframe_t* tf);
 int tasking_exec(const char* path, const char** argv, const char** env);
 void tasking_exit(int exit_code);
-int tasking_waitpid(int pid);
+int tasking_waitpid(int pid, int* status);
 int tasking_kill(thread_t* thread, int signo);
 
 /**

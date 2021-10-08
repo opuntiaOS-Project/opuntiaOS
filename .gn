@@ -9,7 +9,7 @@ default_args = {
   compile_tests = true
   optimize = true
   objc_support = false
-  bench_method = "none"
+  test_method = "none"
   host = "gnu"
   device_type = "desktop"
 }

@@ -8,7 +8,7 @@ import signal
 target_arch = sys.argv[1]
 
 process = subprocess.Popen(
-    "./bench.sh", stdout=subprocess.PIPE, preexec_fn=os.setpgrp)
+    "./run_tester.sh", stdout=subprocess.PIPE, preexec_fn=os.setpgrp)
 string = ""
 
 sum_of_benchs = {}

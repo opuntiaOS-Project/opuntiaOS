@@ -1,4 +1,4 @@
-name: Benching x86
+name: Testing ARM
 
 on: [push, pull_request]
 
@@ -20,7 +20,7 @@ jobs:
       - name: Pouring Deps
         run: |
           sudo apt-get update
-          sudo apt install -y llvm e2fsprogs qemu-system-i386 qemu-utils fuseext2 ninja-build nasm
+          sudo apt install -y llvm e2fsprogs qemu-system-arm qemu-utils fuseext2 ninja-build nasm
           pip3 install tabulate termcolor
 
       - name: Pouring GN
@@ -32,14 +32,14 @@ jobs:
       - name: Create LLVM Build Environment
         run: |
           export LLVM_BIN_PATH="/usr/lib/llvm-12/bin"
-          ./gn_gen.sh --target_cpu x86 --host llvm --test_method bench
+          ./gn_gen.sh --target_cpu aarch32 --host llvm --test_method tests
 
       - name: Building
         run: |
           cd out
           ./build.sh
 
-      - name: Benching
+      - name: Testing
         run: |
           cd out
-          python3 ../utils/test/bench.py x86
+          python3 ../utils/test/test.py aarch32

@@ -1,7 +1,7 @@
-import("//build/userland/TEMPLATE.gni")
+import("//build/test/TEMPLATE.gni")
 
-opuntiaOS_executable("initgui") {
-  install_path = "System/"
+opuntiaOS_test("signal") {
+  test_bundle = "kernel/signal"
   sources = [ "main.c" ]
   configs = [ "//build/userland:userland_flags" ]
   deplibs = [ "libc" ]

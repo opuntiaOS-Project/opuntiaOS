@@ -1,0 +1,8 @@
+import("//build/test/TEMPLATE.gni")
+
+opuntiaOS_test("fourfiles") {
+  test_bundle = "kernel/fs/fourfiles"
+  sources = [ "main.c" ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [ "libc" ]
+}

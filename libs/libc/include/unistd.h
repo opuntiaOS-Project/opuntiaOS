@@ -13,6 +13,7 @@ int fork();
 int execve(const char* path, char** argv, char** env);
 int execvpe(const char* path, char** argv, char** env);
 int wait(int pid);
+int waitpid(int pid, int* status);
 pid_t getpid();
 int setpgid(pid_t cmd, pid_t arg);
 pid_t getpgid(pid_t arg);

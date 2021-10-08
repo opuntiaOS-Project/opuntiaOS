@@ -10,6 +10,10 @@ group("build") {
     "//build/servers:servers",
     "//build/userland:userland",
   ]
+
+  if (compile_tests) {
+    deps += [ "//build/test:test" ]
+  }
 }
 
 group("scripts") {

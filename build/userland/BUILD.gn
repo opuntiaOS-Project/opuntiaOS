@@ -38,10 +38,6 @@ if (device_type == "mobile") {
   uland_c_flags += [ "-DTARGET_MOBILE" ]
 }
 
-if (bench_method == "external_script") {
-  uland_c_flags += [ "-DBENCHMARK" ]
-}
-
 if (target_cpu == "x86") {
   uland_asm_flags += [
     "-f",
@@ -103,7 +99,6 @@ group("userland") {
     "//userland/system/dock:dock",
     "//userland/system/homescreen:homescreen",
     "//userland/system/init:init",
-    "//userland/system/initgui:initgui",
     "//userland/utilities/cat:cat",
     "//userland/utilities/kill:kill",
     "//userland/utilities/ls:ls",
@@ -116,9 +111,14 @@ group("userland") {
     "//userland/utilities/whoami:whoami",
   ]
 
+  # Make sure that we don't run any tests/benchmarks, since
+  # tests/benchmarks use thier own entry point.
+  if (test_method == "none") {
+    deps += [ "//userland/system/initsystem:initsystem" ]
+  }
+
   if (compile_tests) {
     deps += [
-      "//userland/tests/bench:bench",
       "//userland/tests/testlibcxx:testlibcxx",
       "//userland/tests/utester:utester",
     ]

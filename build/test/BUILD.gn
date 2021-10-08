@@ -1,0 +1,19 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+group("test") {
+  deps = []
+
+  # If we run test, let's include the entry point.
+  if (test_method == "tests") {
+    deps += [
+      "//test/runner:initsystem",
+      "//test/kernel:test_kernel",
+    ]
+  }
+
+  if (test_method == "bench") {
+    deps += [ "//test/bench:initsystem" ]
+  }
+}

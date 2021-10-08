@@ -1,7 +1,7 @@
 import("//build/userland/TEMPLATE.gni")
 
-opuntiaOS_executable("bench") {
-  install_path = "bin/"
+opuntiaOS_executable("initsystem") {
+  install_path = "System/"
   sources = [
     "main.cpp",
     "pngloader.cpp",

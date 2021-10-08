@@ -54,7 +54,13 @@ int execvpe(const char* path, char** argv, char** envp)
 
 int wait(int pid)
 {
-    int res = DO_SYSCALL_1(SYS_WAITPID, pid);
+    int res = DO_SYSCALL_2(SYS_WAITPID, pid, NULL);
+    RETURN_WITH_ERRNO(res, pid, -1);
+}
+
+int waitpid(int pid, int* status)
+{
+    int res = DO_SYSCALL_2(SYS_WAITPID, pid, status);
     RETURN_WITH_ERRNO(res, pid, -1);
 }
 
