@@ -12,6 +12,7 @@
 #include <mem/vmm/zoner.h>
 #include <platform/generic/system.h>
 #include <platform/generic/tasking/signal_impl.h>
+#include <tasking/dump.h>
 #include <tasking/sched.h>
 #include <tasking/signal.h>
 #include <tasking/tasking.h>
@@ -60,9 +61,10 @@ void signal_init()
 
 int signal_set_handler(thread_t* thread, int signo, void* handler)
 {
-    if (signo < 0 || signo >= SIGNALS_CNT) {
+    if (signo < 0 || signo >= SIGNALS_CNT || signo == SIGSTOP || signo == SIGKILL) {
         return -EINVAL;
     }
+
     thread->signal_handlers[signo] = handler;
     return 0;
 }
@@ -200,10 +202,41 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
 
 static int signal_default_action(int signo)
 {
-    if (signo == 9) {
-        return SIGNAL_ACTION_TERMINATE;
+    if (signo < 0 || signo >= SIGNALS_CNT) {
+        return SIGNAL_ACTION_ABNORMAL_TERMINATE;
     }
-    return -1;
+
+    static const int defact[] = {
+        [SIGABRT] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGALRM] = SIGNAL_ACTION_TERMINATE,
+        [SIGBUS] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGCHLD] = SIGNAL_ACTION_IGNORE,
+        [SIGCONT] = SIGNAL_ACTION_CONTINUE,
+        [SIGFPE] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGHUP] = SIGNAL_ACTION_TERMINATE,
+        [SIGILL] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGINT] = SIGNAL_ACTION_TERMINATE,
+        [SIGKILL] = SIGNAL_ACTION_TERMINATE,
+        [SIGPIPE] = SIGNAL_ACTION_TERMINATE,
+        [SIGQUIT] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGSEGV] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGSTOP] = SIGNAL_ACTION_STOP,
+        [SIGTERM] = SIGNAL_ACTION_TERMINATE,
+        [SIGTSTP] = SIGNAL_ACTION_STOP,
+        [SIGTTIN] = SIGNAL_ACTION_STOP,
+        [SIGTTOU] = SIGNAL_ACTION_STOP,
+        [SIGUSR1] = SIGNAL_ACTION_TERMINATE,
+        [SIGUSR2] = SIGNAL_ACTION_TERMINATE,
+        [SIGPOLL] = SIGNAL_ACTION_TERMINATE,
+        [SIGPROF] = SIGNAL_ACTION_TERMINATE,
+        [SIGSYS] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGTRAP] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGURG] = SIGNAL_ACTION_IGNORE,
+        [SIGVTALRM] = SIGNAL_ACTION_TERMINATE,
+        [SIGXCPU] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+        [SIGXFSZ] = SIGNAL_ACTION_ABNORMAL_TERMINATE,
+    };
+    return defact[signo];
 }
 
 /* FIXME: Don't allow to run a signal while other is in process */
@@ -215,9 +248,22 @@ static int signal_process(thread_t* thread, int signo)
         return UNBLOCK;
     } else {
         int result = signal_default_action(signo);
-        if (result == SIGNAL_ACTION_TERMINATE) {
+        switch (result) {
+        case SIGNAL_ACTION_TERMINATE:
             proc_die(thread->process);
             return SKIP;
+        case SIGNAL_ACTION_ABNORMAL_TERMINATE:
+            dump_and_kill(RUNNING_THREAD->process);
+            return SKIP;
+        case SIGNAL_ACTION_IGNORE:
+        case SIGNAL_ACTION_STOP:
+            // FIXME: Stop is not supported.
+            return SKIP;
+        case SIGNAL_ACTION_CONTINUE:
+            return UNBLOCK;
+
+        default:
+            break;
         }
     }
     return -EFAULT;
@@ -232,7 +278,7 @@ int signal_dispatch_pending(thread_t* thread)
     }
 
     uint32_t signo = 1;
-    for (; signo < 32; signo++) {
+    for (; signo < SIGNALS_CNT; signo++) {
         if (candidate_signals & (1 << signo)) {
             break;
         }

@@ -24,7 +24,7 @@ int signal_impl_prepare_stack(thread_t* thread, int signo, uint32_t old_sp, uint
     tf_push_to_stack(thread->tf, magic);
     tf_push_to_stack(thread->tf, (uint32_t)thread->signal_handlers[signo]);
     tf_push_to_stack(thread->tf, (uint32_t)signo);
-    tf_push_to_stack(thread->tf, 0); /* fake return address */
+    tf_push_to_stack(thread->tf, 0xfacea660); /* fake return address */
     return 0;
 }
 

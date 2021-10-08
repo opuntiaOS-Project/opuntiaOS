@@ -1,6 +1,7 @@
 #ifndef _LIBC_SIGNAL_H
 #define _LIBC_SIGNAL_H
 
+#include <bits/signal.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 

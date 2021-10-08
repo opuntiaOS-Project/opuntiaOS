@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdlib.h>
 #include <sysdep.h>
 
@@ -9,6 +10,6 @@ void exit(int status)
 
 void abort()
 {
-    // TODO: Raise signal
+    raise(SIGABRT);
     exit(127);
 }
