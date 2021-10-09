@@ -64,6 +64,8 @@ int main(int argc, char** argv)
                         test_ok((char*)&d->name);
                     }
                 } else {
+                    setuid(10);
+                    setgid(10);
                     sprintf(namebuf, "/test_bin/%s", (char*)&d->name);
                     execve(namebuf, 0, 0);
                     exit(0);

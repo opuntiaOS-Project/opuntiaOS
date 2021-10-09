@@ -6,40 +6,29 @@
 
 char buf[512];
 
-void msg(const char* msg)
-{
-    printf("[MSG] %s\n", msg);
-    fflush(stdout);
-}
-
 int main(int argc, char** argv)
 {
     int fd;
 
     fd = open("dirfile", 0);
     if (fd >= 0) {
-        msg("create dirfile succeeded");
-        return 1;
+        TestErr("create dirfile succeeded");
     }
     fd = open("dirfile", O_CREAT);
     if (chdir("dirfile") == 0) {
-        msg("chdir dirfile succeeded");
-        return 1;
+        TestErr("chdir dirfile succeeded");
     }
     if (unlink("dirfile") != 0) {
-        msg("unlink dirfile succeeded");
-        return 1;
+        TestErr("unlink dirfile succeeded");
     }
 
     fd = open(".", O_RDWR);
     if (fd >= 0) {
-        msg("open . for writing succeeded");
-        return 1;
+        TestErr("open . for writing succeeded");
     }
     fd = open(".", 0);
     if (write(fd, "x", 1) > 0) {
-        msg("write . succeeded");
-        return 1;
+        TestErr("write . succeeded");
     }
     close(fd);
 

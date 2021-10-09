@@ -33,7 +33,7 @@ int procfs_read_inode(dentry_t* dentry)
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
     memset((void*)procfs_inode, 0, sizeof(procfs_inode_t));
     procfs_inode->index = 2;
-    procfs_inode->mode = S_IFDIR;
+    procfs_inode->mode = S_IFDIR | 0444;
     procfs_inode->ops = &procfs_root_ops;
     return 0;
 }

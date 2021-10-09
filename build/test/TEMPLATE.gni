@@ -22,6 +22,16 @@ template("opuntiaOS_test") {
                              "ldflags",
                              "public_deps",
                            ])
+    if (defined(invoker.cflags)) {
+      cflags = invoker.cflags
+    } else {
+      cflags = []
+    }
+
+    cflags += [
+      "-DTestMsg(x)=printf(\"[MSG] %s\n\", x);fflush(stdout);",
+      "-DTestErr(x)=printf(\"[MSG] %s\n\", x);fflush(stdout);exit(1)",
+    ]
   }
 
   group(target_name) {

@@ -330,8 +330,8 @@ int tasking_waitpid(int pid, int* status)
 
     init_join_blocker(thread, joinee_thread);
 
-    // FIXME: Status just return exit code.
-    int kstatus = thread->exit_code;
+    // FIXME: Status returns exit code, that is not capable with linux.
+    int kstatus = joinee_thread->exit_code;
     if (status) {
         vmm_copy_to_user(status, &kstatus, sizeof(int));
     }

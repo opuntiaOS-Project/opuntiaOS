@@ -42,4 +42,4 @@ jobs:
       - name: Testing
         run: |
           cd out
-          python3 ../utils/test/test.py aarch32
+          python3 ../utils/test/test.py

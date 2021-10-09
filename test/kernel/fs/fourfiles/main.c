@@ -6,12 +6,6 @@
 
 char buf[512];
 
-void msg(const char* msg)
-{
-    printf("[MSG] %s\n", msg);
-    fflush(stdout);
-}
-
 int main(int argc, char** argv)
 {
     int fd, pid, i, j, n, total, pi;
@@ -26,22 +20,19 @@ int main(int argc, char** argv)
         pid = fork();
         pids[pi] = pid;
         if (pid < 0) {
-            msg("fork failed");
-            return 1;
+            TestErr("fork failed");
         }
 
         if (pid == 0) {
             fd = open(fname, O_CREAT | O_RDWR);
             if (fd < 0) {
-                msg("create failed");
-                return 1;
+                TestErr("create failed");
             }
 
             memset(buf, '0' + pi, 512);
             for (i = 0; i < 12; i++) {
                 if ((n = write(fd, buf, 500)) != 500) {
-                    msg("write failed");
-                    return 1;
+                    TestErr("write failed");
                 }
             }
             exit(0);
@@ -59,16 +50,14 @@ int main(int argc, char** argv)
         while ((n = read(fd, buf, sizeof(buf))) > 0) {
             for (j = 0; j < n; j++) {
                 if (buf[j] != '0' + i) {
-                    msg("wrong char");
-                    return 1;
+                    TestErr("wrong char");
                 }
             }
             total += n;
         }
         close(fd);
         if (total != 12 * 500) {
-            msg("wrong length");
-            return 1;
+            TestErr("wrong length");
         }
         unlink(fname);
     }

@@ -63,12 +63,12 @@ void sys_open(trapframe_t* tf)
     if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
         return_with_val(-ENOENT);
     }
-    int res = vfs_open(file, fd, flags);
+    int err = vfs_open(file, fd, flags);
     dentry_put(file);
-    if (!res) {
-        return_with_val(proc_get_fd_id(p, fd));
+    if (err) {
+        return_with_val(err);
     }
-    return_with_val(res);
+    return_with_val(proc_get_fd_id(p, fd));
 }
 
 void sys_close(trapframe_t* tf)

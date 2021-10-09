@@ -31,6 +31,13 @@ if base[-1] == '/':
 if out[-1] == '/':
     out = out[:-1]
 
+env_var_checker = """
+{2}="{3}"
+{4}=1
+[[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
+[[ -z "${5}" ]] && {4}=1 || {4}="${5}"
+""".format("", QEMU_PATH_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH, QEMU_SMP_VAR, QEMU_SMP_ENV_VAR)
+
 sync = open("{0}/sync.sh".format(out), "w")
 sync.write(
     """#!/bin/bash
@@ -90,24 +97,18 @@ build.close()
 run = open("{0}/run.sh".format(out), "w")
 run.write(
     """#!/bin/bash
-{2}="{3}"
-{4}=1
-[[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
-[[ -z "${5}" ]] && {4}=1 || {4}="${5}"
+{1}
 {0}
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Run command failed" && exit 1; fi""".format(qemu_run_cmd, QEMU_PATH_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH, QEMU_SMP_VAR, QEMU_SMP_ENV_VAR)
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} Run command failed" && exit 1; fi""".format(qemu_run_cmd, env_var_checker)
 )
 run.close()
 
 debug = open("{0}/debug.sh".format(out), "w")
 debug.write(
     """#!/bin/bash
-{2}="{3}"
-{4}=1
-[[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
-[[ -z "${5}" ]] && {4}=1 || {4}="${5}"
+{1}
 {0} -s -S
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Debug Run command failed" && exit 1; fi""".format(qemu_run_cmd, QEMU_PATH_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH, QEMU_SMP_VAR, QEMU_SMP_ENV_VAR)
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} Debug Run command failed" && exit 1; fi""".format(qemu_run_cmd, env_var_checker)
 )
 debug.close()
 
@@ -142,11 +143,10 @@ SUCCESS="${{GREEN}}[SUCCESS]${{NC}}"
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
 ./sync.sh
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
-{2}="{3}"
-[[ -z "${1}" ]] && {2}='{3}' || {2}="${1}"
+{1}
 {0} --nographic
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} All command failed" && exit 1; fi
-""".format(qemu_run_cmd, QEMU_PATH_ENV_VAR, QEMU_PATH_VAR, QEMU_STD_PATH))
+""".format(qemu_run_cmd, env_var_checker))
 allf.close()
 
 allf = open("{0}/dll.sh".format(out), "w")
