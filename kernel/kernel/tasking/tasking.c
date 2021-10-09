@@ -327,11 +327,11 @@ int tasking_waitpid(int pid, int* status)
     if (!joinee_thread) {
         return -ESRCH;
     }
-    thread->joinee = joinee_thread;
-    init_join_blocker(thread);
+
+    init_join_blocker(thread, joinee_thread);
 
     // FIXME: Status just return exit code.
-    int kstatus = thread->joinee->exit_code;
+    int kstatus = thread->exit_code;
     if (status) {
         vmm_copy_to_user(status, &kstatus, sizeof(int));
     }

@@ -26,6 +26,7 @@ enum THREAD_STATUS {
     THREAD_STATUS_STOPPED,
     THREAD_STATUS_BLOCKED,
     THREAD_STATUS_DYING,
+    THREAD_STATUS_ZOMBIE,
 };
 
 struct thread;
@@ -45,6 +46,29 @@ enum BLOCKER_REASON {
     BLOCKER_SELECT,
     BLOCKER_DUMPING,
 };
+
+struct blocker_join {
+    struct thread* joinee;
+};
+typedef struct blocker_join blocker_join_t;
+
+struct blocker_rw {
+    file_descriptor_t* fd;
+};
+typedef struct blocker_rw blocker_rw_t;
+
+struct blocker_sleep {
+    time_t until;
+};
+typedef struct blocker_sleep blocker_sleep_t;
+
+struct blocker_select {
+    int nfds;
+    fd_set_t readfds;
+    fd_set_t writefds;
+    fd_set_t exceptfds;
+};
+typedef struct blocker_select blocker_select_t;
 
 struct proc;
 struct thread {
@@ -67,14 +91,15 @@ struct thread {
 
     /* Blocker data */
     blocker_t blocker;
-    int exit_code;
-    struct thread* joinee;
-    file_descriptor_t* blocker_fd;
-    time_t unblock_time;
-    int nfds;
-    fd_set_t readfds;
-    fd_set_t writefds;
-    fd_set_t exceptfds;
+    union {
+        blocker_join_t join;
+        blocker_rw_t rw;
+        blocker_sleep_t sleep;
+        blocker_select_t select;
+    } blocker_data;
+
+    int exit_code; // Sets only for the main thread.
+    int waiting_threads; // Count of waiting threads for this one.
 
     /* Stat data */
     time_t stat_total_running_ticks;
@@ -116,14 +141,19 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envc, char
 int thread_kstack_free(thread_t* thread);
 int thread_free(thread_t* thread);
 int thread_die(thread_t* thread);
+int thread_zombie(thread_t* thread);
 
 static ALWAYS_INLINE int thread_is_free(thread_t* thread) { return (thread->status == THREAD_STATUS_INVALID) || (thread->status == THREAD_STATUS_DEAD); }
+
+static ALWAYS_INLINE int thread_waiting_ents(thread_t* thread) { return atomic_load(&thread->waiting_threads); }
+static ALWAYS_INLINE int thread_inc_waiting_ents(thread_t* thread) { return atomic_add(&thread->waiting_threads, 1); }
+int thread_dec_waiting_ents(thread_t* thread);
 
 /**
  * BLOCKER FUNCTIONS
  */
 
-int init_join_blocker(thread_t* p);
+int init_join_blocker(thread_t* thread, thread_t* joinee_thread);
 int init_read_blocker(thread_t* p, file_descriptor_t* bfd);
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd);
 int init_sleep_blocker(thread_t* thread, uint32_t time);

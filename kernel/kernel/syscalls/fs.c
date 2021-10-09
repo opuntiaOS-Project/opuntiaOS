@@ -292,12 +292,12 @@ void sys_select(trapframe_t* tf)
 
     for (int i = 0; i < nfds; i++) {
         fd = proc_get_fd(p, i);
-        if (readfds && FD_ISSET(i, &(RUNNING_THREAD->readfds))) {
+        if (readfds && FD_ISSET(i, &(RUNNING_THREAD->blocker_data.select.readfds))) {
             if (fd->ops->can_read && fd->ops->can_read(fd->dentry, fd->offset)) {
                 FD_SET(i, readfds);
             }
         }
-        if (writefds && FD_ISSET(i, &(RUNNING_THREAD->writefds))) {
+        if (writefds && FD_ISSET(i, &(RUNNING_THREAD->blocker_data.select.writefds))) {
             if (fd->ops->can_write && fd->ops->can_write(fd->dentry, fd->offset)) {
                 FD_SET(i, writefds);
             }

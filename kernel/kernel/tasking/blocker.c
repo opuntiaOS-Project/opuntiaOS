@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include <libkern/atomic.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <libkern/syscall_structs.h>
@@ -15,15 +16,18 @@
 
 int should_unblock_join_block(thread_t* thread)
 {
-    // TODO: Add more checks here.
-    if (thread->joinee->status == THREAD_STATUS_DYING || thread->joinee->status == THREAD_STATUS_DEAD) {
+    const int status = thread->blocker_data.join.joinee->status;
+    if (status == THREAD_STATUS_DYING || status == THREAD_STATUS_ZOMBIE || status == THREAD_STATUS_DEAD) {
         return 1;
     }
     return 0;
 }
 
-int init_join_blocker(thread_t* thread)
+int init_join_blocker(thread_t* thread, thread_t* joinee_thread)
 {
+    thread_inc_waiting_ents(joinee_thread);
+    thread->blocker_data.join.joinee = joinee_thread;
+
     if (should_unblock_join_block(thread)) {
         return 0;
     }
@@ -34,17 +38,19 @@ int init_join_blocker(thread_t* thread)
     thread->blocker.should_unblock_for_signal = true;
     sched_dequeue(thread);
     resched();
+
+    thread_dec_waiting_ents(joinee_thread);
     return 0;
 }
 
 int should_unblock_read_block(thread_t* thread)
 {
-    return thread->blocker_fd->ops->can_read(thread->blocker_fd->dentry, thread->blocker_fd->offset);
+    return thread->blocker_data.rw.fd->ops->can_read(thread->blocker_data.rw.fd->dentry, thread->blocker_data.rw.fd->offset);
 }
 
 int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 {
-    thread->blocker_fd = bfd;
+    thread->blocker_data.rw.fd = bfd;
 
     if (should_unblock_read_block(thread)) {
         return 0;
@@ -61,12 +67,12 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 
 int should_unblock_write_block(thread_t* thread)
 {
-    return thread->blocker_fd->ops->can_write(thread->blocker_fd->dentry, thread->blocker_fd->offset);
+    return thread->blocker_data.rw.fd->ops->can_write(thread->blocker_data.rw.fd->dentry, thread->blocker_data.rw.fd->offset);
 }
 
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
 {
-    thread->blocker_fd = bfd;
+    thread->blocker_data.rw.fd = bfd;
 
     if (should_unblock_write_block(thread)) {
         return 0;
@@ -83,12 +89,12 @@ int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
 
 int should_unblock_sleep_block(thread_t* thread)
 {
-    return thread->unblock_time <= timeman_now();
+    return thread->blocker_data.sleep.until <= timeman_now();
 }
 
 int init_sleep_blocker(thread_t* thread, uint32_t time)
 {
-    thread->unblock_time = timeman_now() + time;
+    thread->blocker_data.sleep.until = timeman_now() + time;
 
     if (should_unblock_sleep_block(thread)) {
         return 0;
@@ -105,13 +111,13 @@ int init_sleep_blocker(thread_t* thread, uint32_t time)
 
 int should_unblock_select_block(thread_t* thread)
 {
-    if (thread->unblock_time != 0 && thread->unblock_time <= timeman_now()) {
+    if (thread->blocker_data.sleep.until != 0 && thread->blocker_data.sleep.until <= timeman_now()) {
         return true;
     }
 
     file_descriptor_t* fd;
-    for (int i = 0; i < thread->nfds; i++) {
-        if (FD_ISSET(i, &thread->readfds)) {
+    for (int i = 0; i < thread->blocker_data.select.nfds; i++) {
+        if (FD_ISSET(i, &thread->blocker_data.select.readfds)) {
             fd = proc_get_fd(thread->process, i);
             if (fd->ops->can_read(fd->dentry, fd->offset)) {
                 return true;
@@ -119,8 +125,8 @@ int should_unblock_select_block(thread_t* thread)
         }
     }
 
-    for (int i = 0; i < thread->nfds; i++) {
-        if (FD_ISSET(i, &thread->writefds)) {
+    for (int i = 0; i < thread->blocker_data.select.nfds; i++) {
+        if (FD_ISSET(i, &thread->blocker_data.select.writefds)) {
             fd = proc_get_fd(thread->process, i);
             if (fd->ops->can_write(fd->dentry, fd->offset)) {
                 return true;
@@ -132,24 +138,24 @@ int should_unblock_select_block(thread_t* thread)
 
 int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout)
 {
-    FD_ZERO(&(thread->readfds));
-    FD_ZERO(&(thread->writefds));
-    FD_ZERO(&(thread->exceptfds));
-    thread->unblock_time = 0;
+    FD_ZERO(&(thread->blocker_data.select.readfds));
+    FD_ZERO(&(thread->blocker_data.select.writefds));
+    FD_ZERO(&(thread->blocker_data.select.exceptfds));
+    thread->blocker_data.sleep.until = 0;
 
     if (readfds) {
-        thread->readfds = *readfds;
+        thread->blocker_data.select.readfds = *readfds;
     }
     if (writefds) {
-        thread->writefds = *writefds;
+        thread->blocker_data.select.writefds = *writefds;
     }
     if (exceptfds) {
-        thread->exceptfds = *exceptfds;
+        thread->blocker_data.select.exceptfds = *exceptfds;
     }
     if (timeout) {
-        thread->unblock_time = timeman_now() + timeout->tv_sec;
+        thread->blocker_data.sleep.until = timeman_now() + timeout->tv_sec;
     }
-    thread->nfds = nfds;
+    thread->blocker_data.select.nfds = nfds;
 
     if (should_unblock_select_block(thread)) {
         return 0;

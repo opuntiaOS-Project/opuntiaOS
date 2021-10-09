@@ -440,11 +440,32 @@ int proc_free(proc_t* p)
 int proc_die(proc_t* p)
 {
     lock_acquire(&p->lock);
+    p->status = PROC_DYING;
     foreach_thread(p)
     {
-        thread_die(thread);
+        if (atomic_load(&thread->waiting_threads) != 0) {
+            p->status = PROC_ZOMBIE;
+            thread_zombie(thread);
+        } else {
+            thread_die(thread);
+        }
     }
+
+    lock_release(&p->lock);
+    return 0;
+}
+
+int proc_can_zombie_die(proc_t* p)
+{
+    lock_acquire(&p->lock);
     p->status = PROC_DYING;
+    foreach_thread(p)
+    {
+        if (atomic_load(&thread->waiting_threads) != 0) {
+            p->status = PROC_ZOMBIE;
+            break;
+        }
+    }
     lock_release(&p->lock);
     return 0;
 }
