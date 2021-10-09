@@ -1,5 +1,6 @@
 int errno;
 char** environ;
+int __environ_malloced = 0;
 
 extern int _stdio_init();
 extern int _stdio_deinit();
