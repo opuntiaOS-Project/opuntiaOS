@@ -1,0 +1,8 @@
+import("//build/test/TEMPLATE.gni")
+
+opuntiaOS_test("procfs") {
+  test_bundle = "kernel/fs/procfs"
+  sources = [ "main.c" ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [ "libc" ]
+}

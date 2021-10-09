@@ -4,7 +4,8 @@
 
 group("fs") {
   deps = [
-    "//test/kernel/fs/fourfiles:fourfiles",
     "//test/kernel/fs/dirfile:dirfile",
+    "//test/kernel/fs/fourfiles:fourfiles",
+    "//test/kernel/fs/procfs:procfs",
   ]
 }

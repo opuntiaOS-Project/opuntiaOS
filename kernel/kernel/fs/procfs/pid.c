@@ -48,8 +48,8 @@ const file_ops_t procfs_pid_stat_ops = {
 };
 
 static const procfs_files_t static_procfs_files[] = {
-    { .name = "memstat", .mode = 0, .ops = &procfs_pid_memstat_ops },
-    { .name = "stat", .mode = 0, .ops = &procfs_pid_stat_ops },
+    { .name = "memstat", .mode = 0444, .ops = &procfs_pid_memstat_ops },
+    { .name = "stat", .mode = 0444, .ops = &procfs_pid_stat_ops },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
 

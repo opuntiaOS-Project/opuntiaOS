@@ -53,8 +53,8 @@ const file_ops_t procfs_root_stat_ops = {
 };
 
 static const procfs_files_t static_procfs_files[] = {
-    { .name = "stat", .mode = 0, .ops = &procfs_root_stat_ops },
-    { .name = "uptime", .mode = 0, .ops = &procfs_root_uptime_ops },
+    { .name = "stat", .mode = 0444, .ops = &procfs_root_stat_ops },
+    { .name = "uptime", .mode = 0444, .ops = &procfs_root_uptime_ops },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
 
@@ -171,7 +171,7 @@ int procfs_root_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t**
                     *result = dentry_get_no_inode(dir->dev_indx, procfs_root_pid_get_inode_index(pidi), &newly_allocated);
                     if (newly_allocated) {
                         procfs_inode_t* new_procfs_inode = (procfs_inode_t*)((*result)->inode);
-                        new_procfs_inode->mode = S_IFDIR;
+                        new_procfs_inode->mode = S_IFDIR | 0444;
                         new_procfs_inode->ops = &procfs_pid_ops;
                     }
                     return 0;
