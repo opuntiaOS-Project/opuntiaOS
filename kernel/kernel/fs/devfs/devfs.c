@@ -48,7 +48,7 @@ static int _devfs_alloc_entry_zone()
         return ENOMEM;
     }
 
-    dynamic_array_push(&entry_zones, &new_zone);
+    dynarr_push(&entry_zones, &new_zone);
     next_space_to_put_entry = new_zone;
     free_space_in_last_entry_zone = DEVFS_ZONE_SIZE;
     return 0;
@@ -61,7 +61,7 @@ static int _devfs_alloc_name_zone()
         return -ENOMEM;
     }
 
-    dynamic_array_push(&name_zones, &new_zone);
+    dynarr_push(&name_zones, &new_zone);
     next_space_to_put_name = new_zone;
     free_space_in_last_name_zone = DEVFS_ZONE_SIZE;
     return 0;
@@ -74,7 +74,7 @@ static int _devfs_alloc_ops_zone()
         return -ENOMEM;
     }
 
-    dynamic_array_push(&ops_zones, &new_zone);
+    dynarr_push(&ops_zones, &new_zone);
     next_space_to_put_ops = new_zone;
     free_space_in_last_ops_zone = DEVFS_ZONE_SIZE;
     return 0;
@@ -90,7 +90,7 @@ static devfs_inode_t* _devfs_get_entry(uint32_t indx)
 
     uint32_t requested_zone = indx / entries_per_zone;
     uint32_t index_within_zone = indx % entries_per_zone;
-    uint32_t* tmp_ptr = dynamic_array_get(&entry_zones, requested_zone);
+    uint32_t* tmp_ptr = dynarr_get(&entry_zones, requested_zone);
     devfs_inode_t* res = (devfs_inode_t*)*tmp_ptr;
     if (!res) {
         return 0;
@@ -255,9 +255,10 @@ fsdata_t devfs_data(dentry_t* dentry)
 
 int devfs_prepare_fs(vfs_device_t* vdev)
 {
-    dynamic_array_init(&name_zones, sizeof(void*));
-    dynamic_array_init(&entry_zones, sizeof(void*));
-    dynamic_array_init(&ops_zones, sizeof(void*));
+    dynarr_init(void*, &name_zones);
+    dynarr_init(void*, &entry_zones);
+    dynarr_init(void*, &ops_zones);
+
     _devfs_setup_root();
     return 0;
 }

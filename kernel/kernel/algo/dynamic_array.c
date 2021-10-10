@@ -7,105 +7,150 @@
  */
 
 #include <algo/dynamic_array.h>
+#include <libkern/bits/errno.h>
 #include <libkern/log.h>
 #include <libkern/mem.h>
 #include <mem/kmalloc.h>
 
-static inline int _dynamic_array_resize(dynamic_array_t* v, uint32_t new_capacity, uint32_t element_size)
+static dynamic_array_bucket_t* _dynarr_bucket(dynamic_array_t* v, int index, int* index_inside)
 {
-    uint32_t* new_darray_area = krealloc(v->data, new_capacity * element_size);
-    if (new_darray_area == 0) {
-        return -1;
+    if (!v->head) {
+        return NULL;
     }
-    v->data = new_darray_area;
-    v->capacity = new_capacity;
-    return 0;
+
+    dynamic_array_bucket_t* bucket = v->head;
+    int cur = bucket->capacity;
+    int idx = index;
+    while (cur <= index) {
+        idx -= bucket->capacity;
+        bucket = bucket->next;
+        if (!bucket) {
+            return NULL;
+        }
+        cur += bucket->capacity;
+    }
+
+    *index_inside = idx;
+    return bucket;
 }
 
-static inline int _dynamic_array_grow(dynamic_array_t* v)
+static dynamic_array_bucket_t* _dynarr_add_bucket(dynamic_array_t* v, int bucket_size)
 {
-    if (v->capacity) {
-        if (_dynamic_array_resize(v, 2 * v->capacity, v->element_size) != 0) {
-            return -1;
-        }
+    size_t siz = sizeof(dynamic_array_bucket_t) + (bucket_size * v->element_size);
+    dynamic_array_bucket_t* new_bucket = (dynamic_array_bucket_t*)kmalloc(siz);
+    new_bucket->data = (((char*)new_bucket) + sizeof(dynamic_array_bucket_t));
+    new_bucket->capacity = bucket_size;
+    new_bucket->next = NULL;
+    new_bucket->size = 0;
+
+    if (v->tail) {
+        dynamic_array_bucket_t* tail = v->tail;
+        tail->next = new_bucket;
+        v->tail = new_bucket;
     } else {
-        v->data = kmalloc(v->element_size); /* allocating one entry */
-        if (!v->data) {
-            return -1;
-        }
-        v->capacity = 1;
+        v->head = v->tail = new_bucket;
+    }
+
+    return new_bucket;
+}
+
+static inline bool _dynarr_has_empty_space(dynamic_array_t* v)
+{
+    if (!v->tail) {
+        return false;
+    }
+
+    return v->tail->size < v->tail->capacity;
+}
+
+static inline int _dynarr_grow(dynamic_array_t* v)
+{
+    int cap = 8;
+    if (v->tail) {
+        cap = v->tail->capacity * 2;
+    }
+
+    if (!_dynarr_add_bucket(v, cap)) {
+        return -ENOMEM;
     }
     return 0;
 }
 
-int dynamic_array_init(dynamic_array_t* v, uint32_t element_size)
+int dynarr_init_of_size_impl(dynamic_array_t* v, uint32_t element_size, uint32_t cap)
 {
+    v->head = v->tail = NULL;
     v->size = 0;
-    v->capacity = 0;
     v->element_size = element_size;
-    return 0;
-}
-
-int dynamic_array_init_of_size(dynamic_array_t* v, uint32_t element_size, uint32_t capacity)
-{
-    v->data = kmalloc(capacity * element_size);
-    if (!v->data) {
-        return -1;
+    if (!_dynarr_add_bucket(v, cap)) {
+        return -ENOMEM;
     }
-
-    v->size = 0;
-    v->capacity = capacity;
-    v->element_size = element_size;
-
     return 0;
 }
 
-int dynamic_array_free(dynamic_array_t* v)
+int dynarr_free(dynamic_array_t* v)
 {
-    kfree(v->data);
+    dynamic_array_bucket_t* start = v->head;
+    while (start) {
+        dynamic_array_bucket_t* next = start->next;
+        kfree(start);
+        start = next;
+    }
+    v->head = v->tail = NULL;
     v->size = 0;
-    v->capacity = 0;
     return 0;
 }
 
-void* dynamic_array_get(dynamic_array_t* v, int index)
+void* dynarr_get(dynamic_array_t* v, int index)
 {
-    if (index >= v->size) {
+    int index_inside = 0;
+    dynamic_array_bucket_t* target = _dynarr_bucket(v, index, &index_inside);
+    if (target->size > 50) {
+        while (1) { }
+    }
+    if (!target) {
         log_warn("!!! dynamic array: index out of range");
-        return 0;
+        return NULL;
     }
-    return (void*)v->data + index * v->element_size;
+    void* place = (void*)target->data + index_inside * v->element_size;
+    return place;
 }
 
-int dynamic_array_push(dynamic_array_t* v, void* element)
+void* dynarr_push(dynamic_array_t* v, void* element)
 {
-    if (v->size == v->capacity) {
-        if (_dynamic_array_grow(v) != 0) {
-            return -1;
-        }
+    if (!_dynarr_has_empty_space(v)) {
+        _dynarr_grow(v);
     }
-    v->size++;
-    void* place = dynamic_array_get(v, v->size - 1);
+
+    int index_inside = 0;
+    dynamic_array_bucket_t* target = _dynarr_bucket(v, v->size, &index_inside);
+    ASSERT(target);
+    void* place = (void*)target->data + index_inside * v->element_size;
     memcpy(place, element, v->element_size);
-    return 0;
+    target->size++;
+    v->size++;
+    return place;
 }
 
-int dynamic_array_pop(dynamic_array_t* v)
+int dynarr_pop(dynamic_array_t* v)
 {
-    if (v->size) {
+    if (likely(v->size)) {
+        int index_inside = 0;
+        dynamic_array_bucket_t* target = _dynarr_bucket(v, v->size - 1, &index_inside);
+        ASSERT(target);
+        target->size--;
         v->size--;
         return 0;
     }
     return -1;
 }
 
-int dynamic_array_clear(dynamic_array_t* v)
+int dynarr_clear(dynamic_array_t* v)
 {
-    v->size = 0;
+    dynarr_free(v);
     return 0;
 }
 
-uint32_t dynamic_array_size(dynamic_array_t* v)
+uint32_t dyarr_size(dynamic_array_t* v)
 {
     return v->size;
 }

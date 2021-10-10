@@ -47,14 +47,14 @@ driver_desc_t _vfs_driver_info()
 void vfs_install()
 {
     driver_install(_vfs_driver_info(), "vfs");
-    dynamic_array_init_of_size(&_vfs_fses, sizeof(fs_desc_t), MAX_FS);
+    dynarr_init_of_size(fs_desc_t, &_vfs_fses, MAX_FS);
 }
 
 int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
 {
     int fs_cnt = _vfs_fses.size;
     for (int i = 0; i < fs_cnt; i++) {
-        fs_desc_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
+        fs_desc_t* fs = dynarr_get(&_vfs_fses, (int)i);
         if (!fs->ops->recognize) {
             continue;
         }
@@ -75,7 +75,7 @@ int vfs_get_fs_id(const char* name)
 {
     int fs_cnt = _vfs_fses.size;
     for (int i = 0; i < fs_cnt; i++) {
-        fs_desc_t* fs = dynamic_array_get(&_vfs_fses, (int)i);
+        fs_desc_t* fs = dynarr_get(&_vfs_fses, (int)i);
         if (strcmp(name, fs->driver->name) == 0) {
             return i;
         }
@@ -116,7 +116,7 @@ int vfs_add_dev_with_fs(device_t* dev, int fs_id)
     _vfs_devices[dev->id].dev = dev;
     _vfs_devices[dev->id].fs = fs_id;
 
-    fs_desc_t* fs = dynamic_array_get(&_vfs_fses, fs_id);
+    fs_desc_t* fs = dynarr_get(&_vfs_fses, fs_id);
     if (fs->ops->prepare_fs) {
         int (*prepare_fs)(vfs_device_t * nd) = fs->ops->prepare_fs;
         return prepare_fs(&_vfs_devices[dev->id]);
@@ -132,7 +132,7 @@ void vfs_eject_device(device_t* dev)
     log("Ejecting\n");
 #endif
     int fs_id = _vfs_devices[dev->id].fs;
-    fs_desc_t* fs = dynamic_array_get(&_vfs_fses, (int)fs_id);
+    fs_desc_t* fs = dynarr_get(&_vfs_fses, (int)fs_id);
     if (fs->ops->eject_device) {
         int (*eject)(vfs_device_t * nd) = fs->ops->eject_device;
         eject(&_vfs_devices[dev->id]);
@@ -176,7 +176,7 @@ void vfs_add_fs(driver_t* new_driver)
     fs_desc_t new_fs;
     new_fs.driver = new_driver;
     new_fs.ops = new_ops;
-    dynamic_array_push(&_vfs_fses, &new_fs);
+    dynarr_push(&_vfs_fses, &new_fs);
 }
 
 int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)

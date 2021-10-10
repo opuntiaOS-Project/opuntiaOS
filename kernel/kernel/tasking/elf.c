@@ -35,7 +35,7 @@ static int _elf_load_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_progra
     uint32_t zones_count = proc->zones.size;
 
     for (uint32_t i = 0; i < zones_count; i++) {
-        proc_zone_t* zone = (proc_zone_t*)dynamic_array_get(&proc->zones, i);
+        proc_zone_t* zone = (proc_zone_t*)dynarr_get(&proc->zones, i);
         if (zone->type == ZONE_TYPE_BSS) {
             memset((void*)zone->start, 0, zone->len);
         }

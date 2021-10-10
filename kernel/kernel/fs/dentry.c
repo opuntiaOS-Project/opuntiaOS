@@ -192,7 +192,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx, int ne
     dentry->flags = 0;
     dentry->dev_indx = dev_indx;
     dentry->dev = &_vfs_devices[dentry->dev_indx];
-    fs_desc = dynamic_array_get(&_vfs_fses, dentry->dev->fs);
+    fs_desc = dynarr_get(&_vfs_fses, dentry->dev->fs);
     dentry->ops = fs_desc->ops;
     dentry->inode_indx = inode_indx;
     dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);

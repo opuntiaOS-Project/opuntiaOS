@@ -157,7 +157,7 @@ static ALWAYS_INLINE int proc_setup_lockless(proc_t* p)
     memset((void*)p->fds, 0, MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
     /* setting up zones */
-    if (dynamic_array_init_of_size(&p->zones, sizeof(proc_zone_t), 8) != 0) {
+    if (dynarr_init_of_size(proc_zone_t, &p->zones, 8) != 0) {
         return -ENOMEM;
     }
 
@@ -252,11 +252,11 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
     }
 
     for (int i = 0; i < from_proc->zones.size; i++) {
-        proc_zone_t* zone_to_copy = (proc_zone_t*)dynamic_array_get(&from_proc->zones, i);
+        proc_zone_t* zone_to_copy = (proc_zone_t*)dynarr_get(&from_proc->zones, i);
         if (zone_to_copy->file) {
             dentry_duplicate(zone_to_copy->file); // For the copied zone.
         }
-        dynamic_array_push(&new_proc->zones, zone_to_copy);
+        dynarr_push(&new_proc->zones, zone_to_copy);
     }
 
     return 0;
@@ -322,7 +322,7 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
     vmm_switch_pdir(new_pdir);
     p->pdir = new_pdir;
 
-    if (dynamic_array_init_of_size(&p->zones, sizeof(proc_zone_t), 8) != 0) {
+    if (dynarr_init_of_size(proc_zone_t, &p->zones, 8) != 0 != 0) {
         dentry_put(dentry);
         vfs_close(&fd);
         return -ENOMEM;
@@ -349,7 +349,7 @@ success:
     if (old_pdir) {
         vmm_free_pdir(old_pdir, &old_zones);
     }
-    dynamic_array_clear(&old_zones);
+    dynarr_clear(&old_zones);
 
     // Setting up proc
     p->proc_file = dentry; // dentry isn't put, but is transfered to the proc.
@@ -373,7 +373,7 @@ restore:
     p->pdir = old_pdir;
     vmm_switch_pdir(old_pdir);
     vmm_free_pdir(new_pdir, &p->zones);
-    dynamic_array_clear(&p->zones);
+    dynarr_clear(&p->zones);
     p->zones = old_zones;
     vfs_close(&fd);
     dentry_put(dentry);
@@ -425,7 +425,7 @@ int proc_free_lockless(proc_t* p)
         p->pdir = NULL;
     }
 
-    dynamic_array_free(&p->zones);
+    dynarr_free(&p->zones);
     return 0;
 }
 
