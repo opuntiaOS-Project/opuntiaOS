@@ -4,6 +4,7 @@
 
 group("test_kernel") {
   deps = [
+    "//test/kernel/env:env",
     "//test/kernel/fs:fs",
     "//test/kernel/signal:signal",
   ]

@@ -250,7 +250,7 @@ static int _tasking_validate_exec_params(const char** argv, int* kargc, char*** 
 
     // Inlined part of kmem_bring_to_kernel_ptrarr
     for (int i = start_with; i < *kargc; i++) {
-        res[i] = kmem_bring_to_kernel(argv[i - 1], strlen(argv[i - 1]) + 1);
+        res[i] = kmem_bring_to_kernel(argv[i - start_with], strlen(argv[i - start_with]) + 1);
     }
 
     *kargv = res;

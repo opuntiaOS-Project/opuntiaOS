@@ -1,0 +1,8 @@
+import("//build/test/TEMPLATE.gni")
+
+opuntiaOS_test("env") {
+  test_bundle = "kernel/env"
+  sources = [ "main.c" ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [ "libc" ]
+}

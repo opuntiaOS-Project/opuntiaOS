@@ -17,7 +17,7 @@ char* getenv(const char* name)
             continue;
         }
         size_t curlen = (size_t)(eqpos - envv);
-        if (curlen == len && strncmp(name, envv, len)) {
+        if (curlen == len && strncmp(name, envv, len) == 0) {
             return (char*)&envv[len + 1];
         }
     }
@@ -70,11 +70,11 @@ int putenv(char* string)
     }
 
     char** new_environ = (char**)malloc(sizeof(char*) * (env_i + 2));
-    for (int i = 0; environ[i]; i++) {
+    for (int i = 0; i < env_i; i++) {
         new_environ[i] = environ[i];
     }
     new_environ[env_i] = string;
-    new_environ[env_i] = NULL;
+    new_environ[env_i + 1] = NULL;
 
     extern int __environ_malloced;
     if (__environ_malloced) {

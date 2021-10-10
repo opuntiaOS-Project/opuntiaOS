@@ -31,12 +31,24 @@ uint32_t _cmd_getkeycode();
 enum internal_cmd_code {
     CMD_NONE = 0,
     CMD_CD,
+    CMD_SET,
+    CMD_UNSET,
+    CMD_ENV,
 };
 
 uint32_t _is_cmd_internal()
 {
     if (memcmp(_cmd_buffer, "cd", 2) == 0) {
         return CMD_CD;
+    }
+    if (memcmp(_cmd_buffer, "set", 3) == 0) {
+        return CMD_SET;
+    }
+    if (memcmp(_cmd_buffer, "env", 3) == 0) {
+        return CMD_ENV;
+    }
+    if (memcmp(_cmd_buffer, "unset", 5) == 0) {
+        return CMD_UNSET;
     }
     return CMD_NONE;
 }
@@ -45,6 +57,29 @@ int _cmd_do_internal(uint32_t code)
 {
     if (code == CMD_CD) {
         return chdir(_cmd_parsed_buffer[1]);
+    }
+    if (code == CMD_SET) {
+        char* eqpos = strchr(_cmd_parsed_buffer[1], '=');
+        if (!eqpos) {
+            return 0;
+        }
+        *eqpos = '\0';
+        return setenv(_cmd_parsed_buffer[1], (char*)(eqpos + 1), 1);
+    }
+    if (code == CMD_UNSET) {
+        return unsetenv(_cmd_parsed_buffer[1]);
+    }
+    if (code == CMD_ENV) {
+        for (int i = 0; environ[i]; i++) {
+            const char* envv = environ[i];
+            char* eqpos = strchr(envv, '=');
+            if (!eqpos) {
+                continue;
+            }
+            size_t len = strlen(envv);
+            write(STDOUT, envv, len);
+            write(STDOUT, "\n", 1);
+        }
     }
     return 0;
 }
@@ -106,7 +141,7 @@ void _cmd_processor()
         int res = fork();
         if (!res) {
             // We don't pass an app name to args.
-            execve(_cmd_app, &_cmd_parsed_buffer[1], 0);
+            execve(_cmd_app, &_cmd_parsed_buffer[1], environ);
             exit(-1);
         } else {
             running_job = res;
