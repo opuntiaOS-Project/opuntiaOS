@@ -12,10 +12,8 @@ public:
 
     virtual bool application() override
     {
-        auto& window = std::opuntiaos::construct<UI::Window>(window_size(), icon_path());
+        auto& window = std::opuntiaos::construct<UI::Window>("About", window_size(), icon_path());
         auto& superview = window.create_superview<UI::View, ViewController>();
-
-        window.set_title("About");
 
         window.menubar().add_menu("Demo").add_item(UI::MenuItem("Say hello", [] { Logger::debug << "Hello!" << std::endl; }));
 

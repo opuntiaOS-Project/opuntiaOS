@@ -65,7 +65,7 @@ WindowFrame::WindowFrame(Window& window)
     , m_window_control_buttons()
     , m_control_panel_buttons()
 {
-    set_text_style(TextStyle::Dark);
+    set_style(StatusBarStyle::StandardLight);
 
     auto* close = new Button();
     close->set_icon(LG::GlyphBitmap(s_close_button_glyph_data, 10, 10));
@@ -88,28 +88,9 @@ WindowFrame::WindowFrame(Window& window, std::vector<Button*>&& control_panel_bu
 {
 }
 
-void WindowFrame::set_app_name(const std::string& title)
+void WindowFrame::on_set_app_name()
 {
-    if (m_control_panel_buttons.size() > 0) {
-        m_control_panel_buttons[0]->set_title(title);
-    } else {
-        auto* new_control = new Button();
-        new_control->set_title(title);
-        m_control_panel_buttons.push_back(new_control);
-    }
-    WinServer::Compositor::the().invalidate(bounds());
-}
-
-void WindowFrame::set_app_name(std::string&& title)
-{
-    if (m_control_panel_buttons.size() > 0) {
-        m_control_panel_buttons[0]->set_title(title);
-    } else {
-        auto* new_control = new Button();
-        new_control->set_title(title);
-        new_control->set_font(LG::Font::system_bold_font());
-        m_control_panel_buttons.push_back(new_control);
-    }
+    m_app_name_width = Helpers::text_width(m_window.app_name(), LG::Font::system_font());
     WinServer::Compositor::the().invalidate(bounds());
 }
 
@@ -135,7 +116,7 @@ void WindowFrame::draw(LG::Context& ctx)
     int bottom_y = y + height - bottom_border_size();
 
     // Drawing frame and shadings
-    ctx.set_fill_color(color());
+    ctx.set_fill_color(style().color());
     ctx.fill_rounded(LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), top_border_size() - std_top_border_frame_size()), LG::CornerMask(4, true, false));
     if (active()) {
         ctx.set_fill_color(Color::Shadow);
@@ -147,9 +128,11 @@ void WindowFrame::draw(LG::Context& ctx)
     // Drawing labels, icons.
     // Drawing positions are calculated using a start of the frame.
     ctx.set_fill_color(m_text_colors[(int)active()]);
-    ctx.draw({ x + spacing(), y + icon_y_offset() }, icon());
+    if (style().show_text()) {
+        Helpers::draw_text(ctx, { x + spacing(), y + text_y_offset() }, m_window.app_name(), LG::Font::system_font());
+    }
 
-    constexpr int start_controls_offset = icon_width() + 2 * spacing();
+    int start_controls_offset = m_app_name_width + 2 * spacing();
     int start_controls = x + start_controls_offset;
     for (int i = 0; i < m_control_panel_buttons.size(); i++) {
         m_control_panel_buttons[i]->display(ctx, { start_controls, y + text_y_offset() });
@@ -227,26 +210,21 @@ void WindowFrame::handle_control_panel_tap(int button_id)
     }
 }
 
-void WindowFrame::set_text_style(TextStyle ts)
+void WindowFrame::set_style(StatusBarStyle ts)
 {
-    switch (ts) {
-    case TextStyle::Light:
+    m_style = ts;
+
+    if (m_style.dark_text()) {
         m_text_colors[0] = Color::InactiveText;
         m_text_colors[1] = LG::Color::DarkSystemText;
-        break;
-    case TextStyle::Dark:
+    } else {
         m_text_colors[0] = Color::InactiveText;
         m_text_colors[1] = LG::Color::LightSystemText;
-        break;
-    default:
-        break;
     }
 }
 
-void WindowFrame::reload_icon()
+void WindowFrame::on_set_icon()
 {
-    LG::PNG::PNGLoader loader;
-    m_icon = loader.load_from_file(m_window.icon_path() + "/12x12.png");
 }
 
 } // namespace WinServer

@@ -8,10 +8,10 @@
     NAME: BaseWindowServerDecoder
     MAGIC: 320
     GreetMessage() => GreetMessageReply(uint32_t connection_id)
-    CreateWindowMessage(int type, uint32_t width, uint32_t height, int buffer_id, LG::string icon_path) => CreateWindowMessageReply(uint32_t window_id)
+    CreateWindowMessage(int type, uint32_t width, uint32_t height, int buffer_id, LG::string title, LG::string icon_path, uint32_t color, uint32_t menubar_style) => CreateWindowMessageReply(uint32_t window_id)
     DestroyWindowMessage(uint32_t window_id) => DestroyWindowMessageReply(uint32_t status)
     SetBufferMessage(uint32_t window_id, int buffer_id, int format, LG::Rect bounds)
-    SetBarStyleMessage(uint32_t window_id, uint32_t color, int text_style)
+    SetBarStyleMessage(uint32_t window_id, uint32_t color, uint32_t menubar_style)
     SetTitleMessage(uint32_t window_id, LG::string title)
     InvalidateMessage(uint32_t window_id, LG::Rect rect)
     AskBringToFrontMessage(uint32_t window_id, uint32_t target_window_id)

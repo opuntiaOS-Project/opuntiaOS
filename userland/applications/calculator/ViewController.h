@@ -148,7 +148,7 @@ public:
                 } else {
                     view1.set_background_color(LG::Color::LightSystemButton);
                 }
-                view1.set_title_color(LG::Color::LightSystemText);
+                view1.set_title_color(LG::Color::DarkSystemText);
                 view1.set_font(LG::Font::system_bold_font());
                 view1.set_title(button_titles[i * 4 + j]);
                 view1.set_alignment(UI::Text::Alignment::Center);
@@ -160,7 +160,7 @@ public:
 
         auto& answer_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 0, 20));
         answer_label.set_text("0");
-        answer_label.set_text_color(LG::Color::LightSystemText);
+        answer_label.set_text_color(LG::Color::DarkSystemText);
         answer_label.set_alignment(UI::Text::Alignment::Right);
         m_answer_label_ptr = &answer_label;
         view().add_constraint(UI::Constraint(answer_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));

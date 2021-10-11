@@ -43,7 +43,7 @@ public:
     static constexpr size_t menubar_content_offset() { return 12 + 2 * padding(); }
 
     void set_background_color(const LG::Color& clr) { m_background_color = clr; }
-    void set_text_style(TextStyle ts);
+    void set_style(StatusBarStyle style);
 
     size_t width() const { return m_bounds.width(); }
     LG::Rect& bounds() { return m_bounds; }

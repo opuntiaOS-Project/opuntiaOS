@@ -22,14 +22,20 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const GreetMessage& msg)
 std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
+    auto& compositor = Compositor::the();
     int win_id = wm.next_win_id();
     auto* window = new Desktop::Window(msg.key(), win_id, msg);
-    window->set_name("App");
+    window->set_name(msg.title());
     window->set_icon(msg.icon_path());
+    window->set_style(StatusBarStyle(msg.menubar_style(), msg.color()));
     wm.add_window(window);
     if (window->type() == WindowType::Standard) {
+        // After moving windows, we have to invalidate bounds() to make sure that
+        // the whole window is rendered (coords are changes after move).
         wm.move_window(window, 8 * win_id, MenuBar::height() + 8 * win_id);
+        compositor.invalidate(window->bounds());
     }
+
     wm.notify_window_icon_changed(window->id());
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
@@ -39,6 +45,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& 
     auto& wm = WindowManager::the();
     int win_id = wm.next_win_id();
     auto* window = new Mobile::Window(msg.key(), win_id, msg);
+    window->set_style(StatusBarStyle(msg.menubar_style(), msg.color()));
     wm.add_window(window);
     wm.notify_window_icon_changed(window->id());
     wm.move_window(window, 0, MenuBar::height());
@@ -114,7 +121,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& m
         return nullptr;
     }
 
-    window->set_style(LG::Color(msg.color()), TextStyle(msg.text_style()));
+    window->set_style(StatusBarStyle(msg.menubar_style(), msg.color()));
     return nullptr;
 }
 

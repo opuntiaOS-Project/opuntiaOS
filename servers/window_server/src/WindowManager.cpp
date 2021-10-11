@@ -70,8 +70,7 @@ void WindowManager::remove_window_from_screen(Window* window)
         menu_bar.set_menubar_content(&m_std_menubar_content, m_compositor);
 #elif TARGET_MOBILE
         if (window->type() == WindowType::Standard) {
-            menu_bar.set_background_color(LG::Color::Opaque);
-            menu_bar.set_text_style(TextStyle::Dark);
+            menu_bar.set_style(StatusBarStyle::StandardOpaque);
             m_compositor.invalidate(menu_bar.bounds());
         }
 #endif
@@ -175,8 +174,7 @@ void WindowManager::bring_to_front(Window& window)
     m_active_window = &window;
     if (window.type() == WindowType::Standard) {
         auto& menu_bar = m_compositor.menu_bar();
-        menu_bar.set_background_color(window.color());
-        menu_bar.set_text_style(window.text_style());
+        menu_bar.set_style(window.style());
         m_compositor.invalidate(menu_bar.bounds());
     }
 }
@@ -416,8 +414,7 @@ void WindowManager::on_window_style_change(Window& window)
 {
     if (active_window() == &window && window.type() == WindowType::Standard) {
         auto& menu_bar = m_compositor.menu_bar();
-        menu_bar.set_background_color(window.color());
-        menu_bar.set_text_style(window.text_style());
+        menu_bar.set_style(window.style());
         m_compositor.invalidate(menu_bar.bounds());
     }
 }

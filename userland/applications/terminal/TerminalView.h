@@ -69,7 +69,7 @@ private:
     }
 
     LG::Color m_background_color { LG::Color(47, 47, 53) };
-    LG::Color m_font_color { LG::Color::DarkSystemText };
+    LG::Color m_font_color { LG::Color::LightSystemText };
     LG::Font* m_font_ptr { LG::Font::load_from_file("/res/fonts/Liza.font/10/regular.font") };
 
     constexpr int padding() const { return 2; }

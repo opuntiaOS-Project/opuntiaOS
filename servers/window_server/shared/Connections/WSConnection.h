@@ -61,13 +61,16 @@ private:
 
 class CreateWindowMessage : public Message {
 public:
-    CreateWindowMessage(message_key_t key, int type, uint32_t width, uint32_t height, int buffer_id, LG::string icon_path)
+    CreateWindowMessage(message_key_t key, int type, uint32_t width, uint32_t height, int buffer_id, LG::string title, LG::string icon_path, uint32_t color, uint32_t menubar_style)
         : m_key(key)
         , m_type(type)
         , m_width(width)
         , m_height(height)
         , m_buffer_id(buffer_id)
+        , m_title(title)
         , m_icon_path(icon_path)
+        , m_color(color)
+        , m_menubar_style(menubar_style)
     {
     }
     int id() const override { return 3; }
@@ -78,7 +81,10 @@ public:
     uint32_t width() const { return m_width; }
     uint32_t height() const { return m_height; }
     int buffer_id() const { return m_buffer_id; }
+    LG::string title() const { return m_title; }
     LG::string icon_path() const { return m_icon_path; }
+    uint32_t color() const { return m_color; }
+    uint32_t menubar_style() const { return m_menubar_style; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -89,7 +95,10 @@ public:
         Encoder::append(buffer, m_width);
         Encoder::append(buffer, m_height);
         Encoder::append(buffer, m_buffer_id);
+        Encoder::append(buffer, m_title);
         Encoder::append(buffer, m_icon_path);
+        Encoder::append(buffer, m_color);
+        Encoder::append(buffer, m_menubar_style);
         return buffer;
     }
 
@@ -99,7 +108,10 @@ private:
     uint32_t m_width;
     uint32_t m_height;
     int m_buffer_id;
+    LG::string m_title;
     LG::string m_icon_path;
+    uint32_t m_color;
+    uint32_t m_menubar_style;
 };
 
 class CreateWindowMessageReply : public Message {
@@ -224,11 +236,11 @@ private:
 
 class SetBarStyleMessage : public Message {
 public:
-    SetBarStyleMessage(message_key_t key, uint32_t window_id, uint32_t color, int text_style)
+    SetBarStyleMessage(message_key_t key, uint32_t window_id, uint32_t color, uint32_t menubar_style)
         : m_key(key)
         , m_window_id(window_id)
         , m_color(color)
-        , m_text_style(text_style)
+        , m_menubar_style(menubar_style)
     {
     }
     int id() const override { return 8; }
@@ -237,7 +249,7 @@ public:
     int decoder_magic() const override { return 320; }
     uint32_t window_id() const { return m_window_id; }
     uint32_t color() const { return m_color; }
-    int text_style() const { return m_text_style; }
+    uint32_t menubar_style() const { return m_menubar_style; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -246,7 +258,7 @@ public:
         Encoder::append(buffer, key());
         Encoder::append(buffer, m_window_id);
         Encoder::append(buffer, m_color);
-        Encoder::append(buffer, m_text_style);
+        Encoder::append(buffer, m_menubar_style);
         return buffer;
     }
 
@@ -254,7 +266,7 @@ private:
     message_key_t m_key;
     uint32_t m_window_id;
     uint32_t m_color;
-    int m_text_style;
+    uint32_t m_menubar_style;
 };
 
 class SetTitleMessage : public Message {
@@ -500,14 +512,14 @@ public:
         uint32_t var_width;
         uint32_t var_height;
         int var_buffer_id;
+        LG::string var_title;
         LG::string var_icon_path;
+        uint32_t var_color;
+        uint32_t var_menubar_style;
         uint32_t var_window_id;
         uint32_t var_status;
         int var_format;
         LG::Rect var_bounds;
-        uint32_t var_color;
-        int var_text_style;
-        LG::string var_title;
         LG::Rect var_rect;
         uint32_t var_target_window_id;
         uint32_t var_menu_id;
@@ -524,8 +536,11 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_width);
             Encoder::decode(buf, decoded_msg_len, var_height);
             Encoder::decode(buf, decoded_msg_len, var_buffer_id);
+            Encoder::decode(buf, decoded_msg_len, var_title);
             Encoder::decode(buf, decoded_msg_len, var_icon_path);
-            return new CreateWindowMessage(secret_key, var_type, var_width, var_height, var_buffer_id, var_icon_path);
+            Encoder::decode(buf, decoded_msg_len, var_color);
+            Encoder::decode(buf, decoded_msg_len, var_menubar_style);
+            return new CreateWindowMessage(secret_key, var_type, var_width, var_height, var_buffer_id, var_title, var_icon_path, var_color, var_menubar_style);
         case 4:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             return new CreateWindowMessageReply(secret_key, var_window_id);
@@ -544,8 +559,8 @@ public:
         case 8:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_color);
-            Encoder::decode(buf, decoded_msg_len, var_text_style);
-            return new SetBarStyleMessage(secret_key, var_window_id, var_color, var_text_style);
+            Encoder::decode(buf, decoded_msg_len, var_menubar_style);
+            return new SetBarStyleMessage(secret_key, var_window_id, var_color, var_menubar_style);
         case 9:
             Encoder::decode(buf, decoded_msg_len, var_window_id);
             Encoder::decode(buf, decoded_msg_len, var_title);

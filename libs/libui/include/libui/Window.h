@@ -33,8 +33,9 @@ class Window : public LFoundation::EventReceiver {
     friend Connection;
 
 public:
-    Window(const LG::Size& size, WindowType type = WindowType::Standard);
-    Window(const LG::Size& size, const LG::string& path);
+    Window(const LG::string& title, const LG::Size& size, WindowType type = WindowType::Standard);
+    Window(const LG::string& title, const LG::Size& size, const LG::string& path);
+    Window(const LG::string& title, const LG::Size& size, const LG::string& path, const StatusBarStyle& style);
 
     int id() const { return m_id; }
     inline WindowType type() const { return m_type; }
@@ -67,11 +68,13 @@ public:
     MenuBar& menubar() { return m_menubar; }
 
     bool set_title(const LG::string& title);
-    bool set_frame_style(const LG::Color& color, TextStyle ts);
+    bool set_status_bar_style(StatusBarStyle style);
     bool did_format_change();
     bool did_buffer_change();
 
+    inline const LG::string& title() const { return m_title; }
     inline const LG::string& icon_path() const { return m_icon_path; }
+    inline const StatusBarStyle& status_bar_style() const { return m_status_bar_style; }
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
@@ -85,11 +88,14 @@ private:
     View* m_superview { nullptr };
     View* m_focused_view { nullptr };
 
-    WindowType m_type { WindowType::Standard };
     LG::Rect m_bounds;
     LG::PixelBitmap m_bitmap;
     LFoundation::SharedBuffer<LG::Color> m_buffer;
+    LG::string m_title { "" };
     LG::string m_icon_path { "/res/icons/apps/missing.icon" };
+    LG::Color m_color;
+    StatusBarStyle m_status_bar_style;
+    WindowType m_type { WindowType::Standard };
 
     MenuBar m_menubar;
 };

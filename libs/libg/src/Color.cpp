@@ -39,7 +39,7 @@ Color::Color(Colors clr)
         rgb_color = { 249, 249, 249, 0 };
         break;
     case LightSystemText:
-        rgb_color = { 49, 49, 43, 0 };
+        rgb_color = { 249, 249, 249, 0 };
         break;
     case LightSystemButton:
         rgb_color = { 235, 235, 235, 0 };
@@ -48,8 +48,11 @@ Color::Color(Colors clr)
     case LightSystemBlue:
         rgb_color = { 62, 119, 233, 0 };
         break;
+    case DarkSystemBackground:
+        rgb_color = { 49, 49, 43, 0 };
+        break;
     case DarkSystemText:
-        rgb_color = { 249, 249, 249, 0 };
+        rgb_color = { 49, 49, 43, 0 };
         break;
     case Opaque:
         rgb_color = { 0, 0, 0, 255 };

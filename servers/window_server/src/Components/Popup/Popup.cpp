@@ -52,7 +52,7 @@ void Popup::draw(LG::Context& ctx)
             ctx.fill(LG::Rect(bounds().min_x(), height - spacing() / 2, bounds().width(), line_height));
             ctx.set_fill_color(LG::Color::White);
         } else {
-            ctx.set_fill_color(LG::Color::LightSystemText);
+            ctx.set_fill_color(LG::Color::DarkSystemText);
         }
         Helpers::draw_text(ctx, { bounds().min_x() + spacing(), height }, data[i].text, m_font);
         height += line_height;

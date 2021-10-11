@@ -14,11 +14,13 @@
 
 namespace UI {
 
-Window::Window(const LG::Size& size, WindowType type)
+Window::Window(const LG::string& title, const LG::Size& size, WindowType type)
     : m_bounds(0, 0, size.width(), size.height())
     , m_buffer(size_t(size.width() * size.height()))
     , m_bitmap()
+    , m_title(title)
     , m_type(type)
+    , m_status_bar_style()
 {
     m_id = Connection::the().new_window(*this);
     m_menubar.set_host_window_id(m_id);
@@ -26,11 +28,27 @@ Window::Window(const LG::Size& size, WindowType type)
     App::the().set_window(this);
 }
 
-Window::Window(const LG::Size& size, const LG::string& icon_path)
+Window::Window(const LG::string& title, const LG::Size& size, const LG::string& icon_path)
     : m_bounds(0, 0, size.width(), size.height())
     , m_buffer(size_t(size.width() * size.height()))
     , m_bitmap()
+    , m_title(title)
     , m_icon_path(icon_path)
+    , m_status_bar_style()
+{
+    m_id = Connection::the().new_window(*this);
+    m_menubar.set_host_window_id(m_id);
+    m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
+    App::the().set_window(this);
+}
+
+Window::Window(const LG::string& title, const LG::Size& size, const LG::string& icon_path, const StatusBarStyle& style)
+    : m_bounds(0, 0, size.width(), size.height())
+    , m_buffer(size_t(size.width() * size.height()))
+    , m_bitmap()
+    , m_title(title)
+    , m_icon_path(icon_path)
+    , m_status_bar_style(style)
 {
     m_id = Connection::the().new_window(*this);
     m_menubar.set_host_window_id(m_id);
@@ -40,13 +58,15 @@ Window::Window(const LG::Size& size, const LG::string& icon_path)
 
 bool Window::set_title(const LG::string& title)
 {
+    m_title = title;
     SetTitleMessage msg(Connection::the().key(), id(), title);
     return App::the().connection().send_async_message(msg);
 }
 
-bool Window::set_frame_style(const LG::Color& color, TextStyle ts)
+bool Window::set_status_bar_style(StatusBarStyle style)
 {
-    SetBarStyleMessage msg(Connection::the().key(), id(), color.u32(), (int)ts);
+    m_status_bar_style = style;
+    SetBarStyleMessage msg(Connection::the().key(), id(), style.color().u32(), style.flags());
     return App::the().connection().send_async_message(msg);
 }
 

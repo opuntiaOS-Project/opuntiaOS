@@ -42,9 +42,8 @@ public:
     bool application() override
     {
         int ptmx = setup_shell();
-        auto& window = std::opuntiaos::construct<UI::Window>(window_size(), icon_path());
-        window.set_frame_style(LG::Color(58, 58, 64), TextStyle::Light);
-        window.set_title("Terminal");
+        auto style = StatusBarStyle(LG::Color(58, 58, 64)).set_light_text();
+        auto& window = std::opuntiaos::construct<UI::Window>("Terminal", window_size(), icon_path(), style);
 
         auto& superview = window.create_superview<TerminalView, TerminalViewController>(ptmx);
         window.set_focused_view(superview);

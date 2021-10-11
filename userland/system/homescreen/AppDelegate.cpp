@@ -15,8 +15,6 @@ public:
         auto& window = std::opuntiaos::construct<HomeScreenWindow>(window_size());
         window.set_bitmap_format(LG::PixelBitmapFormat::RGBA); // Turning on Alpha channel
         auto& dock_view = window.create_superview<HomeScreenView, HomeScreenViewController>();
-
-        window.set_title("Homescreen");
         return true;
     }
 

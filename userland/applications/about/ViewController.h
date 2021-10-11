@@ -33,28 +33,28 @@ public:
         int rc = uname(&uts);
 
         auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
-        label.set_text_color(LG::Color::LightSystemText);
+        label.set_text_color(LG::Color::DarkSystemText);
         label.set_text("opuntiaOS");
         label.set_font(LG::Font::system_bold_font());
         label.set_width(label.preferred_width());
 
         auto& target_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
-        target_label.set_text_color(LG::Color::LightSystemText);
+        target_label.set_text_color(LG::Color::DarkSystemText);
         target_label.set_text(LG::string("for ") + uts.machine);
         target_label.set_width(target_label.preferred_width());
 
         auto& version_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
-        version_label.set_text_color(LG::Color::LightSystemText);
+        version_label.set_text_color(LG::Color::DarkSystemText);
         version_label.set_text(uts.release);
         version_label.set_width(version_label.preferred_width());
 
         auto& button = view().add_subview<UI::Button>(LG::Rect(0, 0, 10, 10));
         button.set_background_color(LG::Color::LightSystemButton);
         button.set_title("System info");
-        button.set_title_color(LG::Color::LightSystemText);
+        button.set_title_color(LG::Color::DarkSystemText);
 
         auto& footer = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
-        footer.set_text_color(LG::Color::LightSystemText);
+        footer.set_text_color(LG::Color::DarkSystemText);
         footer.set_text("(c) 2020-2021");
         footer.set_width(footer.preferred_width());
 

@@ -45,8 +45,7 @@ public:
 
     void receive_tap_event(const LG::Point<int>& tap);
 
-    void set_app_name(const std::string& title);
-    void set_app_name(std::string&& title);
+    void on_set_app_name();
     void add_control(const std::string& title);
 
     inline std::vector<Button*>& window_control_buttons() { return m_window_control_buttons; }
@@ -56,12 +55,8 @@ public:
     inline const std::vector<Button*>& control_panel_buttons() const { return m_control_panel_buttons; }
     void handle_control_panel_tap(int button_id);
 
-    inline LG::Color& color() { return m_color; }
-    inline const LG::Color& color() const { return m_color; }
-    inline void set_color(const LG::Color& clr) { m_color = clr; }
-
-    inline TextStyle text_style() const { return m_text_style; }
-    void set_text_style(TextStyle ts);
+    inline StatusBarStyle style() const { return m_style; }
+    void set_style(StatusBarStyle ts);
 
     void set_visible(bool visible)
     {
@@ -75,8 +70,7 @@ public:
 
     void invalidate(WinServer::Compositor& compositor) const;
 
-    void reload_icon();
-    const LG::PixelBitmap& icon() const { return m_icon; }
+    void on_set_icon();
 
     static constexpr int spacing() { return 8; }
     static constexpr int icon_width() { return 12; }
@@ -90,12 +84,12 @@ private:
     std::vector<Button*> m_control_panel_buttons;
     LG::Color m_text_colors[2];
     LG::Color m_color { LG::Color::LightSystemBackground };
-    LG::PixelBitmap m_icon {};
     size_t m_top_border_size { std_top_border_size() };
+    size_t m_app_name_width { 0 };
     bool m_visible { true };
     bool m_active { true };
 
-    TextStyle m_text_style;
+    StatusBarStyle m_style;
 };
 
 } // namespace WinServer

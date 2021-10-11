@@ -6,7 +6,7 @@
 class HomeScreenWindow : public UI::Window {
 public:
     HomeScreenWindow(const LG::Size& size)
-        : UI::Window(size, UI::WindowType::Homescreen)
+        : UI::Window("Homescreen", size, UI::WindowType::Homescreen)
     {
     }
 };

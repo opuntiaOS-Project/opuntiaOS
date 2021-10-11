@@ -80,7 +80,9 @@ void Connection::greeting()
 
 int Connection::new_window(const Window& window)
 {
-    auto message = CreateWindowMessage(key(), window.type(), window.bounds().width(), window.bounds().height(), window.buffer().id(), window.icon_path());
+    auto message = CreateWindowMessage(key(), window.type(), window.bounds().width(),
+        window.bounds().height(), window.buffer().id(), window.title(), window.icon_path(),
+        window.status_bar_style().color().u32(), window.status_bar_style().flags());
     auto resp_message = send_sync_message<CreateWindowMessageReply>(message);
 #ifdef DEBUG_CONNECTION
     Logger::debug << "New window created" << std::endl;

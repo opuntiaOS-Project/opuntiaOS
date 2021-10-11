@@ -15,8 +15,6 @@ public:
         auto& window = std::opuntiaos::construct<DockWindow>();
         window.set_bitmap_format(LG::PixelBitmapFormat::RGBA); // Turning on Alpha channel
         auto& dock_view = window.create_superview<DockView, DockViewController>();
-
-        window.set_title("Dock");
         return true;
     }
 

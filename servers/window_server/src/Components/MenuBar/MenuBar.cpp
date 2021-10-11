@@ -122,18 +122,14 @@ void MenuBar::invalidate_menubar_panel()
     invalidate_menubar_panel(Compositor::the());
 }
 
-void MenuBar::set_text_style(TextStyle ts)
+void MenuBar::set_style(StatusBarStyle ts)
 {
-    // FIXME: A color mess
-    switch (ts) {
-    case TextStyle::Light:
+    set_background_color(ts.color());
+
+    if (ts.dark_text()) {
         m_text_color = LG::Color::DarkSystemText;
-        break;
-    case TextStyle::Dark:
+    } else {
         m_text_color = LG::Color::LightSystemText;
-        break;
-    default:
-        break;
     }
 }
 

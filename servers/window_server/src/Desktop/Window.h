@@ -27,9 +27,10 @@ public:
     inline WindowFrame& frame() { return m_frame; }
     inline const WindowFrame& frame() const { return m_frame; }
 
-    inline void set_name(const std::string& name)
+    inline void set_name(const LG::string& name)
     {
-        frame().set_app_name(name);
+        m_app_name = name;
+        m_frame.on_set_app_name();
         menubar_content()[0].set_title(name);
     }
 
@@ -39,17 +40,18 @@ public:
     inline void set_icon(LG::string&& name)
     {
         m_icon_path = std::move(name);
-        m_frame.reload_icon();
+        m_frame.on_set_icon();
     }
 
     inline void set_icon(const LG::string& name)
     {
         m_icon_path = name;
-        m_frame.reload_icon();
+        m_frame.on_set_icon();
     }
 
     inline const LG::CornerMask& corner_mask() const { return m_corner_mask; }
 
+    inline const LG::string& app_name() const { return m_app_name; }
     inline const LG::string& icon_path() const { return m_icon_path; }
 
     inline std::vector<MenuDir>& menubar_content() { return m_menubar_content; }
@@ -57,11 +59,7 @@ public:
 
     virtual void did_size_change(const LG::Size& size) override;
 
-    inline void set_style(const LG::Color& clr, TextStyle ts) { m_frame.set_color(clr), m_frame.set_text_style(ts), on_style_change(); }
-    inline LG::Color& color() { return m_frame.color(); }
-    inline const LG::Color& color() const { return m_frame.color(); }
-
-    inline TextStyle text_style() { return m_frame.text_style(); }
+    inline void set_style(StatusBarStyle style) { m_frame.set_style(style), on_style_change(); }
 
 private:
     void recalc_bounds(const LG::Size& size);
@@ -69,6 +67,7 @@ private:
 
     WindowFrame m_frame;
     LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
+    LG::string m_app_name {};
     LG::string m_icon_path {};
     std::vector<MenuDir> m_menubar_content;
 };
