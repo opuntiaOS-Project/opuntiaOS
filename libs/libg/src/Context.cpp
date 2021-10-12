@@ -505,7 +505,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
 
     switch (shading.type()) {
     case Shading::Type::TopToBottom:
-        step = alpha_diff / orig_bounds.height();
+        step = alpha_diff / (orig_bounds.height() - 1);
         skipped_steps = min_y - orig_bounds.min_y();
         color.set_alpha(color.alpha() - skipped_steps * step);
 
@@ -518,7 +518,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         return;
 
     case Shading::Type::BottomToTop:
-        step = alpha_diff / orig_bounds.height();
+        step = alpha_diff / (orig_bounds.height() - 1);
         skipped_steps = orig_bounds.max_y() - max_y;
         color.set_alpha(color.alpha() - skipped_steps * step);
 
@@ -557,7 +557,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         return;
 
     case Shading::Type::Deg45:
-        step = alpha_diff / orig_bounds.height();
+        step = alpha_diff / (orig_bounds.height() - 1);
         skipped_steps = orig_bounds.max_y() - max_y + min_x - orig_bounds.min_x();
         if (skipped_steps >= orig_bounds.height()) {
             return;
@@ -582,7 +582,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         return;
 
     case Shading::Type::Deg315:
-        step = alpha_diff / orig_bounds.height();
+        step = alpha_diff / (orig_bounds.height() - 1);
         skipped_steps = min_y - orig_bounds.min_y() + min_x - orig_bounds.min_x();
         if (skipped_steps >= orig_bounds.height()) {
             return;
@@ -607,7 +607,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         return;
 
     case Shading::Type::Deg135:
-        step = alpha_diff / orig_bounds.height();
+        step = alpha_diff / (orig_bounds.height() - 1);
         skipped_steps = orig_bounds.max_y() - max_y + orig_bounds.max_x() - max_x;
         if (skipped_steps >= orig_bounds.height()) {
             return;
@@ -632,7 +632,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         return;
 
     case Shading::Type::Deg225:
-        step = alpha_diff / orig_bounds.height();
+        step = alpha_diff / (orig_bounds.height() - 1);
         skipped_steps = min_y - orig_bounds.min_y() + orig_bounds.max_x() - max_x;
         if (skipped_steps >= orig_bounds.height()) {
             return;

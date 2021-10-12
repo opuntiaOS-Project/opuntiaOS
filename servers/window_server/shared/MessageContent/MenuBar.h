@@ -9,7 +9,12 @@ public:
         HideText = (1 << 1),
     };
 
-    StatusBarStyle() = default;
+    StatusBarStyle()
+        : m_flags(0)
+        , m_color(LG::Color::LightSystemBackground)
+    {
+    }
+
     StatusBarStyle(uint32_t attr)
         : m_flags(attr)
     {
@@ -32,7 +37,7 @@ public:
     {
     }
 
-    StatusBarStyle(const LG::Color& clr)
+    explicit StatusBarStyle(const LG::Color& clr)
         : m_flags(0)
         , m_color(clr)
     {
@@ -101,9 +106,9 @@ public:
     inline void set_color(const LG::Color& clr) { m_color = clr; }
 
 private:
-    inline bool has_attr(Mode mode) const { return (m_flags & (uint32_t)mode) == (uint32_t)mode; }
+    inline bool has_attr(Mode mode) const { return ((m_flags & (uint32_t)mode) == (uint32_t)mode); }
     inline void set_attr(Mode mode) { m_flags |= (uint32_t)mode; }
-    inline void rem_attr(Mode mode) { m_flags = m_flags & ~(uint32_t)mode; }
+    inline void rem_attr(Mode mode) { m_flags = m_flags & (~(uint32_t)mode); }
 
     uint32_t m_flags { 0 };
     LG::Color m_color { LG::Color::LightSystemBackground };

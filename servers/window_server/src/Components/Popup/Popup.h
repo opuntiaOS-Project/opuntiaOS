@@ -43,13 +43,20 @@ public:
 
     inline void set_preferred_origin(const LG::Point<int>& origin) { m_bounds.set_origin(origin); }
     inline void set_preferred_origin(LG::Point<int>&& origin) { m_bounds.set_origin(origin); }
+
     inline LG::Rect& bounds() { return m_bounds; }
     inline const LG::Rect& bounds() const { return m_bounds; }
+
+    inline LG::Rect draw_frame() const
+    {
+        const int shadow_spread = LG::Shading::SystemSpread;
+        return LG::Rect(bounds().min_x() - shadow_spread, bounds().min_y() - shadow_spread, bounds().width() + 2 * shadow_spread, bounds().height() + 2 * shadow_spread);
+    }
 
     inline void set_visible(bool vis)
     {
         if (m_visible != vis) {
-            Compositor::the().invalidate(bounds());
+            Compositor::the().invalidate(draw_frame());
         }
         m_visible = vis;
     }

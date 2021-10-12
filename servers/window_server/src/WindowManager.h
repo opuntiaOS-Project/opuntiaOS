@@ -116,6 +116,7 @@ public:
     inline void ask_to_set_active_window(Window& win) { set_active_window(win); }
 
     void on_window_style_change(Window& win);
+    void on_window_menubar_change(Window& window);
 
 private:
     void remove_window_from_screen(Window* window);

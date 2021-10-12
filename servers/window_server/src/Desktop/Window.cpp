@@ -75,4 +75,9 @@ void Window::on_style_change()
     WindowManager::the().on_window_style_change(*this);
 }
 
+void Window::on_menubar_change()
+{
+    WindowManager::the().on_window_menubar_change(*this);
+}
+
 } // namespace WinServer

@@ -136,6 +136,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateMenuMess
 
     int id = window->menubar_content().size();
     window->menubar_content().push_back(MenuDir(msg.title(), id));
+    window->on_menubar_change();
     return new MenuBarCreateMenuMessageReply(msg.key(), 0, id);
 }
 
@@ -154,6 +155,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateItemMess
     auto callback = [window](int item_id) { LFoundation::EventLoop::the().add(Connection::the(),
                                                 new SendEvent(new MenuBarActionMessage(window->connection_id(), window->id(), item_id))); };
     window->menubar_content()[msg.menu_id()].add_item(PopupItem { msg.item_id(), msg.title(), callback });
+    window->on_menubar_change();
     return new MenuBarCreateItemMessageReply(msg.key(), 0);
 }
 #elif TARGET_MOBILE

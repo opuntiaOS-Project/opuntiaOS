@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include "AboutLineView.h"
 #include <libui/App.h>
 #include <libui/Button.h>
 #include <libui/Label.h>
@@ -32,21 +33,15 @@ public:
         utsname_t uts;
         int rc = uname(&uts);
 
-        auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
+        auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 24));
         label.set_text_color(LG::Color::DarkSystemText);
-        label.set_text("opuntiaOS");
-        label.set_font(LG::Font::system_bold_font());
+        label.set_text("About");
+        label.set_font(LG::Font::system_font(LG::Font::SystemTitleSize));
         label.set_width(label.preferred_width());
 
-        auto& target_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
-        target_label.set_text_color(LG::Color::DarkSystemText);
-        target_label.set_text(LG::string("for ") + uts.machine);
-        target_label.set_width(target_label.preferred_width());
-
-        auto& version_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
-        version_label.set_text_color(LG::Color::DarkSystemText);
-        version_label.set_text(uts.release);
-        version_label.set_width(version_label.preferred_width());
+        auto& name_label = view().add_subview<AboutLineView>(LG::Rect(0, 0, 16, 16), "Name:", uts.sysname);
+        auto& cpu_label = view().add_subview<AboutLineView>(LG::Rect(0, 0, 16, 16), "CPU:", uts.machine);
+        auto& version_label = view().add_subview<AboutLineView>(LG::Rect(0, 0, 16, 16), "Version:", uts.release);
 
         auto& button = view().add_subview<UI::Button>(LG::Rect(0, 0, 10, 10));
         button.set_background_color(LG::Color::LightSystemButton);
@@ -61,11 +56,14 @@ public:
         view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
 
-        view().add_constraint(UI::Constraint(target_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Right, 1, 8));
-        view().add_constraint(UI::Constraint(target_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Top, 1, 0));
+        view().add_constraint(UI::Constraint(name_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
+        view().add_constraint(UI::Constraint(name_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Bottom, 1, UI::Padding::AfterTitle));
+
+        view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
+        view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, name_label, UI::Constraint::Attribute::Bottom, 1, 4));
 
         view().add_constraint(UI::Constraint(version_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
-        view().add_constraint(UI::Constraint(version_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Bottom, 1, 8));
+        view().add_constraint(UI::Constraint(version_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, cpu_label, UI::Constraint::Attribute::Bottom, 1, 4));
 
         view().add_constraint(UI::Constraint(button, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(button, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, version_label, UI::Constraint::Attribute::Bottom, 1, 8));

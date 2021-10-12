@@ -28,7 +28,11 @@ struct PopupContext {
     int invoker_id { 0 };
 };
 
+class WindowManager;
+
 class MenuBar {
+    friend WindowManager;
+
 public:
     inline static MenuBar& the()
     {
@@ -40,7 +44,7 @@ public:
 
     static constexpr size_t height() { return 20; }
     static constexpr size_t padding() { return 8; }
-    static constexpr size_t menubar_content_offset() { return 12 + 2 * padding(); }
+    static constexpr size_t menubar_content_offset() { return padding(); }
 
     void set_background_color(const LG::Color& clr) { m_background_color = clr; }
     void set_style(StatusBarStyle style);
@@ -66,14 +70,14 @@ public:
 
     void draw_panel_items(LG::Context& ctx);
     void draw_widgets(LG::Context& ctx);
-    inline void draw_menu(LG::Context& ctx) { ctx.draw({ padding(), 4 }, m_logo); }
     [[gnu::always_inline]] inline void draw(LG::Context& ctx)
     {
         ctx.set_fill_color(m_background_color);
         ctx.fill({ 0, 0, MenuBar::width(), MenuBar::height() });
 
+        ctx.set_fill_color(LG::Color(255, 255, 255, 255));
+        ctx.fill_rounded(LG::Rect(padding() - 6, 2, menubar_panel_width(*m_menubar_content), height() - 4), LG::CornerMask(4));
         ctx.set_fill_color(m_text_color);
-        draw_menu(ctx);
         draw_panel_items(ctx);
         draw_widgets(ctx);
     }
@@ -131,7 +135,6 @@ private:
     PopupContext m_popup_context;
     LG::Color m_background_color;
     LG::Color m_text_color;
-    LG::GlyphBitmap m_logo;
 
     bool m_hovered { false };
 };

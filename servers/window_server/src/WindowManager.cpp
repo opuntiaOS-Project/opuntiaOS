@@ -30,7 +30,6 @@ WindowManager::WindowManager()
     , m_std_menubar_content()
 {
     s_WinServer_WindowManager_the = this;
-    m_std_menubar_content.push_back(MenuDir("opuntiaOS", 0));
 }
 
 void WindowManager::start_window_move(Window& window)
@@ -419,5 +418,13 @@ void WindowManager::on_window_style_change(Window& window)
     }
 }
 #endif
+
+void WindowManager::on_window_menubar_change(Window& window)
+{
+    if (m_active_window == &window) {
+        auto& menu_bar = m_compositor.menu_bar();
+        menu_bar.invalidate_menubar_panel(m_compositor);
+    }
+}
 
 } // namespace WinServer

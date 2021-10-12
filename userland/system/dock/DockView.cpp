@@ -33,21 +33,18 @@ void DockView::display(const LG::Rect& rect)
     auto opened_apps_dock = LG::Rect(fast_access_dock.width() + 2 * padding(), 0, bounds().width() - fast_access_dock.width() - 3 * padding(), dock_view_height());
 
     ctx.set_fill_color(background_color());
-    ctx.fill_rounded(opened_apps_dock, LG::CornerMask(8));
-
-    ctx.set_fill_color(LG::Color(255, 255, 255, 135));
-    ctx.fill_rounded(fast_access_dock, LG::CornerMask(8));
+    ctx.fill_rounded(bounds(), LG::CornerMask(12, true, false));
 
     // Drawing launched icons
     int offsetx = fast_access_dock.min_x() + padding();
     for (auto& entity : m_fast_launch_entites) {
-        ctx.draw({ offsetx, 2 }, entity.icon());
+        ctx.draw({ offsetx, 6 }, entity.icon());
         offsetx += entity.icon().bounds().width() + padding();
     }
 
     offsetx = opened_apps_dock.min_x() + padding();
     for (auto& entity : m_dock_entites) {
-        ctx.draw({ offsetx, 2 }, entity.icon());
+        ctx.draw({ offsetx, 6 }, entity.icon());
         ctx.fill(LG::Rect(offsetx, 34, 32, 2));
         offsetx += entity.icon().bounds().width() + padding();
     }

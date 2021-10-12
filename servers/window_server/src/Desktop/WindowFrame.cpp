@@ -112,28 +112,27 @@ void WindowFrame::draw(LG::Context& ctx)
     size_t width = m_window.bounds().width();
     size_t height = m_window.bounds().height();
 
+    int left_x = x + left_border_size();
     int right_x = x + width - right_border_size();
     int bottom_y = y + height - bottom_border_size();
 
     // Drawing frame and shadings
+    int shadow_spread = LG::Shading::SystemSpread;
     ctx.set_fill_color(style().color());
     ctx.fill_rounded(LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), top_border_size() - std_top_border_frame_size()), LG::CornerMask(4, true, false));
-    if (active()) {
-        ctx.set_fill_color(Color::Shadow);
-
-        auto shading_rect = LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), height - std_top_border_frame_size() - std_bottom_border_size());
-        ctx.draw_box_shading(shading_rect, LG::Shading(LG::Shading::Type::Box, 0, LG::Shading::SystemSpread), LG::CornerMask(LG::CornerMask::SystemRadius));
-    }
+    ctx.set_fill_color(Color::Shadow);
+    const auto shading_rect = LG::Rect(x + left_border_size(), y + std_top_border_frame_size(), width - 2 * left_border_size(), height - std_top_border_frame_size() - std_bottom_border_size());
+    ctx.draw_box_shading(shading_rect, LG::Shading(LG::Shading::Type::Box, 0, shadow_spread), LG::CornerMask(LG::CornerMask::SystemRadius));
 
     // Drawing labels, icons.
     // Drawing positions are calculated using a start of the frame.
     ctx.set_fill_color(m_text_colors[(int)active()]);
     if (style().show_text()) {
-        Helpers::draw_text(ctx, { x + spacing(), y + text_y_offset() }, m_window.app_name(), LG::Font::system_font());
+        Helpers::draw_text(ctx, { left_x + spacing(), y + text_y_offset() }, m_window.app_name(), LG::Font::system_font());
     }
 
     int start_controls_offset = m_app_name_width + 2 * spacing();
-    int start_controls = x + start_controls_offset;
+    int start_controls = left_x + start_controls_offset;
     for (int i = 0; i < m_control_panel_buttons.size(); i++) {
         m_control_panel_buttons[i]->display(ctx, { start_controls, y + text_y_offset() });
         start_controls += spacing() + m_control_panel_buttons[i]->bounds().width();

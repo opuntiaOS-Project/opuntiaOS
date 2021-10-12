@@ -158,10 +158,11 @@ public:
             }
         }
 
-        auto& answer_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 0, 20));
+        auto& answer_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 0, 40));
         answer_label.set_text("0");
         answer_label.set_text_color(LG::Color::DarkSystemText);
         answer_label.set_alignment(UI::Text::Alignment::Right);
+        answer_label.set_font(LG::Font::system_font(36));
         m_answer_label_ptr = &answer_label;
         view().add_constraint(UI::Constraint(answer_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(answer_label, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, UI::SafeArea::Right));

@@ -7,6 +7,7 @@
  */
 
 #include "Popup.h"
+#include "../../Colors.h"
 #include "../Helpers/TextDrawer.h"
 #include <algorithm>
 
@@ -41,6 +42,9 @@ void Popup::draw(LG::Context& ctx)
 
     ctx.set_fill_color(LG::Color::White);
     ctx.fill_rounded(bounds(), LG::CornerMask(LG::CornerMask::SystemRadius));
+
+    ctx.set_fill_color(Color::Shadow);
+    ctx.draw_box_shading(bounds(), LG::Shading(LG::Shading::Type::Box, 0, LG::Shading::SystemSpread), LG::CornerMask(LG::CornerMask::SystemRadius));
 
     const size_t line_height = (m_font.glyph_height() + spacing());
     int height = bounds().min_y() + spacing();

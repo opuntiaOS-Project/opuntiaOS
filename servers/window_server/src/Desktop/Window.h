@@ -56,6 +56,7 @@ public:
 
     inline std::vector<MenuDir>& menubar_content() { return m_menubar_content; }
     inline const std::vector<MenuDir>& menubar_content() const { return m_menubar_content; }
+    void on_menubar_change();
 
     virtual void did_size_change(const LG::Size& size) override;
 

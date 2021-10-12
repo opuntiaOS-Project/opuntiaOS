@@ -45,16 +45,15 @@ private:
 
 class Font {
 public:
-    enum Type {
-        Default = 0,
-        LatinExtendedA = 1
-    };
+    static const int SystemDefaultSize = 10;
+    static const int SystemTitleSize = 24;
+    static const int SystemMaxSize = 36;
 
     Font(uint32_t* raw_data, uint8_t* width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width, uint8_t glyph_spacing);
     ~Font() = default;
 
-    static Font& system_font();
-    static Font& system_bold_font();
+    static Font& system_font(int of_size = SystemDefaultSize);
+    static Font& system_bold_font(int of_size = SystemDefaultSize);
     static Font* load_from_file(const char* path);
     static Font* load_from_mem(uint8_t* path);
 

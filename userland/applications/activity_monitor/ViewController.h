@@ -41,13 +41,22 @@ public:
 
         view().set_background_color(LG::Color::LightSystemBackground);
 
+        auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 24));
+        label.set_text_color(LG::Color::DarkSystemText);
+        label.set_text("Monitor");
+        label.set_font(LG::Font::system_font(LG::Font::SystemTitleSize));
+        label.set_width(label.preferred_width());
+
         auto& cpu_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 180, 16));
         auto& cpu_graphs_stackview = view().add_subview<UI::StackView>(LG::Rect(0, 0, 184, 100));
         cpu_graphs_stackview.set_distribution(UI::StackView::Distribution::FillEqually);
         cpu_graphs_stackview.set_spacing(10);
 
+        view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
+        view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
+
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
-        view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
+        view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Bottom, 1, UI::Padding::AfterTitle));
 
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, UI::SafeArea::Right));
