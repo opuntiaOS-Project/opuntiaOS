@@ -53,6 +53,11 @@ public:
         return dest;
     }
 
+    static constexpr int compare(const char_type* a, const char_type* b, size_t count)
+    {
+        return strncmp(a, b, count);
+    }
+
     static constexpr char_type to_char_type(int_type c) { return static_cast<char_type>(c); }
     static constexpr int_type to_int_type(char_type c) { return static_cast<int_type>(c); }
     static constexpr bool eq_int_type(int_type c1, int_type c2) { return c1 == c2; }
@@ -77,7 +82,12 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    basic_string() = default;
+    basic_string()
+    {
+        m_size = 0;
+        ensure_capacity(1);
+        Traits::assign(m_str[m_size], '\0');
+    }
 
     basic_string(const value_type* str)
     {
@@ -107,8 +117,8 @@ public:
 
     basic_string(const basic_string& s)
     {
-        grow(s.m_capacity);
         m_size = s.m_size;
+        ensure_capacity(m_size + 1);
         Traits::copy(m_str, s.m_str, m_size);
         Traits::assign(m_str[m_size], '\0');
     }
@@ -129,8 +139,8 @@ public:
 
     basic_string& operator=(const basic_string& s)
     {
-        grow(s.m_capacity);
         m_size = s.m_size;
+        ensure_capacity(m_size + 1);
         Traits::copy(m_str, s.m_str, m_size);
         Traits::assign(m_str[m_size], '\0');
         return *this;
@@ -235,7 +245,7 @@ public:
 private:
     inline void ensure_capacity(size_t new_size)
     {
-        int capacity = 16;
+        int capacity = 4;
         while (new_size > capacity) {
             capacity *= 2;
         }
@@ -279,6 +289,15 @@ static std::string to_string(unsigned a)
     char buf[32];
     std::sprintf(buf, "%u", a);
     return std::string(buf);
+}
+
+template <class CharT, class Traits, class Allocator>
+bool operator==(const std::basic_string<CharT, Traits, Allocator>& a, const std::basic_string<CharT, Traits, Allocator>& b)
+{
+    if (a.size() != b.size()) {
+        return false;
+    }
+    return Traits::compare(a.c_str(), b.c_str(), a.size()) == 0;
 }
 
 _LIBCXX_END_NAMESPACE_STD

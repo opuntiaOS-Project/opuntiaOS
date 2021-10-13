@@ -8,13 +8,14 @@
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
-using ::memset;
 using ::memcmp;
 using ::memcpy;
 using ::memmove;
 using ::memset;
+using ::strcmp;
 using ::strcpy;
 using ::strlen;
+using ::strncmp;
 using ::strncpy;
 
 _LIBCXX_END_NAMESPACE_STD
