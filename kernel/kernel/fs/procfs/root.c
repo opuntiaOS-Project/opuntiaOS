@@ -15,7 +15,7 @@
 #include <time/time_manager.h>
 
 /**
- * inode: xxxxBBBBBBBBBBBBBBBBBBBBBBBBBBBB 
+ * inode: xxxxBBBBBBBBBBBBBBBBBBBBBBBBBBBB
  * x - level bits
  * B - bits of files at this level
  */

@@ -187,7 +187,7 @@ inline static void _vmm_free_pdir(pdirectory_t* pdir)
 
 /**
  * PSPACE FUNCTIONS
- * 
+ *
  * Pspace is a space with all current tables mapped there.
  * The space starts from @pspace_zone.start and length is 4mb
  */
@@ -255,7 +255,7 @@ static void _vmm_pspace_init()
 
 /**
  * The function is used to generate a new pspace.
- * The function returns the table of itself. 
+ * The function returns the table of itself.
  * Pspace table is one page (4KB) long, since the whole length is 4MB.
  */
 static void _vmm_pspace_gen(pdirectory_t* pdir)
@@ -379,7 +379,7 @@ static bool _vmm_create_kernel_ptables()
         table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE);
 
         /**
-         * VMM_OFFSET_IN_DIRECTORY(pspace_zone.start) shows number of table where pspace starts. 
+         * VMM_OFFSET_IN_DIRECTORY(pspace_zone.start) shows number of table where pspace starts.
          * Since pspace is right after kernel, let's protect them and not give user access to the whole
          * ptable (and since ptable is not user, all pages inside it are not user too).
          */

@@ -109,7 +109,7 @@ static dentry_t* dentry_cache_find_empty_entry()
         dentry_cache_block = dentry_cache_block->next;
     }
 
-    /* If we hasn't found a complitely free entry, let's erase a 
+    /* If we hasn't found a complitely free entry, let's erase a
        valid dentries in the cache, which isn't held by someone. */
     if (valid_dentry_candidate) {
         return valid_dentry_candidate;

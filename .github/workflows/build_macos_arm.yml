@@ -14,7 +14,7 @@ jobs:
 
     - name: Pouring Deps
       run: |
-        brew install llvm@12 ninja nasm
+        brew install llvm ninja nasm
         brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
         brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
     
@@ -37,7 +37,7 @@ jobs:
 
     - name: Create LLVM Build Environment
       run: |
-        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/12.0.1/bin"
+        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/13.0.0/bin"
         gn gen out --args='target_cpu="aarch32" host="llvm"'
 
     - name: Build LLVM
@@ -50,7 +50,7 @@ jobs:
 
     - name: Create Mobile LLVM Build Environment
       run: |
-        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/12.0.1/bin"
+        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/13.0.0/bin"
         gn gen out --args='target_cpu="aarch32" host="llvm" device_type="m"'
 
     - name: Build Mobile with LLVM

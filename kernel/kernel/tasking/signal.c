@@ -123,7 +123,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */
 
     if (thread != RUNNING_THREAD) {
-        /* 
+        /*
         If we are here that means that the thread was stopped while
         being in kernel (because of scheduler or blocker). That means,
         we need not to corrupt it's kernel state, so we create a new state

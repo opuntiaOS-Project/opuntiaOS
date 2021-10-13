@@ -424,7 +424,7 @@ int devfs_open(dentry_t* dentry, file_descriptor_t* fd, uint32_t flags)
     if (devfs_inode->handlers->open) {
         return devfs_inode->handlers->open(dentry, fd, flags);
     }
-    /*  The device doesn't have custom open, so returns ENOEXEC in this case 
+    /*  The device doesn't have custom open, so returns ENOEXEC in this case
         according to vfs. */
     return -ENOEXEC;
 }

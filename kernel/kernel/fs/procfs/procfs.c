@@ -15,9 +15,9 @@
 // #define PROCFS_DEBUG
 
 /**
- * ProcFS works with caches differently. It does NOT allow reading 
- * of random inode in it's current implementation. Instead of 
- * accessing inode randomly, every cache entry (dentry) will be 
+ * ProcFS works with caches differently. It does NOT allow reading
+ * of random inode in it's current implementation. Instead of
+ * accessing inode randomly, every cache entry (dentry) will be
  * filled up with inode by lookup functions, and the ONLY way when
  * procfs_read_inode will be called is to get the root inode.
  */

@@ -36,7 +36,7 @@ ssize_t vfs_helper_write_dirent(dirent_t* buf, uint32_t buf_len, uint32_t inode_
 
 /**
  * The function splits the input path/to/the/file to 2 part parts:
- * path/to/the and file. 
+ * path/to/the and file.
  * Note that the function shorts the input string to be the path/to/the
  * and allocates a new one which contains file path.
  */
@@ -78,7 +78,7 @@ alloc:
 
 /**
  * The function restores the path after it was splitted with a help of
- * vfs_helper_split_path_with_name. 
+ * vfs_helper_split_path_with_name.
  * Note that the function must be called only after vfs_helper_split_path_with_name.
  */
 void vfs_helper_restore_full_path_after_split(char* path, char* name)

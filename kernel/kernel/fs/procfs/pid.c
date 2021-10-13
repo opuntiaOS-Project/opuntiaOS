@@ -13,7 +13,7 @@
 #include <tasking/tasking.h>
 
 /**
- * inode: xxxxPPPPPPPPPPBBBBBBBBBBBBBBBBBB 
+ * inode: xxxxPPPPPPPPPPBBBBBBBBBBBBBBBBBB
  * x - level bits
  * P - pid bits
  * B - bits of files at this level

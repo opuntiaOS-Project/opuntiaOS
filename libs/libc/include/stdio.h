@@ -78,7 +78,7 @@ int ungetc(int c, FILE* stream);
 char* fgets(char* str, int size, FILE* stream);
 char* gets(char* str);
 
-/* Checks whether the end-of-File indicator associated with stream is set, 
+/* Checks whether the end-of-File indicator associated with stream is set,
    returning a value different from zero if it is. */
 int feof(FILE* stream);
 

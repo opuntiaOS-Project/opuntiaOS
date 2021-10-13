@@ -24,7 +24,7 @@ thread_list_t thread_list;
 int threads_cnt = 0;
 
 /**
- * LOCKLESS 
+ * LOCKLESS
  */
 
 static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, thread_t* gthread);

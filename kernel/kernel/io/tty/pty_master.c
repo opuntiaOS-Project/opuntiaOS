@@ -135,7 +135,7 @@ int pty_master_alloc(file_descriptor_t* fd)
         return -EBUSY;
     }
 
-    /* 
+    /*
        DENTRY_CUSTOM is set for the dentry, since it's not a cache of
        a file (or a dir). We also set a required function for this
        type of dentries free_inode, which is called when dentry is
