@@ -492,6 +492,10 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
 
         // Check for . & .. to not to mess up dentry's parent.
         if (cur_dent != parent_dent && parent_dent->parent != cur_dent) {
+            char* newname = kmalloc(len + 1);
+            memcpy(newname, name, len);
+            newname[len] = '\0';
+            dentry_set_filename(cur_dent, newname);
             dentry_set_parent(cur_dent, parent_dent);
         }
         dentry_put(parent_dent);
@@ -505,6 +509,61 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
 int vfs_resolve_path(const char* path, dentry_t** result)
 {
     return vfs_resolve_path_start_from((dentry_t*)NULL, path, result);
+}
+
+bool _vfs_is_root_dentry(dentry_t* dent)
+{
+    return dent && dent->dev_indx == root_fs_dev_id && dent->inode_indx == 2;
+}
+
+int _vfs_len_of_absolute_path(dentry_t* dent)
+{
+    int path_len = 0;
+    if (_vfs_is_root_dentry(dent)) {
+        return 2;
+    }
+
+    while (!_vfs_is_root_dentry(dent) && dent->parent) {
+        path_len += strlen(dent->filename) + 1;
+        dent = dent->parent;
+    }
+
+    if (!_vfs_is_root_dentry(dent)) {
+        return -EAGAIN;
+    }
+
+    return path_len + 1;
+}
+
+int vfs_get_absolute_path(dentry_t* dent, char* buf, int len)
+{
+    int req_len = _vfs_len_of_absolute_path(dent);
+    if (req_len < 0 || !buf) {
+        return req_len;
+    }
+
+    if (req_len > len) {
+        return -EOVERFLOW;
+    }
+
+    if (_vfs_is_root_dentry(dent)) {
+        buf[0] = '/';
+        buf[1] = '\0';
+        return req_len;
+    }
+
+    char* start = &buf[req_len - 1];
+    while (!_vfs_is_root_dentry(dent) && dent->parent) {
+        int len = strlen(dent->filename);
+        start -= len;
+        memcpy(start, dent->filename, len);
+        start -= 1;
+        *start = '/';
+        dent = dent->parent;
+    }
+    buf[req_len - 1] = '\0';
+
+    return req_len;
 }
 
 int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)

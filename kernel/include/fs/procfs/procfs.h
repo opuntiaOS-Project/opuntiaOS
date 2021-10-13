@@ -17,6 +17,7 @@ struct procfs_files {
     char* name;
     mode_t mode;
     const file_ops_t* ops;
+    uint32_t (*inode_index)(int);
 };
 typedef struct procfs_files procfs_files_t;
 

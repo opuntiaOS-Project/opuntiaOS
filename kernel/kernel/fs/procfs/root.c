@@ -23,6 +23,9 @@
 
 extern const file_ops_t procfs_pid_ops;
 
+static uint32_t procfs_root_sfiles_get_inode_index(int fileid);
+static uint32_t procfs_root_self_get_inode_index(int fileid);
+
 /* PID */
 int procfs_root_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
 int procfs_root_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
@@ -53,8 +56,9 @@ const file_ops_t procfs_root_stat_ops = {
 };
 
 static const procfs_files_t static_procfs_files[] = {
-    { .name = "stat", .mode = 0444, .ops = &procfs_root_stat_ops },
-    { .name = "uptime", .mode = 0444, .ops = &procfs_root_uptime_ops },
+    { .name = "stat", .mode = 0444, .ops = &procfs_root_stat_ops, .inode_index = procfs_root_sfiles_get_inode_index },
+    { .name = "uptime", .mode = 0444, .ops = &procfs_root_uptime_ops, .inode_index = procfs_root_sfiles_get_inode_index },
+    { .name = "self", .mode = S_IFDIR | 0444, .ops = &procfs_pid_ops, .inode_index = procfs_root_self_get_inode_index },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
 
@@ -65,6 +69,11 @@ static const procfs_files_t static_procfs_files[] = {
 static uint32_t procfs_root_sfiles_get_inode_index(int fileid)
 {
     return procfs_get_inode_index(PROCFS_ROOT_LEVEL, fileid);
+}
+
+static uint32_t procfs_root_self_get_inode_index(int fileid)
+{
+    return procfs_get_inode_index(PROCFS_ROOT_LEVEL, RUNNING_THREAD->process->pid + PROCFS_STATIC_FILES_COUNT_AT_LEVEL);
 }
 
 uint32_t procfs_root_get_pid_from_inode_index(uint32_t inode_index)
@@ -89,8 +98,7 @@ int procfs_root_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t
 
     for (int i = 0; i < PROCFS_STATIC_FILES_COUNT_AT_LEVEL; i++) {
         if (*offset <= i) {
-            uint32_t inode_index = procfs_root_sfiles_get_inode_index(i);
-            ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, inode_index, static_procfs_files[i].name);
+            ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, static_procfs_files[i].inode_index(i), static_procfs_files[i].name);
             if (read <= 0) {
                 if (!already_read) {
                     return -EINVAL;
@@ -108,7 +116,7 @@ int procfs_root_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t
     for (; pidi < MAX_PROCESS_COUNT; pidi++) {
         if (proc[pidi].status == PROC_ALIVE) {
             snprintf(name, 8, "%d", proc[pidi].pid);
-            uint32_t inode_index = procfs_root_pid_get_inode_index(pidi);
+            uint32_t inode_index = procfs_root_pid_get_inode_index(proc[pidi].pid);
             ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, inode_index, name);
             if (read <= 0) {
                 if (!already_read) {
@@ -149,7 +157,7 @@ int procfs_root_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t**
         if (len == child_name_len) {
             if (strncmp(name, static_procfs_files[i].name, len) == 0) {
                 int newly_allocated;
-                *result = dentry_get_no_inode(dir->dev_indx, procfs_root_sfiles_get_inode_index(i), &newly_allocated);
+                *result = dentry_get_no_inode(dir->dev_indx, static_procfs_files[i].inode_index(i), &newly_allocated);
                 if (newly_allocated) {
                     procfs_inode_t* new_procfs_inode = (procfs_inode_t*)((*result)->inode);
                     new_procfs_inode->mode = static_procfs_files[i].mode;
@@ -168,7 +176,7 @@ int procfs_root_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t**
             if (len == child_name_len) {
                 if (strncmp(name, pid_name, len) == 0) {
                     int newly_allocated;
-                    *result = dentry_get_no_inode(dir->dev_indx, procfs_root_pid_get_inode_index(pidi), &newly_allocated);
+                    *result = dentry_get_no_inode(dir->dev_indx, procfs_root_pid_get_inode_index(proc[pidi].pid), &newly_allocated);
                     if (newly_allocated) {
                         procfs_inode_t* new_procfs_inode = (procfs_inode_t*)((*result)->inode);
                         new_procfs_inode->mode = S_IFDIR | 0444;

@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Pouring Deps
-      run: brew install llvm i686-elf-gcc i686-elf-binutils ninja nasm
+      run: brew install llvm@12 i686-elf-gcc i686-elf-binutils ninja nasm
     
     - name: Pouring GN
       run: |

@@ -151,6 +151,9 @@ static void dentry_delete_from_cache(dentry_t* dentry)
     if (dentry->inode) {
         kfree(dentry->inode);
     }
+    if (dentry->filename) {
+        kfree(dentry->filename);
+    }
     stat_cached_inodes_area_size -= INODE_LEN;
     if (!need_to_free_inode_cache()) {
         can_cache_inodes = 1;
@@ -197,6 +200,7 @@ static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx, int ne
     dentry->inode_indx = inode_indx;
     dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
     dentry->parent = NULL;
+    dentry->filename = NULL;
 
     if (!already_allocated_inode) {
         dentry->inode = (inode_t*)kmalloc(INODE_LEN);
@@ -226,6 +230,13 @@ void dentry_set_parent(dentry_t* to, dentry_t* parent)
 {
     lock_acquire(&to->lock);
     to->parent = dentry_duplicate(parent);
+    lock_release(&to->lock);
+}
+
+void dentry_set_filename(dentry_t* to, char* filename)
+{
+    lock_acquire(&to->lock);
+    to->filename = filename;
     lock_release(&to->lock);
 }
 

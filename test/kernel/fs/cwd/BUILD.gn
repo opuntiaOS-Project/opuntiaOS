@@ -1,0 +1,8 @@
+import("//build/test/TEMPLATE.gni")
+
+opuntiaOS_test("cwd") {
+  test_bundle = "kernel/fs/cwd"
+  sources = [ "main.c" ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [ "libc" ]
+}

@@ -14,7 +14,7 @@ jobs:
 
     - name: Pouring Deps
       run: |
-        brew install llvm ninja nasm
+        brew install llvm@12 ninja nasm
         brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
         brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
     
