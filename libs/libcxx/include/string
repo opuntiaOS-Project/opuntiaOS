@@ -13,6 +13,8 @@
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
+static char __null_char = '\0';
+
 template <class CharT>
 class char_traits {
 public:
@@ -33,7 +35,6 @@ public:
 
     static constexpr char_type* move(char_type* dest, const char_type* src, size_t count)
     {
-        // FIXME
         for (size_t sz = 0; sz < count; sz++) {
             dest[sz] = std::move(src[sz]);
         }
@@ -82,12 +83,7 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    basic_string()
-    {
-        m_size = 0;
-        ensure_capacity(1);
-        Traits::assign(m_str[m_size], '\0');
-    }
+    basic_string() = default;
 
     basic_string(const value_type* str)
     {
@@ -129,7 +125,7 @@ public:
         m_capacity = s.m_capacity;
         m_str = s.m_str;
         s.m_size = s.m_capacity = 0;
-        s.m_str = nullptr;
+        s.m_str = &__null_char;
     }
 
     ~basic_string()
@@ -154,7 +150,7 @@ public:
             m_capacity = s.m_capacity;
             m_str = s.m_str;
             s.m_size = s.m_capacity = 0;
-            s.m_str = nullptr;
+            s.m_str = &__null_char;
         }
         return *this;
     }
@@ -210,12 +206,12 @@ public:
 
     void clear()
     {
+        if (m_capacity && m_str != &__null_char) {
+            free(m_str);
+            m_str = &__null_char;
+        }
         m_size = 0;
         m_capacity = 0;
-        if (m_str) {
-            free(m_str);
-            m_str = nullptr;
-        }
     }
 
     inline size_t size() const { return m_size; }
@@ -258,7 +254,7 @@ private:
             return;
         }
 
-        if (!m_str) {
+        if (!m_capacity) {
             m_str = m_allocator.allocate(capacity);
         } else {
             auto new_str = m_allocator.allocate(capacity);
@@ -271,7 +267,7 @@ private:
 
     size_t m_size { 0 };
     size_t m_capacity { 0 };
-    value_type* m_str { nullptr };
+    value_type* m_str { &__null_char };
     allocator_type m_allocator;
 };
 
