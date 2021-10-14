@@ -238,6 +238,7 @@ int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
     new_proc->suid = from_proc->suid;
     new_proc->sgid = from_proc->sgid;
     new_proc->cwd = dentry_duplicate(from_proc->cwd);
+    new_proc->proc_file = dentry_duplicate(from_proc->proc_file);
     new_proc->tty = from_proc->tty;
 
     if (from_proc->fds) {
