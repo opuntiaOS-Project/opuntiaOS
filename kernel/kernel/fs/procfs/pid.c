@@ -183,7 +183,7 @@ static int procfs_pid_exe_read(dentry_t* dentry, uint8_t* buf, uint32_t start, u
         return -EFAULT;
     }
 
-    if (start == req_len) {
+    if (start == req_len - 1) {
         return 0;
     }
 
