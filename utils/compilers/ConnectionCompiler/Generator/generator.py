@@ -40,8 +40,12 @@ class Generator:
         self.out("int decoder_magic() const override {{ return {0}; }}".format(
             msg.decoder_magic), 1)
         for i in msg.params:
-            self.out(
-                "{0} {1}() const {{ return m_{1}; }}".format(i[0], i[1]), 1)
+            if i[0] in ["int", "uint32_t", "bool", "int32_t"]:
+                self.out(
+                    "{0} {1}() const {{ return m_{1}; }}".format(i[0], i[1]), 1)
+            else:
+                self.out(
+                    "{0}& {1}() {{ return m_{1}; }}".format(i[0], i[1]), 1)
 
     def message_create_vars(self, msg):
         if msg.protected:
@@ -157,7 +161,7 @@ class Generator:
         self.out("", 1)
 
     def decoder_create_handle(self, decoder):
-        self.out("std::unique_ptr<Message> handle(const Message& msg) override", 1)
+        self.out("std::unique_ptr<Message> handle(Message& msg) override", 1)
         self.out("{", 1)
         self.out("if (magic() != msg.decoder_magic()) {", 2)
         self.out("return nullptr;", 3)
@@ -170,7 +174,7 @@ class Generator:
             if name in decoder.functions:
                 self.out("case {0}:".format(unique_msg_id), 2)
                 self.out(
-                    "return handle(static_cast<const {0}&>(msg));".format(name), 3)
+                    "return handle(static_cast<{0}&>(msg));".format(name), 3)
 
             unique_msg_id += 1
 
@@ -183,7 +187,7 @@ class Generator:
     def decoder_create_virtual_handle(self, decoder):
         for (accept, ret) in decoder.functions.items():
             self.out(
-                "virtual std::unique_ptr<Message> handle(const {0}& msg) {{ return nullptr; }}".format(accept), 1)
+                "virtual std::unique_ptr<Message> handle({0}& msg) {{ return nullptr; }}".format(accept), 1)
 
     def generate_decoder(self, decoder):
         self.out("class {0} : public MessageDecoder {{".format(decoder.name))
@@ -204,9 +208,10 @@ class Generator:
         self.out("#include <libipc/Encoder.h>")
         self.out("#include <libipc/ClientConnection.h>")
         self.out("#include <libipc/ServerConnection.h>")
-        self.out("#include <libg/Rect.h>")
-        self.out("#include <libg/string.h>")
+        self.out("#include <libipc/StringEncoder.h>")
+        self.out("#include <libipc/VectorEncoder.h>")
         self.out("#include <new>")
+        self.out("#include <libg/Rect.h>")
         self.out("")
 
     def generate(self, filename, decoders):
