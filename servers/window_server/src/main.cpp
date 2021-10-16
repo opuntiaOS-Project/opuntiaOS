@@ -10,6 +10,7 @@
 #include "Components/LoadingScreen/LoadingScreen.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "Components/MenuBar/Widgets/Clock/Clock.h"
+#include "Components/MenuBar/Widgets/ControlPanelToggle/ControlPanelToggle.h"
 #include "Components/Popup/Popup.h"
 #include "Compositor.h"
 #include "Connection.h"
@@ -77,6 +78,7 @@ int main()
     load_core_component<WinServer::Devices>();
 
     add_widget<WinServer::Clock>();
+    add_widget<WinServer::ControlPanelToggle>();
 
     WinServer::LoadingScreen::destroy_the();
     return event_loop->run();
