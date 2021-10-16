@@ -23,7 +23,9 @@ namespace WinServer {
 typedef uint32_t WindowEventMask;
 enum WindowEvent {
     WindowStatus = (1 << 0),
-    IconChange = (1 << 1),
+    WindowCreation = (1 << 1),
+    IconChange = (1 << 2),
+    TitleChange = (1 << 3),
 };
 
 class BaseWindow {

@@ -15,7 +15,7 @@ namespace UI {
 Button::Button(View* superview, const LG::Rect& frame)
     : Control(superview, frame)
 {
-    set_background_color(system_background_color());
+    set_background_color(LG::Color::LightSystemButton);
 }
 
 void Button::display(const LG::Rect& rect)

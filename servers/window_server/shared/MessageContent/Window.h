@@ -6,7 +6,6 @@ enum WindowType : int {
 };
 
 enum WindowStatusUpdateType : int {
-    Created,
     Changed,
     Minimized,
     Removed,

@@ -97,7 +97,7 @@ void MenuBar::invalidate_menubar_panel(Compositor& compositor)
 {
     if (menubar_content()) {
         size_t inv_len = menubar_panel_width(*m_menubar_content);
-        compositor.invalidate(LG::Rect(menubar_content_offset(), 0, inv_len, height()));
+        compositor.invalidate(menubar_panel_bounds());
     }
 }
 

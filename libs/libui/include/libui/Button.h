@@ -59,7 +59,6 @@ private:
     size_t text_height() const;
     size_t text_width();
 
-    static constexpr uint32_t system_background_color() { return 0x00EBEBEB; }
     Type m_button_type { Type::System };
 
     std::string m_title {};

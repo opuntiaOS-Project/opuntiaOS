@@ -13,20 +13,20 @@
 
 namespace WinServer {
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const GreetMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(GreetMessage& msg)
 {
     return new GreetMessageReply(msg.key(), Connection::the().alloc_connection());
 }
 
 #ifdef TARGET_DESKTOP
-std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(CreateWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto& compositor = Compositor::the();
     int win_id = wm.next_win_id();
     auto* window = new Desktop::Window(msg.key(), win_id, msg);
-    window->set_name(msg.title());
-    window->set_icon(msg.icon_path());
+    window->set_app_title(msg.title().move_string());
+    window->set_icon_path(msg.icon_path().move_string());
     window->set_style(StatusBarStyle(msg.menubar_style(), msg.color()));
     wm.add_window(window);
     if (window->type() == WindowType::Standard) {
@@ -37,10 +37,11 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& 
     }
 
     wm.notify_window_icon_changed(window->id());
+    wm.notify_window_title_changed(window->id());
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
 #elif TARGET_MOBILE
-std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(CreateWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
     int win_id = wm.next_win_id();
@@ -53,7 +54,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const CreateWindowMessage& 
 }
 #endif
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const SetBufferMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(SetBufferMessage& msg)
 {
     auto* window = WindowManager::the().window(msg.window_id());
     if (!window) {
@@ -66,7 +67,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetBufferMessage& msg
     return nullptr;
 }
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const DestroyWindowMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(DestroyWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -78,7 +79,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const DestroyWindowMessage&
     return new DestroyWindowMessageReply(msg.key(), 0);
 }
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const InvalidateMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(InvalidateMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -93,27 +94,28 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const InvalidateMessage& ms
 }
 
 #ifdef TARGET_DESKTOP
-std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(SetTitleMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
     if (!window) {
         return nullptr;
     }
-    window->set_name(msg.title());
+    window->set_app_title(msg.title().string());
 
     auto& compositor = Compositor::the();
     compositor.invalidate(compositor.menu_bar().bounds());
+    wm.notify_window_title_changed(window->id());
     return nullptr;
 }
 #elif TARGET_MOBILE
-std::unique_ptr<Message> WindowServerDecoder::handle(const SetTitleMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(SetTitleMessage& msg)
 {
     return nullptr;
 }
 #endif
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(SetBarStyleMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -126,7 +128,7 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const SetBarStyleMessage& m
 }
 
 #ifdef TARGET_DESKTOP
-std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateMenuMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(MenuBarCreateMenuMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -135,12 +137,12 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateMenuMess
     }
 
     int id = window->menubar_content().size();
-    window->menubar_content().push_back(MenuDir(msg.title(), id));
+    window->menubar_content().push_back(MenuDir(msg.title().string(), id));
     window->on_menubar_change();
     return new MenuBarCreateMenuMessageReply(msg.key(), 0, id);
 }
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateItemMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(MenuBarCreateItemMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
@@ -148,29 +150,59 @@ std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateItemMess
         return new MenuBarCreateItemMessageReply(msg.key(), -1);
     }
 
-    if (msg.menu_id() == 0 || window->menubar_content().size() <= msg.menu_id()) {
+    auto menu_id = msg.menu_id();
+    if (menu_id == 0 || window->menubar_content().size() <= menu_id) {
         return new MenuBarCreateItemMessageReply(msg.key(), -2);
     }
 
-    auto callback = [window](int item_id) { LFoundation::EventLoop::the().add(Connection::the(),
-                                                new SendEvent(new MenuBarActionMessage(window->connection_id(), window->id(), item_id))); };
-    window->menubar_content()[msg.menu_id()].add_item(PopupItem { msg.item_id(), msg.title(), callback });
-    window->on_menubar_change();
+    auto callback = [window, menu_id](int item_id) { LFoundation::EventLoop::the().add(Connection::the(),
+                                                         new SendEvent(new MenuBarActionMessage(window->connection_id(), window->id(), menu_id, item_id))); };
+    window->menubar_content()[menu_id].add_item(PopupItem { msg.item_id(), msg.title().string(), callback });
+    // TODO: Currently we don't redraw popup after a new item was added.
     return new MenuBarCreateItemMessageReply(msg.key(), 0);
 }
 #elif TARGET_MOBILE
-std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateMenuMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(MenuBarCreateMenuMessage& msg)
 {
     return new MenuBarCreateMenuMessageReply(msg.key(), -100, 0);
 }
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const MenuBarCreateItemMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(MenuBarCreateItemMessage& msg)
 {
     return new MenuBarCreateItemMessageReply(msg.key(), -100);
 }
 #endif
 
-std::unique_ptr<Message> WindowServerDecoder::handle(const AskBringToFrontMessage& msg)
+std::unique_ptr<Message> WindowServerDecoder::handle(PopupShowMenuMessage& msg)
+{
+    auto& wm = WindowManager::the();
+    auto* window = wm.window(msg.window_id());
+
+    if (!window) {
+        return new PopupShowMenuMessageReply(msg.key(), -1, -1);
+    }
+
+    std::vector<std::string> res;
+    for (int i = 0; i < msg.data().vector().size(); i++) {
+        res.push_back(msg.data().vector()[i].move_string());
+    }
+
+    PopupData popup_data;
+    int item_id = 0;
+    int menu_id = 0;
+
+    for (auto& title : res) {
+        auto callback = [window, menu_id](int item_id) { LFoundation::EventLoop::the().add(Connection::the(),
+                                                             new SendEvent(new PopupActionMessage(window->connection_id(), window->id(), menu_id, item_id))); };
+        popup_data.push_back(PopupItem { item_id, title, callback });
+        item_id++;
+    }
+
+    wm.popup().show({ msg.point() }, popup_data);
+    return new PopupShowMenuMessageReply(msg.key(), 0, 0);
+}
+
+std::unique_ptr<Message> WindowServerDecoder::handle(AskBringToFrontMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());

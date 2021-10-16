@@ -11,7 +11,7 @@
 #include "../../../../servers/window_server/shared/MessageContent/MouseAction.h"
 #include <libfoundation/Event.h>
 #include <libg/Rect.h>
-#include <libg/string.h>
+#include <string>
 #include <sys/types.h>
 
 namespace UI {
@@ -36,11 +36,14 @@ public:
         WindowCloseRequestEvent,
         ResizeEvent,
         MenuBarActionEvent,
+        PopupActionEvent,
 
         UIHandlerInvoke,
 
+        NotifyWindowCreateEvent,
         NotifyWindowStatusChangedEvent,
         NotifyWindowIconChangedEvent,
+        NotifyWindowTitleChangedEvent,
 
         ViewDidLoad,
 
@@ -239,23 +242,68 @@ private:
 
 class MenuBarActionEvent : public Event {
 public:
-    MenuBarActionEvent(uint32_t window_id, int item_id)
+    MenuBarActionEvent(uint32_t window_id, int menu_id, int item_id)
         : Event(Event::Type::MenuBarActionEvent)
         , m_window_id(window_id)
+        , m_menu_id(menu_id)
         , m_item_id(item_id)
     {
     }
 
     ~MenuBarActionEvent() = default;
     uint32_t window_id() const { return m_window_id; }
+    int menu_id() const { return m_menu_id; }
     int item_id() const { return m_item_id; }
 
 private:
     uint32_t m_window_id;
+    int m_menu_id;
+    int m_item_id;
+};
+
+class PopupActionEvent : public Event {
+public:
+    PopupActionEvent(uint32_t window_id, int menu_id, int item_id)
+        : Event(Event::Type::PopupActionEvent)
+        , m_window_id(window_id)
+        , m_menu_id(menu_id)
+        , m_item_id(item_id)
+    {
+    }
+
+    ~PopupActionEvent() = default;
+    uint32_t window_id() const { return m_window_id; }
+    int menu_id() const { return m_menu_id; }
+    int item_id() const { return m_item_id; }
+
+private:
+    uint32_t m_window_id;
+    int m_menu_id;
     int m_item_id;
 };
 
 // Notifiers
+class NotifyWindowCreateEvent : public Event {
+public:
+    NotifyWindowCreateEvent(std::string&& bundle_id, std::string&& icon_path, uint32_t changed_window_id)
+        : Event(Event::Type::NotifyWindowCreateEvent)
+        , m_window_id(changed_window_id)
+        , m_icon_path(icon_path)
+        , m_bundle_id(bundle_id)
+    {
+    }
+
+    ~NotifyWindowCreateEvent() = default;
+    uint32_t window_id() const { return m_window_id; }
+    const std::string& icon_path() const { return m_icon_path; }
+    const std::string& bundle_id() const { return m_bundle_id; }
+
+private:
+    int m_window_id;
+    std::string m_bundle_id;
+    std::string m_icon_path;
+};
+
 class NotifyWindowStatusChangedEvent : public Event {
 public:
     NotifyWindowStatusChangedEvent(uint32_t changed_window_id, int type)
@@ -276,14 +324,14 @@ private:
 
 class NotifyWindowIconChangedEvent : public Event {
 public:
-    NotifyWindowIconChangedEvent(uint32_t changed_window_id, const LG::string& path)
+    NotifyWindowIconChangedEvent(uint32_t changed_window_id, const std::string& path)
         : Event(Event::Type::NotifyWindowIconChangedEvent)
         , m_changed_window_id(changed_window_id)
         , m_icon_path(path)
     {
     }
 
-    NotifyWindowIconChangedEvent(uint32_t changed_window_id, LG::string&& path)
+    NotifyWindowIconChangedEvent(uint32_t changed_window_id, std::string&& path)
         : Event(Event::Type::NotifyWindowIconChangedEvent)
         , m_changed_window_id(changed_window_id)
         , m_icon_path(std::move(path))
@@ -292,11 +340,36 @@ public:
 
     ~NotifyWindowIconChangedEvent() = default;
     uint32_t changed_window_id() const { return m_changed_window_id; }
-    const LG::string& icon_path() const { return m_icon_path; }
+    const std::string& icon_path() const { return m_icon_path; }
 
 private:
     uint32_t m_changed_window_id;
-    LG::string m_icon_path;
+    std::string m_icon_path;
+};
+
+class NotifyWindowTitleChangedEvent : public Event {
+public:
+    NotifyWindowTitleChangedEvent(uint32_t changed_window_id, const std::string& title)
+        : Event(Event::Type::NotifyWindowTitleChangedEvent)
+        , m_changed_window_id(changed_window_id)
+        , m_title(title)
+    {
+    }
+
+    NotifyWindowTitleChangedEvent(uint32_t changed_window_id, std::string&& title)
+        : Event(Event::Type::NotifyWindowTitleChangedEvent)
+        , m_changed_window_id(changed_window_id)
+        , m_title(std::move(title))
+    {
+    }
+
+    ~NotifyWindowTitleChangedEvent() = default;
+    uint32_t changed_window_id() const { return m_changed_window_id; }
+    const std::string& title() const { return m_title; }
+
+private:
+    uint32_t m_changed_window_id;
+    std::string m_title;
 };
 
 // View Life Cycle Events

@@ -7,6 +7,7 @@
  */
 
 #include <libfoundation/Logger.h>
+#include <libfoundation/ProcessInfo.h>
 #include <libipc/ClientConnection.h>
 #include <libui/Connection.h>
 #include <libui/Window.h>
@@ -80,8 +81,9 @@ void Connection::greeting()
 
 int Connection::new_window(const Window& window)
 {
-    auto message = CreateWindowMessage(key(), window.type(), window.bounds().width(),
-        window.bounds().height(), window.buffer().id(), window.title(), window.icon_path(),
+    const std::string& bundle_id = LFoundation::ProcessInfo::the().bundle_id();
+    auto message = CreateWindowMessage(key(), window.type(), window.bounds().width(), window.bounds().height(),
+        window.buffer().id(), window.title(), window.icon_path(), bundle_id,
         window.status_bar_style().color().u32(), window.status_bar_style().flags());
     auto resp_message = send_sync_message<CreateWindowMessageReply>(message);
 #ifdef DEBUG_CONNECTION

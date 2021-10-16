@@ -28,8 +28,10 @@ WindowManager::WindowManager()
     , m_cursor_manager(CursorManager::the())
     , m_event_loop(LFoundation::EventLoop::the())
     , m_std_menubar_content()
+    , m_visible_area(m_screen.bounds())
 {
     s_WinServer_WindowManager_the = this;
+    shrink_visible_area(menu_bar().height(), 0);
 }
 
 void WindowManager::start_window_move(Window& window)
@@ -43,7 +45,8 @@ void WindowManager::setup_dock(Window* window)
     window->make_frameless();
     window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
     window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
-    window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus);
+    window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus | WindowEvent::WindowCreation | WindowEvent::TitleChange);
+    shrink_visible_area(0, window->bounds().height());
 #endif // TARGET_DESKTOP
     m_dock_window = window;
 }
@@ -55,7 +58,7 @@ void WindowManager::add_window(Window* window)
     }
     m_windows.push_back(window);
     set_active_window(window);
-    notify_window_status_changed(window->id(), WindowStatusUpdateType::Created);
+    notify_window_creation(window->id());
 }
 
 void WindowManager::remove_window_from_screen(Window* window)
@@ -64,13 +67,12 @@ void WindowManager::remove_window_from_screen(Window* window)
         m_movable_window = nullptr;
     }
     if (active_window() == window) {
-        auto& menu_bar = m_compositor.menu_bar();
 #ifdef TARGET_DESKTOP
-        menu_bar.set_menubar_content(&m_std_menubar_content, m_compositor);
+        menu_bar().set_menubar_content(nullptr, m_compositor);
 #elif TARGET_MOBILE
         if (window->type() == WindowType::Standard) {
-            menu_bar.set_style(StatusBarStyle::StandardOpaque);
-            m_compositor.invalidate(menu_bar.bounds());
+            menu_bar().set_style(StatusBarStyle::StandardOpaque);
+            m_compositor.invalidate(menu_bar().bounds());
         }
 #endif
         m_active_window = nullptr;
@@ -104,6 +106,7 @@ void WindowManager::minimize_window(Window& window)
     window.set_visible(false);
     m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
     m_windows.push_back(window_ptr);
+    notify_window_status_changed(window.id(), WindowStatusUpdateType::Minimized);
 }
 
 void WindowManager::resize_window(Window& window, const LG::Size& size)
@@ -116,15 +119,12 @@ void WindowManager::resize_window(Window& window, const LG::Size& size)
 void WindowManager::maximize_window(Window& window)
 {
     size_t fullscreen_h = m_screen.height();
-    fullscreen_h -= m_compositor.menu_bar().height();
-    if (m_dock_window) [[likely]] {
-        fullscreen_h -= (m_screen.height() - m_dock_window->bounds().min_y());
-    }
+    fullscreen_h = visible_area().height();
 
     const size_t vertical_borders = Desktop::WindowFrame::std_top_border_size() + Desktop::WindowFrame::std_bottom_border_size();
     const size_t horizontal_borders = Desktop::WindowFrame::std_left_border_size() + Desktop::WindowFrame::std_right_border_size();
 
-    move_window(&window, -window.bounds().min_x(), -(window.bounds().min_y() - m_compositor.menu_bar().height()));
+    move_window(&window, -window.bounds().min_x(), -(window.bounds().min_y() - menu_bar().height()));
     resize_window(window, { m_screen.width() - horizontal_borders, fullscreen_h - vertical_borders });
 }
 
@@ -162,7 +162,7 @@ void WindowManager::bring_to_front(Window& window)
         prev_window->frame().invalidate(m_compositor);
     }
     if (window.type() == WindowType::Standard) {
-        m_compositor.menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
+        menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
     }
 }
 #elif TARGET_MOBILE
@@ -172,9 +172,8 @@ void WindowManager::bring_to_front(Window& window)
     do_bring_to_front(window);
     m_active_window = &window;
     if (window.type() == WindowType::Standard) {
-        auto& menu_bar = m_compositor.menu_bar();
-        menu_bar.set_style(window.style());
-        m_compositor.invalidate(menu_bar.bounds());
+        menu_bar().set_style(window.style());
+        m_compositor.invalidate(menu_bar().bounds());
     }
 }
 #endif // TARGET_DESKTOP
@@ -222,27 +221,27 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         return;
     }
 
-    if (m_compositor.popup().visible() && m_compositor.popup().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
-        m_compositor.popup().on_mouse_move(m_cursor_manager);
+    if (popup().visible() && popup().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+        popup().on_mouse_move(m_cursor_manager);
         if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
-            m_compositor.popup().on_mouse_status_change(m_cursor_manager);
+            popup().on_mouse_status_change(m_cursor_manager);
         }
         return;
     } else {
-        m_compositor.popup().on_mouse_leave(m_cursor_manager);
+        popup().on_mouse_leave(m_cursor_manager);
         if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-            m_compositor.popup().set_visible(false);
+            popup().set_visible(false);
         }
     }
 
     // Checking and dispatching mouse move for MenuBar.
-    if (m_compositor.menu_bar().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
-        m_compositor.menu_bar().on_mouse_move(m_cursor_manager);
+    if (menu_bar().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+        menu_bar().on_mouse_move(m_cursor_manager);
         if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
-            m_compositor.menu_bar().on_mouse_status_change(m_cursor_manager);
+            menu_bar().on_mouse_status_change(m_cursor_manager);
         }
-    } else if (m_compositor.menu_bar().is_hovered()) {
-        m_compositor.menu_bar().on_mouse_leave(m_cursor_manager);
+    } else if (menu_bar().is_hovered()) {
+        menu_bar().on_mouse_leave(m_cursor_manager);
     }
 
     // Checking and dispatching mouse move for windows/
@@ -357,12 +356,33 @@ void WindowManager::receive_event(std::unique_ptr<LFoundation::Event> event)
 
 // Notifiers
 
-bool WindowManager::notify_listner_about_window_status(const Window& win, int changed_window_id, WindowStatusUpdateType type)
+bool WindowManager::notify_listner_about_window_creation(const Window& win, int changed_window_id)
 {
+#ifdef TARGET_DESKTOP
 #ifdef WM_DEBUG
     Logger::debug << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << std::endl;
 #endif
+    auto* changed_window_ptr = window(changed_window_id);
+    if (!changed_window_ptr) {
+        return false;
+    }
+    send_event(new NotifyWindowCreateMessage(win.connection_id(), win.id(), changed_window_ptr->bundle_id(), changed_window_ptr->icon_path(), changed_window_id));
+#endif
+    return true;
+}
+
+bool WindowManager::notify_listner_about_window_status(const Window& win, int changed_window_id, WindowStatusUpdateType type)
+{
+#ifdef TARGET_DESKTOP
+#ifdef WM_DEBUG
+    Logger::debug << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << std::endl;
+#endif
+    auto* changed_window_ptr = window(changed_window_id);
+    if (!changed_window_ptr) {
+        return false;
+    }
     send_event(new NotifyWindowStatusChangedMessage(win.connection_id(), win.id(), changed_window_id, (int)type));
+#endif
     return true;
 }
 
@@ -379,6 +399,31 @@ bool WindowManager::notify_listner_about_changed_icon(const Window& win, int cha
     send_event(new NotifyWindowIconChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->icon_path()));
 #endif
     return true;
+}
+
+bool WindowManager::notify_listner_about_changed_title(const Window& win, int changed_window_id)
+{
+#ifdef TARGET_DESKTOP
+#ifdef WM_DEBUG
+    Logger::debug << "notify_listner_about_changed_title " << win.id() << " that " << changed_window_id << std::endl;
+#endif
+    auto* changed_window_ptr = window(changed_window_id);
+    if (!changed_window_ptr) {
+        return false;
+    }
+    send_event(new NotifyWindowTitleChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->app_title()));
+#endif
+    return true;
+}
+
+void WindowManager::notify_window_creation(int changed_window_id)
+{
+    for (auto* window_ptr : m_windows) {
+        auto& window = *window_ptr;
+        if (window.event_mask() & WindowEvent::WindowCreation) {
+            notify_listner_about_window_creation(window, changed_window_id);
+        }
+    }
 }
 
 void WindowManager::notify_window_status_changed(int changed_window_id, WindowStatusUpdateType type)
@@ -401,6 +446,16 @@ void WindowManager::notify_window_icon_changed(int changed_window_id)
     }
 }
 
+void WindowManager::notify_window_title_changed(int changed_window_id)
+{
+    for (auto* window_ptr : m_windows) {
+        auto& window = *window_ptr;
+        if (window.event_mask() & WindowEvent::TitleChange) {
+            notify_listner_about_changed_title(window, changed_window_id);
+        }
+    }
+}
+
 #ifdef TARGET_DESKTOP
 void WindowManager::on_window_style_change(Window& window)
 {
@@ -412,9 +467,8 @@ void WindowManager::on_window_style_change(Window& window)
 void WindowManager::on_window_style_change(Window& window)
 {
     if (active_window() == &window && window.type() == WindowType::Standard) {
-        auto& menu_bar = m_compositor.menu_bar();
-        menu_bar.set_style(window.style());
-        m_compositor.invalidate(menu_bar.bounds());
+        menu_bar().set_style(window.style());
+        m_compositor.invalidate(menu_bar().bounds());
     }
 }
 #endif
@@ -422,8 +476,7 @@ void WindowManager::on_window_style_change(Window& window)
 void WindowManager::on_window_menubar_change(Window& window)
 {
     if (m_active_window == &window) {
-        auto& menu_bar = m_compositor.menu_bar();
-        menu_bar.invalidate_menubar_panel(m_compositor);
+        menu_bar().invalidate_menubar_panel(m_compositor);
     }
 }
 

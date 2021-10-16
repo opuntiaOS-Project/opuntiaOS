@@ -88,10 +88,12 @@ WindowFrame::WindowFrame(Window& window, std::vector<Button*>&& control_panel_bu
 {
 }
 
-void WindowFrame::on_set_app_name()
+void WindowFrame::on_set_app_title()
 {
-    m_app_name_width = Helpers::text_width(m_window.app_name(), LG::Font::system_font());
-    WinServer::Compositor::the().invalidate(bounds());
+    m_app_title_width = Helpers::text_width(m_window.app_title(), LG::Font::system_font());
+    if (style().show_text()) {
+        WinServer::Compositor::the().invalidate(bounds());
+    }
 }
 
 void WindowFrame::add_control(const std::string& title)
@@ -128,10 +130,10 @@ void WindowFrame::draw(LG::Context& ctx)
     // Drawing positions are calculated using a start of the frame.
     ctx.set_fill_color(m_text_colors[(int)active()]);
     if (style().show_text()) {
-        Helpers::draw_text(ctx, { left_x + spacing(), y + text_y_offset() }, m_window.app_name(), LG::Font::system_font());
+        Helpers::draw_text(ctx, { left_x + spacing(), y + text_y_offset() }, m_window.app_title(), LG::Font::system_font());
     }
 
-    int start_controls_offset = m_app_name_width + 2 * spacing();
+    int start_controls_offset = m_app_title_width + 2 * spacing();
     int start_controls = left_x + start_controls_offset;
     for (int i = 0; i < m_control_panel_buttons.size(); i++) {
         m_control_panel_buttons[i]->display(ctx, { start_controls, y + text_y_offset() });

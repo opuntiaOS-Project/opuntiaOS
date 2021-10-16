@@ -12,16 +12,18 @@
 
 namespace WinServer::Desktop {
 
-Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
+Window::Window(int connection_id, int id, CreateWindowMessage& msg)
     : BaseWindow(connection_id, id, msg)
     , m_frame(*this)
+    , m_app_name(msg.title().string())
+    , m_bundle_id(msg.bundle_id().string())
 {
     m_bounds = LG::Rect(0, 0, msg.width() + frame().left_border_size() + frame().right_border_size(), msg.height() + frame().top_border_size() + frame().bottom_border_size());
     m_content_bounds = LG::Rect(m_frame.left_border_size(), m_frame.top_border_size(), msg.width(), msg.height());
     m_content_bitmap = LG::PixelBitmap(m_buffer.data(), content_bounds().width(), content_bounds().height());
 
     // Creating standard menubar directory entry.
-    m_menubar_content.push_back(MenuDir("App", 0));
+    m_menubar_content.push_back(MenuDir(m_app_name, 0));
     m_menubar_content[0].add_item(PopupItem { PopupItem::InternalId, "Minimize others", [this](int) { WindowManager::the().minimize_windows([this](Window* win) { return win != this; }); } });
     m_menubar_content[0].add_item(PopupItem { PopupItem::InternalId, "Minimize", [this](int) { WindowManager::the().minimize_window(*this); } });
     m_menubar_content[0].add_item(PopupItem { PopupItem::InternalId, "Close", [this](int) { WindowManager::the().close_window(*this); } });
@@ -30,6 +32,10 @@ Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
 Window::Window(Window&& win)
     : BaseWindow(std::move(win))
     , m_frame(*this, std::move(win.m_frame.control_panel_buttons()), std::move(win.m_frame.window_control_buttons()))
+    , m_corner_mask(std::move(win.m_corner_mask))
+    , m_app_name(std::move(win.m_app_name))
+    , m_icon_path(std::move(win.m_icon_path))
+    , m_bundle_id(std::move(win.m_bundle_id))
     , m_menubar_content(std::move(win.m_menubar_content))
 {
 }

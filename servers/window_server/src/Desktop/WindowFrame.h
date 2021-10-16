@@ -45,7 +45,7 @@ public:
 
     void receive_tap_event(const LG::Point<int>& tap);
 
-    void on_set_app_name();
+    void on_set_app_title();
     void add_control(const std::string& title);
 
     inline std::vector<Button*>& window_control_buttons() { return m_window_control_buttons; }
@@ -85,7 +85,7 @@ private:
     LG::Color m_text_colors[2];
     LG::Color m_color { LG::Color::LightSystemBackground };
     size_t m_top_border_size { std_top_border_size() };
-    size_t m_app_name_width { 0 };
+    size_t m_app_title_width { 0 };
     bool m_visible { true };
     bool m_active { true };
 

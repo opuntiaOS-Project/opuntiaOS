@@ -15,8 +15,9 @@
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Size.h>
-#include <libg/string.h>
+#include <string>
 #include <libui/MenuBar.h>
+#include <libui/PopupMenu.h>
 #include <libui/View.h>
 #include <libui/ViewController.h>
 #include <sys/types.h>
@@ -33,9 +34,9 @@ class Window : public LFoundation::EventReceiver {
     friend Connection;
 
 public:
-    Window(const LG::string& title, const LG::Size& size, WindowType type = WindowType::Standard);
-    Window(const LG::string& title, const LG::Size& size, const LG::string& path);
-    Window(const LG::string& title, const LG::Size& size, const LG::string& path, const StatusBarStyle& style);
+    Window(const std::string& title, const LG::Size& size, WindowType type = WindowType::Standard);
+    Window(const std::string& title, const LG::Size& size, const std::string& path);
+    Window(const std::string& title, const LG::Size& size, const std::string& path, const StatusBarStyle& style);
 
     int id() const { return m_id; }
     inline WindowType type() const { return m_type; }
@@ -66,14 +67,15 @@ public:
     inline View* focused_view() { return m_focused_view; }
 
     MenuBar& menubar() { return m_menubar; }
+    PopupMenu& popup_manager() { return m_popup; }
 
-    bool set_title(const LG::string& title);
+    bool set_title(const std::string& title);
     bool set_status_bar_style(StatusBarStyle style);
     bool did_format_change();
     bool did_buffer_change();
 
-    inline const LG::string& title() const { return m_title; }
-    inline const LG::string& icon_path() const { return m_icon_path; }
+    inline const std::string& title() const { return m_title; }
+    inline const std::string& icon_path() const { return m_icon_path; }
     inline const StatusBarStyle& status_bar_style() const { return m_status_bar_style; }
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
@@ -91,13 +93,14 @@ private:
     LG::Rect m_bounds;
     LG::PixelBitmap m_bitmap;
     LFoundation::SharedBuffer<LG::Color> m_buffer;
-    LG::string m_title { "" };
-    LG::string m_icon_path { "/res/icons/apps/missing.icon" };
+    std::string m_title { "" };
+    std::string m_icon_path { "/res/icons/apps/missing.icon" };
     LG::Color m_color;
     StatusBarStyle m_status_bar_style;
     WindowType m_type { WindowType::Standard };
 
     MenuBar m_menubar;
+    PopupMenu m_popup;
 };
 
 } // namespace UI

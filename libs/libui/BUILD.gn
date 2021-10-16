@@ -9,6 +9,7 @@ opuntiaOS_static_library("libui") {
     "src/ContextManager.cpp",
     "src/Label.cpp",
     "src/MenuBar.cpp",
+    "src/PopupMenu.cpp",
     "src/Responder.cpp",
     "src/ScrollView.cpp",
     "src/StackView.cpp",

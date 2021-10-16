@@ -81,9 +81,9 @@ public:
 
     inline void move_window(Window* window, int x_offset, int y_offset)
     {
-        y_offset = std::max(y_offset, (int)m_compositor.menu_bar().height() - (int)Desktop::WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
+        y_offset = std::max(y_offset, (int)visible_area().min_y() - (int)Desktop::WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
         if (m_dock_window) [[likely]] {
-            y_offset = std::min(y_offset, (int)(m_screen.height() - window->content_bounds().min_y() - m_dock_window->bounds().height()));
+            y_offset = std::min(y_offset, (int)(visible_area().max_y() - window->content_bounds().min_y()));
         }
         window->bounds().offset_by(x_offset, y_offset);
         window->content_bounds().offset_by(x_offset, y_offset);
@@ -101,22 +101,35 @@ public:
     inline const std::list<Window*>& windows() const { return m_windows; }
     inline int next_win_id() { return ++m_next_win_id; }
 
+    const LG::Rect& visible_area() const { return m_visible_area; }
+    void shrink_visible_area(int top, int bottom) { m_visible_area.set_y(m_visible_area.min_y() + top), m_visible_area.set_height(m_visible_area.height() - top - bottom); }
+
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
     void setup_dock(Window* window);
 
     // Notifiers
+    bool notify_listner_about_window_creation(const Window& window, int changed_window_id);
     bool notify_listner_about_window_status(const Window& window, int changed_window_id, WindowStatusUpdateType type);
     bool notify_listner_about_changed_icon(const Window&, int changed_window_id);
+    bool notify_listner_about_changed_title(const Window&, int changed_window_id);
 
+    void notify_window_creation(int changed_window_id);
     void notify_window_status_changed(int changed_window_id, WindowStatusUpdateType type);
     void notify_window_icon_changed(int changed_window_id);
+    void notify_window_title_changed(int changed_window_id);
 
     inline void ask_to_set_active_window(Window* win) { set_active_window(win); }
     inline void ask_to_set_active_window(Window& win) { set_active_window(win); }
 
     void on_window_style_change(Window& win);
     void on_window_menubar_change(Window& window);
+
+    // Popup & Menubar
+    inline Popup& popup() { return m_compositor.popup(); }
+    inline const Popup& popup() const { return m_compositor.popup(); }
+    inline MenuBar& menu_bar() { return m_compositor.menu_bar(); }
+    inline const MenuBar& menu_bar() const { return m_compositor.menu_bar(); }
 
 private:
     void remove_window_from_screen(Window* window);
@@ -144,6 +157,8 @@ private:
     CursorManager& m_cursor_manager;
     LFoundation::EventLoop& m_event_loop;
     std::vector<MenuDir> m_std_menubar_content;
+
+    LG::Rect m_visible_area;
 
     // TODO: implement with std::weak_ptr.
     Window* m_dock_window {};

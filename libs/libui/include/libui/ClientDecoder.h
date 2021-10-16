@@ -20,19 +20,22 @@ public:
     ~ClientDecoder() = default;
 
     using BaseWindowClientDecoder::handle;
-    virtual std::unique_ptr<Message> handle(const MouseMoveMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const MouseActionMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const MouseLeaveMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const MouseWheelMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const KeyboardMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const DisplayMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const WindowCloseRequestMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const ResizeMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const MenuBarActionMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(MouseMoveMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(MouseActionMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(MouseLeaveMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(MouseWheelMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(KeyboardMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(DisplayMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(WindowCloseRequestMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(ResizeMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(MenuBarActionMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(PopupActionMessage& msg) override;
 
     // Notifiers
-    virtual std::unique_ptr<Message> handle(const NotifyWindowStatusChangedMessage& msg) override;
-    virtual std::unique_ptr<Message> handle(const NotifyWindowIconChangedMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(NotifyWindowCreateMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(NotifyWindowStatusChangedMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(NotifyWindowIconChangedMessage& msg) override;
+    virtual std::unique_ptr<Message> handle(NotifyWindowTitleChangedMessage& msg) override;
 
 private:
     LFoundation::EventLoop& m_event_loop;

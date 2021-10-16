@@ -21,46 +21,35 @@ namespace WinServer::Desktop {
 
 class Window : public BaseWindow {
 public:
-    Window(int connection_id, int id, const CreateWindowMessage& msg);
+    Window(int connection_id, int id, CreateWindowMessage& msg);
     Window(Window&& win);
 
     inline WindowFrame& frame() { return m_frame; }
     inline const WindowFrame& frame() const { return m_frame; }
 
-    inline void set_name(const LG::string& name)
-    {
-        m_app_name = name;
-        m_frame.on_set_app_name();
-        menubar_content()[0].set_title(name);
-    }
+    inline const std::string& app_name() const { return m_app_name; }
+    inline const std::string& bundle_id() const { return m_bundle_id; }
 
-    void make_frame();
-    void make_frameless();
+    inline const std::string& app_title() const { return m_app_title; }
+    inline void set_app_title(const std::string& title) { m_app_title = title, m_frame.on_set_app_title(); }
 
-    inline void set_icon(LG::string&& name)
-    {
-        m_icon_path = std::move(name);
-        m_frame.on_set_icon();
-    }
-
-    inline void set_icon(const LG::string& name)
-    {
-        m_icon_path = name;
-        m_frame.on_set_icon();
-    }
+    inline const std::string& icon_path() const { return m_icon_path; }
+    inline void set_icon_path(std::string&& name) { m_icon_path = std::move(name), m_frame.on_set_icon(); }
+    inline void set_icon_path(const std::string& name) { m_icon_path = name, m_frame.on_set_icon(); }
 
     inline const LG::CornerMask& corner_mask() const { return m_corner_mask; }
 
-    inline const LG::string& app_name() const { return m_app_name; }
-    inline const LG::string& icon_path() const { return m_icon_path; }
-
     inline std::vector<MenuDir>& menubar_content() { return m_menubar_content; }
     inline const std::vector<MenuDir>& menubar_content() const { return m_menubar_content; }
+
     void on_menubar_change();
 
     virtual void did_size_change(const LG::Size& size) override;
 
     inline void set_style(StatusBarStyle style) { m_frame.set_style(style), on_style_change(); }
+
+    void make_frame();
+    void make_frameless();
 
 private:
     void recalc_bounds(const LG::Size& size);
@@ -68,8 +57,10 @@ private:
 
     WindowFrame m_frame;
     LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
-    LG::string m_app_name {};
-    LG::string m_icon_path {};
+    std::string m_app_name {};
+    std::string m_app_title {};
+    std::string m_icon_path {};
+    std::string m_bundle_id {};
     std::vector<MenuDir> m_menubar_content;
 };
 

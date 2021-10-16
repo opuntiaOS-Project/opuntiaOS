@@ -41,8 +41,7 @@ public:
     constexpr int spacing() const { return 8; }
     constexpr size_t min_width() const { return 180u; }
 
-    inline void set_preferred_origin(const LG::Point<int>& origin) { m_bounds.set_origin(origin); }
-    inline void set_preferred_origin(LG::Point<int>&& origin) { m_bounds.set_origin(origin); }
+    void set_preferred_origin(const LG::Point<int>& origin);
 
     inline LG::Rect& bounds() { return m_bounds; }
     inline const LG::Rect& bounds() const { return m_bounds; }
@@ -65,28 +64,29 @@ public:
     void show(const LG::Point<int>& origin, PopupData& data)
     {
         set_visible(false);
-        set_preferred_origin(origin);
         set_data(data);
+        set_preferred_origin(origin);
         set_visible(true);
     }
 
     void hide()
     {
-        m_data = nullptr;
         m_hovered_item = HoveredItem::No;
         set_visible(false);
     }
 
-    void set_data(PopupData& data);
+    void on_set_data();
+    void set_data(const PopupData& data) { m_data = data, on_set_data(); }
+    void set_data(PopupData&& data) { m_data = std::move(data), on_set_data(); }
 
     void on_mouse_move(const CursorManager& cursor_manager)
     {
         // A simple implemetation to get hover effect and clicks.
-        if (!m_data || !visible()) {
+        if (!visible()) {
             return;
         }
 
-        size_t data_size = m_data->size();
+        size_t data_size = m_data.size();
         const size_t line_height = (m_font.glyph_height() + 8);
         int prev_hovered_item = m_hovered_item;
         int rel_y = cursor_manager.y() - bounds().min_y();
@@ -112,11 +112,11 @@ public:
             return;
         }
 
-        if (!m_data || !visible()) {
+        if (!visible()) {
             return;
         }
 
-        auto& data = *m_data;
+        auto& data = m_data;
         if (cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
             data[m_hovered_item].callback((int)data[m_hovered_item].id);
             hide();
@@ -129,7 +129,7 @@ public:
             return;
         }
 
-        if (!m_data || !visible()) {
+        if (!visible()) {
             return;
         }
 
@@ -147,7 +147,7 @@ private:
 
     LG::Rect m_bounds { 0, 0, 0, 0 };
     bool m_visible { false };
-    PopupData* m_data;
+    PopupData m_data;
     int m_hovered_item { HoveredItem::No };
     LG::Font& m_font { LG::Font::system_font() };
 };

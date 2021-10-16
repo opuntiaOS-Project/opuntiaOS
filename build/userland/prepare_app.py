@@ -28,6 +28,7 @@ def write_config(config, outpath):
 
     config['name'] = app_name
 
+    config_file.write("bundle_id: com.opuntia.{0}\n".format(app_name))
     print_json(config_file, config)
     config_file.close()
 

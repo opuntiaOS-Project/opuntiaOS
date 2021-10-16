@@ -27,36 +27,20 @@ public:
     std::vector<std::string>& arguments() { return m_args; }
     const std::vector<std::string>& arguments() const { return m_args; }
 
-    std::string& process_name() { return m_process_name; }
     const std::string& process_name() const { return m_process_name; }
+    const std::string& bundle_id() const { return m_bundle_id; }
 
-    int processor_count()
-    {
-        // TODO: Temp solution. Until sysctl.
-        if (m_processor_count < 0) {
-            m_processor_count = 0;
-            char buf[256];
-            int fd_proc_stat = open("/proc/stat", O_RDONLY);
-            int offset = 0;
-            int rd = 1;
-            read(fd_proc_stat, buf, sizeof(buf));
-            while (rd > 0) {
-                int num, user_time, system_time, idle_time;
-                rd = sscanf(buf + offset, "cpu%d %d 0 %d %d\n", &num, &user_time, &system_time, &idle_time);
-                offset += rd;
-                if (rd > 0) {
-                    m_processor_count++;
-                }
-            }
-        }
-        return m_processor_count;
-    }
+    int processor_count();
 
     bool mobile_app_on_desktop() { return false; }
 
 private:
+    // TODO: Maybe move out info file parsing to a seperate file?
+    void parse_info_file();
+
     std::vector<std::string> m_args;
     std::string m_process_name;
+    std::string m_bundle_id;
     int m_processor_count { -1 };
 };
 

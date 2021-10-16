@@ -36,23 +36,31 @@ Color::Color(Colors clr)
         rgb_color = { 0, 0, 0, 0 };
         break;
     case LightSystemBackground:
-        rgb_color = { 249, 249, 249, 0 };
+        rgb_color = { 243, 243, 243, 0 };
         break;
     case LightSystemText:
-        rgb_color = { 249, 249, 249, 0 };
+        rgb_color = { 243, 243, 243, 0 };
+        break;
+    case LightSystemAccentText:
+        rgb_color = { 36, 93, 150, 0 };
         break;
     case LightSystemButton:
         rgb_color = { 235, 235, 235, 0 };
         break;
     case LightSystemAccentButton:
+        rgb_color = { 209, 231, 253, 0 };
+        break;
     case LightSystemBlue:
         rgb_color = { 62, 119, 233, 0 };
         break;
+    case LightSystemWhiteOpaque:
+        rgb_color = { 243, 243, 243, 25 };
+        break;
     case DarkSystemBackground:
-        rgb_color = { 49, 49, 43, 0 };
+        rgb_color = { 25, 26, 26, 0 };
         break;
     case DarkSystemText:
-        rgb_color = { 49, 49, 43, 0 };
+        rgb_color = { 25, 26, 26, 0 };
         break;
     case Opaque:
         rgb_color = { 0, 0, 0, 255 };

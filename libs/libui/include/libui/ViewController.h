@@ -44,6 +44,8 @@ public:
     ViewT& view() { return m_view; }
     const ViewT& view() const { return m_view; }
 
+    Window& window() { return *m_view.window(); }
+
 private:
     ViewT& m_view;
 };

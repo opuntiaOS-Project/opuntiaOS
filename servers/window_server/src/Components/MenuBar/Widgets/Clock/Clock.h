@@ -46,7 +46,7 @@ public:
         }
     }
 
-    size_t width() override { return 70; }
+    size_t width() override { return 50; }
     void draw(LG::Context& ctx) override
     {
         size_t twidth = Helpers::text_width(m_date, m_font);

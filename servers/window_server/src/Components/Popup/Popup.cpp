@@ -8,6 +8,7 @@
 
 #include "Popup.h"
 #include "../../Colors.h"
+#include "../../WindowManager.h"
 #include "../Helpers/TextDrawer.h"
 #include <algorithm>
 
@@ -20,18 +21,17 @@ Popup::Popup()
     s_WinServer_Popup_the = this;
 }
 
-void Popup::set_data(PopupData& data)
+void Popup::on_set_data()
 {
     size_t max_width = 0;
     size_t max_height = 0;
-    for (auto& item : data) {
+    for (auto& item : m_data) {
         max_width = std::max(max_width, Helpers::text_width(item.text, m_font));
         max_height += m_font.glyph_height() + spacing();
     }
     max_width = std::max(max_width, min_width());
     bounds().set_width(max_width + 2 * spacing());
     bounds().set_height(max_height + spacing());
-    m_data = &data;
 }
 
 void Popup::draw(LG::Context& ctx)
@@ -40,7 +40,7 @@ void Popup::draw(LG::Context& ctx)
         return;
     }
 
-    ctx.set_fill_color(LG::Color::White);
+    ctx.set_fill_color(LG::Color::LightSystemWhiteOpaque);
     ctx.fill_rounded(bounds(), LG::CornerMask(LG::CornerMask::SystemRadius));
 
     ctx.set_fill_color(Color::Shadow);
@@ -48,19 +48,34 @@ void Popup::draw(LG::Context& ctx)
 
     const size_t line_height = (m_font.glyph_height() + spacing());
     int height = bounds().min_y() + spacing();
-    auto& data = *m_data;
 
-    for (int i = 0; i < data.size(); i++) {
+    for (int i = 0; i < m_data.size(); i++) {
         if (i == m_hovered_item) {
-            ctx.set_fill_color(LG::Color::LightSystemAccentButton);
-            ctx.fill(LG::Rect(bounds().min_x(), height - spacing() / 2, bounds().width(), line_height));
             ctx.set_fill_color(LG::Color::White);
-        } else {
-            ctx.set_fill_color(LG::Color::DarkSystemText);
+            ctx.fill(LG::Rect(bounds().min_x(), height - spacing() / 2, bounds().width(), line_height));
         }
-        Helpers::draw_text(ctx, { bounds().min_x() + spacing(), height }, data[i].text, m_font);
+        ctx.set_fill_color(LG::Color::DarkSystemText);
+        Helpers::draw_text(ctx, { bounds().min_x() + spacing(), height }, m_data[i].text, m_font);
         height += line_height;
     }
+}
+
+void Popup::set_preferred_origin(const LG::Point<int>& origin)
+{
+    auto& wm = WindowManager::the();
+    LG::Point<int> pos;
+    int x = origin.x();
+    int y = origin.y();
+
+    if (origin.y() + bounds().height() > wm.visible_area().max_y()) {
+        y = origin.y() - bounds().height();
+    }
+    if (origin.x() + bounds().width() > wm.visible_area().max_x()) {
+        x = origin.x() - bounds().width();
+    }
+    pos.set_x(x);
+    pos.set_y(y);
+    m_bounds.set_origin(std::move(pos));
 }
 
 } // namespace WinServer

@@ -42,9 +42,11 @@ public:
 
     MenuBar();
 
-    static constexpr size_t height() { return 20; }
+    static constexpr size_t height() { return 24; }
     static constexpr size_t padding() { return 8; }
-    static constexpr size_t menubar_content_offset() { return padding(); }
+    static constexpr size_t menubar_content_offset() { return padding() + 2; }
+    static constexpr int popup_x_offset() { return -8; }
+    static constexpr int text_y_offset() { return 2; }
 
     void set_background_color(const LG::Color& clr) { m_background_color = clr; }
     void set_style(StatusBarStyle style);
@@ -67,6 +69,7 @@ public:
     inline bool is_hovered() const { return m_hovered; }
     inline PopupContext& popup_context() { return m_popup_context; }
     inline const PopupContext& popup_context() const { return m_popup_context; }
+    inline LG::Rect menubar_panel_bounds() { return LG::Rect(menubar_content_offset() + popup_x_offset(), text_y_offset(), menubar_panel_width(*m_menubar_content) - popup_x_offset(), height() - 3); }
 
     void draw_panel_items(LG::Context& ctx);
     void draw_widgets(LG::Context& ctx);
@@ -75,10 +78,11 @@ public:
         ctx.set_fill_color(m_background_color);
         ctx.fill({ 0, 0, MenuBar::width(), MenuBar::height() });
 
-        ctx.set_fill_color(LG::Color(255, 255, 255, 255));
-        ctx.fill_rounded(LG::Rect(padding() - 6, 2, menubar_panel_width(*m_menubar_content), height() - 4), LG::CornerMask(4));
-        ctx.set_fill_color(m_text_color);
-        draw_panel_items(ctx);
+        ctx.set_fill_color(LG::Color::LightSystemWhiteOpaque);
+        if (m_menubar_content) {
+            ctx.fill_rounded(menubar_panel_bounds(), LG::CornerMask(8));
+            draw_panel_items(ctx);
+        }
         draw_widgets(ctx);
     }
 
@@ -96,7 +100,7 @@ public:
     {
         auto& content = *m_menubar_content;
         popup_context().invoker_id = invoker_id;
-        m_popup.show({ (int)panel_item_start_offset(invoker_id), height() }, content[invoker_id].items());
+        m_popup.show({ (int)panel_item_start_offset(invoker_id) + popup_x_offset(), height() + 2 }, content[invoker_id].items());
     }
 
     inline void popup_will_be_closed()
@@ -152,7 +156,8 @@ inline void MenuBar::draw_panel_items(LG::Context& ctx)
     auto& content = *m_menubar_content;
 
     for (int ind = 0; ind < content.size(); ind++) {
-        ctx.set_draw_offset(LG::Point<int>(start_offset, 0));
+        ctx.set_fill_color(m_text_color);
+        ctx.set_draw_offset(LG::Point<int>(start_offset, text_y_offset()));
         content[ind].draw(ctx);
         start_offset += content[ind].width();
         start_offset += padding();
@@ -164,12 +169,13 @@ inline void MenuBar::draw_panel_items(LG::Context& ctx)
 inline void MenuBar::draw_widgets(LG::Context& ctx)
 {
     auto offset = ctx.draw_offset();
-    size_t start_offset = MenuBar::width();
+    size_t start_offset = MenuBar::width() - padding();
 
     for (int wind = m_widgets.size() - 1; wind >= 0; wind--) {
+        ctx.set_fill_color(m_text_color);
         start_offset -= padding();
         start_offset -= m_widgets[wind]->width();
-        ctx.set_draw_offset(LG::Point<int>(start_offset, 0));
+        ctx.set_draw_offset(LG::Point<int>(start_offset, text_y_offset()));
         m_widgets[wind]->draw(ctx);
     }
 
@@ -210,7 +216,7 @@ inline void MenuBar::set_menubar_content(std::vector<MenuDir>* mc, Compositor& c
 
 inline size_t MenuBar::widget_start_offset(size_t index)
 {
-    size_t start_offset = MenuBar::width();
+    size_t start_offset = MenuBar::width() - padding();
     for (int wind = m_widgets.size() - 1; wind >= (int)index; wind--) {
         start_offset -= padding();
         start_offset -= m_widgets[wind]->width();
@@ -220,7 +226,7 @@ inline size_t MenuBar::widget_start_offset(size_t index)
 
 inline int MenuBar::find_widget(int x, int y)
 {
-    size_t start_offset = MenuBar::width();
+    size_t start_offset = MenuBar::width() - padding();
     for (int wind = m_widgets.size() - 1; wind >= 0; wind--) {
         start_offset -= padding();
         int end_offset = start_offset;

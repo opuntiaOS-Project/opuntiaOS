@@ -15,7 +15,9 @@ public:
         auto& window = std::opuntiaos::construct<UI::Window>("About", window_size(), icon_path(), StatusBarStyle().set_hide_text());
         auto& superview = window.create_superview<UI::View, ViewController>();
 
-        window.menubar().add_menu("Demo").add_item(UI::MenuItem("Say hello", [] { Logger::debug << "Hello!" << std::endl; }));
+        auto demo_menu = UI::Menu("Demo");
+        demo_menu.add_item(UI::MenuItem("Say hello", [] { Logger::debug << "Hello!" << std::endl; }));
+        window.menubar().add_menu(std::move(demo_menu));
 
         return true;
     }

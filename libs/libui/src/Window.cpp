@@ -14,7 +14,7 @@
 
 namespace UI {
 
-Window::Window(const LG::string& title, const LG::Size& size, WindowType type)
+Window::Window(const std::string& title, const LG::Size& size, WindowType type)
     : m_bounds(0, 0, size.width(), size.height())
     , m_buffer(size_t(size.width() * size.height()))
     , m_bitmap()
@@ -24,11 +24,12 @@ Window::Window(const LG::string& title, const LG::Size& size, WindowType type)
 {
     m_id = Connection::the().new_window(*this);
     m_menubar.set_host_window_id(m_id);
+    m_popup.set_host_window_id(m_id);
     m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
     App::the().set_window(this);
 }
 
-Window::Window(const LG::string& title, const LG::Size& size, const LG::string& icon_path)
+Window::Window(const std::string& title, const LG::Size& size, const std::string& icon_path)
     : m_bounds(0, 0, size.width(), size.height())
     , m_buffer(size_t(size.width() * size.height()))
     , m_bitmap()
@@ -38,11 +39,12 @@ Window::Window(const LG::string& title, const LG::Size& size, const LG::string& 
 {
     m_id = Connection::the().new_window(*this);
     m_menubar.set_host_window_id(m_id);
+    m_popup.set_host_window_id(m_id);
     m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
     App::the().set_window(this);
 }
 
-Window::Window(const LG::string& title, const LG::Size& size, const LG::string& icon_path, const StatusBarStyle& style)
+Window::Window(const std::string& title, const LG::Size& size, const std::string& icon_path, const StatusBarStyle& style)
     : m_bounds(0, 0, size.width(), size.height())
     , m_buffer(size_t(size.width() * size.height()))
     , m_bitmap()
@@ -52,11 +54,12 @@ Window::Window(const LG::string& title, const LG::Size& size, const LG::string& 
 {
     m_id = Connection::the().new_window(*this);
     m_menubar.set_host_window_id(m_id);
+    m_popup.set_host_window_id(m_id);
     m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
     App::the().set_window(this);
 }
 
-bool Window::set_title(const LG::string& title)
+bool Window::set_title(const std::string& title)
 {
     m_title = title;
     SetTitleMessage msg(Connection::the().key(), id(), title);
@@ -165,8 +168,20 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
 
     if (event->type() == Event::Type::MenuBarActionEvent) {
         MenuBarActionEvent& own_event = *(MenuBarActionEvent*)event.get();
-        if (own_event.item_id() < menubar().menu_items().size()) [[likely]] {
-            menubar().menu_items()[own_event.item_id()].invoke();
+        for (Menu& menu : menubar().menus()) {
+            if (menu.menu_id() == own_event.menu_id()) {
+                if (own_event.item_id() < menu.items().size()) [[likely]] {
+                    menu.items()[own_event.item_id()].invoke();
+                }
+            }
+        }
+    }
+
+    if (event->type() == Event::Type::PopupActionEvent) {
+        PopupActionEvent& own_event = *(PopupActionEvent*)event.get();
+        auto& menu = popup_manager().menu();
+        if (own_event.item_id() < menu.items().size()) [[likely]] {
+            menu.items()[own_event.item_id()].invoke();
         }
     }
 
