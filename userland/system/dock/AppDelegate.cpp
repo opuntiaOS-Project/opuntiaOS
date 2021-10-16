@@ -13,7 +13,7 @@ public:
     bool application() override
     {
         auto& window = std::opuntiaos::construct<DockWindow>();
-        window.set_bitmap_format(LG::PixelBitmapFormat::RGBA); // Turning on Alpha channel
+        window.set_bitmap_format(LG::PixelBitmapFormat::RGBA);
         auto& dock_view = window.create_superview<DockView, DockViewController>();
         return true;
     }

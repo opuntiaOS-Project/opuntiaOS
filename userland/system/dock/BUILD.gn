@@ -4,8 +4,10 @@ opuntiaOS_executable("dock") {
   install_path = "System/"
   sources = [
     "AppDelegate.cpp",
+    "AppListView.cpp",
     "DockView.cpp",
     "DockWindow.cpp",
+    "IconView.cpp",
   ]
   configs = [ "//build/userland:userland_flags" ]
   deplibs = [

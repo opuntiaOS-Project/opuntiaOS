@@ -89,8 +89,8 @@ void WindowManager::remove_window(Window* window)
         return;
     }
     remove_window_from_screen(window);
-    m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
     notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
+    m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
 #ifdef TARGET_MOBILE
     if (auto* top_window = get_top_standard_window_in_view(); top_window) {
         m_active_window = top_window;

@@ -1,4 +1,6 @@
 #include "DockView.h"
+#include "AppListView.h"
+#include "IconView.h"
 #include <algorithm>
 #include <cstdlib>
 #include <libfoundation/EventLoop.h>
@@ -14,118 +16,129 @@ static DockView* this_view;
 DockView::DockView(UI::View* superview, const LG::Rect& frame)
     : UI::View(superview, frame)
 {
+    auto& dock_stack_view = add_subview<UI::StackView>(bounds());
+    dock_stack_view.set_spacing(padding());
+    dock_stack_view.set_background_color(LG::Color::Opaque);
+    dock_stack_view.set_axis(UI::LayoutConstraints::Axis::Horizontal);
+    dock_stack_view.set_distribution(UI::StackView::Distribution::EqualCentering);
+    m_dock_stackview = &dock_stack_view;
+    add_system_buttons();
 }
 
 DockView::DockView(UI::View* superview, UI::Window* window, const LG::Rect& frame)
     : UI::View(superview, window, frame)
 {
+    auto& dock_stack_view = add_subview<UI::StackView>(bounds());
+    dock_stack_view.set_spacing(padding());
+    dock_stack_view.set_background_color(LG::Color::Opaque);
+    dock_stack_view.set_axis(UI::LayoutConstraints::Axis::Horizontal);
+    dock_stack_view.set_distribution(UI::StackView::Distribution::EqualCentering);
+    m_dock_stackview = &dock_stack_view;
+    add_system_buttons();
+}
+
+void DockView::add_system_buttons()
+{
+    auto& icon_view = m_dock_stackview->add_arranged_subview<AppListView>();
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, icon_view_size()));
 }
 
 void DockView::display(const LG::Rect& rect)
 {
-    // FIXME: Rendering is a bit studip now, will rewrite it
-    //        completely when stackview is available.
     LG::Context ctx = UI::graphics_current_context();
     ctx.add_clip(rect);
 
-    // Drawing fast-launch icons
-    auto fast_access_dock = LG::Rect(padding(), 0, padding() + 40 * m_fast_launch_entites.size(), dock_view_height());
-    auto opened_apps_dock = LG::Rect(fast_access_dock.width() + 2 * padding(), 0, bounds().width() - fast_access_dock.width() - 3 * padding(), dock_view_height());
-
     ctx.set_fill_color(background_color());
-    ctx.fill_rounded(bounds(), LG::CornerMask(12, true, false));
-
-    // Drawing launched icons
-    int offsetx = fast_access_dock.min_x() + padding();
-    for (auto& entity : m_fast_launch_entites) {
-        ctx.draw({ offsetx, 6 }, entity.icon());
-        offsetx += entity.icon().bounds().width() + padding();
-    }
-
-    offsetx = opened_apps_dock.min_x() + padding();
-    for (auto& entity : m_dock_entites) {
-        ctx.draw({ offsetx, 6 }, entity.icon());
-        ctx.fill(LG::Rect(offsetx, 34, 32, 2));
-        offsetx += entity.icon().bounds().width() + padding();
-    }
+    ctx.fill(bounds());
 }
 
-void DockView::new_fast_launch_entity(const LG::string& icon_path, LG::string&& exec_path)
+void DockView::new_dock_entity(const std::string& exec_path, const std::string& icon_path, const std::string& bundle_id)
 {
     LG::PNG::PNGLoader loader;
-    m_fast_launch_entites.push_back(FastLaunchEntity());
-    m_fast_launch_entites.back().set_icon(loader.load_from_file(icon_path + "/32x32.png"));
-    m_fast_launch_entites.back().set_path_to_exec(std::move(exec_path));
-    set_needs_display();
+
+    auto& icon_view = m_dock_stackview->add_arranged_subview<IconView>();
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
+    icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, icon_view_size()));
+    icon_view.entity().set_icon(loader.load_from_file(icon_path + "/32x32.png"));
+    icon_view.entity().set_path_to_exec(std::move(exec_path));
+    icon_view.entity().set_bundle_id(std::move(bundle_id));
+    m_icon_views.push_back(&icon_view);
+    set_needs_layout();
 }
 
-DockEntity* DockView::find_entity(int window_id)
+WindowEntity* DockView::find_window_entry(int window_id)
 {
-    for (auto& ent : m_dock_entites) {
-        if (ent.window_id() == window_id) {
-            return &ent;
+    for (auto* view : m_icon_views) {
+        for (auto& wins : view->entity().windows()) {
+            if (wins.window_id() == window_id) {
+                return &wins;
+            }
         }
     }
     return nullptr;
 }
 
-void DockView::new_entity(int window_id)
+void DockView::on_window_create(const std::string& bundle_id, const std::string& icon_path, int window_id)
 {
     // Don't add an icon of dock (self).
-    if (window()->id() != window_id) {
-        m_dock_entites.push_back(DockEntity(window_id));
+    if (window()->id() == window_id) {
+        return;
+    }
+
+    for (auto* view : m_icon_views) {
+        Logger::debug << view->entity().bundle_id() << " " << bundle_id << std::endl;
+        if (view->entity().bundle_id() == bundle_id) {
+            view->entity().add_window(WindowEntity(window_id));
+            set_needs_display();
+            return;
+        }
+    }
+
+    new_dock_entity("", icon_path, bundle_id);
+    for (auto* view : m_icon_views) {
+        if (view->entity().bundle_id() == bundle_id) {
+            view->entity().add_window(WindowEntity(window_id));
+            set_needs_display();
+            return;
+        }
     }
 }
 
-void DockView::remove_entity(int window_id)
+void DockView::on_window_minimize(int window_id)
 {
-    m_dock_entites.erase(std::find(m_dock_entites.begin(), m_dock_entites.end(), DockEntity(window_id)));
-    set_needs_display();
-}
-
-void DockView::set_icon(int window_id, const LG::string& path)
-{
-    auto* ent = find_entity(window_id);
+    auto* ent = find_window_entry(window_id);
     if (!ent) {
         return;
     }
-    LG::PNG::PNGLoader loader;
-    ent->set_icon(loader.load_from_file(path + "/32x32.png"));
+    ent->set_minimized(true);
     set_needs_display();
 }
 
-void DockView::launch(const FastLaunchEntity& ent)
+void DockView::on_window_remove(int window_id)
 {
-    if (fork() == 0) {
-        // Switching to test "user"
-        setuid(10);
-        setgid(10);
-        execve(ent.path_to_exec().c_str(), 0, 0);
-        std::abort();
+    // TODO: Currently icons are not properly deleted.
+    for (auto* view : m_icon_views) {
+        for (auto& wins : view->entity().windows()) {
+            if (wins.window_id() == window_id) {
+                auto& win = view->entity().windows();
+                win.erase(std::find(win.begin(), win.end(), WindowEntity(window_id)));
+                set_needs_display();
+                return;
+            }
+        }
     }
 }
 
-void DockView::mouse_down(const LG::Point<int>& location)
+void DockView::set_icon(int window_id, const std::string& path)
 {
-    // Check if it is a tap on fast-launch icons
-    int offsetx = 8;
-    for (auto& entity : m_fast_launch_entites) {
-        auto it = LG::Rect(offsetx, 2, 32, 32);
-        if (it.contains(location)) {
-            launch(entity);
-        }
-        offsetx += entity.icon().bounds().width() + 8;
-    }
+}
 
-    offsetx += 8;
-    for (auto& entity : m_dock_entites) {
-        auto it = LG::Rect(offsetx, 2, 32, 32);
-        if (it.contains(location)) {
-            auto& app = UI::App::the();
-            AskBringToFrontMessage msg(app.connection().key(), window()->id(), entity.window_id());
-            app.connection().send_async_message(msg);
-            return;
-        }
-        offsetx += entity.icon().bounds().width() + 8;
+void DockView::set_title(int window_id, const std::string& title)
+{
+    auto* ent = find_window_entry(window_id);
+    if (!ent) {
+        return;
     }
+    ent->set_title(title);
 }

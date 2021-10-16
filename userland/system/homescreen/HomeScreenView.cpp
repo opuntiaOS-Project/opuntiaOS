@@ -23,14 +23,14 @@ HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG
 {
     LG::Rect homegrid_frame = LG::Rect(0, grid_padding(), bounds().width(), bounds().height() - grid_padding() - dock_height_with_padding());
     auto& vstack_view = add_subview<UI::StackView>(homegrid_frame);
-    vstack_view.set_background_color(LG::Color(0, 0, 0, 0));
+    vstack_view.set_background_color(LG::Color::Opaque);
     vstack_view.set_axis(UI::LayoutConstraints::Axis::Vertical);
     vstack_view.set_distribution(UI::StackView::Distribution::EqualSpacing);
     vstack_view.set_alignment(UI::StackView::Alignment::Center);
 
     for (int i = 0; i < grid_entities_per_column(); i++) {
         auto& hstack_view = vstack_view.add_arranged_subview<UI::StackView>();
-        hstack_view.set_background_color(LG::Color(0, 0, 0, 0));
+        hstack_view.set_background_color(LG::Color::Opaque);
         hstack_view.set_distribution(UI::StackView::Distribution::EqualSpacing);
         vstack_view.add_constraint(UI::Constraint(hstack_view, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, vstack_view, UI::Constraint::Attribute::Left, 1, grid_padding()));
         vstack_view.add_constraint(UI::Constraint(hstack_view, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, vstack_view, UI::Constraint::Attribute::Right, 1, -grid_padding()));
@@ -45,7 +45,7 @@ HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG
     dock_frame.set_height(dock_height());
     auto& dock_stack_view = add_subview<UI::StackView>(dock_frame);
     dock_stack_view.set_spacing(12); // TODO: Set spacing which depends on screen width.
-    dock_stack_view.set_background_color(LG::Color(0, 0, 0, 0));
+    dock_stack_view.set_background_color(LG::Color::Opaque);
     dock_stack_view.set_axis(UI::LayoutConstraints::Axis::Horizontal);
     dock_stack_view.set_distribution(UI::StackView::Distribution::EqualCentering);
     m_dock_stackview = &dock_stack_view;
@@ -66,7 +66,7 @@ void HomeScreenView::display(const LG::Rect& rect)
     ctx.fill_rounded(LG::Rect(grid_padding(), offsety, bounds().width() - 2 * grid_padding(), dock_height()), LG::CornerMask(16));
 }
 
-void HomeScreenView::new_grid_entity(const LG::string& title, const LG::string& icon_path, LG::string&& exec_path)
+void HomeScreenView::new_grid_entity(const std::string& title, const std::string& icon_path, std::string&& exec_path)
 {
     // TODO: Add pages.
     LG::PNG::PNGLoader loader;
@@ -86,7 +86,7 @@ void HomeScreenView::new_grid_entity(const LG::string& title, const LG::string& 
     set_needs_layout();
 }
 
-void HomeScreenView::new_fast_launch_entity(const LG::string& title, const LG::string& icon_path, LG::string&& exec_path)
+void HomeScreenView::new_fast_launch_entity(const std::string& title, const std::string& icon_path, std::string&& exec_path)
 {
     if (m_dock_stackview->subviews().size() >= grid_entities_per_row()) {
         return;

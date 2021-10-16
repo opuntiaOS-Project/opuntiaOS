@@ -1,7 +1,9 @@
 #pragma once
 #include "DockEntity.h"
-#include "FastLaunchEntity.h"
+#include "IconView.h"
+#include "WindowEntity.h"
 #include <libg/Font.h>
+#include <libui/StackView.h>
 #include <libui/View.h>
 #include <list>
 #include <string>
@@ -13,22 +15,27 @@ public:
     DockView(UI::View* superview, const LG::Rect& frame);
     DockView(UI::View* superview, UI::Window* window, const LG::Rect& frame);
 
-    static constexpr size_t padding() { return 8; }
-    static constexpr size_t dock_view_height() { return 36; }
+    static constexpr size_t padding() { return 0; }
+    static constexpr size_t dock_view_height() { return 46; }
+    static constexpr int icon_size() { return 32; }
+    static constexpr int icon_view_size() { return (int)dock_view_height(); }
 
     void display(const LG::Rect& rect) override;
-    void mouse_down(const LG::Point<int>& location) override;
 
-    DockEntity* find_entity(int window_id);
-    void new_entity(int window_id);
-    void remove_entity(int window_id);
-    void set_icon(int window_id, const LG::string& path);
+    WindowEntity* find_window_entry(int window_id);
+    void on_window_create(const std::string& bundle_id, const std::string& icon_path, int window_id);
+    void on_window_remove(int window_id);
+    void on_window_minimize(int window_id);
+    void set_icon(int window_id, const std::string& path);
+    void set_title(int window_id, const std::string& title);
 
-    void new_fast_launch_entity(const LG::string& icon_path, LG::string&& exec_path);
+    void add_system_buttons();
+
+    void new_dock_entity(const std::string& exec_path, const std::string& icon_path, const std::string& bundle_id);
 
 private:
-    void launch(const FastLaunchEntity& ent);
+    void launch(const DockEntity& ent);
 
-    std::list<FastLaunchEntity> m_fast_launch_entites {};
-    std::list<DockEntity> m_dock_entites {};
+    UI::StackView* m_dock_stackview {};
+    std::list<IconView*> m_icon_views {};
 };
