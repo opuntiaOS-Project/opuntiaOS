@@ -505,7 +505,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
 
     switch (shading.type()) {
     case Shading::Type::TopToBottom:
-        step = alpha_diff / (orig_bounds.height() - 1);
+        step = alpha_diff / (orig_bounds.height());
         skipped_steps = min_y - orig_bounds.min_y();
         color.set_alpha(color.alpha() - skipped_steps * step);
 
@@ -518,7 +518,7 @@ void Context::draw_shading(const Rect& rect, const Shading& shading)
         return;
 
     case Shading::Type::BottomToTop:
-        step = alpha_diff / (orig_bounds.height() - 1);
+        step = alpha_diff / (orig_bounds.height());
         skipped_steps = orig_bounds.max_y() - max_y;
         color.set_alpha(color.alpha() - skipped_steps * step);
 
@@ -684,14 +684,14 @@ void Context::draw_box_shading(const Rect& rect, const Shading& shading, const C
     int top_max_rx = rect.max_x() - top_radius;
     int bottom_max_rx = rect.max_x() - bottom_radius;
     int min_shading_x = rect.min_x() - shading_spread;
-    int max_shading_x = rect.max_x();
+    int max_shading_x = rect.max_x() + 1;
     int min_shading_y = rect.min_y() - shading_spread;
-    int max_shading_y = rect.max_y();
+    int max_shading_y = rect.max_y() + 1;
 
-    draw_shading(LG::Rect(top_min_rx, min_shading_y, rwidth, shading_spread), LG::Shading(LG::Shading::Type::BottomToTop, shading.final_alpha()));
-    draw_shading(LG::Rect(top_min_rx, max_shading_y, rwidth, shading_spread), LG::Shading(LG::Shading::Type::TopToBottom, shading.final_alpha()));
-    draw_shading(LG::Rect(min_shading_x, top_min_ry, shading_spread, rheight), LG::Shading(LG::Shading::Type::RightToLeft, shading.final_alpha()));
-    draw_shading(LG::Rect(max_shading_x, top_min_ry, shading_spread, rheight), LG::Shading(LG::Shading::Type::LeftToRight, shading.final_alpha()));
+    draw_shading(LG::Rect(top_min_rx, min_shading_y, rwidth - 1, shading_spread), LG::Shading(LG::Shading::Type::BottomToTop, shading.final_alpha()));
+    draw_shading(LG::Rect(top_min_rx, max_shading_y, rwidth - 1, shading_spread), LG::Shading(LG::Shading::Type::TopToBottom, shading.final_alpha()));
+    draw_shading(LG::Rect(min_shading_x, top_min_ry, shading_spread, rheight - 1), LG::Shading(LG::Shading::Type::RightToLeft, shading.final_alpha()));
+    draw_shading(LG::Rect(max_shading_x, top_min_ry, shading_spread, rheight - 1), LG::Shading(LG::Shading::Type::LeftToRight, shading.final_alpha()));
 
     auto add_instant_clip = [&](int x, int y, size_t width, size_t height) {
         add_clip(LG::Rect(x, y, width, height));
