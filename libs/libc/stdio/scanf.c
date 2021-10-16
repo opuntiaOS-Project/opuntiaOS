@@ -111,6 +111,7 @@ static int _scanf_internal(const char* format, _lookupch_callback lookupch, _get
                     value[rv++] = ch;
                     passed++;
                 }
+                value[rv] = '\0';
                 break;
             }
             }
