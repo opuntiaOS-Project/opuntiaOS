@@ -7,8 +7,8 @@
  */
 
 #pragma once
-#include <string>
 #include <libui/Common/MenuItem.h>
+#include <string>
 #include <utility>
 
 namespace UI {

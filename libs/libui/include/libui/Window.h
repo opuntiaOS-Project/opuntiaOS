@@ -15,11 +15,11 @@
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Size.h>
-#include <string>
 #include <libui/MenuBar.h>
 #include <libui/PopupMenu.h>
 #include <libui/View.h>
 #include <libui/ViewController.h>
+#include <string>
 #include <sys/types.h>
 
 namespace UI {
