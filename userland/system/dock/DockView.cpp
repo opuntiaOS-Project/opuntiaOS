@@ -87,7 +87,6 @@ void DockView::on_window_create(const std::string& bundle_id, const std::string&
     }
 
     for (auto* view : m_icon_views) {
-        Logger::debug << view->entity().bundle_id() << " " << bundle_id << std::endl;
         if (view->entity().bundle_id() == bundle_id) {
             view->entity().add_window(WindowEntity(window_id));
             set_needs_display();

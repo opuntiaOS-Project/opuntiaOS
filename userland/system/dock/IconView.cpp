@@ -23,8 +23,8 @@ void IconView::display(const LG::Rect& rect)
         auto rect = LG::Rect(padding, padding, DockView::icon_view_size() - 2 * padding, DockView::icon_view_size() - 2 * padding);
         ctx.set_fill_color(LG::Color::White);
         ctx.fill_rounded(rect, LG::CornerMask(6));
-        ctx.set_fill_color(LG::Color(120, 129, 133, 80));
-        ctx.draw_box_shading(rect, LG::Shading(LG::Shading::Type::Box, 0, 4), LG::CornerMask(6));
+        ctx.set_fill_color(LG::Color(120, 129, 133, 60));
+        ctx.draw_box_shading(rect, LG::Shading(LG::Shading::Type::Box, 0, 2), LG::CornerMask(6));
     }
 
     ctx.draw({ offset_x, offset_y }, m_launch_entity.icon());
