@@ -163,6 +163,8 @@ void WindowManager::bring_to_front(Window& window)
     }
     if (window.type() == WindowType::Standard) {
         menu_bar().set_menubar_content(&window.menubar_content(), m_compositor);
+    } else {
+        menu_bar().set_menubar_content(nullptr, m_compositor);
     }
 }
 #elif TARGET_MOBILE
@@ -214,13 +216,12 @@ void WindowManager::update_mouse_position(std::unique_ptr<LFoundation::Event> mo
 #ifdef TARGET_DESKTOP
 void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> event)
 {
-    Window* new_hovered_window = nullptr;
     update_mouse_position(std::move(event));
-
     if (continue_window_move()) {
         return;
     }
 
+    // Checking and dispatching mouse move for Popup.
     if (popup().visible() && popup().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
         popup().on_mouse_move(m_cursor_manager);
         if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
@@ -240,11 +241,14 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
             menu_bar().on_mouse_status_change(m_cursor_manager);
         }
+        return;
     } else if (menu_bar().is_hovered()) {
         menu_bar().on_mouse_leave(m_cursor_manager);
     }
 
-    // Checking and dispatching mouse move for windows/
+    Window* curr_hovered_window = nullptr;
+    Window* window_under_mouse_ptr = nullptr;
+
     for (auto* window_ptr : m_windows) {
         auto& window = *window_ptr;
         if (!window.visible()) {
@@ -252,51 +256,62 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         }
 
         if (window.bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
-            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() && m_active_window != &window) {
-                set_active_window(window);
-            }
-            if (m_cursor_manager.pressed<CursorManager::Params::RightButton>() && m_active_window != &window) {
-                set_active_window(window);
-            }
-
-            if (window.frame().bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
-                if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-                    auto tap_point = LG::Point<int>(m_cursor_manager.x() - window.frame().bounds().min_x(), m_cursor_manager.y() - window.frame().bounds().min_y());
-                    window.frame().receive_tap_event(tap_point);
-                    start_window_move(window);
-                }
-            } else if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
-                LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
-                point.offset_by(-window.content_bounds().origin());
-                send_event(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y()));
-                new_hovered_window = &window;
-
-                if (m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
-                    auto buttons_state = MouseActionState();
-                    if (m_cursor_manager.is_changed<CursorManager::Params::LeftButton>()) {
-                        // TODO: May be remove if?
-                        if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-                            buttons_state.set(MouseActionType::LeftMouseButtonPressed);
-                        } else {
-                            buttons_state.set(MouseActionType::LeftMouseButtonReleased);
-                        }
-                    }
-
-                    send_event(new MouseActionMessage(window.connection_id(), window.id(), buttons_state.state(), point.x(), point.y()));
-                }
-            }
-
+            window_under_mouse_ptr = window_ptr;
             break;
         }
     }
 
-    if (hovered_window()) {
-        auto window = hovered_window();
-        if (window->id() != new_hovered_window->id()) {
-            send_event(new MouseLeaveMessage(window->connection_id(), window->id(), 0, 0));
+    if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>() || m_cursor_manager.pressed<CursorManager::Params::RightButton>()) {
+        if (!window_under_mouse_ptr && m_active_window) {
+            menu_bar().set_menubar_content(nullptr, m_compositor);
+            m_compositor.invalidate(m_active_window->bounds());
+            m_active_window->frame().set_active(false);
+            m_active_window = nullptr;
+        } else if (m_active_window != window_under_mouse_ptr) {
+            set_active_window(window_under_mouse_ptr);
         }
     }
-    m_hovered_window = new_hovered_window;
+
+    if (!window_under_mouse_ptr) {
+        if (hovered_window()) {
+            send_event(new MouseLeaveMessage(hovered_window()->connection_id(), hovered_window()->id(), 0, 0));
+        }
+        return;
+    }
+    auto& window = *window_under_mouse_ptr;
+
+    if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) [[likely]] {
+        LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
+        point.offset_by(-window.content_bounds().origin());
+        send_event(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y()));
+        curr_hovered_window = &window;
+    } else if (m_cursor_manager.is_changed<CursorManager::Params::LeftButton>() && m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+        auto tap_point = LG::Point<int>(m_cursor_manager.x() - window.frame().bounds().min_x(), m_cursor_manager.y() - window.frame().bounds().min_y());
+        window.frame().receive_tap_event(tap_point);
+        start_window_move(window);
+    }
+
+    if (hovered_window() && hovered_window() != curr_hovered_window) {
+        send_event(new MouseLeaveMessage(hovered_window()->connection_id(), hovered_window()->id(), 0, 0));
+    }
+    m_hovered_window = curr_hovered_window;
+
+    if (hovered_window() && m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
+        LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
+        point.offset_by(-window.content_bounds().origin());
+
+        auto buttons_state = MouseActionState();
+        if (m_cursor_manager.is_changed<CursorManager::Params::LeftButton>()) {
+            // TODO: May be remove if?
+            if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+                buttons_state.set(MouseActionType::LeftMouseButtonPressed);
+            } else {
+                buttons_state.set(MouseActionType::LeftMouseButtonReleased);
+            }
+        }
+
+        send_event(new MouseActionMessage(window.connection_id(), window.id(), buttons_state.state(), point.x(), point.y()));
+    }
 
     if (hovered_window() && m_cursor_manager.is_changed<CursorManager::Params::Wheel>()) {
         auto* window = hovered_window();
