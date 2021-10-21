@@ -10,14 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
-        architecture: 'x64'
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+          architecture: "x64"
 
-    - name: Check
-      shell: bash
-      run: python3.8 utils/codeassistant/libkern_libc_compat.py
-
+      - name: Check
+        shell: bash
+        run: python3.8 utils/codeassistant/libkern_libc_compat.py

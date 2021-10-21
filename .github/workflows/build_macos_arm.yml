@@ -10,50 +10,52 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Pouring Deps
-      run: |
-        brew install llvm ninja nasm
-        brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
-        brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
-    
-    - name: Pouring GN
-      run: |
-        wget https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-amd64/+/latest
-        unzip latest
-        mv gn /usr/local/bin
-        
-    - name: Create GNU Build Environment
-      run: gn gen out --args='target_cpu="aarch32" host="gnu"'
+      - name: Pouring Deps
+        run: |
+          brew install llvm@13 ninja nasm
+          brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
+          brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
 
-    - name: Build GNU
-      working-directory: ${{github.workspace}}/out
-      shell: bash
-      run: ninja
+      - name: Pouring GN
+        run: |
+          wget https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-amd64/+/latest
+          unzip latest
+          mv gn /usr/local/bin
 
-    - name: Cleaning GNU Build Environment
-      run: rm -rf out
+      - name: Create GNU Build Environment
+        run: gn gen out --args='target_cpu="aarch32" host="gnu"'
 
-    - name: Create LLVM Build Environment
-      run: |
-        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/13.0.0/bin"
-        gn gen out --args='target_cpu="aarch32" host="llvm"'
+      - name: Build GNU
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
 
-    - name: Build LLVM
-      working-directory: ${{github.workspace}}/out
-      shell: bash
-      run: ninja
+      - name: Cleaning GNU Build Environment
+        run: rm -rf out
 
-    - name: Cleaning Desktop LLVM Build Environment
-      run: rm -rf out
+      - name: Create LLVM Build Environment
+        run: |
+          export LLVM_VERSION=`ls -al /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
+          export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
+          gn gen out --args='target_cpu="aarch32" host="llvm"'
 
-    - name: Create Mobile LLVM Build Environment
-      run: |
-        export LLVM_BIN_PATH="/usr/local/Cellar/llvm/13.0.0/bin"
-        gn gen out --args='target_cpu="aarch32" host="llvm" device_type="m"'
+      - name: Build LLVM
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
 
-    - name: Build Mobile with LLVM
-      working-directory: ${{github.workspace}}/out
-      shell: bash
-      run: ninja
+      - name: Cleaning Desktop LLVM Build Environment
+        run: rm -rf out
+
+      - name: Create Mobile LLVM Build Environment
+        run: |
+          export LLVM_VERSION=`ls -al /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
+          export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
+          gn gen out --args='target_cpu="aarch32" host="llvm" device_type="m"'
+
+      - name: Build Mobile with LLVM
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
