@@ -52,7 +52,7 @@ void Popup::draw(LG::Context& ctx)
     for (int i = 0; i < m_data.size(); i++) {
         if (i == m_hovered_item) {
             ctx.set_fill_color(LG::Color::White);
-            ctx.fill(LG::Rect(bounds().min_x(), height - spacing() / 2, bounds().width(), line_height));
+            ctx.fill_rounded(LG::Rect(bounds().min_x() + 4, height - spacing() / 2, bounds().width() - 8, line_height), LG::CornerMask(2));
         }
         ctx.set_fill_color(LG::Color::DarkSystemText);
         Helpers::draw_text(ctx, { bounds().min_x() + spacing(), height }, m_data[i].text, m_font);
