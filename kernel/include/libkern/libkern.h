@@ -8,6 +8,12 @@
 #define KB (1024)
 #define MB (1024 * 1024)
 
+/**
+ * SHORTCUTS
+ */
+
+#define TEST_FLAG(val, flag) ((val & flag) == flag)
+
 int stoi(void* str, int len);
 void htos(uint32_t hex, char str[]);
 void dtos(uint32_t dec, char str[]);

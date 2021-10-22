@@ -32,7 +32,7 @@ void sys_open(trapframe_t* tf)
     // Only permission flags
     mode_t mode = param3 & 0x777;
 
-    if (flags & O_CREAT) {
+    if (TEST_FLAG(flags, O_CREAT)) {
         char* kname = vfs_helper_split_path_with_name(kpath, path_len);
         if (!kname) {
             kfree(kpath);
@@ -48,7 +48,7 @@ void sys_open(trapframe_t* tf)
         }
 
         int err = vfs_create(dir, kname, name_len, mode, p->uid, p->gid);
-        if (err && (flags & O_EXCL)) {
+        if (err && TEST_FLAG(flags, O_EXCL)) {
             dentry_put(dir);
             kfree(kname);
             kfree(kpath);
@@ -80,11 +80,16 @@ void sys_close(trapframe_t* tf)
     return_with_val(vfs_close(fd));
 }
 
-/* TODO: copying to/from user! */
 void sys_read(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
     if (!fd) {
+        return_with_val(-EBADF);
+    }
+    if (TEST_FLAG(fd->flags, O_DIRECTORY)) {
+        return_with_val(-EISDIR);
+    }
+    if (!TEST_FLAG(fd->flags, O_RDONLY)) {
         return_with_val(-EBADF);
     }
 
@@ -99,6 +104,9 @@ void sys_write(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
     if (!fd) {
+        return_with_val(-EBADF);
+    }
+    if (!TEST_FLAG(fd->flags, O_WRONLY)) {
         return_with_val(-EBADF);
     }
 
@@ -372,11 +380,11 @@ void sys_munmap(trapframe_t* tf)
         return_with_val(-EFAULT);
     }
 
-    if (!(zone->type & ZONE_TYPE_MAPPED)) {
+    if (!TEST_FLAG(zone->type, ZONE_TYPE_MAPPED)) {
         return_with_val(-EPERM);
     }
 
-    if ((zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY) || (zone->type & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+    if (TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_PRIVATLY) || TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         return_with_val(vfs_munmap(p, zone));
     }
 

@@ -27,6 +27,7 @@ static socket_t* _socket_create(int domain, int type, int protocol)
 int socket_create(int domain, int type, int protocol, file_descriptor_t* fd, file_ops_t* ops)
 {
     fd->type = FD_TYPE_SOCKET;
+    fd->flags = O_RDWR;
     fd->sock_entry = _socket_create(domain, type, protocol);
     fd->ops = ops;
     if (!fd->sock_entry) {

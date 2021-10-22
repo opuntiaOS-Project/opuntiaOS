@@ -195,18 +195,18 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
         return -EPERM;
     }
 
-    if (dentry_inode_test_flag(file, S_IFDIR) && !(flags & O_DIRECTORY)) {
+    if (dentry_inode_test_flag(file, S_IFDIR) && !TEST_FLAG(flags, O_DIRECTORY)) {
         return -EISDIR;
     }
 
-    if (flags & O_EXEC) {
+    if (TEST_FLAG(flags, O_EXEC)) {
         if (vfs_perm_to_execute(file, cur_thread) != 0) {
             log("can't open exec");
             return -EACCES;
         }
     }
 
-    if (flags & O_WRONLY) {
+    if (TEST_FLAG(flags, O_WRONLY)) {
         if (vfs_perm_to_write(file, cur_thread) != 0) {
             log("can't open write");
             return -EACCES;
@@ -216,7 +216,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
         }
     }
 
-    if (flags & O_RDONLY) {
+    if (TEST_FLAG(flags, O_RDONLY)) {
         if (vfs_perm_to_read(file, cur_thread) != 0) {
             log("can't open read");
             return -EACCES;
@@ -373,7 +373,7 @@ int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
         fd->offset += written;
     }
 
-    if (fd->flags & O_TRUNC) {
+    if (TEST_FLAG(fd->flags, O_TRUNC)) {
         if (fd->ops->truncate) {
             fd->ops->truncate(fd->dentry, fd->offset);
         }
@@ -635,8 +635,8 @@ int vfs_umount(dentry_t* mounted_dentry)
 
 static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
-    bool map_shared = ((params->flags & MAP_SHARED) > 0);
-    bool map_private = ((params->flags & MAP_PRIVATE) > 0);
+    bool map_shared = TEST_FLAG(params->flags, MAP_SHARED);
+    bool map_private = TEST_FLAG(params->flags, MAP_PRIVATE);
 
     proc_zone_t* zone;
 
@@ -671,7 +671,7 @@ proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
 
 int vfs_munmap(proc_t* p, proc_zone_t* zone)
 {
-    if (!(zone->flags & ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !(zone->flags & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+    if (!TEST_FLAG(zone->flags, ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !TEST_FLAG(zone->flags, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         return -EFAULT;
     }
 
@@ -702,13 +702,13 @@ int vfs_perm_to_read(dentry_t* dentry, thread_t* thread)
     if (proc_is_su(proc)) {
         return 0;
     }
-    if (uid == fuid && (mode & S_IRUSR) == S_IRUSR) {
+    if (uid == fuid && TEST_FLAG(mode, S_IRUSR)) {
         return 0;
     }
-    if (gid == fgid && (mode & S_IRGRP) == S_IRGRP) {
+    if (gid == fgid && TEST_FLAG(mode, S_IRGRP)) {
         return 0;
     }
-    if (uid != fuid && gid != fgid && (mode & S_IROTH) == S_IROTH) {
+    if (uid != fuid && gid != fgid && TEST_FLAG(mode, S_IROTH)) {
         return 0;
     }
 
@@ -732,13 +732,13 @@ int vfs_perm_to_write(dentry_t* dentry, thread_t* thread)
     if (proc_is_su(proc)) {
         return 0;
     }
-    if (uid == fuid && (mode & S_IWUSR) == S_IWUSR) {
+    if (uid == fuid && TEST_FLAG(mode, S_IWUSR)) {
         return 0;
     }
-    if (gid == fgid && (mode & S_IWGRP) == S_IWGRP) {
+    if (gid == fgid && TEST_FLAG(mode, S_IWGRP)) {
         return 0;
     }
-    if (uid != fuid && gid != fgid && (mode & S_IWOTH) == S_IWOTH) {
+    if (uid != fuid && gid != fgid && TEST_FLAG(mode, S_IWOTH)) {
         return 0;
     }
 
@@ -762,13 +762,13 @@ int vfs_perm_to_execute(dentry_t* dentry, thread_t* thread)
     if (proc_is_su(proc)) {
         return 0;
     }
-    if (uid == fuid && (mode & S_IXUSR) == S_IXUSR) {
+    if (uid == fuid && TEST_FLAG(mode, S_IXUSR)) {
         return 0;
     }
-    if (gid == fgid && (mode & S_IXGRP) == S_IXGRP) {
+    if (gid == fgid && TEST_FLAG(mode, S_IXGRP)) {
         return 0;
     }
-    if (uid != fuid && gid != fgid && (mode & S_IXOTH) == S_IXOTH) {
+    if (uid != fuid && gid != fgid && TEST_FLAG(mode, S_IXOTH)) {
         return 0;
     }
 

@@ -139,6 +139,7 @@ int local_socket_connect(file_descriptor_t* sock, char* path, uint32_t len)
         lock_release(&sock->lock);
         return -EBADF;
     }
+    sock->flags = O_RDWR;
     sock->sock_entry = socket_duplicate(bind_dentry->sock);
     sock->offset = bind_dentry->sock->buffer.ringbuffer.end; /* Starting to read from the end */
 #ifdef LOCAL_SOCKET_DEBUG

@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 
     for (i = 0; i < 4; i++) {
         fname = names[i];
-        fd = open(fname, 0);
+        fd = open(fname, O_RDONLY);
         total = 0;
         while ((n = read(fd, buf, sizeof(buf))) > 0) {
             for (j = 0; j < n; j++) {
