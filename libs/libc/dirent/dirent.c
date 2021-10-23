@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sysdep.h>
+#include <unistd.h>
 
 /* TODO: Will be replaced with malloc */
 DIR dirarr[8];
@@ -30,7 +31,7 @@ int closedir(DIR* dir)
         return -1;
     }
 
-    // close(dir->fd);
+    close(dir->fd);
     return 0;
 }
 
