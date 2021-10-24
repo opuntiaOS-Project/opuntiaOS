@@ -27,7 +27,7 @@ static int _pit_set_frequency(uint16_t freq)
     }
     uint8_t low = (uint8_t)(divisor & 0xFF);
     uint8_t high = (uint8_t)((divisor >> 8) & 0xFF);
-    port_byte_out(0x43, 0x36); // 0b110110
+    port_byte_out(0x43, 0b110110);
     port_byte_out(0x40, low);
     port_byte_out(0x40, high);
     system_enable_interrupts();
@@ -36,9 +36,9 @@ static int _pit_set_frequency(uint16_t freq)
 
 void pit_setup()
 {
-    int res = _pit_set_frequency(TIMER_TICKS_PER_SECOND);
-    if (res < 0) {
-        kpanic("Pit: failed to set freq");
+    int err = _pit_set_frequency(TIMER_TICKS_PER_SECOND);
+    if (err) {
+        kpanic("Pit: failed to set frequency");
     }
     set_irq_handler(IRQ0, pit_handler);
 }
