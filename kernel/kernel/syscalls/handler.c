@@ -55,6 +55,7 @@ static const void* syscalls[] = {
     [SYS_NANOSLEEP] = sys_sleep,
     [SYS_SELECT] = sys_select,
     [SYS_FSTAT] = sys_fstat,
+    [SYS_FSYNC] = sys_fsync,
     [SYS_SCHED_YIELD] = sys_sched_yield,
     [SYS_UNAME] = sys_uname,
     [SYS_CLOCK_GETTIME] = sys_clock_gettime,

@@ -59,6 +59,7 @@ void sys_create_thread(trapframe_t* tf);
 void sys_sleep(trapframe_t* tf);
 void sys_select(trapframe_t* tf);
 void sys_fstat(trapframe_t* tf);
+void sys_fsync(trapframe_t* tf);
 void sys_sched_yield(trapframe_t* tf);
 void sys_uname(trapframe_t* tf);
 void sys_clock_settime(trapframe_t* tf);

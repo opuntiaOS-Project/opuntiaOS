@@ -174,6 +174,7 @@ dentry_t* dentry_duplicate(dentry_t* dentry);
 void dentry_put(dentry_t* dentry);
 void dentry_force_put(dentry_t* dentry);
 void dentry_put_all_dentries_of_dev(uint32_t dev_indx);
+int dentry_flush(dentry_t* dentry);
 void dentry_set_inode(dentry_t* dentry, inode_t* inode);
 void dentry_set_flag(dentry_t* dentry, uint32_t flag);
 bool dentry_test_flag(dentry_t* dentry, uint32_t flag);

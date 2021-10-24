@@ -196,6 +196,13 @@ void sys_fstat(trapframe_t* tf)
     return_with_val(res);
 }
 
+void sys_fsync(trapframe_t* tf)
+{
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
+    dentry_flush(fd->dentry);
+    return_with_val(0);
+}
+
 void sys_mkdir(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;

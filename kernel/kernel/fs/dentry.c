@@ -248,6 +248,12 @@ dentry_t* dentry_get_parent(dentry_t* dentry)
     return res;
 }
 
+int dentry_flush(dentry_t* dentry)
+{
+    dentry_flush_inode(dentry);
+    return 0;
+}
+
 /**
  * Is a thread enrty point. The function flushes all inodes to drive.
  */
@@ -266,7 +272,7 @@ void dentry_flusher()
                     // Keep only locks here might not be as effective as with disabled interrupts.
                     lock_acquire(&dentry_cache_block->data[i].lock);
                     system_disable_interrupts();
-                    dentry_flush_inode(&dentry_cache_block->data[i]);
+                    dentry_flush(&dentry_cache_block->data[i]);
                     system_enable_interrupts();
                     lock_release(&dentry_cache_block->data[i].lock);
                 }
