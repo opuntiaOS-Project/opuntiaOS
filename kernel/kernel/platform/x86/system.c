@@ -12,18 +12,20 @@
 void system_disable_interrupts()
 {
     THIS_CPU->int_depth_counter++;
-    asm volatile("cli");
+    system_disable_interrupts_no_counter();
 }
 
 void system_enable_interrupts()
 {
     THIS_CPU->int_depth_counter--;
+    ASSERT(THIS_CPU->int_depth_counter >= 0);
     if (THIS_CPU->int_depth_counter == 0) {
-        asm volatile("sti");
+        system_enable_interrupts_no_counter();
     }
 }
 
 void system_enable_interrupts_only_counter()
 {
     THIS_CPU->int_depth_counter--;
+    ASSERT(THIS_CPU->int_depth_counter >= 0);
 }

@@ -19,6 +19,8 @@
 void system_disable_interrupts();
 void system_enable_interrupts();
 void system_enable_interrupts_only_counter();
+inline static void system_disable_interrupts_no_counter() { asm volatile("cpsid i"); }
+inline static void system_enable_interrupts_no_counter() { asm volatile("cpsie i"); }
 
 /**
  * PAGING

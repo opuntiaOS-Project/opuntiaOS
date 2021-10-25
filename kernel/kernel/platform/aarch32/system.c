@@ -13,7 +13,7 @@
 void system_disable_interrupts()
 {
     THIS_CPU->int_depth_counter++;
-    asm volatile("cpsid i");
+    system_disable_interrupts_no_counter();
 }
 
 void system_enable_interrupts()
@@ -21,7 +21,7 @@ void system_enable_interrupts()
     THIS_CPU->int_depth_counter--;
     ASSERT(THIS_CPU->int_depth_counter >= 0);
     if (THIS_CPU->int_depth_counter == 0) {
-        asm volatile("cpsie i");
+        system_enable_interrupts_no_counter();
     }
 }
 
