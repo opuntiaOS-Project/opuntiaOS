@@ -13,12 +13,12 @@
 
 #define SYSCALL_HANDLER_NO 0x80
 
-#define sys_id (tf->eax)
-#define param1 (tf->ebx)
-#define param2 (tf->ecx)
-#define param3 (tf->edx)
-#define param4 (tf->esi)
-#define param5 (tf->edi)
+#define SYSCALL_ID(tf) (tf->eax)
+#define SYSCALL_VAR1(tf) (tf->ebx)
+#define SYSCALL_VAR2(tf) (tf->ecx)
+#define SYSCALL_VAR3(tf) (tf->edx)
+#define SYSCALL_VAR4(tf) (tf->esi)
+#define SYSCALL_VAR5(tf) (tf->edi)
 #define return_val (tf->eax)
 #define return_with_val(val) \
     (return_val = val);      \

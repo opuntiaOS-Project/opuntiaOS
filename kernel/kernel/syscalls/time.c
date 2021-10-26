@@ -16,8 +16,8 @@
 
 void sys_clock_gettime(trapframe_t* tf)
 {
-    clockid_t clk_id = param1;
-    timespec_t* u_ts = (timespec_t*)param2;
+    clockid_t clk_id = SYSCALL_VAR1(tf);
+    timespec_t* u_ts = (timespec_t*)SYSCALL_VAR2(tf);
 
     switch (clk_id) {
     case CLOCK_MONOTONIC:
@@ -36,8 +36,8 @@ void sys_clock_gettime(trapframe_t* tf)
 
 void sys_gettimeofday(trapframe_t* tf)
 {
-    timeval_t* tv = (timeval_t*)param1;
-    timezone_t* tz = (timezone_t*)param2;
+    timeval_t* tv = (timeval_t*)SYSCALL_VAR1(tf);
+    timezone_t* tz = (timezone_t*)SYSCALL_VAR2(tf);
 
     if (!tv || !tz) {
         return_with_val(-EINVAL);

@@ -74,17 +74,17 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
     trapframe_t* tf;
     trapframe_t tf_on_stack;
     tf = &tf_on_stack;
-    sys_id = id;
-    param1 = a;
-    param2 = b;
-    param3 = c;
+    SYSCALL_ID(tf) = id;
+    SYSCALL_VAR1(tf) = a;
+    SYSCALL_VAR2(tf) = b;
+    SYSCALL_VAR3(tf) = c;
     sys_handler(tf);
     /* This hack has to be here, when a context switching happens
        during a syscall (e.g. when block occurs). The hack will start
        interrupts again after it has become a running thread. */
     cpu_enter_kernel_space();
     system_enable_interrupts();
-    return param1;
+    return SYSCALL_VAR1(tf);
 }
 #elif __arm__
 int ksyscall_impl(int id, int a, int b, int c, int d)
@@ -110,7 +110,7 @@ void sys_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
     cpu_enter_kernel_space();
-    void (*callee)(trapframe_t*) = (void*)syscalls[sys_id];
+    void (*callee)(trapframe_t*) = (void*)syscalls[SYSCALL_ID(tf)];
     callee(tf);
     cpu_leave_kernel_space();
     system_enable_interrupts_only_counter();

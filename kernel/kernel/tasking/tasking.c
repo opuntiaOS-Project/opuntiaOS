@@ -203,7 +203,7 @@ void tasking_kill_dying()
  * SYSCALL IMPLEMENTATION
  */
 
-void tasking_fork(trapframe_t* tf)
+void tasking_fork()
 {
     proc_t* new_proc = _tasking_fork_proc_from_current();
 

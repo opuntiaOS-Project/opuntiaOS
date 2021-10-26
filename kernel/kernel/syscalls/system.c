@@ -16,7 +16,7 @@
 
 void sys_uname(trapframe_t* tf)
 {
-    utsname_t* buf = (utsname_t*)param1;
+    utsname_t* buf = (utsname_t*)SYSCALL_VAR1(tf);
     vmm_copy_to_user(buf->sysname, OSTYPE, sizeof(OSTYPE));
     vmm_copy_to_user(buf->release, OSRELEASE, sizeof(OSRELEASE));
     vmm_copy_to_user(buf->version, VERSION_VARIANT, sizeof(VERSION_VARIANT));

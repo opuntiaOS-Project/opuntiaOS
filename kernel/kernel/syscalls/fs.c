@@ -12,6 +12,7 @@
 #include <mem/kmalloc.h>
 #include <platform/generic/syscalls/params.h>
 #include <syscalls/handlers.h>
+#include <syscalls/interruptible_area.h>
 #include <tasking/tasking.h>
 
 void sys_open(trapframe_t* tf)
@@ -19,18 +20,18 @@ void sys_open(trapframe_t* tf)
     proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = proc_get_free_fd(p);
     dentry_t* file;
-    const char* path = (char*)param1;
+    const char* path = (char*)SYSCALL_VAR1(tf);
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
         return_with_val(-EINVAL);
     }
 
-    uint32_t flags = param2;
+    uint32_t flags = SYSCALL_VAR2(tf);
     size_t path_len = strlen(path);
     kpath = kmem_bring_to_kernel(path, path_len + 1);
 
     // Only permission flags
-    mode_t mode = param3 & 0x777;
+    mode_t mode = SYSCALL_VAR3(tf) & 0x777;
 
     if (TEST_FLAG(flags, O_CREAT)) {
         char* kname = vfs_helper_split_path_with_name(kpath, path_len);
@@ -73,7 +74,7 @@ void sys_open(trapframe_t* tf)
 
 void sys_close(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, SYSCALL_VAR1(tf));
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -82,7 +83,7 @@ void sys_close(trapframe_t* tf)
 
 void sys_read(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -95,14 +96,14 @@ void sys_read(trapframe_t* tf)
 
     init_read_blocker(RUNNING_THREAD, fd);
 
-    int res = vfs_read(fd, (uint8_t*)param2, (uint32_t)param3);
+    int res = vfs_read(fd, (uint8_t*)SYSCALL_VAR2(tf), (uint32_t)SYSCALL_VAR3(tf));
     return_with_val(res);
 }
 
 /* TODO: copying to/from user! */
 void sys_write(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -112,28 +113,28 @@ void sys_write(trapframe_t* tf)
 
     init_write_blocker(RUNNING_THREAD, fd);
 
-    int res = vfs_write(fd, (uint8_t*)param2, (uint32_t)param3);
+    int res = vfs_write(fd, (uint8_t*)SYSCALL_VAR2(tf), (uint32_t)SYSCALL_VAR3(tf));
     return_with_val(res);
 }
 
 void sys_lseek(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
     if (!fd) {
         return_with_val(-EBADF);
     }
 
-    int whence = param3;
+    int whence = SYSCALL_VAR3(tf);
 
     switch (whence) {
     case SEEK_SET:
-        fd->offset = param2;
+        fd->offset = SYSCALL_VAR2(tf);
         break;
     case SEEK_CUR:
-        fd->offset += param2;
+        fd->offset += SYSCALL_VAR2(tf);
         break;
     case SEEK_END:
-        fd->offset = fd->dentry->inode->size - param2;
+        fd->offset = fd->dentry->inode->size - SYSCALL_VAR2(tf);
         break;
     default:
         return_with_val(-EINVAL);
@@ -149,7 +150,7 @@ void sys_lseek(trapframe_t* tf)
 void sys_unlink(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    const char* path = (char*)param1;
+    const char* path = (char*)SYSCALL_VAR1(tf);
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
         return_with_val(-EINVAL);
@@ -171,21 +172,21 @@ void sys_unlink(trapframe_t* tf)
 
 void sys_creat(trapframe_t* tf)
 {
-    uint32_t tmp_storage_2 = param2;
-    uint32_t tmp_storage_3 = param3;
-    param2 = O_CREAT | O_WRONLY | O_TRUNC;
-    param3 = param2;
+    uint32_t tmp_storage_2 = SYSCALL_VAR2(tf);
+    uint32_t tmp_storage_3 = SYSCALL_VAR3(tf);
+    SYSCALL_VAR2(tf) = O_CREAT | O_WRONLY | O_TRUNC;
+    SYSCALL_VAR3(tf) = SYSCALL_VAR2(tf);
     sys_open(tf);
     uint32_t result = return_val;
-    param2 = tmp_storage_2;
-    param3 = tmp_storage_3;
+    SYSCALL_VAR2(tf) = tmp_storage_2;
+    SYSCALL_VAR3(tf) = tmp_storage_3;
     return_with_val(result);
 }
 
 void sys_fstat(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
-    fstat_t* stat = (fstat_t*)param2;
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
+    fstat_t* stat = (fstat_t*)SYSCALL_VAR2(tf);
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -198,7 +199,7 @@ void sys_fstat(trapframe_t* tf)
 
 void sys_fsync(trapframe_t* tf)
 {
-    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)param1);
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
     dentry_flush(fd->dentry);
     return_with_val(0);
 }
@@ -206,7 +207,7 @@ void sys_fsync(trapframe_t* tf)
 void sys_mkdir(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    const char* path = (char*)param1;
+    const char* path = (char*)SYSCALL_VAR1(tf);
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
         return_with_val(-EINVAL);
@@ -237,7 +238,7 @@ void sys_mkdir(trapframe_t* tf)
 void sys_rmdir(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    const char* path = (char*)param1;
+    const char* path = (char*)SYSCALL_VAR1(tf);
     char* kpath = 0;
     if (!str_validate_len(path, 128)) {
         return_with_val(-EINVAL);
@@ -259,15 +260,15 @@ void sys_rmdir(trapframe_t* tf)
 void sys_chdir(trapframe_t* tf)
 {
     /* proc lock */
-    const char* path = (char*)param1;
+    const char* path = (char*)SYSCALL_VAR1(tf);
     return_with_val(proc_chdir(RUNNING_THREAD->process, path));
 }
 
 void sys_getdents(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)param1);
-    int read = vfs_getdents(fd, (uint8_t*)param2, param3);
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)SYSCALL_VAR1(tf));
+    int read = vfs_getdents(fd, (uint8_t*)SYSCALL_VAR2(tf), SYSCALL_VAR3(tf));
     return_with_val(read);
 }
 
@@ -276,11 +277,11 @@ void sys_select(trapframe_t* tf)
     proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd;
 
-    int nfds = param1;
-    fd_set_t* readfds = (fd_set_t*)param2;
-    fd_set_t* writefds = (fd_set_t*)param3;
-    fd_set_t* exceptfds = (fd_set_t*)param4;
-    timeval_t* timeout = (timeval_t*)param5;
+    int nfds = SYSCALL_VAR1(tf);
+    fd_set_t* readfds = (fd_set_t*)SYSCALL_VAR2(tf);
+    fd_set_t* writefds = (fd_set_t*)SYSCALL_VAR3(tf);
+    fd_set_t* exceptfds = (fd_set_t*)SYSCALL_VAR4(tf);
+    timeval_t* timeout = (timeval_t*)SYSCALL_VAR5(tf);
     if (nfds < 0 || nfds > FD_SETSIZE) {
         return_with_val(-EINVAL);
     }
@@ -325,7 +326,7 @@ void sys_select(trapframe_t* tf)
 void sys_mmap(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    mmap_params_t* params = (mmap_params_t*)param1;
+    mmap_params_t* params = (mmap_params_t*)SYSCALL_VAR1(tf);
 
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
     bool map_anonymous = ((params->flags & MAP_ANONYMOUS) > 0);
@@ -380,7 +381,7 @@ void sys_mmap(trapframe_t* tf)
 void sys_munmap(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    void* ptr = (void*)param1;
+    void* ptr = (void*)SYSCALL_VAR1(tf);
 
     proc_zone_t* zone = proc_find_zone(p, (uint32_t)ptr);
     if (!zone) {

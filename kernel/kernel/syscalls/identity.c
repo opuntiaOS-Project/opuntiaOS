@@ -26,7 +26,7 @@ void sys_getuid(trapframe_t* tf)
 
 void sys_setuid(trapframe_t* tf)
 {
-    uid_t new_uid = param1;
+    uid_t new_uid = SYSCALL_VAR1(tf);
     proc_t* proc = RUNNING_THREAD->process;
 
     lock_acquire(&proc->lock);
@@ -45,7 +45,7 @@ void sys_setuid(trapframe_t* tf)
 
 void sys_setgid(trapframe_t* tf)
 {
-    gid_t new_gid = param1;
+    gid_t new_gid = SYSCALL_VAR1(tf);
     proc_t* proc = RUNNING_THREAD->process;
 
     lock_acquire(&proc->lock);
@@ -65,8 +65,8 @@ void sys_setgid(trapframe_t* tf)
 void sys_setreuid(trapframe_t* tf)
 {
     proc_t* proc = RUNNING_THREAD->process;
-    uid_t new_ruid = param1;
-    uid_t new_euid = param2;
+    uid_t new_ruid = SYSCALL_VAR1(tf);
+    uid_t new_euid = SYSCALL_VAR2(tf);
 
     lock_acquire(&proc->lock);
 
@@ -97,8 +97,8 @@ void sys_setreuid(trapframe_t* tf)
 void sys_setregid(trapframe_t* tf)
 {
     proc_t* proc = RUNNING_THREAD->process;
-    gid_t new_rgid = param1;
-    gid_t new_egid = param2;
+    gid_t new_rgid = SYSCALL_VAR1(tf);
+    gid_t new_egid = SYSCALL_VAR2(tf);
 
     lock_acquire(&proc->lock);
 

@@ -18,9 +18,9 @@
 void sys_socket(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    int domain = param1;
-    int type = param2;
-    int protocol = param3;
+    int domain = SYSCALL_VAR1(tf);
+    int type = SYSCALL_VAR2(tf);
+    int protocol = SYSCALL_VAR3(tf);
 
     file_descriptor_t* fd = proc_get_free_fd(p);
     if (!fd) {
@@ -40,9 +40,9 @@ void sys_socket(trapframe_t* tf)
 void sys_bind(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    int sockfd = param1;
-    char* name = (char*)param2;
-    uint32_t len = (uint32_t)param3;
+    int sockfd = SYSCALL_VAR1(tf);
+    char* name = (char*)SYSCALL_VAR2(tf);
+    uint32_t len = (uint32_t)SYSCALL_VAR3(tf);
 
     file_descriptor_t* sfd = proc_get_fd(p, sockfd);
     if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
@@ -59,9 +59,9 @@ void sys_bind(trapframe_t* tf)
 void sys_connect(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    int sockfd = param1;
-    char* name = (char*)param2;
-    uint32_t len = (uint32_t)param3;
+    int sockfd = SYSCALL_VAR1(tf);
+    char* name = (char*)SYSCALL_VAR2(tf);
+    uint32_t len = (uint32_t)SYSCALL_VAR3(tf);
 
     file_descriptor_t* sfd = proc_get_fd(p, sockfd);
     if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
@@ -78,7 +78,7 @@ void sys_connect(trapframe_t* tf)
 void sys_ioctl(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    file_descriptor_t* fd = proc_get_fd(p, param1);
+    file_descriptor_t* fd = proc_get_fd(p, SYSCALL_VAR1(tf));
 
     if (!fd) {
         return_with_val(-EBADF);
@@ -87,25 +87,25 @@ void sys_ioctl(trapframe_t* tf)
     if (!fd->dentry->ops->file.ioctl) {
         return_with_val(-EACCES);
     }
-    return_with_val(fd->dentry->ops->file.ioctl(fd->dentry, param2, param3));
+    return_with_val(fd->dentry->ops->file.ioctl(fd->dentry, SYSCALL_VAR2(tf), SYSCALL_VAR3(tf)));
 }
 
 void sys_shbuf_create(trapframe_t* tf)
 {
-    uint8_t** buffer = (uint8_t**)param1;
-    size_t size = param2;
+    uint8_t** buffer = (uint8_t**)SYSCALL_VAR1(tf);
+    size_t size = SYSCALL_VAR2(tf);
     return_with_val(shared_buffer_create(buffer, size));
 }
 
 void sys_shbuf_get(trapframe_t* tf)
 {
-    int id = param1;
-    uint8_t** buffer = (uint8_t**)param2;
+    int id = SYSCALL_VAR1(tf);
+    uint8_t** buffer = (uint8_t**)SYSCALL_VAR2(tf);
     return_with_val(shared_buffer_get(id, buffer));
 }
 
 void sys_shbuf_free(trapframe_t* tf)
 {
-    int id = param1;
+    int id = SYSCALL_VAR1(tf);
     return_with_val(shared_buffer_free(id));
 }

@@ -55,7 +55,7 @@ void tasking_kill_dying();
  * SYSCALL IMPLEMENTATION
  */
 
-void tasking_fork(trapframe_t* tf);
+void tasking_fork();
 int tasking_exec(const char* path, const char** argv, const char** env);
 void tasking_exit(int exit_code);
 int tasking_waitpid(int pid, int* status);

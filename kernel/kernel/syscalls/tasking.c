@@ -11,28 +11,29 @@
 #include <libkern/log.h>
 #include <platform/generic/syscalls/params.h>
 #include <syscalls/handlers.h>
+#include <syscalls/wrapper.h>
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 
 void sys_exit(trapframe_t* tf)
 {
-    tasking_exit((int)param1);
+    tasking_exit((int)SYSCALL_VAR1(tf));
 }
 
 void sys_fork(trapframe_t* tf)
 {
-    tasking_fork(tf);
+    tasking_fork();
 }
 
 void sys_waitpid(trapframe_t* tf)
 {
-    int ret = tasking_waitpid(param1, (int*)param2);
+    int ret = tasking_waitpid(SYSCALL_VAR1(tf), (int*)SYSCALL_VAR2(tf));
     return_with_val(ret);
 }
 
 void sys_exec(trapframe_t* tf)
 {
-    int res = tasking_exec((char*)param1, (const char**)param2, (const char**)param3);
+    int res = tasking_exec((char*)SYSCALL_VAR1(tf), (const char**)SYSCALL_VAR2(tf), (const char**)SYSCALL_VAR3(tf));
     if (res != 0) {
         return_with_val(res);
     }
@@ -40,7 +41,7 @@ void sys_exec(trapframe_t* tf)
 
 void sys_sigaction(trapframe_t* tf)
 {
-    int res = signal_set_handler(RUNNING_THREAD, (int)param1, (void*)param2);
+    int res = signal_set_handler(RUNNING_THREAD, (int)SYSCALL_VAR1(tf), (void*)SYSCALL_VAR2(tf));
     return_with_val(res);
 }
 
@@ -51,15 +52,15 @@ void sys_sigreturn(trapframe_t* tf)
 
 void sys_kill(trapframe_t* tf)
 {
-    thread_t* thread = thread_by_pid(param1);
-    int ret = tasking_kill(thread, param2);
+    thread_t* thread = thread_by_pid(SYSCALL_VAR1(tf));
+    int ret = tasking_kill(thread, SYSCALL_VAR2(tf));
     return_with_val(ret);
 }
 
 void sys_setpgid(trapframe_t* tf)
 {
-    uint32_t pid = param1;
-    uint32_t pgid = param2;
+    uint32_t pid, pgid;
+    SYSCALL_INIT_VARS2(pid, pgid);
 
     proc_t* p = tasking_get_proc(pid);
     if (!p) {
@@ -72,7 +73,7 @@ void sys_setpgid(trapframe_t* tf)
 
 void sys_getpgid(trapframe_t* tf)
 {
-    uint32_t pid = param1;
+    uint32_t pid = SYSCALL_VAR1(tf);
 
     proc_t* p = tasking_get_proc(pid);
     if (!p) {
@@ -90,7 +91,7 @@ void sys_create_thread(trapframe_t* tf)
         return_with_val(-EFAULT);
     }
 
-    thread_create_params_t* params = (thread_create_params_t*)param1;
+    thread_create_params_t* params = (thread_create_params_t*)SYSCALL_VAR1(tf);
     set_instruction_pointer(thread->tf, params->entry_point);
     uint32_t esp = params->stack_start + params->stack_size;
     set_stack_pointer(thread->tf, esp);
@@ -102,7 +103,7 @@ void sys_create_thread(trapframe_t* tf)
 void sys_sleep(trapframe_t* tf)
 {
     thread_t* p = RUNNING_THREAD;
-    time_t time = param1;
+    time_t time = SYSCALL_VAR1(tf);
 
     init_sleep_blocker(p, time);
 
@@ -116,7 +117,7 @@ void sys_sched_yield(trapframe_t* tf)
 
 void sys_nice(trapframe_t* tf)
 {
-    int inc = param1;
+    int inc = SYSCALL_VAR1(tf);
     thread_t* thread = RUNNING_THREAD;
     if ((thread->process->prio + inc) < MAX_PRIO || (thread->process->prio + inc) > MIN_PRIO) {
         return_with_val(-1);

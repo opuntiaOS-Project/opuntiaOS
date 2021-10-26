@@ -265,7 +265,7 @@ void sched_dequeue(thread_t* thread)
     }
 }
 
-void enter_thread(thread_t* thread)
+void switch_to_thread(thread_t* thread)
 {
     if (thread->pending_signals_mask) {
         signal_dispatch_pending(thread);
@@ -310,7 +310,7 @@ void sched()
         _debug_print_runqueue(sched->master_buf);
 #endif
         ASSERT(thread->status == THREAD_STATUS_RUNNING);
-        enter_thread(thread);
+        switch_to_thread(thread);
     }
 }
 
