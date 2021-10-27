@@ -7,6 +7,7 @@
  */
 
 #include "ServerDecoder.h"
+#include "Components/Security/Violations.h"
 #include "Desktop/Window.h"
 #include "Mobile/Window.h"
 #include "WindowManager.h"
@@ -71,8 +72,13 @@ std::unique_ptr<Message> WindowServerDecoder::handle(DestroyWindowMessage& msg)
 {
     auto& wm = WindowManager::the();
     auto* window = wm.window(msg.window_id());
+    if (!window) {
+        wm.on_window_misbehave(*window, ViolationClass::Ignorable);
+        return new DestroyWindowMessageReply(msg.key(), 1);
+    }
+
     if (window->connection_id() != msg.key()) {
-        // TODO: security violation
+        wm.on_window_misbehave(*window, ViolationClass::Serious);
         return new DestroyWindowMessageReply(msg.key(), 1);
     }
     wm.remove_window(window);

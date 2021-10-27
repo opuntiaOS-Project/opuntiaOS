@@ -10,6 +10,7 @@
 #include "../shared/Connections/WSConnection.h"
 #include "Components/ControlBar/ControlBar.h"
 #include "Components/MenuBar/MenuBar.h"
+#include "Components/Security/Violations.h"
 #include "Compositor.h"
 #include "Connection.h"
 #include "Desktop/Window.h"
@@ -96,6 +97,8 @@ public:
         m_windows.push_front(window_ptr);
     }
     void bring_to_front(Window& window);
+
+    void on_window_misbehave(Window& window, ViolationClass);
 
     inline std::list<Window*>& windows() { return m_windows; }
     inline const std::list<Window*>& windows() const { return m_windows; }

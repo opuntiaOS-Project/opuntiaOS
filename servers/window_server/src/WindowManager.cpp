@@ -495,4 +495,22 @@ void WindowManager::on_window_menubar_change(Window& window)
     }
 }
 
+void WindowManager::on_window_misbehave(Window& window, ViolationClass viocls)
+{
+    switch (viocls) {
+    case ViolationClass::Ignorable:
+    case ViolationClass::Moderate:
+        break;
+
+    case ViolationClass::Serious:
+        // TODO: Currently we only remove the window, but all apps
+        // should be stopped with with a signal.
+        remove_window(&window);
+        break;
+
+    default:
+        break;
+    }
+}
+
 } // namespace WinServer
