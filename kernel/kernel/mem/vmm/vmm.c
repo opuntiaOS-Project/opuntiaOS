@@ -39,6 +39,9 @@ static uint32_t kernel_ptables_start_paddr = 0x0;
  * PRIVATE FUNCTIONS
  */
 
+inline static pdirectory_t* _vmm_ensure_active_pdir();
+inline static ptable_t* _vmm_ensure_active_ptable(size_t vaddr);
+
 inline static void* _vmm_pspace_get_vaddr_of_active_pdir();
 inline static void* _vmm_pspace_get_nth_active_ptable(uint32_t n);
 inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uint32_t vaddr);
@@ -159,7 +162,7 @@ static zone_t _vmm_alloc_mapped_zone(uint32_t size, uint32_t alignment)
 
 static int _vmm_free_mapped_zone(zone_t zone)
 {
-    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(zone.start);
+    ptable_t* ptable = _vmm_ensure_active_ptable(zone.start);
     page_desc_t* page = _vmm_ptable_lookup(ptable, zone.start);
     pmm_free((void*)page_desc_get_frame(*page), zone.len);
     vmm_unmap_pages_lockless(zone.start, zone.len / VMM_PAGE_SIZE);
@@ -186,16 +189,27 @@ inline static void _vmm_free_pdir(pdirectory_t* pdir)
 }
 
 /**
- * PSPACE FUNCTIONS
- *
- * Pspace is a space with all current tables mapped there.
- * The space starts from @pspace_zone.start and length is 4mb
+ * FUNCTION-MAPPERS
  */
 
+// _vmm_ensure_active_pdir returns vaddr of an active pdir.
+inline static pdirectory_t* _vmm_ensure_active_pdir()
+{
+    return (pdirectory_t*)THIS_CPU->pdir;
+}
+
+// _vmm_ensure_active_ptable returns vaddr of an active ptable.
+inline static ptable_t* _vmm_ensure_active_ptable(size_t vaddr)
+{
+    return (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+}
+
 /**
- * The function is supposed to setup pspace_zone.start
- * Every virtual space has its own user's ptables in the area.
- * The kernel's patables are the same.
+ * PSPACE FUNCTIONS
+ *
+ * Pspace is a cache-system which maps recently used VM objects,
+ * like page tables (ptables).
+ * For 32-bit system all ptables are cached.
  */
 
 inline static void* _vmm_pspace_get_vaddr_of_active_pdir()
@@ -320,7 +334,7 @@ static void* _vmm_kernel_convert_vaddr2paddr(uint32_t vaddr)
  */
 static void* _vmm_convert_vaddr2paddr(uint32_t vaddr)
 {
-    ptable_t* ptable_vaddr = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    ptable_t* ptable_vaddr = _vmm_ensure_active_ptable(vaddr);
     page_desc_t* page_desc = _vmm_ptable_lookup(ptable_vaddr, vaddr);
     return (void*)((page_desc_get_frame(*page_desc)) | (vaddr & 0xfff));
 }
@@ -499,7 +513,7 @@ static int vmm_allocate_ptable_lockless(uint32_t vaddr)
         return -VMM_ERR_NO_SPACE;
     }
 
-    uint32_t ptable_vaddr_start = PAGE_START((uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr));
+    uint32_t ptable_vaddr_start = PAGE_START((uint32_t)_vmm_ensure_active_ptable(vaddr));
     uint32_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
     uint32_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
     uint32_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
@@ -575,14 +589,14 @@ static ALWAYS_INLINE int vmm_free_ptable_lockless(uint32_t vaddr, dynamic_array_
     table_desc_set_allocated_state(ptable_desc);
     table_desc_set_frame(ptable_desc, frame);
 
-    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
     uint32_t pages_vstart = TABLE_START(vaddr);
     for (uint32_t i = 0, pages_voffset = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++, pages_voffset += VMM_PAGE_SIZE) {
         page_desc_t* page = &ptable->entities[i];
         vmm_free_page_lockless(pages_vstart + pages_voffset, page, zones);
     }
 
-    uint32_t ptable_vaddr_start = PAGE_START((uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(vaddr));
+    uint32_t ptable_vaddr_start = PAGE_START((uint32_t)_vmm_ensure_active_ptable(vaddr));
     uint32_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
     uint32_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
     uint32_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
@@ -628,7 +642,7 @@ static bool _vmm_is_page_present(uint32_t vaddr)
         return false;
     }
 
-    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
     page_desc_t* page = _vmm_ptable_lookup(ptable, vaddr);
     return page_desc_is_present(*page);
 }
@@ -651,7 +665,7 @@ static ALWAYS_INLINE int vmm_map_page_lockless(uint32_t vaddr, uint32_t paddr, u
         vmm_allocate_ptable_lockless(vaddr);
     }
 
-    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
     page_desc_t* page = _vmm_ptable_lookup(ptable, vaddr);
 
     page_desc_init(page);
@@ -699,7 +713,7 @@ static ALWAYS_INLINE int vmm_unmap_page_lockless(uint32_t vaddr)
         return -VMM_ERR_PTABLE;
     }
 
-    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
     page_desc_t* page = _vmm_ptable_lookup(ptable, vaddr);
     page_desc_del_attrs(page, PAGE_DESC_PRESENT);
     page_desc_del_attrs(page, PAGE_DESC_WRITABLE);
@@ -811,7 +825,7 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uint32_t vaddr)
     /* Copying old ptables which cover the full page. See a comment above vmm_allocate_ptable. */
     zone_t src_ptable_zone = _vmm_alloc_mapped_zone(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
     ptable_t* src_ptable = (ptable_t*)src_ptable_zone.ptr;
-    ptable_t* root_ptable = (ptable_t*)PAGE_START((uint32_t)_vmm_pspace_get_vaddr_of_active_ptable(ptable_serve_vaddr_start));
+    ptable_t* root_ptable = (ptable_t*)PAGE_START((uint32_t)_vmm_ensure_active_ptable(ptable_serve_vaddr_start));
     memcpy(src_ptable, root_ptable, VMM_PAGE_SIZE);
 
     // Saving descriptors of original ptables
@@ -960,7 +974,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uint32_t vaddr, ptable_t* sr
 //     if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
 //         return true;
 //     }
-//     ptable_t* ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+//     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
 //     table_desc_t* ppage_desc = _vmm_ptable_lookup(ptable, vaddr);
 //     return page_desc_has_attrs(*ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
 // }
@@ -968,7 +982,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uint32_t vaddr, ptable_t* sr
 // static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
 // {
 //     table_desc_t* ptable_desc = (table_desc_t*)_vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
-//     ptable_t* ptable = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+//     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
 
 //     if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
 //         for (int i = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++) {
@@ -1212,7 +1226,7 @@ static ALWAYS_INLINE int vmm_tune_page_lockless(uint32_t vaddr, uint32_t setting
     bool is_cow = ((settings & PAGE_COW) > 0);
     bool is_user = ((settings & PAGE_USER) > 0);
 
-    ptable_t* ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
     page_desc_t* page = _vmm_ptable_lookup(ptable, vaddr);
 
     if (page_desc_is_present(*page)) {
@@ -1295,7 +1309,7 @@ static ALWAYS_INLINE int vmm_copy_page_lockless(uint32_t to_vaddr, uint32_t src_
     page_desc_t* old_page_desc = _vmm_ptable_lookup(src_ptable, src_vaddr);
 
     /* Based on an old page */
-    ptable_t* cur_ptable = (ptable_t*)_vmm_pspace_get_vaddr_of_active_ptable(to_vaddr);
+    ptable_t* cur_ptable = _vmm_ensure_active_ptable(to_vaddr);
     page_desc_t* cur_page = _vmm_ptable_lookup(cur_ptable, to_vaddr);
 
     if (!page_desc_is_present(*cur_page)) {
@@ -1441,16 +1455,6 @@ int vmm_switch_pdir(pdirectory_t* pdir)
     return res;
 }
 
-void vmm_enable_paging()
-{
-    system_enable_paging();
-}
-
-void vmm_disable_paging()
-{
-    system_disable_paging();
-}
-
 /**
  * VM SELF TEST FUNCTIONS
  */
@@ -1472,7 +1476,7 @@ static int _vmm_self_test()
 static bool vmm_test_pspace_vaddr_of_active_ptable()
 {
     uint32_t vaddr = 0xc0000000;
-    ptable_t* pt = _vmm_pspace_get_vaddr_of_active_ptable(vaddr);
+    ptable_t* pt = _vmm_ensure_active_ptable(vaddr);
     page_desc_t* ppage = _vmm_ptable_lookup(pt, vaddr);
     page_desc_del_attrs(ppage, PAGE_DESC_PRESENT);
     uint32_t* kek1 = (uint32_t*)vaddr;

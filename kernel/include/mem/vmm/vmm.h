@@ -87,8 +87,6 @@ int vmm_tune_pages(uint32_t vaddr, uint32_t length, uint32_t settings);
 int vmm_free_page(uint32_t vaddr, page_desc_t* page, struct dynamic_array* zones);
 
 int vmm_switch_pdir(pdirectory_t* pdir);
-void vmm_enable_paging();
-void vmm_disable_paging();
 
 int vmm_page_fault_handler(uint32_t info, uint32_t vaddr);
 
