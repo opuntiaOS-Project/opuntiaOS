@@ -99,12 +99,12 @@ proc_zone_t* proc_extend_zone(proc_t* proc, uint32_t start, uint32_t len)
         new_zone.start = start;
         new_zone.len = len;
         if (!dynarr_push(&proc->zones, &new_zone)) {
-            return 0;
+            return NULL;
         }
         return (proc_zone_t*)dynarr_get(&proc->zones, proc->zones.size - 1);
     }
 
-    return 0;
+    return NULL;
 }
 
 proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
@@ -123,12 +123,11 @@ proc_zone_t* proc_new_zone(proc_t* proc, uint32_t start, uint32_t len)
 
     if (_proc_can_add_zone(proc, start, len)) {
         if (!dynarr_push(&proc->zones, &new_zone)) {
-            return 0;
+            return NULL;
         }
         return (proc_zone_t*)dynarr_get(&proc->zones, proc->zones.size - 1);
     }
-
-    return 0;
+    return NULL;
 }
 
 /* FIXME: Think of more efficient way */
@@ -158,7 +157,7 @@ proc_zone_t* proc_new_random_zone(proc_t* proc, uint32_t len)
     }
 
     if (min_start == 0xffffffff) {
-        return 0;
+        return NULL;
     }
 
     return proc_new_zone(proc, min_start, len);
@@ -191,7 +190,7 @@ proc_zone_t* proc_new_random_zone_backward(proc_t* proc, uint32_t len)
     }
 
     if (max_end == 0) {
-        return 0;
+        return NULL;
     }
 
     return proc_new_zone(proc, max_end - len, len);
@@ -208,7 +207,7 @@ proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, uint32_t addr)
         }
     }
 
-    return 0;
+    return NULL;
 }
 
 proc_zone_t* proc_find_zone(proc_t* proc, uint32_t addr)

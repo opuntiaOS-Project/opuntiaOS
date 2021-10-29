@@ -16,17 +16,25 @@
 
 int should_unblock_join_block(thread_t* thread)
 {
+    if (thread_is_freed(thread->blocker_data.join.joinee) || thread->blocker_data.join.join_pid != thread->blocker_data.join.joinee->tid) {
+        return 1;
+    }
+
     const int status = thread->blocker_data.join.joinee->status;
-    if (status == THREAD_STATUS_DYING || status == THREAD_STATUS_ZOMBIE || status == THREAD_STATUS_DEAD) {
+    if (status == THREAD_STATUS_DYING || status == THREAD_STATUS_ZOMBIE) {
         return 1;
     }
     return 0;
 }
 
-int init_join_blocker(thread_t* thread, thread_t* joinee_thread)
+extern thread_t* tasking_get_thread(uint32_t tid);
+int init_join_blocker(thread_t* thread, int wait_for_pid)
 {
+    thread_t* joinee_thread = tasking_get_thread(wait_for_pid);
+
     thread_inc_waiting_ents(joinee_thread);
     thread->blocker_data.join.joinee = joinee_thread;
+    thread->blocker_data.join.join_pid = wait_for_pid;
 
     if (should_unblock_join_block(thread)) {
         return 0;

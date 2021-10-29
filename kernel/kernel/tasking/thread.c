@@ -229,13 +229,13 @@ int thread_free(thread_t* thread)
     }
 
     thread_kstack_free(thread);
-    thread->status = THREAD_STATUS_DEAD;
+    thread->status = THREAD_STATUS_INVALID;
     return 0;
 }
 
 int thread_die(thread_t* thread)
 {
-    if (thread_is_free(thread)) {
+    if (thread_is_freed(thread)) {
         return -EINVAL;
     }
 
@@ -251,7 +251,7 @@ int thread_die(thread_t* thread)
 
 int thread_zombie(thread_t* thread)
 {
-    if (thread_is_free(thread)) {
+    if (thread_is_freed(thread)) {
         return -EINVAL;
     }
 
@@ -271,6 +271,20 @@ int thread_dec_waiting_ents(thread_t* thread)
     }
 
     return val;
+}
+
+int thread_stop(thread_t* thread)
+{
+    thread->status = THREAD_STATUS_STOPPED;
+    sched_dequeue(thread);
+    resched();
+    return 0;
+}
+
+int thread_continue(thread_t* thread)
+{
+    thread->status = THREAD_STATUS_RUNNING;
+    return 0;
 }
 
 /**

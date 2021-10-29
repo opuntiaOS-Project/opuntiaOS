@@ -96,7 +96,7 @@ void undefined_handler(trapframe_t* tf)
         return;
     }
 
-    if (THIS_CPU->fpu_for_thread && THIS_CPU->fpu_for_thread->tid == THIS_CPU->fpu_for_pid) {
+    if (THIS_CPU->fpu_for_thread && thread_is_alive(THIS_CPU->fpu_for_thread) && THIS_CPU->fpu_for_thread->tid == THIS_CPU->fpu_for_pid) {
         fpu_save(THIS_CPU->fpu_for_thread->fpu_state);
     }
 

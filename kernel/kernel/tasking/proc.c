@@ -64,7 +64,7 @@ static thread_t* _proc_alloc_thread()
     }
 
     for (int i = 0; i < THREADS_PER_NODE; i++) {
-        if (thread_is_free(&thread_list.next_empty_node->thread_storage[i])) {
+        if (thread_is_freed(&thread_list.next_empty_node->thread_storage[i])) {
             thread_list.next_empty_node->empty_spots--;
             thread_list.next_empty_index++;
             thread_list.next_empty_node->thread_storage[i].status = THREAD_STATUS_ALLOCATED;
@@ -83,7 +83,7 @@ static thread_t* _proc_alloc_thread()
 #define foreach_thread(p)                                                                                                              \
     for (thread_list_node_t* __thread_list_node = thread_list.head; __thread_list_node; __thread_list_node = __thread_list_node->next) \
         for (int __i = 0; __i < THREADS_PER_NODE; __i++)                                                                               \
-            for (thread_t* thread = &__thread_list_node->thread_storage[__i]; thread && !thread_is_free(thread); thread = NULL)        \
+            for (thread_t* thread = &__thread_list_node->thread_storage[__i]; thread && thread_is_alive(thread); thread = NULL)        \
                 if (thread->process->pid == p->pid)
 
 thread_t* proc_alloc_thread()
@@ -323,20 +323,19 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
     vmm_switch_pdir(new_pdir);
     p->pdir = new_pdir;
 
-    if (dynarr_init_of_size(proc_zone_t, &p->zones, 8) != 0 != 0) {
+    if (dynarr_init_of_size(proc_zone_t, &p->zones, 8) != 0) {
         dentry_put(dentry);
         vfs_close(&fd);
         return -ENOMEM;
     }
 
+    p->main_thread = main_thread;
     err = elf_load(p, &fd);
     if (err) {
         goto restore;
     }
 
 success:
-    p->main_thread = main_thread;
-
     // Clearing proc
     proc_kill_all_threads_except_lockless(p, p->main_thread);
     p->pid = p->main_thread->tid;

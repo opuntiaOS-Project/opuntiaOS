@@ -57,7 +57,7 @@ void _tasking_jumper()
  */
 
 extern thread_list_t thread_list;
-thread_t* tasking_get_thread(uint32_t tid)
+thread_t* tasking_get_thread(pid_t tid)
 {
     thread_list_node_t* __thread_list_node = thread_list.head;
     while (__thread_list_node) {
@@ -139,8 +139,6 @@ static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
  */
 void tasking_start_init_proc()
 {
-    // We need to stop interrupts here, since this part of code
-    // is NOT interruptable.
     system_disable_interrupts();
     proc_t* p = _tasking_setup_proc_with_uid(0, 0);
     proc_setup_tty(p, tty_new());
@@ -328,11 +326,15 @@ int tasking_waitpid(int pid, int* status)
         return -ESRCH;
     }
 
-    init_join_blocker(thread, joinee_thread);
+    init_join_blocker(thread, pid);
 
-    // FIXME: Status returns exit code, that is not capable with linux.
-    int kstatus = joinee_thread->exit_code;
     if (status) {
+        int kstatus = 0;
+
+        // Check if the thread bucket, still hold data of a required thread.
+        if (joinee_thread->tid == pid) {
+            kstatus = joinee_thread->exit_code;
+        }
         vmm_copy_to_user(status, &kstatus, sizeof(int));
     }
     return 0;
@@ -348,7 +350,7 @@ void tasking_exit(int exit_code)
 
 int tasking_kill(thread_t* thread, int signo)
 {
-    if (thread->status == THREAD_STATUS_INVALID || thread->status == THREAD_STATUS_DEAD || thread->status == THREAD_STATUS_DYING) {
+    if (thread->status == THREAD_STATUS_INVALID || thread->status == THREAD_STATUS_DYING) {
         return -EINVAL;
     }
     signal_set_pending(thread, signo);
