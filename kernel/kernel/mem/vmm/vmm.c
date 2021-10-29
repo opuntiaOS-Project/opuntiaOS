@@ -71,8 +71,10 @@ static void _vmm_ensure_cow_for_page(uint32_t vaddr);
 static void _vmm_ensure_cow_for_range(uint32_t vaddr, uint32_t length);
 static int _vmm_copy_page_to_resolve_cow(proc_t* p, uint32_t vaddr, ptable_t* src_ptable, int page_index);
 
+#ifdef ZEROING_ON_DEMAND
 static bool _vmm_is_zeroing_on_demand(uint32_t vaddr);
 static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr);
+#endif
 
 static int _vmm_self_test();
 
@@ -928,7 +930,9 @@ static void _vmm_ensure_write_to_range(uint32_t vaddr, uint32_t length)
 
 /**
  * The function is supposed to copy a page from @src_ptable to active
- * ptable. The page which is copied has address @vaddr. ONLY TO RESOLVE COW!
+ * ptable. The page which is copied has address @vaddr.
+ *
+ * Note: use it only to resolve COW!
  */
 static int _vmm_copy_page_to_resolve_cow(proc_t* p, uint32_t vaddr, ptable_t* src_ptable, int page_index)
 {
@@ -968,38 +972,40 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uint32_t vaddr, ptable_t* sr
  * ZEROING ON DEMAND FUNCTIONS
  */
 
-// static bool _vmm_is_zeroing_on_demand(uint32_t vaddr)
-// {
-//     table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
-//     if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
-//         return true;
-//     }
-//     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
-//     table_desc_t* ppage_desc = _vmm_ptable_lookup(ptable, vaddr);
-//     return page_desc_has_attrs(*ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
-// }
+#ifdef ZEROING_ON_DEMAND
+static bool _vmm_is_zeroing_on_demand(uint32_t vaddr)
+{
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
+        return true;
+    }
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
+    table_desc_t* ppage_desc = _vmm_ptable_lookup(ptable, vaddr);
+    return page_desc_has_attrs(*ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
+}
 
-// static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
-// {
-//     table_desc_t* ptable_desc = (table_desc_t*)_vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
-//     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
+static void _vmm_resolve_zeroing_on_demand(uint32_t vaddr)
+{
+    table_desc_t* ptable_desc = (table_desc_t*)_vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
 
-//     if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
-//         for (int i = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++) {
-//             page_desc_set_attrs(&ptable->entities[i], PAGE_DESC_ZEROING_ON_DEMAND);
-//             page_desc_del_attrs(&ptable->entities[i], PAGE_DESC_WRITABLE);
-//         }
-//         table_desc_del_attrs(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
-//     }
+    if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
+        for (int i = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++) {
+            page_desc_set_attrs(&ptable->entities[i], PAGE_DESC_ZEROING_ON_DEMAND);
+            page_desc_del_attrs(&ptable->entities[i], PAGE_DESC_WRITABLE);
+        }
+        table_desc_del_attrs(ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND);
+    }
 
-//     table_desc_t* ppage_desc = (table_desc_t*)_vmm_ptable_lookup(ptable, vaddr);
+    table_desc_t* ppage_desc = (table_desc_t*)_vmm_ptable_lookup(ptable, vaddr);
 
-//     uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
-//     memset(dest, 0, VMM_PAGE_SIZE);
+    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    memset(dest, 0, VMM_PAGE_SIZE);
 
-//     page_desc_del_attrs(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
-//     page_desc_set_attrs(ppage_desc, PAGE_DESC_WRITABLE);
-// }
+    page_desc_del_attrs(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
+    page_desc_set_attrs(ppage_desc, PAGE_DESC_WRITABLE);
+}
+#endif // ZEROING_ON_DEMAND
 
 /**
  * USER PDIR FUNCTIONS
@@ -1408,10 +1414,12 @@ int vmm_page_fault_handler(uint32_t info, uint32_t vaddr)
             _vmm_resolve_copy_on_write(holder_proc, vaddr);
             visited++;
         }
-        // if (_vmm_is_zeroing_on_demand(vaddr)) {
-        //     _vmm_resolve_zeroing_on_demand(vaddr);
-        //     visited++;
-        // }
+#ifdef ZEROING_ON_DEMAND
+        if (_vmm_is_zeroing_on_demand(vaddr)) {
+            _vmm_resolve_zeroing_on_demand(vaddr);
+            visited++;
+        }
+#endif // ZEROING_ON_DEMAND
         if (!visited) {
             lock_release(&_vmm_lock);
             return SHOULD_CRASH;
