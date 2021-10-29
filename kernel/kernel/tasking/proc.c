@@ -80,10 +80,10 @@ static thread_t* _proc_alloc_thread()
  * HELPER FUNCTIONS
  */
 
-#define foreach_thread(p)                                                                                                                      \
-    for (thread_list_node_t* __thread_list_node = thread_list.head; __thread_list_node != NULL; __thread_list_node = __thread_list_node->next) \
-        for (int i = 0; i < THREADS_PER_NODE; i++)                                                                                             \
-            for (thread_t* thread = &__thread_list_node->thread_storage[i]; thread; thread = NULL)                                             \
+#define foreach_thread(p)                                                                                                              \
+    for (thread_list_node_t* __thread_list_node = thread_list.head; __thread_list_node; __thread_list_node = __thread_list_node->next) \
+        for (int __i = 0; __i < THREADS_PER_NODE; __i++)                                                                               \
+            for (thread_t* thread = &__thread_list_node->thread_storage[__i]; thread && !thread_is_free(thread); thread = NULL)        \
                 if (thread->process->pid == p->pid)
 
 thread_t* proc_alloc_thread()
@@ -504,7 +504,7 @@ static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, threa
 {
     foreach_thread(p)
     {
-        if (gthread && thread->tid != gthread->tid) {
+        if (!gthread || thread->tid != gthread->tid) {
             thread_free(thread);
         }
     }
