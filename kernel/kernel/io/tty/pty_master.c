@@ -148,7 +148,7 @@ int pty_master_alloc(file_descriptor_t* fd)
 
     fd->dentry = &ptm->dentry;
     fd->ops = &pty_master_ops.file;
-    fd->flags = 0;
+    fd->flags = O_RDWR;
     fd->offset = 0;
     fd->type = FD_TYPE_FILE;
 
