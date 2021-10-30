@@ -40,4 +40,7 @@ uint32_t pmm_get_used_blocks();
 uint32_t pmm_get_free_blocks();
 uint32_t pmm_get_block_size();
 
+uint32_t pmm_get_ram_in_kb();
+uint32_t pmm_get_free_space_in_kb();
+
 #endif // _KERNEL_MEM_PMM_H

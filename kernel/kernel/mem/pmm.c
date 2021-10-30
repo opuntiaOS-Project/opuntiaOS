@@ -334,7 +334,17 @@ uint32_t pmm_get_free_blocks()
     return pmm_max_blocks - pmm_used_blocks;
 }
 
-uint32_t pmm_geblock_size()
+uint32_t pmm_get_block_size()
 {
     return PMM_BLOCK_SIZE;
+}
+
+uint32_t pmm_get_ram_in_kb()
+{
+    return pmm_ram_size / 1024;
+}
+
+uint32_t pmm_get_free_space_in_kb()
+{
+    return pmm_get_free_blocks() * (PMM_BLOCK_SIZE / 1024);
 }
