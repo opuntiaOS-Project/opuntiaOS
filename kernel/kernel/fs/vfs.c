@@ -201,14 +201,18 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
 
     if (TEST_FLAG(flags, O_EXEC)) {
         if (vfs_perm_to_execute(file, cur_thread) != 0) {
+#ifdef VFS_DEBUG
             log("can't open exec");
+#endif
             return -EACCES;
         }
     }
 
     if (TEST_FLAG(flags, O_WRONLY)) {
         if (vfs_perm_to_write(file, cur_thread) != 0) {
+#ifdef VFS_DEBUG
             log("can't open write");
+#endif
             return -EACCES;
         }
         if (dentry_inode_test_flag(file, S_IFDIR)) {
@@ -218,7 +222,9 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
 
     if (TEST_FLAG(flags, O_RDONLY)) {
         if (vfs_perm_to_read(file, cur_thread) != 0) {
+#ifdef VFS_DEBUG
             log("can't open read");
+#endif
             return -EACCES;
         }
     }
@@ -408,7 +414,9 @@ int vfs_rmdir(dentry_t* dir)
 
     int err = dir->ops->file.rmdir(dir);
     if (!err) {
+#ifdef VFS_DEBUG
         log("Rmdir: will be deleted %d", dir->inode_indx);
+#endif
         dentry_set_flag(dir, DENTRY_INODE_TO_BE_DELETED);
     }
     return err;
