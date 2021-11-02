@@ -21,10 +21,9 @@ size_t confstr(int name, char* buf, size_t len)
             // Return path only if enough space.
             if (len < PATH_CONSTANT_LEN) {
                 return 0;
-            } else {
-                memcpy(buf, PATH_CONSTANT, PATH_CONSTANT_LEN);
-                return PATH_CONSTANT_LEN;
             }
+            memcpy(buf, PATH_CONSTANT, PATH_CONSTANT_LEN);
+            return PATH_CONSTANT_LEN;
         }
 
     default:
