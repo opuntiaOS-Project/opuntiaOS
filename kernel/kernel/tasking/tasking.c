@@ -303,7 +303,7 @@ exit:
         kfree(kpath);
     }
     if (kargv) {
-        for (int argi = 0; argi < kargc; argi++) {
+        for (int argi = 1; argi < kargc; argi++) {
             kfree(kargv[argi]);
         }
         kfree(kargv);
