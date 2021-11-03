@@ -1,2 +1,2 @@
-Checks: '-*,clang-diagnostic-*,llvm-*,clang-analyzer*,-llvm-header-guard,-clang-diagnostic-incompatible-library-redeclaration,-clang-diagnostic-typedef-redefinition,-clang-analyzer-deadcode.DeadStores'
+Checks: '-*,clang-diagnostic-*,llvm-*,clang-analyzer*,cert-*-c,-cert-dcl37-c,-llvm-header-guard,-clang-diagnostic-incompatible-library-redeclaration,-clang-diagnostic-typedef-redefinition,-clang-analyzer-deadcode.DeadStores'
 HeaderFilterRegex: '.*'
