@@ -172,7 +172,7 @@ static constexpr void destroy_at(T* p)
     return p->~T();
 }
 
-#if defined(_LIBCXX_BUILD_ONEOS_EXTENSIONS)
+#if defined(_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS)
 _LIBCXX_BEGIN_ONEOS_EXTENSION
 
 template <class T, class... Args>

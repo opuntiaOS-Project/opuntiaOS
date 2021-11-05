@@ -20,7 +20,7 @@ uland_cc_flags = [
   "-fno-sized-deallocation",
   "-fno-rtti",
   "-fno-exceptions",
-  "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS",
+  "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
 ]
 
 uland_objcc_flags = uland_cc_flags + [

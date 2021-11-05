@@ -21,7 +21,7 @@ lib_cc_flags = [
   "-fno-sized-deallocation",
   "-fno-rtti",
   "-fno-exceptions",
-  "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS",
+  "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
 ]
 
 lib_objcc_flags = lib_cc_flags + [

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright 2021 Nikita Melekhin. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
@@ -8,14 +8,29 @@ import subprocess
 import os
 import sys
 
+target = "all"  # all, kernel, userland
+target_arch = "x86"  # x86, aarch32
+
 
 class ClassTidyLauncher():
+
+    backend_flags = {
+        "x86": ["-c", "-m32",
+                "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS"],
+        "aarch32": [
+            "-fno-builtin",
+            "-march=armv7-a",
+            "-mfpu=neon-vfpv4",
+            "-mfloat-abi=soft",
+            "-fno-pie",
+        ]
+    }
+
     def __init__(self, dir, includes):
         self.path_dir = dir
         self.include = includes
         self.front_flags = ["--use-color", "--fix"]
-        self.back_flags = ["-c", "-m32",
-                           "-D_LIBCXX_BUILD_ONEOS_EXTENSIONS"]  # 32bit flag
+        self.back_flags = self.backend_flags[target_arch]
 
     def run_clang_tidy(self, ff, files, bf):
         cmd = ["clang-tidy"]
@@ -38,7 +53,7 @@ class ClassTidyLauncher():
         ignore_platforms = []
 
         for platform in platforms:
-            if "x86" != platform:
+            if target_arch != platform:
                 ignore_platforms.append(platform)
 
         def is_file_type(name, ending):
@@ -84,6 +99,9 @@ kernel_includes = ["kernel/include"]
 app_includes = ["libs/libc/include", "libs/libcxx/include", "libs/libfoundation/include",
                 "libs/libipc/include", "libs/libg/include", "libs/libui/include"]
 
-print(ClassTidyLauncher("kernel/kernel", kernel_includes).process())
-print(ClassTidyLauncher("servers/", app_includes).process())
-print(ClassTidyLauncher("libs/", app_includes).process())
+if target == "all" or target == "kernel":
+    print(ClassTidyLauncher("kernel/kernel", kernel_includes).process())
+
+if target == "all" or target == "userland":
+    print(ClassTidyLauncher("servers/", app_includes).process())
+    print(ClassTidyLauncher("libs/", app_includes).process())
