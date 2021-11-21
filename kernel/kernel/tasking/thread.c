@@ -19,7 +19,7 @@
 extern void trap_return();
 extern void _tasking_jumper();
 
-int _thread_setup_kstack(thread_t* thread, uint32_t esp)
+int _thread_setup_kstack(thread_t* thread, uintptr_t esp)
 {
     char* sp = (char*)(esp);
     /* setting trapframe in kernel stack */
@@ -29,7 +29,7 @@ int _thread_setup_kstack(thread_t* thread, uint32_t esp)
     /* setting return point in kernel stack, so it
        will return to this address in _tasking_jumper */
     sp -= 4;
-    *(uint32_t*)sp = (uint32_t)trap_return;
+    *(uintptr_t*)sp = (uintptr_t)trap_return;
 
     /* setting context in kernel stack */
     sp -= sizeof(*thread->context);
@@ -37,7 +37,7 @@ int _thread_setup_kstack(thread_t* thread, uint32_t esp)
 
     /* setting init data */
     memset((void*)thread->context, 0, sizeof(*thread->context));
-    context_set_instruction_pointer(thread->context, (uint32_t)_tasking_jumper);
+    context_set_instruction_pointer(thread->context, (uintptr_t)_tasking_jumper);
     memset((void*)thread->tf, 0, sizeof(*thread->tf));
     return 0;
 }
@@ -111,7 +111,7 @@ int thread_copy_of(thread_t* thread, thread_t* from_thread)
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count, char** envp)
 {
-    uint32_t argv_data_size = 0;
+    size_t argv_data_size = 0;
     for (int i = 0; i < argc; i++) {
         argv_data_size += strlen(argv[i]) + 1;
     }
@@ -120,7 +120,7 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
         argv_data_size += 4 - (argv_data_size % 4);
     }
 
-    uint32_t envp_data_size = 0;
+    size_t envp_data_size = 0;
     for (int i = 0; i < envp_count; i++) {
         envp_data_size += strlen(envp[i]) + 1;
     }
@@ -129,17 +129,17 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
         envp_data_size += 4 - (envp_data_size % 4);
     }
 
-    const uint32_t envp_array_size = (envp_count + 1) * sizeof(char*);
-    const uint32_t argv_array_size = (argc + 1) * sizeof(char*);
+    const size_t envp_array_size = (envp_count + 1) * sizeof(char*);
+    const size_t argv_array_size = (argc + 1) * sizeof(char*);
 
 #ifdef __i386__
-    const uint32_t pointers_size = sizeof(argc) + sizeof(char*) + sizeof(char*); // argc + pointer to argv array + pointer to envp array.
+    const size_t pointers_size = sizeof(argc) + sizeof(char*) + sizeof(char*); // argc + pointer to argv array + pointer to envp array.
 #elif __arm__
-    const uint32_t pointers_size = 0;
+    const size_t pointers_size = 0;
 #endif
-    const uint32_t arrays_size = argv_array_size + envp_array_size;
-    const uint32_t data_size = argv_data_size + envp_data_size;
-    const uint32_t total_size_on_stack = data_size + arrays_size + pointers_size;
+    const size_t arrays_size = argv_array_size + envp_array_size;
+    const size_t data_size = argv_data_size + envp_data_size;
+    const size_t total_size_on_stack = data_size + arrays_size + pointers_size;
     int* tmp_buf = (int*)kmalloc(total_size_on_stack);
     if (!tmp_buf) {
         return -EAGAIN;
@@ -149,31 +149,31 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     // Resolve pointers from the start of stack
     char* tmp_buf_ptr = ((char*)tmp_buf) + total_size_on_stack;
     char* tmp_buf_envp_data_ptr = tmp_buf_ptr - envp_data_size;
-    uint32_t* tmp_buf_envp_array_ptr = (uint32_t*)((char*)tmp_buf_envp_data_ptr - envp_array_size);
+    uintptr_t* tmp_buf_envp_array_ptr = (uintptr_t*)((char*)tmp_buf_envp_data_ptr - envp_array_size);
     char* tmp_buf_argv_data_ptr = (char*)tmp_buf_envp_array_ptr - argv_data_size;
-    uint32_t* tmp_buf_argv_array_ptr = (uint32_t*)((char*)tmp_buf_argv_data_ptr - argv_array_size);
+    uintptr_t* tmp_buf_argv_array_ptr = (uintptr_t*)((char*)tmp_buf_argv_data_ptr - argv_array_size);
     int* tmp_buf_envp_ptr = (int*)((char*)tmp_buf_argv_array_ptr - sizeof(char*));
     int* tmp_buf_argv_ptr = (int*)((char*)tmp_buf_envp_ptr - sizeof(char*));
     int* tmp_buf_argc_ptr = (int*)((char*)tmp_buf_argv_ptr - sizeof(int));
 
-    uint32_t envp_data_sp = get_stack_pointer(thread->tf) - envp_data_size;
-    uint32_t envp_array_sp = envp_data_sp - envp_array_size;
-    uint32_t argv_data_sp = envp_array_sp - argv_data_size;
-    uint32_t argv_array_sp = argv_data_sp - argv_array_size;
+    uintptr_t envp_data_sp = get_stack_pointer(thread->tf) - envp_data_size;
+    uintptr_t envp_array_sp = envp_data_sp - envp_array_size;
+    uintptr_t argv_data_sp = envp_array_sp - argv_data_size;
+    uintptr_t argv_array_sp = argv_data_sp - argv_array_size;
 #ifdef __i386__
-    uint32_t envp_sp = argv_array_sp - sizeof(char*);
-    uint32_t argv_sp = envp_sp - sizeof(char*);
-    uint32_t argc_sp = argv_sp - sizeof(int);
-    uint32_t end_sp = argc_sp;
+    uintptr_t envp_sp = argv_array_sp - sizeof(char*);
+    uintptr_t argv_sp = envp_sp - sizeof(char*);
+    uintptr_t argc_sp = argv_sp - sizeof(int);
+    uintptr_t end_sp = argc_sp;
 #elif __arm__
-    uint32_t end_sp = argv_array_sp;
+    uintptr_t end_sp = argv_array_sp;
 #endif
 
     // Fill argv
     char* top_of_argv_data = tmp_buf_argv_data_ptr + argv_data_size;
     set_stack_pointer(thread->tf, argv_data_sp + argv_data_size);
     for (int i = argc - 1; i >= 0; i--) {
-        uint32_t len = strlen(argv[i]);
+        size_t len = strlen(argv[i]);
         top_of_argv_data -= len + 1;
         tf_move_stack_pointer(thread->tf, -(len + 1));
         memcpy(top_of_argv_data, argv[i], len);
@@ -187,7 +187,7 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     char* top_of_envp_data = tmp_buf_envp_data_ptr + envp_data_size;
     set_stack_pointer(thread->tf, envp_data_sp + envp_data_size);
     for (int i = envp_count - 1; i >= 0; i--) {
-        uint32_t len = strlen(envp[i]);
+        size_t len = strlen(envp[i]);
         top_of_envp_data -= len + 1;
         tf_move_stack_pointer(thread->tf, -(len + 1));
         memcpy(top_of_envp_data, envp[i], len);
@@ -294,9 +294,9 @@ int thread_continue(thread_t* thread)
 int thread_dump_frame(thread_t* thread)
 {
 #ifdef __i386__
-    for (uint32_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
+    for (uintptr_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
         uint8_t byte = *(uint8_t*)i;
-        uint32_t b32 = (uint32_t)byte;
+        uintptr_t b32 = (uintptr_t)byte;
         log("%x - %x\n", i, b32);
     }
 #endif

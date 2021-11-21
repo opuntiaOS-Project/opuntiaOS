@@ -73,7 +73,7 @@ typedef struct blocker_select blocker_select_t;
 struct proc;
 struct thread {
     struct proc* process;
-    uint32_t tid;
+    pid_t tid;
     uint32_t status;
 
     /* Kernel data */
@@ -159,7 +159,7 @@ int thread_dec_waiting_ents(thread_t* thread);
 int init_join_blocker(thread_t* thread, int wait_for_pid);
 int init_read_blocker(thread_t* p, file_descriptor_t* bfd);
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd);
-int init_sleep_blocker(thread_t* thread, uint32_t time);
+int init_sleep_blocker(thread_t* thread, time_t time);
 int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout);
 
 /**

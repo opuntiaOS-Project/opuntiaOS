@@ -89,6 +89,9 @@ typedef unsigned int size_t;
 typedef int ssize_t;
 #endif
 
+typedef int32_t intptr_t;
+typedef uint32_t uintptr_t;
+
 #define bool _Bool
 #define true (1)
 #define false (0)
