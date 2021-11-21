@@ -96,7 +96,7 @@ typedef struct proc proc_t;
  * PROC FUNCTIONS
  */
 uint32_t proc_alloc_pid();
-struct thread* thread_by_pid(uint32_t pid);
+struct thread* thread_by_pid(pid_t pid);
 
 int proc_init_storage();
 int proc_setup(proc_t* p);
@@ -141,12 +141,12 @@ int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd);
  * PROC ZONER FUNCTIONS
  */
 
-proc_zone_t* proc_new_zone(proc_t* p, uint32_t start, uint32_t len);
-proc_zone_t* proc_extend_zone(proc_t* proc, uint32_t start, uint32_t len);
-proc_zone_t* proc_new_random_zone(proc_t* p, uint32_t len);
-proc_zone_t* proc_new_random_zone_backward(proc_t* p, uint32_t len);
-proc_zone_t* proc_find_zone(proc_t* p, uint32_t addr);
-proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, uint32_t addr);
+proc_zone_t* proc_new_zone(proc_t* p, size_t start, size_t len);
+proc_zone_t* proc_extend_zone(proc_t* proc, size_t start, size_t len);
+proc_zone_t* proc_new_random_zone(proc_t* p, size_t len);
+proc_zone_t* proc_new_random_zone_backward(proc_t* p, size_t len);
+proc_zone_t* proc_find_zone(proc_t* p, size_t addr);
+proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, size_t addr);
 int proc_delete_zone_no_proc(dynamic_array_t*, proc_zone_t*);
 int proc_delete_zone(proc_t*, proc_zone_t*);
 

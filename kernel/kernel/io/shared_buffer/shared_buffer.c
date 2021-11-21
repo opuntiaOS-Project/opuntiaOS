@@ -30,18 +30,18 @@ typedef struct shared_buffer_header shared_buffer_header_t;
 
 static lock_t _shared_buffer_lock;
 static zone_t _shared_buffer_zone;
-static uint32_t _shared_buffer_bitmap_len = 0;
+static size_t _shared_buffer_bitmap_len = 0;
 static uint8_t* _shared_buffer_bitmap;
 static bitmap_t bitmap;
 
-static inline uint32_t _shared_buffer_to_vaddr(int start)
+static inline uintptr_t _shared_buffer_to_vaddr(int start)
 {
-    return (uint32_t)_shared_buffer_zone.start + start * SHBUF_BLOCK_SIZE;
+    return (uintptr_t)_shared_buffer_zone.start + start * SHBUF_BLOCK_SIZE;
 }
 
-static inline int _shared_buffer_to_index(uint32_t vaddr)
+static inline int _shared_buffer_to_index(uintptr_t vaddr)
 {
-    return (vaddr - (uint32_t)_shared_buffer_zone.start) / SHBUF_BLOCK_SIZE;
+    return (vaddr - (uintptr_t)_shared_buffer_zone.start) / SHBUF_BLOCK_SIZE;
 }
 
 static inline int _shared_buffer_alloc_id()
@@ -64,7 +64,7 @@ static void _shared_buffer_init_bitmap()
 
     /* Setting bitmap as a busy region. */
     int blocks_needed = (_shared_buffer_bitmap_len + SHBUF_BLOCK_SIZE - 1) / SHBUF_BLOCK_SIZE;
-    bitmap_set_range(bitmap, _shared_buffer_to_index((uint32_t)_shared_buffer_bitmap), blocks_needed);
+    bitmap_set_range(bitmap, _shared_buffer_to_index((uintptr_t)_shared_buffer_bitmap), blocks_needed);
 }
 
 int shared_buffer_init()
@@ -96,7 +96,7 @@ int shared_buffer_create(uint8_t** res_buffer, size_t size)
     shared_buffer_header_t* space = (shared_buffer_header_t*)_shared_buffer_to_vaddr(start);
     space->len = act_size;
     bitmap_set_range(bitmap, start, blocks_needed);
-    vmm_tune_pages((uint32_t)space, act_size, PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_READABLE | PAGE_USER);
+    vmm_tune_pages((uintptr_t)space, act_size, PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_READABLE | PAGE_USER);
 
     *res_buffer = (uint8_t*)&space[1];
     buffers[buf_id] = (uint8_t*)&space[1];
@@ -140,7 +140,7 @@ int shared_buffer_free(int id)
 
     shared_buffer_header_t* sptr = (shared_buffer_header_t*)buffers[id];
     size_t blocks_to_delete = (sptr[-1].len + SHBUF_BLOCK_SIZE - 1) / SHBUF_BLOCK_SIZE;
-    bitmap_unset_range(bitmap, _shared_buffer_to_index((uint32_t)&sptr[-1]), blocks_to_delete);
+    bitmap_unset_range(bitmap, _shared_buffer_to_index((uintptr_t)&sptr[-1]), blocks_to_delete);
     buffers[id] = 0;
     lock_release(&_shared_buffer_lock);
     return 0;

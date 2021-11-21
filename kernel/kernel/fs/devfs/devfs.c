@@ -21,15 +21,15 @@
 
 static dynamic_array_t entry_zones; /* Just store pointers to free zones one time. */
 static void* next_space_to_put_entry;
-static uint32_t free_space_in_last_entry_zone;
+static size_t free_space_in_last_entry_zone;
 
 static dynamic_array_t name_zones; /* Just store pointers to free zones one time. */
 static void* next_space_to_put_name;
-static uint32_t free_space_in_last_name_zone;
+static size_t free_space_in_last_name_zone;
 
 static dynamic_array_t ops_zones; /* Just store pointers to free zones one time. */
 static void* next_space_to_put_ops;
-static uint32_t free_space_in_last_ops_zone;
+static size_t free_space_in_last_ops_zone;
 
 static devfs_inode_t* devfs_root;
 

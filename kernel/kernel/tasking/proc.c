@@ -19,7 +19,7 @@
 #include <tasking/tasking.h>
 #include <tasking/thread.h>
 
-static uint32_t proc_next_pid = 1;
+static pid_t proc_next_pid = 1;
 thread_list_t thread_list;
 int threads_cnt = 0;
 
@@ -91,7 +91,7 @@ thread_t* proc_alloc_thread()
     return _proc_alloc_thread();
 }
 
-thread_t* thread_by_pid(uint32_t pid)
+thread_t* thread_by_pid(pid_t pid)
 {
     thread_list_node_t* __thread_list_node = thread_list.head;
     while (__thread_list_node) {
@@ -106,7 +106,7 @@ thread_t* thread_by_pid(uint32_t pid)
     return NULL;
 }
 
-uint32_t proc_alloc_pid()
+pid_t proc_alloc_pid()
 {
     return atomic_add(&proc_next_pid, 1);
 }
@@ -571,8 +571,8 @@ int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
     lock_acquire(&p->lock);
     ASSERT(p->fds);
     /* Calculating id with pointers */
-    uint32_t start = (uint32_t)p->fds;
-    uint32_t fd_ptr = (uint32_t)fd;
+    uintptr_t start = (uintptr_t)p->fds;
+    uintptr_t fd_ptr = (uintptr_t)fd;
     fd_ptr -= start;
     int fd_res = fd_ptr / sizeof(file_descriptor_t);
     if (!(fd_ptr % sizeof(file_descriptor_t))) {

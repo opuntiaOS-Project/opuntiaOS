@@ -27,7 +27,7 @@ int should_unblock_join_block(thread_t* thread)
     return 0;
 }
 
-extern thread_t* tasking_get_thread(uint32_t tid);
+extern thread_t* tasking_get_thread(pid_t tid);
 int init_join_blocker(thread_t* thread, int wait_for_pid)
 {
     thread_t* joinee_thread = tasking_get_thread(wait_for_pid);
@@ -100,7 +100,7 @@ int should_unblock_sleep_block(thread_t* thread)
     return thread->blocker_data.sleep.until <= timeman_now();
 }
 
-int init_sleep_blocker(thread_t* thread, uint32_t time)
+int init_sleep_blocker(thread_t* thread, time_t time)
 {
     thread->blocker_data.sleep.until = timeman_now() + time;
 

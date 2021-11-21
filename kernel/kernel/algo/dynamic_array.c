@@ -76,7 +76,7 @@ static inline int _dynarr_grow(dynamic_array_t* v)
     return 0;
 }
 
-int dynarr_init_of_size_impl(dynamic_array_t* v, uint32_t element_size, uint32_t cap)
+int dynarr_init_of_size_impl(dynamic_array_t* v, size_t element_size, size_t cap)
 {
     v->head = v->tail = NULL;
     v->size = 0;
@@ -150,7 +150,7 @@ int dynarr_clear(dynamic_array_t* v)
     return 0;
 }
 
-uint32_t dyarr_size(dynamic_array_t* v)
+size_t dyarr_size(dynamic_array_t* v)
 {
     return v->size;
 }

@@ -34,14 +34,14 @@ static inline int _pl050_map_itself()
     return 0;
 }
 
-static bool _mouse_can_read(dentry_t* dentry, uint32_t start)
+static bool _mouse_can_read(dentry_t* dentry, size_t start)
 {
     return ringbuffer_space_to_read(&mouse_buffer) >= 1;
 }
 
-static int _mouse_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+static int _mouse_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
-    uint32_t leno = ringbuffer_space_to_read(&mouse_buffer);
+    size_t leno = ringbuffer_space_to_read(&mouse_buffer);
     if (leno > len) {
         leno = len;
     }

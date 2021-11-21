@@ -48,7 +48,7 @@ bool local_socket_can_read(dentry_t* dentry, uint32_t start)
 int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    uint32_t read = sync_ringbuffer_read_with_start(&sock_entry->buffer, start, buf, len);
+    int read = sync_ringbuffer_read_with_start(&sock_entry->buffer, start, buf, len);
     return read;
 }
 

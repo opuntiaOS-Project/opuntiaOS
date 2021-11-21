@@ -50,42 +50,42 @@ struct PACKED trapframe {
 };
 typedef struct trapframe trapframe_t;
 
-static inline uint32_t get_stack_pointer(trapframe_t* tf)
+static inline uintptr_t get_stack_pointer(trapframe_t* tf)
 {
     return tf->esp;
 }
 
-static inline void set_stack_pointer(trapframe_t* tf, uint32_t sp)
+static inline void set_stack_pointer(trapframe_t* tf, uintptr_t sp)
 {
     tf->esp = sp;
 }
 
-static inline uint32_t get_base_pointer(trapframe_t* tf)
+static inline uintptr_t get_base_pointer(trapframe_t* tf)
 {
     return tf->ebp;
 }
 
-static inline void set_base_pointer(trapframe_t* tf, uint32_t bp)
+static inline void set_base_pointer(trapframe_t* tf, uintptr_t bp)
 {
     tf->ebp = bp;
 }
 
-static inline uint32_t get_instruction_pointer(trapframe_t* tf)
+static inline uintptr_t get_instruction_pointer(trapframe_t* tf)
 {
     return tf->eip;
 }
 
-static inline void set_instruction_pointer(trapframe_t* tf, uint32_t ip)
+static inline void set_instruction_pointer(trapframe_t* tf, uintptr_t ip)
 {
     tf->eip = ip;
 }
 
-static inline uint32_t get_syscall_result(trapframe_t* tf)
+static inline uintptr_t get_syscall_result(trapframe_t* tf)
 {
     return tf->eax;
 }
 
-static inline void set_syscall_result(trapframe_t* tf, uint32_t val)
+static inline void set_syscall_result(trapframe_t* tf, uintptr_t val)
 {
     tf->eax = val;
 }

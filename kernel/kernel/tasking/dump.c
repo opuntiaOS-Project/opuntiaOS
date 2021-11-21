@@ -39,7 +39,7 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
         return err;
     }
 
-    uint32_t elf_file_size = p->proc_file->inode->size;
+    size_t elf_file_size = p->proc_file->inode->size;
 
     system_disable_interrupts();
     proc_zone_t* zone;
@@ -56,7 +56,7 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
     // not to take much uninterruptable time reading our symtable.
     uint8_t* copy_to = (uint8_t*)zone->start;
     vmm_prepare_active_pdir_for_copying_at(zone->start, zone->len);
-    for (uint32_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
+    for (size_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
         system_disable_interrupts();
         fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);
         system_enable_interrupts();
@@ -142,7 +142,7 @@ static int dump_map_kernel_elf_file()
         return err;
     }
 
-    uint32_t elf_file_size = kernel_file->inode->size;
+    size_t elf_file_size = kernel_file->inode->size;
 
     kernel_file_mapping_zone = zoner_new_zone(elf_file_size);
     if (!kernel_file_mapping_zone.ptr) {
@@ -152,7 +152,7 @@ static int dump_map_kernel_elf_file()
     }
 
     uint8_t* copy_to = (uint8_t*)kernel_file_mapping_zone.ptr;
-    for (uint32_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
+    for (size_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
         fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);
         copy_to += READ_PER_CYCLE;
     }

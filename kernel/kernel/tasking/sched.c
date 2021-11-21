@@ -80,7 +80,7 @@ static void _init_cpu(cpu_t* cpu)
     sp -= sizeof(*cpu->sched_context);
     cpu->sched_context = (context_t*)sp;
     memset((void*)cpu->sched_context, 0, sizeof(*cpu->sched_context));
-    context_set_instruction_pointer(cpu->sched_context, (uint32_t)sched);
+    context_set_instruction_pointer(cpu->sched_context, (uintptr_t)sched);
     cpu->running_thread = NULL;
 
     cpu->sched.master_buf = kmalloc(sizeof(runqueue_t) * TOTAL_PRIOS_COUNT);

@@ -27,14 +27,14 @@ inline static void system_enable_interrupts_no_counter() { asm volatile("sti"); 
  * PAGING
  */
 
-inline static void system_set_pdir(uint32_t pdir)
+inline static void system_set_pdir(uintptr_t pdir)
 {
     asm volatile("mov %%eax, %%cr3"
                  :
                  : "a"(pdir));
 }
 
-inline static void system_flush_tlb_entry(uint32_t vaddr)
+inline static void system_flush_tlb_entry(uintptr_t vaddr)
 {
     asm volatile("invlpg (%0)" ::"r"(vaddr)
                  : "memory");

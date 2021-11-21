@@ -15,7 +15,7 @@
 
 #define bitmap_get(bitmap, where) ((bitmap.data[where / BITMAP_BLOCKS_PER_BYTE] >> (where % BITMAP_BLOCKS_PER_BYTE)) & 1)
 
-bitmap_t bitmap_wrap(uint8_t* data, uint32_t len)
+bitmap_t bitmap_wrap(uint8_t* data, size_t len)
 {
     bitmap_t bitmap;
     bitmap.data = data;
@@ -24,9 +24,9 @@ bitmap_t bitmap_wrap(uint8_t* data, uint32_t len)
 }
 
 /* FIXME: Let user know if alloction was unsucessful */
-bitmap_t bitmap_allocate(uint32_t len)
+bitmap_t bitmap_allocate(size_t len)
 {
-    uint32_t alloc_len = len / BITMAP_BLOCKS_PER_BYTE;
+    size_t alloc_len = len / BITMAP_BLOCKS_PER_BYTE;
     if (len % BITMAP_BLOCKS_PER_BYTE) {
         alloc_len++;
     }

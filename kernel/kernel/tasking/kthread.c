@@ -32,7 +32,7 @@
 extern void trap_return();
 extern void _tasking_jumper();
 
-extern int _thread_setup_kstack(thread_t* thread, uint32_t esp);
+extern int _thread_setup_kstack(thread_t* thread, uintptr_t sp);
 int kthread_setup(proc_t* p)
 {
     p->pid = proc_alloc_pid();
@@ -73,10 +73,10 @@ int kthread_setup(proc_t* p)
 int kthread_setup_regs(proc_t* p, void* entry_point)
 {
     tf_setup_as_kernel_thread(p->main_thread->tf);
-    uint32_t stack = (p->main_thread->kstack.start + USTACK_TOP);
+    uintptr_t stack = (p->main_thread->kstack.start + USTACK_TOP);
     set_base_pointer(p->main_thread->tf, stack);
     set_stack_pointer(p->main_thread->tf, stack);
-    set_instruction_pointer(p->main_thread->tf, (uint32_t)entry_point);
+    set_instruction_pointer(p->main_thread->tf, (uintptr_t)entry_point);
     return 0;
 }
 
@@ -88,7 +88,7 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
     if (!thread->process->is_kthread) {
         return -EPERM;
     }
-    if (!vmm_is_kernel_address((uint32_t)data) && data) {
+    if (!vmm_is_kernel_address((uintptr_t)data) && data) {
         return -EFAULT;
     }
 
@@ -96,7 +96,7 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
     tf_move_stack_pointer(thread->tf, -sizeof(data));
     vmm_copy_to_pdir(thread->process->pdir, &data, get_stack_pointer(thread->tf), sizeof(data));
 #elif __arm__
-    thread->tf->r[0] = (uint32_t)data;
+    thread->tf->r[0] = (uintptr_t)data;
 #endif
     return 0;
 }

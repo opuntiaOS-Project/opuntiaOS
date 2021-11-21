@@ -31,31 +31,31 @@ typedef struct {
     uint32_t user_ip;
 } PACKED trapframe_t;
 
-static inline uint32_t get_stack_pointer(trapframe_t* tf)
+static inline uintptr_t get_stack_pointer(trapframe_t* tf)
 {
     return tf->user_sp;
 }
 
-static inline void set_stack_pointer(trapframe_t* tf, uint32_t sp)
+static inline void set_stack_pointer(trapframe_t* tf, uintptr_t sp)
 {
     tf->user_sp = sp;
 }
 
-static inline uint32_t get_base_pointer(trapframe_t* tf)
+static inline uintptr_t get_base_pointer(trapframe_t* tf)
 {
     return 0;
 }
 
-static inline void set_base_pointer(trapframe_t* tf, uint32_t bp)
+static inline void set_base_pointer(trapframe_t* tf, uintptr_t bp)
 {
 }
 
-static inline uint32_t get_instruction_pointer(trapframe_t* tf)
+static inline uintptr_t get_instruction_pointer(trapframe_t* tf)
 {
     return tf->user_ip;
 }
 
-static inline void set_instruction_pointer(trapframe_t* tf, uint32_t ip)
+static inline void set_instruction_pointer(trapframe_t* tf, uintptr_t ip)
 {
     tf->user_ip = ip;
 }

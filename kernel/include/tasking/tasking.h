@@ -27,7 +27,7 @@
 
 extern proc_t proc[MAX_PROCESS_COUNT];
 
-proc_t* tasking_get_proc(uint32_t pid);
+proc_t* tasking_get_proc(pid_t pid);
 proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir);
 
 /**

@@ -17,24 +17,24 @@
 
 struct __ringbuffer {
     zone_t zone;
-    uint32_t start;
-    uint32_t end;
+    size_t start;
+    size_t end;
 };
 typedef struct __ringbuffer ringbuffer_t;
 
-ringbuffer_t ringbuffer_create(uint32_t size);
+ringbuffer_t ringbuffer_create(size_t size);
 #define ringbuffer_create_std() ringbuffer_create(RINGBUFFER_STD_SIZE)
 void ringbuffer_free(ringbuffer_t* buf);
 
-uint32_t ringbuffer_space_to_read(ringbuffer_t* buf);
-uint32_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, uint32_t start);
-uint32_t ringbuffer_space_to_write(ringbuffer_t* buf);
-uint32_t ringbuffer_read(ringbuffer_t* buf, uint8_t*, uint32_t);
-uint32_t ringbuffer_read_with_start(ringbuffer_t* buf, uint32_t start, uint8_t* holder, uint32_t siz);
-uint32_t ringbuffer_write(ringbuffer_t* buf, const uint8_t*, uint32_t);
-uint32_t ringbuffer_write_ignore_bounds(ringbuffer_t* buf, const uint8_t* holder, uint32_t siz);
-uint32_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data);
-uint32_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data);
+size_t ringbuffer_space_to_read(ringbuffer_t* buf);
+size_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, size_t start);
+size_t ringbuffer_space_to_write(ringbuffer_t* buf);
+size_t ringbuffer_read(ringbuffer_t* buf, uint8_t*, size_t);
+size_t ringbuffer_read_with_start(ringbuffer_t* buf, size_t start, uint8_t* holder, size_t siz);
+size_t ringbuffer_write(ringbuffer_t* buf, const uint8_t*, size_t);
+size_t ringbuffer_write_ignore_bounds(ringbuffer_t* buf, const uint8_t* holder, size_t siz);
+size_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data);
+size_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data);
 void ringbuffer_clear(ringbuffer_t* buf);
 
 #endif //_KERNEL_ALGO_RINGBUFFER_H

@@ -25,16 +25,16 @@
 
 cpu_t cpus[CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
-static uint32_t nxt_proc = 0;
+static pid_t nxt_proc = 0;
 
 static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, int argc, char** argv, int envc, char** envp);
 
-static inline uint32_t _tasking_next_proc_id()
+static inline pid_t _tasking_next_proc_id()
 {
     return atomic_add(&nxt_proc, 1) - 1;
 }
 
-static inline uint32_t _tasking_get_proc_count()
+static inline pid_t _tasking_get_proc_count()
 {
     return atomic_load(&nxt_proc);
 }
@@ -72,7 +72,7 @@ thread_t* tasking_get_thread(pid_t tid)
     return NULL;
 }
 
-proc_t* tasking_get_proc(uint32_t pid)
+proc_t* tasking_get_proc(pid_t pid)
 {
     proc_t* p;
     for (int i = 0; i < _tasking_get_proc_count(); i++) {
@@ -231,7 +231,7 @@ static int _tasking_validate_exec_params(const char** argv, int* kargc, char*** 
         *kargc += argc;
 
         /* Validating arguments size */
-        uint32_t data_len = 0;
+        size_t data_len = 0;
         for (int argi = 0; argi < argc; argi++) {
             if (!str_validate_len(argv[argi], 128)) {
                 return -EINVAL;

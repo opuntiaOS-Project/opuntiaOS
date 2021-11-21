@@ -55,7 +55,7 @@ void kmalloc_init()
     _kmalloc_init_bitmap();
 }
 
-void* kmalloc(uint32_t size)
+void* kmalloc(size_t size)
 {
     lock_acquire(&_kmalloc_lock);
     int act_size = size + sizeof(kmalloc_header_t);
@@ -76,10 +76,10 @@ void* kmalloc(uint32_t size)
     return (void*)&space[1];
 }
 
-void* kmalloc_aligned(uint32_t size, uint32_t alignment)
+void* kmalloc_aligned(size_t size, size_t alignment)
 {
     void* ptr = kmalloc(size + alignment + sizeof(void*));
-    uint32_t max_addr = (uint32_t)ptr + sizeof(void*) + alignment;
+    size_t max_addr = (size_t)ptr + sizeof(void*) + alignment;
     void* aligned_ptr = (void*)(max_addr - (max_addr % alignment));
     ((void**)aligned_ptr)[-1] = ptr;
     return aligned_ptr;
@@ -95,7 +95,7 @@ void kfree(void* ptr)
     kmalloc_header_t* sptr = (kmalloc_header_t*)ptr;
     int blocks_to_delete = (sptr[-1].len + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
     lock_acquire(&_kmalloc_lock);
-    bitmap_unset_range(bitmap, kmalloc_to_index((uint32_t)&sptr[-1]), blocks_to_delete);
+    bitmap_unset_range(bitmap, kmalloc_to_index((size_t)&sptr[-1]), blocks_to_delete);
     lock_release(&_kmalloc_lock);
 }
 
@@ -104,9 +104,9 @@ void kfree_aligned(void* ptr)
     kfree(((void**)ptr)[-1]);
 }
 
-void* krealloc(void* ptr, uint32_t new_size)
+void* krealloc(void* ptr, size_t new_size)
 {
-    uint32_t old_size = ((kmalloc_header_t*)ptr)[-1].len;
+    size_t old_size = ((kmalloc_header_t*)ptr)[-1].len;
     if (old_size == new_size) {
         return ptr;
     }
