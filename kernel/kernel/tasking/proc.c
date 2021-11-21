@@ -357,11 +357,12 @@ success:
         p->cwd = dentry_get_parent(p->proc_file);
     }
 
-    if ((fd.dentry->inode->mode & S_ISUID) == S_ISUID) {
+    if (TEST_FLAG(fd.dentry->inode->mode, S_ISUID)) {
         p->euid = fd.dentry->inode->uid;
         p->suid = fd.dentry->inode->uid;
     }
-    if ((fd.dentry->inode->mode & S_ISGID) == S_ISGID) {
+
+    if (TEST_FLAG(fd.dentry->inode->mode, S_ISGID)) {
         p->egid = fd.dentry->inode->gid;
         p->sgid = fd.dentry->inode->gid;
     }
