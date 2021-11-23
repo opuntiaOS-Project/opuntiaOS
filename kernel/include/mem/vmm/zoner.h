@@ -13,10 +13,10 @@
 
 struct __zone {
     union {
-        uint32_t start;
+        uintptr_t start;
         uint8_t* ptr;
     };
-    uint32_t len;
+    size_t len;
 };
 typedef struct __zone zone_t;
 
