@@ -71,9 +71,9 @@ void reverse(char s[])
     }
 }
 
-uint32_t strlen(const char* s)
+size_t strlen(const char* s)
 {
-    uint32_t i = 0;
+    size_t i = 0;
     while (s[i] != '\0')
         ++i;
     return i;
@@ -116,7 +116,7 @@ int strncmp(const char* a, const char* b, uint32_t num)
     return 0;
 }
 
-bool str_validate_len(const char* s, uint32_t len)
+bool str_validate_len(const char* s, size_t len)
 {
     for (int i = 0; i < len + 1; i++) {
         if (s[i] == 0) {
@@ -130,16 +130,16 @@ bool str_validate_len(const char* s, uint32_t len)
  * Ptr array utils
  */
 
-uint32_t ptrarr_len(const char** s)
+size_t ptrarr_len(const char** s)
 {
-    uint32_t len = 0;
+    size_t len = 0;
     while (s[len] != 0) {
         ++len;
     }
     return len;
 }
 
-bool ptrarr_validate_len(const char** s, uint32_t len)
+bool ptrarr_validate_len(const char** s, size_t len)
 {
     for (int i = 0; i < len + 1; i++) {
         if (s[i] == 0) {

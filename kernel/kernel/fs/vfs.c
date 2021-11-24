@@ -179,7 +179,7 @@ void vfs_add_fs(driver_t* new_driver)
     dynarr_push(&_vfs_fses, &new_fs);
 }
 
-int vfs_open(dentry_t* file, file_descriptor_t* fd, uint32_t flags)
+int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
 {
     thread_t* cur_thread = RUNNING_THREAD;
 
@@ -271,7 +271,7 @@ int vfs_close(file_descriptor_t* fd)
     return res;
 }
 
-int vfs_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid)
+int vfs_create(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
     /* Check if there is a file with the same name */
     dentry_t* tmp;
@@ -300,7 +300,7 @@ int vfs_unlink(dentry_t* file)
     return file->ops->file.unlink(file);
 }
 
-int vfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
+int vfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
 {
     if (!dentry_inode_test_flag(dir, S_IFDIR)) {
         return -ENOTDIR;
@@ -360,7 +360,7 @@ bool vfs_can_write(file_descriptor_t* fd)
     return res;
 }
 
-int vfs_read(file_descriptor_t* fd, void* buf, uint32_t len)
+int vfs_read(file_descriptor_t* fd, void* buf, size_t len)
 {
     lock_acquire(&fd->lock);
     int read = fd->ops->read(fd->dentry, (uint8_t*)buf, fd->offset, len);
@@ -371,7 +371,7 @@ int vfs_read(file_descriptor_t* fd, void* buf, uint32_t len)
     return read;
 }
 
-int vfs_write(file_descriptor_t* fd, void* buf, uint32_t len)
+int vfs_write(file_descriptor_t* fd, void* buf, size_t len)
 {
     lock_acquire(&fd->lock);
     int written = fd->ops->write(fd->dentry, (uint8_t*)buf, fd->offset, len);
@@ -422,7 +422,7 @@ int vfs_rmdir(dentry_t* dir)
     return err;
 }
 
-int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, uint32_t len)
+int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, size_t len)
 {
     if (!dentry_inode_test_flag(dir_fd->dentry, S_IFDIR)) {
         return -ENOTDIR;
@@ -667,7 +667,7 @@ proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
     /* Check if we have a custom mmap for a dentry */
     if (fd->dentry->ops->file.mmap) {
         proc_zone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
-        if ((uint32_t)res != VFS_USE_STD_MMAP) {
+        if ((uintptr_t)res != VFS_USE_STD_MMAP) {
             lock_release(&fd->lock);
             return res;
         }
@@ -685,7 +685,7 @@ int vfs_munmap(proc_t* p, proc_zone_t* zone)
 
     dentry_put(zone->file);
 
-    for (uint32_t vaddr = zone->start; vaddr < zone->start + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
+    for (uintptr_t vaddr = zone->start; vaddr < zone->start + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
         system_flush_tlb_entry(vaddr);
     }
     proc_delete_zone(p, zone);

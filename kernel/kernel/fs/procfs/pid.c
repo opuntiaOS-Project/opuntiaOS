@@ -21,8 +21,8 @@
 #define PROCFS_PID_LEVEL 2
 
 /* PID */
-int procfs_pid_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
-int procfs_pid_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
+int procfs_pid_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len);
+int procfs_pid_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
 static bool procfs_pid_memstat_can_read(dentry_t* dentry, uint32_t start);
@@ -82,7 +82,7 @@ static uint32_t procfs_pid_sfiles_get_inode_index(dentry_t* dir, int fileid)
  * PID
  */
 
-int procfs_pid_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
+int procfs_pid_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
 {
     int already_read = 0;
     dirent_t tmp;
@@ -106,7 +106,7 @@ int procfs_pid_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t 
     return already_read;
 }
 
-int procfs_pid_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
+int procfs_pid_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
 

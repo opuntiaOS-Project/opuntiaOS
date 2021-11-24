@@ -27,8 +27,8 @@ static uint32_t procfs_root_sfiles_get_inode_index(int fileid);
 static uint32_t procfs_root_self_get_inode_index(int fileid);
 
 /* PID */
-int procfs_root_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len);
-int procfs_root_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
+int procfs_root_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len);
+int procfs_root_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
 static bool procfs_root_uptime_can_read(dentry_t* dentry, uint32_t start);
@@ -100,7 +100,7 @@ static uint32_t procfs_root_pid_get_inode_index(int procid)
  * ROOT
  */
 
-int procfs_root_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
+int procfs_root_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
 {
     char name[8];
     int already_read = 0;
@@ -143,7 +143,7 @@ int procfs_root_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t
     return already_read;
 }
 
-int procfs_root_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
+int procfs_root_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
 {
     char pid_name[8];
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;

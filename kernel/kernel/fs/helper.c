@@ -15,9 +15,9 @@
 
 #define NORM_FILENAME(x) ((x + 0x3) & (uint32_t)(~0b11))
 
-ssize_t vfs_helper_write_dirent(dirent_t* buf, uint32_t buf_len, uint32_t inode_index, const char* name)
+ssize_t vfs_helper_write_dirent(dirent_t* buf, size_t buf_len, ino_t inode_index, const char* name)
 {
-    uint32_t name_len = strlen(name);
+    size_t name_len = strlen(name);
     int phys_rec_len = 8 + NORM_FILENAME(name_len) + 1;
     int virt_rec_len = 8 + name_len + 1;
 

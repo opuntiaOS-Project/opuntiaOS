@@ -74,7 +74,7 @@ int procfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return procfs_inode->ops->read(dentry, buf, start, len);
 }
 
-int procfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
+int procfs_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
     if (!procfs_inode->ops->getdents) {
