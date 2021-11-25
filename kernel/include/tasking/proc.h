@@ -126,7 +126,7 @@ int proc_copy_of(proc_t* new_proc, struct thread* from_thread);
 
 int proc_die(proc_t* p);
 int proc_can_zombie_die(proc_t* p);
-int proc_block_all_threads(proc_t* p, struct blocker* blocker);
+int proc_block_all_threads(proc_t* p, const struct blocker* blocker);
 
 /**
  * PROC FD FUNCTIONS

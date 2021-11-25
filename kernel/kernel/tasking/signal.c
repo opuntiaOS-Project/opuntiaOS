@@ -256,8 +256,9 @@ static int signal_process(thread_t* thread, int signo)
             dump_and_kill(RUNNING_THREAD->process);
             return SKIP;
         case SIGNAL_ACTION_IGNORE:
+            return SKIP;
         case SIGNAL_ACTION_STOP:
-            // FIXME: Stop is not supported.
+            thread_stop(thread);
             return SKIP;
         case SIGNAL_ACTION_CONTINUE:
             return UNBLOCK;

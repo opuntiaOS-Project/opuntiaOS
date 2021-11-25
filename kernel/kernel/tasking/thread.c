@@ -277,6 +277,13 @@ int thread_stop(thread_t* thread)
 {
     thread->status = THREAD_STATUS_STOPPED;
     sched_dequeue(thread);
+    return 0;
+}
+
+int thread_stop_and_resched(thread_t* thread)
+{
+    thread->status = THREAD_STATUS_STOPPED;
+    sched_dequeue(thread);
     resched();
     return 0;
 }
@@ -284,6 +291,16 @@ int thread_stop(thread_t* thread)
 int thread_continue(thread_t* thread)
 {
     thread->status = THREAD_STATUS_RUNNING;
+    return 0;
+}
+
+int thread_init_blocker(thread_t* thread, const blocker_t* blocker)
+{
+    thread->status = THREAD_STATUS_BLOCKED;
+    thread->blocker.reason = blocker->reason;
+    thread->blocker.should_unblock = blocker->should_unblock;
+    thread->blocker.should_unblock_for_signal = blocker->should_unblock_for_signal;
+    sched_dequeue(thread);
     return 0;
 }
 

@@ -44,6 +44,7 @@ enum BLOCKER_REASON {
     BLOCKER_SLEEP,
     BLOCKER_SELECT,
     BLOCKER_DUMPING,
+    BLOCKER_STOP, // Just waiting for signal which will continue the thread.
 };
 
 struct blocker_join {
@@ -143,6 +144,7 @@ int thread_free(thread_t* thread);
 int thread_die(thread_t* thread);
 int thread_zombie(thread_t* thread);
 int thread_stop(thread_t* thread);
+int thread_stop_and_resched(thread_t* thread);
 int thread_continue(thread_t* thread);
 
 static ALWAYS_INLINE int thread_is_freed(thread_t* thread) { return (thread->status == THREAD_STATUS_INVALID); }
@@ -155,6 +157,8 @@ int thread_dec_waiting_ents(thread_t* thread);
 /**
  * BLOCKER FUNCTIONS
  */
+
+int thread_init_blocker(thread_t* thread, const struct blocker* blocker);
 
 int init_join_blocker(thread_t* thread, int wait_for_pid);
 int init_read_blocker(thread_t* p, file_descriptor_t* bfd);

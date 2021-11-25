@@ -471,16 +471,12 @@ int proc_can_zombie_die(proc_t* p)
     return 0;
 }
 
-int proc_block_all_threads(proc_t* p, blocker_t* blocker)
+int proc_block_all_threads(proc_t* p, const blocker_t* blocker)
 {
     lock_acquire(&p->lock);
     foreach_thread(p)
     {
-        thread->status = THREAD_STATUS_BLOCKED;
-        thread->blocker.reason = blocker->reason;
-        thread->blocker.should_unblock = blocker->should_unblock;
-        thread->blocker.should_unblock_for_signal = blocker->should_unblock_for_signal;
-        sched_dequeue(thread);
+        thread_init_blocker(thread, blocker);
     }
     lock_release(&p->lock);
     return 0;

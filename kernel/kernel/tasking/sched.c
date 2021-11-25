@@ -270,7 +270,7 @@ void switch_to_thread(thread_t* thread)
     if (thread->pending_signals_mask) {
         signal_dispatch_pending(thread);
         if (thread->status != THREAD_STATUS_RUNNING) {
-            // Signal could terminate the thread, so check if it's runnanble.
+            // Signals could terminate/block/stop the thread, so check if it's still runnable.
             return;
         }
     }
