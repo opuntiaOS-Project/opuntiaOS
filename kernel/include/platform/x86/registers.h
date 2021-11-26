@@ -11,28 +11,48 @@
 
 #include <libkern/types.h>
 
-uint32_t read_cr2();
-uint32_t read_cr3();
-uint32_t read_esp();
-extern uint32_t read_eip();
-
-static inline uint32_t read_ebp()
+extern uintptr_t read_ip();
+static inline uintptr_t read_cr2()
 {
-    uint32_t val;
+    uintptr_t val;
+    asm volatile("movl %%cr2,%0"
+                 : "=r"(val));
+    return val;
+}
+
+static inline uintptr_t read_cr3()
+{
+    uintptr_t val;
+    asm volatile("movl %%cr3,%0"
+                 : "=r"(val));
+    return val;
+}
+
+static inline uintptr_t read_sp()
+{
+    uintptr_t val;
+    asm volatile("movl %%esp,%0"
+                 : "=r"(val));
+    return val;
+}
+
+static inline uintptr_t read_bp()
+{
+    uintptr_t val;
     asm volatile("movl %%ebp,%0"
                  : "=r"(val));
     return val;
 }
 
-static inline uint32_t read_cr0()
+static inline uintptr_t read_cr0()
 {
-    uint32_t val;
+    uintptr_t val;
     asm volatile("movl %%cr0, %0"
                  : "=r"(val));
     return val;
 }
 
-static inline void write_cr0(uint32_t val)
+static inline void write_cr0(uintptr_t val)
 {
     asm volatile("movl %0, %%cr0"
                  :

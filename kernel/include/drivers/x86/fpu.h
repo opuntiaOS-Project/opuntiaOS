@@ -46,7 +46,7 @@ static inline void fpu_make_avail()
 static inline void fpu_make_unavail()
 {
     // Set TS bit of cr0 to 1.
-    uint32_t cr0 = read_cr0() | (1 << 3);
+    uintptr_t cr0 = read_cr0() | (1 << 3);
     write_cr0(cr0);
 }
 

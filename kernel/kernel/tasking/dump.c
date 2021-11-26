@@ -112,7 +112,7 @@ void dump_and_kill(proc_t* p)
     proc_block_all_threads(p, &blocker);
     proc_t* dumper_p = tasking_run_kernel_thread(dumper, p);
 
-    // Kthread does NOT clean it's pdir, so we can share the pdir of
+    // Hack: kthreads do NOT clean pdirs, so we can share the pdir of
     // the blocked proc to read it's content.
     dumper_p->pdir = p->pdir;
 

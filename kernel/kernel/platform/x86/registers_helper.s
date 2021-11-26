@@ -1,4 +1,4 @@
-extern read_eip
-read_eip: 
+extern read_ip
+read_ip:
     mov eax, [esp]
     ret

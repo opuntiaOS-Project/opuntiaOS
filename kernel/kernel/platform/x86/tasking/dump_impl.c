@@ -25,7 +25,7 @@ void dump_regs(dump_data_t* dump_data)
     dump_data->writer(buf);
 }
 
-void dump_backtrace(dump_data_t* dump_data, uint32_t ip, uint32_t* bp, int is_kernel)
+void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_kernel)
 {
     uint32_t id = 1;
     char buf[64];
@@ -41,12 +41,12 @@ void dump_backtrace(dump_data_t* dump_data, uint32_t ip, uint32_t* bp, int is_ke
         dump_data->writer(&dump_data->strs[index]);
         dump_data->writer("\n");
 
-        if (vmm_is_kernel_address((uint32_t)bp) != is_kernel) {
+        if (vmm_is_kernel_address((uintptr_t)bp) != is_kernel) {
             return;
         }
 
         ip = bp[1];
-        bp = (uint32_t*)*bp;
+        bp = (uintptr_t*)*bp;
         id++;
     } while (ip != dump_data->entry_point);
 
@@ -66,7 +66,7 @@ int dump_kernel_impl(dump_data_t* dump_data, const char* err_desc)
     if (err_desc) {
         dump_data->writer(err_desc);
     }
-    dump_backtrace(dump_data, read_eip(), (uint32_t*)read_ebp(), 1);
+    dump_backtrace(dump_data, read_ip(), (uint32_t*)read_bp(), 1);
     return 0;
 }
 
