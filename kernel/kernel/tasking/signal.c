@@ -27,11 +27,6 @@
 #define return_tf (thread->tf->r[1])
 #endif
 
-enum {
-    UNBLOCK,
-    SKIP,
-};
-
 static zone_t _signal_jumper_zone;
 
 extern void signal_caller_start();
@@ -239,35 +234,72 @@ static int signal_default_action(int signo)
     return defact[signo];
 }
 
-/* FIXME: Don't allow to run a signal while other is in process */
 static int signal_process(thread_t* thread, int signo)
 {
     if (thread->signal_handlers[signo]) {
         signal_setup_stack_to_handle_signal(thread, signo);
         set_instruction_pointer(thread->tf, _signal_jumper_zone.start);
-        return UNBLOCK;
+        return 0;
     } else {
         int result = signal_default_action(signo);
         switch (result) {
         case SIGNAL_ACTION_TERMINATE:
             proc_die(thread->process);
-            return SKIP;
+            return 0;
         case SIGNAL_ACTION_ABNORMAL_TERMINATE:
             dump_and_kill(RUNNING_THREAD->process);
-            return SKIP;
+            return 0;
         case SIGNAL_ACTION_IGNORE:
-            return SKIP;
         case SIGNAL_ACTION_STOP:
-            thread_stop(thread);
-            return SKIP;
         case SIGNAL_ACTION_CONTINUE:
-            return UNBLOCK;
+            // These actions were processed earlier, right when signals were issued. (look at signal_send_signal)
+            return 0;
 
         default:
             break;
         }
     }
     return -EFAULT;
+}
+
+int signal_send(thread_t* thread, int signo)
+{
+    int err = signal_set_pending(thread, signo);
+    if (err) {
+        return err;
+    }
+
+    // Issue STOP and CONT actions, while others will be issued later when
+    // the process does not run.
+    //
+    // TODO: Think of POSIX compliant of recieving signals. Currently we look
+    // at default actions only.
+    int ret = signal_default_action(signo);
+    switch (ret) {
+    case SIGNAL_ACTION_CONTINUE:
+        if (thread && thread->status == THREAD_STATUS_BLOCKED && thread->blocker.should_unblock_for_signal) {
+            sched_enqueue(thread);
+        }
+        if (thread && thread->status == THREAD_STATUS_STOPPED) {
+            sched_enqueue(thread);
+        }
+        break;
+
+    case SIGNAL_ACTION_STOP:
+        // If the thread is a running one, It is safe to
+        // stop it in the current state and resched.
+        if (thread && thread == RUNNING_THREAD) {
+            thread_stop_and_resched(thread);
+        } else {
+            thread_stop(thread);
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    return 0;
 }
 
 int signal_dispatch_pending(thread_t* thread)
@@ -286,17 +318,10 @@ int signal_dispatch_pending(thread_t* thread)
     }
 
     signal_rem_pending(thread, signo);
-    int ret = signal_process(thread, signo);
+    int err = signal_process(thread, signo);
 
-    if (ret < 0) {
-        return ret;
+    if (err) {
+        return err;
     }
-
-    if (ret == UNBLOCK) {
-        if (thread && thread->status == THREAD_STATUS_BLOCKED && thread->blocker.should_unblock_for_signal) {
-            sched_enqueue(thread);
-        }
-    }
-
     return 0;
 }

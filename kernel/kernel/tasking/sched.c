@@ -212,6 +212,7 @@ void sched_unblock_threads()
 
 void resched_dont_save_context()
 {
+    // Add the thread back to runqueue only if thread is still running.
     if (RUNNING_THREAD && RUNNING_THREAD->status == THREAD_STATUS_RUNNING) {
         RUNNING_THREAD->stat_total_running_ticks += timeman_ticks_since_boot() - RUNNING_THREAD->start_time_in_ticks;
         _sched_add_to_end_of_runqueue(&cpus[RUNNING_THREAD->last_cpu].sched, RUNNING_THREAD);
@@ -223,6 +224,7 @@ void resched()
 {
     if (RUNNING_THREAD) {
         RUNNING_THREAD->stat_total_running_ticks += timeman_ticks_since_boot() - RUNNING_THREAD->start_time_in_ticks;
+        // Add the thread back to runqueue only if thread is still running.
         if (RUNNING_THREAD->status == THREAD_STATUS_RUNNING) {
             _sched_add_to_end_of_runqueue(&cpus[RUNNING_THREAD->last_cpu].sched, RUNNING_THREAD);
         }
@@ -301,6 +303,9 @@ void sched()
         sched->master_buf[sched->next_read_prio].head = thread->sched_next;
         if (sched->master_buf[sched->next_read_prio].tail == thread) {
             sched->master_buf[sched->next_read_prio].tail = NULL;
+        }
+        if (thread->sched_next) {
+            thread->sched_next->sched_prev = NULL;
         }
         thread->sched_next = thread->sched_prev = NULL;
 #ifdef SCHED_DEBUG

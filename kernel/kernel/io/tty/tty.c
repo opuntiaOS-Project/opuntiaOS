@@ -218,7 +218,7 @@ void tty_eat_key(key_t key)
     if (key == KEY_CTRLC) {
         proc_t* p = tasking_get_proc(tty->pgid);
         if (p) {
-            signal_set_pending(p->main_thread, SIGINT);
+            signal_send(p->main_thread, SIGINT);
         }
         return;
     }

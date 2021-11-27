@@ -348,12 +348,12 @@ void tasking_exit(int exit_code)
     resched();
 }
 
-int tasking_kill(thread_t* thread, int signo)
+int tasking_signal(thread_t* thread, int signo)
 {
     if (thread->status == THREAD_STATUS_INVALID || thread->status == THREAD_STATUS_DYING) {
         return -EINVAL;
     }
-    signal_set_pending(thread, signo);
+    signal_send(thread, signo);
 
     // If the target thread is a one that issued kill to self,
     // dispatch the signal right now. Overwise scheduler will

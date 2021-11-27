@@ -53,7 +53,7 @@ void sys_sigreturn(trapframe_t* tf)
 void sys_kill(trapframe_t* tf)
 {
     thread_t* thread = thread_by_pid(SYSCALL_VAR1(tf));
-    int ret = tasking_kill(thread, SYSCALL_VAR2(tf));
+    int ret = tasking_signal(thread, SYSCALL_VAR2(tf));
     return_with_val(ret);
 }
 
