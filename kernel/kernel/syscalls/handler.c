@@ -53,6 +53,7 @@ static const void* syscalls[] = {
     [SYS_GETPGID] = sys_getpgid,
     [SYS_PTHREAD_CREATE] = sys_create_thread,
     [SYS_NANOSLEEP] = sys_sleep,
+    [SYS_PTRACE] = sys_ptrace,
     [SYS_SELECT] = sys_select,
     [SYS_FSTAT] = sys_fstat,
     [SYS_FSYNC] = sys_fsync,

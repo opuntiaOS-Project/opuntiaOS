@@ -89,6 +89,9 @@ struct proc {
     tty_entry_t* tty;
 
     bool is_kthread;
+
+    /* Trace data */
+    bool is_tracee;
 };
 typedef struct proc proc_t;
 

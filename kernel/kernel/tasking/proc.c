@@ -426,6 +426,7 @@ int proc_free_lockless(proc_t* p)
         p->pdir = NULL;
     }
 
+    p->is_tracee = false;
     dynarr_free(&p->zones);
     return 0;
 }

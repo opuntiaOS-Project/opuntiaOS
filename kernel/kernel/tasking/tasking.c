@@ -292,11 +292,18 @@ int tasking_exec(const char* path, const char** argv, const char** envp)
 
     err = _tasking_do_exec(p, thread, kpath, kargc, kargv, kenvc, kenv);
 
-#ifdef TASKING_DEBUG
-    if (!err) {
-        log("Exec %s : pid %d", kpath, p->pid);
+    if (err) {
+        goto exit;
     }
+
+#ifdef TASKING_DEBUG
+    log("Exec %s : pid %d", kpath, p->pid);
 #endif
+
+    if (p->is_tracee) {
+        // Wait for SIGCONT from parent thread.
+        tasking_signal(thread, SIGSTOP);
+    }
 
 exit:
     if (kpath) {

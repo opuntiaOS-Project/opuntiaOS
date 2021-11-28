@@ -69,6 +69,7 @@ void sys_nice(trapframe_t* tf);
 void sys_shbuf_create(trapframe_t* tf);
 void sys_shbuf_get(trapframe_t* tf);
 void sys_shbuf_free(trapframe_t* tf);
+void sys_ptrace(trapframe_t* tf);
 
 void sys_none(trapframe_t* tf);
 

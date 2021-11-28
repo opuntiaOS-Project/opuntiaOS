@@ -15,6 +15,7 @@ opuntiaOS_static_library("libc") {
     "posix/tasking.c",
     "posix/time.c",
     "pthread/pthread.c",
+    "ptrace/ptrace.c",
     "pwd/pwd.c",
     "pwd/shadow.c",
     "setjmp/$target_cpu/setjmp.s",
