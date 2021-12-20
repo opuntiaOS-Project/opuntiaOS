@@ -25,7 +25,6 @@ enum THREAD_STATUS {
     THREAD_STATUS_STOPPED,
     THREAD_STATUS_BLOCKED,
     THREAD_STATUS_DYING,
-    THREAD_STATUS_ZOMBIE,
 };
 
 struct thread;
@@ -99,9 +98,6 @@ struct thread {
         blocker_select_t select;
     } blocker_data;
 
-    int exit_code; // Sets only for the main thread.
-    int waiting_threads; // Count of waiting threads for this one.
-
     /* Stat data */
     time_t stat_total_running_ticks;
 
@@ -149,10 +145,6 @@ int thread_continue(thread_t* thread);
 
 static ALWAYS_INLINE int thread_is_freed(thread_t* thread) { return (thread->status == THREAD_STATUS_INVALID); }
 static ALWAYS_INLINE int thread_is_alive(thread_t* thread) { return !thread_is_freed(thread); }
-
-static ALWAYS_INLINE int thread_waiting_ents(thread_t* thread) { return atomic_load(&thread->waiting_threads); }
-static ALWAYS_INLINE int thread_inc_waiting_ents(thread_t* thread) { return atomic_add(&thread->waiting_threads, 1); }
-int thread_dec_waiting_ents(thread_t* thread);
 
 /**
  * BLOCKER FUNCTIONS

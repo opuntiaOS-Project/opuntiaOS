@@ -88,6 +88,8 @@ struct proc {
     file_descriptor_t* fds;
     tty_entry_t* tty;
 
+    int exit_code;
+
     bool is_kthread;
 
     /* Trace data */
@@ -125,10 +127,9 @@ int kthread_fill_up_stack(struct thread* thread, void* data);
 int kthread_free(proc_t* p);
 
 int proc_load(proc_t* p, struct thread* main_thread, const char* path);
-int proc_copy_of(proc_t* new_proc, struct thread* from_thread);
+int proc_fork_from(proc_t* new_proc, struct thread* from_thread);
 
 int proc_die(proc_t* p);
-int proc_can_zombie_die(proc_t* p);
 int proc_block_all_threads(proc_t* p, const struct blocker* blocker);
 
 /**
@@ -157,6 +158,7 @@ int proc_delete_zone(proc_t*, proc_zone_t*);
  * PROC HELPER FUNCTIONS
  */
 
-static inline bool proc_is_su(proc_t* p) { return p->euid == 0; }
+static ALWAYS_INLINE bool proc_is_su(proc_t* p) { return p->euid == 0; }
+static ALWAYS_INLINE int proc_is_alive(proc_t* p) { return p->status == PROC_ALIVE; }
 
 #endif // _KERNEL_TASKING_PROC_H

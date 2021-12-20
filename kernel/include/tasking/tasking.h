@@ -50,6 +50,9 @@ proc_t* tasking_run_kernel_thread(void* entry_point, void* data);
 
 void tasking_init();
 void tasking_kill_dying();
+bool tasking_should_become_zombie(proc_t* p);
+void tasking_evict_proc_entry(proc_t* p);
+void tasking_evict_zombies_waiting_for(proc_t* p);
 
 /**
  * SYSCALL IMPLEMENTATION

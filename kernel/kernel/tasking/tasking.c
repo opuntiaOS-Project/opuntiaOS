@@ -121,7 +121,7 @@ static proc_t* _tasking_fork_proc_from_current()
 {
     proc_t* new_proc = _tasking_setup_proc();
     new_proc->pdir = vmm_new_forked_user_pdir();
-    proc_copy_of(new_proc, RUNNING_THREAD);
+    proc_fork_from(new_proc, RUNNING_THREAD);
     return new_proc;
 }
 
@@ -179,6 +179,42 @@ void tasking_init()
     dump_prepare_kernel_data();
 }
 
+bool tasking_should_become_zombie(proc_t* p)
+{
+    proc_t* pproc = tasking_get_proc(p->ppid);
+    if (!pproc) {
+        return false;
+    }
+
+    if (!proc_is_alive(pproc)) {
+        return false;
+    }
+
+    if (pproc->main_thread->signal_handlers[SIGCHLD]) {
+        signal_send(pproc->main_thread, SIGCHLD);
+        return false;
+    }
+    return true;
+}
+
+void tasking_evict_zombies_waiting_for(proc_t* pp)
+{
+    // TODO: Do it more efficient, keep a list of zombies or a hashtable.
+    proc_t* p;
+    for (int i = 0; i < _tasking_get_proc_count(); i++) {
+        p = &proc[i];
+        if (p->status == PROC_ZOMBIE && p->ppid == pp->pid) {
+            tasking_evict_proc_entry(p);
+        }
+    }
+}
+
+void tasking_evict_proc_entry(proc_t* p)
+{
+    p->pid = 0;
+    p->status = PROC_DEAD;
+}
+
 void tasking_kill_dying()
 {
     proc_t* p;
@@ -191,7 +227,11 @@ void tasking_kill_dying()
                 continue;
             }
             proc_free_lockless(p);
-            p->status = PROC_DEAD;
+            if (tasking_should_become_zombie(p)) {
+                p->status = PROC_ZOMBIE;
+            } else {
+                tasking_evict_proc_entry(p);
+            }
             lock_release(&p->lock);
         }
     }
@@ -328,20 +368,16 @@ exit:
 int tasking_waitpid(int pid, int* status)
 {
     thread_t* thread = RUNNING_THREAD;
-    thread_t* joinee_thread = tasking_get_thread(pid);
-    if (!joinee_thread) {
+    proc_t* p = tasking_get_proc(pid);
+    if (!p) {
         return -ESRCH;
     }
 
     init_join_blocker(thread, pid);
 
     if (status) {
-        int kstatus = 0;
-
-        // Check if the thread bucket, still hold data of a required thread.
-        if (joinee_thread->tid == pid) {
-            kstatus = joinee_thread->exit_code;
-        }
+        proc_t* p = tasking_get_proc(pid);
+        int kstatus = p->exit_code;
         vmm_copy_to_user(status, &kstatus, sizeof(int));
     }
     return 0;
@@ -350,7 +386,7 @@ int tasking_waitpid(int pid, int* status)
 void tasking_exit(int exit_code)
 {
     proc_t* p = RUNNING_THREAD->process;
-    p->main_thread->exit_code = exit_code;
+    p->exit_code = exit_code;
     proc_die(p);
     resched();
 }

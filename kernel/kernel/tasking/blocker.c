@@ -21,7 +21,7 @@ int should_unblock_join_block(thread_t* thread)
     }
 
     const int status = thread->blocker_data.join.joinee->status;
-    if (status == THREAD_STATUS_DYING || status == THREAD_STATUS_ZOMBIE) {
+    if (status == THREAD_STATUS_DYING) {
         return 1;
     }
     return 0;
@@ -32,7 +32,6 @@ int init_join_blocker(thread_t* thread, int wait_for_pid)
 {
     thread_t* joinee_thread = tasking_get_thread(wait_for_pid);
 
-    thread_inc_waiting_ents(joinee_thread);
     thread->blocker_data.join.joinee = joinee_thread;
     thread->blocker_data.join.join_pid = wait_for_pid;
 
@@ -47,7 +46,6 @@ int init_join_blocker(thread_t* thread, int wait_for_pid)
     sched_dequeue(thread);
     resched();
 
-    thread_dec_waiting_ents(joinee_thread);
     return 0;
 }
 

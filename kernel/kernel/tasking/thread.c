@@ -239,38 +239,9 @@ int thread_die(thread_t* thread)
         return -EINVAL;
     }
 
-    // If the thread was blocked, it could have a relation to a joinee thread. Break it here.
-    if (thread->status == THREAD_STATUS_BLOCKED && thread->blocker.reason == BLOCKER_JOIN && thread->blocker_data.join.joinee) {
-        thread_dec_waiting_ents(thread->blocker_data.join.joinee);
-    }
-
     thread->status = THREAD_STATUS_DYING;
     sched_dequeue(thread);
     return 0;
-}
-
-int thread_zombie(thread_t* thread)
-{
-    if (thread_is_freed(thread)) {
-        return -EINVAL;
-    }
-
-    thread->status = THREAD_STATUS_ZOMBIE;
-    sched_dequeue(thread);
-    return 0;
-}
-
-int thread_dec_waiting_ents(thread_t* thread)
-{
-    int val = atomic_add(&thread->waiting_threads, -1);
-    if (thread->status == THREAD_STATUS_ZOMBIE && val == 0) {
-        thread->status = THREAD_STATUS_DYING;
-    }
-    if (thread->process->status == PROC_ZOMBIE) {
-        proc_can_zombie_die(thread->process);
-    }
-
-    return val;
 }
 
 int thread_stop(thread_t* thread)

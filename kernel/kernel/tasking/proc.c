@@ -225,12 +225,13 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
     return res;
 }
 
-int proc_copy_of(proc_t* new_proc, thread_t* from_thread)
+int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
 {
     proc_t* from_proc = from_thread->process;
     thread_copy_of(new_proc->main_thread, from_thread);
 
     new_proc->ppid = from_proc->pid;
+    new_proc->pgid = from_proc->gid;
     new_proc->uid = from_proc->uid;
     new_proc->gid = from_proc->gid;
     new_proc->euid = from_proc->euid;
@@ -419,7 +420,6 @@ int proc_free_lockless(proc_t* p)
 
     /* Key parts deletion. After that line you can't work with this process. */
     proc_kill_all_threads_lockless(p);
-    p->pid = 0;
 
     if (!p->is_kthread) {
         vmm_free_pdir(p->pdir, &p->zones);
@@ -445,29 +445,10 @@ int proc_die(proc_t* p)
     p->status = PROC_DYING;
     foreach_thread(p)
     {
-        if (atomic_load(&thread->waiting_threads) != 0) {
-            p->status = PROC_ZOMBIE;
-            thread_zombie(thread);
-        } else {
-            thread_die(thread);
-        }
+        thread_die(thread);
     }
 
-    lock_release(&p->lock);
-    return 0;
-}
-
-int proc_can_zombie_die(proc_t* p)
-{
-    lock_acquire(&p->lock);
-    p->status = PROC_DYING;
-    foreach_thread(p)
-    {
-        if (atomic_load(&thread->waiting_threads) != 0) {
-            p->status = PROC_ZOMBIE;
-            break;
-        }
-    }
+    tasking_evict_zombies_waiting_for(p);
     lock_release(&p->lock);
     return 0;
 }
