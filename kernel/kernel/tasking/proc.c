@@ -157,7 +157,7 @@ static ALWAYS_INLINE int proc_setup_lockless(proc_t* p)
     memset((void*)p->fds, 0, MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
     /* setting up zones */
-    if (dynarr_init_of_size(proc_zone_t, &p->zones, 8) != 0) {
+    if (dynarr_init_of_size(memzone_t, &p->zones, 8) != 0) {
         return -ENOMEM;
     }
 
@@ -254,7 +254,7 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
     }
 
     for (int i = 0; i < from_proc->zones.size; i++) {
-        proc_zone_t* zone_to_copy = (proc_zone_t*)dynarr_get(&from_proc->zones, i);
+        memzone_t* zone_to_copy = (memzone_t*)dynarr_get(&from_proc->zones, i);
         if (zone_to_copy->file) {
             dentry_duplicate(zone_to_copy->file); // For the copied zone.
         }
@@ -271,18 +271,18 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
 static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
 {
     uint32_t code_size = fd->dentry->inode->size;
-    proc_zone_t* code_zone = proc_new_random_zone(p, code_size);
+    memzone_t* code_zone = memzone_new_random(p, code_size);
     code_zone->type = ZONE_TYPE_CODE;
     code_zone->flags |= ZONE_READABLE | ZONE_EXECUTABLE;
 
     /* THIS IS FOR BSS WHICH COULD BE IN THIS ZONE */
     code_zone->flags |= ZONE_WRITABLE;
 
-    proc_zone_t* bss_zone = proc_new_random_zone(p, 2 * 4096);
+    memzone_t* bss_zone = memzone_new_random(p, 2 * 4096);
     bss_zone->type = ZONE_TYPE_DATA;
     bss_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
-    proc_zone_t* stack_zone = proc_new_random_zone_backward(p, VMM_PAGE_SIZE);
+    memzone_t* stack_zone = memzone_new_random_backward(p, VMM_PAGE_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
@@ -324,7 +324,7 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
     vmm_switch_pdir(new_pdir);
     p->pdir = new_pdir;
 
-    if (dynarr_init_of_size(proc_zone_t, &p->zones, 8) != 0) {
+    if (dynarr_init_of_size(memzone_t, &p->zones, 8) != 0) {
         dentry_put(dentry);
         vfs_close(&fd);
         return -ENOMEM;

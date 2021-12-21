@@ -8,8 +8,8 @@
 
 #include <drivers/aarch32/sp804.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <platform/aarch32/interrupts.h>
 #include <tasking/cpu.h>
 #include <tasking/sched.h>
@@ -17,12 +17,12 @@
 
 // #define DEBUG_SP804
 
-static zone_t mapped_zone;
+static kmemzone_t mapped_zone;
 volatile sp804_registers_t* timer1 = (sp804_registers_t*)SP804_TIMER1_BASE;
 
 static inline int _sp804_map_itself()
 {
-    mapped_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_map_page(mapped_zone.start, SP804_TIMER1_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     timer1 = (sp804_registers_t*)mapped_zone.ptr;
     return 0;

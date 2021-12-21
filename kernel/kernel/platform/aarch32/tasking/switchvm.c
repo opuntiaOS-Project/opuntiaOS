@@ -7,7 +7,7 @@
  */
 
 #include <drivers/generic/fpu.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/aarch32/interrupts.h>
 #include <platform/generic/system.h>
 #include <platform/generic/tasking/trapframe.h>

@@ -84,7 +84,7 @@ static int _bga_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
     }
 }
 
-static proc_zone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
+static memzone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
 {
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
 
@@ -92,7 +92,7 @@ static proc_zone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
         return 0;
     }
 
-    proc_zone_t* zone = proc_new_random_zone(RUNNING_THREAD->process, bga_screen_buffer_size);
+    memzone_t* zone = memzone_new_random(RUNNING_THREAD->process, bga_screen_buffer_size);
     if (!zone) {
         return 0;
     }

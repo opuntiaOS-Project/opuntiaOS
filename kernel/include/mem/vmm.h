@@ -6,26 +6,17 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_MEM_VMM_VMM_H
-#define _KERNEL_MEM_VMM_VMM_H
+#ifndef _KERNEL_MEM_VMM_H
+#define _KERNEL_MEM_VMM_H
 
 #include <libkern/libkern.h>
+#include <mem/bits/page.h>
 #include <mem/pmm.h>
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/pde.h>
 #include <platform/generic/vmm/pte.h>
 
 #define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
-
-/* Note: If you change them, change also proc zone flags */
-enum PAGE_FLAGS {
-    PAGE_WRITABLE = 0x1,
-    PAGE_READABLE = 0x2,
-    PAGE_EXECUTABLE = 0x4,
-    PAGE_NOT_CACHEABLE = 0x8,
-    PAGE_COW = 0x10,
-    PAGE_USER = 0x20,
-};
 
 #define USER_PAGE true
 #define KERNEL_PAGE false
@@ -90,4 +81,4 @@ int vmm_switch_pdir(pdirectory_t* pdir);
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr);
 
-#endif // _KERNEL_MEM_VMM_VMM_H
+#endif // _KERNEL_MEM_VMM_H

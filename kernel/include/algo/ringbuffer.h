@@ -11,12 +11,12 @@
 
 #include <libkern/libkern.h>
 #include <libkern/lock.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
 
 #define RINGBUFFER_STD_SIZE (16 * KB)
 
 struct __ringbuffer {
-    zone_t zone;
+    kmemzone_t zone;
     size_t start;
     size_t end;
 };

@@ -11,8 +11,8 @@
 #include <libkern/lock.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <platform/generic/cpu.h>
 #include <platform/generic/system.h>
 #include <platform/generic/vmm/mapping_table.h>
@@ -30,7 +30,7 @@
 
 static pdir_t* _vmm_kernel_pdir;
 static lock_t _vmm_lock;
-static zone_t pspace_zone;
+static kmemzone_t pspace_zone;
 static uintptr_t kernel_ptables_start_paddr = 0x0;
 
 #define vmm_kernel_pdir_phys2virt(paddr) ((void*)((uintptr_t)paddr + KERNEL_BASE - KERNEL_PM_BASE))
@@ -146,7 +146,7 @@ inline static void _vmm_free_page_paddr(uintptr_t addr)
     pmm_free((void*)addr, VMM_PAGE_SIZE);
 }
 
-static zone_t _vmm_alloc_mapped_zone(size_t size, size_t alignment)
+static kmemzone_t _vmm_alloc_mapped_zone(size_t size, size_t alignment)
 {
     if (size % VMM_PAGE_SIZE) {
         size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
@@ -156,25 +156,25 @@ static zone_t _vmm_alloc_mapped_zone(size_t size, size_t alignment)
     }
 
     // TODO: Currently only sequence allocation is implemented.
-    zone_t zone = zoner_new_zone_aligned(size, alignment);
+    kmemzone_t zone = kmemzone_new_aligned(size, alignment);
     uintptr_t paddr = (uintptr_t)pmm_alloc_aligned(size, alignment);
     vmm_map_pages_lockless(zone.start, paddr, size / VMM_PAGE_SIZE, PAGE_READABLE | PAGE_WRITABLE);
     return zone;
 }
 
-static int _vmm_free_mapped_zone(zone_t zone)
+static int _vmm_free_mapped_zone(kmemzone_t zone)
 {
     ptable_t* ptable = _vmm_ensure_active_ptable(zone.start);
     page_desc_t* page = _vmm_ptable_lookup(ptable, zone.start);
     pmm_free((void*)page_desc_get_frame(*page), zone.len);
     vmm_unmap_pages_lockless(zone.start, zone.len / VMM_PAGE_SIZE);
-    zoner_free_zone(zone);
+    kmemzone_free(zone);
     return 0;
 }
 
 inline static pdirectory_t* _vmm_alloc_pdir()
 {
-    zone_t zone = _vmm_alloc_mapped_zone(PDIR_SIZE, PDIR_SIZE);
+    kmemzone_t zone = _vmm_alloc_mapped_zone(PDIR_SIZE, PDIR_SIZE);
     return (pdirectory_t*)zone.ptr;
 }
 
@@ -184,7 +184,7 @@ inline static void _vmm_free_pdir(pdirectory_t* pdir)
         return;
     }
 
-    zone_t zone;
+    kmemzone_t zone;
     zone.start = (uintptr_t)pdir;
     zone.len = PDIR_SIZE;
     _vmm_free_mapped_zone(zone);
@@ -231,7 +231,7 @@ inline static void* _vmm_pspace_get_vaddr_of_active_ptable(uintptr_t vaddr)
 
 static int _vmm_split_pspace()
 {
-    pspace_zone = zoner_new_zone(4 * MB);
+    pspace_zone = kmemzone_new(4 * MB);
 
     if (VMM_OFFSET_IN_TABLE(pspace_zone.start) != 0) {
         kpanic("WRONG PSPACE START ADDR");
@@ -279,7 +279,7 @@ static void _vmm_pspace_gen(pdirectory_t* pdir)
     ptable_t* cur_ptable = (ptable_t*)_vmm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(pspace_zone.start));
     uintptr_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
     uintptr_t ptable_paddr = _vmm_alloc_ptables_to_cover_page();
-    zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     ptable_t* new_ptable = (ptable_t*)tmp_zone.start;
 
     vmm_map_page_lockless((uintptr_t)new_ptable, ptable_paddr, PAGE_READABLE | PAGE_WRITABLE);
@@ -307,7 +307,7 @@ static void _vmm_pspace_gen(pdirectory_t* pdir)
         pdir->entities[VMM_OFFSET_IN_DIRECTORY(ptable_vaddr_for)] = pspace_table;
     }
     vmm_unmap_page_lockless((uintptr_t)new_ptable);
-    zoner_free_zone(tmp_zone);
+    kmemzone_free(tmp_zone);
 }
 
 static void _vmm_free_pspace(pdirectory_t* pdir)
@@ -433,13 +433,13 @@ static bool _vmm_map_kernel()
 int vmm_setup()
 {
     lock_init(&_vmm_lock);
-    zoner_init(0xc0400000);
+    kmemzone_init(0xc0400000);
     _vmm_split_pspace();
     _vmm_create_kernel_ptables();
     _vmm_pspace_init();
     _vmm_init_switch_to_kernel_pdir();
     _vmm_map_kernel();
-    zoner_place_bitmap();
+    kmemzone_init_stage2();
     kmalloc_init();
     return 0;
 }
@@ -825,7 +825,7 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
     uintptr_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
 
     /* Copying old ptables which cover the full page. See a comment above vmm_allocate_ptable. */
-    zone_t src_ptable_zone = _vmm_alloc_mapped_zone(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
+    kmemzone_t src_ptable_zone = _vmm_alloc_mapped_zone(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
     ptable_t* src_ptable = (ptable_t*)src_ptable_zone.ptr;
     ptable_t* root_ptable = (ptable_t*)PAGE_START((uintptr_t)_vmm_ensure_active_ptable(ptable_serve_vaddr_start));
     memcpy(src_ptable, root_ptable, VMM_PAGE_SIZE);
@@ -890,7 +890,7 @@ static int _vmm_load_page_with_perm(uintptr_t vaddr)
             kpanic("No proc with the pdir\n");
         }
 
-        proc_zone_t* zone = proc_find_zone(holder_proc, vaddr);
+        memzone_t* zone = memzone_find(holder_proc, vaddr);
         if (!zone) {
             return SHOULD_CRASH;
         }
@@ -938,7 +938,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
 {
     page_desc_t* old_page_desc = &src_ptable->entities[page_index];
 
-    proc_zone_t* zone = proc_find_zone(p, vaddr);
+    memzone_t* zone = memzone_find(p, vaddr);
     if (!zone) {
         log_error("Cow: No page in zone");
         return SHOULD_CRASH;
@@ -952,7 +952,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
     vmm_load_page_lockless(vaddr, zone->flags);
 
     /* Mapping the old page to do a copy */
-    zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page_lockless(old_page_vaddr, old_page_paddr, PAGE_READABLE);
@@ -964,7 +964,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
 
     /* Freeing */
     vmm_unmap_page_lockless(old_page_vaddr);
-    zoner_free_zone(tmp_zone);
+    kmemzone_free(tmp_zone);
     return 0;
 }
 
@@ -1325,7 +1325,7 @@ static ALWAYS_INLINE int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t sr
     }
 
     /* Mapping the old page to do a copy */
-    zone_t tmp_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
     vmm_map_page_lockless(old_page_vaddr, old_page_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
@@ -1334,7 +1334,7 @@ static ALWAYS_INLINE int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t sr
 
     /* Freeing */
     vmm_unmap_page_lockless(old_page_vaddr);
-    zoner_free_zone(tmp_zone);
+    kmemzone_free(tmp_zone);
     return 0;
 }
 
@@ -1353,7 +1353,7 @@ static ALWAYS_INLINE int vmm_free_page_lockless(uintptr_t vaddr, page_desc_t* pa
     }
     page_desc_del_attrs(page, PAGE_DESC_PRESENT);
 
-    proc_zone_t* zone = proc_find_zone_no_proc(zones, vaddr);
+    memzone_t* zone = memzone_find_no_proc(zones, vaddr);
     if (zone) {
         if (zone->type & ZONE_TYPE_DEVICE) {
             return 0;
@@ -1389,7 +1389,7 @@ int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
                 kpanic("No proc with the pdir\n");
             }
 
-            proc_zone_t* zone = proc_find_zone(holder_proc, vaddr);
+            memzone_t* zone = memzone_find(holder_proc, vaddr);
             if (!zone) {
                 return SHOULD_CRASH;
             }

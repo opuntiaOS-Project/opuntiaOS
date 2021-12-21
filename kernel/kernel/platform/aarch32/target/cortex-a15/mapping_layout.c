@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
 #include <platform/aarch32/target/cortex-a15/memmap.h>
 #include <platform/generic/vmm/mapping_table.h>

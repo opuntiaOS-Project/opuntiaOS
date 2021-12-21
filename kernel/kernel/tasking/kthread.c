@@ -50,7 +50,7 @@ int kthread_setup(proc_t* p)
     p->main_thread->process = p;
     p->main_thread->last_cpu = LAST_CPU_NOT_SET;
 
-    p->main_thread->kstack = zoner_new_zone(KSTACK_ZONE_SIZE);
+    p->main_thread->kstack = kmemzone_new(KSTACK_ZONE_SIZE);
     if (!p->main_thread->kstack.start) {
         return -ENOMEM;
     }

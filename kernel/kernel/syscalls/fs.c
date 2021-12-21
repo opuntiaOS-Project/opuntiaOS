@@ -338,7 +338,7 @@ void sys_mmap(trapframe_t* tf)
     bool map_read = ((params->prot & PROT_READ) > 0);
     bool map_write = ((params->prot & PROT_WRITE) > 0);
 
-    proc_zone_t* zone;
+    memzone_t* zone;
 
     if (map_private && map_shared) {
         return_with_val(-EINVAL);
@@ -348,9 +348,9 @@ void sys_mmap(trapframe_t* tf)
     }
 
     if (map_stack) {
-        zone = proc_new_random_zone_backward(p, params->size);
+        zone = memzone_new_random_backward(p, params->size);
     } else if (map_anonymous) {
-        zone = proc_new_random_zone(p, params->size);
+        zone = memzone_new_random(p, params->size);
     } else {
         file_descriptor_t* fd = proc_get_fd(p, params->fd);
         /* TODO: Check for read access to the file */
@@ -383,7 +383,7 @@ void sys_munmap(trapframe_t* tf)
     proc_t* p = RUNNING_THREAD->process;
     void* ptr = (void*)SYSCALL_VAR1(tf);
 
-    proc_zone_t* zone = proc_find_zone(p, (uint32_t)ptr);
+    memzone_t* zone = memzone_find(p, (uint32_t)ptr);
     if (!zone) {
         return_with_val(-EFAULT);
     }

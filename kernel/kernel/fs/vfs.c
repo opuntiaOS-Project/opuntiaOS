@@ -641,15 +641,15 @@ int vfs_umount(dentry_t* mounted_dentry)
     return 0;
 }
 
-static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
+static memzone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
     bool map_shared = TEST_FLAG(params->flags, MAP_SHARED);
     bool map_private = TEST_FLAG(params->flags, MAP_PRIVATE);
 
-    proc_zone_t* zone;
+    memzone_t* zone;
 
     if (map_private) {
-        zone = proc_new_random_zone(RUNNING_THREAD->process, params->size);
+        zone = memzone_new_random(RUNNING_THREAD->process, params->size);
         zone->type = ZONE_TYPE_MAPPED_FILE_PRIVATLY;
         zone->file = dentry_duplicate(fd->dentry);
         zone->offset = params->offset;
@@ -661,23 +661,23 @@ static proc_zone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
     return zone;
 }
 
-proc_zone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
+memzone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
     lock_acquire(&fd->lock);
     /* Check if we have a custom mmap for a dentry */
     if (fd->dentry->ops->file.mmap) {
-        proc_zone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
+        memzone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
         if ((uintptr_t)res != VFS_USE_STD_MMAP) {
             lock_release(&fd->lock);
             return res;
         }
     }
-    proc_zone_t* res = _vfs_do_mmap(fd, params);
+    memzone_t* res = _vfs_do_mmap(fd, params);
     lock_release(&fd->lock);
     return res;
 }
 
-int vfs_munmap(proc_t* p, proc_zone_t* zone)
+int vfs_munmap(proc_t* p, memzone_t* zone)
 {
     if (!TEST_FLAG(zone->flags, ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !TEST_FLAG(zone->flags, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         return -EFAULT;
@@ -688,7 +688,7 @@ int vfs_munmap(proc_t* p, proc_zone_t* zone)
     for (uintptr_t vaddr = zone->start; vaddr < zone->start + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
         system_flush_tlb_entry(vaddr);
     }
-    proc_delete_zone(p, zone);
+    memzone_free(p, zone);
 
     return 0;
 }

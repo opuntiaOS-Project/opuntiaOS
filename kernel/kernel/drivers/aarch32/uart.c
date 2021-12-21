@@ -7,15 +7,15 @@
  */
 
 #include <drivers/aarch32/uart.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 
 volatile uint32_t* output = (uint32_t*)COM1;
-static zone_t mapped_zone;
+static kmemzone_t mapped_zone;
 
 static inline int _uart_map_itself()
 {
-    mapped_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_map_page(mapped_zone.start, COM1, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     output = (uint32_t*)mapped_zone.ptr;
     return 0;

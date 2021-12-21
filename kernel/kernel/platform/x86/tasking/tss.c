@@ -7,7 +7,7 @@
  */
 
 #include <mem/kmalloc.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/tasking/tss.h>
 

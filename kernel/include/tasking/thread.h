@@ -77,7 +77,7 @@ struct thread {
     uint32_t status;
 
     /* Kernel data */
-    zone_t kstack;
+    kmemzone_t kstack;
     context_t* context; // context of kernel's registers
     trapframe_t* tf;
     fpu_state_t* fpu_state;

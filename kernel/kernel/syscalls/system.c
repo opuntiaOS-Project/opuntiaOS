@@ -10,7 +10,7 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <libkern/version.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/generic/syscalls/params.h>
 #include <syscalls/handlers.h>
 

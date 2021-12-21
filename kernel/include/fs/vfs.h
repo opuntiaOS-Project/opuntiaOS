@@ -104,7 +104,7 @@ struct file_ops {
     int (*rmdir)(dentry_t* dir);
     int (*ioctl)(dentry_t* dentry, uint32_t cmd, uint32_t arg);
     int (*fstat)(dentry_t* dentry, fstat_t* stat);
-    struct proc_zone* (*mmap)(dentry_t* dentry, mmap_params_t* params);
+    struct memzone* (*mmap)(dentry_t* dentry, mmap_params_t* params);
 };
 typedef struct file_ops file_ops_t;
 
@@ -236,8 +236,8 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
 int vfs_umount(dentry_t* mountpoint);
 
 struct proc;
-struct proc_zone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
-int vfs_munmap(struct proc* p, struct proc_zone*);
+struct memzone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
+int vfs_munmap(struct proc* p, struct memzone*);
 
 struct thread;
 int vfs_perm_to_read(dentry_t* dentry, struct thread* t);

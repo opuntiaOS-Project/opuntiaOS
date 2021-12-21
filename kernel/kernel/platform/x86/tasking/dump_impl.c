@@ -7,7 +7,7 @@
  */
 
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/x86/registers.h>
 #include <platform/x86/system.h>
 #include <platform/x86/tasking/dump_impl.h>

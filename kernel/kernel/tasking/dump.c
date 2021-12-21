@@ -16,7 +16,7 @@
 #include <tasking/sched.h>
 #include <tasking/tasking.h>
 
-zone_t kernel_file_mapping_zone;
+kmemzone_t kernel_file_mapping_zone;
 dump_data_t kernel_dump_data;
 
 #define READ_PER_CYCLE 1024
@@ -42,8 +42,8 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
     size_t elf_file_size = p->proc_file->inode->size;
 
     system_disable_interrupts();
-    proc_zone_t* zone;
-    zone = proc_new_random_zone(p, elf_file_size);
+    memzone_t* zone;
+    zone = memzone_new_random(p, elf_file_size);
     if (!zone) {
         vfs_close(&fd);
         system_enable_interrupts();
@@ -144,7 +144,7 @@ static int dump_map_kernel_elf_file()
 
     size_t elf_file_size = kernel_file->inode->size;
 
-    kernel_file_mapping_zone = zoner_new_zone(elf_file_size);
+    kernel_file_mapping_zone = kmemzone_new(elf_file_size);
     if (!kernel_file_mapping_zone.ptr) {
         dentry_put(kernel_file);
         vfs_close(&fd);

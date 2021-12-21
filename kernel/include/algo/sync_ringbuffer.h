@@ -12,7 +12,7 @@
 #include <algo/ringbuffer.h>
 #include <libkern/libkern.h>
 #include <libkern/lock.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
 
 struct __sync_ringbuffer {
     ringbuffer_t ringbuffer;

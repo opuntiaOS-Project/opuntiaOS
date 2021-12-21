@@ -10,7 +10,7 @@
 #define _KERNEL_TASKING_SCHED_H
 
 #include <libkern/types.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <tasking/bits/sched.h>
 #include <tasking/tasking.h>
 

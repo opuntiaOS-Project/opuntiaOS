@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/generic/vmm/mapping_table.h>
 #include <platform/x86/memmap.h>
 

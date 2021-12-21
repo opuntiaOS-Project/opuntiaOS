@@ -15,45 +15,14 @@
 #include <libkern/atomic.h>
 #include <libkern/lock.h>
 #include <libkern/types.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/memzone.h>
+#include <mem/vmm.h>
 
 #define MAX_PROCESS_COUNT 1024
 #define MAX_OPENED_FILES 16
 
 struct blocker;
-
-/* Like Page Flags in vmm.h */
-enum ZONE_FLAGS {
-    ZONE_WRITABLE = 0x1,
-    ZONE_READABLE = 0x2,
-    ZONE_EXECUTABLE = 0x4,
-    ZONE_NOT_CACHEABLE = 0x8,
-    ZONE_COW = 0x10,
-    ZONE_USER = 0x20,
-};
-
-enum ZONE_TYPES {
-    ZONE_TYPE_NULL = 0x0,
-    ZONE_TYPE_CODE = 0x1,
-    ZONE_TYPE_DATA = 0x2,
-    ZONE_TYPE_STACK = 0x4,
-    ZONE_TYPE_BSS = 0x8,
-    ZONE_TYPE_DEVICE = 0x10,
-    ZONE_TYPE_MAPPED = 0x20,
-    ZONE_TYPE_MAPPED_FILE_PRIVATLY = 0x40,
-    ZONE_TYPE_MAPPED_FILE_SHAREDLY = 0x80,
-};
-
-struct proc_zone {
-    uint32_t start;
-    uint32_t len;
-    uint32_t type;
-    uint32_t flags;
-    dentry_t* file;
-    uint32_t offset;
-};
-typedef struct proc_zone proc_zone_t;
 
 enum PROC_STATUS {
     PROC_INVALID = 0,
@@ -140,19 +109,6 @@ int proc_chdir(proc_t* p, const char* path);
 file_descriptor_t* proc_get_free_fd(proc_t* p);
 file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index);
 int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd);
-
-/**
- * PROC ZONER FUNCTIONS
- */
-
-proc_zone_t* proc_new_zone(proc_t* p, size_t start, size_t len);
-proc_zone_t* proc_extend_zone(proc_t* proc, size_t start, size_t len);
-proc_zone_t* proc_new_random_zone(proc_t* p, size_t len);
-proc_zone_t* proc_new_random_zone_backward(proc_t* p, size_t len);
-proc_zone_t* proc_find_zone(proc_t* p, size_t addr);
-proc_zone_t* proc_find_zone_no_proc(dynamic_array_t* zones, size_t addr);
-int proc_delete_zone_no_proc(dynamic_array_t*, proc_zone_t*);
-int proc_delete_zone(proc_t*, proc_zone_t*);
 
 /**
  * PROC HELPER FUNCTIONS

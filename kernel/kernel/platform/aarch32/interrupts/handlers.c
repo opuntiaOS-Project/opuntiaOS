@@ -9,7 +9,7 @@
 #include <drivers/aarch32/gicv2.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/aarch32/interrupts.h>
 #include <platform/aarch32/system.h>
 #include <platform/aarch32/tasking/trapframe.h>
@@ -48,7 +48,7 @@ void interrupts_setup()
 
 static uint32_t new_zone_for_secondary_cpu()
 {
-    zone_t zone = zoner_new_zone(VMM_PAGE_SIZE);
+    kmemzone_t zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_load_page(zone.start, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     return zone.start + zone.len;
 }

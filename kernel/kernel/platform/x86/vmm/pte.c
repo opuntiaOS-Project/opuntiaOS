@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/x86/vmm/pte.h>
 
 void page_desc_init(page_desc_t* pte)

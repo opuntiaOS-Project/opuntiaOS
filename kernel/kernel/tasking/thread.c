@@ -45,7 +45,7 @@ int _thread_setup_kstack(thread_t* thread, uintptr_t esp)
 int thread_setup_main(proc_t* p, thread_t* thread)
 {
     /* allocating kernel stack */
-    thread->kstack = zoner_new_zone(VMM_PAGE_SIZE);
+    thread->kstack = kmemzone_new(VMM_PAGE_SIZE);
     if (!thread->kstack.start) {
         return -ENOMEM;
     }
@@ -72,7 +72,7 @@ int thread_setup_main(proc_t* p, thread_t* thread)
 int thread_setup(proc_t* p, thread_t* thread)
 {
     /* allocating kernel stack */
-    thread->kstack = zoner_new_zone(VMM_PAGE_SIZE);
+    thread->kstack = kmemzone_new(VMM_PAGE_SIZE);
     if (!thread->kstack.start) {
         return -ENOMEM;
     }
@@ -215,7 +215,7 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
 
 int thread_kstack_free(thread_t* thread)
 {
-    zoner_free_zone(thread->kstack);
+    kmemzone_free(thread->kstack);
 #ifdef FPU_ENABLED
     kfree_aligned(thread->fpu_state);
 #endif

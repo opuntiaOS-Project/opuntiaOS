@@ -10,7 +10,7 @@
 #include <drivers/x86/fpu.h>
 #include <libkern/kassert.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/generic/registers.h>
 #include <platform/generic/system.h>
 #include <platform/x86/isr_handler.h>

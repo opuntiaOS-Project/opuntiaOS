@@ -11,7 +11,7 @@
 #include <libkern/lock.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
 
 struct kmalloc_header {
     uint32_t len;
@@ -19,7 +19,7 @@ struct kmalloc_header {
 typedef struct kmalloc_header kmalloc_header_t;
 
 static lock_t _kmalloc_lock;
-static zone_t _kmalloc_zone;
+static kmemzone_t _kmalloc_zone;
 static uint32_t _kmalloc_bitmap_len = 0;
 static uint8_t* _kmalloc_bitmap;
 static bitmap_t bitmap;
@@ -51,7 +51,7 @@ static void _kmalloc_init_bitmap()
 void kmalloc_init()
 {
     lock_init(&_kmalloc_lock);
-    _kmalloc_zone = zoner_new_zone(KMALLOC_SPACE_SIZE);
+    _kmalloc_zone = kmemzone_new(KMALLOC_SPACE_SIZE);
     _kmalloc_init_bitmap();
 }
 

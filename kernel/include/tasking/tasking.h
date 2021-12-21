@@ -12,8 +12,8 @@
 #include <drivers/generic/fpu.h>
 #include <fs/vfs.h>
 #include <libkern/types.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <platform/generic/tasking/context.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <tasking/cpu.h>

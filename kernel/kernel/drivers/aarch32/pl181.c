@@ -8,18 +8,18 @@
 
 #include <drivers/aarch32/pl181.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 
 // #define DEBUG_PL181
 
 static sd_card_t sd_cards[MAX_DEVICES_COUNT];
-static zone_t mapped_zone;
+static kmemzone_t mapped_zone;
 static volatile pl181_registers_t* registers = (pl181_registers_t*)PL181_BASE;
 
 static inline int _pl181_map_itself()
 {
-    mapped_zone = zoner_new_zone(sizeof(pl181_registers_t));
+    mapped_zone = kmemzone_new(sizeof(pl181_registers_t));
     vmm_map_page(mapped_zone.start, PL181_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     registers = (pl181_registers_t*)mapped_zone.ptr;
     return 0;

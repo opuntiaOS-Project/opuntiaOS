@@ -11,7 +11,7 @@
 ringbuffer_t ringbuffer_create(size_t size)
 {
     ringbuffer_t buf;
-    buf.zone = zoner_new_zone(size);
+    buf.zone = kmemzone_new(size);
     if (!buf.zone.start) {
         return buf;
     }
@@ -22,7 +22,7 @@ ringbuffer_t ringbuffer_create(size_t size)
 
 void ringbuffer_free(ringbuffer_t* buf)
 {
-    zoner_free_zone(buf->zone);
+    kmemzone_free(buf->zone);
     buf->start = 0;
     buf->end = 0;
 }

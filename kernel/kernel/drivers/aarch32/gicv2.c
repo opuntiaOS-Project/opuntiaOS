@@ -8,8 +8,8 @@
 
 #include <drivers/aarch32/gicv2.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <platform/aarch32/interrupts.h>
 #include <platform/aarch32/registers.h>
 
@@ -24,8 +24,8 @@ static gic_descritptor_t gicv2_descriptor = {
     .end_interrupt = gicv2_end,
     .enable_irq = gicv2_enable_irq,
 };
-static zone_t distributor_zone;
-static zone_t cpu_interface_zone;
+static kmemzone_t distributor_zone;
+static kmemzone_t cpu_interface_zone;
 volatile gicv2_distributor_registers_t* distributor_registers;
 volatile gicv2_cpu_interface_registers_t* cpu_interface_registers;
 
@@ -33,11 +33,11 @@ static inline int _gicv2_map_itself()
 {
     uint32_t cbar = read_cbar();
 
-    distributor_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    distributor_zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_map_page(distributor_zone.start, cbar + GICv2_DISTRIBUTOR_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_NOT_CACHEABLE);
     distributor_registers = (gicv2_distributor_registers_t*)distributor_zone.ptr;
 
-    cpu_interface_zone = zoner_new_zone(VMM_PAGE_SIZE);
+    cpu_interface_zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_map_page(cpu_interface_zone.start, cbar + GICv2_CPU_INTERFACE_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_NOT_CACHEABLE);
     cpu_interface_registers = (gicv2_cpu_interface_registers_t*)cpu_interface_zone.ptr;
     return 0;

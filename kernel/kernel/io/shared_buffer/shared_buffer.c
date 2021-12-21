@@ -12,8 +12,8 @@
 #include <libkern/libkern.h>
 #include <libkern/lock.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 
 // #define SHARED_BUFFER_DEBUG
 
@@ -29,7 +29,7 @@ struct shared_buffer_header {
 typedef struct shared_buffer_header shared_buffer_header_t;
 
 static lock_t _shared_buffer_lock;
-static zone_t _shared_buffer_zone;
+static kmemzone_t _shared_buffer_zone;
 static size_t _shared_buffer_bitmap_len = 0;
 static uint8_t* _shared_buffer_bitmap;
 static bitmap_t bitmap;
@@ -69,7 +69,7 @@ static void _shared_buffer_init_bitmap()
 
 int shared_buffer_init()
 {
-    _shared_buffer_zone = zoner_new_zone(SHBUF_SPACE_SIZE);
+    _shared_buffer_zone = kmemzone_new(SHBUF_SPACE_SIZE);
     _shared_buffer_init_bitmap();
     lock_init(&_shared_buffer_lock);
     return 0;

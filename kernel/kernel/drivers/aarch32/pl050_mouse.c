@@ -14,8 +14,8 @@
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <platform/aarch32/interrupts.h>
 #include <tasking/tasking.h>
 
@@ -23,12 +23,12 @@
 // #define MOUSE_DRIVER_DEBUG
 
 static ringbuffer_t mouse_buffer;
-static zone_t mapped_zone;
+static kmemzone_t mapped_zone;
 static volatile pl050_registers_t* registers = (pl050_registers_t*)PL050_MOUSE_BASE;
 
 static inline int _pl050_map_itself()
 {
-    mapped_zone = zoner_new_zone(sizeof(pl050_registers_t));
+    mapped_zone = kmemzone_new(sizeof(pl050_registers_t));
     vmm_map_page(mapped_zone.start, PL050_MOUSE_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     registers = (pl050_registers_t*)mapped_zone.ptr;
     return 0;

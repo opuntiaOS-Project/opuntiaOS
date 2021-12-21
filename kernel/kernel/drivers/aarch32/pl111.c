@@ -12,13 +12,13 @@
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
-#include <mem/vmm/vmm.h>
-#include <mem/vmm/zoner.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <tasking/tasking.h>
 
 #define DEBUG_PL111
 
-static zone_t mapped_zone;
+static kmemzone_t mapped_zone;
 static volatile pl111_registers_t* registers = (pl111_registers_t*)PL111_BASE;
 static char* pl111_bufs_paddr[2];
 static uint32_t pl111_screen_width;
@@ -27,7 +27,7 @@ static uint32_t pl111_screen_buffer_size;
 
 static inline int _pl111_map_itself()
 {
-    mapped_zone = zoner_new_zone(sizeof(pl111_registers_t));
+    mapped_zone = kmemzone_new(sizeof(pl111_registers_t));
     vmm_map_page(mapped_zone.start, PL111_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     registers = (pl111_registers_t*)mapped_zone.ptr;
     return 0;
@@ -67,7 +67,7 @@ static int _pl111_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
     }
 }
 
-static proc_zone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
+static memzone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
 {
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
 
@@ -75,7 +75,7 @@ static proc_zone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
         return 0;
     }
 
-    proc_zone_t* zone = proc_new_random_zone(RUNNING_THREAD->process, pl111_screen_buffer_size);
+    memzone_t* zone = memzone_new_random(RUNNING_THREAD->process, pl111_screen_buffer_size);
     if (!zone) {
         return 0;
     }

@@ -8,7 +8,7 @@
 
 #include <libkern/log.h>
 #include <libkern/types.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 #include <platform/aarch32/vmm/pte.h>
 
 void page_desc_init(page_desc_t* pte)

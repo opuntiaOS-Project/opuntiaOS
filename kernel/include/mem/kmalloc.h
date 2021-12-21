@@ -10,7 +10,7 @@
 #define _KERNEL_MEM_KMALLOC_H
 
 #include <libkern/types.h>
-#include <mem/vmm/vmm.h>
+#include <mem/vmm.h>
 
 #define KMALLOC_SPACE_SIZE (4 * MB)
 #define KMALLOC_BLOCK_SIZE 32
