@@ -56,6 +56,11 @@ int kthread_setup(proc_t* p)
     }
     _thread_setup_kstack(p->main_thread, p->main_thread->kstack.start + KSTACK_TOP);
 
+#ifdef FPU_ENABLED
+    p->main_thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
+    fpu_init_state(p->main_thread->fpu_state);
+#endif
+
     /* setting dentries */
     p->proc_file = NULL;
     p->cwd = NULL;

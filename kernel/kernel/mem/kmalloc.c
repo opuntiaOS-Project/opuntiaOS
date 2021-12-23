@@ -92,6 +92,10 @@ void* kmalloc_page_aligned()
 
 void kfree(void* ptr)
 {
+    if (!ptr) {
+        return;
+    }
+
     kmalloc_header_t* sptr = (kmalloc_header_t*)ptr;
     int blocks_to_delete = (sptr[-1].len + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
     lock_acquire(&_kmalloc_lock);
@@ -101,6 +105,10 @@ void kfree(void* ptr)
 
 void kfree_aligned(void* ptr)
 {
+    if (!ptr) {
+        return;
+    }
+
     kfree(((void**)ptr)[-1]);
 }
 
