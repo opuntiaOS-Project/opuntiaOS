@@ -25,6 +25,12 @@ vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
 dynamic_array_t _vfs_fses;
 int32_t root_fs_dev_id = -1;
 
+static int _vfs_loadpage_from_mmap_file(struct memzone* zone, uintptr_t vaddr);
+
+static vm_ops_t mmap_file_vm_ops = {
+    .load_page_content = _vfs_loadpage_from_mmap_file,
+};
+
 driver_desc_t _vfs_driver_info()
 {
     driver_desc_t vfs_desc = { 0 };
@@ -641,6 +647,17 @@ int vfs_umount(dentry_t* mounted_dentry)
     return 0;
 }
 
+static int _vfs_loadpage_from_mmap_file(struct memzone* zone, uintptr_t vaddr)
+{
+    ASSERT(zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY);
+
+    size_t offset = zone->offset + (PAGE_START(vaddr) - zone->start);
+    lock_acquire(&zone->file->lock);
+    zone->file->ops->file.read(zone->file, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
+    lock_release(&zone->file->lock);
+    return 0;
+}
+
 static memzone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
     bool map_shared = TEST_FLAG(params->flags, MAP_SHARED);
@@ -653,9 +670,10 @@ static memzone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
         zone->type = ZONE_TYPE_MAPPED_FILE_PRIVATLY;
         zone->file = dentry_duplicate(fd->dentry);
         zone->offset = params->offset;
+        zone->ops = &mmap_file_vm_ops;
     } else {
         /* TODO */
-        return 0;
+        return NULL;
     }
 
     return zone;

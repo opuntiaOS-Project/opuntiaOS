@@ -170,7 +170,7 @@ static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_32_t
         _elf_load_interpret_program_header_entry(p, fd);
     }
 
-    memzone_t* stack_zone = memzone_new_random(p, VMM_PAGE_SIZE); // Forbid 0 allocations to make it work well
+    memzone_new(p, 0, VMM_PAGE_SIZE); // Forbid 0 allocations to handle NULLptrs.
     _elf_load_alloc_stack(p);
     set_instruction_pointer(p->main_thread->tf, header->e_entry);
     return 0;

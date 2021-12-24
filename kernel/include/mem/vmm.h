@@ -18,9 +18,14 @@
 
 #define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
 
-#define USER_PAGE true
-#define KERNEL_PAGE false
-#define PAGE_CHOOSE_OWNER(vaddr) (vaddr >= KERNEL_BASE ? 0 : PAGE_USER)
+#define IS_KERNEL_VADDR(vaddr) (vaddr >= KERNEL_BASE)
+#define IS_USER_VADDR(vaddr) (vaddr < KERNEL_BASE)
+
+struct memzone;
+struct vm_ops {
+    int (*load_page_content)(struct memzone* zone, uintptr_t vaddr);
+};
+typedef struct vm_ops vm_ops_t;
 
 enum VMM_ERR_CODES {
     VMM_ERR_PDIR,
@@ -72,7 +77,7 @@ void vmm_zero_user_pages(pdirectory_t* pdir);
 pdirectory_t* vmm_get_active_pdir();
 pdirectory_t* vmm_get_kernel_pdir();
 
-int vmm_load_page(uintptr_t vaddr, uint32_t settings);
+int vmm_alloc_page(uintptr_t vaddr, uint32_t settings);
 int vmm_tune_page(uintptr_t vaddr, uint32_t settings);
 int vmm_tune_pages(uintptr_t vaddr, size_t length, uint32_t settings);
 int vmm_free_page(uintptr_t vaddr, page_desc_t* page, struct dynamic_array* zones);

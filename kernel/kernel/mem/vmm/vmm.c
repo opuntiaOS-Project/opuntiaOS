@@ -77,6 +77,7 @@ static void _vmm_resolve_zeroing_on_demand(uintptr_t vaddr);
 #endif
 
 static int _vmm_self_test();
+static void _vmm_dump_page(uintptr_t vaddr);
 
 /**
  * LOCKLESS FUNCTIONS
@@ -99,7 +100,8 @@ static ALWAYS_INLINE void vmm_prepare_active_pdir_for_copying_at_lockless(uintpt
 static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length);
 static ALWAYS_INLINE void vmm_copy_to_pdir_lockless(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_t length);
 
-static ALWAYS_INLINE int vmm_load_page_lockless(uintptr_t vaddr, uint32_t settings);
+static ALWAYS_INLINE int vmm_alloc_page_lockless(uintptr_t vaddr, uint32_t settings);
+static ALWAYS_INLINE int vmm_alloc_page_no_fill_lockless(uintptr_t vaddr, uint32_t settings);
 static ALWAYS_INLINE int vmm_tune_page_lockless(uintptr_t vaddr, uint32_t settings);
 static ALWAYS_INLINE int vmm_tune_pages_lockless(uintptr_t vaddr, size_t length, uint32_t settings);
 static ALWAYS_INLINE int vmm_free_page_lockless(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones);
@@ -527,7 +529,12 @@ static int vmm_allocate_ptable_lockless(uintptr_t vaddr)
         table_desc_set_frame(tmp_ptable_desc, ptable_paddr);
     }
 
-    int err = vmm_map_page_lockless(ptable_vaddr_start, ptables_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_CHOOSE_OWNER(vaddr));
+    uint32_t ptable_settings = PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE;
+    if (IS_USER_VADDR(vaddr)) {
+        ptable_settings |= PAGE_USER;
+    }
+
+    int err = vmm_map_page_lockless(ptable_vaddr_start, ptables_paddr, ptable_settings);
     if (err) {
         return err;
     }
@@ -882,50 +889,75 @@ static void _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length)
     }
 }
 
-static int _vmm_load_page_with_perm(uintptr_t vaddr)
+static memzone_t* _vmm_memzone_for_active_pdir(uintptr_t vaddr)
 {
-    if (PAGE_CHOOSE_OWNER(vaddr) == PAGE_USER && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
-        proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
-        if (!holder_proc) {
-            kpanic("No proc with the pdir\n");
-        }
-
-        memzone_t* zone = memzone_find(holder_proc, vaddr);
-        if (!zone) {
-            return SHOULD_CRASH;
-        }
-
-#ifdef VMM_DEBUG
-        log("Mmap[ensure_write_to] page %x for %d pid: %x", vaddr, RUNNING_THREAD->process->pid, zone->flags);
-#endif
-        vmm_load_page_lockless(vaddr, zone->flags);
-    } else {
-        /* FIXME: Now we have a standard zone for kernel, but it's better to do the same thing as for user's pages */
-
-        // Should keep lockless, since kernel interrupt could happen while setting VMM.
-        vmm_load_page_lockless(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
+    if (!holder_proc) {
+        return NULL;
     }
-    return OK;
+    return memzone_find(holder_proc, vaddr);
+}
+
+static int _vmm_alloc_kernel_page_lockless(uintptr_t vaddr)
+{
+    // A zone with standard settings is allocated for kernel, while
+    // we could use a approach similar to user pages, where settings
+    // are dependent on the zone.
+    return vmm_alloc_page_lockless(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+}
+
+static int _vmm_alloc_user_page_no_fill_lockless(memzone_t* zone, uintptr_t vaddr)
+{
+    if (!zone) {
+        return SHOULD_CRASH;
+    }
+    return vmm_alloc_page_no_fill_lockless(vaddr, zone->flags);
+}
+
+static int _vmm_alloc_user_page_lockless(memzone_t* zone, uintptr_t vaddr)
+{
+    if (!zone) {
+        return SHOULD_CRASH;
+    }
+    return vmm_alloc_page_lockless(vaddr, zone->flags);
+}
+
+static int _vmm_alloc_page_with_perm(uintptr_t vaddr)
+{
+    if (IS_USER_VADDR(vaddr) && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
+        return _vmm_alloc_user_page_lockless(_vmm_memzone_for_active_pdir(vaddr), vaddr);
+    } else {
+        // Should keep lockless, since kernel interrupt could happen while setting VMM.
+        return _vmm_alloc_kernel_page_lockless(vaddr);
+    }
 }
 
 /**
  * The function prepare the page to write into it.
  */
-static void _vmm_ensure_write_to_page(uintptr_t vaddr)
+static int _vmm_ensure_write_to_page(uintptr_t vaddr)
 {
     if (!_vmm_is_page_present(vaddr)) {
-        _vmm_load_page_with_perm(vaddr);
+        int err = _vmm_alloc_page_with_perm(vaddr);
+        if (err) {
+            return err;
+        }
     }
     _vmm_ensure_cow_for_page(vaddr);
+    return 0;
 }
 
-static void _vmm_ensure_write_to_range(uintptr_t vaddr, size_t length)
+static int _vmm_ensure_write_to_range(uintptr_t vaddr, size_t length)
 {
     uintptr_t page_addr = PAGE_START(vaddr);
     while (page_addr < vaddr + length) {
-        _vmm_ensure_write_to_page(page_addr);
+        int err = _vmm_ensure_write_to_page(page_addr);
+        if (err) {
+            return err;
+        }
         page_addr += VMM_PAGE_SIZE;
     }
+    return 0;
 }
 
 /**
@@ -940,7 +972,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
 
     memzone_t* zone = memzone_find(p, vaddr);
     if (!zone) {
-        log_error("Cow: No page in zone");
+        kpanic("Cow: No page in zone");
         return SHOULD_CRASH;
     }
 
@@ -949,7 +981,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
         return vmm_map_page_lockless(vaddr, old_page_paddr, zone->flags);
     }
 
-    vmm_load_page_lockless(vaddr, zone->flags);
+    vmm_alloc_page_lockless(vaddr, zone->flags);
 
     /* Mapping the old page to do a copy */
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
@@ -1240,7 +1272,7 @@ static ALWAYS_INLINE int vmm_tune_page_lockless(uintptr_t vaddr, uint32_t settin
         is_writable ? page_desc_set_attrs(page, PAGE_DESC_WRITABLE) : page_desc_del_attrs(page, PAGE_DESC_WRITABLE);
         is_not_cacheable ? page_desc_set_attrs(page, PAGE_DESC_NOT_CACHEABLE) : page_desc_del_attrs(page, PAGE_DESC_NOT_CACHEABLE);
     } else {
-        vmm_load_page_lockless(vaddr, settings);
+        vmm_alloc_page_lockless(vaddr, settings);
     }
 
     system_flush_tlb_entry(vaddr);
@@ -1273,20 +1305,29 @@ int vmm_tune_pages(uintptr_t vaddr, size_t length, uint32_t settings)
     return res;
 }
 
-static ALWAYS_INLINE int vmm_load_page_lockless(uintptr_t vaddr, uint32_t settings)
+static ALWAYS_INLINE int vmm_alloc_page_no_fill_lockless(uintptr_t vaddr, uint32_t settings)
 {
     uintptr_t paddr = _vmm_alloc_page_paddr();
     if (!paddr) {
         /* TODO: Swap pages to make it able to allocate. */
         kpanic("NO PHYSICAL SPACE");
     }
-    int res = vmm_map_page_lockless(vaddr, paddr, settings);
-    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
-    memset(dest, 0, VMM_PAGE_SIZE);
-    return res;
+    return vmm_map_page_lockless(vaddr, paddr, settings);
 }
 
-int vmm_load_page(uintptr_t vaddr, uint32_t settings)
+static ALWAYS_INLINE int vmm_alloc_page_lockless(uintptr_t vaddr, uint32_t settings)
+{
+    int err = vmm_alloc_page_no_fill_lockless(vaddr, settings);
+    if (err) {
+        return err;
+    }
+
+    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    memset(dest, 0, VMM_PAGE_SIZE);
+    return 0;
+}
+
+int vmm_alloc_page(uintptr_t vaddr, uint32_t settings)
 {
     lock_acquire(&_vmm_lock);
     if (_vmm_is_page_present(vaddr)) {
@@ -1294,16 +1335,15 @@ int vmm_load_page(uintptr_t vaddr, uint32_t settings)
         return -EALREADY;
     }
 
-    uintptr_t paddr = _vmm_alloc_page_paddr();
-    if (!paddr) {
-        /* TODO: Swap pages to make it able to allocate. */
-        kpanic("NO PHYSICAL SPACE");
-    }
-    int res = vmm_map_page_lockless(vaddr, paddr, settings);
-    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    int err = vmm_alloc_page_no_fill_lockless(vaddr, settings);
     lock_release(&_vmm_lock);
+    if (err) {
+        return err;
+    }
+
+    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
     memset(dest, 0, VMM_PAGE_SIZE);
-    return res;
+    return 0;
 }
 
 /**
@@ -1319,7 +1359,7 @@ static ALWAYS_INLINE int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t sr
     page_desc_t* cur_page = _vmm_ptable_lookup(cur_ptable, to_vaddr);
 
     if (!page_desc_is_present(*cur_page)) {
-        vmm_load_page_lockless(to_vaddr, page_desc_get_settings_ignore_cow(*old_page_desc));
+        vmm_alloc_page_lockless(to_vaddr, page_desc_get_settings_ignore_cow(*old_page_desc));
     } else {
         _vmm_ensure_cow_for_page(to_vaddr);
     }
@@ -1371,62 +1411,76 @@ int vmm_free_page(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones)
     return res;
 }
 
-int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
+static int _vmm_page_not_present_lockless(uintptr_t vaddr)
+{
+    // Check again with locks, since other cpu could already load this page.
+    if (_vmm_is_page_present(vaddr)) {
+        return OK;
+    }
+
+    if (IS_KERNEL_VADDR(vaddr)) {
+        return _vmm_alloc_kernel_page_lockless(vaddr);
+    } else {
+        memzone_t* zone = _vmm_memzone_for_active_pdir(vaddr);
+        if (!zone) {
+            return SHOULD_CRASH;
+        }
+
+        int err = _vmm_alloc_user_page_no_fill_lockless(zone, vaddr);
+        if (err) {
+            return err;
+        }
+
+        if (zone->ops && zone->ops->load_page_content) {
+            return zone->ops->load_page_content(zone, vaddr);
+        } else {
+            uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+            memset(dest, 0, VMM_PAGE_SIZE);
+        }
+        return OK;
+    }
+}
+
+int _vmm_pf_on_writing(uintptr_t vaddr)
 {
     lock_acquire(&_vmm_lock);
-    if (_vmm_is_table_not_present(info) || _vmm_is_page_not_present(info)) {
-        // Check again with locks, since other cpu could already load this page.
-        if (_vmm_is_page_present(vaddr)) {
-            lock_release(&_vmm_lock);
-            return OK;
+    int visited = 0;
+    if (_vmm_is_copy_on_write(vaddr)) {
+        proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
+        if (!holder_proc) {
+            kpanic("No proc with the pdir\n");
         }
-
-        int res = _vmm_load_page_with_perm(vaddr);
+        _vmm_resolve_copy_on_write(holder_proc, vaddr);
+        visited++;
+    }
+#ifdef ZEROING_ON_DEMAND
+    if (_vmm_is_zeroing_on_demand(vaddr)) {
+        _vmm_resolve_zeroing_on_demand(vaddr);
+        visited++;
+    }
+#endif // ZEROING_ON_DEMAND
+    if (!visited) {
         lock_release(&_vmm_lock);
-        if (PAGE_CHOOSE_OWNER(vaddr) == PAGE_USER && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
-            proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
-            if (!holder_proc) {
-                kpanic("No proc with the pdir\n");
-            }
+        return SHOULD_CRASH;
+    }
 
-            memzone_t* zone = memzone_find(holder_proc, vaddr);
-            if (!zone) {
-                return SHOULD_CRASH;
-            }
+    lock_release(&_vmm_lock);
+    return OK;
+}
 
-            if (zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY) {
-                size_t offset = zone->offset + (PAGE_START(vaddr) - zone->start);
-                lock_acquire(&zone->file->lock);
-                zone->file->ops->file.read(zone->file, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
-                lock_release(&zone->file->lock);
-            }
-        }
+int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
+{
+    if (_vmm_is_table_not_present(info) || _vmm_is_page_not_present(info)) {
+        lock_acquire(&_vmm_lock);
+        int res = _vmm_page_not_present_lockless(vaddr);
+        lock_release(&_vmm_lock);
         return res;
     }
 
     if (_vmm_is_caused_writing(info)) {
-        int visited = 0;
-        if (_vmm_is_copy_on_write(vaddr)) {
-            proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
-            if (!holder_proc) {
-                kpanic("No proc with the pdir\n");
-            }
-            _vmm_resolve_copy_on_write(holder_proc, vaddr);
-            visited++;
-        }
-#ifdef ZEROING_ON_DEMAND
-        if (_vmm_is_zeroing_on_demand(vaddr)) {
-            _vmm_resolve_zeroing_on_demand(vaddr);
-            visited++;
-        }
-#endif // ZEROING_ON_DEMAND
-        if (!visited) {
-            lock_release(&_vmm_lock);
-            return SHOULD_CRASH;
-        }
+        return _vmm_pf_on_writing(vaddr);
     }
 
-    lock_release(&_vmm_lock);
     return OK;
 }
 
@@ -1493,4 +1547,11 @@ static bool vmm_test_pspace_vaddr_of_active_ptable()
     while (1) {
     }
     return true;
+}
+
+static void _vmm_dump_page(uintptr_t vaddr)
+{
+    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
+    page_desc_t* page = _vmm_ptable_lookup(ptable, vaddr);
+    log("Page(%x) [f:%x, w:%d, p:%d]", vaddr, page_desc_get_frame(*page), page_desc_has_attrs(*page, PAGE_DESC_WRITABLE), page_desc_has_attrs(*page, PAGE_DESC_PRESENT));
 }

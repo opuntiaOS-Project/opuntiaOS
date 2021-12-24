@@ -49,7 +49,7 @@ void interrupts_setup()
 static uint32_t new_zone_for_secondary_cpu()
 {
     kmemzone_t zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_load_page(zone.start, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_alloc_page(zone.start, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
     return zone.start + zone.len;
 }
 
@@ -149,7 +149,7 @@ void data_abort_handler(trapframe_t* tf)
     info |= ((is_pl0 != 0) << 31); // Set the 31bit as type
     int res = vmm_page_fault_handler(info, fault_addr);
     if (res == SHOULD_CRASH) {
-        if (THIS_CPU->current_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
+        if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
             snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, data_abort_handler", tf->user_ip);
             kpanic_tf(err_buf, tf);
         } else {

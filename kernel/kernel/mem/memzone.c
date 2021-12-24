@@ -65,19 +65,8 @@ static inline bool _proc_can_add_zone(proc_t* proc, size_t start, size_t len)
 static inline void _proc_swap_zones(memzone_t* one, memzone_t* two)
 {
     memzone_t tmp = *one;
-    one->file = two->file;
-    one->flags = two->flags;
-    one->len = two->len;
-    one->offset = two->offset;
-    one->start = two->start;
-    one->type = two->type;
-
-    two->file = tmp.file;
-    two->flags = tmp.flags;
-    two->len = tmp.len;
-    two->offset = tmp.offset;
-    two->start = tmp.start;
-    two->type = tmp.type;
+    *one = *two;
+    *two = tmp;
 }
 
 /**
@@ -120,6 +109,7 @@ memzone_t* memzone_new(proc_t* proc, size_t start, size_t len)
     new_zone.len = len;
     new_zone.type = 0;
     new_zone.flags = ZONE_USER;
+    new_zone.ops = NULL;
 
     if (_proc_can_add_zone(proc, start, len)) {
         if (!dynarr_push(&proc->zones, &new_zone)) {

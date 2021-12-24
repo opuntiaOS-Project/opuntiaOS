@@ -14,6 +14,7 @@
 #include <libkern/types.h>
 #include <mem/bits/zone.h>
 
+struct vm_ops;
 struct memzone {
     uintptr_t start;
     size_t len;
@@ -21,6 +22,7 @@ struct memzone {
     uint32_t flags;
     dentry_t* file;
     uintptr_t offset;
+    struct vm_ops* ops;
 };
 typedef struct memzone memzone_t;
 

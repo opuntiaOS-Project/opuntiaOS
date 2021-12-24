@@ -63,7 +63,7 @@ bool page_desc_has_attrs(page_desc_t pte, uint32_t attrs)
         }
     }
     if ((attrs & PAGE_DESC_WRITABLE) == PAGE_DESC_WRITABLE) {
-        if (pte.ap1 != 0b01) {
+        if (pte.ap1 != 0b01 && pte.ap1 != 0b11) {
             return false;
         }
     }

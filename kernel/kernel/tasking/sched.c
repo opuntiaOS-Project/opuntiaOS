@@ -75,7 +75,7 @@ static void _init_cpu(cpu_t* cpu)
     cpu->current_state = CPU_IN_KERNEL;
 
     cpu->sched_stack_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_load_page(cpu->sched_stack_zone.start, PAGE_READABLE | PAGE_WRITABLE);
+    vmm_alloc_page(cpu->sched_stack_zone.start, PAGE_READABLE | PAGE_WRITABLE);
     uint8_t* sp = cpu->sched_stack_zone.ptr + VMM_PAGE_SIZE;
     sp -= sizeof(*cpu->sched_context);
     cpu->sched_context = (context_t*)sp;
