@@ -28,7 +28,7 @@ int _thread_setup_kstack(thread_t* thread, uintptr_t esp)
 
     /* setting return point in kernel stack, so it
        will return to this address in _tasking_jumper */
-    sp -= 4;
+    sp -= sizeof(uintptr_t);
     *(uintptr_t*)sp = (uintptr_t)trap_return;
 
     /* setting context in kernel stack */
@@ -111,13 +111,15 @@ int thread_copy_of(thread_t* thread, thread_t* from_thread)
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count, char** envp)
 {
+    const int alignment = sizeof(uintptr_t);
+
     size_t argv_data_size = 0;
     for (int i = 0; i < argc; i++) {
         argv_data_size += strlen(argv[i]) + 1;
     }
 
-    if (argv_data_size % 4) {
-        argv_data_size += 4 - (argv_data_size % 4);
+    if (argv_data_size % alignment) {
+        argv_data_size += alignment - (argv_data_size % alignment);
     }
 
     size_t envp_data_size = 0;
@@ -125,8 +127,8 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
         envp_data_size += strlen(envp[i]) + 1;
     }
 
-    if (envp_data_size % 4) {
-        envp_data_size += 4 - (envp_data_size % 4);
+    if (envp_data_size % alignment) {
+        envp_data_size += alignment - (envp_data_size % alignment);
     }
 
     const size_t envp_array_size = (envp_count + 1) * sizeof(char*);
@@ -165,8 +167,13 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     uintptr_t argv_sp = envp_sp - sizeof(char*);
     uintptr_t argc_sp = argv_sp - sizeof(int);
     uintptr_t end_sp = argc_sp;
+    uintptr_t copy_to_sp = end_sp;
 #elif __arm__
     uintptr_t end_sp = argv_array_sp;
+    uintptr_t copy_to_sp = end_sp;
+
+    // The alignment of sp must be 2x of the pointer size.
+    end_sp = end_sp & ~(uintptr_t)(alignment * 2 - 1);
 #endif
 
     // Fill argv
@@ -207,8 +214,7 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     thread->tf->r[2] = envp_array_sp;
 #endif
     set_stack_pointer(thread->tf, end_sp);
-
-    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, get_stack_pointer(thread->tf), total_size_on_stack);
+    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, copy_to_sp, total_size_on_stack);
     kfree(tmp_buf);
     return 0;
 }
