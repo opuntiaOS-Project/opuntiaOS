@@ -63,7 +63,7 @@ int thread_setup_main(proc_t* p, thread_t* thread)
     tf_setup_as_user_thread(thread->tf);
 #ifdef FPU_ENABLED
     /* setting fpu */
-    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
+    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), FPU_STATE_ALIGNMENT);
     fpu_init_state(thread->fpu_state);
 #endif
     return 0;
@@ -90,7 +90,7 @@ int thread_setup(proc_t* p, thread_t* thread)
     tf_setup_as_user_thread(thread->tf);
 #ifdef FPU_ENABLED
     /* setting fpu */
-    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), 16);
+    thread->fpu_state = kmalloc_aligned(sizeof(fpu_state_t), FPU_STATE_ALIGNMENT);
     fpu_init_state(thread->fpu_state);
 #endif
     return 0;

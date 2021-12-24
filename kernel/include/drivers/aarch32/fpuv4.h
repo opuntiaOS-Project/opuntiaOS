@@ -16,9 +16,11 @@
 #include <platform/aarch32/registers.h>
 #include <platform/aarch32/target/cortex-a15/device_settings.h>
 
+#define FPU_STATE_ALIGNMENT (16)
+
 typedef struct {
     uint64_t d[32];
-} fpu_state_t;
+} __attribute__((aligned(FPU_STATE_ALIGNMENT))) fpu_state_t;
 
 void fpuv4_install();
 void fpu_init_state(fpu_state_t* new_fpu_state);

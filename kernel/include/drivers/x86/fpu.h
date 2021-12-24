@@ -12,9 +12,11 @@
 #include <libkern/types.h>
 #include <platform/x86/registers.h>
 
+#define FPU_STATE_ALIGNMENT (16)
+
 typedef struct {
     uint8_t buffer[512];
-} __attribute__((aligned(16))) fpu_state_t;
+} __attribute__((aligned(FPU_STATE_ALIGNMENT))) fpu_state_t;
 
 void fpu_handler();
 void fpu_init();
