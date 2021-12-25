@@ -287,7 +287,7 @@ void sys_select(trapframe_t* tf)
     }
 
     for (int i = 0; i < nfds; i++) {
-        if (FD_ISSET(i, readfds) || FD_ISSET(i, writefds) || FD_ISSET(i, exceptfds)) {
+        if ((readfds && FD_ISSET(i, readfds)) || (writefds && FD_ISSET(i, writefds)) || (exceptfds && FD_ISSET(i, exceptfds))) {
             if (!proc_get_fd(p, i)) {
                 return_with_val(-EBADF);
             }
