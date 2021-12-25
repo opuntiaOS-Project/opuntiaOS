@@ -226,6 +226,9 @@ static ssize_t _printf_internal(char* buf, const char* format, _putch_callback c
                 char value = (char)va_arg(arg, int);
                 callback(value, buf, &written, callback_params);
             } break;
+            case '%': {
+                callback('%', buf, &written, callback_params);
+            } break;
             case 's': {
                 const char* value = va_arg(arg, const char*);
                 _printf_string(value, buf, &written, callback, callback_params);
