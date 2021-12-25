@@ -41,6 +41,9 @@ struct proc {
     uint32_t prio;
     uint32_t status;
     struct thread* main_thread;
+
+    // Locking order is important, vm_lock could not be acquired while lock is busy.
+    lock_t vm_lock;
     lock_t lock;
 
     uid_t uid;

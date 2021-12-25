@@ -34,10 +34,16 @@ inline static void system_set_pdir(uintptr_t pdir)
                  : "a"(pdir));
 }
 
-inline static void system_flush_tlb_entry(uintptr_t vaddr)
+inline static void system_flush_local_tlb_entry(uintptr_t vaddr)
 {
     asm volatile("invlpg (%0)" ::"r"(vaddr)
                  : "memory");
+}
+
+inline static void system_flush_all_cpus_tlb_entry(uintptr_t vaddr)
+{
+    system_flush_local_tlb_entry(vaddr);
+    // TODO: Send inter-processor messages.
 }
 
 inline static void system_flush_whole_tlb()

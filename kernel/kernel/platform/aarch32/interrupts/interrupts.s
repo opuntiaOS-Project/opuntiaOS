@@ -20,11 +20,6 @@ vector_table:
 vector_FIQ:
     b       vector_FIQ
     
-prefetch_abort_isp:
-    ldr     r1, =.prefetch_abort_handler_addr
-    ldr     r0, [r1]
-    blx     r0
-
 irq_isp:
     subs    lr, lr, #4
     // Moving to SVC mode, to use it's stack.
@@ -129,7 +124,29 @@ data_abort_isp:
     msr     spsr, r0
     msr     sp_usr, r1
     msr     lr_usr, r2
-    
+
+    ldmfd   sp!, {r0-r12,lr}
+    subs    pc, lr, #0
+    nop
+
+prefetch_abort_isp:
+    subs    lr, lr, #4
+    stmfd   sp!, {r0-r12,lr}
+    mrs     r0, spsr
+    mrs     r1, sp_usr
+    mrs     r2, lr_usr
+    stmfd   sp!, {r0-r2}
+
+    ldr     r0, =.prefetch_abort_handler_addr
+    ldr     r1, [r0]
+    mov     r0, sp
+    blx     r1
+
+    ldmfd   sp!, {r0-r2}
+    msr     spsr, r0
+    msr     sp_usr, r1
+    msr     lr_usr, r2
+
     ldmfd   sp!, {r0-r12,lr}
     subs    pc, lr, #0
     nop

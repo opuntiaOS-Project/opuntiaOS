@@ -15,6 +15,7 @@
 #include <drivers/driver_manager.h>
 
 #include <mem/kmalloc.h>
+#include <mem/kswapd.h>
 #include <mem/pmm.h>
 
 #include <fs/devfs/devfs.h>
@@ -53,6 +54,7 @@ static inline void wait_for_boot_cpu_to_finish(int* wt)
 void launching()
 {
     tasking_run_kernel_thread(dentry_flusher, NULL);
+    tasking_run_kernel_thread(kswapd, NULL);
     tasking_start_init_proc();
     ksys1(SYS_EXIT, 0);
 }

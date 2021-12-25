@@ -384,9 +384,11 @@ restore:
 
 int proc_load(proc_t* p, thread_t* main_thread, const char* path)
 {
+    lock_acquire(&p->vm_lock);
     lock_acquire(&p->lock);
     int res = proc_load_lockless(p, main_thread, path);
     lock_release(&p->lock);
+    lock_release(&p->vm_lock);
     return res;
 }
 
@@ -433,9 +435,11 @@ int proc_free_lockless(proc_t* p)
 
 int proc_free(proc_t* p)
 {
+    lock_acquire(&p->vm_lock);
     lock_acquire(&p->lock);
     int res = proc_free_lockless(p);
     lock_release(&p->lock);
+    lock_release(&p->vm_lock);
     return res;
 }
 

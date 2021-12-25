@@ -39,6 +39,15 @@ static inline uint32_t read_cbar()
     return val;
 }
 
+static inline uint32_t read_ifsr()
+{
+    uint32_t val;
+    asm volatile("mrc p15, 0, %0, c5, c0, 1"
+                 : "=r"(val)
+                 :);
+    return val;
+}
+
 static inline uint32_t read_dfsr()
 {
     uint32_t val;

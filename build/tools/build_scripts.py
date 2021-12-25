@@ -52,6 +52,7 @@ sudo fuse-ext2 {1}/one.img {0}/mountpoint -o rw+
 if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't mount one.img to {0}/mountpoint" && exit 1; fi
 sudo mkdir -p {0}/mountpoint/boot
 sudo mkdir -p {0}/mountpoint/proc
+sudo mkdir -p {0}/mountpoint/var
 sudo mkdir -p {0}/mountpoint/dev
 sudo mkdir -p {0}/mountpoint/tmp
 sudo cp -r {0}/base/* {0}/mountpoint/
@@ -60,6 +61,7 @@ sudo cp -r {1}/base/* {0}/mountpoint/
 sudo chmod -R 644 {0}/mountpoint/proc
 sudo chmod -R 644 {0}/mountpoint/dev
 sudo chmod -R 666 {0}/mountpoint/tmp
+sudo chmod -R 666 {0}/mountpoint/var
 sudo chmod -R 755 {0}/mountpoint/bin
 sudo chmod -R 700 {0}/mountpoint/home
 sudo chmod 777 {0}/mountpoint/home

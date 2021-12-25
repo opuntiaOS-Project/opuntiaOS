@@ -122,19 +122,28 @@ void svc_handler(trapframe_t* tf)
     sys_handler(tf);
 }
 
-void prefetch_abort_handler()
+void prefetch_abort_handler(trapframe_t* tf)
 {
-    uint32_t val;
-    asm volatile("mov %0, lr"
-                 : "=r"(val)
-                 :);
-    if (THIS_CPU->current_state == CPU_IN_USERLAND && RUNNING_THREAD) {
-        log("[cpu %d] prefetch_abort_handler pid: %d", system_cpu_id(), RUNNING_THREAD->tid);
-        dump_and_kill(RUNNING_THREAD->process);
-    } else {
-        log("[cpu %d] prefetch_abort_handler address : %x", system_cpu_id(), val);
-        system_stop();
+    system_disable_interrupts();
+    int trap_state = THIS_CPU->current_state;
+
+    cpu_enter_kernel_space();
+    uint32_t fault_addr = tf->user_ip;
+    uint32_t info = read_ifsr();
+    uint32_t is_pl0 = read_spsr() & 0xf; // See CPSR M field values
+    info |= ((is_pl0 != 0) << 31); // Set the 31bit as type
+    int res = vmm_page_fault_handler(info, fault_addr);
+    if (res == SHOULD_CRASH) {
+        if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
+            snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, prefetch_abort_handler", tf->user_ip);
+            kpanic_tf(err_buf, tf);
+        } else {
+            log_warn("Crash: prefetch abort %d at %x: %d pid, %x eip\n", info, fault_addr, RUNNING_THREAD->tid, tf->user_ip);
+            dump_and_kill(RUNNING_THREAD->process);
+        }
     }
+    cpu_leave_kernel_space();
+    system_enable_interrupts_only_counter();
 }
 
 void data_abort_handler(trapframe_t* tf)

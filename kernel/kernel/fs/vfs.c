@@ -29,6 +29,8 @@ static int _vfs_loadpage_from_mmap_file(struct memzone* zone, uintptr_t vaddr);
 
 static vm_ops_t mmap_file_vm_ops = {
     .load_page_content = _vfs_loadpage_from_mmap_file,
+    .restore_swapped_page = NULL,
+    .swap_page_mode = NULL,
 };
 
 driver_desc_t _vfs_driver_info()
@@ -704,7 +706,7 @@ int vfs_munmap(proc_t* p, memzone_t* zone)
     dentry_put(zone->file);
 
     for (uintptr_t vaddr = zone->start; vaddr < zone->start + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
-        system_flush_tlb_entry(vaddr);
+        system_flush_local_tlb_entry(vaddr);
     }
     memzone_free(p, zone);
 

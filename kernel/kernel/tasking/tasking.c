@@ -14,6 +14,7 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
+#include <mem/swapfile.h>
 #include <platform/generic/system.h>
 #include <tasking/cpu.h>
 #include <tasking/dump.h>
@@ -37,6 +38,11 @@ static inline pid_t _tasking_next_proc_id()
 static inline pid_t _tasking_get_proc_count()
 {
     return atomic_load(&nxt_proc);
+}
+
+pid_t tasking_get_proc_count()
+{
+    return _tasking_get_proc_count();
 }
 
 /**
@@ -99,6 +105,7 @@ proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
 static inline proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[_tasking_next_proc_id()];
+    lock_init(&p->vm_lock);
     lock_init(&p->lock);
     return p;
 }
@@ -175,6 +182,7 @@ proc_t* tasking_run_kernel_thread(void* entry_point, void* data)
 void tasking_init()
 {
     proc_init_storage();
+    swapfile_init();
     signal_init();
     dump_prepare_kernel_data();
 }
