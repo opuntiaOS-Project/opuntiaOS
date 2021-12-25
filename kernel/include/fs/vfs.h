@@ -166,7 +166,7 @@ typedef struct socket socket_t;
  * DENTRIES
  */
 
-void dentry_flusher();
+void kdentryflusherd();
 
 void dentry_set_parent(dentry_t* to, dentry_t* parent);
 void dentry_set_filename(dentry_t* to, char* filename);

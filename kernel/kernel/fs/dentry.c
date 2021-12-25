@@ -257,7 +257,7 @@ int dentry_flush(dentry_t* dentry)
 /**
  * Is a thread enrty point. The function flushes all inodes to drive.
  */
-void dentry_flusher()
+void kdentryflusherd()
 {
     for (;;) {
 #ifdef DENTRY_DEBUG
