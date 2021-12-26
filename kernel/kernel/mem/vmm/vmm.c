@@ -94,7 +94,7 @@ static ALWAYS_INLINE int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t sr
 
 static ALWAYS_INLINE pdirectory_t* vmm_new_user_pdir_lockless();
 static ALWAYS_INLINE pdirectory_t* vmm_new_forked_user_pdir_lockless();
-static ALWAYS_INLINE void vmm_prepare_active_pdir_for_copying_at_lockless(uintptr_t dest_vaddr, size_t length);
+static ALWAYS_INLINE void vmm_prepare_active_pdir_for_writing_at_lockless(uintptr_t dest_vaddr, size_t length);
 static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length);
 static ALWAYS_INLINE void vmm_copy_to_pdir_lockless(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_t length);
 
@@ -1270,28 +1270,28 @@ void* vmm_bring_to_kernel(uint8_t* src, size_t length)
     return (void*)kaddr;
 }
 
-static ALWAYS_INLINE void vmm_prepare_active_pdir_for_copying_at_lockless(uintptr_t dest_vaddr, size_t length)
+static ALWAYS_INLINE void vmm_prepare_active_pdir_for_writing_at_lockless(uintptr_t dest_vaddr, size_t length)
 {
     _vmm_ensure_write_to_range(dest_vaddr, length);
 }
 
-void vmm_prepare_active_pdir_for_copying_at(uintptr_t dest_vaddr, size_t length)
+void vmm_prepare_active_pdir_for_writing_at(uintptr_t dest_vaddr, size_t length)
 {
     lock_acquire(&_vmm_lock);
-    vmm_prepare_active_pdir_for_copying_at_lockless(dest_vaddr, length);
+    vmm_prepare_active_pdir_for_writing_at_lockless(dest_vaddr, length);
     lock_release(&_vmm_lock);
 }
 
 static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length)
 {
-    vmm_prepare_active_pdir_for_copying_at_lockless((uintptr_t)dest, length);
+    vmm_prepare_active_pdir_for_writing_at_lockless((uintptr_t)dest, length);
     memcpy(dest, src, length);
 }
 
 void vmm_copy_to_user(void* dest, void* src, size_t length)
 {
     lock_acquire(&_vmm_lock);
-    vmm_prepare_active_pdir_for_copying_at_lockless((uintptr_t)dest, length);
+    vmm_prepare_active_pdir_for_writing_at_lockless((uintptr_t)dest, length);
     lock_release(&_vmm_lock);
     memcpy(dest, src, length);
 }
@@ -1309,7 +1309,7 @@ static ALWAYS_INLINE void vmm_copy_to_pdir_lockless(pdirectory_t* pdir, void* sr
 
     vmm_switch_pdir_lockless(pdir);
 
-    vmm_prepare_active_pdir_for_copying_at_lockless(dest_vaddr, length);
+    vmm_prepare_active_pdir_for_writing_at_lockless(dest_vaddr, length);
     uint8_t* dest = (uint8_t*)dest_vaddr;
     memcpy(dest, ksrc, length);
 
@@ -1333,7 +1333,7 @@ void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_
 
     lock_acquire(&_vmm_lock);
     vmm_switch_pdir_lockless(pdir);
-    vmm_prepare_active_pdir_for_copying_at_lockless(dest_vaddr, length);
+    vmm_prepare_active_pdir_for_writing_at_lockless(dest_vaddr, length);
     lock_release(&_vmm_lock);
 
     uint8_t* dest = (uint8_t*)dest_vaddr;

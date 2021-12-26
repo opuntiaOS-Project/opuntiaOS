@@ -69,10 +69,11 @@ void* kmalloc(size_t size)
     }
 
     kmalloc_header_t* space = (kmalloc_header_t*)kmalloc_to_vaddr(start);
-    space->len = act_size;
     bitmap_set_range(bitmap, start, blocks_needed);
-
     lock_release(&_kmalloc_lock);
+
+    vmm_prepare_active_pdir_for_writing_at((uintptr_t)space, act_size);
+    space->len = act_size;
     return (void*)&space[1];
 }
 

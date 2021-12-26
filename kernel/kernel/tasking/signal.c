@@ -112,7 +112,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     system_disable_interrupts();
     pdirectory_t* prev_pdir = vmm_get_active_pdir();
     vmm_switch_pdir(thread->process->pdir);
-    vmm_prepare_active_pdir_for_copying_at((uint32_t)thread->tf, 1);
+    vmm_prepare_active_pdir_for_writing_at((uint32_t)thread->tf, 1);
 
     uint32_t old_sp = get_stack_pointer(thread->tf);
     uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */

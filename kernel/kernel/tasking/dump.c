@@ -55,7 +55,7 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
     // Use kernel hack and read straigth to our buffer. It's implemented in parts,
     // not to take much uninterruptable time reading our symtable.
     uint8_t* copy_to = (uint8_t*)zone->start;
-    vmm_prepare_active_pdir_for_copying_at(zone->start, zone->len);
+    vmm_prepare_active_pdir_for_writing_at(zone->start, zone->len);
     for (size_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
         system_disable_interrupts();
         fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);

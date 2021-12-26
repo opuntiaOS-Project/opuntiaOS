@@ -85,7 +85,7 @@ int vmm_swap_page(ptable_t* ptable, struct memzone* zone, uintptr_t vaddr);
 pdirectory_t* vmm_new_user_pdir();
 pdirectory_t* vmm_new_forked_user_pdir();
 void* vmm_bring_to_kernel(uint8_t* src, size_t length);
-void vmm_prepare_active_pdir_for_copying_at(uintptr_t dest_vaddr, size_t length);
+void vmm_prepare_active_pdir_for_writing_at(uintptr_t dest_vaddr, size_t length);
 void vmm_copy_to_user(void* dest, void* src, size_t length);
 void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_t length);
 
