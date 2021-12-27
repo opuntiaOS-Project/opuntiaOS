@@ -19,6 +19,7 @@ public:
     static constexpr bool NonMasked = false;
     static constexpr size_t SystemRadius = 4;
 
+    CornerMask() = default;
     CornerMask(size_t radius, bool top_rounded = Masked, bool bottom_rounded = Masked)
         : m_radius(radius)
         , m_top_rounded(top_rounded)
@@ -26,12 +27,16 @@ public:
     {
     }
 
+    ~CornerMask() = default;
+
+    static CornerMask Standard() { return CornerMask(SystemRadius, Masked, Masked); }
+
     size_t radius() const { return m_radius; }
     bool top_rounded() const { return m_top_rounded; }
     bool bottom_rounded() const { return m_bottom_rounded; }
 
 private:
-    size_t m_radius { SystemRadius };
+    size_t m_radius { 0 };
     bool m_top_rounded { Masked };
     bool m_bottom_rounded { Masked };
 };

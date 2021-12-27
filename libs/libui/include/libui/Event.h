@@ -285,21 +285,24 @@ private:
 // Notifiers
 class NotifyWindowCreateEvent : public Event {
 public:
-    NotifyWindowCreateEvent(std::string&& bundle_id, std::string&& icon_path, uint32_t changed_window_id)
+    NotifyWindowCreateEvent(std::string&& bundle_id, std::string&& icon_path, uint32_t changed_window_id, int changed_window_type)
         : Event(Event::Type::NotifyWindowCreateEvent)
         , m_window_id(changed_window_id)
         , m_icon_path(icon_path)
         , m_bundle_id(bundle_id)
+        , m_window_type(changed_window_type)
     {
     }
 
     ~NotifyWindowCreateEvent() = default;
     uint32_t window_id() const { return m_window_id; }
+    int window_type() const { return m_window_type; }
     const std::string& icon_path() const { return m_icon_path; }
     const std::string& bundle_id() const { return m_bundle_id; }
 
 private:
     int m_window_id;
+    int m_window_type;
     std::string m_bundle_id;
     std::string m_icon_path;
 };

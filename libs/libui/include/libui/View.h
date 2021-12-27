@@ -14,6 +14,7 @@
 #include <libui/Constraint.h>
 #include <libui/ContextManager.h>
 #include <libui/EdgeInsets.h>
+#include <libui/Layer.h>
 #include <libui/Responder.h>
 #include <optional>
 #include <utility>
@@ -108,6 +109,9 @@ public:
     inline void set_focusable(bool val) { m_focusable = val; }
     inline bool is_focusable() const { return m_focusable; }
 
+    inline Layer& layer() { return m_layer; }
+    inline const Layer& layer() const { return m_layer; }
+
     virtual void display(const LG::Rect& rect);
     virtual void did_display(const LG::Rect& rect);
 
@@ -168,6 +172,7 @@ private:
     bool m_focusable { false };
 
     LG::Color m_background_color { LG::Color::White };
+    Layer m_layer;
 };
 
 inline void View::constraint_interpreter(const Constraint& constraint)

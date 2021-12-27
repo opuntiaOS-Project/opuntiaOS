@@ -107,7 +107,7 @@ std::unique_ptr<Message> ClientDecoder::handle(PopupActionMessage& msg)
 std::unique_ptr<Message> ClientDecoder::handle(NotifyWindowCreateMessage& msg)
 {
     if (App::the().window().id() == msg.win_id()) {
-        m_event_loop.add(App::the().window(), new NotifyWindowCreateEvent(msg.bundle_id().move_string(), msg.icon_path().move_string(), msg.changed_window_id()));
+        m_event_loop.add(App::the().window(), new NotifyWindowCreateEvent(msg.bundle_id().move_string(), msg.icon_path().move_string(), msg.changed_window_id(), msg.changed_window_type()));
     }
     return nullptr;
 }

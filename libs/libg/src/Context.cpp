@@ -420,6 +420,10 @@ void Context::shadow_rounded_helper(const Point<int>& start, size_t radius, cons
 
 [[gnu::flatten]] void Context::fill_rounded(const Rect& rect, const CornerMask& mask)
 {
+    if (mask.radius() == 0) {
+        return fill(rect);
+    }
+
     auto draw_bounds = rect;
     draw_bounds.offset_by(m_draw_offset);
     draw_bounds.intersect(m_clip);

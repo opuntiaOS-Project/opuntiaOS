@@ -93,7 +93,7 @@ void View::display(const LG::Rect& rect)
 {
     LG::Context ctx = graphics_current_context();
     ctx.set_fill_color(background_color());
-    ctx.fill(rect);
+    ctx.fill_rounded(rect, layer().corner_mask());
 }
 
 void View::did_display(const LG::Rect& rect)
