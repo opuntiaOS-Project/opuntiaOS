@@ -7,10 +7,9 @@
  */
 
 #include "ServerDecoder.h"
-#include "Components/Security/Violations.h"
-#include "Desktop/Window.h"
-#include "Mobile/Window.h"
-#include "WindowManager.h"
+#include "../Components/Security/Violations.h"
+#include "../Managers/WindowManager.h"
+#include "../Target/Generic/Window.h"
 
 namespace WinServer {
 

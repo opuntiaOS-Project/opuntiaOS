@@ -7,7 +7,7 @@
  */
 
 #include "MenuBar.h"
-#include "../../Compositor.h"
+#include "../../Managers/Compositor.h"
 #include <libg/ImageLoaders/PNGLoader.h>
 
 namespace WinServer {

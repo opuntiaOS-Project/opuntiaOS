@@ -7,8 +7,8 @@
  */
 
 #pragma once
-#include "../../CursorManager.h"
-#include "../../Desktop/Window.h"
+#include "../../../shared/MessageContent/MenuBar.h"
+#include "../../Managers/CursorManager.h"
 #include "MenuItem.h"
 #include "Widgets/BaseWidget.h"
 #include <libfoundation/EventLoop.h>

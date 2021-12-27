@@ -7,7 +7,8 @@
  */
 
 #include "ControlBar.h"
-#include "../../Compositor.h"
+#include "../../Devices/Screen.h"
+#include "../../Managers/Compositor.h"
 #include <libg/ImageLoaders/PNGLoader.h>
 
 namespace WinServer {

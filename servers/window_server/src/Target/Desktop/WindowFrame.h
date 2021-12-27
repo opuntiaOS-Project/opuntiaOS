@@ -7,10 +7,10 @@
  */
 
 #pragma once
-#include "../../shared/MessageContent/MenuBar.h"
-#include "../Colors.h"
-#include "../Components/Elements/Button.h"
-#include "../Event.h"
+#include "../../../shared/MessageContent/MenuBar.h"
+#include "../../Components/Elements/Button.h"
+#include "../../Constants/Colors.h"
+#include "../../IPC/Event.h"
 #include <libfoundation/EventReceiver.h>
 #include <libg/Context.h>
 #include <libg/PixelBitmap.h>

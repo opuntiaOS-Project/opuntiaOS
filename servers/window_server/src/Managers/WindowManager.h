@@ -7,17 +7,17 @@
  */
 
 #pragma once
-#include "../shared/Connections/WSConnection.h"
-#include "Components/ControlBar/ControlBar.h"
-#include "Components/MenuBar/MenuBar.h"
-#include "Components/Security/Violations.h"
-#include "Compositor.h"
-#include "Connection.h"
-#include "Desktop/Window.h"
-#include "Event.h"
-#include "Mobile/Window.h"
-#include "Screen.h"
-#include "ServerDecoder.h"
+#include "../../shared/Connections/WSConnection.h"
+#include "../Components/ControlBar/ControlBar.h"
+#include "../Components/MenuBar/MenuBar.h"
+#include "../Components/Security/Violations.h"
+#include "../Devices/Screen.h"
+#include "../IPC/Connection.h"
+#include "../IPC/Event.h"
+#include "../IPC/ServerDecoder.h"
+#include "../Managers/Compositor.h"
+#include "../SystemApps/SystemApp.h"
+#include "../Target/Generic/Window.h"
 #include <algorithm>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
@@ -83,7 +83,7 @@ public:
     inline void move_window(Window* window, int x_offset, int y_offset)
     {
         y_offset = std::max(y_offset, (int)visible_area().min_y() - (int)Desktop::WindowFrame::std_top_border_frame_size() - window->bounds().min_y());
-        if (m_dock_window) [[likely]] {
+        if (m_dock.has_value()) [[likely]] {
             y_offset = std::min(y_offset, (int)(visible_area().max_y() - window->content_bounds().min_y()));
         }
         window->bounds().offset_by(x_offset, y_offset);
@@ -109,8 +109,6 @@ public:
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
-    void setup_dock(Window* window);
-
     // Notifiers
     bool notify_listner_about_window_creation(const Window& window, int changed_window_id);
     bool notify_listner_about_window_status(const Window& window, int changed_window_id, WindowStatusUpdateType type);
@@ -135,6 +133,14 @@ public:
     inline const MenuBar& menu_bar() const { return m_compositor.menu_bar(); }
 
 private:
+    // Calling bring_to_front() some system apps, like dock
+    // should always stay on the top.
+    // TODO: Complete me
+    void add_system_window(Window* window);
+    void bring_system_windows_to_front();
+    void setup_dock(Window* window);
+    void setup_applist(Window* window);
+
     void remove_window_from_screen(Window* window);
 
     void start_window_move(Window& window);
@@ -147,8 +153,10 @@ private:
     inline Window* movable_window() { return m_movable_window; }
     inline Window* hovered_window() { return m_hovered_window; }
     inline Window* active_window() { return m_active_window; }
-    inline void set_active_window(Window* win) { bring_to_front(*win), m_active_window = win; }
-    inline void set_active_window(Window& win) { bring_to_front(win), m_active_window = &win; }
+    inline void set_active_window(Window* win) { on_active_window_change(), bring_to_front(*win), m_active_window = win; }
+    inline void set_active_window(Window& win) { on_active_window_change(), bring_to_front(win), m_active_window = &win; }
+    inline void set_active_window(std::nullptr_t) { on_active_window_change(), m_active_window = nullptr; }
+    void on_active_window_change();
 
     inline void send_event(Message* msg) { m_event_loop.add(m_connection, new SendEvent(msg)); }
 
@@ -163,8 +171,10 @@ private:
 
     LG::Rect m_visible_area;
 
+    SystemApp m_dock;
+    SystemApp m_applist;
+
     // TODO: implement with std::weak_ptr.
-    Window* m_dock_window {};
     Window* m_movable_window {};
     Window* m_active_window {};
     Window* m_hovered_window {};

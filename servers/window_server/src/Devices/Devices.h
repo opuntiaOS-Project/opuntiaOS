@@ -7,8 +7,8 @@
  */
 
 #pragma once
-#include "Event.h"
-#include "WindowManager.h"
+#include "../IPC/Event.h"
+#include "../Managers/WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <memory>
 

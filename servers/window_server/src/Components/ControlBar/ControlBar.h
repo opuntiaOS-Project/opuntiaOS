@@ -7,8 +7,6 @@
  */
 
 #pragma once
-#include "../../CursorManager.h"
-#include "../../Desktop/Window.h"
 #include <libfoundation/Logger.h>
 #include <libg/Context.h>
 #include <libg/PixelBitmap.h>

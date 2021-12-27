@@ -7,8 +7,8 @@
  */
 
 #include "WindowFrame.h"
-#include "../Components/Elements/Button.h"
-#include "../WindowManager.h"
+#include "../../Components/Elements/Button.h"
+#include "../../Managers/WindowManager.h"
 #include "Window.h"
 #include <libg/Font.h>
 #include <libg/ImageLoaders/PNGLoader.h>

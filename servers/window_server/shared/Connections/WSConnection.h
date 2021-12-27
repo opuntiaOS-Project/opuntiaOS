@@ -1090,12 +1090,13 @@ private:
 
 class NotifyWindowCreateMessage : public Message {
 public:
-    NotifyWindowCreateMessage(message_key_t key, int win_id, LIPC::StringEncoder bundle_id, LIPC::StringEncoder icon_path, int changed_window_id)
+    NotifyWindowCreateMessage(message_key_t key, int win_id, LIPC::StringEncoder bundle_id, LIPC::StringEncoder icon_path, int changed_window_id, int changed_window_type)
         : m_key(key)
         , m_win_id(win_id)
         , m_bundle_id(bundle_id)
         , m_icon_path(icon_path)
         , m_changed_window_id(changed_window_id)
+        , m_changed_window_type(changed_window_type)
     {
     }
     int id() const override { return 12; }
@@ -1106,6 +1107,7 @@ public:
     LIPC::StringEncoder& bundle_id() { return m_bundle_id; }
     LIPC::StringEncoder& icon_path() { return m_icon_path; }
     int changed_window_id() const { return m_changed_window_id; }
+    int changed_window_type() const { return m_changed_window_type; }
     EncodedMessage encode() const override
     {
         EncodedMessage buffer;
@@ -1116,6 +1118,7 @@ public:
         Encoder::append(buffer, m_bundle_id);
         Encoder::append(buffer, m_icon_path);
         Encoder::append(buffer, m_changed_window_id);
+        Encoder::append(buffer, m_changed_window_type);
         return buffer;
     }
 
@@ -1125,6 +1128,7 @@ private:
     LIPC::StringEncoder m_bundle_id;
     LIPC::StringEncoder m_icon_path;
     int m_changed_window_id;
+    int m_changed_window_type;
 };
 
 class NotifyWindowStatusChangedMessage : public Message {
@@ -1262,6 +1266,7 @@ public:
         LIPC::StringEncoder var_bundle_id;
         LIPC::StringEncoder var_icon_path;
         int var_changed_window_id;
+        int var_changed_window_type;
         LIPC::StringEncoder var_title;
 
         switch (msg_id) {
@@ -1319,7 +1324,8 @@ public:
             Encoder::decode(buf, decoded_msg_len, var_bundle_id);
             Encoder::decode(buf, decoded_msg_len, var_icon_path);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);
-            return new NotifyWindowCreateMessage(secret_key, var_win_id, var_bundle_id, var_icon_path, var_changed_window_id);
+            Encoder::decode(buf, decoded_msg_len, var_changed_window_type);
+            return new NotifyWindowCreateMessage(secret_key, var_win_id, var_bundle_id, var_icon_path, var_changed_window_id, var_changed_window_type);
         case 13:
             Encoder::decode(buf, decoded_msg_len, var_win_id);
             Encoder::decode(buf, decoded_msg_len, var_changed_window_id);

@@ -7,8 +7,8 @@
  */
 
 #include "Popup.h"
-#include "../../Colors.h"
-#include "../../WindowManager.h"
+#include "../../Constants/Colors.h"
+#include "../../Managers/WindowManager.h"
 #include "../Helpers/TextDrawer.h"
 #include <algorithm>
 

@@ -7,9 +7,9 @@
  */
 
 #pragma once
-#include "../Components/Base/BaseWindow.h"
-#include "../Components/MenuBar/MenuItem.h"
-#include "../Connection.h"
+#include "../../Components/Base/BaseWindow.h"
+#include "../../Components/MenuBar/MenuItem.h"
+#include "../../IPC/Connection.h"
 #include "WindowFrame.h"
 #include <libfoundation/SharedBuffer.h>
 #include <libg/PixelBitmap.h>

@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#include "../../Screen.h"
+#include "../../Devices/Screen.h"
 #include <libg/Color.h>
 #include <libg/PixelBitmap.h>
 #include <memory>

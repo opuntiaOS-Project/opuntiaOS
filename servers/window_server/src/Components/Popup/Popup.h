@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "../../Compositor.h"
-#include "../../CursorManager.h"
+#include "../../Managers/Compositor.h"
+#include "../../Managers/CursorManager.h"
 #include <functional>
 #include <libg/Color.h>
 #include <libg/Context.h>

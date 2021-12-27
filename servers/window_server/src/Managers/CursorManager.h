@@ -7,8 +7,8 @@
  */
 
 #pragma once
-#include "Event.h"
-#include "Screen.h"
+#include "../Devices/Screen.h"
+#include "../IPC/Event.h"
 #include <algorithm>
 #include <libg/PixelBitmap.h>
 #include <libg/Point.h>

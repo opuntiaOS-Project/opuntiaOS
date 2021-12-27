@@ -7,7 +7,7 @@
  */
 
 #include "BaseWindow.h"
-#include "../../WindowManager.h"
+#include "../../Managers/WindowManager.h"
 #include <utility>
 
 namespace WinServer {

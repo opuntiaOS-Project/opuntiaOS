@@ -11,10 +11,10 @@
 #include "Components/ControlBar/ControlBar.h"
 #include "Components/MenuBar/MenuBar.h"
 #include "Components/Popup/Popup.h"
-#include "CursorManager.h"
-#include "ResourceManager.h"
-#include "Screen.h"
-#include "WindowManager.h"
+#include "Devices/Screen.h"
+#include "Managers/CursorManager.h"
+#include "Managers/ResourceManager.h"
+#include "Managers/WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/Memory.h>
 #include <libg/Context.h>

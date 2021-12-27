@@ -46,7 +46,7 @@
     PopupActionMessage(int win_id, int menu_id, int item_id)
 
     # Notifications
-    NotifyWindowCreateMessage(int win_id, LIPC::StringEncoder bundle_id, LIPC::StringEncoder icon_path, int changed_window_id)
+    NotifyWindowCreateMessage(int win_id, LIPC::StringEncoder bundle_id, LIPC::StringEncoder icon_path, int changed_window_id, int changed_window_type)
     NotifyWindowStatusChangedMessage(int win_id, int changed_window_id, int type)
     NotifyWindowTitleChangedMessage(int win_id, int changed_window_id, LIPC::StringEncoder title)
     NotifyWindowIconChangedMessage(int win_id, int changed_window_id, LIPC::StringEncoder icon_path)

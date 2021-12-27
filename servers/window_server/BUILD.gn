@@ -8,29 +8,29 @@ opuntiaOS_executable("window_server") {
     "src/Components/LoadingScreen/LoadingScreen.cpp",
     "src/Components/MenuBar/MenuBar.cpp",
     "src/Components/Popup/Popup.cpp",
-    "src/Compositor.cpp",
-    "src/Connection.cpp",
-    "src/CursorManager.cpp",
-    "src/Devices.cpp",
-    "src/ResourceManager.cpp",
-    "src/Screen.cpp",
-    "src/ServerDecoder.cpp",
-    "src/WindowManager.cpp",
+    "src/Devices/Devices.cpp",
+    "src/Devices/Screen.cpp",
+    "src/IPC/Connection.cpp",
+    "src/IPC/ServerDecoder.cpp",
+    "src/Managers/Compositor.cpp",
+    "src/Managers/CursorManager.cpp",
+    "src/Managers/ResourceManager.cpp",
+    "src/Managers/WindowManager.cpp",
     "src/main.cpp",
   ]
 
   if (device_type == "desktop") {
     cflags = [ "-DTARGET_DESKTOP" ]
     sources += [
-      "src/Desktop/Window.cpp",
-      "src/Desktop/WindowFrame.cpp",
+      "src/Target/Desktop/Window.cpp",
+      "src/Target/Desktop/WindowFrame.cpp",
     ]
   }
   if (device_type == "mobile") {
     cflags = [ "-DTARGET_MOBILE" ]
     sources += [
       "src/Components/ControlBar/ControlBar.cpp",
-      "src/Mobile/Window.cpp",
+      "src/Target/Mobile/Window.cpp",
     ]
   }
 
@@ -47,4 +47,6 @@ opuntiaOS_executable("window_server") {
     "libg",
     "libui",
   ]
+
+  include_dirs = [ "//servers/window_server/src/" ]
 }

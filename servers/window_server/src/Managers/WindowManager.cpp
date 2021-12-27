@@ -7,9 +7,9 @@
  */
 
 #include "WindowManager.h"
-#include "../shared/MessageContent/MouseAction.h"
-#include "CursorManager.h"
-#include "Screen.h"
+#include "../../shared/MessageContent/MouseAction.h"
+#include "../Devices/Screen.h"
+#include "../Managers/CursorManager.h"
 #include <libfoundation/KeyboardMapping.h>
 #include <libfoundation/Logger.h>
 
@@ -34,11 +34,6 @@ WindowManager::WindowManager()
     shrink_visible_area(menu_bar().height(), 0);
 }
 
-void WindowManager::start_window_move(Window& window)
-{
-    m_movable_window = &window;
-}
-
 void WindowManager::setup_dock(Window* window)
 {
 #ifdef TARGET_DESKTOP
@@ -48,14 +43,45 @@ void WindowManager::setup_dock(Window* window)
     window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus | WindowEvent::WindowCreation | WindowEvent::TitleChange);
     shrink_visible_area(0, window->bounds().height());
 #endif // TARGET_DESKTOP
-    m_dock_window = window;
+    m_dock.set_window(window);
+}
+
+void WindowManager::setup_applist(Window* window)
+{
+#ifdef TARGET_DESKTOP
+    window->make_frameless();
+    const size_t coorx = (visible_area().max_x() - window->bounds().width()) / 2;
+    const size_t coory = visible_area().max_y() - window->bounds().height() - 8;
+    window->bounds().set_x(coorx);
+    window->content_bounds().set_x(coorx);
+    window->bounds().set_y(coory);
+    window->content_bounds().set_y(coory);
+#endif // TARGET_DESKTOP
+    m_applist.set_window(window);
+}
+
+void WindowManager::add_system_window(Window* window)
+{
+    switch (window->type()) {
+    case WindowType::Homescreen:
+        setup_dock(window);
+        break;
+
+    case WindowType::AppList:
+        setup_applist(window);
+        break;
+
+    default:
+        break;
+    }
 }
 
 void WindowManager::add_window(Window* window)
 {
-    if (window->type() == WindowType::Homescreen) {
-        setup_dock(window);
+    if (window->type() != WindowType::Standard) {
+        add_system_window(window);
     }
+
     m_windows.push_back(window);
     set_active_window(window);
     notify_window_creation(window->id());
@@ -85,7 +111,7 @@ void WindowManager::remove_window_from_screen(Window* window)
 
 void WindowManager::remove_window(Window* window)
 {
-    if (m_dock_window == window) {
+    if (m_dock.window() == window) {
         return;
     }
     remove_window_from_screen(window);
@@ -128,6 +154,11 @@ void WindowManager::maximize_window(Window& window)
     resize_window(window, { m_screen.width() - horizontal_borders, fullscreen_h - vertical_borders });
 }
 
+void WindowManager::start_window_move(Window& window)
+{
+    m_movable_window = &window;
+}
+
 WindowManager::Window* WindowManager::get_top_standard_window_in_view() const
 {
     if (m_windows.empty()) {
@@ -135,7 +166,7 @@ WindowManager::Window* WindowManager::get_top_standard_window_in_view() const
     }
 
     auto it = m_windows.begin();
-    if (m_dock_window) {
+    if (m_dock.has_value()) {
         it++;
     }
 
@@ -146,14 +177,26 @@ WindowManager::Window* WindowManager::get_top_standard_window_in_view() const
 }
 
 #ifdef TARGET_DESKTOP
+void WindowManager::on_active_window_change()
+{
+    if (m_active_window->type() == WindowType::AppList) {
+        minimize_window(*m_active_window);
+    }
+}
+
+void WindowManager::bring_system_windows_to_front()
+{
+    if (m_dock.has_value()) {
+        do_bring_to_front(*m_dock.window());
+    }
+}
+
 void WindowManager::bring_to_front(Window& window)
 {
     auto* prev_window = get_top_standard_window_in_view();
     do_bring_to_front(window);
+    bring_system_windows_to_front();
 
-    if (m_dock_window) {
-        do_bring_to_front(*m_dock_window);
-    }
     window.set_visible(true);
     window.frame().set_active(true);
     m_compositor.invalidate(window.bounds());
@@ -168,6 +211,14 @@ void WindowManager::bring_to_front(Window& window)
     }
 }
 #elif TARGET_MOBILE
+void WindowManager::on_active_window_change()
+{
+}
+
+void WindowManager::bring_system_windows_to_front()
+{
+}
+
 void WindowManager::bring_to_front(Window& window)
 {
     auto* prev_window = get_top_standard_window_in_view();
@@ -266,7 +317,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
             menu_bar().set_menubar_content(nullptr, m_compositor);
             m_compositor.invalidate(m_active_window->bounds());
             m_active_window->frame().set_active(false);
-            m_active_window = nullptr;
+            set_active_window(nullptr);
         } else if (m_active_window != window_under_mouse_ptr) {
             set_active_window(window_under_mouse_ptr);
         }
@@ -381,7 +432,7 @@ bool WindowManager::notify_listner_about_window_creation(const Window& win, int 
     if (!changed_window_ptr) {
         return false;
     }
-    send_event(new NotifyWindowCreateMessage(win.connection_id(), win.id(), changed_window_ptr->bundle_id(), changed_window_ptr->icon_path(), changed_window_id));
+    send_event(new NotifyWindowCreateMessage(win.connection_id(), win.id(), changed_window_ptr->bundle_id(), changed_window_ptr->icon_path(), changed_window_id, changed_window_ptr->type()));
 #endif
     return true;
 }
