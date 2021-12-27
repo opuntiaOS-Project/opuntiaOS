@@ -1,0 +1,18 @@
+import("//build/userland/TEMPLATE.gni")
+
+opuntiaOS_executable("applist") {
+  install_path = "System/"
+  sources = [
+    "AppDelegate.cpp",
+    "AppListView.cpp",
+    "AppListWindow.cpp",
+    "IconView.cpp",
+  ]
+  configs = [ "//build/userland:userland_flags" ]
+  deplibs = [
+    "libcxx",
+    "libfoundation",
+    "libg",
+    "libui",
+  ]
+}

@@ -42,6 +42,7 @@ void DockView::add_system_buttons()
     auto& icon_view = m_dock_stackview->add_arranged_subview<AppListView>();
     icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
     icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, icon_view_size()));
+    m_applist_view = &icon_view;
 }
 
 void DockView::display(const LG::Rect& rect)
@@ -79,10 +80,17 @@ WindowEntity* DockView::find_window_entry(int window_id)
     return nullptr;
 }
 
-void DockView::on_window_create(const std::string& bundle_id, const std::string& icon_path, int window_id)
+void DockView::on_window_create(const std::string& bundle_id, const std::string& icon_path, int window_id, int window_type)
 {
     // Don't add an icon of dock (self).
     if (window()->id() == window_id) {
+        return;
+    }
+
+    if (window_type == WindowType::AppList) {
+        if (m_applist_view) {
+            m_applist_view->set_target_window_id(window_id);
+        }
         return;
     }
 

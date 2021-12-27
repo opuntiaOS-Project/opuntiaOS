@@ -21,6 +21,7 @@ template("opuntiaOS_executable") {
                              "asmflags",
                              "ldflags",
                              "public_deps",
+                             "include_dirs",
                            ])
   }
 
@@ -59,6 +60,7 @@ template("opuntiaOS_application") {
                              "asmflags",
                              "ldflags",
                              "public_deps",
+                             "include_dirs",
                            ])
   }
 

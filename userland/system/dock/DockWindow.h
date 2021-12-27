@@ -9,6 +9,10 @@ public:
     DockWindow()
         : UI::Window("Dock", LG::Size(UI::Screen::main().bounds().width(), 46), UI::WindowType::Homescreen)
     {
+        if (fork() == 0) {
+            execve("/System/applist", 0, 0);
+            std::abort();
+        }
     }
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;

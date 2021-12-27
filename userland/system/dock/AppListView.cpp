@@ -32,3 +32,17 @@ void AppListView::display(const LG::Rect& rect)
 
     ctx.draw({ offset_x, offset_y }, m_icon);
 }
+
+void AppListView::on_click()
+{
+    int this_window_id = window()->id();
+
+    if (m_target_window_id == INVALID) {
+        return;
+    }
+
+    auto& app = UI::App::the();
+    AskBringToFrontMessage msg(app.connection().key(), this_window_id, m_target_window_id);
+    // this->entity().set_minimized(false);
+    app.connection().send_async_message(msg);
+}

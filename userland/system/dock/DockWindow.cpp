@@ -6,7 +6,7 @@ void DockWindow::receive_event(std::unique_ptr<LFoundation::Event> event)
     if (event->type() == UI::Event::Type::NotifyWindowCreateEvent) {
         UI::NotifyWindowCreateEvent& own_event = *(UI::NotifyWindowCreateEvent*)event.get();
         DockView* it = (DockView*)superview();
-        it->on_window_create(own_event.bundle_id(), own_event.icon_path(), own_event.window_id());
+        it->on_window_create(own_event.bundle_id(), own_event.icon_path(), own_event.window_id(), own_event.window_type());
     }
     if (event->type() == UI::Event::Type::NotifyWindowStatusChangedEvent) {
         UI::NotifyWindowStatusChangedEvent& own_event = *(UI::NotifyWindowStatusChangedEvent*)event.get();
