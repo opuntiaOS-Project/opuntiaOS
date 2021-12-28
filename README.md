@@ -9,9 +9,10 @@
 ### Kernel
 
 * x86-32 and ARMv7 kernel with pre-emptive multi-threading
-* Ext2 FS
+* Purgeable memory
+* Ext2 filesystems
+* /dev and /proc filesystems
 * Local sockets
-* /dev and /proc filesystem
 * POSIX signals
 * TTY
 * [learn more](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/kernel.md)
