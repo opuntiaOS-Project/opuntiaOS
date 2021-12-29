@@ -47,9 +47,12 @@ std::unique_ptr<Message> WindowServerDecoder::handle(CreateWindowMessage& msg)
     int win_id = wm.next_win_id();
     auto* window = new Mobile::Window(msg.key(), win_id, msg);
     window->set_style(StatusBarStyle(msg.menubar_style(), msg.color()));
+    window->set_icon_path(msg.icon_path().move_string());
+    window->set_style(StatusBarStyle(msg.menubar_style(), msg.color()));
     wm.add_window(window);
-    wm.notify_window_icon_changed(window->id());
     wm.move_window(window, 0, MenuBar::height());
+    wm.notify_window_icon_changed(window->id());
+    wm.notify_window_title_changed(window->id());
     return new CreateWindowMessageReply(msg.key(), win_id);
 }
 #endif

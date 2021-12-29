@@ -99,22 +99,27 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
     };
 #endif // TARGET_DESKTOP
 
+    auto& windows = wm.windows();
+    auto top_std_window = windows.rbegin();
 #ifdef TARGET_DESKTOP
     for (int i = 0; i < invalidated_areas.size(); i++) {
         draw_wallpaper_for_area(invalidated_areas[i]);
     }
 #elif TARGET_MOBILE
-    // Draw wallpaper only in case when WM contains only homescreen app.
-    if (wm.windows().size() <= 1) {
+    // Standard windows could not be transparent in mobile view, thus
+    // no need to render everything behind the first standard window.
+    for (auto it = windows.rbegin(); it != windows.rend(); it++) {
+        top_std_window = it;
+    }
+
+    if (top_std_window == windows.rend() || (*top_std_window)->type() != WindowType::Standard) {
         for (int i = 0; i < invalidated_areas.size(); i++) {
             draw_wallpaper_for_area(invalidated_areas[i]);
         }
     }
 #endif // TARGET_DESKTOP
 
-    auto& windows = wm.windows();
-#ifdef TARGET_DESKTOP
-    for (auto it = windows.rbegin(); it != windows.rend(); it++) {
+    for (auto it = top_std_window; it != windows.rend(); it++) {
         auto& window = *(*it);
         if (window.visible() && is_window_area_invalidated(invalidated_areas, window.bounds())) {
             for (int i = 0; i < invalidated_areas.size(); i++) {
@@ -122,17 +127,6 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
             }
         }
     }
-#elif TARGET_MOBILE
-    // Draw wallpaper only in case when WM contains homescreen app.
-    if (windows.begin() != windows.end()) {
-        auto& window = *(*windows.begin());
-        if (is_window_area_invalidated(invalidated_areas, window.bounds())) {
-            for (int i = 0; i < invalidated_areas.size(); i++) {
-                draw_window(window, invalidated_areas[i]);
-            }
-        }
-    }
-#endif // TARGET_DESKTOP
 
     if (m_popup.visible()) {
         for (int i = 0; i < invalidated_areas.size(); i++) {

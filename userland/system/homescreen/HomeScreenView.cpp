@@ -1,4 +1,5 @@
 #include "HomeScreenView.h"
+#include "AppListView.h"
 #include "IconView.h"
 #include <algorithm>
 #include <cstdlib>
@@ -38,10 +39,16 @@ HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG
         m_grid_stackviews.push_back(&hstack_view);
     }
 
+    LG::Rect applist_frame = homegrid_frame;
+    applist_frame.set_x(grid_padding());
+    applist_frame.set_width(bounds().width() - 2 * grid_padding());
+    applist_frame.set_y(bounds().height() - dock_height_with_padding() + grid_padding());
+    applist_frame.set_height(applist_height());
+    auto& applist_view = add_subview<AppListView>(applist_frame);
+    m_applist_view = &applist_view;
+
     LG::Rect dock_frame = homegrid_frame;
-    dock_frame.set_x(grid_padding());
-    dock_frame.set_width(bounds().width() - 2 * grid_padding());
-    dock_frame.set_y(bounds().height() - dock_height_with_padding() + (dock_height() - icon_size()) / 2);
+    dock_frame.set_y(applist_frame.max_y() + (dock_height() - icon_size()) / 2);
     dock_frame.set_height(dock_height());
     auto& dock_stack_view = add_subview<UI::StackView>(dock_frame);
     dock_stack_view.set_spacing(12); // TODO: Set spacing which depends on screen width.
@@ -63,7 +70,7 @@ void HomeScreenView::display(const LG::Rect& rect)
 
     ctx.set_fill_color(LG::Color(255, 255, 255, 135));
     int offsety = bounds().height() - dock_height_with_padding();
-    ctx.fill_rounded(LG::Rect(grid_padding(), offsety, bounds().width() - 2 * grid_padding(), dock_height()), LG::CornerMask(16));
+    ctx.fill_rounded(LG::Rect(0, offsety, bounds().width(), dock_height_with_padding()), LG::CornerMask(16, LG::CornerMask::Masked, LG::CornerMask::NonMasked));
 }
 
 void HomeScreenView::new_grid_entity(const std::string& title, const std::string& icon_path, std::string&& exec_path)
@@ -99,4 +106,14 @@ void HomeScreenView::new_fast_launch_entity(const std::string& title, const std:
     icon_view.entity().set_icon(loader.load_from_file(icon_path + "/48x48.png"));
     icon_view.entity().set_path_to_exec(std::move(exec_path));
     set_needs_layout();
+}
+
+void HomeScreenView::on_window_create(const std::string& bundle_id, const std::string& icon_path, int window_id, int window_type)
+{
+    if (window_type == WindowType::AppList) {
+        if (m_applist_view) {
+            m_applist_view->set_target_window_id(window_id);
+        }
+        return;
+    }
 }

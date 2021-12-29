@@ -6,8 +6,8 @@
 
 class AppListWindow : public UI::Window {
 public:
-    AppListWindow()
-        : UI::Window("AppList", LG::Size(320, 400), UI::WindowType::AppList)
+    AppListWindow(const LG::Size& size)
+        : UI::Window("AppList", size, UI::WindowType::AppList)
     {
     }
 

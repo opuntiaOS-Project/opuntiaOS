@@ -12,7 +12,7 @@
 
 namespace WinServer::Mobile {
 
-Window::Window(int connection_id, int id, const CreateWindowMessage& msg)
+Window::Window(int connection_id, int id, CreateWindowMessage& msg)
     : BaseWindow(connection_id, id, msg)
 {
     m_bounds = LG::Rect(0, 0, msg.width(), msg.height());

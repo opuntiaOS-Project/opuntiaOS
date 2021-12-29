@@ -40,9 +40,9 @@ void WindowManager::setup_dock(Window* window)
     window->make_frameless();
     window->bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
     window->content_bounds().set_y(m_screen.bounds().max_y() - window->bounds().height() + 1);
-    window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus | WindowEvent::WindowCreation | WindowEvent::TitleChange);
     shrink_visible_area(0, window->bounds().height());
 #endif // TARGET_DESKTOP
+    window->set_event_mask(WindowEvent::IconChange | WindowEvent::WindowStatus | WindowEvent::WindowCreation | WindowEvent::TitleChange);
     m_dock.set_window(window);
 }
 
@@ -58,6 +58,7 @@ void WindowManager::setup_applist(Window* window)
     window->content_bounds().set_y(coory);
 #endif // TARGET_DESKTOP
     m_applist.set_window(window);
+    minimize_window(*window);
 }
 
 void WindowManager::add_system_window(Window* window)
@@ -78,61 +79,59 @@ void WindowManager::add_system_window(Window* window)
 
 void WindowManager::add_window(Window* window)
 {
+    m_windows.push_back(window);
+    set_active_window(window);
+
     if (window->type() != WindowType::Standard) {
         add_system_window(window);
     }
-
-    m_windows.push_back(window);
-    set_active_window(window);
     notify_window_creation(window->id());
 }
 
-void WindowManager::remove_window_from_screen(Window* window)
+void WindowManager::remove_attention_from_window(Window* window)
 {
     if (movable_window() == window) {
         m_movable_window = nullptr;
     }
     if (active_window() == window) {
+        set_active_window(nullptr);
+    }
+    if (hovered_window() == window) {
+        set_hovered_window(nullptr);
+    }
+}
+
+void WindowManager::on_window_became_invisible(Window* window)
+{
+    if (window->type() == WindowType::Standard && active_window() == window) {
 #ifdef TARGET_DESKTOP
         menu_bar().set_menubar_content(nullptr, m_compositor);
 #elif TARGET_MOBILE
-        if (window->type() == WindowType::Standard) {
-            menu_bar().set_style(StatusBarStyle::StandardOpaque);
-            m_compositor.invalidate(menu_bar().bounds());
-        }
+        menu_bar().set_style(StatusBarStyle::StandardOpaque);
+        m_compositor.invalidate(menu_bar().bounds());
 #endif
-        m_active_window = nullptr;
-    }
-    if (hovered_window() == window) {
-        m_hovered_window = nullptr;
     }
     m_compositor.invalidate(window->bounds());
 }
 
-void WindowManager::remove_window(Window* window)
+void WindowManager::remove_window(Window* window_ptr)
 {
-    if (m_dock.window() == window) {
-        return;
-    }
-    remove_window_from_screen(window);
-    notify_window_status_changed(window->id(), WindowStatusUpdateType::Removed);
-    m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window));
-#ifdef TARGET_MOBILE
-    if (auto* top_window = get_top_standard_window_in_view(); top_window) {
-        m_active_window = top_window;
-    }
-#endif
-    delete window;
+    notify_window_status_changed(window_ptr->id(), WindowStatusUpdateType::Removed);
+    m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
+    on_window_became_invisible(window_ptr);
+    remove_attention_from_window(window_ptr);
+    delete window_ptr;
 }
 
 void WindowManager::minimize_window(Window& window)
 {
     Window* window_ptr = &window;
-    remove_window_from_screen(window_ptr);
+    notify_window_status_changed(window.id(), WindowStatusUpdateType::Minimized);
     window.set_visible(false);
     m_windows.erase(std::find(m_windows.begin(), m_windows.end(), window_ptr));
     m_windows.push_back(window_ptr);
-    notify_window_status_changed(window.id(), WindowStatusUpdateType::Minimized);
+    on_window_became_invisible(window_ptr);
+    remove_attention_from_window(window_ptr);
 }
 
 void WindowManager::resize_window(Window& window, const LG::Size& size)
@@ -159,29 +158,28 @@ void WindowManager::start_window_move(Window& window)
     m_movable_window = &window;
 }
 
-WindowManager::Window* WindowManager::get_top_standard_window_in_view() const
+WindowManager::Window* WindowManager::top_window_in_view(WindowType type) const
 {
-    if (m_windows.empty()) {
-        return nullptr;
+    for (auto it = m_windows.begin(); it != m_windows.end(); it++) {
+        auto* window = (*it);
+        if (window->type() == type) {
+            return window;
+        }
     }
-
-    auto it = m_windows.begin();
-    if (m_dock.has_value()) {
-        it++;
-    }
-
-    if (it == m_windows.end()) {
-        return *m_windows.begin();
-    }
-    return *it;
+    return nullptr;
 }
 
 #ifdef TARGET_DESKTOP
-void WindowManager::on_active_window_change()
+void WindowManager::on_active_window_will_change()
 {
     if (m_active_window->type() == WindowType::AppList) {
-        minimize_window(*m_active_window);
+        m_active_window->set_visible(false);
+        on_window_became_invisible(m_active_window);
     }
+}
+
+void WindowManager::on_active_window_did_change()
+{
 }
 
 void WindowManager::bring_system_windows_to_front()
@@ -193,7 +191,7 @@ void WindowManager::bring_system_windows_to_front()
 
 void WindowManager::bring_to_front(Window& window)
 {
-    auto* prev_window = get_top_standard_window_in_view();
+    auto* prev_window = top_window_in_view(WindowType::Standard);
     do_bring_to_front(window);
     bring_system_windows_to_front();
 
@@ -211,8 +209,18 @@ void WindowManager::bring_to_front(Window& window)
     }
 }
 #elif TARGET_MOBILE
-void WindowManager::on_active_window_change()
+void WindowManager::on_active_window_will_change()
 {
+}
+
+void WindowManager::on_active_window_did_change()
+{
+    // If current active_window has become NULL, try to restore the lastest.
+    if (active_window() == nullptr) {
+        if (auto top_window = m_windows.begin(); top_window != m_windows.end()) {
+            m_active_window = *top_window;
+        }
+    }
 }
 
 void WindowManager::bring_system_windows_to_front()
@@ -221,9 +229,11 @@ void WindowManager::bring_system_windows_to_front()
 
 void WindowManager::bring_to_front(Window& window)
 {
-    auto* prev_window = get_top_standard_window_in_view();
     do_bring_to_front(window);
+    bring_system_windows_to_front();
+    window.set_visible(true);
     m_active_window = &window;
+    m_compositor.invalidate(window.bounds());
     if (window.type() == WindowType::Standard) {
         menu_bar().set_style(window.style());
         m_compositor.invalidate(menu_bar().bounds());
@@ -345,7 +355,7 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     if (hovered_window() && hovered_window() != curr_hovered_window) {
         send_event(new MouseLeaveMessage(hovered_window()->connection_id(), hovered_window()->id(), 0, 0));
     }
-    m_hovered_window = curr_hovered_window;
+    set_hovered_window(curr_hovered_window);
 
     if (hovered_window() && m_cursor_manager.is_changed<CursorManager::Params::Buttons>()) {
         LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
@@ -377,7 +387,18 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
 
     if (m_compositor.control_bar().control_button_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y()) && active_window()) {
         if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
-            remove_window(active_window());
+            switch (active_window()->type()) {
+            case WindowType::Standard:
+                remove_window(active_window());
+                break;
+            case WindowType::AppList:
+                minimize_window(*active_window());
+                break;
+
+            case WindowType::Homescreen:
+            default:
+                break;
+            }
         }
         return;
     }
@@ -424,7 +445,6 @@ void WindowManager::receive_event(std::unique_ptr<LFoundation::Event> event)
 
 bool WindowManager::notify_listner_about_window_creation(const Window& win, int changed_window_id)
 {
-#ifdef TARGET_DESKTOP
 #ifdef WM_DEBUG
     Logger::debug << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << std::endl;
 #endif
@@ -433,13 +453,11 @@ bool WindowManager::notify_listner_about_window_creation(const Window& win, int 
         return false;
     }
     send_event(new NotifyWindowCreateMessage(win.connection_id(), win.id(), changed_window_ptr->bundle_id(), changed_window_ptr->icon_path(), changed_window_id, changed_window_ptr->type()));
-#endif
     return true;
 }
 
 bool WindowManager::notify_listner_about_window_status(const Window& win, int changed_window_id, WindowStatusUpdateType type)
 {
-#ifdef TARGET_DESKTOP
 #ifdef WM_DEBUG
     Logger::debug << "notify_listner_about_window_status " << win.id() << " that " << changed_window_id << " " << type << std::endl;
 #endif
@@ -448,13 +466,11 @@ bool WindowManager::notify_listner_about_window_status(const Window& win, int ch
         return false;
     }
     send_event(new NotifyWindowStatusChangedMessage(win.connection_id(), win.id(), changed_window_id, (int)type));
-#endif
     return true;
 }
 
 bool WindowManager::notify_listner_about_changed_icon(const Window& win, int changed_window_id)
 {
-#ifdef TARGET_DESKTOP
 #ifdef WM_DEBUG
     Logger::debug << "notify_listner_about_changed_icon " << win.id() << " that " << changed_window_id << std::endl;
 #endif
@@ -463,13 +479,11 @@ bool WindowManager::notify_listner_about_changed_icon(const Window& win, int cha
         return false;
     }
     send_event(new NotifyWindowIconChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->icon_path()));
-#endif
     return true;
 }
 
 bool WindowManager::notify_listner_about_changed_title(const Window& win, int changed_window_id)
 {
-#ifdef TARGET_DESKTOP
 #ifdef WM_DEBUG
     Logger::debug << "notify_listner_about_changed_title " << win.id() << " that " << changed_window_id << std::endl;
 #endif
@@ -478,7 +492,6 @@ bool WindowManager::notify_listner_about_changed_title(const Window& win, int ch
         return false;
     }
     send_event(new NotifyWindowTitleChangedMessage(win.connection_id(), win.id(), changed_window_id, changed_window_ptr->app_title()));
-#endif
     return true;
 }
 

@@ -4,6 +4,7 @@ opuntiaOS_executable("homescreen") {
   install_path = "System/"
   sources = [
     "AppDelegate.cpp",
+    "AppListView.cpp",
     "HomeScreenView.cpp",
     "IconView.cpp",
   ]

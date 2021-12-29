@@ -20,7 +20,7 @@ namespace WinServer::Mobile {
 
 class Window : public BaseWindow {
 public:
-    Window(int connection_id, int id, const CreateWindowMessage& msg);
+    Window(int connection_id, int id, CreateWindowMessage& msg);
     Window(Window&& win);
 
     inline void set_style(StatusBarStyle ts) { m_style = ts, on_style_change(); }

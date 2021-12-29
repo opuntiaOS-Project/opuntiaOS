@@ -27,16 +27,6 @@ public:
     inline WindowFrame& frame() { return m_frame; }
     inline const WindowFrame& frame() const { return m_frame; }
 
-    inline const std::string& app_name() const { return m_app_name; }
-    inline const std::string& bundle_id() const { return m_bundle_id; }
-
-    inline const std::string& app_title() const { return m_app_title; }
-    inline void set_app_title(const std::string& title) { m_app_title = title, m_frame.on_set_app_title(); }
-
-    inline const std::string& icon_path() const { return m_icon_path; }
-    inline void set_icon_path(std::string&& name) { m_icon_path = std::move(name), m_frame.on_set_icon(); }
-    inline void set_icon_path(const std::string& name) { m_icon_path = name, m_frame.on_set_icon(); }
-
     inline const LG::CornerMask& corner_mask() const { return m_corner_mask; }
 
     inline std::vector<MenuDir>& menubar_content() { return m_menubar_content; }
@@ -44,6 +34,8 @@ public:
 
     void on_menubar_change();
 
+    virtual void did_app_title_change() override { m_frame.on_set_app_title(); }
+    virtual void did_icon_path_change() override { m_frame.on_set_icon(); }
     virtual void did_size_change(const LG::Size& size) override;
 
     inline void set_style(StatusBarStyle style) { m_frame.set_style(style), on_style_change(); }
@@ -57,10 +49,6 @@ private:
 
     WindowFrame m_frame;
     LG::CornerMask m_corner_mask { LG::CornerMask::SystemRadius, LG::CornerMask::NonMasked, LG::CornerMask::Masked };
-    std::string m_app_name {};
-    std::string m_app_title {};
-    std::string m_icon_path {};
-    std::string m_bundle_id {};
     std::vector<MenuDir> m_menubar_content;
 };
 

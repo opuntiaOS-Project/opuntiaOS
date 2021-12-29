@@ -57,9 +57,10 @@ public:
         std::vector<Window*> hided;
         for (auto* window : m_windows) {
             if (window && window->type() == WindowType::Standard && callback(window)) {
-                remove_window_from_screen(window);
                 window->set_visible(false);
                 hided.push_back(window);
+                on_window_became_invisible(window);
+                remove_attention_from_window(window);
             }
         }
 
@@ -69,7 +70,7 @@ public:
         }
     }
 
-    Window* get_top_standard_window_in_view() const;
+    Window* top_window_in_view(WindowType type) const;
     inline Window* window(int id)
     {
         for (auto* window : m_windows) {
@@ -98,8 +99,6 @@ public:
     }
     void bring_to_front(Window& window);
 
-    void on_window_misbehave(Window& window, ViolationClass);
-
     inline std::list<Window*>& windows() { return m_windows; }
     inline const std::list<Window*>& windows() const { return m_windows; }
     inline int next_win_id() { return ++m_next_win_id; }
@@ -123,6 +122,7 @@ public:
     inline void ask_to_set_active_window(Window* win) { set_active_window(win); }
     inline void ask_to_set_active_window(Window& win) { set_active_window(win); }
 
+    void on_window_misbehave(Window& window, ViolationClass);
     void on_window_style_change(Window& win);
     void on_window_menubar_change(Window& window);
 
@@ -133,15 +133,12 @@ public:
     inline const MenuBar& menu_bar() const { return m_compositor.menu_bar(); }
 
 private:
-    // Calling bring_to_front() some system apps, like dock
-    // should always stay on the top.
-    // TODO: Complete me
     void add_system_window(Window* window);
     void bring_system_windows_to_front();
     void setup_dock(Window* window);
     void setup_applist(Window* window);
 
-    void remove_window_from_screen(Window* window);
+    void remove_attention_from_window(Window* window);
 
     void start_window_move(Window& window);
     bool continue_window_move();
@@ -152,11 +149,16 @@ private:
 
     inline Window* movable_window() { return m_movable_window; }
     inline Window* hovered_window() { return m_hovered_window; }
+    inline void set_hovered_window(Window* win) { m_hovered_window = win; }
+
     inline Window* active_window() { return m_active_window; }
-    inline void set_active_window(Window* win) { on_active_window_change(), bring_to_front(*win), m_active_window = win; }
-    inline void set_active_window(Window& win) { on_active_window_change(), bring_to_front(win), m_active_window = &win; }
-    inline void set_active_window(std::nullptr_t) { on_active_window_change(), m_active_window = nullptr; }
-    void on_active_window_change();
+    inline void set_active_window(Window* win) { on_active_window_will_change(), bring_to_front(*win), m_active_window = win, on_active_window_did_change(); }
+    inline void set_active_window(Window& win) { on_active_window_will_change(), bring_to_front(win), m_active_window = &win, on_active_window_did_change(); }
+    inline void set_active_window(std::nullptr_t) { on_active_window_will_change(), m_active_window = nullptr, on_active_window_did_change(); }
+
+    void on_window_became_invisible(Window* window);
+    void on_active_window_will_change();
+    void on_active_window_did_change();
 
     inline void send_event(Message* msg) { m_event_loop.add(m_connection, new SendEvent(msg)); }
 

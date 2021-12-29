@@ -30,7 +30,7 @@ enum WindowEvent {
 
 class BaseWindow {
 public:
-    BaseWindow(int connection_id, int id, const CreateWindowMessage& msg);
+    BaseWindow(int connection_id, int id, CreateWindowMessage& msg);
     BaseWindow(BaseWindow&& win);
     ~BaseWindow() = default;
 
@@ -51,6 +51,18 @@ public:
 
     inline LG::Rect& bounds() { return m_bounds; }
     inline const LG::Rect& bounds() const { return m_bounds; }
+
+    inline const std::string& app_name() const { return m_app_name; }
+    inline const std::string& bundle_id() const { return m_bundle_id; }
+
+    inline const std::string& app_title() const { return m_app_title; }
+    inline void set_app_title(const std::string& title) { m_app_title = title, did_app_title_change(); }
+    virtual void did_app_title_change() { }
+
+    inline const std::string& icon_path() const { return m_icon_path; }
+    inline void set_icon_path(std::string&& name) { m_icon_path = std::move(name), did_icon_path_change(); }
+    inline void set_icon_path(const std::string& name) { m_icon_path = name, did_icon_path_change(); }
+    virtual void did_icon_path_change() { }
 
     inline bool visible() const { return m_visible; }
     inline void set_visible(bool vis) { m_visible = vis; }
@@ -78,6 +90,10 @@ protected:
     LG::Rect m_bounds;
     LG::Rect m_content_bounds;
     LG::PixelBitmap m_content_bitmap;
+    std::string m_app_name {};
+    std::string m_app_title {};
+    std::string m_icon_path {};
+    std::string m_bundle_id {};
     LFoundation::SharedBuffer<LG::Color> m_buffer;
 };
 
