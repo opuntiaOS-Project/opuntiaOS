@@ -81,3 +81,9 @@ pid_t getpgid(pid_t pid)
     int res = DO_SYSCALL_1(SYS_GETPGID, pid);
     RETURN_WITH_ERRNO(res, (pid_t)res, -1);
 }
+
+uint32_t sleep(uint32_t seconds)
+{
+    uint32_t res = DO_SYSCALL_1(SYS_NANOSLEEP, seconds);
+    RETURN_WITH_ERRNO(res, seconds, 0);
+}

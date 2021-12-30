@@ -264,6 +264,10 @@ static int signal_process(thread_t* thread, int signo)
 
 int signal_send(thread_t* thread, int signo)
 {
+    if (signo == 0) {
+        return 0;
+    }
+
     int err = signal_set_pending(thread, signo);
     if (err) {
         return err;
