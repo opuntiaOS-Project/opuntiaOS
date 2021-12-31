@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 The opuntiaOS Project Authors.
+ * Copyright (C) 2020-2022 The opuntiaOS Project Authors.
  *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
  *
  * Use of this source code is governed by a BSD-style license that can be
@@ -50,7 +50,7 @@ public:
 
         auto& footer = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 16));
         footer.set_text_color(LG::Color::DarkSystemText);
-        footer.set_text("(c) 2020-2021");
+        footer.set_text("(c) 2020-2022");
         footer.set_width(footer.preferred_width());
 
         view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));

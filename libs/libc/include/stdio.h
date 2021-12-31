@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 The opuntiaOS Project Authors.
+ * Copyright (C) 2020-2022 The opuntiaOS Project Authors.
  *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
  *  + Contributed by bellrise <bellrise.dev@gmail.com>
  *
