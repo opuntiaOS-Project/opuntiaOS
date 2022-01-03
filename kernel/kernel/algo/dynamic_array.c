@@ -104,9 +104,6 @@ void* dynarr_get(dynamic_array_t* v, int index)
 {
     int index_inside = 0;
     dynamic_array_bucket_t* target = _dynarr_bucket(v, index, &index_inside);
-    if (target->size > 50) {
-        while (1) { }
-    }
     if (!target) {
         log_warn("!!! dynamic array: index out of range");
         return NULL;
