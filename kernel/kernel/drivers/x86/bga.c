@@ -39,6 +39,17 @@ static uint16_t bga_screen_width, bga_screen_height;
 static uint32_t bga_screen_line_size, bga_screen_buffer_size;
 static uint32_t bga_buf_paddr;
 
+static int _bga_swap_page_mode(struct memzone* zone, uintptr_t vaddr)
+{
+    return SWAP_NOT_ALLOWED;
+}
+
+static vm_ops_t mmap_file_vm_ops = {
+    .load_page_content = NULL,
+    .restore_swapped_page = NULL,
+    .swap_page_mode = _bga_swap_page_mode,
+};
+
 static inline void _bga_write_reg(uint16_t cmd, uint16_t data)
 {
     port_16bit_out(VBE_DISPI_IOPORT_INDEX, cmd);
@@ -100,6 +111,7 @@ static memzone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
     zone->flags |= ZONE_WRITABLE | ZONE_READABLE | ZONE_NOT_CACHEABLE;
     zone->type |= ZONE_TYPE_DEVICE;
     zone->file = dentry_duplicate(dentry);
+    zone->ops = &mmap_file_vm_ops;
 
     for (int offset = 0; offset < bga_screen_buffer_size; offset += VMM_PAGE_SIZE) {
         vmm_map_page(zone->start + offset, bga_buf_paddr + offset, zone->flags);

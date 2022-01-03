@@ -76,10 +76,11 @@ static int find_victim(proc_t* p, pdirectory_t* pdir)
             }
 
             uintptr_t victim_vaddr = table_coverage * pti + VMM_PAGE_SIZE * pgi;
+            memzone_t* zone = memzone_find(p, victim_vaddr);
 #ifdef KSWAPD_DEBUG
             log("[kswapd] (pid %d) Find victim at %x", p->pid, victim_vaddr);
 #endif
-            vmm_swap_page(&ptable_map_zone[pti], NULL, victim_vaddr);
+            vmm_swap_page(&ptable_map_zone[pti], zone, victim_vaddr);
             after_page_swap();
             if (moved_out_pages_per_pid >= KSWAPD_SWAP_PER_PID_THRESHOLD) {
                 lock_release(&p->vm_lock);

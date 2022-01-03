@@ -12,7 +12,7 @@
 enum SWAP_TYPE {
     SWAP_TO_DEV,
     SWAP_DROP,
-    SWAP_NONE,
+    SWAP_NOT_ALLOWED,
 };
 
 #endif // _KERNEL_MEM_BITS_SWAP_H

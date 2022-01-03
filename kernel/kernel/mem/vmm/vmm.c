@@ -1127,7 +1127,19 @@ int vmm_swap_page(ptable_t* ptable, memzone_t* zone, uintptr_t vaddr)
 {
     lock_acquire(&_vmm_lock);
 
+    if (!zone) {
+        return -1;
+    }
+
     int swap_mode = SWAP_TO_DEV;
+    if (zone->ops && zone->ops->swap_page_mode) {
+        swap_mode = zone->ops->swap_page_mode(zone, vaddr);
+    }
+
+    if (swap_mode == SWAP_NOT_ALLOWED) {
+        return -EPERM;
+    }
+
     page_desc_t* page = _vmm_ptable_lookup(ptable, vaddr);
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
