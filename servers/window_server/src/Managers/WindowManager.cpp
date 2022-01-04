@@ -341,11 +341,15 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
     }
     auto& window = *window_under_mouse_ptr;
 
-    if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) [[likely]] {
-        LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
-        point.offset_by(-window.content_bounds().origin());
-        send_event(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y()));
-        curr_hovered_window = &window;
+    if (window.content_bounds().contains(m_cursor_manager.x(), m_cursor_manager.y())) {
+        if (window.type() == WindowType::Standard && active_window() != &window) {
+            curr_hovered_window = nullptr;
+        } else {
+            LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
+            point.offset_by(-window.content_bounds().origin());
+            send_event(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y()));
+            curr_hovered_window = &window;
+        }
     } else if (m_cursor_manager.is_changed<CursorManager::Params::LeftButton>() && m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
         auto tap_point = LG::Point<int>(m_cursor_manager.x() - window.frame().bounds().min_x(), m_cursor_manager.y() - window.frame().bounds().min_y());
         window.frame().receive_tap_event(tap_point);
