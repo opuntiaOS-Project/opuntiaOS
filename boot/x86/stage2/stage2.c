@@ -13,6 +13,8 @@
 #include "mem/vm.h"
 #include "types.h"
 
+// #define DEBUG_BOOT
+
 int get_load_disk(drive_desc_t* drive_desc)
 {
     init_ata(0x1F0, 1);
@@ -34,32 +36,30 @@ int get_fs_of_disk(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 void stage2(mem_desc_t* mem_desc)
 {
     clean_screen();
+#ifdef DEBUG_BOOT
     printf("STAGE2\n");
+#endif
     drive_desc_t drive_desc;
     fs_desc_t fs_desc;
 
     if (get_load_disk(&drive_desc) != 0) {
+#ifdef DEBUG_BOOT
         printf("E1");
+#endif
         while (1) { }
     }
 
     if (get_fs_of_disk(&drive_desc, &fs_desc) != 0) {
+#ifdef DEBUG_BOOT
         printf("E2");
+#endif
         while (1) { }
     }
 
-    printf("P3\n");
-
-    // printh((uint32_t)drive_desc.read);
-    // printh((uint32_t)fs_desc.read);
-    // int (*read_kernel)(drive_desc_t *drive_desc, char *path, uint8_t *buf, uint32_t from, uint32_t len) = fs_desc.read;
-    // read_kernel(&drive_desc, KERNEL_PATH, (uint8_t*)KERNEL_BASE, 0, 128);
-
-    uint32_t kernel_size;
+    uint32_t kernel_size = 0;
     printd(elf_load_kernel(&drive_desc, &fs_desc, KERNEL_PATH, &kernel_size));
 
-    // TODO fix
-    mem_desc->kernel_size = kernel_size / 1024 + 1;
+    mem_desc->kernel_size = (kernel_size + 1023) / 1024;
 
     vm_setup();
 
