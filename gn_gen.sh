@@ -8,9 +8,40 @@ NC='\033[0m'
 ERROR="${RED}[ERROR]${NC}"
 SUCCESS="${GREEN}[SUCCESS]${NC}"
 
+for arg in "$@"; do
+    if [[ $arg == "--help" ]]; then
+        echo "--target_cpu
+  Sets target arch
+  Possible values:
+    x86 (default)
+    aarch32 / arm
+
+--host
+  Sets toolchain to build the OS
+  Possible values:
+    gnu (default)
+    llvm
+
+--device_type
+  Configueres OS parts to work in either desktop or mobile mode.
+  Possible values:
+    d / desktop (default)
+    m / mobile
+
+--test_method
+  Possible values:
+    none (default)
+    tests
+    bench
+
+--help
+  Prints all options of ./gn_gen.sh"
+        exit
+    fi
+done
+
 argline=""
-for arg in "$@"
-do
+for arg in "$@"; do
     if [[ $arg == "--"* ]]; then
         argline+="${arg:2}="
     else

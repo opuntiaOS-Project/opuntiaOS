@@ -99,13 +99,13 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
 
 ***Note*** you can set some environment variables before running `./gn_gen.sh` to change some parameters, visit [Environment varibles](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/build.md#environment-variables) to learn more.
 
-#### **Options of ./gn.gen**
+#### **Options of ./gn_gen.sh**
 
 * --target_cpu *value*
   * Sets target arch
   * Possible values:
     * x86 *(default)*
-    * aarch32
+    * aarch32 / arm
 * --host *value*
   * Sets toolchain to build the OS
   * Possible values:
@@ -121,6 +121,8 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
     * none *(default)*
     * tests
     * bench
+* --help
+  * Prints all options of ./gn_gen.sh
 
 So to build opuntiaOS for Arm with LLVM you have to generate Ninja files with `./gn_gen.sh --target_cpu aarch32 --host llvm`
 
