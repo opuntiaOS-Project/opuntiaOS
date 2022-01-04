@@ -16,17 +16,26 @@ static DockView* this_view;
 DockView::DockView(UI::View* superview, const LG::Rect& frame)
     : UI::View(superview, frame)
 {
-    auto& dock_stack_view = add_subview<UI::StackView>(bounds());
-    dock_stack_view.set_spacing(padding());
-    dock_stack_view.set_background_color(LG::Color::Opaque);
-    dock_stack_view.set_axis(UI::LayoutConstraints::Axis::Horizontal);
-    dock_stack_view.set_distribution(UI::StackView::Distribution::EqualCentering);
-    m_dock_stackview = &dock_stack_view;
-    add_system_buttons();
+    init_fill_bounds();
+    init_subviews();
 }
 
 DockView::DockView(UI::View* superview, UI::Window* window, const LG::Rect& frame)
     : UI::View(superview, window, frame)
+{
+    init_fill_bounds();
+    init_subviews();
+}
+
+void DockView::init_fill_bounds()
+{
+    m_fill_bounds = bounds();
+    m_fill_bounds.set_x(bounds().mid_x());
+    m_fill_bounds.set_width(0);
+    fill_bounds_expand(2 * padding());
+}
+
+void DockView::init_subviews()
 {
     auto& dock_stack_view = add_subview<UI::StackView>(bounds());
     dock_stack_view.set_spacing(padding());
@@ -39,6 +48,7 @@ DockView::DockView(UI::View* superview, UI::Window* window, const LG::Rect& fram
 
 void DockView::add_system_buttons()
 {
+    fill_bounds_expand(icon_view_size() + padding());
     auto& icon_view = m_dock_stackview->add_arranged_subview<AppListView>();
     icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
     icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, icon_view_size()));
@@ -51,13 +61,14 @@ void DockView::display(const LG::Rect& rect)
     ctx.add_clip(rect);
 
     ctx.set_fill_color(background_color());
-    ctx.fill(bounds());
+    ctx.fill_rounded(fill_bounds(), LG::CornerMask(4, LG::CornerMask::Masked, LG::CornerMask::NonMasked));
 }
 
 void DockView::new_dock_entity(const std::string& exec_path, const std::string& icon_path, const std::string& bundle_id)
 {
     LG::PNG::PNGLoader loader;
 
+    fill_bounds_expand(icon_view_size() + padding());
     auto& icon_view = m_dock_stackview->add_arranged_subview<IconView>();
     icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, icon_view_size()));
     icon_view.add_constraint(UI::Constraint(icon_view, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, icon_view_size()));

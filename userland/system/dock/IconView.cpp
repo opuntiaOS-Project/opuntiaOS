@@ -32,11 +32,11 @@ void IconView::display(const LG::Rect& rect)
     ctx.set_fill_color(LG::Color(120, 129, 133));
     const int underline_y = DockView::icon_view_size() - underline_height() - padding;
     if (entity().windows().size() > 1) {
-        const int len = 10;
+        const int len = 8;
         ctx.fill({ (DockView::icon_view_size() - len) / 2, underline_y, len - underline_height(), underline_height() });
         ctx.fill({ (DockView::icon_view_size() - len) / 2 + len, underline_y, underline_height(), underline_height() });
     } else if (entity().windows().size() > 0) {
-        const int len = 10;
+        const int len = 8;
         ctx.fill({ (DockView::icon_view_size() - len) / 2, underline_y, len, underline_height() });
     }
 }
@@ -58,9 +58,15 @@ void IconView::on_click()
             }
 
             demo_menu.add_item(UI::MenuItem(title, [this, this_window_id, target_window_id] {
+                for (auto& win : entity().windows()) {
+                    if (win.window_id() == target_window_id) {
+                        win.set_minimized(false);
+                        break;
+                    }
+                }
+
                 auto& app = UI::App::the();
                 AskBringToFrontMessage msg(app.connection().key(), this_window_id, target_window_id);
-                // this->entity().set_minimized(false);
                 app.connection().send_async_message(msg);
             }));
         }
