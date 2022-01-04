@@ -27,7 +27,7 @@ public:
 
     virtual void view_did_load() override
     {
-        view().set_background_color(LG::Color::LightSystemWhiteOpaque);
+        view().set_background_color(LG::Color::LightSystemOpaque);
         view().layer().set_corner_mask(LG::CornerMask(4, LG::CornerMask::Masked, LG::CornerMask::NonMasked));
         view().new_dock_entity("/Applications/about.app/Content/about", "/res/icons/apps/about.icon", "com.opuntia.about");
         view().new_dock_entity("/Applications/terminal.app/Content/terminal", "/res/icons/apps/terminal.icon", "com.opuntia.terminal");

@@ -40,7 +40,7 @@ void Popup::draw(LG::Context& ctx)
         return;
     }
 
-    ctx.set_fill_color(LG::Color::LightSystemWhiteOpaque);
+    ctx.set_fill_color(LG::Color::LightSystemOpaque);
     ctx.fill_rounded(bounds(), LG::CornerMask(LG::CornerMask::SystemRadius));
 
     ctx.set_fill_color(Color::Shadow);

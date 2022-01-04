@@ -27,7 +27,7 @@ public:
 
     virtual void view_did_load() override
     {
-        view().set_background_color(LG::Color::LightSystemWhiteOpaque);
+        view().set_background_color(LG::Color::LightSystemOpaque);
         view().new_dock_entity("/Applications/about.app/Content/about", "/res/icons/apps/about.icon", "com.opuntia.about");
         view().new_dock_entity("/Applications/terminal.app/Content/terminal", "/res/icons/apps/terminal.icon", "com.opuntia.terminal");
         view().new_dock_entity("/Applications/activity_monitor.app/Content/activity_monitor", "/res/icons/apps/activity_monitor.icon", "com.opuntia.activity_monitor");

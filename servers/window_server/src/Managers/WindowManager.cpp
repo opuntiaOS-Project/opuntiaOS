@@ -32,6 +32,9 @@ WindowManager::WindowManager()
 {
     s_WinServer_WindowManager_the = this;
     shrink_visible_area(menu_bar().height(), 0);
+#ifdef TARGET_DESKTOP
+    menu_bar().set_background_color(LG::Color::LightSystemOpaque128);
+#endif // TARGET_DESKTOP
 }
 
 void WindowManager::setup_dock(Window* window)

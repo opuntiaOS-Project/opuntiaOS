@@ -53,8 +53,11 @@ Color::Color(Colors clr)
     case LightSystemBlue:
         rgb_color = { 62, 119, 233, 0 };
         break;
-    case LightSystemWhiteOpaque:
+    case LightSystemOpaque:
         rgb_color = { 243, 243, 243, 25 };
+        break;
+    case LightSystemOpaque128:
+        rgb_color = { 243, 243, 243, 128 };
         break;
     case DarkSystemBackground:
         rgb_color = { 25, 26, 26, 0 };

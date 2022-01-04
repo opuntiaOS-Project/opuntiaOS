@@ -78,11 +78,11 @@ public:
         ctx.set_fill_color(m_background_color);
         ctx.fill({ 0, 0, MenuBar::width(), MenuBar::height() });
 
-        ctx.set_fill_color(LG::Color::LightSystemWhiteOpaque);
+        ctx.set_fill_color(LG::Color::LightSystemOpaque);
         if (m_menubar_content) {
-            ctx.fill_rounded(menubar_panel_bounds(), LG::CornerMask(8));
             draw_panel_items(ctx);
         }
+
         draw_widgets(ctx);
     }
 
