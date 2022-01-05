@@ -39,7 +39,7 @@ static vm_ops_t mmap_file_vm_ops = {
 static inline int _pl111_map_itself()
 {
     mapped_zone = kmemzone_new(sizeof(pl111_registers_t));
-    vmm_map_page(mapped_zone.start, PL111_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page(mapped_zone.start, PL111_BASE, PAGE_DEVICE);
     registers = (pl111_registers_t*)mapped_zone.ptr;
     return 0;
 }

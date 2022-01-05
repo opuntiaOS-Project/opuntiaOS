@@ -23,7 +23,7 @@ static volatile pl050_registers_t* registers = (pl050_registers_t*)PL050_KEYBOAR
 static inline int _pl050_map_itself()
 {
     mapped_zone = kmemzone_new(sizeof(pl050_registers_t));
-    vmm_map_page(mapped_zone.start, PL050_KEYBOARD_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page(mapped_zone.start, PL050_KEYBOARD_BASE, PAGE_DEVICE);
     registers = (pl050_registers_t*)mapped_zone.ptr;
     return 0;
 }

@@ -23,7 +23,7 @@ volatile sp804_registers_t* timer1 = (sp804_registers_t*)SP804_TIMER1_BASE;
 static inline int _sp804_map_itself()
 {
     mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(mapped_zone.start, SP804_TIMER1_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page(mapped_zone.start, SP804_TIMER1_BASE, PAGE_DEVICE);
     timer1 = (sp804_registers_t*)mapped_zone.ptr;
     return 0;
 }

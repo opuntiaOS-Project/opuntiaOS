@@ -34,11 +34,11 @@ static inline int _gicv2_map_itself()
     uint32_t cbar = read_cbar();
 
     distributor_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(distributor_zone.start, cbar + GICv2_DISTRIBUTOR_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_NOT_CACHEABLE);
+    vmm_map_page(distributor_zone.start, cbar + GICv2_DISTRIBUTOR_OFFSET, PAGE_DEVICE);
     distributor_registers = (gicv2_distributor_registers_t*)distributor_zone.ptr;
 
     cpu_interface_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(cpu_interface_zone.start, cbar + GICv2_CPU_INTERFACE_OFFSET, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_NOT_CACHEABLE);
+    vmm_map_page(cpu_interface_zone.start, cbar + GICv2_CPU_INTERFACE_OFFSET, PAGE_DEVICE);
     cpu_interface_registers = (gicv2_cpu_interface_registers_t*)cpu_interface_zone.ptr;
     return 0;
 }

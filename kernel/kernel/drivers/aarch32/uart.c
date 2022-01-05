@@ -16,7 +16,7 @@ static kmemzone_t mapped_zone;
 static inline int _uart_map_itself()
 {
     mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(mapped_zone.start, COM1, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page(mapped_zone.start, COM1, PAGE_DEVICE);
     output = (uint32_t*)mapped_zone.ptr;
     return 0;
 }

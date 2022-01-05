@@ -20,7 +20,7 @@ static volatile pl181_registers_t* registers = (pl181_registers_t*)PL181_BASE;
 static inline int _pl181_map_itself()
 {
     mapped_zone = kmemzone_new(sizeof(pl181_registers_t));
-    vmm_map_page(mapped_zone.start, PL181_BASE, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page(mapped_zone.start, PL181_BASE, PAGE_DEVICE);
     registers = (pl181_registers_t*)mapped_zone.ptr;
     return 0;
 }
