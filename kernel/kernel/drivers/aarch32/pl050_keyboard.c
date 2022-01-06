@@ -15,15 +15,25 @@
 #include <mem/vmm.h>
 #include <platform/aarch32/interrupts.h>
 
+// #define KEYBOARD_DRIVER_DEBUG
+#ifdef KEYBOARD_DRIVER_DEBUG
 #define DEBUG_PL050
+#endif
 
 static kmemzone_t mapped_zone;
-static volatile pl050_registers_t* registers = (pl050_registers_t*)PL050_KEYBOARD_BASE;
+static volatile pl050_registers_t* registers;
+
+static inline uintptr_t _pl050_mmio_paddr()
+{
+    return (uintptr_t)PL050_KEYBOARD_BASE;
+}
 
 static inline int _pl050_map_itself()
 {
+    uintptr_t mmio_paddr = _pl050_mmio_paddr();
+
     mapped_zone = kmemzone_new(sizeof(pl050_registers_t));
-    vmm_map_page(mapped_zone.start, PL050_KEYBOARD_BASE, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
     registers = (pl050_registers_t*)mapped_zone.ptr;
     return 0;
 }

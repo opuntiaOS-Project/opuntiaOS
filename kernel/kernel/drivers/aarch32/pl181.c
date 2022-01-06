@@ -15,12 +15,19 @@
 
 static sd_card_t sd_cards[MAX_DEVICES_COUNT];
 static kmemzone_t mapped_zone;
-static volatile pl181_registers_t* registers = (pl181_registers_t*)PL181_BASE;
+static volatile pl181_registers_t* registers;
+
+static inline uintptr_t _pl181_mmio_paddr()
+{
+    return (uintptr_t)PL181_BASE;
+}
 
 static inline int _pl181_map_itself()
 {
+    uintptr_t mmio_paddr = _pl181_mmio_paddr();
+
     mapped_zone = kmemzone_new(sizeof(pl181_registers_t));
-    vmm_map_page(mapped_zone.start, PL181_BASE, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
     registers = (pl181_registers_t*)mapped_zone.ptr;
     return 0;
 }

@@ -18,12 +18,19 @@
 // #define DEBUG_SP804
 
 static kmemzone_t mapped_zone;
-volatile sp804_registers_t* timer1 = (sp804_registers_t*)SP804_TIMER1_BASE;
+volatile sp804_registers_t* timer1;
+
+static inline uintptr_t _sp804_mmio_paddr()
+{
+    return (uintptr_t)SP804_TIMER1_BASE;
+}
 
 static inline int _sp804_map_itself()
 {
+    uintptr_t mmio_paddr = _sp804_mmio_paddr();
+
     mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(mapped_zone.start, SP804_TIMER1_BASE, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
     timer1 = (sp804_registers_t*)mapped_zone.ptr;
     return 0;
 }

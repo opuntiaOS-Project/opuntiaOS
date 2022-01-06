@@ -19,12 +19,19 @@
 // #define DEBUG_PL031
 
 static kmemzone_t mapped_zone;
-static volatile pl031_registers_t* registers = (pl031_registers_t*)PL031_BASE;
+static volatile pl031_registers_t* registers;
+
+static inline uintptr_t _pl031_mmio_paddr()
+{
+    return (uintptr_t)PL031_BASE;
+}
 
 static inline int _pl031_map_itself()
 {
+    uintptr_t mmio_paddr = _pl031_mmio_paddr();
+
     mapped_zone = kmemzone_new(sizeof(pl031_registers_t));
-    vmm_map_page(mapped_zone.start, PL031_BASE, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
     registers = (pl031_registers_t*)mapped_zone.ptr;
     return 0;
 }

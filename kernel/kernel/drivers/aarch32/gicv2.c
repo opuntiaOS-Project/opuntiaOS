@@ -29,16 +29,26 @@ static kmemzone_t cpu_interface_zone;
 volatile gicv2_distributor_registers_t* distributor_registers;
 volatile gicv2_cpu_interface_registers_t* cpu_interface_registers;
 
+static inline uintptr_t _gicv2_distributor_offset()
+{
+    return (uintptr_t)GICv2_DISTRIBUTOR_OFFSET;
+}
+
+static inline uintptr_t _gicv2_cpu_interface_offset()
+{
+    return (uintptr_t)GICv2_CPU_INTERFACE_OFFSET;
+}
+
 static inline int _gicv2_map_itself()
 {
     uint32_t cbar = read_cbar();
 
     distributor_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(distributor_zone.start, cbar + GICv2_DISTRIBUTOR_OFFSET, PAGE_DEVICE);
+    vmm_map_page(distributor_zone.start, cbar + _gicv2_distributor_offset(), PAGE_DEVICE);
     distributor_registers = (gicv2_distributor_registers_t*)distributor_zone.ptr;
 
     cpu_interface_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(cpu_interface_zone.start, cbar + GICv2_CPU_INTERFACE_OFFSET, PAGE_DEVICE);
+    vmm_map_page(cpu_interface_zone.start, cbar + _gicv2_cpu_interface_offset(), PAGE_DEVICE);
     cpu_interface_registers = (gicv2_cpu_interface_registers_t*)cpu_interface_zone.ptr;
     return 0;
 }

@@ -19,11 +19,16 @@
 #define DEBUG_PL111
 
 static kmemzone_t mapped_zone;
-static volatile pl111_registers_t* registers = (pl111_registers_t*)PL111_BASE;
+static volatile pl111_registers_t* registers;
 static char* pl111_bufs_paddr[2];
 static uint32_t pl111_screen_width;
 static uint32_t pl111_screen_height;
 static uint32_t pl111_screen_buffer_size;
+
+static inline uintptr_t _pl111_mmio_paddr()
+{
+    return (uintptr_t)PL111_BASE;
+}
 
 static int _pl111_swap_page_mode(struct memzone* zone, uintptr_t vaddr)
 {
@@ -38,8 +43,10 @@ static vm_ops_t mmap_file_vm_ops = {
 
 static inline int _pl111_map_itself()
 {
+    uintptr_t mmio_paddr = _pl111_mmio_paddr();
+
     mapped_zone = kmemzone_new(sizeof(pl111_registers_t));
-    vmm_map_page(mapped_zone.start, PL111_BASE, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
     registers = (pl111_registers_t*)mapped_zone.ptr;
     return 0;
 }

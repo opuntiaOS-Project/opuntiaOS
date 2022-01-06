@@ -13,10 +13,17 @@
 volatile uint32_t* output = (uint32_t*)COM1;
 static kmemzone_t mapped_zone;
 
+static inline uintptr_t _uart_mmio_paddr()
+{
+    return (uintptr_t)COM1;
+}
+
 static inline int _uart_map_itself()
 {
+    uintptr_t mmio_paddr = _uart_mmio_paddr();
+
     mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(mapped_zone.start, COM1, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
     output = (uint32_t*)mapped_zone.ptr;
     return 0;
 }
