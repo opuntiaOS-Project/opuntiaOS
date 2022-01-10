@@ -1,0 +1,7 @@
+{
+    "devices": [{
+        "name": "pl111",
+        "type": "MMIO",
+        "paddr": "0x10010101"
+    }]
+}
