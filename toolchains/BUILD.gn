@@ -47,7 +47,7 @@ toolchain("gnu-cross-compiler") {
   }
   tool("link") {
     outputs = [ "{{root_out_dir}}/{{target_output_name}}{{output_extension}}" ]
-    command = "$gnu_ld {{inputs}} -o {{output}} {{ldflags}} {{solibs}} {{libs}}"
+    command = "$gnu_ld -o {{output}} {{inputs}} {{ldflags}} {{solibs}} {{libs}}"
     description = "LINK {{output}}"
   }
   tool("stamp") {
@@ -125,7 +125,7 @@ toolchain("llvm-cross-compiler") {
   tool("link") {
     outputs = [ "{{root_out_dir}}/{{target_output_name}}{{output_extension}}" ]
     command =
-        "$llvm_ld {{inputs}} -o {{output}} {{ldflags}} {{solibs}} {{libs}}"
+        "$llvm_ld -o {{output}} {{inputs}} {{ldflags}} {{solibs}} {{libs}}"
     description = "LINK {{output}}"
   }
   tool("stamp") {
