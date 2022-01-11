@@ -6,6 +6,7 @@
 
 from Generator.IRManager import IRManager
 from ABI.Structs import *
+from ABI.Translation import *
 
 
 class BinWriter():
@@ -34,9 +35,20 @@ class BinWriter():
         result = {
             "type": 0,
             "flags": 0,
-            "paddr": int(dev["paddr"], base=16),
+            "paddr": 0,
             "rel_name_offset": len(self.names_binarr),
         }
+
+        if "type" in dev:
+            result["type"] = Translator.entry_type(dev["type"])
+
+        if "flags" in dev:
+            result["flags"] = Translator.entry_flags(dev["flags"])
+
+        if "mem" in dev:
+            devmem = dev["mem"]
+            if "base" in devmem:
+                result["paddr"] = Translator.number(devmem["base"])
 
         self.devs_binarr += DEVTREE_ENTRY.build(result)
         self.names_binarr += bytearray((map(ord,

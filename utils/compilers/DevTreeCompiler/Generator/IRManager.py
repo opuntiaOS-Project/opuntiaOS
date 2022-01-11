@@ -8,6 +8,9 @@ class IRManager():
     def __init__(self, parser):
         self.parser = parser
 
+    def platform_name(self):
+        return self.parser.data()["name"]
+
     def device_count(self):
         return len(self.parser.data()["devices"])
 

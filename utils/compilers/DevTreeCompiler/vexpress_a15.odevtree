@@ -1,0 +1,80 @@
+{
+    "name": "vexpress-a15",
+    "devices": [{
+            "name": "ram",
+            "type": "RAM",
+            "flags": "",
+            "mem": {
+                "base": "0x80100000",
+                "size": "0x100000"
+            }
+        },
+        {
+            "name": "gicv2",
+            "type": "IC"
+        },
+        {
+            "name": "pl031",
+            "type": "IO",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x1c170000",
+                "size": "0x0"
+            }
+        },
+        {
+            "name": "pl050m",
+            "type": "IO",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x1c070000",
+                "size": "0x0"
+            }
+        },
+        {
+            "name": "pl050k",
+            "type": "IO",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x1c060000",
+                "size": "0x0"
+            }
+        },
+        {
+            "name": "pl111",
+            "type": "STORAGE",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x1c1f0000",
+                "size": "0x0"
+            }
+        },
+        {
+            "name": "pl181",
+            "type": "FB",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x1c050000",
+                "size": "0x0"
+            }
+        },
+        {
+            "name": "uart",
+            "type": "UART",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x1c090000",
+                "size": "0x0"
+            }
+        },
+        {
+            "name": "sp804",
+            "type": "TIMER",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x1c110000",
+                "size": "0x0"
+            }
+        }
+    ]
+}
