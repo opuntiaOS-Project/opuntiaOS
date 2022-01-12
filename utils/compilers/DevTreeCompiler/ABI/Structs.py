@@ -6,14 +6,17 @@
 
 from construct import *
 
+DEVTREE_HEADER_SIGNATURE = "odtr3"
+
 DEVTREE_HEADER = Struct(
     "signature" / PaddedString(8, "ascii"),
+    "revision" / Int32ul,
     "flags" / Int32ul,
     "entries_count" / Int32ul,
     "name_list_offset" / Int32ul
 )
 
-DEVTREE_ENTRY_FLAGS_MMIO = (1 << 1)
+DEVTREE_ENTRY_FLAGS_MMIO = (1 << 0)
 DEVTREE_ENTRY_TYPE_IO = 0
 DEVTREE_ENTRY_TYPE_FB = 1
 DEVTREE_ENTRY_TYPE_UART = 2

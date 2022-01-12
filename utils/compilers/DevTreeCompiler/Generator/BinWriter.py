@@ -23,7 +23,8 @@ class BinWriter():
         count_of_devs = len(self.irmng.device_list())
 
         result = {
-            "signature": "ostr3",
+            "signature": DEVTREE_HEADER_SIGNATURE,
+            "revision": 1,
             "flags": 0,
             "entries_count": count_of_devs,
             "name_list_offset": DEVTREE_HEADER.sizeof() + len(self.devs_binarr),
