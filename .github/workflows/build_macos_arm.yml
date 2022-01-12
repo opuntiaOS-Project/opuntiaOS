@@ -17,6 +17,7 @@ jobs:
           brew install llvm@13 ninja nasm
           brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
           brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
+          pip3 install -r utils/python_requirements.txt
 
       - name: Pouring GN
         run: |

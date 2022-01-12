@@ -21,6 +21,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt install -y llvm e2fsprogs qemu-system-i386 qemu-utils fuseext2 ninja-build nasm
+          pip3 install -r utils/python_requirements.txt
           pip3 install tabulate termcolor
 
       - name: Pouring GN

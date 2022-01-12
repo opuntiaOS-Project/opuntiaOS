@@ -15,6 +15,7 @@ jobs:
       - name: Pouring Deps
         run: |
           brew install llvm@13 i686-elf-gcc i686-elf-binutils ninja nasm
+          pip3 install -r utils/python_requirements.txt
 
       - name: Pouring GN
         run: |

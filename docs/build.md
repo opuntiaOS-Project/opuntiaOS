@@ -84,10 +84,16 @@ brew install llvm
 ```bash
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-sudo ./llvm.sh 12
+sudo ./llvm.sh 13
 ```
 
 Learn more on <https://apt.llvm.org>
+
+### Python Dependencies
+
+```bash
+pip intall -r utils/python_requirements.txt
+```
 
 ## Building OS
 
