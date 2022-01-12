@@ -12,4 +12,5 @@ default_args = {
   test_method = "none"
   host = "gnu"
   device_type = "desktop"
+  target_board = ""
 }

@@ -7,6 +7,7 @@
  */
 
 #include <drivers/aarch32/pl111.h>
+#include <drivers/devtree.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <libkern/bits/errno.h>
@@ -27,7 +28,12 @@ static uint32_t pl111_screen_buffer_size;
 
 static inline uintptr_t _pl111_mmio_paddr()
 {
-    return (uintptr_t)PL111_BASE;
+    devtree_entry_t* device = devtree_find_device("pl111");
+    if (!device) {
+        kpanic("PL111: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->paddr;
 }
 
 static int _pl111_swap_page_mode(struct memzone* zone, uintptr_t vaddr)

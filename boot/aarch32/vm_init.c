@@ -136,7 +136,6 @@ void vm_setup()
     }
 
     map_page(0x1c000000, 0x1c000000); // mapping uart
-    map_page(0x3f000000, 0x3f000000); // mapping interrupt controller
     map_page(0x80100000, 0xc0000000); // kernel
     map_page(0x80200000, 0xc0100000); // kernel
     map_page(0x80300000, 0xc0200000); // kernel

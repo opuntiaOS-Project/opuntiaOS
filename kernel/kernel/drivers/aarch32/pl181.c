@@ -7,6 +7,7 @@
  */
 
 #include <drivers/aarch32/pl181.h>
+#include <drivers/devtree.h>
 #include <libkern/log.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
@@ -19,7 +20,12 @@ static volatile pl181_registers_t* registers;
 
 static inline uintptr_t _pl181_mmio_paddr()
 {
-    return (uintptr_t)PL181_BASE;
+    devtree_entry_t* device = devtree_find_device("pl181");
+    if (!device) {
+        kpanic("PL181: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->paddr;
 }
 
 static inline int _pl181_map_itself()

@@ -7,6 +7,7 @@
  */
 
 #include <drivers/aarch32/uart.h>
+#include <drivers/devtree.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
 
@@ -15,7 +16,12 @@ static kmemzone_t mapped_zone;
 
 static inline uintptr_t _uart_mmio_paddr()
 {
-    return (uintptr_t)COM1;
+    devtree_entry_t* device = devtree_find_device("uart");
+    if (!device) {
+        kpanic("UART: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->paddr;
 }
 
 static inline int _uart_map_itself()

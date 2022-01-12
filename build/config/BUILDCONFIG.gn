@@ -18,6 +18,7 @@ declare_args() {
   host = "gnu"
   llvm_bin_path = getenv("LLVM_BIN_PATH")
   device_type = "desktop"
+  target_board = ""
 }
 
 if (target_cpu == "") {
@@ -31,6 +32,10 @@ if (device_type == "m") {
 }
 if (device_type == "d") {
   device_type = "desktop"
+}
+if (target_cpu == "aarch32") {
+  # Currently we support only vexpress-a15.
+  target_board = "vexpress-a15"
 }
 
 if (host == "gnu") {

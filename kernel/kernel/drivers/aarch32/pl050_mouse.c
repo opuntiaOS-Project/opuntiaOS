@@ -8,6 +8,7 @@
 
 #include <algo/ringbuffer.h>
 #include <drivers/aarch32/pl050.h>
+#include <drivers/devtree.h>
 #include <drivers/generic/mouse.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
@@ -30,7 +31,12 @@ static volatile pl050_registers_t* registers;
 
 static inline uintptr_t _pl050_mmio_paddr()
 {
-    return (uintptr_t)PL050_MOUSE_BASE;
+    devtree_entry_t* device = devtree_find_device("pl050m");
+    if (!device) {
+        kpanic("PL050 MOUSE: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->paddr;
 }
 
 static inline int _pl050_map_itself()

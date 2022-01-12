@@ -7,6 +7,7 @@
  */
 
 #include <drivers/aarch32/pl050.h>
+#include <drivers/devtree.h>
 #include <drivers/generic/keyboard.h>
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
@@ -25,7 +26,12 @@ static volatile pl050_registers_t* registers;
 
 static inline uintptr_t _pl050_mmio_paddr()
 {
-    return (uintptr_t)PL050_KEYBOARD_BASE;
+    devtree_entry_t* device = devtree_find_device("pl050k");
+    if (!device) {
+        kpanic("PL050 KBD: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->paddr;
 }
 
 static inline int _pl050_map_itself()

@@ -7,6 +7,7 @@
  */
 
 #include <drivers/aarch32/pl031.h>
+#include <drivers/devtree.h>
 #include <fs/devfs/devfs.h>
 #include <fs/vfs.h>
 #include <libkern/bits/errno.h>
@@ -23,7 +24,12 @@ static volatile pl031_registers_t* registers;
 
 static inline uintptr_t _pl031_mmio_paddr()
 {
-    return (uintptr_t)PL031_BASE;
+    devtree_entry_t* device = devtree_find_device("pl031");
+    if (!device) {
+        kpanic("PL031: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->paddr;
 }
 
 static inline int _pl031_map_itself()

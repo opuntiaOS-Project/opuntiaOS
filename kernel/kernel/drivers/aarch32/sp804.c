@@ -7,6 +7,7 @@
  */
 
 #include <drivers/aarch32/sp804.h>
+#include <drivers/devtree.h>
 #include <libkern/log.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
@@ -22,7 +23,12 @@ volatile sp804_registers_t* timer1;
 
 static inline uintptr_t _sp804_mmio_paddr()
 {
-    return (uintptr_t)SP804_TIMER1_BASE;
+    devtree_entry_t* device = devtree_find_device("sp804");
+    if (!device) {
+        kpanic("SP804: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->paddr;
 }
 
 static inline int _sp804_map_itself()

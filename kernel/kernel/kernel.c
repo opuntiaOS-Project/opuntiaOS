@@ -12,6 +12,7 @@
 
 #include <libkern/types.h>
 
+#include <drivers/devtree.h>
 #include <drivers/driver_manager.h>
 
 #include <mem/kmalloc.h>
@@ -59,7 +60,7 @@ void launching()
     ksys1(SYS_EXIT, 0);
 }
 
-void stage3(mem_desc_t* mem_desc)
+void stage3(mem_desc_t* mem_desc, void* devtree)
 {
     boot_cpu_finish(&__boot_cpu_launched);
     system_disable_interrupts();
@@ -69,6 +70,7 @@ void stage3(mem_desc_t* mem_desc)
     // mem setup
     pmm_setup(mem_desc);
     vmm_setup();
+    devtree_init(devtree);
     platform_setup_boot_cpu();
     boot_cpu_finish(&__boot_cpu_setup_devices);
 

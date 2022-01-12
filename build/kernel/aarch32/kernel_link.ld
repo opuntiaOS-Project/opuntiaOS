@@ -27,6 +27,10 @@
 	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xc0000000 + phys_passed)
 	{
 		*(.rodata)
+
+		_odt = .;
+		_odt_phys = . - 0xc0000000 + phys_passed;
+		*(.odt)
 	}
 
 	.data ALIGN(4K) : AT (ADDR(.data) - 0xc0000000 + phys_passed)

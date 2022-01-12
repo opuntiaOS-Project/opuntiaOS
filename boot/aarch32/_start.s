@@ -3,7 +3,14 @@
 .extern vm_setup_secondary_cpu
 .extern stage3
 .extern boot_secondary_cpu
+.extern _odt
 .global _start
+
+_move_odt_base:
+    ldr     r1, =.odt_addr
+    ldr     r1, [r1]
+    bx      lr
+
 _start:
     ldr     r0, =vm_setup
     ldr     lr, =_start_return
@@ -14,6 +21,7 @@ _start_return:
     ldr     sp, =STACK_TOP
     ldr     r1, =.arm_mem_desc_addr
     ldr     r0, [r1]
+    bl      _move_odt_base
     bl      stage3
 1:
     b       1b
@@ -48,3 +56,6 @@ _start_secondary_cpu_exit:
 
 .arm_mem_desc_addr:
     .word arm_mem_desc
+
+.odt_addr:
+    .word _odt

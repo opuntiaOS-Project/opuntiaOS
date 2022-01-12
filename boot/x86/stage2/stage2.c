@@ -71,7 +71,10 @@ void stage2(mem_desc_t* mem_desc)
     asm volatile("add $0xffc00000, %ebp");
     asm volatile("add $0xffc00000, %esp");
 
-    asm volatile("push %0"
+    asm volatile("push %0" // Devtree
+                 :
+                 : "r"(0));
+    asm volatile("push %0" // MemDesc
                  :
                  : "r"(mem_desc));
     asm volatile("mov $0xc0000000, %eax");
