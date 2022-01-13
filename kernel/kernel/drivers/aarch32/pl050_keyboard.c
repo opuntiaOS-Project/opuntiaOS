@@ -24,9 +24,8 @@
 static kmemzone_t mapped_zone;
 static volatile pl050_registers_t* registers;
 
-static inline uintptr_t _pl050_mmio_paddr()
+static inline uintptr_t _pl050_mmio_paddr(devtree_entry_t* device)
 {
-    devtree_entry_t* device = devtree_find_device("pl050k");
     if (!device) {
         kpanic("PL050 KBD: Can't find device in the tree.");
     }
@@ -34,9 +33,9 @@ static inline uintptr_t _pl050_mmio_paddr()
     return (uintptr_t)device->paddr;
 }
 
-static inline int _pl050_map_itself()
+static inline int _pl050_map_itself(device_t* dev)
 {
-    uintptr_t mmio_paddr = _pl050_mmio_paddr();
+    uintptr_t mmio_paddr = _pl050_mmio_paddr(dev->device_desc.devtree.entry);
 
     mapped_zone = kmemzone_new(sizeof(pl050_registers_t));
     vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
@@ -46,8 +45,8 @@ static inline int _pl050_map_itself()
 
 static void pl050_keyboard_recieve_notification(uint32_t msg, uint32_t param)
 {
-    if (msg == DM_NOTIFICATION_DEVFS_READY) {
-        if (msg == DM_NOTIFICATION_DEVFS_READY) {
+    if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
+        if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
             if (generic_keyboard_create_devfs() < 0) {
                 kpanic("Can't init pl050_keyboard in /dev");
             }
@@ -69,8 +68,19 @@ static inline void _keyboard_send_cmd(uint8_t cmd)
     ASSERT(tmp == 0xfa);
 }
 
-void pl050_keyboard_init(device_t* dev)
+int pl050_keyboard_init(device_t* dev)
 {
+    if (dev->device_desc.type != DEVICE_DESC_DEVTREE) {
+        return -1;
+    }
+
+    if (_pl050_map_itself(dev)) {
+#ifdef DEBUG_PL050
+        log_error("PL050 KBD: Can't map itself!");
+#endif
+        return -1;
+    }
+
 #ifdef DEBUG_PL050
     log("PL050 KBD: Turning on");
 #endif
@@ -82,35 +92,22 @@ void pl050_keyboard_init(device_t* dev)
 
     irq_register_handler(PL050_KEYBOARD_IRQ_LINE, 0, 0, _pl050_keyboard_int_handler, BOOT_CPU_MASK);
     generic_keyboard_init();
+    return 0;
 }
 
 static driver_desc_t _pl050_keyboard_driver_info()
 {
-    driver_desc_t desc = { 0 };
-    desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
-    desc.auto_start = true;
-    desc.is_device_driver = false;
-    desc.is_device_needed = false;
-    desc.is_driver_needed = false;
-    desc.functions[DRIVER_NOTIFICATION] = pl050_keyboard_recieve_notification;
-    desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = pl050_keyboard_init;
-    desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = 0;
-    desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = 0;
-    desc.pci_serve_class = 0xff;
-    desc.pci_serve_subclass = 0xff;
-    desc.pci_serve_vendor_id = 0x00;
-    desc.pci_serve_device_id = 0x00;
-    return desc;
+    driver_desc_t ms_desc = { 0 };
+    ms_desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
+    ms_desc.system_funcs.init_with_dev = pl050_keyboard_init;
+    ms_desc.system_funcs.recieve_notification = pl050_keyboard_recieve_notification;
+    ms_desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = pl050_keyboard_init;
+    ms_desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = 0;
+    ms_desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = 0;
+    return ms_desc;
 }
 
 void pl050_keyboard_install()
 {
-    if (_pl050_map_itself()) {
-#ifdef DEBUG_PL050
-        log_error("PL050 KBD: Can't map itself!");
-#endif
-        return;
-    }
-
-    driver_install(_pl050_keyboard_driver_info(), "pl050kb");
+    devman_register_driver(_pl050_keyboard_driver_info(), "pl050k");
 }

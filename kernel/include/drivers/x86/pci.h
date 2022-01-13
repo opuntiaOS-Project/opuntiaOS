@@ -48,7 +48,7 @@ void pci_install();
 uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t offset);
 void pci_write(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset, uint32_t data);
 char pci_has_device_functions(uint8_t bus, uint8_t device);
-void pci_find_devices();
+int pci_find_devices();
 device_desc_t pci_get_device_desriptor(uint8_t bus, uint8_t device, uint8_t function);
 uint32_t pci_read_bar(device_t* dev, int bar_id);
 

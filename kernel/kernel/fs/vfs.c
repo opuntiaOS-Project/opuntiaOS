@@ -25,6 +25,7 @@ vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
 dynamic_array_t _vfs_fses;
 int32_t root_fs_dev_id = -1;
 
+static void vfs_recieve_notification(uint32_t msg, uint32_t param);
 static int _vfs_loadpage_from_mmap_file(struct memzone* zone, uintptr_t vaddr);
 
 static vm_ops_t mmap_file_vm_ops = {
@@ -37,12 +38,11 @@ driver_desc_t _vfs_driver_info()
 {
     driver_desc_t vfs_desc = { 0 };
     vfs_desc.type = DRIVER_VIRTUAL_FILE_SYSTEM;
-    vfs_desc.is_device_driver = false;
-    vfs_desc.is_device_needed = true;
-    vfs_desc.is_driver_needed = true;
-    vfs_desc.type_of_needed_device = DEVICE_STORAGE;
-    vfs_desc.type_of_needed_driver = DRIVER_FILE_SYSTEM;
-    vfs_desc.functions[DRIVER_NOTIFICATION] = 0;
+    vfs_desc.listened_device_mask = DEVICE_STORAGE;
+    vfs_desc.listened_driver_mask = DRIVER_FILE_SYSTEM;
+
+    vfs_desc.system_funcs.recieve_notification = vfs_recieve_notification;
+
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DEVICE] = vfs_add_dev;
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_ADD_DRIVER] = vfs_add_fs;
     vfs_desc.functions[DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE] = vfs_eject_device;
@@ -54,8 +54,20 @@ driver_desc_t _vfs_driver_info()
  */
 void vfs_install()
 {
-    driver_install(_vfs_driver_info(), "vfs");
+    devman_register_driver(_vfs_driver_info(), "vfs");
     dynarr_init_of_size(fs_desc_t, &_vfs_fses, MAX_FS);
+}
+
+static void vfs_recieve_notification(uint32_t msg, uint32_t param)
+{
+    switch (msg) {
+    case DEVMAN_NOTIFICATION_NEW_DEVICE:
+        return (void)vfs_add_dev((device_t*)param);
+    case DEVMAN_NOTIFICATION_NEW_DRIVER:
+        return (void)vfs_add_fs((driver_t*)param);
+    default:
+        break;
+    }
 }
 
 int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
@@ -148,10 +160,10 @@ void vfs_eject_device(device_t* dev)
     dentry_put_all_dentries_of_dev(dev->id);
 }
 
-void vfs_add_fs(driver_t* new_driver)
+int vfs_add_fs(driver_t* new_driver)
 {
     if (new_driver->desc.type != DRIVER_FILE_SYSTEM) {
-        return;
+        return -1;
     }
 
     fs_ops_t* new_ops = kmalloc(sizeof(fs_ops_t));
@@ -185,6 +197,7 @@ void vfs_add_fs(driver_t* new_driver)
     new_fs.driver = new_driver;
     new_fs.ops = new_ops;
     dynarr_push(&_vfs_fses, &new_fs);
+    return 0;
 }
 
 int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)

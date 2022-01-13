@@ -23,6 +23,8 @@ class Translator():
             "FB": DEVTREE_ENTRY_TYPE_FB,
             "UART": DEVTREE_ENTRY_TYPE_UART,
             "RAM": DEVTREE_ENTRY_TYPE_RAM,
+            "STORAGE": DEVTREE_ENTRY_TYPE_STORAGE,
+            "BUS_CONTROLLER": DEVTREE_ENTRY_TYPE_BUS_CONTROLLER
         }
         return translation.get(s, DEVTREE_ENTRY_TYPE_IO)
 

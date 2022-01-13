@@ -96,11 +96,6 @@ driver_desc_t _procfs_driver_info()
 {
     driver_desc_t fs_desc = { 0 };
     fs_desc.type = DRIVER_FILE_SYSTEM;
-    fs_desc.auto_start = false;
-    fs_desc.is_device_driver = false;
-    fs_desc.is_device_needed = false;
-    fs_desc.is_driver_needed = false;
-    fs_desc.functions[DRIVER_NOTIFICATION] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = NULL; /* No custom open, vfs will use its code */
@@ -126,7 +121,7 @@ driver_desc_t _procfs_driver_info()
 
 void procfs_install()
 {
-    driver_install(_procfs_driver_info(), "procfs");
+    devman_register_driver(_procfs_driver_info(), "procfs");
 }
 
 int procfs_mount()

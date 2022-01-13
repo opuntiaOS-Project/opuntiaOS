@@ -42,7 +42,7 @@
         },
         {
             "name": "pl111",
-            "type": "STORAGE",
+            "type": "FB",
             "flags": "MMIO",
             "mem": {
                 "base": "0x1c1f0000",
@@ -51,7 +51,7 @@
         },
         {
             "name": "pl181",
-            "type": "FB",
+            "type": "BUS_CONTROLLER",
             "flags": "MMIO",
             "mem": {
                 "base": "0x1c050000",

@@ -75,14 +75,14 @@ void stage3(mem_desc_t* mem_desc, void* devtree)
     boot_cpu_finish(&__boot_cpu_setup_devices);
 
     // installing drivers
-    driver_manager_init();
+    devman_init();
     platform_drivers_setup();
     timeman_setup();
     vfs_install();
     ext2_install();
     procfs_install();
     devfs_install();
-    drivers_run();
+    devman_run();
     boot_cpu_finish(&__boot_cpu_setup_drivers);
 
     // mounting filesystems

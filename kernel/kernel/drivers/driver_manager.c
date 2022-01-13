@@ -2,9 +2,7 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 
-// ------------
-// Private
-// ------------
+// #define DEBUG_DM
 
 static int _drivers_count = 0;
 static int _devices_count = 0;
@@ -12,197 +10,191 @@ static int _devices_count = 0;
 driver_t drivers[MAX_DRIVERS_COUNT];
 device_t devices[MAX_DEVICES_COUNT];
 
-int16_t _driver_for_device(device_desc_t device_info);
-void _no_driver_for_device(device_desc_t device_info);
-
-static void _dm_no_driver_for_device(device_desc_t device_info)
+int devman_init()
 {
-    log_warn("No driver for the device: cl/subcl %x %x : ven/dev %x %x", device_info.class_id, device_info.subclass_id, device_info.vendor_id, device_info.device_id);
+    return 0;
 }
 
-static int _dm_find_driver_for_device(device_desc_t device_info)
+static size_t devices_count()
 {
-    uint8_t cur_capablity = 0;
-    uint8_t best_capablity = 0;
-    uint8_t best_capable_driver_id = 0;
-    for (int i = 0; i < _drivers_count; i++) {
-        if (!drivers[i].desc.is_device_driver) {
+    return _devices_count;
+}
+
+static size_t next_device_id()
+{
+    int res = devices_count();
+    _devices_count++;
+    return res;
+}
+
+static size_t drivers_count()
+{
+    return _drivers_count;
+}
+
+static size_t next_driver_id()
+{
+    int res = drivers_count();
+    _drivers_count++;
+    return res;
+}
+
+static int notify_drivers_about_device(device_t* new_device)
+{
+    for (int i = 0; i < drivers_count(); i++) {
+        // Sending notification to existing drivers about the new device.
+        if (TEST_FLAG(drivers[i].desc.listened_device_mask, new_device->type)) {
+            if (drivers[i].desc.system_funcs.recieve_notification) {
+                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DEVICE, (uint32_t)new_device);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int notify_drivers_about_driver(driver_t* new_driver)
+{
+    for (int i = 0; i < drivers_count(); i++) {
+        // Sending notification to existing drivers about the new one.
+        if (TEST_FLAG(drivers[i].desc.listened_driver_mask, new_driver->desc.type)) {
+            if (drivers[i].desc.system_funcs.recieve_notification) {
+                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uint32_t)new_driver);
+            }
+        }
+
+        // Letting the new driver know about the already created ones.
+        if (TEST_FLAG(new_driver->desc.listened_driver_mask, drivers[i].desc.type)) {
+            if (drivers[i].desc.system_funcs.recieve_notification) {
+                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uint32_t)&drivers[i]);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static bool does_driver_support_device(device_t* device, driver_t* driver)
+{
+    if (device->device_desc.type == DEVICE_DESC_PCI) {
+        if (TEST_FLAG(driver->desc.listened_device_mask, device->type)) {
+            int err = driver->desc.system_funcs.init_with_dev(device);
+            if (!err) {
+                device->driver_id = driver->id;
+                notify_drivers_about_device(device);
+                return true;
+            }
+        }
+    } else if (device->device_desc.type == DEVICE_DESC_DEVTREE) {
+        if (strcmp(devtree_name_of_entry(device->device_desc.devtree.entry), driver->name) == 0) {
+            driver->desc.system_funcs.init_with_dev(device);
+            device->driver_id = driver->id;
+            notify_drivers_about_device(device);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static int push_devices_to_driver(driver_t* target_driver)
+{
+    for (int i = 0; i < devices_count(); i++) {
+        device_t* dev = &devices[i];
+        if (dev->driver_id != DRIVER_ID_EMPTY) {
             continue;
         }
-        cur_capablity = 0;
-        if (drivers[i].desc.pci_serve_class == device_info.class_id) {
-            cur_capablity |= 0b1000;
-        }
-        if (drivers[i].desc.pci_serve_subclass == device_info.subclass_id) {
-            cur_capablity |= 0b0100;
-        }
-        if (drivers[i].desc.pci_serve_vendor_id == device_info.vendor_id) {
-            cur_capablity |= 0b0010;
-        }
-        if (drivers[i].desc.pci_serve_device_id == device_info.device_id) {
-            cur_capablity |= 0b0001;
-        }
-        if (cur_capablity > best_capablity) {
-            best_capablity = cur_capablity;
-            best_capable_driver_id = i;
+
+        if (does_driver_support_device(dev, target_driver)) {
+            dev->driver_id = target_driver->id;
+            notify_drivers_about_device(dev);
         }
     }
-    if (best_capablity >= 0b1100) {
-        return best_capable_driver_id;
+
+    return 0;
+}
+
+static int push_device_to_drivers(device_t* new_device)
+{
+    for (int i = 0; i < drivers_count(); i++) {
+        if (does_driver_support_device(new_device, &drivers[i])) {
+            new_device->driver_id = drivers[i].id;
+            notify_drivers_about_device(new_device);
+            return 0;
+        }
     }
+
+    new_device->driver_id = DRIVER_ID_EMPTY;
     return -1;
 }
 
-// Init the Driver Manager
-bool driver_manager_init()
+int devman_register_driver(driver_desc_t driver_info, const char* name)
 {
-    return true;
-}
+    size_t driver_id = next_driver_id();
+#ifdef DEBUG_DM
+    log("DM: add driver %s - %d", name, driver_id);
+#endif
+    drivers[driver_id].id = driver_id;
+    drivers[driver_id].desc = driver_info;
+    drivers[driver_id].name = name;
 
-// Registering new driver
-void driver_install(driver_desc_t driver_info, const char* name)
-{
-    driver_t new_driver;
-    new_driver.id = _drivers_count;
-    new_driver.desc = driver_info;
-    new_driver.name = name;
-    drivers[_drivers_count++] = new_driver;
-}
-
-// Turn on all drivers which don't need devices
-void drivers_run()
-{
-    for (int i = 0; i < _drivers_count; i++) {
-        drivers[i].is_active = false;
-    }
-
-    for (int i = 0; i < _drivers_count; i++) {
-        if (drivers[i].desc.auto_start) {
-            drivers[i].is_active = true;
-            void (*rd)() = dm_driver_function(i, DM_FUNC_DRIVER_START);
-            rd();
-        }
-    }
-    pass_drivers_to_master_drivers();
-    pass_devices_to_master_drivers();
-}
-
-void pass_drivers_to_master_drivers()
-{
-    for (int i = 0; i < _drivers_count; i++) {
-        if (drivers[i].desc.is_driver_needed) {
-            for (int j = 0; j < _drivers_count; j++) {
-                if (drivers[i].desc.type_of_needed_driver == drivers[j].desc.type) {
-                    drivers[i].is_active = true;
-                    drivers[j].is_active = true;
-                    void (*rd)(driver_t * nd) = dm_driver_function(i, DM_FUNC_DRIVER_EMIT_DRIVER);
-                    rd(&drivers[j]);
-                }
-            }
-        }
-    }
-}
-
-void pass_devices_to_master_drivers()
-{
-    for (int i = 0; i < _drivers_count; i++) {
-        if (drivers[i].desc.is_device_needed) {
-            for (int j = 0; j < _devices_count; j++) {
-                if (drivers[i].desc.type_of_needed_device == devices[j].type) {
-                    drivers[i].is_active = true;
-                    void (*rd)(device_t * nd) = dm_driver_function(i, DM_FUNC_DRIVER_EMIT_DEVICE);
-                    rd(&devices[j]);
-                }
-            }
-        }
-    }
+    push_devices_to_driver(&drivers[driver_id]);
+    notify_drivers_about_driver(&drivers[driver_id]);
+    return 0;
 }
 
 // device_install registers a new device and find a driver for the device
-void device_install(device_desc_t device_info)
+int devman_register_device(device_desc_t device_info, int type)
 {
-    int dev_id = _devices_count++;
-    devices[dev_id].id = dev_id;
-    devices[dev_id].driver_id = _dm_find_driver_for_device(device_info);
-    devices[dev_id].device_desc = device_info;
-    devices[dev_id].is_virtual = false;
+#ifdef DEBUG_DM
+    log("DM: add device %d", type);
+#endif
+    size_t device_id = next_device_id();
+    devices[device_id].id = device_id;
+    devices[device_id].type = type;
+    devices[device_id].device_desc = device_info;
+    devices[device_id].is_virtual = false;
 
-    if (devices[dev_id].driver_id == -1) {
-        devices[dev_id].type = DEVICE_BAD_SIGN;
-        _dm_no_driver_for_device(device_info);
-    } else {
-        devices[dev_id].type = drivers[devices[dev_id].driver_id].desc.type;
-        void (*rd)(device_t * nd) = dm_function_handler(&devices[dev_id], DM_FUNC_DEVICE_START);
-        rd(&devices[dev_id]);
-    }
+    int err = push_device_to_drivers(&devices[device_id]);
+    return 0;
 }
 
-// Should be called when a device was ejected
-
-void _ask_driver_to_eject_device(uint8_t driver_id, uint8_t dev_id)
+device_t* new_virtual_device(int type)
 {
-    if (drivers[driver_id].desc.type == DRIVER_VIRTUAL_FILE_SYSTEM) {
-        void (*ej)(device_t * nd) = dm_driver_function(driver_id, DRIVER_VIRTUAL_FILE_SYSTEM_EJECT_DEVICE);
-        ej(&devices[dev_id]);
-    }
+    size_t device_id = next_device_id();
+    devices[device_id].id = device_id;
+    devices[device_id].type = type;
+    devices[device_id].is_virtual = true;
+    return &devices[device_id];
 }
 
-void eject_device(uint8_t dev_id)
+// Turn on all drivers which don't need devices
+void devman_run()
 {
-    uint8_t used_driver_id = devices[dev_id].driver_id;
-    _ask_driver_to_eject_device(used_driver_id, dev_id);
-
     for (int i = 0; i < _drivers_count; i++) {
-        if (drivers[i].desc.is_device_needed) {
-            if (drivers[i].desc.type_of_needed_device == devices[dev_id].type) {
-                _ask_driver_to_eject_device(i, dev_id);
+        if (TEST_FLAG(drivers[i].desc.flags, DRIVER_DESC_FLAG_START)) {
+            if (drivers[i].desc.system_funcs.on_start) {
+#ifdef DEBUG_DM
+                log("DM: run %s", drivers[i].name);
+#endif
+                drivers[i].desc.system_funcs.on_start();
             }
         }
     }
 }
 
-void eject_all_devices()
+void devman_send_notification(uint32_t msg, uint32_t param)
 {
-    for (int dev_id = 0; dev_id < _devices_count; dev_id++) {
-        eject_device(dev_id);
-    }
-}
-
-// Get first device of Type staring with StartPos
-device_t get_device(uint8_t dev_type, uint8_t start)
-{
-    for (int i = start; i < _devices_count; i++) {
-        if (devices[i].type == dev_type) {
-            return devices[i];
-        }
-    }
-    device_t bad_device;
-    bad_device.type = DEVICE_BAD_SIGN;
-    return bad_device;
-}
-
-device_t* new_virtual_device(uint8_t type)
-{
-    int dev_id = _devices_count++;
-    devices[dev_id].id = dev_id;
-    devices[dev_id].type = type;
-    devices[dev_id].is_virtual = true;
-    return &devices[dev_id];
-}
-
-void dm_send_notification(uint32_t msg, uint32_t param)
-{
-    for (int i = 0; i < _drivers_count; i++) {
-        if (dm_driver_function(i, DM_FUNC_NOTIFY)) {
-            void (*notify)(uint32_t, uint32_t) = dm_driver_function(i, DM_FUNC_NOTIFY);
-            notify(msg, param);
+    for (int i = 0; i < drivers_count(); i++) {
+        if (drivers[i].desc.system_funcs.recieve_notification) {
+            drivers[i].desc.system_funcs.recieve_notification(msg, param);
         }
     }
 }
 
-int dm_get_driver_id_by_name(const char* name)
+int devman_get_driver_id_by_name(const char* name)
 {
-    for (int i = 0; i < _drivers_count; i++) {
+    for (int i = 0; i < drivers_count(); i++) {
         if (strcmp(name, drivers[i].name) == 0) {
             return drivers[i].id;
         }

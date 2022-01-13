@@ -21,7 +21,7 @@
 
 static ringbuffer_t mouse_buffer;
 
-void mouse_run();
+int mouse_run();
 
 static bool _mouse_can_read(dentry_t* dentry, uint32_t start)
 {
@@ -40,7 +40,7 @@ static int _mouse_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t 
 
 static void _mouse_recieve_notification(uint32_t msg, uint32_t param)
 {
-    if (msg == DM_NOTIFICATION_DEVFS_READY) {
+    if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         dentry_t* mp;
         if (vfs_resolve_path("/dev", &mp) < 0) {
             kpanic("Can't init mouse in /dev");
@@ -59,18 +59,12 @@ static driver_desc_t _mouse_driver_info()
 {
     driver_desc_t desc = { 0 };
     desc.type = DRIVER_INPUT_SYSTEMS_DEVICE;
-    desc.auto_start = true;
-    desc.is_device_driver = false;
-    desc.is_device_needed = false;
-    desc.is_driver_needed = false;
-    desc.functions[DRIVER_NOTIFICATION] = _mouse_recieve_notification;
+    desc.flags = DRIVER_DESC_FLAG_START;
+    desc.system_funcs.on_start = mouse_run;
+    desc.system_funcs.recieve_notification = _mouse_recieve_notification;
     desc.functions[DRIVER_INPUT_SYSTEMS_ADD_DEVICE] = mouse_run;
     desc.functions[DRIVER_INPUT_SYSTEMS_GET_LAST_KEY] = 0;
     desc.functions[DRIVER_INPUT_SYSTEMS_DISCARD_LAST_KEY] = 0;
-    desc.pci_serve_class = 0xff;
-    desc.pci_serve_subclass = 0xff;
-    desc.pci_serve_vendor_id = 0x00;
-    desc.pci_serve_device_id = 0x00;
     return desc;
 }
 
@@ -173,7 +167,7 @@ void mouse_handler()
 #endif /* MOUSE_DRIVER_DEBUG */
 }
 
-void mouse_run()
+int mouse_run()
 {
     _mouse_wait_then_write(0x64, 0xa8);
     _mouse_enable_aux();
@@ -185,10 +179,11 @@ void mouse_run()
     set_irq_handler(IRQ12, mouse_handler);
 
     mouse_buffer = ringbuffer_create_std();
+    return 0;
 }
 
 bool mouse_install()
 {
-    driver_install(_mouse_driver_info(), "mouse86");
+    devman_register_driver(_mouse_driver_info(), "mouse86");
     return true;
 }

@@ -101,4 +101,11 @@ typedef uint32_t uintptr_t;
 
 #define NULL ((void*)0)
 
+#define MINORBITS 20
+#define MINORMASK ((1U << MINORBITS) - 1)
+
+#define MAJOR(dev) ((unsigned int)((dev) >> MINORBITS))
+#define MINOR(dev) ((unsigned int)((dev)&MINORMASK))
+#define MKDEV(ma, mi) (((ma) << MINORBITS) | (mi))
+
 #endif // _KERNEL_LIBKERN_TYPES_H

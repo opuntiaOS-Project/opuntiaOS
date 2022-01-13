@@ -122,7 +122,7 @@ static memzone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
 
 static void bga_recieve_notification(uint32_t msg, uint32_t param)
 {
-    if (msg == DM_NOTIFICATION_DEVFS_READY) {
+    if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         dentry_t* mp;
         if (vfs_resolve_path("/dev", &mp) < 0) {
             kpanic("Can't init bga in /dev");
@@ -141,33 +141,44 @@ static inline driver_desc_t _bga_driver_info()
 {
     driver_desc_t bga_desc = { 0 };
     bga_desc.type = DRIVER_VIDEO_DEVICE;
-    bga_desc.auto_start = false;
-    bga_desc.is_device_driver = true;
-    bga_desc.is_device_needed = false;
-    bga_desc.is_driver_needed = false;
-    bga_desc.functions[DRIVER_NOTIFICATION] = bga_recieve_notification;
-    bga_desc.functions[DRIVER_VIDEO_INIT] = bga_init;
+
+    bga_desc.listened_device_mask = DEVICE_DISPLAY;
+    bga_desc.system_funcs.init_with_dev = bga_init_with_dev;
+    bga_desc.system_funcs.recieve_notification = bga_recieve_notification;
+
+    bga_desc.functions[DRIVER_VIDEO_INIT] = NULL;
     bga_desc.functions[DRIVER_VIDEO_SET_RESOLUTION] = bga_set_resolution;
-    bga_desc.pci_serve_class = 0x03;
-    bga_desc.pci_serve_subclass = 0x00;
-    bga_desc.pci_serve_vendor_id = 0x1234;
-    bga_desc.pci_serve_device_id = 0x1111;
     return bga_desc;
 }
 
 void bga_install()
 {
-    driver_install(_bga_driver_info(), "bga86");
+    devman_register_driver(_bga_driver_info(), "bga86");
 }
 
-void bga_init(device_t* dev)
+int bga_init_with_dev(device_t* dev)
 {
+    if (dev->device_desc.type != DEVICE_DESC_PCI) {
+        return -1;
+    }
+    if (dev->device_desc.pci.class_id != 0x03) {
+        return -1;
+    }
+    if (dev->device_desc.pci.vendor_id != 0x1234) {
+        return -1;
+    }
+    if (dev->device_desc.pci.device_id != 0x1111) {
+        return -1;
+    }
+
     bga_buf_paddr = pci_read_bar(dev, 0) & 0xfffffff0;
 #ifdef TARGET_DESKTOP
     bga_set_resolution(1024, 768);
 #elif TARGET_MOBILE
     bga_set_resolution(320, 568);
 #endif
+
+    return 0;
 }
 
 void bga_set_resolution(uint16_t width, uint16_t height)

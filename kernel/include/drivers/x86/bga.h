@@ -16,7 +16,7 @@
 #include <platform/x86/port.h>
 
 void bga_install();
-void bga_init();
+int bga_init_with_dev(device_t* dev);
 void bga_set_resolution(uint16_t width, uint16_t height);
 
 #endif //_KERNEL_DRIVERS_X86_BGA_H

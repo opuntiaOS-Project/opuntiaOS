@@ -505,11 +505,6 @@ driver_desc_t _devfs_driver_info()
 {
     driver_desc_t fs_desc = { 0 };
     fs_desc.type = DRIVER_FILE_SYSTEM;
-    fs_desc.auto_start = false;
-    fs_desc.is_device_driver = false;
-    fs_desc.is_device_needed = false;
-    fs_desc.is_driver_needed = false;
-    fs_desc.functions[DRIVER_NOTIFICATION] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_RECOGNIZE] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_PREPARE_FS] = devfs_prepare_fs;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = devfs_can_read;
@@ -539,7 +534,7 @@ driver_desc_t _devfs_driver_info()
 
 void devfs_install()
 {
-    driver_install(_devfs_driver_info(), "devfs");
+    devman_register_driver(_devfs_driver_info(), "devfs");
 }
 
 /**
@@ -601,7 +596,7 @@ int devfs_mount()
     int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), driver_id);
     dentry_put(mp);
     if (!err) {
-        dm_send_notification(DM_NOTIFICATION_DEVFS_READY, 0);
+        devman_send_notification(DEVMAN_NOTIFICATION_DEVFS_READY, 0);
     }
     return err;
 }

@@ -36,41 +36,49 @@ static uint8_t _ata_gen_drive_head_register(bool is_lba, bool is_master, uint8_t
     return res;
 }
 
-driver_desc_t _ata_driver_info()
+static driver_desc_t _ata_driver_info()
 {
     driver_desc_t ata_desc = { 0 };
     ata_desc.type = DRIVER_STORAGE_DEVICE;
-    ata_desc.auto_start = false;
-    ata_desc.is_device_driver = true;
-    ata_desc.is_device_needed = false;
-    ata_desc.is_driver_needed = false;
-    ata_desc.functions[DRIVER_NOTIFICATION] = 0;
-    ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = ata_add_new_device;
+
+    ata_desc.listened_device_mask = DEVICE_STORAGE;
+    ata_desc.system_funcs.init_with_dev = ata_init_with_dev;
+
+    ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = ata_init_with_dev;
     ata_desc.functions[DRIVER_STORAGE_READ] = ata_read;
     ata_desc.functions[DRIVER_STORAGE_WRITE] = ata_write;
     ata_desc.functions[DRIVER_STORAGE_FLUSH] = ata_flush;
     ata_desc.functions[DRIVER_STORAGE_CAPACITY] = ata_get_capacity;
-    ata_desc.pci_serve_class = 0x01;
-    ata_desc.pci_serve_subclass = 0x05;
-    ata_desc.pci_serve_vendor_id = 0x00;
-    ata_desc.pci_serve_device_id = 0x00;
     return ata_desc;
 }
 
-void ata_add_new_device(device_t* new_device)
+int ata_init_with_dev(device_t* dev)
 {
-    bool is_master = new_device->device_desc.port_base >> 31;
-    uint16_t port = new_device->device_desc.port_base & 0xFFF;
-    ata_init(&_ata_drives[new_device->id], port, is_master);
-    if (ata_indentify(&_ata_drives[new_device->id])) {
-        kprintf("Device added to ata driver\n");
+    if (dev->device_desc.type != DEVICE_DESC_PCI) {
+        return -1;
     }
+    if (dev->device_desc.pci.class_id != 0x01) {
+        return -1;
+    }
+    if (dev->device_desc.pci.subclass_id != 0x05) {
+        return -1;
+    }
+
+    bool is_master = dev->device_desc.pci.port_base >> 31;
+    uint16_t port = dev->device_desc.pci.port_base & 0xFFF;
+    ata_init(&_ata_drives[dev->id], port, is_master);
+    if (ata_indentify(&_ata_drives[dev->id])) {
+        kprintf("Device added to ata driver\n");
+    } else {
+        return -1;
+    }
+    return 0;
 }
 
 void ata_install()
 {
     // registering driver and passing info to it
-    driver_install(_ata_driver_info(), "ata86");
+    devman_register_driver(_ata_driver_info(), "ata86");
 }
 
 void ata_init(ata_t* ata, uint32_t port, bool is_master)

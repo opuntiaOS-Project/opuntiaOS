@@ -209,7 +209,7 @@ void vfs_helper_restore_full_path_after_split(char* path, char* name);
 void vfs_install();
 int vfs_add_dev(device_t* dev);
 int vfs_add_dev_with_fs(device_t* dev, int fs_id);
-void vfs_add_fs(driver_t* t_new_fs);
+int vfs_add_fs(driver_t* fs);
 int vfs_get_fs_id(const char* name);
 void vfs_eject_device(device_t* t_new_dev);
 

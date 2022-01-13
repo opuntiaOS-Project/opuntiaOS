@@ -29,6 +29,8 @@ typedef struct devtree_header devtree_header_t;
 #define DEVTREE_ENTRY_TYPE_FB (1)
 #define DEVTREE_ENTRY_TYPE_UART (2)
 #define DEVTREE_ENTRY_TYPE_RAM (3)
+#define DEVTREE_ENTRY_TYPE_STORAGE (4)
+#define DEVTREE_ENTRY_TYPE_BUS_CONTROLLER (5)
 
 struct PACKED devtree_entry {
     uint32_t type;
@@ -40,5 +42,7 @@ typedef struct devtree_entry devtree_entry_t;
 
 int devtree_init(void* devtree);
 devtree_entry_t* devtree_find_device(const char* name);
+const char* devtree_name_of_entry(devtree_entry_t* en);
+devtree_entry_t* devtree_new_entry(const devtree_entry_t* from);
 
 #endif // _KERNEL_DRIVERS_DEVTREE_H

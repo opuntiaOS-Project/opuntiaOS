@@ -14,7 +14,7 @@
 
 void keyboard_handler();
 bool kbdriver_install();
-void kbdriver_run();
+int kbdriver_run();
 
 uint32_t kbdriver_get_last_key();
 void kbdriver_discard_last_key();

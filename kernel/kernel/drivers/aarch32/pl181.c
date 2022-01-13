@@ -18,9 +18,8 @@ static sd_card_t sd_cards[MAX_DEVICES_COUNT];
 static kmemzone_t mapped_zone;
 static volatile pl181_registers_t* registers;
 
-static inline uintptr_t _pl181_mmio_paddr()
+static inline uintptr_t _pl181_mmio_paddr(devtree_entry_t* device)
 {
-    devtree_entry_t* device = devtree_find_device("pl181");
     if (!device) {
         kpanic("PL181: Can't find device in the tree.");
     }
@@ -28,9 +27,9 @@ static inline uintptr_t _pl181_mmio_paddr()
     return (uintptr_t)device->paddr;
 }
 
-static inline int _pl181_map_itself()
+static inline int _pl181_map_itself(device_t* dev)
 {
-    uintptr_t mmio_paddr = _pl181_mmio_paddr();
+    uintptr_t mmio_paddr = _pl181_mmio_paddr(dev->device_desc.devtree.entry);
 
     mapped_zone = kmemzone_new(sizeof(pl181_registers_t));
     vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
@@ -128,8 +127,12 @@ static int _pl181_write_block(device_t* device, uint32_t lba_like, void* write_d
     return bytes_written;
 }
 
-static void _pl181_add_new_device(device_t* new_device)
+static int _pl181_add_new_device(device_t* new_device)
 {
+    if (new_device->device_desc.type != DEVICE_DESC_DEVTREE) {
+        return -1;
+    }
+
     bool ishc = new_device->device_desc.args[0] & 1;
     uint32_t rca = new_device->device_desc.args[0] & 0xFFFF0000;
     sd_cards[new_device->id].rca = rca;
@@ -139,21 +142,27 @@ static void _pl181_add_new_device(device_t* new_device)
     _pl181_send_cmd(CMD_SET_SECTOR_SIZE | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, PL181_SECTOR_SIZE);
     if (registers->response[0] != 0x900) {
         log_error("PL181(pl181_add_new_device): Can't set sector size");
+        return -1;
     }
+
+    return 0;
 }
 
 static void _pl181_add_device(uint32_t rca, bool ishc, uint32_t capacity)
 {
+    devtree_entry_t entry = {
+        .paddr = 0x0,
+        .type = DEVTREE_ENTRY_TYPE_STORAGE,
+        .rel_name_offset = (uint32_t) "p181rdr",
+        .flags = 0x0,
+    };
+
     device_desc_t new_device = { 0 };
-    new_device.class_id = 0x08;
-    new_device.subclass_id = 0x05;
-    new_device.interface_id = 0;
-    new_device.revision_id = 0;
-    new_device.port_base = 0;
-    new_device.interrupt = 0;
+    new_device.type = DEVICE_DESC_DEVTREE;
+    new_device.devtree.entry = devtree_new_entry(&entry);
     new_device.args[0] = (rca & 0xFFFF0000) | ishc;
     new_device.args[1] = capacity;
-    device_install(new_device);
+    devman_register_device(new_device, DEVICE_STORAGE);
 }
 
 static uint32_t _pl181_get_capacity(device_t* device)
@@ -164,35 +173,33 @@ static uint32_t _pl181_get_capacity(device_t* device)
 
 static driver_desc_t _pl181_driver_info()
 {
-    driver_desc_t ata_desc = { 0 };
-    ata_desc.type = DRIVER_STORAGE_DEVICE;
-    ata_desc.auto_start = false;
-    ata_desc.is_device_driver = true;
-    ata_desc.is_device_needed = false;
-    ata_desc.is_driver_needed = false;
-    ata_desc.functions[DRIVER_NOTIFICATION] = 0;
-    ata_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = _pl181_add_new_device;
-    ata_desc.functions[DRIVER_STORAGE_READ] = _pl181_read_block;
-    ata_desc.functions[DRIVER_STORAGE_WRITE] = _pl181_write_block;
-    ata_desc.functions[DRIVER_STORAGE_FLUSH] = 0;
-    ata_desc.functions[DRIVER_STORAGE_CAPACITY] = _pl181_get_capacity;
-    ata_desc.pci_serve_class = 0x08;
-    ata_desc.pci_serve_subclass = 0x05;
-    ata_desc.pci_serve_vendor_id = 0x00;
-    ata_desc.pci_serve_device_id = 0x00;
-    return ata_desc;
+    driver_desc_t pl181_desc = { 0 };
+    pl181_desc.type = DRIVER_STORAGE_DEVICE;
+    pl181_desc.listened_device_mask = DEVICE_STORAGE;
+
+    pl181_desc.system_funcs.init_with_dev = _pl181_add_new_device;
+
+    pl181_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = _pl181_add_new_device;
+    pl181_desc.functions[DRIVER_STORAGE_READ] = _pl181_read_block;
+    pl181_desc.functions[DRIVER_STORAGE_WRITE] = _pl181_write_block;
+    pl181_desc.functions[DRIVER_STORAGE_FLUSH] = 0;
+    pl181_desc.functions[DRIVER_STORAGE_CAPACITY] = _pl181_get_capacity;
+    return pl181_desc;
 }
 
-void pl181_install()
+static int _pl181_init(device_t* dev)
 {
-    if (_pl181_map_itself()) {
+    if (dev->device_desc.type != DEVICE_DESC_DEVTREE) {
+        return -1;
+    }
+
+    if (_pl181_map_itself(dev)) {
 #ifdef DEBUG_PL181
         log_error("PL181: Can't map itself!");
 #endif
-        return;
+        return -1;
     }
 
-    driver_install(_pl181_driver_info(), "pl181");
 #ifdef DEBUG_PL181
     log("PL181: Turning on");
 #endif
@@ -209,14 +216,14 @@ void pl181_install()
 #ifdef DEBUG_PL181
         log_error("PL181: Can't set voltage!");
 #endif
-        return;
+        return -1;
     }
 
     if (_pl181_send_app_cmd(CMD_SD_SEND_OP_COND | MMC_CMD_ENABLE_MASK | MMC_CMD_RESP_MASK, 1 << 30 | 0x1AA)) {
 #ifdef DEBUG_PL181
         log_error("PL181: Can't send APP_CMD!");
 #endif
-        return;
+        return -1;
     }
 
     bool ishc = 0;
@@ -240,5 +247,21 @@ void pl181_install()
     capacity |= (resp1 & 0xFF) << 2;
     capacity = 256 * 1024 * (capacity + 1);
 
+    devman_register_driver(_pl181_driver_info(), "p181rdr");
     _pl181_add_device(rca, ishc, capacity);
+    return 0;
+}
+
+static driver_desc_t _pl181_bus_driver_info()
+{
+    driver_desc_t pl181_bus_desc = { 0 };
+    pl181_bus_desc.type = DRIVER_BUS_CONTROLLER;
+    pl181_bus_desc.system_funcs.init_with_dev = _pl181_init;
+    pl181_bus_desc.functions[DRIVER_BUS_CONTROLLER_FIND_DEVICE] = _pl181_init;
+    return pl181_bus_desc;
+}
+
+void pl181_install()
+{
+    devman_register_driver(_pl181_bus_driver_info(), "pl181");
 }

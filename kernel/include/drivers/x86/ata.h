@@ -40,7 +40,7 @@ typedef struct {
 
 extern ata_t _ata_drives[MAX_DEVICES_COUNT];
 
-void ata_add_new_device(device_t* t_new_device);
+int ata_init_with_dev(device_t* dev);
 
 void ata_install();
 void ata_init(ata_t* ata, uint32_t port, bool is_master);

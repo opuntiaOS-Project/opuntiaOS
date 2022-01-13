@@ -26,9 +26,8 @@ static uint32_t pl111_screen_width;
 static uint32_t pl111_screen_height;
 static uint32_t pl111_screen_buffer_size;
 
-static inline uintptr_t _pl111_mmio_paddr()
+static inline uintptr_t _pl111_mmio_paddr(devtree_entry_t* device)
 {
-    devtree_entry_t* device = devtree_find_device("pl111");
     if (!device) {
         kpanic("PL111: Can't find device in the tree.");
     }
@@ -47,9 +46,9 @@ static vm_ops_t mmap_file_vm_ops = {
     .swap_page_mode = _pl111_swap_page_mode,
 };
 
-static inline int _pl111_map_itself()
+static inline int _pl111_map_itself(device_t* dev)
 {
-    uintptr_t mmio_paddr = _pl111_mmio_paddr();
+    uintptr_t mmio_paddr = _pl111_mmio_paddr(dev->device_desc.devtree.entry);
 
     mapped_zone = kmemzone_new(sizeof(pl111_registers_t));
     vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
@@ -121,7 +120,7 @@ static void pl111_recieve_notification(uint32_t msg, uint32_t param)
 #ifdef DEBUG_PL111
     log("PL111: Notific start");
 #endif
-    if (msg == DM_NOTIFICATION_DEVFS_READY) {
+    if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         dentry_t* mp;
         if (vfs_resolve_path("/dev", &mp) < 0) {
             kpanic("Can't init bga in /dev");
@@ -156,8 +155,20 @@ void pl111_set_resolution(uint32_t width, uint32_t height)
     registers->lcd_timing_1 = timing_reg;
 }
 
-void pl111_init(device_t* dev)
+int pl111_init(device_t* dev)
 {
+    log("PL111: PL");
+    if (dev->device_desc.type != DEVICE_DESC_DEVTREE) {
+        return -1;
+    }
+
+    if (_pl111_map_itself(dev)) {
+#ifdef DEBUG_PL111
+        log_error("PL111: Can't map itself!");
+#endif
+        return -1;
+    }
+
 #ifdef DEBUG_PL111
     log("PL111: Turning on");
 #endif
@@ -182,34 +193,21 @@ void pl111_init(device_t* dev)
         | LCD_EN_MASK;
 
     registers->lcd_control = ctl;
+    return 0;
 }
 
 static driver_desc_t _pl111_driver_info()
 {
     driver_desc_t pl111_desc = { 0 };
     pl111_desc.type = DRIVER_VIDEO_DEVICE;
-    pl111_desc.auto_start = true;
-    pl111_desc.is_device_driver = false;
-    pl111_desc.is_device_needed = false;
-    pl111_desc.is_driver_needed = false;
-    pl111_desc.functions[DRIVER_NOTIFICATION] = pl111_recieve_notification;
+    pl111_desc.system_funcs.init_with_dev = pl111_init;
+    pl111_desc.system_funcs.recieve_notification = pl111_recieve_notification;
     pl111_desc.functions[DRIVER_VIDEO_INIT] = pl111_init;
     pl111_desc.functions[DRIVER_VIDEO_SET_RESOLUTION] = pl111_set_resolution;
-    pl111_desc.pci_serve_class = 0x00;
-    pl111_desc.pci_serve_subclass = 0x00;
-    pl111_desc.pci_serve_vendor_id = 0x1234;
-    pl111_desc.pci_serve_device_id = 0x1111;
     return pl111_desc;
 }
 
 void pl111_install()
 {
-    if (_pl111_map_itself()) {
-#ifdef DEBUG_PL111
-        log_error("PL111: Can't map itself!");
-#endif
-        return;
-    }
-
-    driver_install(_pl111_driver_info(), "pl111");
+    devman_register_driver(_pl111_driver_info(), "pl111");
 }
