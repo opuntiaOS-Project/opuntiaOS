@@ -19,7 +19,8 @@ enum DEVICES_TYPE {
     DEVICE_DISPLAY = (1 << 4),
     DEVICE_BUS_CONTROLLER = (1 << 5),
     DEVICE_BRIDGE = (1 << 6),
-    DEVICE_UNKNOWN = (1 << 7),
+    DEVICE_CHAR = (1 << 7),
+    DEVICE_UNKNOWN = (1 << 8),
 };
 
 enum DEVICE_DESC_TYPE {

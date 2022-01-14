@@ -8,6 +8,7 @@
 
 #include <drivers/aarch32/uart.h>
 #include <drivers/devtree.h>
+#include <drivers/driver_manager.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
 
@@ -43,6 +44,7 @@ void uart_remap()
 {
     _uart_map_itself();
 }
+devman_register_driver_installation_order(uart_remap, 10);
 
 int uart_write(int port, uint8_t data)
 {

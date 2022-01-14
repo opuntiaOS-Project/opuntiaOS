@@ -61,3 +61,5 @@ void sp804_install()
     timer1->control = SP804_ENABLE_MASK | SP804_PERIODIC_MASK | SP804_32_BIT_MASK | SP804_INTS_ENABLED_MASK;
     irq_register_handler(SP804_TIMER1_IRQ_LINE, 0, IRQ_TYPE_EDGE_TRIGGERED_MASK, _sp804_int_handler, ALL_CPU_MASK);
 }
+
+devman_register_driver_installation(sp804_install);

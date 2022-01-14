@@ -57,6 +57,7 @@ void vfs_install()
     devman_register_driver(_vfs_driver_info(), "vfs");
     dynarr_init_of_size(fs_desc_t, &_vfs_fses, MAX_FS);
 }
+devman_register_driver_installation(vfs_install);
 
 static void vfs_recieve_notification(uint32_t msg, uint32_t param)
 {

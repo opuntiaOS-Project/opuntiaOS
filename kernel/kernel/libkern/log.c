@@ -390,5 +390,5 @@ int log_not_formatted(const char* format, ...)
 void logger_setup()
 {
     lock_init(&_log_lock);
-    uart_setup(COM1);
+    uart_setup();
 }

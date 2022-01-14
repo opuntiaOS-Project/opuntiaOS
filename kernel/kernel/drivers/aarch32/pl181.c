@@ -265,3 +265,5 @@ void pl181_install()
 {
     devman_register_driver(_pl181_bus_driver_info(), "pl181");
 }
+
+devman_register_driver_installation(pl181_install);

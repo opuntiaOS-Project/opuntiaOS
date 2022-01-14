@@ -33,6 +33,7 @@ void ide_install()
 {
     devman_register_driver(_ide_driver_info(), "ide86");
 }
+devman_register_driver_installation(ide_install);
 
 // [Stub]
 // Scanning IDE to find all drives.

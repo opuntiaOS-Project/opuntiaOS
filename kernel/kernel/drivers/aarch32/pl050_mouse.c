@@ -209,3 +209,5 @@ void pl050_mouse_install()
 {
     devman_register_driver(_pl050_mouse_driver_info(), "pl050m");
 }
+
+devman_register_driver_installation(pl050_mouse_install);

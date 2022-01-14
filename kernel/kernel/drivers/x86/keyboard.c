@@ -37,11 +37,11 @@ static driver_desc_t _keyboard_driver_info()
     return kbd_desc;
 }
 
-bool kbdriver_install()
+void kbdriver_install()
 {
     devman_register_driver(_keyboard_driver_info(), "kbd86");
-    return true;
 }
+devman_register_driver_installation(kbdriver_install);
 
 int kbdriver_run()
 {

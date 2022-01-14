@@ -14,6 +14,6 @@
 #include <libkern/types.h>
 #include <platform/x86/idt.h>
 
-bool mouse_install();
+void mouse_install();
 
 #endif // _KERNEL_DRIVERS_X86_MOUSE_H

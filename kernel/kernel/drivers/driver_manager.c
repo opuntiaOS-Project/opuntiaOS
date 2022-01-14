@@ -4,6 +4,8 @@
 
 // #define DEBUG_DM
 
+extern driver_installation_func_t _dirvers_init_start[], _dirvers_init_end[];
+
 static int _drivers_count = 0;
 static int _devices_count = 0;
 
@@ -12,6 +14,15 @@ device_t devices[MAX_DEVICES_COUNT];
 
 int devman_init()
 {
+    return 0;
+}
+
+int devman_install_drivers()
+{
+    size_t _dirvers_init_size = (_dirvers_init_end - _dirvers_init_start);
+    for (size_t i = 0; i < _dirvers_init_size; i++) {
+        (*_dirvers_init_start[i])();
+    }
     return 0;
 }
 
@@ -78,6 +89,10 @@ static bool does_driver_support_device(device_t* device, driver_t* driver)
 {
     if (device->device_desc.type == DEVICE_DESC_PCI) {
         if (TEST_FLAG(driver->desc.listened_device_mask, device->type)) {
+            if (!driver->desc.system_funcs.init_with_dev) {
+                return false;
+            }
+
             int err = driver->desc.system_funcs.init_with_dev(device);
             if (!err) {
                 device->driver_id = driver->id;
@@ -87,6 +102,10 @@ static bool does_driver_support_device(device_t* device, driver_t* driver)
         }
     } else if (device->device_desc.type == DEVICE_DESC_DEVTREE) {
         if (strcmp(devtree_name_of_entry(device->device_desc.devtree.entry), driver->name) == 0) {
+            if (!driver->desc.system_funcs.init_with_dev) {
+                return false;
+            }
+
             driver->desc.system_funcs.init_with_dev(device);
             device->driver_id = driver->id;
             notify_drivers_about_device(device);

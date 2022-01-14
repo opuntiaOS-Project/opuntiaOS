@@ -157,7 +157,6 @@ void pl111_set_resolution(uint32_t width, uint32_t height)
 
 int pl111_init(device_t* dev)
 {
-    log("PL111: PL");
     if (dev->device_desc.type != DEVICE_DESC_DEVTREE) {
         return -1;
     }
@@ -211,3 +210,4 @@ void pl111_install()
 {
     devman_register_driver(_pl111_driver_info(), "pl111");
 }
+devman_register_driver_installation(pl111_install);

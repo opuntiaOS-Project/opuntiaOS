@@ -536,6 +536,7 @@ void devfs_install()
 {
     devman_register_driver(_devfs_driver_info(), "devfs");
 }
+devman_register_driver_installation(devfs_install);
 
 /**
  * Register a device.

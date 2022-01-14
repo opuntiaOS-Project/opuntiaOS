@@ -27,10 +27,20 @@
 	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xc0000000 + phys_passed)
 	{
 		*(.rodata)
+	}
 
+	.rodata.odt ALIGN(4K) : AT (ADDR(.rodata.odt) - 0xc0000000 + phys_passed)
+	{
 		_odt = .;
 		_odt_phys = . - 0xc0000000 + phys_passed;
 		*(.odt)
+	}
+
+	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - 0xc0000000 + phys_passed)
+	{
+		_dirvers_init_start = .;
+		*(SORT_BY_NAME(.driver_init_sections.*))
+		_dirvers_init_end = .;
 	}
 
 	.data ALIGN(4K) : AT (ADDR(.data) - 0xc0000000 + phys_passed)

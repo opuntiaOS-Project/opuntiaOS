@@ -80,6 +80,7 @@ void ata_install()
     // registering driver and passing info to it
     devman_register_driver(_ata_driver_info(), "ata86");
 }
+devman_register_driver_installation(ata_install);
 
 void ata_init(ata_t* ata, uint32_t port, bool is_master)
 {

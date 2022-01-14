@@ -123,6 +123,7 @@ void procfs_install()
 {
     devman_register_driver(_procfs_driver_info(), "procfs");
 }
+devman_register_driver_installation(procfs_install);
 
 int procfs_mount()
 {

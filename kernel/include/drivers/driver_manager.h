@@ -23,6 +23,16 @@
 #define DEVMAN_FUNC_DRIVER_EMIT_DRIVER 0x1
 #define DEVMAN_FUNC_DRIVER_EMIT_DEVICE 0x2
 
+#define DEFAULT_DRIVER_PRIV (100)
+
+typedef void (*driver_installation_func_t)();
+#define devman_register_driver_installation_order(func, N)                          \
+    static driver_installation_func_t registered_driver_##func                      \
+        __attribute__((used)) __attribute__((section(".driver_init_sections." #N))) \
+        = func
+
+#define devman_register_driver_installation(func) devman_register_driver_installation_order(func, DEFAULT_DRIVER_PRIV)
+
 enum DEVMAN_NOTIFICATIONS {
     DEVMAN_NOTIFICATION_DEVFS_READY = 0,
     DEVMAN_NOTIFICATION_NEW_DRIVER = 1,
@@ -34,6 +44,7 @@ extern driver_t drivers[MAX_DRIVERS_COUNT];
 extern device_t devices[MAX_DEVICES_COUNT];
 
 int devman_init();
+int devman_install_drivers();
 void devman_run();
 int devman_register_driver(driver_desc_t driver_info, const char* name);
 int devman_register_device(device_desc_t device_info, int type);

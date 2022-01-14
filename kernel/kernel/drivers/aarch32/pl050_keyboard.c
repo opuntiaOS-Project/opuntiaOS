@@ -111,3 +111,5 @@ void pl050_keyboard_install()
 {
     devman_register_driver(_pl050_keyboard_driver_info(), "pl050k");
 }
+
+devman_register_driver_installation(pl050_keyboard_install);

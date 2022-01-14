@@ -35,13 +35,3 @@ void platform_setup_boot_cpu()
 void platform_setup_secondary_cpu()
 {
 }
-
-void platform_drivers_setup()
-{
-    pci_install();
-    ide_install();
-    ata_install();
-    kbdriver_install();
-    mouse_install();
-    bga_install();
-}

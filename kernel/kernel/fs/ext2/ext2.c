@@ -1184,3 +1184,4 @@ void ext2_install()
 {
     devman_register_driver(_ext2_driver_info(), "ext2");
 }
+devman_register_driver_installation(ext2_install);

@@ -14,6 +14,13 @@ SECTIONS
 		*(.rodata)
 	}
 
+	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - 0xc0000000 + 1M)
+	{
+		_dirvers_init_start = .;
+		*(SORT_BY_NAME(.driver_init_sections.*))
+		_dirvers_init_end = .;
+	}
+
 	.data ALIGN(4K) : AT (ADDR(.data) - 0xc0000000 + 1M)
 	{
 		*(.data)

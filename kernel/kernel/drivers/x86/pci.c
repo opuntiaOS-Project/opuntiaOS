@@ -51,6 +51,7 @@ void pci_install()
 {
     devman_register_driver(_pci_driver_info(), "pci86");
 }
+devman_register_driver_installation(pci_install);
 
 uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t offset)
 {

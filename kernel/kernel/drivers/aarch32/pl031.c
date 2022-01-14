@@ -56,3 +56,5 @@ uint32_t pl031_read_rtc()
 {
     return registers->data;
 }
+
+devman_register_driver_installation(pl031_install);

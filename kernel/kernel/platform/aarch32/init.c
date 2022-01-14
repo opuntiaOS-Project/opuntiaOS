@@ -36,14 +36,3 @@ void platform_setup_secondary_cpu()
     fpuv4_install();
     gic_setup_secondary_cpu();
 }
-
-void platform_drivers_setup()
-{
-    uart_remap();
-    sp804_install();
-    pl181_install();
-    pl111_install();
-    pl050_keyboard_install();
-    pl050_mouse_install();
-    pl031_install();
-}

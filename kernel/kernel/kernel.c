@@ -64,25 +64,21 @@ void stage3(mem_desc_t* mem_desc, void* devtree)
 {
     boot_cpu_finish(&__boot_cpu_launched);
     system_disable_interrupts();
+    devtree_init(devtree);
     logger_setup();
     platform_init_boot_cpu();
 
     // mem setup
     pmm_setup(mem_desc);
     vmm_setup();
-    devtree_init(devtree);
     platform_setup_boot_cpu();
     boot_cpu_finish(&__boot_cpu_setup_devices);
 
     // installing drivers
     devman_init();
-    platform_drivers_setup();
-    timeman_setup();
-    vfs_install();
-    ext2_install();
-    procfs_install();
-    devfs_install();
+    devman_install_drivers();
     devman_run();
+    timeman_setup();
     boot_cpu_finish(&__boot_cpu_setup_drivers);
 
     // mounting filesystems

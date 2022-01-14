@@ -182,8 +182,8 @@ int mouse_run()
     return 0;
 }
 
-bool mouse_install()
+void mouse_install()
 {
     devman_register_driver(_mouse_driver_info(), "mouse86");
-    return true;
 }
+devman_register_driver_installation(mouse_install);

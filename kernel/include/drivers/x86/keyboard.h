@@ -13,7 +13,7 @@
 #include <drivers/generic/keyboard.h>
 
 void keyboard_handler();
-bool kbdriver_install();
+void kbdriver_install();
 int kbdriver_run();
 
 uint32_t kbdriver_get_last_key();

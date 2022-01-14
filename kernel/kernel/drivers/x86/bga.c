@@ -155,6 +155,7 @@ void bga_install()
 {
     devman_register_driver(_bga_driver_info(), "bga86");
 }
+devman_register_driver_installation(bga_install);
 
 int bga_init_with_dev(device_t* dev)
 {
