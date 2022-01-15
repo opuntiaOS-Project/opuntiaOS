@@ -21,6 +21,7 @@ vector_FIQ:
     b       vector_FIQ
     
 irq_isp:
+    clrex
     subs    lr, lr, #4
     // Moving to SVC mode, to use it's stack.
     stmfd   sp!, {r1-r5}
@@ -64,6 +65,7 @@ irq_isp:
     nop
 
 svc_isp:
+    clrex
     stmfd   sp!, {r0-r12,lr}
     mrs     r0, spsr
     mrs     r1, sp_usr
@@ -86,6 +88,7 @@ trap_return:
     nop
 
 undefined_handler_isp:
+    clrex
     subs    lr, lr, #4
     stmfd   sp!, {r0-r12,lr}
     mrs     r0, spsr
@@ -108,6 +111,7 @@ undefined_handler_isp:
     nop
 
 data_abort_isp:
+    clrex
     subs    lr, lr, #8
     stmfd   sp!, {r0-r12,lr}
     mrs     r0, spsr
@@ -130,6 +134,7 @@ data_abort_isp:
     nop
 
 prefetch_abort_isp:
+    clrex
     subs    lr, lr, #4
     stmfd   sp!, {r0-r12,lr}
     mrs     r0, spsr
