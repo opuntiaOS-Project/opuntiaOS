@@ -1,7 +1,7 @@
 #ifndef _BOOT_X86_STAGE2_MEM_PDE_H
 #define _BOOT_X86_STAGE2_MEM_PDE_H
 
-#include "../types.h"
+#include <libboot/types.h>
 
 #define table_desc_t uint32_t
 #define pde_t uint32_t

@@ -45,9 +45,14 @@ def special_paths(paltform):
     if paltform == 'x86':
         print("//boot/x86/stage3_entry.s")
     if paltform == 'aarch32':
-        print("//boot/aarch32/vm_init.c")
-        print("//boot/aarch32/_start.s")
-        print("//boot/aarch32/_loader.s")
+        pass
+        # print("//boot/aarch32/entry.s")
+        # print("//boot/aarch32/start_kernel.s")
+
+        # print("//boot/aarch32/main.c")
+        # print("//boot/aarch32/devtree/devtree.c")
+        # print("//boot/aarch32/string/string.c")
+        # print("//boot/aarch32/vmm/vmm.c")
 
 
 special_paths(sys.argv[2])

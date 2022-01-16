@@ -2,25 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-action("bootable_drive") {
-  script = "make_boot_drive.py"
-  sources = [
-    "$root_build_dir/stage1.bin",
-    "$root_build_dir/stage2.bin",
-  ]
-  outputs = [ "$root_build_dir/os-image.bin" ]
-  args = [
-    rebase_path("$root_build_dir/stage1.bin", root_build_dir),
-    rebase_path("$root_build_dir/stage2.bin", root_build_dir),
-    rebase_path("$root_build_dir/os-image.bin", root_build_dir),
-  ]
-
-  deps = [
-    "stage1:stage1",
-    "stage2:stage2",
-  ]
-}
-
 group("boot") {
-  deps = [ ":bootable_drive" ]
+  if (target_cpu == "x86") {
+    deps = [ "x86:bootx86" ]
+  } else {
+    deps = [ "aarch32:bootarm" ]
+  }
 }

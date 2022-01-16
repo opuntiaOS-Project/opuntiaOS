@@ -9,10 +9,10 @@
 #ifndef _KERNEL_PLATFORM_AARCH32_PMM_SETTINGS_H
 #define _KERNEL_PLATFORM_AARCH32_PMM_SETTINGS_H
 
-/* TODO: By default settings for Cortex-A15 are here */
-#include <platform/aarch32/target/cortex-a15/memmap.h>
+#define KERNEL_PM_BASE 0x80100000
+#define KERNEL_BASE 0xc0000000
+#define KMALLOC_BASE (KERNEL_BASE + 0x400000)
 
-#define MEMORY_MAP_REGION (arm_memmap)
 #define PMM_BLOCK_SIZE (1024)
 #define PMM_BLOCK_SIZE_KB (1)
 #define PMM_BLOCKS_PER_BYTE (8)

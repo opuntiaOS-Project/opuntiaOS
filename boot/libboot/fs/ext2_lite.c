@@ -1,9 +1,13 @@
-/**
- * Ext2 Lite is lightweight driver only for reading Ext2 filesystem
+/*
+ * Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
-#include "ext2_lite.h"
-#include "display.h"
+#include <libboot/fs/ext2_lite.h>
+#include <libboot/string/string.h>
 
 superblock_t superblock;
 drive_desc_t* active_drive_desc;
@@ -68,9 +72,6 @@ int ext2_lite_init(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     void (*read)(uint32_t sector, uint8_t * read_to) = drive_desc->read;
     _ext2_lite_read((uint8_t*)&superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
 
-    printd(superblock.log_block_size);
-    printf("\n");
-
     if (superblock.magic != 0xEF53) {
         return -1;
     }
@@ -95,7 +96,6 @@ int ext2_lite_has_in_dir(uint32_t block_index, char* path, uint32_t* found_inode
         return -1;
     }
     if (_ext2_lite_get_block_len() != 1024) {
-        printf("oneLO: Block size is unsupported");
         while (1) { }
         return -1;
     }

@@ -1,9 +1,16 @@
-#ifndef STAGE2_ELF_LITE
-#define STAGE2_ELF_LITE
+/*
+ * Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
 
-#include "../types.h"
-#include "drive_desc.h"
-#include "fs_desc.h"
+#ifndef _BOOT_LIBBOOT_ELF_ELF_LITE
+#define _BOOT_LIBBOOT_ELF_ELF_LITE
+
+#include <libboot/abi/drivers.h>
+#include <libboot/types.h>
 
 enum E_IDENT_FIELDS {
     EI_MAG0,
@@ -134,6 +141,6 @@ typedef struct {
 } elf_section_header_32_t;
 
 int elf_load_header(drive_desc_t* drive_desc, fs_desc_t* fs_desc, char* path);
-int elf_load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, char* path, uint32_t* kernel_size);
+int elf_load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, char* path, uint32_t* kernel_vaddr, uint32_t* kernel_paddr, uint32_t* kernel_size);
 
-#endif // STAGE2_ELF_LITE
+#endif // _BOOT_LIBBOOT_ELF_ELF_LITE

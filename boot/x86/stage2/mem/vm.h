@@ -1,9 +1,9 @@
 #ifndef _BOOT_X86_STAGE2_MEM_VM_H
 #define _BOOT_X86_STAGE2_MEM_VM_H
 
-#include "../types.h"
 #include "pde.h"
 #include "pte.h"
+#include <libboot/types.h>
 
 #define VMM_PTE_COUNT (1024)
 #define VMM_PDE_COUNT (1024)

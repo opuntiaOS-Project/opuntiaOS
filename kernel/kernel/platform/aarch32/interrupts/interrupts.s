@@ -160,7 +160,13 @@ halt_cpu:
     wfi // wait for interrupt coming
     b       halt_cpu
 
+_start:
+    b       _start
+
 reset_handler:
+    mov     r4, r0 // Pointer to mem_desc
+    mov     r5, r1 // Pointer to odt
+
     mrc     p15, #0, r0, c0, c0, #5 // Move to ARM Register r0 from Coprocessor c0. Read ID Code Register
     and     r0, r0, #3 // r0 &= 0x3
     cmp     r0, #0 // check whether r0==0
@@ -178,68 +184,45 @@ reset_handler:
     ldr     pc,=halt_cpu
 
 _reset_cpu0:
-    push    {r4, r5, r6, r7, r8, r9}
-
+    // Set up vector address
     ldr     r0, =vector_table
-
-    // set vector address.
     mcr     P15, 0, r0, c12, c0, 0
+    
+    ldr     sp, =STACK_TOP
 
-    mov     r1, #0x0000
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8}
-    pop     {r4, r5, r6, r7, r8, r9}
-    ldr     pc, =_start
+    mov     r0, r4
+    mov     r1, r5
+    ldr     pc,=stage3
 
 _reset_cpu1:
-    push    {r4, r5, r6, r7, r8, r9}
-
-    ldr     r0, =vector_table
-
-    // set vector address.
-    mcr     P15, 0, r0, c12, c0, 0
-
-    mov     r1, #0x0000
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8}
-    pop     {r4, r5, r6, r7, r8, r9}
-    ldr     pc, =_start
-
 _reset_cpu2:
-    push    {r4, r5, r6, r7, r8, r9}
-
-    ldr     r0, =vector_table
-
-    // set vector address.
-    mcr     P15, 0, r0, c12, c0, 0
-
-    mov     r1, #0x0000
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8}
-    pop     {r4, r5, r6, r7, r8, r9}
-    ldr     pc, =_start
-
 _reset_cpu3:
-    push    {r4, r5, r6, r7, r8, r9}
+    // Since we have up to several cpus support, we allocate for each secondary cpu
+    // 512b of stack. That's supposed to be enough during the boot stage when 
+    // remapping will take place.
 
+    // Set up vector address
     ldr     r0, =vector_table
-
-    // set vector address.
     mcr     P15, 0, r0, c12, c0, 0
 
-    mov     r1, #0x0000
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8, r9}
-    ldmia   r0!,{r2, r3, r4, r5, r6, r7, r8}
-    stmia   r1!,{r2, r3, r4, r5, r6, r7, r8}
-    pop     {r4, r5, r6, r7, r8, r9}
-    ldr     pc, =_start
+    ldr     sp, =STACK_SECONDARY_TOP
+    mov     r9, #512
+    mrc     p15, #0, r8, c0, c0, #5 // Read CPU ID register.
+    and     r8, r8, #3
+2:
+    sub     r8, r8, #1
+    cmp     r8, #0
+    beq     _start_secondary_cpu_exit
+    add     r9, r9, #512
+    b       2b
+_start_secondary_cpu_exit:
+    subs    sp, r9
+    
+    mov     r0, r4
+    mov     r1, r5
+    ldr     pc,=boot_secondary_cpu
+3:
+    b       3b
 
 .svc_handler_addr:
     .word svc_handler

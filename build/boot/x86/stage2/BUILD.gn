@@ -10,15 +10,19 @@ executable("stage2") {
     # Keep order
     "//boot/x86/stage2_entry.s",
     "//boot/x86/stage2/drivers/ata.c",
-    "//boot/x86/stage2/drivers/display.c",
-    "//boot/x86/stage2/drivers/elf_lite.c",
-    "//boot/x86/stage2/drivers/ext2_lite.c",
     "//boot/x86/stage2/drivers/port.c",
+    "//boot/x86/stage2/drivers/uart.c",
     "//boot/x86/stage2/mem/vm.c",
     "//boot/x86/stage2/stage2.c",
+    # libboot
+    "//boot/libboot/devtree/devtree.c",
+    "//boot/libboot/elf/elf_lite.c",
+    "//boot/libboot/fs/ext2_lite.c",
+    "//boot/libboot/string/string.c",
+    "//boot/libboot/log/log.c",
   ]
 
-  include_dirs = [ "//kernel/include" ]
+  include_dirs = [ "//boot" ]
 
   ldflags = [
     "-Ttext",

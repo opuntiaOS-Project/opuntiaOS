@@ -1,9 +1,16 @@
-#ifndef STAGE2_EXT2_LITE
-#define STAGE2_EXT2_LITE
+/*
+ * Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
 
-#include "../types.h"
-#include "drive_desc.h"
-#include "fs_desc.h"
+#ifndef _BOOT_LIBBOOT_FS_EXT2_LITE
+#define _BOOT_LIBBOOT_FS_EXT2_LITE
+
+#include <libboot/abi/drivers.h>
+#include <libboot/types.h>
 
 #define SUPERBLOCK_START 1024
 #define SUPERBLOCK_LEN (sizeof(superblock_t))
@@ -121,4 +128,4 @@ int ext2_lite_init(drive_desc_t* drive_desc, fs_desc_t* fs_desc);
 int ext2_lite_get_inode(drive_desc_t* drive_desc, char* path, inode_t* file_inode);
 int ext2_lite_read(drive_desc_t* drive_desc, char* path, uint8_t* buf, uint32_t from, uint32_t len);
 
-#endif // STAGE2_EXT2_LITE
+#endif // _BOOT_LIBBOOT_FS_EXT2_LITE

@@ -6,12 +6,11 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_DRIVERS_DEVTREE_H
-#define _KERNEL_DRIVERS_DEVTREE_H
+#ifndef _BOOT_LIBBOOT_DEVTREE_DEVTREE_H
+#define _BOOT_LIBBOOT_DEVTREE_DEVTREE_H
 
-#include <libkern/c_attrs.h>
-#include <libkern/types.h>
-#include <mem/boot.h>
+#include <libboot/string/string.h>
+#include <libboot/types.h>
 
 #define DEVTREE_HEADER_SIGNATURE ("odtr3")
 #define DEVTREE_HEADER_SIGNATURE_LEN (sizeof(DEVTREE_HEADER_SIGNATURE) - 1)
@@ -41,9 +40,10 @@ struct PACKED devtree_entry {
 };
 typedef struct devtree_entry devtree_entry_t;
 
-int devtree_init(boot_desc_t* boot_desc);
-devtree_entry_t* devtree_find_device(const char* name);
+int devtree_init(void* devtree, size_t size);
 const char* devtree_name_of_entry(devtree_entry_t* en);
-devtree_entry_t* devtree_new_entry(const devtree_entry_t* from);
+devtree_entry_t* devtree_find_device(const char* name);
+void* devtree_start();
+size_t devtree_size();
 
-#endif // _KERNEL_DRIVERS_DEVTREE_H
+#endif // _BOOT_LIBBOOT_DEVTREE_DEVTREE_H

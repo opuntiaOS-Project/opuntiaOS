@@ -1,7 +1,7 @@
 #ifndef _BOOT_X86_STAGE2_MEM_PTE_H
 #define _BOOT_X86_STAGE2_MEM_PTE_H
 
-#include "../types.h"
+#include <libboot/types.h>
 
 #define page_desc_t uint32_t
 #define pte_t uint32_t

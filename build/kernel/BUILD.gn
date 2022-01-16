@@ -106,38 +106,8 @@ action("kernel_config") {
   ]
 }
 
-if (target_cpu == "aarch32") {
-  # Use a strange __EMPTY_PATH_, empty string can't be passed as an arg.
-  path_to_bins = "__EMPTY_PATH_"
-  if (host == "llvm") {
-    path_to_bins = llvm_bin_path
-  }
-
-  devtree_compile_script_args = [
-    rebase_path("//firmware/$target_cpu/$target_board.odt", root_build_dir),
-    rebase_path("$root_out_dir/firmware/$target_board.obt", root_build_dir),
-    "$target_cpu",
-    "$target_board",
-    "$host",
-    "$path_to_bins",
-  ]
-
-  action("devtree_compile") {
-    script = "//build/kernel/devtree_compile.py"
-    inputs = [ "//firmware/$target_cpu/$target_board.odt" ]
-    outputs = [
-      "$root_out_dir/firmware/$target_board.obt",
-      "$root_out_dir/firmware/$target_board.obto",
-    ]
-    args = devtree_compile_script_args
-  }
-}
-
 executable("kernel_build") {
   deps = [ ":kernel_config" ]
-  if (target_cpu == "aarch32") {
-    deps += [ ":devtree_compile" ]
-  }
 
   output_name = "$kernel_out_path/kernel.bin"
   sources = kernel_src
@@ -146,17 +116,12 @@ executable("kernel_build") {
 
   configs = [ ":kernel_flags" ]
 
-  ldflags = []
-  if (target_cpu == "aarch32") {
-    ldflags += [ rebase_path("$root_out_dir/firmware/$target_board.obto",
-                             root_build_dir) ]
-  }
-  ldflags += [ "-T$linker_script" ]
+  ldflags = [ "-T$linker_script" ]
 }
 
 group("kernel") {
-  deps = [ ":kernel_build" ]
-  if (target_cpu == "x86") {
-    deps += [ "//build/boot:boot" ]
-  }
+  deps = [
+    ":kernel_build",
+    "//build/boot:boot",
+  ]
 }

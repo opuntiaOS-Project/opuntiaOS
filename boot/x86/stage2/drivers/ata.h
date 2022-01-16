@@ -1,9 +1,9 @@
 #ifndef _BOOT_X86_STAGE2_DRIVERS_ATA_H
 #define _BOOT_X86_STAGE2_DRIVERS_ATA_H
 
-#include "../types.h"
-#include "drive_desc.h"
 #include "port.h"
+#include <libboot/abi/drivers.h>
+#include <libboot/types.h>
 
 typedef struct { // LBA28 | LBA48
     uint32_t data_port; // 16bit | 16 bits

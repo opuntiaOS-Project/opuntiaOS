@@ -6,14 +6,9 @@
  * found in the LICENSE file.
  */
 
-#include <mem/pmm.h>
+#include "../memmap.h"
 
-mem_desc_t arm_mem_desc = {
-    .memory_map_size = 2,
-    .kernel_size = 500, // TODO: do it automatically
-};
-
-static memory_map_t arm_memmap_local[] = {
+memory_map_t arm_memmap[2] = {
     {
         .startLo = 0x0,
         .startHi = 0x0,
@@ -31,5 +26,3 @@ static memory_map_t arm_memmap_local[] = {
         .acpi_3_0 = 0x0,
     },
 };
-
-struct memory_map* arm_memmap = (struct memory_map*)&arm_memmap_local;

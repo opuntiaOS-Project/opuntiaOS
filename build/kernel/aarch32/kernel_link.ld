@@ -1,20 +1,7 @@
- SECTIONS
+SECTIONS
 {
-	boot_start = 0x80010000;
-	. = 0x80010000;
-	.init :
-	{
-		*(.opuntiaos_load_section)
-		*(.init_code)
-		*(.init_data)
-	}
-
-	/DISCARD/ :
-	{
-		*(.ARM.exidx.init_code)
-	}
-
 	phys_passed = 0x80100000;
+	phys_start = 0xc0000000;
 	. = 0xc0000000;
 	__start = .;
 
@@ -27,13 +14,6 @@
 	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xc0000000 + phys_passed)
 	{
 		*(.rodata)
-	}
-
-	.rodata.odt ALIGN(4K) : AT (ADDR(.rodata.odt) - 0xc0000000 + phys_passed)
-	{
-		_odt = .;
-		_odt_phys = . - 0xc0000000 + phys_passed;
-		*(.odt)
 	}
 
 	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - 0xc0000000 + phys_passed)
@@ -91,4 +71,4 @@
 
 }
 
-ENTRY(boot_start)
+ENTRY(phys_start)

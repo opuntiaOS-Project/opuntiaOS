@@ -4,7 +4,6 @@
  */
 
 #include "ata.h"
-#include "display.h"
 
 ata_t active_ata_drive;
 
@@ -82,10 +81,6 @@ int indentify_ata_device(drive_desc_t* drive_desc)
     }
 
     drive_desc->read = ata_read;
-    printh((uint32_t)ata_read);
-    printh((uint32_t)&ata_read);
-    printh((uint32_t)drive_desc->read);
-
     return 0;
 }
 
