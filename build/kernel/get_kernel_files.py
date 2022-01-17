@@ -41,18 +41,9 @@ for path, subdirs, files in os.walk("../kernel/kernel"):
         print(file)
 
 
-def special_paths(paltform):
-    if paltform == 'x86':
-        print("//boot/x86/stage3_entry.s")
-    if paltform == 'aarch32':
-        pass
-        # print("//boot/aarch32/entry.s")
-        # print("//boot/aarch32/start_kernel.s")
-
-        # print("//boot/aarch32/main.c")
-        # print("//boot/aarch32/devtree/devtree.c")
-        # print("//boot/aarch32/string/string.c")
-        # print("//boot/aarch32/vmm/vmm.c")
+def special_paths(platform):
+    if platform == 'x86':
+        print("//boot/x86/stage2/stage3_entry.s")
 
 
 special_paths(sys.argv[2])

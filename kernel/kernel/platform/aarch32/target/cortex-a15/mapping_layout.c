@@ -19,5 +19,5 @@ mapping_entry_t kernel_mapping_table[] = {
 };
 
 mapping_entry_t extern_mapping_table[] = {
-    { .paddr = UART_BASE, .vaddr = UART_BASE, .flags = PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE, .pages = 1, .last = 0 },
+    { .paddr = UART_BASE, .vaddr = UART_BASE, .flags = PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE, .pages = 1, .last = 1 },
 };
