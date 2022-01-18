@@ -194,6 +194,7 @@ int dump_prepare_kernel_data()
 int dump_kernel(const char* err)
 {
     if (unlikely(!kernel_file_mapping_zone.ptr)) {
+        dump_writer(err);
         return -1;
     }
     return dump_kernel_impl(&kernel_dump_data, err);
@@ -202,6 +203,7 @@ int dump_kernel(const char* err)
 int dump_kernel_from_tf(const char* err, trapframe_t* tf)
 {
     if (unlikely(!kernel_file_mapping_zone.ptr)) {
+        dump_writer(err);
         return -1;
     }
     return dump_kernel_impl_from_tf(&kernel_dump_data, err, tf);
