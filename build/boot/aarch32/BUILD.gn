@@ -97,7 +97,7 @@ executable("bootarm") {
     "//boot/libboot/elf/elf_lite.c",
     "//boot/libboot/fs/ext2_lite.c",
     "//boot/libboot/log/log.c",
-    "//boot/libboot/string/string.c",
+    "//boot/libboot/mem/mem.c",
   ]
 
   include_dirs = [ "//boot" ]

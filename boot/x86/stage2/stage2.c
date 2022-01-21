@@ -11,7 +11,7 @@
 #include <libboot/elf/elf_lite.h>
 #include <libboot/fs/ext2_lite.h>
 #include <libboot/log/log.h>
-#include <libboot/string/string.h>
+#include <libboot/mem/mem.h>
 #include <libboot/types.h>
 
 // #define DEBUG_BOOT
@@ -35,27 +35,6 @@ int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     return -1;
 }
 
-static size_t size_to_page_boundary(size_t size)
-{
-    if (size % VMM_PAGE_SIZE) {
-        size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
-    }
-    return size;
-}
-
-void* copy_after_kernel(size_t kbase, void* from, size_t size, size_t* kernel_size)
-{
-    void* pp = (void*)(kbase + *kernel_size);
-    memcpy(pp, from, size);
-    *kernel_size += size_to_page_boundary(size);
-    return pp;
-}
-
-void* paddr_to_vaddr(void* ptr, size_t pbase, size_t vbase)
-{
-    return (void*)((size_t)ptr - pbase + vbase);
-}
-
 void* bootdesc_ptr;
 void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, mem_desc_t* mem_desc)
 {
@@ -63,16 +42,17 @@ void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, mem_desc_t* mem_d
     size_t kernel_paddr = 0;
     size_t kernel_size = 0;
     int res = elf_load_kernel(drive_desc, fs_desc, KERNEL_PATH, &kernel_vaddr, &kernel_paddr, &kernel_size);
+    kernel_size = align_size(kernel_size, VMM_PAGE_SIZE);
 
     boot_desc_t boot_desc;
     boot_desc.vaddr = kernel_vaddr;
     boot_desc.paddr = kernel_paddr;
-    boot_desc.kernel_size = (kernel_size + size_to_page_boundary(sizeof(boot_desc_t))) / 1024;
+    boot_desc.kernel_size = (kernel_size + align_size(sizeof(boot_desc_t), VMM_PAGE_SIZE)) / 1024;
     boot_desc.devtree = NULL;
     boot_desc.memory_map = (void*)0xA00;
     boot_desc.memory_map_size = mem_desc->memory_map_size;
 
-    bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_desc, sizeof(boot_desc), &kernel_size), kernel_paddr, kernel_vaddr);
+    bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_desc, sizeof(boot_desc), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 }
 
 void stage2(mem_desc_t* mem_desc)

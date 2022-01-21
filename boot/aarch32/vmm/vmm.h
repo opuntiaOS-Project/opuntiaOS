@@ -56,7 +56,7 @@ typedef struct pdirectory {
     table_desc_t entities[VMM_PDE_COUNT];
 } pdirectory_t;
 
-void vm_setup();
+void vm_setup(size_t kernel_vaddr, size_t kernel_paddr, size_t kernel_size);
 void vm_setup_secondary_cpu();
 
 #endif // _BOOT_VMM_VMM_H

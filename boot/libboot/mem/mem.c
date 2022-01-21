@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-#include <libboot/string/string.h>
+#include <libboot/mem/mem.h>
 
 int strcmp(const char* a, const char* b)
 {

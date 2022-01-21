@@ -7,7 +7,7 @@
  */
 
 #include "devtree.h"
-#include <libboot/string/string.h>
+#include <libboot/mem/mem.h>
 
 static size_t _devtree_size = 0;
 static devtree_header_t* _devtree_header = NULL;

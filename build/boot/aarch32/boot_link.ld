@@ -1,7 +1,7 @@
  SECTIONS
 {
-	boot_start = 0x80010000;
-	. = boot_start;
+	bootloader_start = 0x80010000;
+	. = bootloader_start;
 
 	.text ALIGN(4K) :
 	{
@@ -50,4 +50,4 @@
 
 }
 
-ENTRY(boot_start)
+ENTRY(bootloader_start)

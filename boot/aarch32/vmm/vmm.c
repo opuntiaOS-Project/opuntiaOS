@@ -7,16 +7,21 @@
  */
 
 #include "vmm.h"
+#include <libboot/log/log.h>
+#include <libboot/mem/mem.h>
 #include <libboot/types.h>
 
-static pdirectory_t* dir = (pdirectory_t*)0x80000000;
-static ptable_t* next_table = (ptable_t*)0x80004000;
+// #define DEBUG_VMM
 
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 20) & 0xfff)
 #define VMM_OFFSET_IN_TABLE(a) (((a) >> 12) & 0xff)
 #define VMM_OFFSET_IN_PAGE(a) ((a)&0xfff)
+#define ALIGN_TO_TABLE(a) ((a)&0xfff00000)
 
-static ptable_t* map_page();
+static pdirectory_t* dir = (pdirectory_t*)0x80000000;
+static ptable_t* next_table = (ptable_t*)0x80004000;
+
+static ptable_t* map_table();
 static void mmu_enable();
 
 static inline void write_ttbcr(uint32_t val)
@@ -58,10 +63,10 @@ static void mmu_enable()
     asm volatile("isb");
 }
 
-static ptable_t* map_page(uint32_t tphyz, uint32_t tvirt)
+static ptable_t* map_table(size_t tphyz, size_t tvirt)
 {
     ptable_t* table = next_table;
-    for (uint32_t phyz = tphyz, virt = tvirt, i = 0; i < VMM_PTE_COUNT; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
+    for (size_t phyz = tphyz, virt = tvirt, i = 0; i < VMM_PTE_COUNT; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
         page_desc_t new_page;
         new_page.one = 1;
         new_page.baddr = (phyz / VMM_PAGE_SIZE);
@@ -87,21 +92,40 @@ static ptable_t* map_page(uint32_t tphyz, uint32_t tvirt)
     return table;
 }
 
-void vm_setup()
+static void vm_map_devices()
+{
+    map_table(0x1c000000, 0x1c000000); // mapping uart
+}
+
+void vm_setup(size_t kernel_vaddr, size_t kernel_paddr, size_t kernel_size)
 {
     for (int i = 0; i < VMM_PDE_COUNT; i++) {
         dir->entities[i].valid = 0;
     }
 
-    map_page(0x1c000000, 0x1c000000); // mapping uart
-    map_page(0x80100000, 0xc0000000); // kernel
-    map_page(0x80200000, 0xc0100000); // kernel
-    map_page(0x80300000, 0xc0200000); // kernel
-    map_page(0x80400000, 0xc0300000); // kernel
-    map_page(0x80000000, 0x80000000); // kernel to self
-    map_page(0x80100000, 0x80100000); // kernel to self
-    map_page(0x80200000, 0x80200000); // kernel to self
-    map_page(0x80300000, 0x80300000); // kernel to self
+    vm_map_devices();
+
+    extern int bootloader_start[];
+    size_t bootloader_start_aligned = ALIGN_TO_TABLE((size_t)bootloader_start);
+    map_table(bootloader_start_aligned, bootloader_start_aligned);
+#ifdef DEBUG_VMM
+    log("map %x to %x", bootloader_start_aligned, bootloader_start_aligned);
+#endif
+
+    size_t table_paddr = ALIGN_TO_TABLE(kernel_paddr);
+    size_t table_vaddr = ALIGN_TO_TABLE(kernel_vaddr);
+    const size_t bytes_per_table = VMM_PTE_COUNT * VMM_PAGE_SIZE;
+    const size_t tables_per_kernel = align_size((kernel_size + bytes_per_table - 1) / bytes_per_table, 4);
+    for (int i = 0; i < tables_per_kernel; i++) {
+        map_table(table_paddr, table_paddr);
+        map_table(table_paddr, table_vaddr);
+#ifdef DEBUG_VMM
+        log("map %x to %x", table_paddr, table_paddr);
+        log("map %x to %x", table_paddr, table_vaddr);
+#endif
+        table_paddr += bytes_per_table;
+        table_vaddr += bytes_per_table;
+    }
 
     write_ttbr0((uint32_t)(0x80000000));
     write_dacr(0x55555555);

@@ -7,7 +7,7 @@
  */
 
 #include <libboot/log/log.h>
-#include <libboot/string/string.h>
+#include <libboot/mem/mem.h>
 
 typedef int (*_putch_callback)(char ch, char* buf_base, size_t* written, void* callback_params);
 

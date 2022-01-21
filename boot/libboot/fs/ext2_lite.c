@@ -7,7 +7,7 @@
  */
 
 #include <libboot/fs/ext2_lite.h>
-#include <libboot/string/string.h>
+#include <libboot/mem/mem.h>
 
 superblock_t superblock;
 drive_desc_t* active_drive_desc;

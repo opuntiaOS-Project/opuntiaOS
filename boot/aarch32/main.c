@@ -14,6 +14,7 @@
 #include <libboot/elf/elf_lite.h>
 #include <libboot/fs/ext2_lite.h>
 #include <libboot/log/log.h>
+#include <libboot/mem/mem.h>
 
 // #define DEBUG_BOOT
 #define KERNEL_PATH "/boot/kernel.bin"
@@ -38,45 +39,24 @@ int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     return -1;
 }
 
-static size_t size_to_page_boundary(size_t size)
-{
-    if (size % VMM_PAGE_SIZE) {
-        size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
-    }
-    return size;
-}
-
-void* copy_after_kernel(size_t kbase, void* from, size_t size, size_t* kernel_size)
-{
-    void* pp = (void*)(kbase + *kernel_size);
-    memcpy(pp, from, size);
-    *kernel_size += size_to_page_boundary(size);
-    return pp;
-}
-
-void* paddr_to_vaddr(void* ptr, size_t pbase, size_t vbase)
-{
-    return (void*)((size_t)ptr - pbase + vbase);
-}
-
 void* bootdesc_ptr;
+size_t kernel_vaddr = 0;
+size_t kernel_paddr = 0;
+size_t kernel_size = 0;
 void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 {
-    size_t kernel_vaddr = 0;
-    size_t kernel_paddr = 0;
-    size_t kernel_size = 0;
     int res = elf_load_kernel(drive_desc, fs_desc, KERNEL_PATH, &kernel_vaddr, &kernel_paddr, &kernel_size);
-    kernel_size = size_to_page_boundary(kernel_size);
+    kernel_size = align_size(kernel_size, VMM_PAGE_SIZE);
 #ifdef DEBUG_BOOT
     log("kernel %x %x %x", kernel_vaddr, kernel_paddr, kernel_size);
 #endif
 
-    void* odt_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, devtree_start(), devtree_size(), &kernel_size), kernel_paddr, kernel_vaddr);
+    void* odt_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, devtree_start(), devtree_size(), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 #ifdef DEBUG_BOOT
     log("copying ODT %x -> %x of %d", devtree_start(), odt_ptr, devtree_size());
 #endif
 
-    void* rammap_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, arm_memmap, sizeof(arm_memmap), &kernel_size), kernel_paddr, kernel_vaddr);
+    void* rammap_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, arm_memmap, sizeof(arm_memmap), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 #ifdef DEBUG_BOOT
     log("copying RAMMAP %x -> %x of %d", arm_memmap, rammap_ptr, sizeof(arm_memmap));
 #endif
@@ -84,12 +64,12 @@ void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     boot_desc_t boot_desc;
     boot_desc.vaddr = kernel_vaddr;
     boot_desc.paddr = kernel_paddr;
-    boot_desc.kernel_size = (kernel_size + size_to_page_boundary(sizeof(boot_desc_t))) / 1024;
+    boot_desc.kernel_size = (kernel_size + align_size(sizeof(boot_desc_t), VMM_PAGE_SIZE)) / 1024;
     boot_desc.devtree = odt_ptr;
     boot_desc.memory_map = (void*)rammap_ptr;
     boot_desc.memory_map_size = sizeof(arm_memmap) / sizeof(arm_memmap[0]);
 
-    bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_desc, sizeof(boot_desc), &kernel_size), kernel_paddr, kernel_vaddr);
+    bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_desc, sizeof(boot_desc), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 #ifdef DEBUG_BOOT
     log("copying BOOTDESC %x -> %x of %d", &boot_desc, bootdesc_ptr, sizeof(boot_desc));
 #endif
@@ -106,7 +86,7 @@ void load_boot_cpu()
     prepare_boot_disk(&drive_desc);
     prepare_fs(&drive_desc, &fs_desc);
     load_kernel(&drive_desc, &fs_desc);
-    vm_setup();
+    vm_setup(kernel_vaddr, kernel_paddr, kernel_size);
 
     __atomic_store_n(&sync, 1, __ATOMIC_RELEASE);
     jump_to_kernel(bootdesc_ptr);

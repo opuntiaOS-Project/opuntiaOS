@@ -9,7 +9,7 @@
 #ifndef _BOOT_LIBBOOT_DEVTREE_DEVTREE_H
 #define _BOOT_LIBBOOT_DEVTREE_DEVTREE_H
 
-#include <libboot/string/string.h>
+#include <libboot/mem/mem.h>
 #include <libboot/types.h>
 
 #define DEVTREE_HEADER_SIGNATURE ("odtr3")
