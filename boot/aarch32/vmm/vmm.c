@@ -8,6 +8,7 @@
 
 #include "vmm.h"
 #include <libboot/log/log.h>
+#include <libboot/mem/malloc.h>
 #include <libboot/mem/mem.h>
 #include <libboot/types.h>
 
@@ -18,8 +19,7 @@
 #define VMM_OFFSET_IN_PAGE(a) ((a)&0xfff)
 #define ALIGN_TO_TABLE(a) ((a)&0xfff00000)
 
-static pdirectory_t* dir = (pdirectory_t*)0x80000000;
-static ptable_t* next_table = (ptable_t*)0x80004000;
+static pdirectory_t* pdir = NULL;
 
 static ptable_t* map_table();
 static void mmu_enable();
@@ -63,9 +63,19 @@ static void mmu_enable()
     asm volatile("isb");
 }
 
+static pdirectory_t* vm_alloc_pdir()
+{
+    return (pdirectory_t*)malloc_aligned(sizeof(pdirectory_t), sizeof(pdirectory_t));
+}
+
+static ptable_t* vm_alloc_ptable()
+{
+    return (ptable_t*)malloc_aligned(sizeof(ptable_t), sizeof(ptable_t));
+}
+
 static ptable_t* map_table(size_t tphyz, size_t tvirt)
 {
-    ptable_t* table = next_table;
+    ptable_t* table = vm_alloc_ptable();
     for (size_t phyz = tphyz, virt = tvirt, i = 0; i < VMM_PTE_COUNT; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
         page_desc_t new_page;
         new_page.one = 1;
@@ -80,16 +90,24 @@ static ptable_t* map_table(size_t tphyz, size_t tvirt)
     }
 
     uint32_t table_int = (uint32_t)table;
-    dir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].valid = 1;
-    dir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].zero1 = 0;
-    dir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].zero2 = 0;
-    dir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].ns = 0;
-    dir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].zero3 = 0;
-    dir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].domain = 0b0011;
-    dir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].baddr = ((table_int / 1024));
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].valid = 1;
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].zero1 = 0;
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].zero2 = 0;
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].ns = 0;
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].zero3 = 0;
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].domain = 0b0011;
+    pdir->entities[VMM_OFFSET_IN_DIRECTORY(tvirt)].baddr = ((table_int / 1024));
 
-    next_table++;
     return table;
+}
+
+static void vm_init()
+{
+    pdir = vm_alloc_pdir();
+
+    for (int i = 0; i < VMM_PDE_COUNT; i++) {
+        pdir->entities[i].valid = 0;
+    }
 }
 
 static void vm_map_devices()
@@ -99,10 +117,7 @@ static void vm_map_devices()
 
 void vm_setup(size_t kernel_vaddr, size_t kernel_paddr, size_t kernel_size)
 {
-    for (int i = 0; i < VMM_PDE_COUNT; i++) {
-        dir->entities[i].valid = 0;
-    }
-
+    vm_init();
     vm_map_devices();
 
     extern int bootloader_start[];
@@ -127,14 +142,14 @@ void vm_setup(size_t kernel_vaddr, size_t kernel_paddr, size_t kernel_size)
         table_vaddr += bytes_per_table;
     }
 
-    write_ttbr0((uint32_t)(0x80000000));
+    write_ttbr0((size_t)(pdir));
     write_dacr(0x55555555);
     mmu_enable();
 }
 
 void vm_setup_secondary_cpu()
 {
-    write_ttbr0((uint32_t)(0x80000000));
+    write_ttbr0((uint32_t)(pdir));
     write_dacr(0x55555555);
     mmu_enable();
 }

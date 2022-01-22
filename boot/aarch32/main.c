@@ -14,6 +14,7 @@
 #include <libboot/elf/elf_lite.h>
 #include <libboot/fs/ext2_lite.h>
 #include <libboot/log/log.h>
+#include <libboot/mem/malloc.h>
 #include <libboot/mem/mem.h>
 
 // #define DEBUG_BOOT
@@ -23,15 +24,33 @@ extern void jump_to_kernel(void*);
 extern uint32_t _odt_phys[];
 extern uint32_t _odt_phys_end[];
 
+static void* bootdesc_ptr;
+static size_t kernel_vaddr = 0;
+static size_t kernel_paddr = 0;
+static size_t kernel_size = 0;
 static int sync = 0;
 
-int prepare_boot_disk(drive_desc_t* drive_desc)
+static int alloc_init()
+{
+    devtree_entry_t* dev = devtree_find_device("ram");
+    if (!dev) {
+        log("Can't find RAM in devtree");
+        while (1) { };
+    }
+
+    extern int bootloader_start[];
+    size_t alloc_space = (size_t)bootloader_start - dev->paddr;
+    malloc_init((void*)dev->paddr, alloc_space);
+    return 0;
+}
+
+static int prepare_boot_disk(drive_desc_t* drive_desc)
 {
     pl181_init(drive_desc);
     return -1;
 }
 
-int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
+static int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 {
     if (ext2_lite_init(drive_desc, fs_desc) == 0) {
         return 0;
@@ -39,11 +58,7 @@ int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     return -1;
 }
 
-void* bootdesc_ptr;
-size_t kernel_vaddr = 0;
-size_t kernel_paddr = 0;
-size_t kernel_size = 0;
-void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
+static void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 {
     int res = elf_load_kernel(drive_desc, fs_desc, KERNEL_PATH, &kernel_vaddr, &kernel_paddr, &kernel_size);
     kernel_size = align_size(kernel_size, VMM_PAGE_SIZE);
@@ -80,6 +95,7 @@ void load_boot_cpu()
     devtree_init((void*)_odt_phys, (uint32_t)_odt_phys_end - (uint32_t)_odt_phys);
     uart_init();
     log_init(uart_write);
+    alloc_init();
 
     drive_desc_t drive_desc;
     fs_desc_t fs_desc;

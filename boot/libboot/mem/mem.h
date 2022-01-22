@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _BOOT_LIBBOOT_STRING_STRING_H
-#define _BOOT_LIBBOOT_STRING_STRING_H
+#ifndef _BOOT_LIBBOOT_MEM_MEM_H
+#define _BOOT_LIBBOOT_MEM_MEM_H
 
 #include <libboot/types.h>
 
@@ -41,4 +41,4 @@ static inline void* paddr_to_vaddr(void* ptr, size_t pbase, size_t vbase)
     return (void*)((size_t)ptr - pbase + vbase);
 }
 
-#endif // _BOOT_LIBBOOT_STRING_STRING_H
+#endif // _BOOT_LIBBOOT_MEM_MEM_H
