@@ -1,8 +1,7 @@
 .extern _start
 .extern _start_secondary_cpu
-@ .extern vector_table
 
-.section ".opuntiaos_load_section"
+.section ".opuntiaos_boot_text"
 opuntiaos_loader:
     ldr     sp, =STACK_PHYZ_TOP
 

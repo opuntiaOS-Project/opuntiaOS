@@ -1,36 +1,49 @@
+_pa_base = 1M;
+_va_base = 0xc0000000;
+
+ENTRY(_va_base)
+
 SECTIONS
 {
-    . = 0xc0000000;
-	__start = .;
+    . = _va_base;
 
-	.text ALIGN(4K) : AT (ADDR(.text) - 0xc0000000 + 1M)
+	.text ALIGN(4K) : AT (ADDR(.text) - _va_base + _pa_base)
 	{
 		*(.opuntiaos_kernel_boot)
 		*(.text)
+		*(.text.*)
 	}
 
-	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xc0000000 + 1M)
+	.rodata ALIGN(4K) : AT (ADDR(.rodata) - _va_base + _pa_base)
 	{
 		*(.rodata)
+		*(.rodata.*)
 	}
 
-	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - 0xc0000000 + 1M)
+	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - _va_base + _pa_base)
 	{
 		_dirvers_init_start = .;
 		*(SORT_BY_NAME(.driver_init_sections.*))
 		_dirvers_init_end = .;
 	}
 
-	.data ALIGN(4K) : AT (ADDR(.data) - 0xc0000000 + 1M)
+	.data ALIGN(4K) : AT (ADDR(.data) - _va_base + _pa_base)
 	{
 		*(.data)
+		*(.data.*)
 	}
 
-	.bss ALIGN(4K) : AT (ADDR(.bss) - 0xc0000000 + 1M)
+	.bss ALIGN(4K) : AT (ADDR(.bss) - _va_base + _pa_base)
 	{
-		*(COMMON)
 		*(.bss)
+		*(.bss.*)
+		*(COMMON)
 	}
 
-	__end = .;
+	.stack ALIGN(4K) : AT (ADDR(.stack) - _va_base + _pa_base)
+	{
+		STACK_BASE = .;
+		. += 0x1000;
+		STACK_TOP =  .;
+	}
 }

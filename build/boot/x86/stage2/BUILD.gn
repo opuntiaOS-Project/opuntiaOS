@@ -2,31 +2,29 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-stage2_start = "0x1000"
+linker_script =
+    rebase_path("//build/boot/$target_cpu/boot_link.ld", root_build_dir)
 
 executable("stage2") {
   output_name = "stage2.bin"
   sources = [
-    # Keep order
-    "//boot/x86/stage2/stage2_entry.s",
+    "//boot/libboot/devtree/devtree.c",
+    "//boot/libboot/elf/elf_lite.c",
+    "//boot/libboot/fs/ext2_lite.c",
+    "//boot/libboot/log/log.c",
+    "//boot/libboot/mem/mem.c",
     "//boot/x86/stage2/drivers/ata.c",
     "//boot/x86/stage2/drivers/port.c",
     "//boot/x86/stage2/drivers/uart.c",
     "//boot/x86/stage2/mem/vm.c",
     "//boot/x86/stage2/stage2.c",
-    # libboot
-    "//boot/libboot/devtree/devtree.c",
-    "//boot/libboot/elf/elf_lite.c",
-    "//boot/libboot/fs/ext2_lite.c",
-    "//boot/libboot/mem/mem.c",
-    "//boot/libboot/log/log.c",
+    "//boot/x86/stage2/stage2_entry.s",
   ]
 
   include_dirs = [ "//boot" ]
 
   ldflags = [
-    "-Ttext",
-    "$stage2_start",
+    "-T$linker_script",
     "--oformat",
     "binary",
   ]

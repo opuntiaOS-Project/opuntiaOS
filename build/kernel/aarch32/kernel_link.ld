@@ -1,52 +1,54 @@
+_pa_base = 0x80100000;
+_va_base = 0xc0000000;
+
+ENTRY(_va_base)
+
 SECTIONS
 {
-	phys_passed = 0x80100000;
-	phys_start = 0xc0000000;
-	. = 0xc0000000;
-	__start = .;
+	. = _va_base;
 
-	.text ALIGN(4K) : AT (ADDR(.text) - 0xc0000000 + phys_passed)
+	.text ALIGN(4K) : AT (ADDR(.text) - _va_base + _pa_base)
 	{
 		*(.interrupt_vector_table)
 		*(.text)
+		*(.text.*)
 	}
 
-	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xc0000000 + phys_passed)
+	.rodata ALIGN(4K) : AT (ADDR(.rodata) - _va_base + _pa_base)
 	{
 		*(.rodata)
+		*(.rodata.*)
 	}
 
-	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - 0xc0000000 + phys_passed)
+	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - _va_base + _pa_base)
 	{
 		_dirvers_init_start = .;
 		*(SORT_BY_NAME(.driver_init_sections.*))
 		_dirvers_init_end = .;
 	}
 
-	.data ALIGN(4K) : AT (ADDR(.data) - 0xc0000000 + phys_passed)
+	.data ALIGN(4K) : AT (ADDR(.data) - _va_base + _pa_base)
 	{
 		*(.data)
+		*(.data.*)
 	}
 
-	.bss ALIGN(4K) : AT (ADDR(.bss) - 0xc0000000 + phys_passed)
+	.bss ALIGN(4K) : AT (ADDR(.bss) - _va_base + _pa_base)
 	{
-		*(COMMON)
 		*(.bss)
+		*(.bss.*)
+		*(COMMON)
 	}
 
-	.stack ALIGN(4K) : AT (ADDR(.stack) - 0xc0000000 + phys_passed)
+	.stack ALIGN(4K) : AT (ADDR(.stack) - _va_base + _pa_base)
 	{
 		STACK_SECONDARY_BASE = .;
-		STACK_SECONDARY_PHYZ_BASE = . - 0xc0000000 + phys_passed;
 		. += 0x1000;
 		STACK_SECONDARY_TOP =  .;
-		STACK_SECONDARY_PHYZ_TOP = . - 0xc0000000 + phys_passed;
 
 		STACK_BASE = .;
-		STACK_PHYZ_BASE = . - 0xc0000000 + phys_passed;
 		. += 0x1000;
 		STACK_TOP =  .;
-		STACK_PHYZ_TOP = . - 0xc0000000 + phys_passed;
 
 		STACK_SVC_BASE = .;
 		. += 0x1000;
@@ -65,10 +67,5 @@ SECTIONS
 		STACK_UNDEFINED_TOP =  .;
 	}
 
-	__end = .;
-
 	.ARM.exidx : { *(.ARM.exidx) }
-
 }
-
-ENTRY(phys_start)

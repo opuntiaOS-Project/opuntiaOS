@@ -88,9 +88,6 @@ void stage2(mem_desc_t* mem_desc)
     asm volatile("or $0x80000000, %eax");
     asm volatile("mov %eax, %cr0");
 
-    asm volatile("add $0xffc00000, %ebp");
-    asm volatile("add $0xffc00000, %esp");
-
     asm volatile("push %0"
                  :
                  : "r"(bootdesc_ptr));
