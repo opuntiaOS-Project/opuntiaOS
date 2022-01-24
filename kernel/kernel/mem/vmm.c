@@ -123,7 +123,7 @@ inline static uintptr_t _vmm_alloc_pdir_paddr()
 
 inline static uintptr_t _vmm_alloc_ptable_paddr()
 {
-    return (uintptr_t)pmm_alloc(PTABLE_SIZE);
+    return (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE, PTABLE_SIZE);
 }
 
 inline static uintptr_t _vmm_alloc_ptables_to_cover_page()
@@ -259,14 +259,13 @@ static void _vmm_pspace_init()
 {
     /* The code assumes that the length of tables which cover pspace
        is 4KB and that the tables are fit in a single page and are continuous. */
-    uintptr_t kernel_ptabels_vaddr = pspace_zone.start + VMM_KERNEL_TABLES_START * PTABLE_SIZE; // map what
-    uintptr_t kernel_ptabels_paddr = kernel_ptables_start_paddr; // map to
-    size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
+    const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
+    uintptr_t kernel_ptabels_vaddr = pspace_zone.start + VMM_KERNEL_TABLES_START * PTABLE_SIZE;
+    uintptr_t kernel_ptabels_paddr = kernel_ptables_start_paddr;
     for (int i = VMM_KERNEL_TABLES_START; i < VMM_TOTAL_TABLES_PER_DIRECTORY; i += ptables_per_page) {
         table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, kernel_ptabels_vaddr);
         if (!table_desc_is_present(*ptable_desc)) {
-            // must present
-            kpanic("PSPACE_6335 : BUG\n");
+            kpanic("_vmm_pspace_init: pspace should present");
         }
         ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - VMM_KERNEL_TABLES_START) * PTABLE_SIZE);
         page_desc_t* page = _vmm_ptable_lookup(ptable_vaddr, kernel_ptabels_vaddr);
@@ -284,8 +283,8 @@ static void _vmm_pspace_init()
  */
 static void _vmm_pspace_gen(pdirectory_t* pdir)
 {
+    const uintptr_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
     ptable_t* cur_ptable = _vmm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(pspace_zone.start));
-    uintptr_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
     uintptr_t ptable_paddr = _vmm_alloc_ptables_to_cover_page();
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     ptable_t* new_ptable = (ptable_t*)tmp_zone.start;
@@ -324,7 +323,7 @@ static void _vmm_free_pspace(pdirectory_t* pdir)
     if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
         return;
     }
-    pmm_free_block((void*)table_desc_get_frame(*ptable_desc));
+    _vmm_free_ptables_to_cover_page(table_desc_get_frame(*ptable_desc));
     table_desc_del_frame(ptable_desc);
 }
 
@@ -387,33 +386,38 @@ static void _vmm_map_init_kernel_pages(uintptr_t paddr, uintptr_t vaddr)
  */
 static bool _vmm_create_kernel_ptables()
 {
-    size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
+    const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
+    const size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
     uintptr_t kernel_ptabels_vaddr = VMM_KERNEL_TABLES_START * table_coverage;
 
-    for (int i = VMM_KERNEL_TABLES_START; i < VMM_TOTAL_TABLES_PER_DIRECTORY; i++, kernel_ptabels_vaddr += table_coverage) {
-        // updating table descriptor of kernel's pdir
-        table_desc_t* ptable_desc = _vmm_pdirectory_lookup(_vmm_kernel_pdir, kernel_ptabels_vaddr);
-        uintptr_t paddr = _vmm_alloc_ptable_paddr();
-        if (!paddr) {
-            kpanic("PADDR_5546 : BUG\n");
-        }
+    // Tables allocated here should be continuous to correctly generate
+    // pspace, see _vmm_pspace_init().
+    const size_t need_pages_for_kernel_ptables = VMM_TOTAL_TABLES_PER_DIRECTORY / ptables_per_page;
+    uintptr_t ptables_paddr = (uintptr_t)pmm_alloc_aligned(need_pages_for_kernel_ptables * VMM_PAGE_SIZE, VMM_PAGE_SIZE);
+    if (!ptables_paddr) {
+        kpanic("_vmm_create_kernel_ptables: No free space in pmm to alloc kernel ptables");
+    }
+    kernel_ptables_start_paddr = ptables_paddr;
 
-        if (!kernel_ptables_start_paddr) {
-            kernel_ptables_start_paddr = paddr;
-        }
+    uintptr_t ptable_paddr = ptables_paddr;
+    for (int i = VMM_KERNEL_TABLES_START; i < VMM_TOTAL_TABLES_PER_DIRECTORY; i += ptables_per_page) {
+        table_desc_t* ptable_desc = _vmm_pdirectory_lookup(_vmm_kernel_pdir, kernel_ptabels_vaddr);
         table_desc_init(ptable_desc);
         table_desc_set_attrs(ptable_desc, TABLE_DESC_PRESENT | TABLE_DESC_WRITABLE);
+        table_desc_set_frame(ptable_desc, ptable_paddr);
 
-        /**
-         * VMM_OFFSET_IN_DIRECTORY(pspace_zone.start) shows number of table where pspace starts.
-         * Since pspace is right after kernel, let's protect them and not give user access to the whole
-         * ptable (and since ptable is not user, all pages inside it are not user too).
-         */
+        ptable_paddr += PTABLE_SIZE;
+        kernel_ptabels_vaddr += table_coverage;
+
+        // Kernel tables and pspace are not marked as user, but following
+        // tables are marked as user, to allow user access some pages, like
+        // signal trampolines.
+        // TODO: Implement a seperaet table for user pages inside kernel.
+        // This will allow to mark only sepcial tables as user, while all others
+        // are protected.
         if (i > VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)) {
             table_desc_set_attrs(ptable_desc, TABLE_DESC_USER);
         }
-
-        table_desc_set_frame(ptable_desc, paddr);
     }
 
     int te = 0;
@@ -525,9 +529,9 @@ static int vmm_allocate_ptable_lockless(uintptr_t vaddr)
         return -VMM_ERR_NO_SPACE;
     }
 
-    uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)_vmm_ensure_active_ptable(vaddr));
-    size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
-    size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
+    const uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)_vmm_ensure_active_ptable(vaddr));
+    const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
+    const size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
     uintptr_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
 
     for (uintptr_t i = 0, pvaddr = ptable_serve_vaddr_start, ptable_paddr = ptables_paddr; i < ptables_per_page; i++, pvaddr += table_coverage, ptable_paddr += PTABLE_SIZE) {
