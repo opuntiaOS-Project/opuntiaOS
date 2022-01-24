@@ -140,7 +140,7 @@ int bitmap_find_space_aligned(bitmap_t bitmap, int req, int alignment)
 {
     int taken = 0;
     int start = 0;
-    for (int i = 0; i < bitmap.len; i++) {
+    for (int i = 0; i < bitmap.len / 8; i++) {
         if (bitmap.data[i] == 0xff) {
             taken = 0;
             continue;
@@ -166,7 +166,7 @@ int bitmap_find_space_aligned(bitmap_t bitmap, int req, int alignment)
 
 int bitmap_set(bitmap_t bitmap, int where)
 {
-    if (where >= bitmap.len * BITMAP_BLOCKS_PER_BYTE) {
+    if (where >= bitmap.len) {
         return -EFAULT;
     }
 
@@ -179,7 +179,7 @@ int bitmap_set(bitmap_t bitmap, int where)
 
 int bitmap_unset(bitmap_t bitmap, int where)
 {
-    if (where >= bitmap.len * BITMAP_BLOCKS_PER_BYTE) {
+    if (where >= bitmap.len) {
         return -EFAULT;
     }
 
@@ -192,7 +192,7 @@ int bitmap_unset(bitmap_t bitmap, int where)
 
 int bitmap_set_range(bitmap_t bitmap, int start, int len)
 {
-    if (start + len - 1 >= bitmap.len * BITMAP_BLOCKS_PER_BYTE) {
+    if (start + len - 1 >= bitmap.len) {
         return -EFAULT;
     }
 
@@ -222,7 +222,7 @@ int bitmap_set_range(bitmap_t bitmap, int start, int len)
 
 int bitmap_unset_range(bitmap_t bitmap, int start, int len)
 {
-    if (start + len - 1 >= bitmap.len * BITMAP_BLOCKS_PER_BYTE) {
+    if (start + len - 1 >= bitmap.len) {
         return -EFAULT;
     }
 
