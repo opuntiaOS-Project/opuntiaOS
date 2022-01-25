@@ -12,17 +12,11 @@
 #include <libkern/libkern.h>
 #include <mem/bits/page.h>
 #include <mem/bits/swap.h>
+#include <mem/bits/vm.h>
 #include <mem/pmm.h>
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/pde.h>
 #include <platform/generic/vmm/pte.h>
-
-#define pdir_t pdirectory_t
-#define VMM_TOTAL_PAGES_PER_TABLE VMM_PTE_COUNT
-#define VMM_TOTAL_TABLES_PER_DIRECTORY VMM_PDE_COUNT
-#define PDIR_SIZE sizeof(pdirectory_t)
-#define PTABLE_SIZE sizeof(ptable_t)
-#define IS_INDIVIDUAL_PER_DIR(index) (index < VMM_KERNEL_TABLES_START || (index == VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)))
 
 #define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
 
@@ -38,19 +32,11 @@ struct vm_ops {
 typedef struct vm_ops vm_ops_t;
 
 enum VMM_ERR_CODES {
-    VMM_ERR_PDIR,
+    VMM_ERR_PDIR = 1,
     VMM_ERR_PTABLE,
     VMM_ERR_NO_SPACE,
     VMM_ERR_BAD_ADDR,
 };
-
-typedef struct {
-    page_desc_t entities[VMM_PTE_COUNT];
-} ptable_t;
-
-typedef struct pdirectory {
-    table_desc_t entities[VMM_PDE_COUNT];
-} pdirectory_t;
 
 enum VMM_PF_HANDLER {
     OK = 0,
@@ -66,7 +52,7 @@ struct dynamic_array;
 int vmm_setup();
 int vmm_setup_secondary_cpu();
 
-int vmm_allocate_ptable(uintptr_t vaddr);
+int vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv);
 int vmm_free_ptable(uintptr_t vaddr, struct dynamic_array* zones);
 int vmm_free_pdir(pdirectory_t* pdir, struct dynamic_array* zones);
 
@@ -82,6 +68,12 @@ int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages);
 int vmm_copy_page(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable);
 int vmm_swap_page(ptable_t* ptable, struct memzone* zone, uintptr_t vaddr);
 
+int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings);
+int vmm_map_pages_lockless(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t settings);
+int vmm_unmap_page_lockless(uintptr_t vaddr);
+int vmm_unmap_pages_lockless(uintptr_t vaddr, size_t n_pages);
+int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable);
+
 pdirectory_t* vmm_new_user_pdir();
 pdirectory_t* vmm_new_forked_user_pdir();
 void* vmm_bring_to_kernel(uint8_t* src, size_t length);
@@ -95,5 +87,35 @@ pdirectory_t* vmm_get_kernel_pdir();
 int vmm_switch_pdir(pdirectory_t* pdir);
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr);
+
+inline static uintptr_t _vmm_round_ceil_to_page(uintptr_t value)
+{
+    if ((value & (VMM_PAGE_SIZE - 1)) != 0) {
+        value += VMM_PAGE_SIZE;
+        value &= (0xffffffff - (VMM_PAGE_SIZE - 1));
+    }
+    return value;
+}
+
+inline static uintptr_t _vmm_round_floor_to_page(uintptr_t value)
+{
+    return (value & (0xffffffff - (VMM_PAGE_SIZE - 1)));
+}
+
+inline static table_desc_t* _vmm_pdirectory_lookup(pdirectory_t* pdir, uintptr_t vaddr)
+{
+    if (pdir) {
+        return &pdir->entities[VMM_OFFSET_IN_DIRECTORY(vaddr)];
+    }
+    return 0;
+}
+
+inline static page_desc_t* _vmm_ptable_lookup(ptable_t* ptable, uintptr_t vaddr)
+{
+    if (ptable) {
+        return &ptable->entities[VMM_OFFSET_IN_TABLE(vaddr)];
+    }
+    return 0;
+}
 
 #endif // _KERNEL_MEM_VMM_H
