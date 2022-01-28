@@ -34,7 +34,7 @@ static int map_ptable(table_desc_t* ptable_desc)
         return 0;
     }
 
-    int err = vmm_map_page(_mapzone.start, ptable_paddr, PAGE_READABLE | PAGE_WRITABLE);
+    int err = vmm_map_page(_mapzone.start, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
     if (err) {
         return err;
     }

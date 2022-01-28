@@ -113,30 +113,30 @@ uint32_t page_desc_get_frame(page_desc_t pte)
 
 uint32_t page_desc_get_settings(page_desc_t pte)
 {
-    uint32_t res = PAGE_READABLE;
+    uint32_t res = MMU_FLAG_PERM_READ;
     if (page_desc_is_writable(pte)) {
-        res |= PAGE_WRITABLE;
+        res |= MMU_FLAG_PERM_WRITE;
     }
     if (page_desc_is_user(pte)) {
-        res |= PAGE_USER;
+        res |= MMU_FLAG_NONPRIV;
     }
     if (page_desc_is_not_cacheable(pte)) {
-        res |= PAGE_NOT_CACHEABLE;
+        res |= MMU_FLAG_UNCACHED;
     }
     return res;
 }
 
 uint32_t page_desc_get_settings_ignore_cow(page_desc_t pte)
 {
-    uint32_t res = PAGE_READABLE;
+    uint32_t res = MMU_FLAG_PERM_READ;
     if (page_desc_is_writable(pte)) {
-        res |= PAGE_WRITABLE;
+        res |= MMU_FLAG_PERM_WRITE;
     }
     if (page_desc_is_user(pte)) {
-        res |= PAGE_USER;
+        res |= MMU_FLAG_NONPRIV;
     }
     if (page_desc_is_not_cacheable(pte)) {
-        res |= PAGE_NOT_CACHEABLE;
+        res |= MMU_FLAG_UNCACHED;
     }
     return res;
 }

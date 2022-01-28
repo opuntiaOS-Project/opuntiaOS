@@ -30,7 +30,7 @@ static inline int _uart_map_itself()
     uintptr_t mmio_paddr = _uart_mmio_paddr();
 
     mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, MMU_FLAG_DEVICE);
     output = (uint32_t*)mapped_zone.ptr;
     return 0;
 }

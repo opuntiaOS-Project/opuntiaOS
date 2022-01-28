@@ -96,7 +96,7 @@ int shared_buffer_create(uint8_t** res_buffer, size_t size)
     shared_buffer_header_t* space = (shared_buffer_header_t*)_shared_buffer_to_vaddr(start);
     space->len = act_size;
     bitmap_set_range(bitmap, start, blocks_needed);
-    vmm_tune_pages((uintptr_t)space, act_size, PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_READABLE | PAGE_USER);
+    vmm_tune_pages((uintptr_t)space, act_size, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC | MMU_FLAG_PERM_READ | MMU_FLAG_NONPRIV);
 
     *res_buffer = (uint8_t*)&space[1];
     buffers[buf_id] = (uint8_t*)&space[1];

@@ -49,7 +49,7 @@ void interrupts_setup()
 static uint32_t new_zone_for_secondary_cpu()
 {
     kmemzone_t zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_alloc_page(zone.start, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_alloc_page(zone.start, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
     return zone.start + zone.len;
 }
 

@@ -14,6 +14,11 @@ void page_desc_init(page_desc_t* pte)
     *pte = 0;
 }
 
+uint32_t page_desc_mmu_flags_to_arch_flags(uint32_t attrs)
+{
+    return attrs;
+}
+
 void page_desc_set_attrs(page_desc_t* pte, uint32_t attrs)
 {
     *pte |= attrs;
@@ -73,33 +78,33 @@ uint32_t page_desc_get_frame(page_desc_t pte)
 
 uint32_t page_desc_get_settings(page_desc_t pte)
 {
-    uint32_t res = PAGE_READABLE;
+    uint32_t res = MMU_FLAG_PERM_READ;
     if (page_desc_is_writable(pte)) {
-        res |= PAGE_WRITABLE;
+        res |= MMU_FLAG_PERM_WRITE;
     }
     if (page_desc_is_user(pte)) {
-        res |= PAGE_USER;
+        res |= MMU_FLAG_NONPRIV;
     }
     if (page_desc_is_not_cacheable(pte)) {
-        res |= PAGE_NOT_CACHEABLE;
+        res |= MMU_FLAG_UNCACHED;
     }
     if (page_desc_is_cow(pte)) {
-        res |= PAGE_COW;
+        res |= MMU_FLAG_COW;
     }
     return res;
 }
 
 uint32_t page_desc_get_settings_ignore_cow(page_desc_t pte)
 {
-    uint32_t res = PAGE_READABLE;
+    uint32_t res = MMU_FLAG_PERM_READ;
     if (page_desc_is_writable(pte)) {
-        res |= PAGE_WRITABLE;
+        res |= MMU_FLAG_PERM_WRITE;
     }
     if (page_desc_is_user(pte)) {
-        res |= PAGE_USER;
+        res |= MMU_FLAG_NONPRIV;
     }
     if (page_desc_is_not_cacheable(pte)) {
-        res |= PAGE_NOT_CACHEABLE;
+        res |= MMU_FLAG_UNCACHED;
     }
     return res;
 }

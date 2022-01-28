@@ -312,9 +312,9 @@ static int vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
         table_desc_set_frame(tmp_ptable_desc, ptable_paddr);
     }
 
-    uint32_t ptable_settings = PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE;
+    uint32_t ptable_settings = MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC;
     if (IS_USER_VADDR(vaddr)) {
-        ptable_settings |= PAGE_USER;
+        ptable_settings |= MMU_FLAG_NONPRIV;
     }
 
     int err = vm_pspace_update_active(vaddr, ptables_paddr, ptable_lv);
@@ -449,12 +449,12 @@ int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
         return -VMM_ERR_PDIR;
     }
 
-    bool is_writable = ((settings & PAGE_WRITABLE) > 0);
-    bool is_readable = ((settings & PAGE_READABLE) > 0);
-    bool is_executable = ((settings & PAGE_EXECUTABLE) > 0);
-    bool is_not_cacheable = ((settings & PAGE_NOT_CACHEABLE) > 0);
-    bool is_cow = ((settings & PAGE_COW) > 0);
-    bool is_user = ((settings & PAGE_USER) > 0);
+    bool is_writable = ((settings & MMU_FLAG_PERM_WRITE) > 0);
+    bool is_readable = ((settings & MMU_FLAG_PERM_READ) > 0);
+    bool is_executable = ((settings & MMU_FLAG_PERM_EXEC) > 0);
+    bool is_not_cacheable = ((settings & MMU_FLAG_UNCACHED) > 0);
+    bool is_cow = ((settings & MMU_FLAG_COW) > 0);
+    bool is_user = ((settings & MMU_FLAG_NONPRIV) > 0);
 
     table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
@@ -692,7 +692,7 @@ static int vm_alloc_kernel_page_lockless(uintptr_t vaddr)
     // A zone with standard settings is allocated for kernel, while
     // we could use a approach similar to user pages, where settings
     // are dependent on the zone.
-    return vmm_alloc_page_lockless(vaddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    return vmm_alloc_page_lockless(vaddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
 }
 
 static int vm_alloc_user_page_no_fill_lockless(memzone_t* zone, uintptr_t vaddr)
@@ -776,7 +776,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, PAGE_READABLE);
+    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
 
     /*  We don't need to check if there is a problem with cow, since this is a special copy function
         to resolve cow. So, we know that pages were created recently. Checking cow here would cause an
@@ -919,7 +919,7 @@ int vmm_swap_page(ptable_t* ptable, memzone_t* zone, uintptr_t vaddr)
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*page);
-    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, PAGE_READABLE);
+    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
 
     int new_frame = 0;
     if (swap_mode == SWAP_TO_DEV) {
@@ -1150,12 +1150,12 @@ pdirectory_t* vmm_get_kernel_pdir()
 
 static ALWAYS_INLINE int vmm_tune_page_lockless(uintptr_t vaddr, uint32_t settings)
 {
-    bool is_writable = ((settings & PAGE_WRITABLE) > 0);
-    bool is_readable = ((settings & PAGE_READABLE) > 0);
-    bool is_executable = ((settings & PAGE_EXECUTABLE) > 0);
-    bool is_not_cacheable = ((settings & PAGE_NOT_CACHEABLE) > 0);
-    bool is_cow = ((settings & PAGE_COW) > 0);
-    bool is_user = ((settings & PAGE_USER) > 0);
+    bool is_writable = ((settings & MMU_FLAG_PERM_WRITE) > 0);
+    bool is_readable = ((settings & MMU_FLAG_PERM_READ) > 0);
+    bool is_executable = ((settings & MMU_FLAG_PERM_EXEC) > 0);
+    bool is_not_cacheable = ((settings & MMU_FLAG_UNCACHED) > 0);
+    bool is_cow = ((settings & MMU_FLAG_COW) > 0);
+    bool is_user = ((settings & MMU_FLAG_NONPRIV) > 0);
 
     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
     page_desc_t* page = _vmm_ptable_lookup(ptable, vaddr);
@@ -1262,7 +1262,7 @@ int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* sr
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
 
     memcpy((uint8_t*)to_vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
 
@@ -1421,7 +1421,7 @@ int vmm_switch_pdir(pdirectory_t* pdir)
 
 static int _vmm_self_test()
 {
-    vmm_map_pages(0x00f0000, 0x8f000000, 1, PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE);
+    vmm_map_pages(0x00f0000, 0x8f000000, 1, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
     bool correct = true;
     correct &= ((uint32_t)_vmm_convert_vaddr2paddr(KERNEL_BASE) == KERNEL_PM_BASE);
     correct &= ((uint32_t)_vmm_convert_vaddr2paddr(0xffc00000) == 0x0);

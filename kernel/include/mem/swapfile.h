@@ -10,7 +10,7 @@
 #define _KERNEL_MEM_SWAPFILE_H
 
 #include <libkern/libkern.h>
-#include <mem/bits/page.h>
+#include <mem/bits/mmu.h>
 #include <mem/bits/swap.h>
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/pde.h>

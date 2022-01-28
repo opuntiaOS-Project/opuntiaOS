@@ -53,7 +53,7 @@ kmemzone_t vm_alloc_mapped_zone(size_t size, size_t alignment)
     // TODO: Currently only sequence allocation is implemented.
     kmemzone_t zone = kmemzone_new_aligned(size, alignment);
     uintptr_t paddr = (uintptr_t)pmm_alloc_aligned(size, alignment);
-    vmm_map_pages_lockless(zone.start, paddr, size / VMM_PAGE_SIZE, PAGE_READABLE | PAGE_WRITABLE);
+    vmm_map_pages_lockless(zone.start, paddr, size / VMM_PAGE_SIZE, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
     return zone;
 }
 

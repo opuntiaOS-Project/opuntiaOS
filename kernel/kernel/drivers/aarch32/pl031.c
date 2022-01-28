@@ -37,7 +37,7 @@ static inline int _pl031_map_itself()
     uintptr_t mmio_paddr = _pl031_mmio_paddr();
 
     mapped_zone = kmemzone_new(sizeof(pl031_registers_t));
-    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, MMU_FLAG_DEVICE);
     registers = (pl031_registers_t*)mapped_zone.ptr;
     return 0;
 }

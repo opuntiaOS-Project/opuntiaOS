@@ -36,7 +36,7 @@ static inline int _sp804_map_itself()
     uintptr_t mmio_paddr = _sp804_mmio_paddr();
 
     mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_map_page(mapped_zone.start, mmio_paddr, PAGE_DEVICE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, MMU_FLAG_DEVICE);
     timer1 = (sp804_registers_t*)mapped_zone.ptr;
     return 0;
 }

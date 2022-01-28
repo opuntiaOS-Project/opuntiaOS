@@ -39,10 +39,10 @@ extern void signal_caller_end();
 static void _signal_init_caller()
 {
     _signal_jumper_zone = kmemzone_new(VMM_PAGE_SIZE);
-    vmm_alloc_page(_signal_jumper_zone.start, PAGE_WRITABLE | PAGE_EXECUTABLE | PAGE_READABLE | PAGE_USER);
+    vmm_alloc_page(_signal_jumper_zone.start, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC | MMU_FLAG_PERM_READ | MMU_FLAG_NONPRIV);
     uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller_start;
     memcpy(_signal_jumper_zone.ptr, (void*)signal_caller_start, signal_caller_len);
-    vmm_tune_page(_signal_jumper_zone.start, PAGE_EXECUTABLE | PAGE_READABLE | PAGE_USER);
+    vmm_tune_page(_signal_jumper_zone.start, MMU_FLAG_PERM_EXEC | MMU_FLAG_PERM_READ | MMU_FLAG_NONPRIV);
 }
 
 void signal_init()

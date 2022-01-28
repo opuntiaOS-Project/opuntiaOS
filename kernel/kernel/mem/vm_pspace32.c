@@ -91,7 +91,7 @@ void vm_pspace_gen(pdirectory_t* pdir)
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     ptable_t* new_ptable = (ptable_t*)tmp_zone.start;
 
-    vmm_map_page_lockless((uintptr_t)new_ptable, ptable_paddr, PAGE_READABLE | PAGE_WRITABLE);
+    vmm_map_page_lockless((uintptr_t)new_ptable, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
 
     /* The code assumes that the length of tables which cover pspace
        is 4KB and that the tables are fit in a single page and are continuous. */
@@ -133,9 +133,9 @@ int vm_pspace_update_active(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t
 {
     const uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)vm_pspace_get_vaddr_of_active_ptable(vaddr));
 
-    uint32_t ptable_settings = PAGE_READABLE | PAGE_WRITABLE | PAGE_EXECUTABLE;
+    uint32_t ptable_settings = MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC;
     if (IS_USER_VADDR(vaddr)) {
-        ptable_settings |= PAGE_USER;
+        ptable_settings |= MMU_FLAG_NONPRIV;
     }
 
     return vmm_map_page_lockless(ptable_vaddr_start, ptable_paddr, ptable_settings);
