@@ -40,4 +40,7 @@ bool ptrarr_validate_len(const char** s, size_t len);
      _a < _b ? _a : _b; })
 #endif /* min */
 
+#define ROUND_CEIL(a, b) (((a) + ((b)-1)) & ~((b)-1))
+#define ROUND_FLOOR(a, b) ((a) & ~((b)-1))
+
 #endif // _KERNEL_LIBKERN_LIBKERN_H

@@ -88,20 +88,6 @@ int vmm_switch_pdir(pdirectory_t* pdir);
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr);
 
-inline static uintptr_t _vmm_round_ceil_to_page(uintptr_t value)
-{
-    if ((value & (VMM_PAGE_SIZE - 1)) != 0) {
-        value += VMM_PAGE_SIZE;
-        value &= (0xffffffff - (VMM_PAGE_SIZE - 1));
-    }
-    return value;
-}
-
-inline static uintptr_t _vmm_round_floor_to_page(uintptr_t value)
-{
-    return (value & (0xffffffff - (VMM_PAGE_SIZE - 1)));
-}
-
 inline static table_desc_t* _vmm_pdirectory_lookup(pdirectory_t* pdir, uintptr_t vaddr)
 {
     if (pdir) {

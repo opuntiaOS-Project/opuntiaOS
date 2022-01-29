@@ -47,8 +47,6 @@ static void _vmm_map_init_kernel_pages(uintptr_t paddr, uintptr_t vaddr);
 static bool _vmm_create_kernel_ptables();
 static bool _vmm_map_kernel();
 
-inline static uintptr_t _vmm_round_ceil_to_page(uintptr_t value);
-inline static uintptr_t _vmm_round_floor_to_page(uintptr_t value);
 inline static table_desc_t* _vmm_pdirectory_lookup(pdirectory_t* pdir, uintptr_t addr);
 inline static page_desc_t* _vmm_ptable_lookup(ptable_t* ptable, uintptr_t addr);
 
@@ -248,7 +246,7 @@ static bool _vmm_map_kernel()
 int vmm_setup()
 {
     lock_init(&_vmm_lock);
-    kmemzone_init(0xc0400000);
+    kmemzone_init();
     vm_alloc_kernel_pdir();
     _vmm_create_kernel_ptables();
     vm_pspace_init();
@@ -822,7 +820,7 @@ static void _vmm_resolve_zeroing_on_demand(uintptr_t vaddr)
 
     table_desc_t* ppage_desc = (table_desc_t*)_vmm_ptable_lookup(ptable, vaddr);
 
-    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
     memset(dest, 0, VMM_PAGE_SIZE);
 
     page_desc_del_attrs(ppage_desc, PAGE_DESC_ZEROING_ON_DEMAND);
@@ -1216,7 +1214,7 @@ static ALWAYS_INLINE int vmm_alloc_page_lockless(uintptr_t vaddr, uint32_t setti
         return err;
     }
 
-    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
     memset(dest, 0, VMM_PAGE_SIZE);
     return 0;
 }
@@ -1235,7 +1233,7 @@ int vmm_alloc_page(uintptr_t vaddr, uint32_t settings)
         return err;
     }
 
-    uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+    uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
     memset(dest, 0, VMM_PAGE_SIZE);
     return 0;
 }
@@ -1332,7 +1330,7 @@ static int _vmm_page_not_present_lockless(uintptr_t vaddr)
         if (zone->ops && zone->ops->load_page_content) {
             return zone->ops->load_page_content(zone, vaddr);
         } else {
-            uint8_t* dest = (uint8_t*)_vmm_round_floor_to_page(vaddr);
+            uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
             memset(dest, 0, VMM_PAGE_SIZE);
         }
         return OK;

@@ -13,41 +13,10 @@
 
 // define DEBUG_PMM
 
-static inline size_t _pmm_round_ceil(size_t value);
-static inline size_t _pmm_round_floor(size_t value);
 static void _pmm_init_ram();
 static void _pmm_allocate_mat();
 
-struct pmm_state {
-    size_t kernel_va_base;
-    size_t kernel_size;
-
-    bitmap_t mat;
-    boot_desc_t* boot_desc;
-
-    size_t ram_size;
-    size_t ram_offset;
-
-    size_t max_blocks;
-    size_t used_blocks;
-};
-typedef struct pmm_state pmm_state_t;
-
 static pmm_state_t pmm_state;
-
-static inline size_t _pmm_round_ceil(size_t value)
-{
-    if ((value & (PMM_BLOCK_SIZE - 1)) != 0) {
-        value += PMM_BLOCK_SIZE;
-        value &= ((size_t)(-1) - (PMM_BLOCK_SIZE - 1));
-    }
-    return value;
-}
-
-static inline size_t _pmm_round_floor(size_t value)
-{
-    return (value & ((size_t)(-1) - (PMM_BLOCK_SIZE - 1)));
-}
 
 static inline void* _pmm_block_id_to_ptr(size_t value)
 {
@@ -61,8 +30,8 @@ static inline size_t _pmm_ptr_to_block_id(void* value)
 
 void _pmm_mark_avail_region(size_t region_start, size_t region_len)
 {
-    region_start = _pmm_round_ceil(region_start) - pmm_state.ram_offset;
-    region_len = _pmm_round_floor(region_len);
+    region_start = ROUND_CEIL(region_start, PMM_BLOCK_SIZE) - pmm_state.ram_offset;
+    region_len = ROUND_FLOOR(region_len, PMM_BLOCK_SIZE);
 #ifdef DEBUG_PMM
     log("PMM: Marked as avail: %x - %x", region_start + pmm_state.ram_offset, region_len);
 #endif
@@ -76,8 +45,8 @@ void _pmm_mark_avail_region(size_t region_start, size_t region_len)
 
 void _pmm_mark_used_region(size_t region_start, size_t region_len)
 {
-    region_start = _pmm_round_floor(region_start) - pmm_state.ram_offset;
-    region_len = _pmm_round_ceil(region_len);
+    region_start = ROUND_FLOOR(region_start, PMM_BLOCK_SIZE) - pmm_state.ram_offset;
+    region_len = ROUND_CEIL(region_len, PMM_BLOCK_SIZE);
 #ifdef DEBUG_PMM
     log("PMM: Marked as used: %x - %x", region_start + pmm_state.ram_offset, region_len);
 #endif
@@ -129,8 +98,8 @@ static void _pmm_init_mat()
 static void _pmm_init_from_desc(boot_desc_t* boot_desc)
 {
     pmm_state.boot_desc = boot_desc;
-    pmm_state.kernel_va_base = _pmm_round_ceil(boot_desc->vaddr);
-    pmm_state.kernel_size = _pmm_round_ceil(boot_desc->kernel_size * 1024);
+    pmm_state.kernel_va_base = ROUND_CEIL(boot_desc->vaddr, PMM_BLOCK_SIZE);
+    pmm_state.kernel_size = ROUND_CEIL(boot_desc->kernel_size * 1024, PMM_BLOCK_SIZE);
 
     _pmm_init_ram();
     _pmm_allocate_mat();
@@ -240,4 +209,9 @@ size_t pmm_get_ram_in_kb()
 size_t pmm_get_free_space_in_kb()
 {
     return pmm_get_free_blocks() * (PMM_BLOCK_SIZE / 1024);
+}
+
+const pmm_state_t* pmm_get_state()
+{
+    return &pmm_state;
 }

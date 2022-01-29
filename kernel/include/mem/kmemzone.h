@@ -33,11 +33,11 @@ struct __kmemzone {
 };
 typedef struct __kmemzone kmemzone_t;
 
-void kmemzone_init(uint32_t start_vaddr);
+void kmemzone_init();
 void kmemzone_init_stage2();
 
-kmemzone_t kmemzone_new(uint32_t size);
-kmemzone_t kmemzone_new_aligned(uint32_t size, uint32_t alignment);
+kmemzone_t kmemzone_new(size_t size);
+kmemzone_t kmemzone_new_aligned(size_t size, size_t alignment);
 int kmemzone_free(kmemzone_t zone);
 
 #endif // _KERNEL_MEM_KMEMZONE_H
