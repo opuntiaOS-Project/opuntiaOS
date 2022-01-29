@@ -12,6 +12,18 @@
 #include <libkern/types.h>
 #include <mem/bits/zone.h>
 
+extern char __text_start[];
+extern char __text_end[];
+extern char __rodata_start[];
+extern char __rodata_end[];
+extern char __data_start[];
+extern char __data_end[];
+extern char __bss_start[];
+extern char __bss_end[];
+extern char __stack_start[];
+extern char __stack__end[];
+extern char _end[];
+
 struct __kmemzone {
     union {
         uintptr_t start;

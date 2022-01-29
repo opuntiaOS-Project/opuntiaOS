@@ -7,13 +7,16 @@ SECTIONS
 {
 	. = _va_base;
 
+	__text_start = .;
 	.text ALIGN(4K) : AT (ADDR(.text) - _va_base + _pa_base)
 	{
 		*(.interrupt_vector_table)
 		*(.text)
 		*(.text.*)
 	}
+	__text_end = .;
 
+	__rodata_start = .;
 	.rodata ALIGN(4K) : AT (ADDR(.rodata) - _va_base + _pa_base)
 	{
 		*(.rodata)
@@ -26,20 +29,26 @@ SECTIONS
 		*(SORT_BY_NAME(.driver_init_sections.*))
 		_dirvers_init_end = .;
 	}
+	__rodata_end = .;
 
+	__data_start = .;
 	.data ALIGN(4K) : AT (ADDR(.data) - _va_base + _pa_base)
 	{
 		*(.data)
 		*(.data.*)
 	}
+	__data_end = .;
 
+	__bss_start = .;
 	.bss ALIGN(4K) : AT (ADDR(.bss) - _va_base + _pa_base)
 	{
 		*(.bss)
 		*(.bss.*)
 		*(COMMON)
 	}
+	__bss_end = .;
 
+	__stack_start = .;
 	.stack ALIGN(4K) : AT (ADDR(.stack) - _va_base + _pa_base)
 	{
 		STACK_SECONDARY_BASE = .;
@@ -66,6 +75,9 @@ SECTIONS
 		. += 0x1000;
 		STACK_UNDEFINED_TOP =  .;
 	}
+	__stack__end = .;
 
 	.ARM.exidx : { *(.ARM.exidx) }
+
+	_end = .;
 }
