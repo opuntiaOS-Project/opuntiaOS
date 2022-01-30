@@ -19,6 +19,6 @@ page_desc_t* vm_pspace_get_page_desc(uintptr_t vaddr);
 void vm_pspace_init();
 void vm_pspace_gen(pdirectory_t* pdir);
 void vm_pspace_free(pdirectory_t* pdir);
-int vm_pspace_update_active(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t level);
+int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t level);
 
 #endif // _KERNEL_MEM_VM_PSPACE_H

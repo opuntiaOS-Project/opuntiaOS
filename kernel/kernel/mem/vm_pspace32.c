@@ -129,7 +129,7 @@ void vm_pspace_free(pdirectory_t* pdir)
     table_desc_del_frame(ptable_desc);
 }
 
-int vm_pspace_update_active(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t level)
+int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t level)
 {
     const uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)vm_pspace_get_vaddr_of_active_ptable(vaddr));
 

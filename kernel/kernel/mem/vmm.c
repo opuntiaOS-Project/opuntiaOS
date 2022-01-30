@@ -315,7 +315,7 @@ static int vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
         ptable_settings |= MMU_FLAG_NONPRIV;
     }
 
-    int err = vm_pspace_update_active(vaddr, ptables_paddr, ptable_lv);
+    int err = vm_pspace_on_ptable_mapped(vaddr, ptables_paddr, ptable_lv);
     if (err) {
         _vmm_release_active_ptable(vaddr);
         return err;
