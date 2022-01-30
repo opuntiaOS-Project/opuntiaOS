@@ -42,8 +42,7 @@ for path, subdirs, files in os.walk("../kernel/kernel"):
 
 
 def special_paths(platform):
-    if platform == 'x86':
-        print("//boot/x86/stage2/stage3_entry.s")
+    pass
 
 
 special_paths(sys.argv[2])
