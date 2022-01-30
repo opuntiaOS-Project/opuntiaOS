@@ -713,10 +713,9 @@ static int vm_alloc_page_with_perm(uintptr_t vaddr)
 {
     if (IS_USER_VADDR(vaddr) && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
         return vm_alloc_user_page_lockless(_vmm_memzone_for_active_pdir(vaddr), vaddr);
-    } else {
-        // Should keep lockless, since kernel interrupt could happen while setting VMM.
-        return vm_alloc_kernel_page_lockless(vaddr);
     }
+    // Should keep lockless, since kernel interrupt could happen while setting VMM.
+    return vm_alloc_kernel_page_lockless(vaddr);
 }
 
 /**
@@ -1316,25 +1315,25 @@ static int _vmm_page_not_present_lockless(uintptr_t vaddr)
 
     if (IS_KERNEL_VADDR(vaddr)) {
         return vm_alloc_kernel_page_lockless(vaddr);
-    } else {
-        memzone_t* zone = _vmm_memzone_for_active_pdir(vaddr);
-        if (!zone) {
-            return SHOULD_CRASH;
-        }
-
-        int err = vm_alloc_user_page_no_fill_lockless(zone, vaddr);
-        if (err) {
-            return err;
-        }
-
-        if (zone->ops && zone->ops->load_page_content) {
-            return zone->ops->load_page_content(zone, vaddr);
-        } else {
-            uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-            memset(dest, 0, VMM_PAGE_SIZE);
-        }
-        return OK;
     }
+
+    memzone_t* zone = _vmm_memzone_for_active_pdir(vaddr);
+    if (!zone) {
+        return SHOULD_CRASH;
+    }
+
+    int err = vm_alloc_user_page_no_fill_lockless(zone, vaddr);
+    if (err) {
+        return err;
+    }
+
+    if (zone->ops && zone->ops->load_page_content) {
+        return zone->ops->load_page_content(zone, vaddr);
+    } else {
+        uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+        memset(dest, 0, VMM_PAGE_SIZE);
+    }
+    return OK;
 }
 
 int _vmm_pf_on_writing(uintptr_t vaddr)

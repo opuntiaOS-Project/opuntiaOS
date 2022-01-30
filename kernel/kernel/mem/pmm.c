@@ -164,9 +164,8 @@ void* pmm_alloc_aligned(size_t size, size_t align)
     size_t block_align = (align + PMM_BLOCK_SIZE - 1) / PMM_BLOCK_SIZE;
     if (block_align == 1) {
         return pmm_alloc_blocks(block_count);
-    } else {
-        return pmm_alloc_blocks_aligned(block_count, block_align);
     }
+    return pmm_alloc_blocks_aligned(block_count, block_align);
 }
 
 int pmm_free(void* block, size_t size)
