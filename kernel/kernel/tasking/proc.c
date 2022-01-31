@@ -7,6 +7,7 @@
  */
 
 #include <fs/vfs.h>
+#include <io/sockets/socket.h>
 #include <io/tty/tty.h>
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
@@ -248,6 +249,14 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
                 file_descriptor_t* fd = &new_proc->fds[i];
                 if (from_proc->fds[i].type == FD_TYPE_FILE) {
                     vfs_open(from_proc->fds[i].dentry, fd, from_proc->fds[i].flags);
+                }
+                if (from_proc->fds[i].type == FD_TYPE_SOCKET) {
+                    fd->type = FD_TYPE_SOCKET;
+                    fd->sock_entry = socket_duplicate(from_proc->fds[i].sock_entry);
+                    fd->offset = from_proc->fds[i].offset;
+                    fd->flags = from_proc->fds[i].flags;
+                    fd->ops = from_proc->fds[i].ops;
+                    lock_init(&fd->lock);
                 }
             }
         }
