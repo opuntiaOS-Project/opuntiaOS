@@ -6,24 +6,7 @@
  * found in the LICENSE file.
  */
 
-#include "Components/ControlBar/ControlBar.h"
-#include "Components/LoadingScreen/LoadingScreen.h"
-#include "Components/MenuBar/MenuBar.h"
-#include "Components/MenuBar/Widgets/Clock/Clock.h"
-#include "Components/MenuBar/Widgets/ControlPanelToggle/ControlPanelToggle.h"
-#include "Components/Popup/Popup.h"
-#include "Devices/Devices.h"
-#include "Devices/Screen.h"
-#include "IPC/Connection.h"
-#include "Managers/Compositor.h"
-#include "Managers/CursorManager.h"
-#include "Managers/ResourceManager.h"
-#include "Managers/WindowManager.h"
-#include <cstdlib>
-#include <libfoundation/EventLoop.h>
-#include <new>
-#include <sys/socket.h>
-#include <unistd.h>
+#include "Managers/InitManager.h"
 
 #ifdef TARGET_DESKTOP
 #define LAUNCH_PATH "/System/dock"
@@ -31,54 +14,27 @@
 #define LAUNCH_PATH "/System/homescreen"
 #endif
 
-void start_dock()
-{
-    if (fork()) {
-        execve(LAUNCH_PATH, nullptr, nullptr);
-        std::abort();
-    }
-}
-
-void screen_init()
-{
-    start_dock();
-    nice(-3);
-    new WinServer::Screen();
-    new WinServer::LoadingScreen();
-}
-
-template <class T, int Cost = 1, class... Args>
-constexpr inline void load_core_component(Args&&... args)
-{
-    new T(std::forward<Args>(args)...);
-    WinServer::LoadingScreen::the().move_progress<T, Cost>();
-}
-
-template <class T, int Cost = 1, class... Args>
-constexpr inline void add_widget(Args&&... args)
-{
-    WinServer::MenuBar::the().add_widget<T>(std::forward<Args>(args)...);
-    WinServer::LoadingScreen::the().move_progress<T, Cost>();
-}
-
 int main()
 {
-    screen_init();
-    auto* event_loop = new LFoundation::EventLoop();
-    load_core_component<WinServer::Connection>(socket(PF_LOCAL, 0, 0));
-    load_core_component<WinServer::CursorManager>();
-    load_core_component<WinServer::ResourceManager, 4>();
-    load_core_component<WinServer::Popup>();
-    load_core_component<WinServer::MenuBar>();
-#ifdef TARGET_MOBILE
-    load_core_component<WinServer::ControlBar>();
-#endif
-    load_core_component<WinServer::Compositor>();
-    load_core_component<WinServer::WindowManager>();
-    load_core_component<WinServer::Devices>();
+    WinServer::InitManager::load_screen();
 
-    add_widget<WinServer::Clock>();
-    add_widget<WinServer::ControlPanelToggle>();
+    auto* event_loop = new LFoundation::EventLoop();
+    WinServer::InitManager::load_core_component<WinServer::Connection>(socket(PF_LOCAL, 0, 0));
+    WinServer::InitManager::load_core_component<WinServer::CursorManager>();
+    WinServer::InitManager::load_core_component<WinServer::ResourceManager, 4>();
+    WinServer::InitManager::load_core_component<WinServer::Popup>();
+    WinServer::InitManager::load_core_component<WinServer::MenuBar>();
+#ifdef TARGET_MOBILE
+    WinServer::InitManager::load_core_component<WinServer::ControlBar>();
+#endif
+    WinServer::InitManager::load_core_component<WinServer::Compositor>();
+    WinServer::InitManager::load_core_component<WinServer::WindowManager>();
+    WinServer::InitManager::load_core_component<WinServer::Devices>();
+
+    WinServer::InitManager::add_widget<WinServer::Clock>();
+    WinServer::InitManager::add_widget<WinServer::ControlPanelToggle>();
+
+    WinServer::InitManager::launch_app(LAUNCH_PATH);
 
     WinServer::LoadingScreen::destroy_the();
     return event_loop->run();
