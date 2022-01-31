@@ -762,7 +762,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
         return SHOULD_CRASH;
     }
 
-    if ((zone->type & ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+    if (TEST_FLAG(zone->type, ZONE_TYPE_DEVICE) || TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
         return vmm_map_page_lockless(vaddr, old_page_paddr, zone->flags);
     }
