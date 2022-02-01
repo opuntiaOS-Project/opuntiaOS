@@ -13,7 +13,7 @@
 
 tss_t tss;
 
-void ltr(uint16_t seg)
+void set_ltr(uint16_t seg)
 {
     asm volatile("ltr %0"
                  :

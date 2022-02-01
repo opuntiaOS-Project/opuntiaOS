@@ -21,10 +21,10 @@ void switchuvm(thread_t* thread)
     uint32_t esp0 = ((uint32_t)thread->tf + sizeof(trapframe_t));
     tss.esp0 = esp0;
     tss.ss0 = (SEG_KDATA << 3);
-    // tss.iomap_offset = 0xffff;
+    tss.iomap_offset = sizeof(tss);
     RUNNING_THREAD = thread;
     fpu_make_unavail();
-    ltr(SEG_TSS << 3);
+    set_ltr(SEG_TSS << 3);
     vmm_switch_pdir(thread->process->pdir);
     system_enable_interrupts();
 }
