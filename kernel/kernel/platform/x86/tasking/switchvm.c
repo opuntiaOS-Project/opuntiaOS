@@ -17,14 +17,14 @@
 void switchuvm(thread_t* thread)
 {
     system_disable_interrupts();
-    gdt[SEG_TSS] = SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
+    gdt[GDT_SEG_TSS] = GDT_SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
     uint32_t esp0 = ((uint32_t)thread->tf + sizeof(trapframe_t));
     tss.esp0 = esp0;
-    tss.ss0 = (SEG_KDATA << 3);
+    tss.ss0 = (GDT_SEG_KDATA << 3);
     tss.iomap_offset = sizeof(tss);
     RUNNING_THREAD = thread;
     fpu_make_unavail();
-    set_ltr(SEG_TSS << 3);
+    set_ltr(GDT_SEG_TSS << 3);
     vmm_switch_pdir(thread->process->pdir);
     system_enable_interrupts();
 }

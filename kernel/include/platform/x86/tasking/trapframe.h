@@ -94,16 +94,16 @@ static inline void set_syscall_result(trapframe_t* tf, uintptr_t val)
  * STACK FUNCTIONS
  */
 
-static inline void tf_push_to_stack(trapframe_t* tf, uint32_t val)
+static inline void tf_push_to_stack(trapframe_t* tf, uintptr_t val)
 {
-    tf->esp -= 4;
-    *((uint32_t*)tf->esp) = val;
+    tf->esp -= sizeof(uintptr_t);
+    *((uintptr_t*)tf->esp) = val;
 }
 
 static inline uint32_t tf_pop_to_stack(trapframe_t* tf)
 {
-    uint32_t val = *((uint32_t*)tf->esp);
-    tf->esp += 4;
+    uintptr_t val = *((uintptr_t*)tf->esp);
+    tf->esp += sizeof(uintptr_t);
     return val;
 }
 
@@ -114,8 +114,8 @@ static inline void tf_move_stack_pointer(trapframe_t* tf, int32_t val)
 
 static inline void tf_setup_as_user_thread(trapframe_t* tf)
 {
-    tf->cs = (SEG_UCODE << 3) | DPL_USER;
-    tf->ds = (SEG_UDATA << 3) | DPL_USER;
+    tf->cs = (GDT_SEG_UCODE << 3) | DPL_USER;
+    tf->ds = (GDT_SEG_UDATA << 3) | DPL_USER;
     tf->es = tf->ds;
     tf->ss = tf->ds;
     tf->eflags = FL_IF;
@@ -123,8 +123,8 @@ static inline void tf_setup_as_user_thread(trapframe_t* tf)
 
 static inline void tf_setup_as_kernel_thread(trapframe_t* tf)
 {
-    tf->cs = (SEG_KCODE << 3);
-    tf->ds = (SEG_KDATA << 3);
+    tf->cs = (GDT_SEG_KCODE << 3);
+    tf->ds = (GDT_SEG_KDATA << 3);
     tf->es = tf->ds;
     tf->ss = tf->ds;
     tf->eflags = FL_IF;

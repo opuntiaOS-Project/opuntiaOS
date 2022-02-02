@@ -65,7 +65,7 @@ static inline uint32_t get_syscall_result(trapframe_t* tf)
     return tf->r[0];
 }
 
-static inline void set_syscall_result(trapframe_t* tf, uint32_t val)
+static inline void set_syscall_result(trapframe_t* tf, uintptr_t val)
 {
     tf->r[0] = val;
 }
@@ -74,16 +74,16 @@ static inline void set_syscall_result(trapframe_t* tf, uint32_t val)
  * STACK FUNCTIONS
  */
 
-static inline void tf_push_to_stack(trapframe_t* tf, uint32_t val)
+static inline void tf_push_to_stack(trapframe_t* tf, uintptr_t val)
 {
-    tf->user_sp -= 4;
-    *((uint32_t*)tf->user_sp) = val;
+    tf->user_sp -= sizeof(uintptr_t);
+    *((uintptr_t*)tf->user_sp) = val;
 }
 
-static inline uint32_t tf_pop_to_stack(trapframe_t* tf)
+static inline uintptr_t tf_pop_to_stack(trapframe_t* tf)
 {
-    uint32_t val = *((uint32_t*)tf->user_sp);
-    tf->user_sp += 4;
+    uintptr_t val = *((uintptr_t*)tf->user_sp);
+    tf->user_sp += sizeof(uintptr_t);
     return val;
 }
 
