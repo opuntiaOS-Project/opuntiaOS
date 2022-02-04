@@ -25,6 +25,13 @@ using false_type = integral_constant<bool, false>;
 
 // Type relationships
 
+template <class T>
+struct type_identity {
+    using type = T;
+};
+template <class T>
+using type_identity_t = typename type_identity<T>::type;
+
 template <class T, class U>
 struct is_same : false_type {
 };
@@ -46,6 +53,8 @@ template <class T>
 struct remove_const<const T> {
     typedef T type;
 };
+template <class T>
+using remove_const_t = typename remove_const<T>::type;
 
 template <class T>
 struct remove_volatile {
@@ -55,6 +64,8 @@ template <class T>
 struct remove_volatile<volatile T> {
     typedef T type;
 };
+template <class T>
+using remove_volatile_t = typename remove_volatile<T>::type;
 
 template <class T>
 struct remove_cv {
@@ -72,13 +83,6 @@ template <class T>
 struct remove_cv<const volatile T> {
     typedef T type;
 };
-
-template <class T>
-using remove_const_t = typename remove_const<T>::type;
-
-template <class T>
-using remove_volatile_t = typename remove_volatile<T>::type;
-
 template <class T>
 using remove_cv_t = typename remove_cv<T>::type;
 
@@ -87,40 +91,41 @@ struct add_const {
     typedef const T type;
 };
 template <class T>
+using add_const_t = typename add_const<T>::type;
+
+template <class T>
 struct add_volatile {
     typedef volatile T type;
 };
 template <class T>
-struct add_cv {
-    typedef const volatile T type;
-};
-
-template <class T>
-using add_const_t = typename add_const<T>::type;
-
-template <class T>
 using add_volatile_t = typename add_volatile<T>::type;
 
 template <class T>
+struct add_cv {
+    typedef const volatile T type;
+};
+template <class T>
 using add_cv_t = typename add_cv<T>::type;
 
-// References
+template <class T>
+struct add_pointer {
+    typedef T* type;
+};
+template <class T>
+using add_pointer_t = typename add_pointer<T>::type;
 
 template <class T>
 struct remove_reference {
     typedef T type;
 };
-
 template <class T>
 struct remove_reference<T&> {
     typedef T type;
 };
-
 template <class T>
 struct remove_reference<T&&> {
     typedef T type;
 };
-
 template <class T>
 using remove_reference_t = typename remove_reference<T>::type;
 
@@ -144,24 +149,38 @@ template <class T>
 struct remove_pointer<T* const volatile> {
     typedef T type;
 };
+template <class T>
+using remove_pointer_t = typename remove_pointer<T>::type;
+
+template <class T>
+struct remove_extent {
+    typedef T type;
+};
+template <class T>
+struct remove_extent<T[]> {
+    typedef T type;
+};
+template <class T, std::size_t N>
+struct remove_extent<T[N]> {
+    typedef T type;
+};
+template <class T>
+using remove_extent_t = typename remove_extent<T>::type;
 
 // Primary type categories
 
 template <class T>
 struct is_void : is_same<void, typename remove_cv<T>::type> {
 };
-
 template <class T>
 inline constexpr bool is_void_v = is_void<T>::value;
 
 template <class T>
 struct is_pointer_h : false_type {
 };
-
 template <class T>
 struct is_pointer_h<T*> : true_type {
 };
-
 template <class T>
 struct is_pointer : is_pointer_h<typename std::remove_cv<T>::type> {
 };
@@ -169,24 +188,35 @@ struct is_pointer : is_pointer_h<typename std::remove_cv<T>::type> {
 template <class T>
 struct is_array : false_type {
 };
-
 template <class T>
 struct is_array<T[]> : true_type {
 };
-
 template <class T, size_t N>
 struct is_array<T[N]> : true_type {
 };
-
 template <class T>
 inline constexpr bool is_array_v = is_array<T>::value;
 
 template <class T>
-struct is_floating_point : integral_constant<bool, is_same_v<float, remove_cv_t<T>> || is_same_v<double, remove_cv_t<T>> || is_same_v<long double, remove_cv_t<T>>> {
+struct is_const : false_type {
 };
+template <class T>
+struct is_const<const T> : true_type {
+};
+template <class T>
+inline constexpr bool is_const_v = is_const<T>::value;
 
 template <class T>
+struct is_floating_point : integral_constant<bool, is_same_v<float, remove_cv_t<T>> || is_same_v<double, remove_cv_t<T>> || is_same_v<long double, remove_cv_t<T>>> {
+};
+template <class T>
 inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
+
+template <class T>
+struct is_function : bool_constant<!is_const_v<const T>> {
+};
+template <class T>
+inline constexpr bool is_function_v = is_function<T>::value;
 
 template <bool B, class T = void>
 struct enable_if {
@@ -199,6 +229,19 @@ struct enable_if<true, T> {
 
 template <bool B, class T = void>
 using enable_if_t = typename enable_if<B, T>::type;
+
+template <bool B, class T, class F>
+struct conditional {
+    typedef T type;
+};
+
+template <class T, class F>
+struct conditional<false, T, F> {
+    typedef F type;
+};
+
+template <bool B, class T, class F>
+using conditional_t = typename conditional<B, T, F>::type;
 
 _LIBCXX_END_NAMESPACE_STD
 
