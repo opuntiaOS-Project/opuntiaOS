@@ -185,6 +185,19 @@ static constexpr T& construct(Args&&... args)
 _LIBCXX_END_ONEOS_EXTENSION
 #endif
 
+template <class T>
+T* to_address(T* p)
+{
+    static_assert(!is_function_v<T>);
+    return p;
+}
+
+template <class T>
+T* to_address(const T& p)
+{
+    return to_address(p.operator->());
+}
+
 _LIBCXX_END_NAMESPACE_STD
 
 #endif // _LIBCXX_MEMORY

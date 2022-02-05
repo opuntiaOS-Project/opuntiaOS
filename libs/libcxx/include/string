@@ -22,6 +22,7 @@ public:
     using int_type = int;
     using pos_type = int;
     using off_type = int;
+    using state_type = int;
 
     static constexpr void assign(char_type& r, const char_type& a) { r = a; }
 
@@ -70,14 +71,20 @@ public:
     static constexpr bool lt(char_type a, char_type b) { return a < b; }
 };
 
+template <class CharT, class Traits>
+class basic_string_view;
+
 template <class CharT, class Traits = std::char_traits<CharT>, class Allocator = std::allocator<CharT>>
 class basic_string {
 public:
     using value_type = CharT;
     using allocator_type = Allocator;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
     using pointer = CharT*;
     using const_pointer = const CharT*;
     using reference = CharT&;
+    using const_reference = const CharT&;
     using iterator = std::__legacy_iter<pointer>;
     using const_iterator = std::__legacy_iter<const_pointer>;
     using reverse_iterator = std::reverse_iterator<iterator>;
@@ -194,7 +201,7 @@ public:
         Traits::assign(m_str[m_size], '\0');
     }
 
-    inline const reference at(size_t i) const
+    inline const_reference at(size_t i) const
     {
         return m_str[i];
     }
@@ -216,15 +223,19 @@ public:
 
     inline size_t size() const { return m_size; }
     inline size_t length() const { return m_size; }
+    inline bool empty() const { return size() == 0; }
 
-    inline const reference operator[](size_t i) const { return at(i); }
+    inline const_reference operator[](size_t i) const { return at(i); }
     inline reference operator[](size_t i) { return at(i); }
 
-    inline const reference back() const { return at(size() - 1); }
+    inline const_reference front() const { return at(0); }
+    inline reference front() { return at(0); }
+
+    inline const_reference back() const { return at(size() - 1); }
     inline reference back() { return at(size() - 1); }
 
-    inline const pointer c_str() const { return m_str; }
-    inline const pointer data() const { return m_str; }
+    inline const_pointer c_str() const { return m_str; }
+    inline const_pointer data() const { return m_str; }
 
     inline iterator begin() { return iterator(&m_str[0]); }
     inline iterator end() { return iterator(&m_str[m_size]); }
@@ -237,6 +248,8 @@ public:
 
     inline const_reverse_iterator crbegin() { return const_reverse_iterator(&m_str[m_size - 1]); }
     inline const_reverse_iterator crend() { return const_reverse_iterator(&m_str[-1]); }
+
+    inline operator std::basic_string_view<CharT, Traits>() const { return std::basic_string_view<CharT, Traits>(data(), size()); }
 
 private:
     inline void ensure_capacity(size_t new_size)

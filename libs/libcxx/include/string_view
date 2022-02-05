@@ -1,0 +1,97 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_STRING_VIEW
+#define _LIBCXX_STRING_VIEW
+
+#include <__config>
+#include <string>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+template <class CharT, class Traits = std::char_traits<CharT>>
+class basic_string_view {
+public:
+    using value_type = CharT;
+    using pointer = CharT*;
+    using const_pointer = const CharT*;
+    using reference = CharT&;
+    using const_reference = const CharT&;
+    using iterator = std::__legacy_iter<pointer>;
+    using const_iterator = std::__legacy_iter<const_pointer>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+
+    basic_string_view() = default;
+
+    basic_string_view(const value_type* str)
+        : m_str(str)
+        , m_size(Traits::length(str))
+    {
+    }
+
+    basic_string_view(const value_type* str, size_t size)
+        : m_str(str)
+        , m_size(size)
+    {
+    }
+
+    template <class Iter>
+    basic_string_view(Iter first, Iter last)
+        : m_str(std::to_address(first))
+        , m_size(std::distance(first, last))
+    {
+    }
+
+    ~basic_string_view() = default;
+
+    inline size_t size() const { return m_size; }
+    inline size_t length() const { return m_size; }
+    inline bool empty() const { return size() == 0; }
+
+    inline const_reference operator[](size_t i) const { return at(i); }
+    inline reference operator[](size_t i) { return at(i); }
+
+    inline const_reference at(size_t i) const { return m_str[i]; }
+    inline reference at(size_t i) { return m_str[i]; }
+
+    inline const_reference front() const { return at(0); }
+    inline reference front() { return at(0); }
+
+    inline const_reference back() const { return at(size() - 1); }
+    inline reference back() { return at(size() - 1); }
+
+    inline const_pointer data() const { return m_str; }
+
+    inline iterator begin() { return iterator(&m_str[0]); }
+    inline iterator end() { return iterator(&m_str[m_size]); }
+
+    inline const_iterator cbegin() { return const_iterator(&m_str[0]); }
+    inline const_iterator cend() { return const_iterator(&m_str[m_size]); }
+
+    inline reverse_iterator rbegin() { return reverse_iterator(&m_str[m_size - 1]); }
+    inline reverse_iterator rend() { return reverse_iterator(&m_str[-1]); }
+
+    inline const_reverse_iterator crbegin() { return const_reverse_iterator(&m_str[m_size - 1]); }
+    inline const_reverse_iterator crend() { return const_reverse_iterator(&m_str[-1]); }
+
+private:
+    size_t m_size { 0 };
+    const value_type* m_str { &__null_char };
+};
+
+typedef basic_string_view<char> string_view;
+
+template <class CharT, class Traits>
+bool operator==(const std::basic_string_view<CharT, Traits>& a, const std::basic_string_view<CharT, Traits>& b)
+{
+    if (a.size() != b.size()) {
+        return false;
+    }
+    return Traits::compare(a.c_str(), b.c_str(), a.size()) == 0;
+}
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_STRING_VIEW

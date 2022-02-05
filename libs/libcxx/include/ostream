@@ -135,7 +135,14 @@ basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, char 
 template <class CharT, class Traits, class Allocator>
 basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, std::basic_string<CharT, Traits, Allocator> const& value)
 {
-    os.write(value.c_str(), value.size());
+    os.write(value.data(), value.size());
+    return os;
+}
+
+template <class CharT, class Traits>
+basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, std::basic_string_view<CharT, Traits> const& value)
+{
+    os.write(value.data(), value.size());
     return os;
 }
 
