@@ -1,0 +1,20 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_BIT
+#define _LIBCXX_BIT
+
+#include <__config>
+#include <__undef_macros>
+#include <type_traits>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+enum class endian {
+    little = __ORDER_LITTLE_ENDIAN__,
+    big = __ORDER_BIG_ENDIAN__,
+    native = __BYTE_ORDER__
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_BIT
