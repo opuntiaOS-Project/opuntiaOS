@@ -1,0 +1,27 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_CCTYPE
+#define _LIBCXX_CCTYPE
+
+#include <__config>
+#include <ctype.h>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+using ::isalnum;
+using ::isalpha;
+using ::iscntrl;
+using ::isdigit;
+using ::isgraph;
+using ::islower;
+using ::isprint;
+using ::ispunct;
+using ::isspace;
+using ::isupper;
+using ::isxdigit;
+using ::tolower;
+using ::toupper;
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_CCTYPE

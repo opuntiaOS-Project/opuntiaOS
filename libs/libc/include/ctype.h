@@ -19,31 +19,19 @@ __BEGIN_DECLS
 
 extern const char __ctypes[256];
 
-int tolower(int);
-int toupper(int);
-int isalnum(int);
-int isalpha(int);
-int iscntrl(int);
-int isdigit(int);
-int isxdigit(int);
-int isspace(int);
-int ispunct(int);
-int isprint(int);
-int isgraph(int);
-int islower(int);
-int isupper(int);
-
-#define isalnum(c) (__ctypes[(unsigned char)(c)] & (_U | _L | _N))
-#define isalpha(c) (__ctypes[(unsigned char)(c)] & (_U | _L))
-#define iscntrl(c) (__ctypes[(unsigned char)(c)] & (_C))
-#define isdigit(c) (__ctypes[(unsigned char)(c)] & (_N))
-#define isxdigit(c) (__ctypes[(unsigned char)(c)] & (_N | _X))
-#define isspace(c) (__ctypes[(unsigned char)(c)] & (_S))
-#define ispunct(c) (__ctypes[(unsigned char)(c)] & (_P))
-#define isprint(c) (__ctypes[(unsigned char)(c)] & (_P | _U | _L | _N | _B))
-#define isgraph(c) (__ctypes[(unsigned char)(c)] & (_P | _U | _L | _N))
-#define islower(c) ((__ctypes[(unsigned char)(c)] & (_U | _L)) == _L)
-#define isupper(c) ((__ctypes[(unsigned char)(c)] & (_U | _L)) == _U)
+static inline int isalnum(int c) { return __ctypes[(unsigned char)(c)] & (_U | _L | _N); }
+static inline int isalpha(int c) { return __ctypes[(unsigned char)(c)] & (_U | _L); }
+static inline int iscntrl(int c) { return __ctypes[(unsigned char)(c)] & (_C); }
+static inline int isdigit(int c) { return __ctypes[(unsigned char)(c)] & (_N); }
+static inline int isxdigit(int c) { return __ctypes[(unsigned char)(c)] & (_N | _X); }
+static inline int isspace(int c) { return __ctypes[(unsigned char)(c)] & (_S); }
+static inline int ispunct(int c) { return __ctypes[(unsigned char)(c)] & (_P); }
+static inline int isprint(int c) { return __ctypes[(unsigned char)(c)] & (_P | _U | _L | _N | _B); }
+static inline int isgraph(int c) { return __ctypes[(unsigned char)(c)] & (_P | _U | _L | _N); }
+static inline int islower(int c) { return (__ctypes[(unsigned char)(c)] & (_U | _L)) == _L; }
+static inline int isupper(int c) { return (__ctypes[(unsigned char)(c)] & (_U | _L)) == _U; }
+static inline int tolower(int c) { return isupper(c) ? (c) - 'a' + 'A' : c; }
+static inline int toupper(int c) { return islower(c) ? (c) - 'A' + 'a' : c; }
 
 __END_DECLS
 
