@@ -10,11 +10,11 @@
 __BEGIN_DECLS
 
 #ifndef assert
-#define assert(x)                                              \
-    if (!(x)) [[unlikely]] {                                   \
-        printf("assert at line %d in %s", __LINE__, __FILE__); \
-        fflush(stdout);                                        \
-        abort();                                               \
+#define assert(x)                                                                                    \
+    if (!(x)) [[unlikely]] {                                                                         \
+        printf("Assertion failed: %s, function %s, file %s:%d\n", #x, __func__, __FILE__, __LINE__); \
+        fflush(stdout);                                                                              \
+        abort();                                                                                     \
     }
 #endif // assert
 
