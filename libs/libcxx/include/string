@@ -4,6 +4,7 @@
 #define _LIBCXX_STRING
 
 #include <__config>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <iterator>
@@ -221,6 +222,15 @@ public:
         m_capacity = 0;
     }
 
+    void resize(size_t count, const value_type& c)
+    {
+        ensure_capacity(count + 1);
+        Traits::assign(&m_str[m_size], count - size(), c);
+        m_size = count;
+        Traits::assign(m_str[m_size], '\0');
+    }
+    void resize(size_t count) { resize(count, '\0'); }
+
     inline size_t size() const { return m_size; }
     inline size_t length() const { return m_size; }
     inline bool empty() const { return size() == 0; }
@@ -307,6 +317,16 @@ bool operator==(const std::basic_string<CharT, Traits, Allocator>& a, const std:
         return false;
     }
     return Traits::compare(a.c_str(), b.c_str(), a.size()) == 0;
+}
+
+template <class CharT, class Traits, class Allocator>
+bool operator<(const std::basic_string<CharT, Traits, Allocator>& a, const std::basic_string<CharT, Traits, Allocator>& b)
+{
+    int eq = Traits::compare(a.c_str(), b.c_str(), std::min(a.size(), b.size()));
+    if (!eq) {
+        return eq == -1;
+    }
+    return a.size() < b.size();
 }
 
 _LIBCXX_END_NAMESPACE_STD

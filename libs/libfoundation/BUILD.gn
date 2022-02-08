@@ -6,6 +6,8 @@ opuntiaOS_static_library("libfoundation") {
     "src/Logger.cpp",
     "src/ProcessInfo.cpp",
     "src/compress/puff.c",
+    "src/json/Lexer.cpp",
+    "src/json/Parser.cpp",
   ]
 
   deplibs = [ "libcxx" ]

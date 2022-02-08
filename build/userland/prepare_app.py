@@ -27,8 +27,8 @@ def write_config(config, outpath):
     config_file = open(outpath+"/info.json", "w")
 
     config['name'] = app_name
+    config['bundle_id'] = "com.opuntia.{0}".format(app_name)
 
-    config_file.write("bundle_id: com.opuntia.{0}\n".format(app_name))
     print_json(config_file, config)
     config_file.close()
 

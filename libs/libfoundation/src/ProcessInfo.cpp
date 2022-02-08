@@ -10,6 +10,7 @@
 #include <iostream>
 #include <libfoundation/Logger.h>
 #include <libfoundation/ProcessInfo.h>
+#include <libfoundation/json/Parser.h>
 #include <memory>
 #include <unistd.h>
 
@@ -78,15 +79,14 @@ void ProcessInfo::parse_info_file()
     }
     memcpy(&execpath[start], "info.json", sizeof("info.json") + 1);
 
-    fd = open(execpath, O_RDONLY);
-    if (fd <= 0) {
+    auto json_parser = LFoundation::Json::Parser(execpath);
+    LFoundation::Json::Object* jobj_root = json_parser.object();
+    if (jobj_root->invalid()) {
         return;
     }
-    rd = read(fd, infofile, sizeof(infofile));
-    close(fd);
 
-    sscanf(infofile, "bundle_id: %s", bundleid);
-    m_bundle_id = std::string(bundleid);
+    auto* jdict_root = jobj_root->cast_to<LFoundation::Json::DictObject>();
+    m_bundle_id = jdict_root->data()["bundle_id"]->cast_to<LFoundation::Json::StringObject>()->data();
 }
 
 } // namespace LFoundation
