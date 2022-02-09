@@ -28,7 +28,7 @@ EventLoop::EventLoop()
 
 void EventLoop::check_fds()
 {
-    if (m_waiting_fds.size() == 0) {
+    if (m_waiting_fds.empty()) {
         return;
     }
     fd_set_t readfds;

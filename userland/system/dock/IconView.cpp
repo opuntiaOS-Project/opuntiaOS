@@ -43,7 +43,7 @@ void IconView::display(const LG::Rect& rect)
 
 void IconView::on_click()
 {
-    if (entity().windows().size() == 0) {
+    if (entity().windows().empty()) {
         launch();
         return;
     } else {
