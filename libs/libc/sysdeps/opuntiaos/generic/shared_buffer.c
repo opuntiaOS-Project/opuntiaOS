@@ -1,4 +1,4 @@
-#include <sys/shared_buffer.h>
+#include <opuntia/shared_buffer.h>
 #include <sysdep.h>
 
 int shared_buffer_create(uint8_t** buffer, size_t size)
