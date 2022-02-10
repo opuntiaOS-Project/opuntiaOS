@@ -15,9 +15,12 @@
 
 struct procfs_files {
     char* name;
+    void* data;
     mode_t mode;
     const file_ops_t* ops;
     uint32_t (*inode_index)(int);
+    void* extra1;
+    void* extra2;
 };
 typedef struct procfs_files procfs_files_t;
 
@@ -55,9 +58,19 @@ int procfs_mount();
 
 uint32_t procfs_root_get_pid_from_inode_index(uint32_t inode_index);
 
-static inline uint32_t procfs_get_inode_index(const uint32_t level, uint32_t main)
+static inline ino_t procfs_inode_get_index(uint32_t level, uint32_t main)
 {
     return (level << 28) | (main & 0x0fffffff);
+}
+
+static inline uint32_t procfs_inode_get_level(ino_t inode_indx)
+{
+    return (inode_indx >> 28);
+}
+
+static inline uint32_t procfs_inode_get_body(ino_t inode_indx)
+{
+    return (inode_indx & 0x0fffffff);
 }
 
 #endif // _KERNEL_FS_PROCFS_PROCFS_H

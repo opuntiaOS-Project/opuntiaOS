@@ -22,6 +22,7 @@
 #define PROCFS_ROOT_LEVEL 1
 
 extern const file_ops_t procfs_pid_ops;
+extern const file_ops_t procfs_sys_ops;
 
 static uint32_t procfs_root_sfiles_get_inode_index(int fileid);
 static uint32_t procfs_root_self_get_inode_index(int fileid);
@@ -69,6 +70,7 @@ static const procfs_files_t static_procfs_files[] = {
     { .name = "uptime", .mode = 0444, .ops = &procfs_root_uptime_ops, .inode_index = procfs_root_sfiles_get_inode_index },
     { .name = "meminfo", .mode = 0444, .ops = &procfs_root_meminfo_ops, .inode_index = procfs_root_sfiles_get_inode_index },
     { .name = "self", .mode = S_IFDIR | 0444, .ops = &procfs_pid_ops, .inode_index = procfs_root_self_get_inode_index },
+    { .name = "sys", .mode = S_IFDIR | 0444, .ops = &procfs_sys_ops, .inode_index = procfs_root_self_get_inode_index },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
 
@@ -78,12 +80,12 @@ static const procfs_files_t static_procfs_files[] = {
 
 static uint32_t procfs_root_sfiles_get_inode_index(int fileid)
 {
-    return procfs_get_inode_index(PROCFS_ROOT_LEVEL, fileid);
+    return procfs_inode_get_index(PROCFS_ROOT_LEVEL, fileid);
 }
 
 static uint32_t procfs_root_self_get_inode_index(int fileid)
 {
-    return procfs_get_inode_index(PROCFS_ROOT_LEVEL, RUNNING_THREAD->process->pid + PROCFS_STATIC_FILES_COUNT_AT_LEVEL);
+    return procfs_inode_get_index(PROCFS_ROOT_LEVEL, RUNNING_THREAD->process->pid + PROCFS_STATIC_FILES_COUNT_AT_LEVEL);
 }
 
 uint32_t procfs_root_get_pid_from_inode_index(uint32_t inode_index)
@@ -93,7 +95,7 @@ uint32_t procfs_root_get_pid_from_inode_index(uint32_t inode_index)
 
 static uint32_t procfs_root_pid_get_inode_index(int procid)
 {
-    return procfs_get_inode_index(PROCFS_ROOT_LEVEL, procid + PROCFS_STATIC_FILES_COUNT_AT_LEVEL);
+    return procfs_inode_get_index(PROCFS_ROOT_LEVEL, procid + PROCFS_STATIC_FILES_COUNT_AT_LEVEL);
 }
 
 /**

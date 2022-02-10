@@ -75,7 +75,7 @@ static uint32_t procfs_pid_sfiles_get_inode_index(dentry_t* dir, int fileid)
 {
     uint32_t owner_pid = procfs_root_get_pid_from_inode_index(dir->inode_indx);
     uint32_t body = (owner_pid << 18) | (fileid & 0x3ffff);
-    return procfs_get_inode_index(PROCFS_PID_LEVEL, body);
+    return procfs_inode_get_index(PROCFS_PID_LEVEL, body);
 }
 
 /**
