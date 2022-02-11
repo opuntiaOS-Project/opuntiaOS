@@ -15,10 +15,12 @@
 #include <platform/generic/system.h>
 #include <platform/generic/tasking/trapframe.h>
 
-#define ASSERT(x)                                              \
-    if (unlikely(!(x))) {                                      \
-        log("kassert at line %d in %s\n", __LINE__, __FILE__); \
-        system_stop();                                         \
+#define ASSERT(x)                                                                                        \
+    if (unlikely(!(x))) {                                                                                \
+        log("Kernel assertion failed: %s, function %s, file %s:%d\n", #x, __func__, __FILE__, __LINE__); \
+        extern int dump_kernel(const char* err);                                                         \
+        dump_kernel(NULL);                                                                               \
+        system_stop();                                                                                   \
     }
 
 void kpanic(const char* msg) NORETURN;
