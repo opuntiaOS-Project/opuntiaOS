@@ -25,10 +25,7 @@ extern const file_ops_t procfs_root_ops;
 int procfs_read_inode(dentry_t* dentry)
 {
     if (dentry->inode_indx != 2) {
-#ifdef PROCFS_DEBUG
-        log_warn("NOT ROOT ENTRY ID READ IN PROCFS");
-#endif
-        return -1;
+        ASSERT("NOT ROOT ENTRY ID READ IN PROCFS");
     }
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
     memset((void*)procfs_inode, 0, sizeof(procfs_inode_t));
