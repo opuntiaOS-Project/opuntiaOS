@@ -48,6 +48,8 @@ void sys_rmdir(trapframe_t* tf);
 void sys_unlink(trapframe_t* tf);
 void sys_mmap(trapframe_t* tf);
 void sys_munmap(trapframe_t* tf);
+void sys_dup(trapframe_t* tf);
+void sys_dup2(trapframe_t* tf);
 void sys_socket(trapframe_t* tf);
 void sys_bind(trapframe_t* tf);
 void sys_connect(trapframe_t* tf);

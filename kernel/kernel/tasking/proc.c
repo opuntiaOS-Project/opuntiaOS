@@ -38,6 +38,7 @@ static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path);
 
 static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p);
 static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t index);
+static ALWAYS_INLINE int proc_is_fd_opened_lockless(file_descriptor_t* fd);
 
 /**
  * THREAD STORAGE
@@ -245,19 +246,9 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
 
     if (from_proc->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
-            if (from_proc->fds[i].dentry) {
+            if (proc_is_fd_opened_lockless(&from_proc->fds[i])) {
                 file_descriptor_t* fd = &new_proc->fds[i];
-                if (from_proc->fds[i].type == FD_TYPE_FILE) {
-                    vfs_open(from_proc->fds[i].dentry, fd, from_proc->fds[i].flags);
-                }
-                if (from_proc->fds[i].type == FD_TYPE_SOCKET) {
-                    fd->type = FD_TYPE_SOCKET;
-                    fd->sock_entry = socket_duplicate(from_proc->fds[i].sock_entry);
-                    fd->offset = from_proc->fds[i].offset;
-                    fd->flags = from_proc->fds[i].flags;
-                    fd->ops = from_proc->fds[i].ops;
-                    lock_init(&fd->lock);
-                }
+                proc_copy_fd(&from_proc->fds[i], fd);
             }
         }
     }
@@ -414,7 +405,7 @@ int proc_free_lockless(proc_t* p)
     /* closing opend fds */
     if (p->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
-            if (p->fds[i].dentry) {
+            if (proc_is_fd_opened_lockless(&p->fds[i])) {
                 /* think as an active fd */
                 vfs_close(&p->fds[i]);
             }
@@ -574,12 +565,18 @@ int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
     return -1;
 }
 
+static ALWAYS_INLINE int proc_is_fd_opened_lockless(file_descriptor_t* fd)
+{
+    return fd->dentry != NULL;
+}
+
 static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p)
 {
     ASSERT(p->fds);
 
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
-        if (!p->fds[i].dentry) {
+        if (!proc_is_fd_opened_lockless(&p->fds[i])) {
+            lock_init(&p->fds[i].lock);
             return &p->fds[i];
         }
     }
@@ -603,7 +600,7 @@ static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t
         return NULL;
     }
 
-    if (!p->fds[index].dentry) {
+    if (!proc_is_fd_opened_lockless(&p->fds[index])) {
         return NULL;
     }
 
@@ -616,4 +613,31 @@ file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
     file_descriptor_t* res = proc_get_fd_lockless(p, index);
     lock_release(&p->lock);
     return res;
+}
+
+int proc_copy_fd(file_descriptor_t* oldfd, file_descriptor_t* newfd)
+{
+    lock_acquire(&oldfd->lock);
+    if (oldfd->type == FD_TYPE_FILE) {
+        newfd->type = FD_TYPE_FILE;
+        newfd->dentry = dentry_duplicate(oldfd->dentry);
+        newfd->offset = oldfd->offset;
+        newfd->flags = oldfd->flags;
+        newfd->ops = oldfd->ops;
+        lock_init(&newfd->lock);
+        lock_release(&oldfd->lock);
+        return 0;
+    } else if (oldfd->type == FD_TYPE_SOCKET) {
+        newfd->type = FD_TYPE_SOCKET;
+        newfd->sock_entry = socket_duplicate(oldfd->sock_entry);
+        newfd->offset = oldfd->offset;
+        newfd->flags = oldfd->flags;
+        newfd->ops = oldfd->ops;
+        lock_init(&newfd->lock);
+        lock_release(&oldfd->lock);
+        return 0;
+    }
+
+    lock_release(&oldfd->lock);
+    return -1;
 }

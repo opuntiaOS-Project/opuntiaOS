@@ -12,8 +12,6 @@ __BEGIN_DECLS
 int fork();
 int execve(const char* path, char** argv, char** env);
 int execvpe(const char* path, char** argv, char** env);
-int wait(int pid);
-int waitpid(int pid, int* status);
 pid_t getpid();
 int setpgid(pid_t cmd, pid_t arg);
 pid_t getpgid(pid_t arg);
@@ -23,6 +21,8 @@ uint32_t sleep(uint32_t seconds);
 int close(int fd);
 ssize_t read(int fd, char* buf, size_t count);
 ssize_t write(int fd, const void* buf, size_t count);
+int dup(int oldfd);
+int dup2(int oldfd, int newfd);
 int rmdir(const char* path);
 int chdir(const char* path);
 int unlink(const char* path);

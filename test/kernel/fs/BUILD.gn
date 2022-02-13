@@ -6,6 +6,7 @@ group("fs") {
   deps = [
     "//test/kernel/fs/cwd:cwd",
     "//test/kernel/fs/dirfile:dirfile",
+    "//test/kernel/fs/dup:dup",
     "//test/kernel/fs/fourfiles:fourfiles",
     "//test/kernel/fs/procfs:procfs",
   ]

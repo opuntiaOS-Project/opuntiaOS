@@ -1,6 +1,7 @@
 #include "common.h"
 #include <cstdio>
 #include <cstdlib>
+#include <sys/wait.h>
 #include <unistd.h>
 
 char* bench_name;

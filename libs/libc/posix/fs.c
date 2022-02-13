@@ -33,6 +33,18 @@ ssize_t write(int fd, const void* buf, size_t count)
     return (ssize_t)DO_SYSCALL_3(SYS_WRITE, fd, buf, count);
 }
 
+int dup(int oldfd)
+{
+    int res = DO_SYSCALL_1(SYS_DUP, oldfd);
+    RETURN_WITH_ERRNO(res, res, -1);
+}
+
+int dup2(int oldfd, int newfd)
+{
+    int res = DO_SYSCALL_2(SYS_DUP2, oldfd, newfd);
+    RETURN_WITH_ERRNO(res, res, -1);
+}
+
 off_t lseek(int fd, off_t off, int whence)
 {
     return (off_t)DO_SYSCALL_3(SYS_LSEEK, fd, off, whence);

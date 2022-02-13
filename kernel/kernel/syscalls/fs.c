@@ -399,3 +399,43 @@ void sys_munmap(trapframe_t* tf)
     // TODO: Split or remove zone
     return_with_val(0);
 }
+
+void sys_dup(trapframe_t* tf)
+{
+    proc_t* p = RUNNING_THREAD->process;
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
+    if (!fd) {
+        return_with_val(-EBADF);
+    }
+
+    file_descriptor_t* newfd = proc_get_free_fd(p);
+    if (!newfd) {
+        return_with_val(-EBADF);
+    }
+
+    int err = proc_copy_fd(fd, newfd);
+    ASSERT(!err);
+
+    log("New fd at dup is %d", proc_get_fd_id(p, newfd));
+
+    return_with_val(proc_get_fd_id(p, newfd));
+}
+
+void sys_dup2(trapframe_t* tf)
+{
+    proc_t* p = RUNNING_THREAD->process;
+    file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
+    if (!fd) {
+        return_with_val(-EBADF);
+    }
+
+    file_descriptor_t* newfd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR2(tf));
+    if (!newfd) {
+        return_with_val(-EBADF);
+    }
+
+    int err = proc_copy_fd(fd, newfd);
+    ASSERT(!err);
+
+    return_with_val(proc_get_fd_id(p, newfd));
+}

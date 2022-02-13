@@ -466,13 +466,16 @@ int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
     }
 
     // For drives we set MAJOR=0 and MINOR=drive's id.
-    stat->dev = MKDEV(0, fd->dentry->dev_indx);
-    stat->ino = fd->dentry->inode_indx;
-    stat->mode = fd->dentry->inode->mode;
-    stat->size = fd->dentry->inode->size;
+    fstat_t kstat = { 0 };
+
+    kstat.dev = MKDEV(0, fd->dentry->dev_indx);
+    kstat.ino = fd->dentry->inode_indx;
+    kstat.mode = fd->dentry->inode->mode;
+    kstat.size = fd->dentry->inode->size;
     // TODO: Fill more stat data here.
 
     lock_release(&fd->lock);
+    vmm_copy_to_user(stat, &kstat, sizeof(fstat_t));
     return 0;
 }
 
