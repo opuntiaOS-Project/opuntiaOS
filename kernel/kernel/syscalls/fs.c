@@ -416,8 +416,6 @@ void sys_dup(trapframe_t* tf)
     int err = proc_copy_fd(fd, newfd);
     ASSERT(!err);
 
-    log("New fd at dup is %d", proc_get_fd_id(p, newfd));
-
     return_with_val(proc_get_fd_id(p, newfd));
 }
 

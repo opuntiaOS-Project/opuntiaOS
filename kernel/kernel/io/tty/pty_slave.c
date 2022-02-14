@@ -24,21 +24,21 @@ static pty_slave_entry_t* _pts_get(dentry_t* dentry)
     return NULL;
 }
 
-bool pty_slave_can_read(dentry_t* dentry, uint32_t start)
+bool pty_slave_can_read(dentry_t* dentry, size_t start)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
     return sync_ringbuffer_space_to_read(&pts->buffer) >= 1;
 }
 
-bool pty_slave_can_write(dentry_t* dentry, uint32_t start)
+bool pty_slave_can_write(dentry_t* dentry, size_t start)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
     return sync_ringbuffer_space_to_write(&pts->ptm->buffer) >= 0;
 }
 
-int pty_slave_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int pty_slave_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
@@ -50,7 +50,7 @@ int pty_slave_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return leno;
 }
 
-int pty_slave_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int pty_slave_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);

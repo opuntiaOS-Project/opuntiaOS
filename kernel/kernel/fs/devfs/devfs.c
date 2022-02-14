@@ -429,7 +429,7 @@ int devfs_open(dentry_t* dentry, file_descriptor_t* fd, uint32_t flags)
     return -ENOEXEC;
 }
 
-int devfs_can_read(dentry_t* dentry, uint32_t start)
+int devfs_can_read(dentry_t* dentry, size_t start)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers->can_read) {
@@ -438,7 +438,7 @@ int devfs_can_read(dentry_t* dentry, uint32_t start)
     return true;
 }
 
-int devfs_can_write(dentry_t* dentry, uint32_t start)
+int devfs_can_write(dentry_t* dentry, size_t start)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers->can_write) {
@@ -447,7 +447,7 @@ int devfs_can_write(dentry_t* dentry, uint32_t start)
     return true;
 }
 
-int devfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int devfs_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers->read) {
@@ -456,7 +456,7 @@ int devfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return -EFAULT;
 }
 
-int devfs_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int devfs_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers->write) {

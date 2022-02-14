@@ -24,10 +24,10 @@
 pty_master_entry_t pty_masters[PTYS_COUNT];
 
 int _pty_master_free_dentry_data(dentry_t* dentry);
-bool pty_master_can_read(dentry_t* dentry, uint32_t start);
-bool pty_master_can_write(dentry_t* dentry, uint32_t start);
-int pty_master_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
-int pty_master_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+bool pty_master_can_read(dentry_t* dentry, size_t start);
+bool pty_master_can_write(dentry_t* dentry, size_t start);
+int pty_master_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+int pty_master_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
 int pty_master_fstat(dentry_t* dentry, fstat_t* stat);
 
 static fs_ops_t pty_master_ops = {
@@ -77,21 +77,21 @@ int _pty_master_free_dentry_data(dentry_t* dentry)
     return 0;
 }
 
-bool pty_master_can_read(dentry_t* dentry, uint32_t start)
+bool pty_master_can_read(dentry_t* dentry, size_t start)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
     return sync_ringbuffer_space_to_read(&ptm->buffer) >= 1;
 }
 
-bool pty_master_can_write(dentry_t* dentry, uint32_t start)
+bool pty_master_can_write(dentry_t* dentry, size_t start)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
     return sync_ringbuffer_space_to_write(&ptm->pts->buffer) >= 0;
 }
 
-int pty_master_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int pty_master_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
@@ -103,7 +103,7 @@ int pty_master_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len
     return leno;
 }
 
-int pty_master_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int pty_master_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);

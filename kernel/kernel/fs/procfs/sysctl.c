@@ -26,8 +26,8 @@ int procfs_sys_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len);
 int procfs_sys_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
-static bool procfs_sys_doint_can_read(dentry_t* dentry, uint32_t start);
-static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+static bool procfs_sys_doint_can_read(dentry_t* dentry, size_t start);
+static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
 
 /**
  * DATA
@@ -135,12 +135,12 @@ int procfs_sys_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** re
  * FILES
  */
 
-static bool procfs_sys_doint_can_read(dentry_t* dentry, uint32_t start)
+static bool procfs_sys_doint_can_read(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     int* data = procfs_sys_get_sfile(dentry)->data;
 

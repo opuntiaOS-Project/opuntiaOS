@@ -132,8 +132,8 @@ void prefetch_abort_handler(trapframe_t* tf)
     uint32_t info = read_ifsr();
     uint32_t is_pl0 = read_spsr() & 0xf; // See CPSR M field values
     info |= ((is_pl0 != 0) << 31); // Set the 31bit as type
-    int res = vmm_page_fault_handler(info, fault_addr);
-    if (res == SHOULD_CRASH) {
+    int err = vmm_page_fault_handler(info, fault_addr);
+    if (err) {
         if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
             snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, prefetch_abort_handler", tf->user_ip);
             kpanic_tf(err_buf, tf);
@@ -157,7 +157,7 @@ void data_abort_handler(trapframe_t* tf)
     uint32_t is_pl0 = read_spsr() & 0xf; // See CPSR M field values
     info |= ((is_pl0 != 0) << 31); // Set the 31bit as type
     int res = vmm_page_fault_handler(info, fault_addr);
-    if (res == SHOULD_CRASH) {
+    if (res != 0) {
         if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
             snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, data_abort_handler", tf->user_ip);
             kpanic_tf(err_buf, tf);

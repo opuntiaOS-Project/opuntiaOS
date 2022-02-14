@@ -12,24 +12,24 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 
-#define PTY_DEBUG
+// #define PTY_DEBUG
 
-bool ptmx_can_read(dentry_t* dentry, uint32_t start)
+bool ptmx_can_read(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-bool ptmx_can_write(dentry_t* dentry, uint32_t start)
+bool ptmx_can_write(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-int ptmx_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int ptmx_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     return 0;
 }
 
-int ptmx_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int ptmx_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     return 0;
 }

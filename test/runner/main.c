@@ -58,7 +58,7 @@ int main(int argc, char** argv)
                 int pid = fork();
                 if (pid) {
                     int out = 0;
-                    waitpid(pid, &out);
+                    waitpid(pid, &out, 0);
                     if (out != 0) {
                         test_failed((char*)&d->name);
                     } else {

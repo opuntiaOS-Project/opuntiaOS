@@ -132,7 +132,7 @@ void isr_handler(trapframe_t* frame)
 
     case 14:
         res = vmm_page_fault_handler(frame->err, read_cr2());
-        if (res != SHOULD_CRASH)
+        if (res == 0)
             break;
 
         if (proc) {

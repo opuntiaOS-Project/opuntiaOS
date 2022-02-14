@@ -39,13 +39,13 @@ int local_socket_create(int type, int protocol, file_descriptor_t* fd)
     return socket_create(PF_LOCAL, type, protocol, fd, &local_socket_ops);
 }
 
-bool local_socket_can_read(dentry_t* dentry, uint32_t start)
+bool local_socket_can_read(dentry_t* dentry, size_t start)
 {
     socket_t* sock_entry = (socket_t*)dentry;
     return sync_ringbuffer_space_to_read_with_custom_start(&sock_entry->buffer, start) != 0;
 }
 
-int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int local_socket_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
     int read = sync_ringbuffer_read_with_start(&sock_entry->buffer, start, buf, len);
@@ -55,12 +55,12 @@ int local_socket_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t l
 /* Each process has it's own start when reading from a local socket.
    We ignore their offsets and write always, hope all readers could
    read all needed data. */
-bool local_socket_can_write(dentry_t* dentry, uint32_t start)
+bool local_socket_can_write(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-int local_socket_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int local_socket_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
     uint32_t written = sync_ringbuffer_write_ignore_bounds(&sock_entry->buffer, buf, len);

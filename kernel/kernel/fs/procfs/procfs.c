@@ -62,7 +62,7 @@ int procfs_can_read(dentry_t* dentry, uint32_t start)
     return procfs_inode->ops->can_read(dentry, start);
 }
 
-int procfs_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int procfs_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
     if (!procfs_inode->ops->read) {

@@ -51,6 +51,9 @@ int init_join_blocker(thread_t* thread, int wait_for_pid)
 
 int should_unblock_read_block(thread_t* thread)
 {
+    if (!thread->blocker_data.rw.fd->ops->can_read) {
+        return 1;
+    }
     return thread->blocker_data.rw.fd->ops->can_read(thread->blocker_data.rw.fd->dentry, thread->blocker_data.rw.fd->offset);
 }
 
@@ -73,6 +76,9 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 
 int should_unblock_write_block(thread_t* thread)
 {
+    if (!thread->blocker_data.rw.fd->ops->can_write) {
+        return 1;
+    }
     return thread->blocker_data.rw.fd->ops->can_write(thread->blocker_data.rw.fd->dentry, thread->blocker_data.rw.fd->offset);
 }
 

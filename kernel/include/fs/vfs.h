@@ -90,10 +90,10 @@ typedef struct dentry_cache_list dentry_cache_list_t;
 
 struct file_descriptor;
 struct file_ops {
-    bool (*can_read)(dentry_t*, uint32_t start);
-    bool (*can_write)(dentry_t*, uint32_t start);
-    int (*read)(dentry_t*, uint8_t*, uint32_t, uint32_t);
-    int (*write)(dentry_t*, uint8_t*, uint32_t, uint32_t);
+    bool (*can_read)(dentry_t*, size_t start);
+    bool (*can_write)(dentry_t*, size_t start);
+    int (*read)(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+    int (*write)(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
     int (*open)(dentry_t* dentry, struct file_descriptor* fd, uint32_t flags);
     int (*truncate)(dentry_t*, uint32_t);
     int (*create)(dentry_t* dentry, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);

@@ -23,12 +23,12 @@ static ringbuffer_t mouse_buffer;
 
 int mouse_run();
 
-static bool _mouse_can_read(dentry_t* dentry, uint32_t start)
+static bool _mouse_can_read(dentry_t* dentry, size_t start)
 {
     return ringbuffer_space_to_read(&mouse_buffer) >= 1;
 }
 
-static int _mouse_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+static int _mouse_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     uint32_t leno = ringbuffer_space_to_read(&mouse_buffer);
     if (leno > len) {

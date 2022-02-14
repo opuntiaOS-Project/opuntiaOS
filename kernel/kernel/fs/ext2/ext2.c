@@ -96,8 +96,8 @@ int ext2_prepare_fs(vfs_device_t* dev);
 int ext2_save_state(vfs_device_t* dev);
 fsdata_t get_fsdata(dentry_t* dentry);
 
-int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
-int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+int ext2_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+int ext2_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
 int ext2_truncate(dentry_t* dentry, uint32_t len);
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid);
@@ -806,17 +806,17 @@ static int _ext2_setup_file(dentry_t* file, mode_t mode, uid_t uid, gid_t gid)
  * API FUNTIONS
  */
 
-bool ext2_can_read(dentry_t* dentry, uint32_t start)
+bool ext2_can_read(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-bool ext2_can_write(dentry_t* dentry, uint32_t start)
+bool ext2_can_write(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int ext2_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
@@ -846,7 +846,7 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
     return already_read;
 }
 
-int ext2_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int ext2_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);

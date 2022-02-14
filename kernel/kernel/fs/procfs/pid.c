@@ -25,11 +25,11 @@ int procfs_pid_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len);
 int procfs_pid_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
-static bool procfs_pid_memstat_can_read(dentry_t* dentry, uint32_t start);
-static int procfs_pid_memstat_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+static bool procfs_pid_memstat_can_read(dentry_t* dentry, size_t start);
+static int procfs_pid_memstat_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
 
-static bool procfs_pid_exe_can_read(dentry_t* dentry, uint32_t start);
-static int procfs_pid_exe_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len);
+static bool procfs_pid_exe_can_read(dentry_t* dentry, size_t start);
+static int procfs_pid_exe_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
 
 /**
  * DATA
@@ -147,12 +147,12 @@ int procfs_pid_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** re
  * FILES
  */
 
-static bool procfs_pid_memstat_can_read(dentry_t* dentry, uint32_t start)
+static bool procfs_pid_memstat_can_read(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-static int procfs_pid_memstat_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+static int procfs_pid_memstat_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     if (start == 12) {
         return 0;
@@ -165,12 +165,12 @@ static int procfs_pid_memstat_read(dentry_t* dentry, uint8_t* buf, uint32_t star
     return 12;
 }
 
-static bool procfs_pid_exe_can_read(dentry_t* dentry, uint32_t start)
+static bool procfs_pid_exe_can_read(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-static int procfs_pid_exe_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+static int procfs_pid_exe_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     int pid = procfs_pid_get_pid_from_inode_index(dentry->inode_indx);
     thread_t* th = thread_by_pid(pid);

@@ -28,13 +28,12 @@ struct alternative_key {
     key_t new;
 };
 
-static bool _generic_keyboard_can_read(dentry_t* dentry, uint32_t start)
+static bool _generic_keyboard_can_read(dentry_t* dentry, size_t start)
 {
     return ringbuffer_space_to_read(&gkeyboard_buffer) >= 1;
 }
 
-static int _generic_keyboard_read(dentry_t* dentry, uint8_t* buf,
-    uint32_t start, uint32_t len)
+static int _generic_keyboard_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     uint32_t read_len;
 

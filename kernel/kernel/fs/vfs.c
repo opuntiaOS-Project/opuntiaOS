@@ -385,6 +385,11 @@ bool vfs_can_write(file_descriptor_t* fd)
 int vfs_read(file_descriptor_t* fd, void* buf, size_t len)
 {
     lock_acquire(&fd->lock);
+    if (!fd->ops->read) {
+        lock_release(&fd->lock);
+        return 0;
+    }
+
     int read = fd->ops->read(fd->dentry, (uint8_t*)buf, fd->offset, len);
     if (read > 0) {
         fd->offset += read;
@@ -396,6 +401,11 @@ int vfs_read(file_descriptor_t* fd, void* buf, size_t len)
 int vfs_write(file_descriptor_t* fd, void* buf, size_t len)
 {
     lock_acquire(&fd->lock);
+    if (!fd->ops->write) {
+        lock_release(&fd->lock);
+        return 0;
+    }
+
     int written = fd->ops->write(fd->dentry, (uint8_t*)buf, fd->offset, len);
     if (written > 0) {
         fd->offset += written;

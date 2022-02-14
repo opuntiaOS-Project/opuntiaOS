@@ -45,7 +45,7 @@ inline static tty_entry_t* _tty_active()
     return active_tty;
 }
 
-bool tty_can_read(dentry_t* dentry, uint32_t start)
+bool tty_can_read(dentry_t* dentry, size_t start)
 {
     tty_entry_t* tty = _tty_get(dentry);
     if (tty->termios.c_lflag & ICANON) {
@@ -54,12 +54,12 @@ bool tty_can_read(dentry_t* dentry, uint32_t start)
     return sync_ringbuffer_space_to_read(&tty->buffer) >= 1;
 }
 
-bool tty_can_write(dentry_t* dentry, uint32_t start)
+bool tty_can_write(dentry_t* dentry, size_t start)
 {
     return true;
 }
 
-int tty_read(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int tty_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     tty_entry_t* tty = _tty_get(dentry);
     uint32_t leno = sync_ringbuffer_space_to_read(&tty->buffer);
@@ -118,7 +118,7 @@ int _tty_process_esc_seq(uint8_t* buf)
     return 0;
 }
 
-int tty_write(dentry_t* dentry, uint8_t* buf, uint32_t start, uint32_t len)
+int tty_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
 #ifdef TTY_DEBUG_TIME
     time_t cur_time = timeman_now();
