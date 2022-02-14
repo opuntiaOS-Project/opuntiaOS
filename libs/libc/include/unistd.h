@@ -25,6 +25,7 @@ int dup(int oldfd);
 int dup2(int oldfd, int newfd);
 int rmdir(const char* path);
 int chdir(const char* path);
+char* getcwd(char* buf, size_t size);
 int unlink(const char* path);
 off_t lseek(int fd, off_t off, int whence);
 

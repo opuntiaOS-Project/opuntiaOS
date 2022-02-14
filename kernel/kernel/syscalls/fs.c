@@ -264,6 +264,23 @@ void sys_chdir(trapframe_t* tf)
     return_with_val(proc_chdir(RUNNING_THREAD->process, path));
 }
 
+void sys_getcwd(trapframe_t* tf)
+{
+    proc_t* p = RUNNING_THREAD->process;
+    char* buf = (char*)SYSCALL_VAR1(tf);
+    size_t len = (size_t)SYSCALL_VAR2(tf);
+
+    int req_len = vfs_get_absolute_path(p->cwd, NULL, 0);
+    if (len < req_len) {
+        return_with_val(-EFAULT);
+    }
+
+    char* kbuf = (char*)kmalloc(req_len + 1);
+    req_len = vfs_get_absolute_path(p->cwd, (char*)kbuf, req_len);
+    vmm_copy_to_user(buf, kbuf, req_len + 1);
+    return_with_val(0);
+}
+
 void sys_getdents(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;

@@ -68,6 +68,12 @@ int chdir(const char* path)
     RETURN_WITH_ERRNO(res, 0, -1);
 }
 
+char* getcwd(char* buf, size_t size)
+{
+    int res = DO_SYSCALL_2(SYS_GETCWD, buf, size);
+    RETURN_WITH_ERRNO(res, buf, NULL);
+}
+
 int unlink(const char* path)
 {
     int res = DO_SYSCALL_1(SYS_UNLINK, path);
