@@ -45,6 +45,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    execvpe(argv[1], &argv[2], envp);
+    execvpe(argv[1], &argv[1], envp);
     return 0;
 }

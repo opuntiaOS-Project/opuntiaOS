@@ -318,7 +318,7 @@ int tasking_exec(const char* path, const char** argv, const char** envp)
     thread_t* thread = RUNNING_THREAD;
     proc_t* p = RUNNING_THREAD->process;
     char* kpath = NULL;
-    int kargc = 1;
+    int kargc = 0;
     char** kargv = NULL;
     int kenvc = 0;
     char** kenv = NULL;
@@ -332,7 +332,6 @@ int tasking_exec(const char* path, const char** argv, const char** envp)
     if (err) {
         goto exit;
     }
-    kargv[0] = kpath;
 
     err = _tasking_validate_exec_params(envp, &kenvc, &kenv);
     if (err) {
@@ -340,7 +339,6 @@ int tasking_exec(const char* path, const char** argv, const char** envp)
     }
 
     err = _tasking_do_exec(p, thread, kpath, kargc, kargv, kenvc, kenv);
-
     if (err) {
         goto exit;
     }
@@ -359,7 +357,7 @@ exit:
         kfree(kpath);
     }
     if (kargv) {
-        for (int argi = 1; argi < kargc; argi++) {
+        for (int argi = 0; argi < kargc; argi++) {
             kfree(kargv[argi]);
         }
         kfree(kargv);

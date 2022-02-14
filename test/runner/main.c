@@ -38,6 +38,8 @@ int main(int argc, char** argv)
     struct linux_dirent* d;
     int bpos;
 
+    setenv("PATH", "/bin:/usr/bin:/test_bin", 1);
+
     fd = open("/test_bin", O_RDONLY | O_DIRECTORY);
     if (fd < 0) {
         test_failed("can't open /test_bin\n");
@@ -68,7 +70,7 @@ int main(int argc, char** argv)
                     setuid(10);
                     setgid(10);
                     sprintf(namebuf, "/test_bin/%s", (char*)&d->name);
-                    execve(namebuf, 0, 0);
+                    execlp(namebuf, namebuf, NULL);
                     exit(0);
                 }
             }

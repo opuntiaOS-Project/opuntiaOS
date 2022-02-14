@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,13 +11,13 @@ int fork()
     RETURN_WITH_ERRNO(res, res, -1);
 }
 
-int execve(const char* path, char** argv, char** env)
+int execve(const char* path, char* const argv[], char* const envp[])
 {
-    int res = DO_SYSCALL_3(SYS_EXECVE, (int)path, (int)argv, (int)env);
+    int res = DO_SYSCALL_3(SYS_EXECVE, (int)path, (int)argv, (int)envp);
     RETURN_WITH_ERRNO(res, -1, -1);
 }
 
-int execvpe(const char* path, char** argv, char** envp)
+int execvpe(const char* path, char* const argv[], char* const envp[])
 {
     if (strchr(path, '/')) {
         return execve(path, argv, envp);
@@ -50,6 +51,31 @@ int execvpe(const char* path, char** argv, char** envp)
 
     free(full_path);
     return -ENOENT;
+}
+
+int execvp(const char* path, char* const argv[])
+{
+    return execvpe(path, argv, environ);
+}
+
+int execlp(const char* path, const char* arg0, ...)
+{
+    const char* args[16];
+    int nxt = 0;
+    args[nxt++] = arg0;
+
+    va_list va;
+    va_start(va, arg0);
+    for (;;) {
+        const char* arg = va_arg(va, const char*);
+        if (!arg) {
+            break;
+        }
+        args[nxt++] = arg;
+    }
+    va_end(va);
+    args[nxt++] = NULL;
+    return execvpe(path, (char* const*)args, environ);
 }
 
 int wait(int pid)

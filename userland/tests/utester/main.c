@@ -12,6 +12,7 @@ void exectest(void)
     int i, pid;
 
     char* paramscat[] = {
+        "/bin/cat",
         "../readme",
         "../readme",
         (char*)0,

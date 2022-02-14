@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -51,9 +52,9 @@ int runentry_add(const launchentry_t* launchentry, pid_t pid)
 
 int launch(const launchentry_t* launchentry)
 {
-    pid_t pid = fork();
+    int pid = fork();
     if (pid == 0) {
-        execve(launchentry->path, NULL, NULL);
+        execlp(launchentry->path, launchentry->path, NULL);
         exit(1);
     }
 

@@ -63,7 +63,7 @@ public:
                 close(i);
             }
 
-            execve(path, nullptr, nullptr);
+            execlp(path, path, NULL);
             std::abort();
         }
         return pid;

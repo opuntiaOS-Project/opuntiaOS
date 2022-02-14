@@ -21,12 +21,8 @@ int main(int argc, char** argv)
         TestErr("Loop while executing test.");
     }
 
-    char* argvs[] = {
-        "loop"
-    };
-
     setenv("OSTEST", "1", 1);
     setenv("GO", "go", 1);
-    execve(argv[0], argvs, environ);
+    execlp(argv[0], argv[0], "loop", NULL);
     return 1;
 }

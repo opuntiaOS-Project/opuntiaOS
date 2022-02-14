@@ -36,7 +36,7 @@ private:
     void launch()
     {
         if (fork() == 0) {
-            execve(m_launch_entity.path_to_exec().c_str(), 0, 0);
+            execlp(m_launch_entity.path_to_exec().c_str(), m_launch_entity.path_to_exec().c_str(), NULL);
             std::abort();
         }
     }

@@ -8,10 +8,16 @@
 
 __BEGIN_DECLS
 
+#define STDIN_FILENO 0 // Standard input file descriptor
+#define STDOUT_FILENO 1 // Standard output file descriptor
+#define STDERR_FILENO 2 // Standard error file descriptor
+
 /* tasking */
 int fork();
-int execve(const char* path, char** argv, char** env);
-int execvpe(const char* path, char** argv, char** env);
+int execve(const char* path, char* const argv[], char* const envp[]);
+int execvpe(const char* path, char* const argv[], char* const envp[]);
+int execvp(const char* path, char* const argv[]);
+int execlp(const char* path, const char* arg0, ...);
 pid_t getpid();
 int setpgid(pid_t cmd, pid_t arg);
 pid_t getpgid(pid_t arg);

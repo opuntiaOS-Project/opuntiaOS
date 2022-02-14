@@ -32,7 +32,7 @@ private:
     void launch(const std::string& path_to_exec)
     {
         if (fork() == 0) {
-            execve(path_to_exec.c_str(), 0, 0);
+            execlp(path_to_exec.c_str(), path_to_exec.c_str(), NULL);
             std::abort();
         }
     }

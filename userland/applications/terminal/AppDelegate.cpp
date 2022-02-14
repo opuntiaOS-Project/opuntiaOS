@@ -24,7 +24,8 @@ int setup_shell()
         open(pname, O_RDONLY);
         open(pname, O_WRONLY);
         open(pname, O_WRONLY);
-        execve("/bin/onesh", 0, 0);
+        execlp("/bin/onesh", "/bin/onesh", NULL);
+        std::abort();
     }
 
     shell_pid = f;
