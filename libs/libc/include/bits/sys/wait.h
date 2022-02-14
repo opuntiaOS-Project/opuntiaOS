@@ -1,0 +1,7 @@
+#ifndef _LIBC_BITS_SYS_WAIT_H
+#define _LIBC_BITS_SYS_WAIT_H
+
+#define WNOHANG 0x1
+#define WUNTRACED 0x2
+
+#endif // _LIBC_BITS_SYS_WAIT_H

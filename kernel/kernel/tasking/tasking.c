@@ -11,6 +11,7 @@
 #endif
 #include <io/tty/tty.h>
 #include <libkern/bits/errno.h>
+#include <libkern/bits/sys/wait.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
@@ -373,7 +374,7 @@ exit:
     return err;
 }
 
-int tasking_waitpid(int pid, int* status)
+int tasking_waitpid(int pid, int* status, int options)
 {
     thread_t* thread = RUNNING_THREAD;
     proc_t* p = tasking_get_proc(pid);
@@ -381,7 +382,9 @@ int tasking_waitpid(int pid, int* status)
         return -ESRCH;
     }
 
-    init_join_blocker(thread, pid);
+    if (!TEST_FLAG(options, WNOHANG)) {
+        init_join_blocker(thread, pid);
+    }
 
     if (status) {
         proc_t* p = tasking_get_proc(pid);

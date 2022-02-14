@@ -63,7 +63,7 @@ pid_t tasking_get_proc_count();
 void tasking_fork();
 int tasking_exec(const char* path, const char** argv, const char** env);
 void tasking_exit(int exit_code);
-int tasking_waitpid(int pid, int* status);
+int tasking_waitpid(int pid, int* status, int options);
 int tasking_signal(thread_t* thread, int signo);
 
 /**
