@@ -35,6 +35,9 @@ uintptr_t kernel_ptables_start_paddr = 0x0;
  * PRIVATE FUNCTIONS
  */
 
+static int _vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv);
+static int _vmm_free_ptable(uintptr_t vaddr, struct dynamic_array* zones);
+
 inline static pdirectory_t* _vmm_ensure_active_pdir();
 inline static ptable_t* _vmm_ensure_active_ptable(size_t vaddr);
 inline static void _vmm_release_active_ptable(size_t vaddr);
@@ -52,8 +55,8 @@ inline static page_desc_t* _vmm_ptable_lookup(ptable_t* ptable, uintptr_t addr);
 
 static bool _vmm_is_copy_on_write(uintptr_t vaddr);
 static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr);
-static void _vmm_ensure_cow_for_page(uintptr_t vaddr);
-static void _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length);
+static int _vmm_ensure_cow_for_page(uintptr_t vaddr);
+static int _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length);
 static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* src_ptable, int page_index);
 
 #ifdef ZEROING_ON_DEMAND
@@ -281,10 +284,10 @@ static inline void _vmm_table_desc_init_from_allocated_state(table_desc_t* ptabl
  * It may allocate several tables to cover the full page. For example,
  * it allocates 4 tables for arm (ptable -- 1KB, while a page is 4KB).
  */
-static int vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
+static int _vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
 {
     if (!THIS_CPU->pdir) {
-        return -VMM_ERR_PDIR;
+        return -EACCES;
     }
 
     table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
@@ -295,7 +298,7 @@ static int vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
     uintptr_t ptables_paddr = vm_alloc_ptables_to_cover_page();
     if (!ptables_paddr) {
         log_error(" vmm_allocate_ptable: No free space in pmm to alloc ptables");
-        return -VMM_ERR_NO_SPACE;
+        return -ENOMEM;
     }
 
     const uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)_vmm_ensure_active_ptable(vaddr));
@@ -328,10 +331,10 @@ skip_allocation:
     return 0;
 }
 
-int vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
+static int _vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
 {
     lock_acquire(&_vmm_lock);
-    int res = vmm_allocate_ptable_lockless(vaddr, lv);
+    int res = _vmm_allocate_ptable_lockless(vaddr, lv);
     lock_release(&_vmm_lock);
     return res;
 }
@@ -345,7 +348,7 @@ static ALWAYS_INLINE int vmm_force_allocate_ptable_lockless(uintptr_t vaddr, pta
     // Clearing Allocated state flags, so vmm_allocate_ptable will allocate new tables.
     table_desc_t* ptable_desc_orig = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
     table_desc_clear(ptable_desc_orig);
-    return vmm_allocate_ptable_lockless(vaddr, lv);
+    return _vmm_allocate_ptable_lockless(vaddr, lv);
 }
 
 int vmm_force_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
@@ -362,16 +365,16 @@ int vmm_force_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
 static ALWAYS_INLINE int vmm_free_ptable_lockless(uintptr_t vaddr, dynamic_array_t* zones)
 {
     if (!THIS_CPU->pdir) {
-        return -VMM_ERR_PDIR;
+        return -EACCES;
+    }
+
+    if (_vmm_is_copy_on_write(vaddr)) {
+        return -EFAULT;
     }
 
     table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
 
     if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
-        return -EFAULT;
-    }
-
-    if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_COPY_ON_WRITE)) {
         return -EFAULT;
     }
 
@@ -416,7 +419,7 @@ static ALWAYS_INLINE int vmm_free_ptable_lockless(uintptr_t vaddr, dynamic_array
     return 0;
 }
 
-int vmm_free_ptable(uintptr_t vaddr, dynamic_array_t* zones)
+static int _vmm_free_ptable(uintptr_t vaddr, dynamic_array_t* zones)
 {
     lock_acquire(&_vmm_lock);
     int res = vmm_free_ptable_lockless(vaddr, zones);
@@ -438,13 +441,16 @@ static bool _vmm_is_page_present(uintptr_t vaddr)
     return res;
 }
 
-/**
- * The function is supposed to map vaddr to paddr
- */
+// vmm_map_page_lockless maps vaddr to paddr with settings.
 int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
 {
     if (!THIS_CPU->pdir) {
-        return -VMM_ERR_PDIR;
+        return -EACCES;
+    }
+
+    vaddr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+    if (_vmm_is_copy_on_write(vaddr)) {
+        return -EBUSY;
     }
 
     bool is_writable = ((settings & MMU_FLAG_PERM_WRITE) > 0);
@@ -457,7 +463,7 @@ int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
     table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
         // TODO: Currently we allocate only LV0 table, since we support only 2-level translation for now.
-        vmm_allocate_ptable_lockless(vaddr, PTABLE_LV0);
+        _vmm_allocate_ptable_lockless(vaddr, PTABLE_LV0);
     }
 
     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
@@ -468,7 +474,7 @@ int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
     page_desc_set_frame(page, paddr);
 
     // If we are in COW, no write is allowed anyway.
-    if (is_writable && !table_desc_is_copy_on_write(*ptable_desc)) {
+    if (is_writable) {
         page_desc_set_attrs(page, PAGE_DESC_WRITABLE);
     }
 
@@ -500,12 +506,12 @@ int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
 int vmm_unmap_page_lockless(uintptr_t vaddr)
 {
     if (!THIS_CPU->pdir) {
-        return -VMM_ERR_PDIR;
+        return -EACCES;
     }
 
     table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
-        return -VMM_ERR_PTABLE;
+        return -EACCES;
     }
 
     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
@@ -531,13 +537,12 @@ int vmm_unmap_page(uintptr_t vaddr)
  */
 int vmm_map_pages_lockless(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t settings)
 {
-    if ((paddr & 0xfff) || (vaddr & 0xfff)) {
-        return -VMM_ERR_BAD_ADDR;
-    }
+    vaddr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+    paddr = ROUND_FLOOR(paddr, VMM_PAGE_SIZE);
 
     int status = 0;
     for (; n_pages; paddr += VMM_PAGE_SIZE, vaddr += VMM_PAGE_SIZE, n_pages--) {
-        if ((status = vmm_map_page_lockless(vaddr, paddr, settings) < 0)) {
+        if ((status = vmm_map_page_lockless(vaddr, paddr, settings) != 0)) {
             return status;
         }
     }
@@ -555,9 +560,7 @@ int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t set
 
 int vmm_unmap_pages_lockless(uintptr_t vaddr, size_t n_pages)
 {
-    if (vaddr & 0xfff) {
-        return -VMM_ERR_BAD_ADDR;
-    }
+    vaddr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
 
     int status = 0;
     for (; n_pages; vaddr += VMM_PAGE_SIZE, n_pages--) {
@@ -581,27 +584,18 @@ int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages)
  * COPY ON WRITE FUNCTIONS
  */
 
-/**
- * Marks 2 tables as copy-on-write tables.
- */
-static inline void _vmm_tables_set_cow(size_t table_index, table_desc_t* cur, table_desc_t* new)
+// _vmm_tables_set_cow marks both page tables as COW.
+static void _vmm_tables_set_cow(size_t table_index, table_desc_t* cur, table_desc_t* new)
 {
-#ifdef __i386__
-    table_desc_del_attrs(cur, TABLE_DESC_WRITABLE);
-    table_desc_set_attrs(cur, TABLE_DESC_COPY_ON_WRITE);
-    table_desc_del_attrs(new, TABLE_DESC_WRITABLE);
-    table_desc_set_attrs(new, TABLE_DESC_COPY_ON_WRITE);
-#elif __arm__
     table_desc_set_attrs(cur, TABLE_DESC_COPY_ON_WRITE);
     table_desc_set_attrs(new, TABLE_DESC_COPY_ON_WRITE);
 
-    /* Marking all pages as not-writable to handle COW. Later will restore using zones data */
+    // Marking all pages as not-writable to handle COW. Later will restore using zones data.
     ptable_t* ptable = vm_pspace_get_nth_active_ptable(table_index);
     for (int i = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++) {
         page_desc_t* page = &ptable->entities[i];
         page_desc_del_attrs(page, PAGE_DESC_WRITABLE);
     }
-#endif
 }
 
 static bool _vmm_is_copy_on_write(uintptr_t vaddr)
@@ -646,7 +640,10 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
                 uintptr_t page_vaddr = table_start + (offset_in_table_set * VMM_PAGE_SIZE);
                 page_desc_t* page_desc = &src_ptable->entities[offset_in_table_set];
                 if (page_desc_is_present(*page_desc)) {
-                    _vmm_copy_page_to_resolve_cow(p, page_vaddr, src_ptable, offset_in_table_set);
+                    err = _vmm_copy_page_to_resolve_cow(p, page_vaddr, src_ptable, offset_in_table_set);
+                    if (err) {
+                        return err;
+                    }
                 }
             }
         }
@@ -656,24 +653,30 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
     return vm_free_mapped_zone(src_ptable_zone);
 }
 
-static void _vmm_ensure_cow_for_page(uintptr_t vaddr)
+static int _vmm_ensure_cow_for_page(uintptr_t vaddr)
 {
     if (_vmm_is_copy_on_write(vaddr)) {
         proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
-        if (!holder_proc) {
-            kpanic("No proc with the pdir\n");
+        ASSERT(holder_proc && "No proc with the pdir");
+        int err = _vmm_resolve_copy_on_write(holder_proc, vaddr);
+        if (err) {
+            return err;
         }
-        _vmm_resolve_copy_on_write(holder_proc, vaddr);
     }
+    return 0;
 }
 
-static void _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length)
+static int _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length)
 {
     uintptr_t page_addr = PAGE_START(vaddr);
     while (page_addr < vaddr + length) {
-        _vmm_ensure_cow_for_page(page_addr);
+        int err = _vmm_ensure_cow_for_page(page_addr);
+        if (err) {
+            return err;
+        }
         page_addr += VMM_PAGE_SIZE;
     }
+    return 0;
 }
 
 static memzone_t* _vmm_memzone_for_active_pdir(uintptr_t vaddr)
@@ -696,7 +699,7 @@ static int vm_alloc_kernel_page_lockless(uintptr_t vaddr)
 static int vm_alloc_user_page_no_fill_lockless(memzone_t* zone, uintptr_t vaddr)
 {
     if (!zone) {
-        return SHOULD_CRASH;
+        return -ESRCH;
     }
     return vmm_alloc_page_no_fill_lockless(vaddr, zone->flags);
 }
@@ -704,7 +707,7 @@ static int vm_alloc_user_page_no_fill_lockless(memzone_t* zone, uintptr_t vaddr)
 static int vm_alloc_user_page_lockless(memzone_t* zone, uintptr_t vaddr)
 {
     if (!zone) {
-        return SHOULD_CRASH;
+        return -EFAULT;
     }
     return vmm_alloc_page_lockless(vaddr, zone->flags);
 }
@@ -723,13 +726,15 @@ static int vm_alloc_page_with_perm(uintptr_t vaddr)
  */
 static int _vmm_ensure_write_to_page(uintptr_t vaddr)
 {
+    _vmm_ensure_cow_for_page(vaddr);
+
     if (!_vmm_is_page_present(vaddr)) {
         int err = vm_alloc_page_with_perm(vaddr);
         if (err) {
             return err;
         }
     }
-    _vmm_ensure_cow_for_page(vaddr);
+
     return 0;
 }
 
@@ -759,7 +764,7 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
     memzone_t* zone = memzone_find(p, vaddr);
     if (!zone) {
         kpanic("Cow: No page in zone");
-        return SHOULD_CRASH;
+        return -EFAULT;
     }
 
     if (TEST_FLAG(zone->type, ZONE_TYPE_DEVICE) || TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
@@ -773,7 +778,10 @@ static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* s
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
+    int err = vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
+    if (err) {
+        return err;
+    }
 
     /*  We don't need to check if there is a problem with cow, since this is a special copy function
         to resolve cow. So, we know that pages were created recently. Checking cow here would cause an
@@ -870,6 +878,8 @@ end:
 
 static int _vmm_restore_swapped_page_lockless(uintptr_t vaddr)
 {
+    ASSERT(!_vmm_is_copy_on_write(vaddr));
+
     memzone_t* zone = _vmm_memzone_for_active_pdir(vaddr);
     if (!zone) {
         return -1;
@@ -900,7 +910,11 @@ int vmm_swap_page(ptable_t* ptable, memzone_t* zone, uintptr_t vaddr)
     lock_acquire(&_vmm_lock);
 
     if (!zone) {
-        return -1;
+        return -EINVAL;
+    }
+
+    if (_vmm_is_copy_on_write(vaddr)) {
+        return -EBUSY;
     }
 
     int swap_mode = SWAP_TO_DEV;
@@ -916,7 +930,10 @@ int vmm_swap_page(ptable_t* ptable, memzone_t* zone, uintptr_t vaddr)
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*page);
-    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
+    int err = vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
+    if (err) {
+        return err;
+    }
 
     int new_frame = 0;
     if (swap_mode == SWAP_TO_DEV) {
@@ -1147,6 +1164,10 @@ pdirectory_t* vmm_get_kernel_pdir()
 
 static ALWAYS_INLINE int vmm_tune_page_lockless(uintptr_t vaddr, uint32_t settings)
 {
+    if (_vmm_is_copy_on_write(vaddr)) {
+        return -EBUSY;
+    }
+
     bool is_writable = ((settings & MMU_FLAG_PERM_WRITE) > 0);
     bool is_readable = ((settings & MMU_FLAG_PERM_READ) > 0);
     bool is_executable = ((settings & MMU_FLAG_PERM_EXEC) > 0);
@@ -1243,6 +1264,9 @@ int vmm_alloc_page(uintptr_t vaddr, uint32_t settings)
  */
 int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable)
 {
+    _vmm_ensure_cow_for_page(src_vaddr);
+    _vmm_ensure_cow_for_page(to_vaddr);
+
     page_desc_t* old_page_desc = _vmm_ptable_lookup(src_ptable, src_vaddr);
 
     /* Based on an old page */
@@ -1251,15 +1275,16 @@ int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* sr
 
     if (!page_desc_is_present(*cur_page)) {
         vmm_alloc_page_lockless(to_vaddr, page_desc_get_settings_ignore_cow(*old_page_desc));
-    } else {
-        _vmm_ensure_cow_for_page(to_vaddr);
     }
 
     /* Mapping the old page to do a copy */
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
     uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-    vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
+    int err = vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
+    if (err) {
+        return err;
+    }
 
     memcpy((uint8_t*)to_vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
 
@@ -1280,6 +1305,10 @@ int vmm_copy_page(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable)
 
 static ALWAYS_INLINE int vmm_free_page_lockless(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones)
 {
+    if (_vmm_is_copy_on_write(vaddr)) {
+        return -EBUSY;
+    }
+
     if (!page_desc_has_attrs(*page, PAGE_DESC_PRESENT)) {
         return 0;
     }
@@ -1306,7 +1335,7 @@ int vmm_free_page(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones)
 static int _vmm_page_not_present_lockless(uintptr_t vaddr)
 {
     if (_vmm_is_page_present(vaddr)) {
-        return OK;
+        return 0;
     }
 
     if (_vmm_is_page_swapped(vaddr)) {
@@ -1319,7 +1348,14 @@ static int _vmm_page_not_present_lockless(uintptr_t vaddr)
 
     memzone_t* zone = _vmm_memzone_for_active_pdir(vaddr);
     if (!zone) {
-        return SHOULD_CRASH;
+        return -EFAULT;
+    }
+
+    if (_vmm_is_copy_on_write(vaddr)) {
+        int err = _vmm_ensure_cow_for_page(vaddr);
+        if (err) {
+            return err;
+        }
     }
 
     int err = vm_alloc_user_page_no_fill_lockless(zone, vaddr);
@@ -1333,19 +1369,19 @@ static int _vmm_page_not_present_lockless(uintptr_t vaddr)
         uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
         memset(dest, 0, VMM_PAGE_SIZE);
     }
-    return OK;
+    return 0;
 }
 
 int _vmm_pf_on_writing(uintptr_t vaddr)
 {
     lock_acquire(&_vmm_lock);
     int visited = 0;
+
     if (_vmm_is_copy_on_write(vaddr)) {
-        proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
-        if (!holder_proc) {
-            kpanic("No proc with the pdir\n");
+        int err = _vmm_ensure_cow_for_page(vaddr);
+        if (err) {
+            return err;
         }
-        _vmm_resolve_copy_on_write(holder_proc, vaddr);
         visited++;
     }
 #ifdef ZEROING_ON_DEMAND
@@ -1356,11 +1392,11 @@ int _vmm_pf_on_writing(uintptr_t vaddr)
 #endif // ZEROING_ON_DEMAND
     if (!visited) {
         lock_release(&_vmm_lock);
-        return SHOULD_CRASH;
+        return -EFAULT;
     }
 
     lock_release(&_vmm_lock);
-    return OK;
+    return 0;
 }
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
@@ -1376,7 +1412,7 @@ int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
         return _vmm_pf_on_writing(vaddr);
     }
 
-    return OK;
+    return 0;
 }
 
 /**

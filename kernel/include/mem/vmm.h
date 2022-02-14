@@ -31,29 +31,15 @@ struct vm_ops {
 };
 typedef struct vm_ops vm_ops_t;
 
-enum VMM_ERR_CODES {
-    VMM_ERR_PDIR = 1,
-    VMM_ERR_PTABLE,
-    VMM_ERR_NO_SPACE,
-    VMM_ERR_BAD_ADDR,
-};
-
-enum VMM_PF_HANDLER {
-    OK = 0,
-    SHOULD_CRASH = -1,
-};
-
-struct dynamic_array;
-
 /**
  * PUBLIC FUNCTIONS
  */
 
+struct dynamic_array;
+
 int vmm_setup();
 int vmm_setup_secondary_cpu();
 
-int vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv);
-int vmm_free_ptable(uintptr_t vaddr, struct dynamic_array* zones);
 int vmm_free_pdir(pdirectory_t* pdir, struct dynamic_array* zones);
 
 int vmm_alloc_page(uintptr_t vaddr, uint32_t settings);
