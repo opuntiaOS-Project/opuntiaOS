@@ -47,35 +47,35 @@ NC='\\033[0m'
 ERROR="${{RED}}[ERROR]${{NC}}"
 SUCCESS="${{GREEN}}[SUCCESS]${{NC}}"
 
-mkdir -p {0}/mountpoint
-sudo fuse-ext2 {1}/one.img {0}/mountpoint -o rw+
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't mount one.img to {0}/mountpoint" && exit 1; fi
-sudo mkdir -p {0}/mountpoint/boot
-sudo mkdir -p {0}/mountpoint/proc
-sudo mkdir -p {0}/mountpoint/var
-sudo mkdir -p {0}/mountpoint/dev
-sudo mkdir -p {0}/mountpoint/tmp
-sudo cp -r {0}/base/* {0}/mountpoint/
-sudo cp -r {1}/base/* {0}/mountpoint/
+mkdir -p {1}/mountpoint
+sudo fuse-ext2 {1}/one.img {1}/mountpoint -o rw+
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't mount one.img to {1}/mountpoint" && exit 1; fi
+sudo mkdir -p {1}/mountpoint/boot
+sudo mkdir -p {1}/mountpoint/proc
+sudo mkdir -p {1}/mountpoint/var
+sudo mkdir -p {1}/mountpoint/dev
+sudo mkdir -p {1}/mountpoint/tmp
+sudo cp -r {0}/base/* {1}/mountpoint/
+sudo cp -r {1}/base/* {1}/mountpoint/
 
-sudo chmod -R 644 {0}/mountpoint/proc
-sudo chmod -R 644 {0}/mountpoint/dev
-sudo chmod -R 666 {0}/mountpoint/tmp
-sudo chmod -R 666 {0}/mountpoint/var
-sudo chmod -R 755 {0}/mountpoint/bin
-sudo chmod -R 700 {0}/mountpoint/home
-sudo chmod 777 {0}/mountpoint/home
-sudo chmod -R 755 {0}/mountpoint/System
-sudo chmod -R 755 {0}/mountpoint/Applications
+sudo chmod -R 644 {1}/mountpoint/proc
+sudo chmod -R 644 {1}/mountpoint/dev
+sudo chmod -R 666 {1}/mountpoint/tmp
+sudo chmod -R 666 {1}/mountpoint/var
+sudo chmod -R 755 {1}/mountpoint/bin
+sudo chmod -R 700 {1}/mountpoint/home
+sudo chmod 777 {1}/mountpoint/home
+sudo chmod -R 755 {1}/mountpoint/System
+sudo chmod -R 755 {1}/mountpoint/Applications
 
-sudo chown -R 0 {0}/mountpoint/home/root
-sudo chown -R 0 {0}/mountpoint/bin/sudo
-sudo chmod 4755 {0}/mountpoint/bin/sudo
+sudo chown -R 0 {1}/mountpoint/home/root
+sudo chown -R 0 {1}/mountpoint/bin/sudo
+sudo chmod 4755 {1}/mountpoint/bin/sudo
 
-sudo chown -R 10 {0}/mountpoint/home/user
+sudo chown -R 10 {1}/mountpoint/home/user
 
-sudo umount {0}/mountpoint
-if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't umount {0}/mountpoint" && exit 1; fi
+sudo umount {1}/mountpoint
+if [ $? -ne 0 ]; then echo -e "${{ERROR}} Can't umount {1}/mountpoint" && exit 1; fi
 echo -e "${{SUCCESS}} Sync"
 """.format(base, out))
 sync.close()
