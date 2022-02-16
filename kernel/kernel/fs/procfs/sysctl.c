@@ -10,6 +10,7 @@
 #include <fs/vfs.h>
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
+#include <libkern/scanf.h>
 #include <tasking/tasking.h>
 
 /**
@@ -28,6 +29,8 @@ int procfs_sys_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** re
 /* FILES */
 static bool procfs_sys_doint_can_read(dentry_t* dentry, size_t start);
 static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+static bool procfs_sys_doint_can_write(dentry_t* dentry, size_t start);
+static int procfs_sys_doint_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
 
 /**
  * DATA
@@ -41,10 +44,12 @@ const file_ops_t procfs_sys_ops = {
 const file_ops_t procfs_sys_doint_ops = {
     .can_read = procfs_sys_doint_can_read,
     .read = procfs_sys_doint_read,
+    .can_write = procfs_sys_doint_can_write,
+    .write = procfs_sys_doint_write,
 };
 
 static const procfs_files_t static_procfs_files[] = {
-    { .name = "sysctl_enable", .mode = 0444, .ops = &procfs_sys_doint_ops, .data = &_sysctl_enable },
+    { .name = "sysctl_enable", .mode = 0744, .ops = &procfs_sys_doint_ops, .data = &_sysctl_enable },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
 
@@ -158,4 +163,16 @@ static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, size_t start, s
 
     memcpy(buf, res, size);
     return size;
+}
+
+static bool procfs_sys_doint_can_write(dentry_t* dentry, size_t start)
+{
+    return true;
+}
+
+static int procfs_sys_doint_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+{
+    int* data = procfs_sys_get_sfile(dentry)->data;
+    sscanf((char*)buf, "%d", data);
+    return len;
 }

@@ -53,7 +53,25 @@ fsdata_t procfs_data(dentry_t* dentry)
     return fsdata;
 }
 
-int procfs_can_read(dentry_t* dentry, uint32_t start)
+int procfs_can_write(dentry_t* dentry, size_t start)
+{
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    if (!procfs_inode->ops->can_write) {
+        return -ENOEXEC;
+    }
+    return procfs_inode->ops->can_write(dentry, start);
+}
+
+int procfs_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+{
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    if (!procfs_inode->ops->write) {
+        return -ENOEXEC;
+    }
+    return procfs_inode->ops->write(dentry, buf, start, len);
+}
+
+int procfs_can_read(dentry_t* dentry, size_t start)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
     if (!procfs_inode->ops->can_read) {
@@ -98,7 +116,8 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_OPEN] = NULL; /* No custom open, vfs will use its code */
     fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_READ] = procfs_can_read;
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ] = procfs_read;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_CAN_WRITE] = procfs_can_write;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE] = procfs_write;
     fs_desc.functions[DRIVER_FILE_SYSTEM_TRUNCATE] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MKDIR] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_EJECT_DEVICE] = NULL;
