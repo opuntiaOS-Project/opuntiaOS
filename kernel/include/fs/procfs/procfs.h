@@ -39,7 +39,7 @@ struct PACKED procfs_inode {
     uint32_t flags;
     uint32_t osd1;
 
-    /* NOTE: Instead of blocks here, we store procfs required things */
+    /* NOTE: Instead of blocks here, we store procfs required data */
     uint32_t index;
     const struct file_ops* ops;
     uint8_t padding[52];

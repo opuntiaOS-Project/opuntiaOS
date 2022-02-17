@@ -38,7 +38,7 @@ jobs:
 
       - name: Create LLVM Build Environment
         run: |
-          export LLVM_VERSION=`ls -al /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
+          export LLVM_VERSION=`ls -l /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
           export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
           gn gen out --args='target_cpu="aarch32" host="llvm"'
 
@@ -52,7 +52,7 @@ jobs:
 
       - name: Create Mobile LLVM Build Environment
         run: |
-          export LLVM_VERSION=`ls -al /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
+          export LLVM_VERSION=`ls -l /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
           export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
           gn gen out --args='target_cpu="aarch32" host="llvm" device_type="m"'
 

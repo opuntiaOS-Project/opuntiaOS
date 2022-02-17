@@ -302,6 +302,9 @@ int vfs_create(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t u
         return -EEXIST;
     }
 
+    if (!dir->ops->file.create) {
+        return -EROFS;
+    }
     return dir->ops->file.create(dir, name, len, mode, uid, gid);
 }
 
@@ -319,6 +322,9 @@ int vfs_unlink(dentry_t* file)
 #endif
     }
 
+    if (!file->ops->file.unlink) {
+        return -EROFS;
+    }
     return file->ops->file.unlink(file);
 }
 
@@ -390,6 +396,10 @@ int vfs_read(file_descriptor_t* fd, void* buf, size_t len)
         return 0;
     }
 
+    if (!fd->ops->read) {
+        return -ENOEXEC;
+    }
+
     int read = fd->ops->read(fd->dentry, (uint8_t*)buf, fd->offset, len);
     if (read > 0) {
         fd->offset += read;
@@ -404,6 +414,10 @@ int vfs_write(file_descriptor_t* fd, void* buf, size_t len)
     if (!fd->ops->write) {
         lock_release(&fd->lock);
         return 0;
+    }
+
+    if (!fd->ops->write) {
+        return -EROFS;
     }
 
     int written = fd->ops->write(fd->dentry, (uint8_t*)buf, fd->offset, len);
@@ -429,6 +443,10 @@ int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t ui
     if (!dentry_inode_test_flag(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
+
+    if (!dir->ops->file.mkdir) {
+        return -EROFS;
+    }
     return dir->ops->file.mkdir(dir, name, len, mode | S_IFDIR, uid, gid);
 }
 
@@ -444,6 +462,9 @@ int vfs_rmdir(dentry_t* dir)
         return -EBUSY;
     }
 
+    if (!dir->ops->file.rmdir) {
+        return -EROFS;
+    }
     int err = dir->ops->file.rmdir(dir);
     if (!err) {
 #ifdef VFS_DEBUG
@@ -460,6 +481,7 @@ int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, size_t len)
         return -ENOTDIR;
     }
     lock_acquire(&dir_fd->lock);
+    ASSERT(dir_fd->ops->getdents && "FS marked file as dir, but no getdents impl");
     int res = dir_fd->ops->getdents(dir_fd->dentry, buf, &dir_fd->offset, len);
     lock_release(&dir_fd->lock);
     return res;
