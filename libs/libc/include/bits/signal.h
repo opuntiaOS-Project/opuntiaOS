@@ -35,4 +35,10 @@
 #define SIGPWR 30
 #define SIGSYS 31
 
+typedef void (*sighandler_t)(int);
+
+#define SIG_DFL ((sighandler_t)0)
+#define SIG_ERR ((sighandler_t)-1)
+#define SIG_IGN ((sighandler_t)1)
+
 #endif // _LIBC_BITS_SIGNAL_H

@@ -169,10 +169,10 @@ char _cmd_is_ascii(uint32_t key)
     return 32 <= key && key <= 126;
 }
 
-int inter(int no)
+void inter(int no)
 {
     kill(running_job, 9);
-    return 0;
+    return;
 }
 
 int main()

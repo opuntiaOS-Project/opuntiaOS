@@ -199,11 +199,10 @@ void dirfile(void)
 
 static volatile int rev = 0;
 
-int inter(int no)
+void inter(int no)
 {
     write(1, ")", 1);
     rev++;
-    return 0;
 }
 
 void testsignals()

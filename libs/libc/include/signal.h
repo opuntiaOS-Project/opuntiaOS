@@ -8,7 +8,8 @@
 __BEGIN_DECLS
 
 int kill(pid_t pid, int sig);
-int sigaction(int signo, void* callback);
+int sigaction(int signo, sighandler_t callback);
+sighandler_t signal(int signo, sighandler_t callback);
 int raise(int sig);
 
 __END_DECLS

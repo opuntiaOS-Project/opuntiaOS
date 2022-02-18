@@ -7,6 +7,7 @@
  */
 
 #include <libkern/bits/errno.h>
+#include <libkern/bits/signal.h>
 #include <libkern/libkern.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
@@ -40,7 +41,7 @@ static void _signal_init_caller()
 {
     _signal_jumper_zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_alloc_page(_signal_jumper_zone.start, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC | MMU_FLAG_PERM_READ | MMU_FLAG_NONPRIV);
-    uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller_start;
+    size_t signal_caller_len = (size_t)signal_caller_end - (size_t)signal_caller_start;
     memcpy(_signal_jumper_zone.ptr, (void*)signal_caller_start, signal_caller_len);
     vmm_tune_page(_signal_jumper_zone.start, MMU_FLAG_PERM_EXEC | MMU_FLAG_PERM_READ | MMU_FLAG_NONPRIV);
 }
@@ -106,16 +107,16 @@ int signal_rem_pending(thread_t* thread, int signo)
     return 0;
 }
 
-extern int _thread_setup_kstack(thread_t* thread, uint32_t esp);
+extern int _thread_setup_kstack(thread_t* thread, uintptr_t sp);
 static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
 {
     system_disable_interrupts();
     pdirectory_t* prev_pdir = vmm_get_active_pdir();
     vmm_switch_pdir(thread->process->pdir);
-    vmm_prepare_active_pdir_for_writing_at((uint32_t)thread->tf, 1);
+    vmm_prepare_active_pdir_for_writing_at((uintptr_t)thread->tf, 1);
 
-    uint32_t old_sp = get_stack_pointer(thread->tf);
-    uint32_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */
+    uintptr_t old_sp = get_stack_pointer(thread->tf);
+    uintptr_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */
 
     if (thread != RUNNING_THREAD) {
         /*
@@ -138,12 +139,12 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
         trapframe_t* old_tf = thread->tf;
         context_t* old_ctx = thread->context;
 
-        _thread_setup_kstack(thread, (uint32_t)thread->context);
+        _thread_setup_kstack(thread, (uintptr_t)thread->context);
         memcpy(thread->tf, old_tf, sizeof(trapframe_t));
 
-        tf_push_to_stack(thread->tf, (uint32_t)old_tf);
-        tf_push_to_stack(thread->tf, (uint32_t)old_ctx);
-        tf_push_to_stack(thread->tf, (uint32_t)old_tf ^ (uint32_t)old_ctx); // checksum
+        tf_push_to_stack(thread->tf, (uintptr_t)old_tf);
+        tf_push_to_stack(thread->tf, (uintptr_t)old_ctx);
+        tf_push_to_stack(thread->tf, (uintptr_t)old_tf ^ (uintptr_t)old_ctx); // checksum
     }
 
     signal_impl_prepare_stack(thread, signo, old_sp, magic);
@@ -156,15 +157,15 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
 {
     int ret = return_tf;
 
-    uint32_t old_sp, magic;
+    uintptr_t old_sp, magic;
     signal_impl_restore_stack(thread, &old_sp, &magic);
 
     if (magic == MAGIC_STATE_NEW_STACK) {
-        uint32_t checksum = tf_pop_to_stack(thread->tf);
+        uintptr_t checksum = tf_pop_to_stack(thread->tf);
         context_t* old_ctx = (context_t*)tf_pop_to_stack(thread->tf);
         trapframe_t* old_tf = (trapframe_t*)tf_pop_to_stack(thread->tf);
 
-        uint32_t calced_checksum = ((uint32_t)old_tf ^ (uint32_t)old_ctx);
+        uintptr_t calced_checksum = ((uintptr_t)old_tf ^ (uintptr_t)old_ctx);
 
         if (checksum != calced_checksum) {
             log_error("Killed %d: wrong signal checksum\n", thread->process->pid);
@@ -236,6 +237,10 @@ static int signal_default_action(int signo)
 
 static int signal_process(thread_t* thread, int signo)
 {
+    if (thread->signal_handlers[signo] == SIG_IGN) {
+        return 0;
+    }
+
     if (thread->signal_handlers[signo]) {
         signal_setup_stack_to_handle_signal(thread, signo);
         set_instruction_pointer(thread->tf, _signal_jumper_zone.start);
