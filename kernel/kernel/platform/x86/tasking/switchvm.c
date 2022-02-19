@@ -25,6 +25,6 @@ void switchuvm(thread_t* thread)
     RUNNING_THREAD = thread;
     fpu_make_unavail();
     set_ltr(GDT_SEG_TSS << 3);
-    vmm_switch_pdir(thread->process->pdir);
+    vmm_switch_address_space(thread->process->address_space);
     system_enable_interrupts();
 }

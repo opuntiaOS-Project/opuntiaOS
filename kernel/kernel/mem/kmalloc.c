@@ -64,7 +64,7 @@ void* kmalloc(size_t size)
 
     int start = bitmap_find_space(bitmap, blocks_needed);
     if (start < 0) {
-        log_error("[Err] NO SPACE AT KMALLOC");
+        log_error("NO SPACE AT KMALLOC");
         system_stop();
     }
 
@@ -72,7 +72,7 @@ void* kmalloc(size_t size)
     bitmap_set_range(bitmap, start, blocks_needed);
     lock_release(&_kmalloc_lock);
 
-    vmm_prepare_active_pdir_for_writing_at((uintptr_t)space, act_size);
+    vmm_ensure_writing_to_active_address_space((uintptr_t)space, act_size);
     space->len = act_size;
     return (void*)&space[1];
 }

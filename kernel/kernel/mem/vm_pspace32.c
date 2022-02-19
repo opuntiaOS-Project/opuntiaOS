@@ -11,6 +11,7 @@
 #include <libkern/lock.h>
 #include <libkern/log.h>
 #include <mem/kmemzone.h>
+#include <mem/memzone.h>
 #include <mem/vm_alloc.h>
 #include <mem/vmm.h>
 #include <platform/generic/cpu.h>
@@ -65,7 +66,7 @@ void vm_pspace_init()
     uintptr_t kernel_ptabels_vaddr = pspace_zone.start + VMM_KERNEL_TABLES_START * PTABLE_SIZE;
     uintptr_t kernel_ptabels_paddr = kernel_ptables_start_paddr;
     for (int i = VMM_KERNEL_TABLES_START; i < VMM_TOTAL_TABLES_PER_DIRECTORY; i += ptables_per_page) {
-        table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, kernel_ptabels_vaddr);
+        table_desc_t* ptable_desc = _vmm_pdirectory_lookup(vmm_get_kernel_address_space()->pdir, kernel_ptabels_vaddr);
         if (!table_desc_is_present(*ptable_desc)) {
             kpanic("vm_pspace_init: pspace should present");
         }
@@ -139,4 +140,122 @@ int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_l
     }
 
     return vmm_map_page_lockless(ptable_vaddr_start, ptable_paddr, ptable_settings);
+}
+
+ptable_t* vm_pspace_active_address_space_lookup(uintptr_t vaddr, ptable_lv_t lv)
+{
+    if (lv != PTABLE_LV0) {
+        return NULL;
+    }
+
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
+    if (!table_desc_is_present(*ptable_desc)) {
+        return NULL;
+    }
+
+    return vm_pspace_get_vaddr_of_active_ptable(vaddr);
+}
+
+// vm_pspace_free_page_lockless frees page.
+static int vm_pspace_free_page_lockless(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones)
+{
+    if (vmm_is_copy_on_write(vaddr)) {
+        return -EBUSY;
+    }
+
+    if (!page_desc_has_attrs(*page, PAGE_DESC_PRESENT)) {
+        return 0;
+    }
+    page_desc_del_attrs(page, PAGE_DESC_PRESENT);
+
+    memzone_t* zone = memzone_find_no_proc(zones, vaddr);
+    if (zone) {
+        if (zone->type & ZONE_TYPE_DEVICE) {
+            return 0;
+        }
+    }
+    vm_free_page_paddr(page_desc_get_frame(*page));
+    return 0;
+}
+
+// vm_pspace_free_ptable_lockless frees ptable and all data it contains of an
+// active address space.
+static int vm_pspace_free_ptable_lockless(uintptr_t vaddr)
+{
+    vm_address_space_t* active_address_space = THIS_CPU->active_address_space;
+
+    if (!active_address_space) {
+        return -EACCES;
+    }
+
+    if (vmm_is_copy_on_write(vaddr)) {
+        return -EFAULT;
+    }
+
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(active_address_space->pdir, vaddr);
+
+    if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
+        return -EFAULT;
+    }
+
+    // Entering allocated state, since table is alloacted but not valid.
+    // Allocated state will remove TABLE_DESC_PRESENT flag.
+    uintptr_t frame = table_desc_get_frame(*ptable_desc);
+    table_desc_set_allocated_state(ptable_desc);
+    table_desc_set_frame(ptable_desc, frame);
+
+    ptable_t* ptable = vm_pspace_get_vaddr_of_active_ptable(vaddr);
+    uintptr_t pages_vstart = TABLE_START(vaddr);
+    for (uintptr_t i = 0, pages_voffset = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++, pages_voffset += VMM_PAGE_SIZE) {
+        page_desc_t* page = &ptable->entities[i];
+        vm_pspace_free_page_lockless(pages_vstart + pages_voffset, page, &active_address_space->zones);
+    }
+
+    uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)ptable);
+    size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
+    size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
+    uintptr_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
+
+    // Chechking if we can delete thw whole page of tables.
+    for (uintptr_t i = 0, pvaddr = ptable_serve_vaddr_start; i < ptables_per_page; i++, pvaddr += table_coverage) {
+        table_desc_t* ptable_desc_c = _vmm_pdirectory_lookup(active_address_space->pdir, pvaddr);
+        if (table_desc_has_attrs(*ptable_desc_c, TABLE_DESC_PRESENT)) {
+            return 0;
+        }
+    }
+
+    // If we are here, we can delete the page of tables.
+    table_desc_t* ptable_desc_first = _vmm_pdirectory_lookup(active_address_space->pdir, ptable_serve_vaddr_start);
+    vm_free_ptables_to_cover_page(table_desc_get_frame(*ptable_desc_first));
+
+    for (uintptr_t i = 0, pvaddr = ptable_serve_vaddr_start; i < ptables_per_page; i++, pvaddr += table_coverage) {
+        table_desc_t* ptable_desc_c = _vmm_pdirectory_lookup(active_address_space->pdir, pvaddr);
+        table_desc_clear(ptable_desc_c);
+    }
+
+    // Cleaning Pspace
+    vmm_unmap_page_lockless(ptable_vaddr_start);
+    return 0;
+}
+
+// vm_pspace_free_address_space_lockless removes all ptables and data
+// associated with current address space.
+int vm_pspace_free_address_space_lockless(vm_address_space_t* vm_aspace)
+{
+    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
+    vmm_switch_address_space_lockless(vm_aspace);
+
+    size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
+    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+        vm_pspace_free_ptable_lockless(table_coverage * i);
+    }
+
+    if (prev_aspace == vm_aspace) {
+        vmm_switch_address_space_lockless(vmm_get_kernel_address_space());
+    } else {
+        vmm_switch_address_space_lockless(prev_aspace);
+    }
+    vm_pspace_free(vm_aspace->pdir);
+    vm_free_ptable_lv_top((pte_t*)vm_aspace->pdir);
+    return 0;
 }

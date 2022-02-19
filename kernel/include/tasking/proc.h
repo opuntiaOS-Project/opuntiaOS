@@ -17,6 +17,7 @@
 #include <libkern/types.h>
 #include <mem/kmemzone.h>
 #include <mem/memzone.h>
+#include <mem/vm_address_space.h>
 #include <mem/vmm.h>
 
 #define MAX_PROCESS_COUNT 1024
@@ -34,7 +35,8 @@ enum PROC_STATUS {
 
 struct thread;
 struct proc {
-    pdirectory_t* pdir;
+    vm_address_space_t* address_space;
+
     pid_t pid;
     pid_t ppid;
     pid_t pgid;
@@ -52,8 +54,6 @@ struct proc {
     gid_t egid;
     uid_t suid;
     gid_t sgid;
-
-    dynamic_array_t zones;
 
     dentry_t* proc_file;
     dentry_t* cwd;

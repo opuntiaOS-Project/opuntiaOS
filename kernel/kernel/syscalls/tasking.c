@@ -62,7 +62,7 @@ void sys_kill(trapframe_t* tf)
 
 void sys_setpgid(trapframe_t* tf)
 {
-    uint32_t pid, pgid;
+    pid_t pid, pgid;
     SYSCALL_INIT_VARS2(pid, pgid);
 
     proc_t* p = tasking_get_proc(pid);
@@ -76,7 +76,7 @@ void sys_setpgid(trapframe_t* tf)
 
 void sys_getpgid(trapframe_t* tf)
 {
-    uint32_t pid = SYSCALL_VAR1(tf);
+    pid_t pid = SYSCALL_VAR1(tf);
 
     proc_t* p = tasking_get_proc(pid);
     if (!p) {
@@ -96,7 +96,7 @@ void sys_create_thread(trapframe_t* tf)
 
     thread_create_params_t* params = (thread_create_params_t*)SYSCALL_VAR1(tf);
     set_instruction_pointer(thread->tf, params->entry_point);
-    uint32_t esp = params->stack_start + params->stack_size;
+    uintptr_t esp = params->stack_start + params->stack_size;
     set_stack_pointer(thread->tf, esp);
     set_base_pointer(thread->tf, esp);
 

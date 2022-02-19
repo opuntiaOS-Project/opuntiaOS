@@ -29,13 +29,13 @@
 
 static int _elf_load_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_program_header_32_t* ph)
 {
-    pdirectory_t* prev_pdir = vmm_get_active_pdir();
-    vmm_switch_pdir(p->pdir);
+    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
+    vmm_switch_address_space(p->address_space);
 
-    uint32_t zones_count = proc->zones.size;
+    uint32_t zones_count = proc->address_space->zones.size;
 
     for (uint32_t i = 0; i < zones_count; i++) {
-        memzone_t* zone = (memzone_t*)dynarr_get(&proc->zones, i);
+        memzone_t* zone = (memzone_t*)dynarr_get(&proc->address_space->zones, i);
         if (zone->type == ZONE_TYPE_BSS) {
             memset((void*)zone->start, 0, zone->len);
         }
@@ -59,7 +59,7 @@ static int _elf_load_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_progra
         void* write_ptr = coping_zone.ptr;
         for (int i = 0; i < PAGES_PER_COPING_BUFFER && mem_remaining; i++) {
             uint32_t mem_write_len = min(mem_remaining, VMM_PAGE_SIZE);
-            if (memzone_find(p, mem_offset)) {
+            if (memzone_find(p->address_space, mem_offset)) {
                 vmm_copy_to_user((void*)mem_offset, write_ptr, mem_write_len);
             }
             mem_offset += mem_write_len;
@@ -69,7 +69,7 @@ static int _elf_load_do_copy_to_ram(proc_t* p, file_descriptor_t* fd, elf_progra
     }
 
     kmemzone_free(coping_zone);
-    return vmm_switch_pdir(prev_pdir);
+    return vmm_switch_address_space(prev_aspace);
 }
 
 static int _elf_load_interpret_program_header_entry(proc_t* p, file_descriptor_t* fd)
@@ -136,7 +136,7 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
         }
 
         if (zone_type) {
-            memzone_t* zone = memzone_extend(p, sh.sh_addr, sh.sh_size);
+            memzone_t* zone = memzone_extend(p->address_space, sh.sh_addr, sh.sh_size);
             if (zone) {
                 zone->type = zone_type;
                 zone->flags |= zone_flags;
@@ -148,7 +148,7 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
 
 static int _elf_load_alloc_stack(proc_t* p)
 {
-    memzone_t* stack_zone = memzone_new_random_backward(p, USER_STACK_SIZE);
+    memzone_t* stack_zone = memzone_new_random_backward(p->address_space, USER_STACK_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
     set_base_pointer(p->main_thread->tf, stack_zone->start + USER_STACK_SIZE);
@@ -170,7 +170,7 @@ static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_32_t
         _elf_load_interpret_program_header_entry(p, fd);
     }
 
-    memzone_new(p, 0, VMM_PAGE_SIZE); // Forbid 0 allocations to handle NULLptrs.
+    memzone_new(p->address_space, 0, VMM_PAGE_SIZE); // Forbid 0 allocations to handle NULLptrs.
     _elf_load_alloc_stack(p);
     set_instruction_pointer(p->main_thread->tf, header->e_entry);
     return 0;

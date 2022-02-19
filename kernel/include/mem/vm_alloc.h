@@ -23,7 +23,7 @@ void vm_free_page_paddr(uintptr_t addr);
 kmemzone_t vm_alloc_mapped_zone(size_t size, size_t alignment);
 int vm_free_mapped_zone(kmemzone_t zone);
 
-pdirectory_t* vm_alloc_pdir();
-void vm_free_pdir(pdirectory_t* pdir);
+pte_t* vm_alloc_ptable_lv_top();
+void vm_free_ptable_lv_top(pte_t* pdir);
 
 #endif // _KERNEL_MEM_VM_ALLOC_H

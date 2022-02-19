@@ -111,9 +111,9 @@ extern int _thread_setup_kstack(thread_t* thread, uintptr_t sp);
 static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
 {
     system_disable_interrupts();
-    pdirectory_t* prev_pdir = vmm_get_active_pdir();
-    vmm_switch_pdir(thread->process->pdir);
-    vmm_prepare_active_pdir_for_writing_at((uintptr_t)thread->tf, 1);
+    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
+    vmm_switch_address_space(thread->process->address_space);
+    vmm_ensure_writing_to_active_address_space((uintptr_t)thread->tf, 1);
 
     uintptr_t old_sp = get_stack_pointer(thread->tf);
     uintptr_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */
@@ -148,7 +148,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     }
 
     signal_impl_prepare_stack(thread, signo, old_sp, magic);
-    vmm_switch_pdir(prev_pdir);
+    vmm_switch_address_space(prev_aspace);
     system_enable_interrupts();
     return 0;
 }

@@ -14,6 +14,7 @@
 #include <mem/bits/swap.h>
 #include <mem/bits/vm.h>
 #include <mem/pmm.h>
+#include <mem/vm_address_space.h>
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/pde.h>
 #include <platform/generic/vmm/pte.h>
@@ -40,12 +41,11 @@ struct dynamic_array;
 int vmm_setup();
 int vmm_setup_secondary_cpu();
 
-int vmm_free_pdir(pdirectory_t* pdir, struct dynamic_array* zones);
+int vmm_free_address_space(vm_address_space_t* vm_aspace);
 
 int vmm_alloc_page(uintptr_t vaddr, uint32_t settings);
 int vmm_tune_page(uintptr_t vaddr, uint32_t settings);
 int vmm_tune_pages(uintptr_t vaddr, size_t length, uint32_t settings);
-int vmm_free_page(uintptr_t vaddr, page_desc_t* page, struct dynamic_array* zones);
 
 int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, uint32_t settings);
 int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t settings);
@@ -60,17 +60,22 @@ int vmm_unmap_page_lockless(uintptr_t vaddr);
 int vmm_unmap_pages_lockless(uintptr_t vaddr, size_t n_pages);
 int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable);
 
-pdirectory_t* vmm_new_user_pdir();
-pdirectory_t* vmm_new_forked_user_pdir();
-void* vmm_bring_to_kernel(uint8_t* src, size_t length);
-void vmm_prepare_active_pdir_for_writing_at(uintptr_t dest_vaddr, size_t length);
-void vmm_copy_to_user(void* dest, void* src, size_t length);
-void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_t length);
+vm_address_space_t* vmm_new_address_space();
+vm_address_space_t* vmm_new_forked_address_space();
 
+bool vmm_is_copy_on_write(uintptr_t vaddr);
+
+void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t length);
+void vmm_copy_to_user(void* dest, void* src, size_t length);
+void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length);
+
+vm_address_space_t* vmm_get_active_address_space();
 pdirectory_t* vmm_get_active_pdir();
+vm_address_space_t* vmm_get_kernel_address_space();
 pdirectory_t* vmm_get_kernel_pdir();
 
-int vmm_switch_pdir(pdirectory_t* pdir);
+int vmm_switch_address_space_lockless(vm_address_space_t* vm_aspace);
+int vmm_switch_address_space(vm_address_space_t* vm_aspace);
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr);
 

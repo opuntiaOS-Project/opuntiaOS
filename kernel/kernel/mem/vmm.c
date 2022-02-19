@@ -24,7 +24,9 @@
 
 // #define VMM_DEBUG
 
-static pdir_t* _vmm_kernel_pdir;
+static vm_address_space_t _vmm_kernel_address_space;
+static vm_address_space_t* _vmm_kernel_address_space_ptr = &_vmm_kernel_address_space;
+static pdirectory_t* _vmm_kernel_pdir;
 static lock_t _vmm_lock;
 static kmemzone_t pspace_zone;
 uintptr_t kernel_ptables_start_paddr = 0x0;
@@ -36,7 +38,6 @@ uintptr_t kernel_ptables_start_paddr = 0x0;
  */
 
 static int _vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv);
-static int _vmm_free_ptable(uintptr_t vaddr, struct dynamic_array* zones);
 
 inline static pdirectory_t* _vmm_ensure_active_pdir();
 inline static ptable_t* _vmm_ensure_active_ptable(size_t vaddr);
@@ -53,16 +54,17 @@ static bool _vmm_map_kernel();
 inline static table_desc_t* _vmm_pdirectory_lookup(pdirectory_t* pdir, uintptr_t addr);
 inline static page_desc_t* _vmm_ptable_lookup(ptable_t* ptable, uintptr_t addr);
 
-static bool _vmm_is_copy_on_write(uintptr_t vaddr);
-static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr);
+static int _vmm_resolve_copy_on_write(uintptr_t vaddr);
 static int _vmm_ensure_cow_for_page(uintptr_t vaddr);
 static int _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length);
-static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* src_ptable, int page_index);
+static int _vmm_copy_page_to_resolve_cow(uintptr_t vaddr, ptable_t* src_ptable, int page_index);
 
 #ifdef ZEROING_ON_DEMAND
 static bool _vmm_is_zeroing_on_demand(uintptr_t vaddr);
 static void _vmm_resolve_zeroing_on_demand(uintptr_t vaddr);
 #endif
+
+static void* _vmm_bring_to_kernel_space(void* src, size_t length);
 
 static bool _vmm_is_page_swapped(uintptr_t vaddr);
 static int _vmm_restore_swapped_page_lockless(uintptr_t vaddr);
@@ -77,21 +79,18 @@ static void _vmm_dump_page(uintptr_t vaddr);
 static int vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t lv);
 static ALWAYS_INLINE int vmm_force_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t lv);
 static ALWAYS_INLINE int vmm_free_ptable_lockless(uintptr_t vaddr, dynamic_array_t* zones);
-static ALWAYS_INLINE int vmm_free_pdir_lockless(pdirectory_t* pdir, dynamic_array_t* zones);
+static ALWAYS_INLINE int vmm_free_address_space_lockless(vm_address_space_t* vm_aspace);
 
 static ALWAYS_INLINE pdirectory_t* vmm_new_user_pdir_lockless();
 static ALWAYS_INLINE pdirectory_t* vmm_new_forked_user_pdir_lockless();
-static ALWAYS_INLINE void vmm_prepare_active_pdir_for_writing_at_lockless(uintptr_t dest_vaddr, size_t length);
+static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_lockless(uintptr_t dest_vaddr, size_t length);
 static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length);
-static ALWAYS_INLINE void vmm_copy_to_pdir_lockless(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_t length);
+static ALWAYS_INLINE void vmm_copy_to_address_space_lockless(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length);
 
 static ALWAYS_INLINE int vmm_alloc_page_lockless(uintptr_t vaddr, uint32_t settings);
 static ALWAYS_INLINE int vmm_alloc_page_no_fill_lockless(uintptr_t vaddr, uint32_t settings);
 static ALWAYS_INLINE int vmm_tune_page_lockless(uintptr_t vaddr, uint32_t settings);
 static ALWAYS_INLINE int vmm_tune_pages_lockless(uintptr_t vaddr, size_t length, uint32_t settings);
-static ALWAYS_INLINE int vmm_free_page_lockless(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones);
-
-static ALWAYS_INLINE int vmm_switch_pdir_lockless(pdirectory_t* pdir);
 
 /**
  * VM INITIALIZATION FUNCTIONS
@@ -101,9 +100,14 @@ static ALWAYS_INLINE int vmm_switch_pdir_lockless(pdirectory_t* pdir);
 inline static void vm_alloc_kernel_pdir()
 {
     uintptr_t paddr = (uintptr_t)pmm_alloc_aligned(PDIR_SIZE, PDIR_SIZE);
-    _vmm_kernel_pdir = (pdir_t*)vmm_kernel_pdir_phys2virt(paddr);
-    THIS_CPU->pdir = (pdir_t*)_vmm_kernel_pdir;
-    memset((void*)THIS_CPU->pdir, 0, PDIR_SIZE);
+    _vmm_kernel_pdir = (pdirectory_t*)vmm_kernel_pdir_phys2virt(paddr);
+    _vmm_kernel_address_space.count = 1;
+    _vmm_kernel_address_space.pdir = _vmm_kernel_pdir;
+    lock_init(&_vmm_kernel_address_space.lock);
+    memset((void*)_vmm_kernel_address_space.pdir, 0, PDIR_SIZE);
+
+    // Set as an active one to set up kernel address space.
+    THIS_CPU->active_address_space = _vmm_kernel_address_space_ptr;
 }
 
 /**
@@ -113,7 +117,7 @@ inline static void vm_alloc_kernel_pdir()
 // _vmm_ensure_active_pdir returns vaddr of an active pdir.
 inline static pdirectory_t* _vmm_ensure_active_pdir()
 {
-    return (pdirectory_t*)THIS_CPU->pdir;
+    return (pdirectory_t*)THIS_CPU->active_address_space->pdir;
 }
 
 // _vmm_ensure_active_ptable returns vaddr of an active ptable.
@@ -158,9 +162,9 @@ static void* _vmm_convert_vaddr2paddr(uintptr_t vaddr)
  */
 static bool _vmm_init_switch_to_kernel_pdir()
 {
-    THIS_CPU->pdir = _vmm_kernel_pdir;
+    THIS_CPU->active_address_space = _vmm_kernel_address_space_ptr;
     system_disable_interrupts();
-    system_set_pdir((uintptr_t)_vmm_kernel_convert_vaddr2paddr((uintptr_t)THIS_CPU->pdir));
+    system_set_pdir((uintptr_t)_vmm_kernel_convert_vaddr2paddr((uintptr_t)_vmm_kernel_address_space.pdir));
     system_enable_interrupts();
     return true;
 }
@@ -257,6 +261,9 @@ int vmm_setup()
     _vmm_map_kernel();
     kmemzone_init_stage2();
     kmalloc_init();
+
+    // After kmalloc is set up, we can allocate dynarr for zones.
+    dynarr_init_of_size(memzone_t, &_vmm_kernel_address_space.zones, 4);
     return 0;
 }
 
@@ -286,11 +293,11 @@ static inline void _vmm_table_desc_init_from_allocated_state(table_desc_t* ptabl
  */
 static int _vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
 {
-    if (!THIS_CPU->pdir) {
+    if (!THIS_CPU->active_address_space->pdir) {
         return -EACCES;
     }
 
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     if (table_desc_is_in_allocated_state(ptable_desc)) {
         goto skip_allocation;
     }
@@ -307,7 +314,7 @@ static int _vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
     uintptr_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
 
     for (uintptr_t i = 0, pvaddr = ptable_serve_vaddr_start, ptable_paddr = ptables_paddr; i < ptables_per_page; i++, pvaddr += table_coverage, ptable_paddr += PTABLE_SIZE) {
-        table_desc_t* tmp_ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, pvaddr);
+        table_desc_t* tmp_ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, pvaddr);
         table_desc_clear(tmp_ptable_desc);
         table_desc_set_allocated_state(tmp_ptable_desc);
         table_desc_set_frame(tmp_ptable_desc, ptable_paddr);
@@ -346,7 +353,7 @@ static int _vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
 static ALWAYS_INLINE int vmm_force_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t lv)
 {
     // Clearing Allocated state flags, so vmm_allocate_ptable will allocate new tables.
-    table_desc_t* ptable_desc_orig = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    table_desc_t* ptable_desc_orig = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     table_desc_clear(ptable_desc_orig);
     return _vmm_allocate_ptable_lockless(vaddr, lv);
 }
@@ -359,77 +366,9 @@ int vmm_force_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
     return res;
 }
 
-/**
- * The function deletes ptable(s) and rebuilds pspace to match the new setup.
- */
-static ALWAYS_INLINE int vmm_free_ptable_lockless(uintptr_t vaddr, dynamic_array_t* zones)
-{
-    if (!THIS_CPU->pdir) {
-        return -EACCES;
-    }
-
-    if (_vmm_is_copy_on_write(vaddr)) {
-        return -EFAULT;
-    }
-
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
-
-    if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
-        return -EFAULT;
-    }
-
-    // Entering allocated state, since table is alloacted but not valid.
-    // Allocated state will remove TABLE_DESC_PRESENT flag.
-    uintptr_t frame = table_desc_get_frame(*ptable_desc);
-    table_desc_set_allocated_state(ptable_desc);
-    table_desc_set_frame(ptable_desc, frame);
-
-    ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
-    uintptr_t pages_vstart = TABLE_START(vaddr);
-    for (uintptr_t i = 0, pages_voffset = 0; i < VMM_TOTAL_PAGES_PER_TABLE; i++, pages_voffset += VMM_PAGE_SIZE) {
-        page_desc_t* page = &ptable->entities[i];
-        vmm_free_page_lockless(pages_vstart + pages_voffset, page, zones);
-    }
-
-    uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)ptable);
-    size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
-    size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
-    uintptr_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
-
-    // Chechking if we can delete thw whole page of tables.
-    for (uintptr_t i = 0, pvaddr = ptable_serve_vaddr_start; i < ptables_per_page; i++, pvaddr += table_coverage) {
-        table_desc_t* ptable_desc_c = _vmm_pdirectory_lookup(THIS_CPU->pdir, pvaddr);
-        if (table_desc_has_attrs(*ptable_desc_c, TABLE_DESC_PRESENT)) {
-            return 0;
-        }
-    }
-
-    // If we are here, we can delete the page of tables.
-    table_desc_t* ptable_desc_first = _vmm_pdirectory_lookup(THIS_CPU->pdir, ptable_serve_vaddr_start);
-    vm_free_ptables_to_cover_page(table_desc_get_frame(*ptable_desc_first));
-
-    for (uintptr_t i = 0, pvaddr = ptable_serve_vaddr_start; i < ptables_per_page; i++, pvaddr += table_coverage) {
-        table_desc_t* ptable_desc_c = _vmm_pdirectory_lookup(THIS_CPU->pdir, pvaddr);
-        table_desc_clear(ptable_desc_c);
-    }
-
-    // Cleaning Pspace
-    _vmm_release_active_ptable(vaddr);
-    vmm_unmap_page_lockless(ptable_vaddr_start);
-    return 0;
-}
-
-static int _vmm_free_ptable(uintptr_t vaddr, dynamic_array_t* zones)
-{
-    lock_acquire(&_vmm_lock);
-    int res = vmm_free_ptable_lockless(vaddr, zones);
-    lock_release(&_vmm_lock);
-    return res;
-}
-
 static bool _vmm_is_page_present(uintptr_t vaddr)
 {
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
         return false;
     }
@@ -444,12 +383,12 @@ static bool _vmm_is_page_present(uintptr_t vaddr)
 // vmm_map_page_lockless maps vaddr to paddr with settings.
 int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
 {
-    if (!THIS_CPU->pdir) {
+    if (!THIS_CPU->active_address_space->pdir) {
         return -EACCES;
     }
 
     vaddr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-    if (_vmm_is_copy_on_write(vaddr)) {
+    if (vmm_is_copy_on_write(vaddr)) {
         return -EBUSY;
     }
 
@@ -460,7 +399,7 @@ int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
     bool is_cow = ((settings & MMU_FLAG_COW) > 0);
     bool is_user = ((settings & MMU_FLAG_NONPRIV) > 0);
 
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
         // TODO: Currently we allocate only LV0 table, since we support only 2-level translation for now.
         _vmm_allocate_ptable_lockless(vaddr, PTABLE_LV0);
@@ -505,11 +444,15 @@ int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, uint32_t settings)
 
 int vmm_unmap_page_lockless(uintptr_t vaddr)
 {
-    if (!THIS_CPU->pdir) {
+    if (!THIS_CPU->active_address_space->pdir) {
         return -EACCES;
     }
 
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    if (vmm_is_copy_on_write(vaddr)) {
+        return -EBUSY;
+    }
+
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
         return -EACCES;
     }
@@ -598,13 +541,60 @@ static void _vmm_tables_set_cow(size_t table_index, table_desc_t* cur, table_des
     }
 }
 
-static bool _vmm_is_copy_on_write(uintptr_t vaddr)
+// _vmm_copy_page_to_resolve_cow copies data from one page to another to resolve CoW
+// for an active address space.
+// Note: use it only to resolve CoW.
+static int _vmm_copy_page_to_resolve_cow(uintptr_t vaddr, ptable_t* src_ptable, int page_index)
 {
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    vm_address_space_t* active_address_space = vmm_get_active_address_space();
+    if (!active_address_space) {
+        return -EINVAL;
+    }
+
+    page_desc_t* old_page_desc = &src_ptable->entities[page_index];
+
+    memzone_t* zone = memzone_find(active_address_space, vaddr);
+    if (!zone) {
+        kpanic("Cow: No page in zone");
+        return -EFAULT;
+    }
+
+    if (TEST_FLAG(zone->type, ZONE_TYPE_DEVICE) || TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+        uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
+        return vmm_map_page_lockless(vaddr, old_page_paddr, zone->flags);
+    }
+
+    vmm_alloc_page_lockless(vaddr, zone->flags);
+
+    /* Mapping the old page to do a copy */
+    kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
+    uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
+    uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
+    int err = vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
+    if (err) {
+        return err;
+    }
+
+    /*  We don't need to check if there is a problem with cow, since this is a special copy function
+        to resolve cow. So, we know that pages were created recently. Checking cow here would cause an
+        ub, since table has not been setup correctly yet. */
+    memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
+
+    /* Freeing */
+    vmm_unmap_page_lockless(old_page_vaddr);
+    kmemzone_free(tmp_zone);
+    return 0;
+}
+
+// vmm_is_copy_on_write checks if vaddrs of an active address space marked as CoW.
+bool vmm_is_copy_on_write(uintptr_t vaddr)
+{
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     return table_desc_is_copy_on_write(*ptable_desc);
 }
 
-static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
+// _vmm_resolve_copy_on_write resolves CoW for an active address space
+static int _vmm_resolve_copy_on_write(uintptr_t vaddr)
 {
     table_desc_t orig_table_desc[VMM_PAGE_SIZE / PTABLE_SIZE];
     size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
@@ -619,7 +609,7 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
 
     // Saving descriptors of original ptables
     for (int it = 0; it < ptables_per_page; it++) {
-        table_desc_t* tmp_table_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, ptable_serve_vaddr_start);
+        table_desc_t* tmp_table_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, ptable_serve_vaddr_start);
         orig_table_desc[it] = tmp_table_desc[it];
     }
 
@@ -631,7 +621,7 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
 
     /* Copying all pages from this tables to newly allocated. */
     uintptr_t table_start = TABLE_START(ptable_serve_vaddr_start);
-    table_desc_t* start_ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, ptable_serve_vaddr_start);
+    table_desc_t* start_ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, ptable_serve_vaddr_start);
     for (int ptable_idx = 0; ptable_idx < ptables_per_page; ptable_idx++) {
         if (table_desc_is_present(orig_table_desc[ptable_idx])) {
             _vmm_table_desc_init_from_allocated_state(&start_ptable_desc[ptable_idx]);
@@ -640,7 +630,7 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
                 uintptr_t page_vaddr = table_start + (offset_in_table_set * VMM_PAGE_SIZE);
                 page_desc_t* page_desc = &src_ptable->entities[offset_in_table_set];
                 if (page_desc_is_present(*page_desc)) {
-                    err = _vmm_copy_page_to_resolve_cow(p, page_vaddr, src_ptable, offset_in_table_set);
+                    err = _vmm_copy_page_to_resolve_cow(page_vaddr, src_ptable, offset_in_table_set);
                     if (err) {
                         return err;
                     }
@@ -655,10 +645,8 @@ static int _vmm_resolve_copy_on_write(proc_t* p, uintptr_t vaddr)
 
 static int _vmm_ensure_cow_for_page(uintptr_t vaddr)
 {
-    if (_vmm_is_copy_on_write(vaddr)) {
-        proc_t* holder_proc = tasking_get_proc_by_pdir(vmm_get_active_pdir());
-        ASSERT(holder_proc && "No proc with the pdir");
-        int err = _vmm_resolve_copy_on_write(holder_proc, vaddr);
+    if (vmm_is_copy_on_write(vaddr)) {
+        int err = _vmm_resolve_copy_on_write(vaddr);
         if (err) {
             return err;
         }
@@ -685,7 +673,7 @@ static memzone_t* _vmm_memzone_for_active_pdir(uintptr_t vaddr)
     if (!holder_proc) {
         return NULL;
     }
-    return memzone_find(holder_proc, vaddr);
+    return memzone_find(holder_proc->address_space, vaddr);
 }
 
 static int vm_alloc_kernel_page_lockless(uintptr_t vaddr)
@@ -752,56 +740,13 @@ static int _vmm_ensure_write_to_range(uintptr_t vaddr, size_t length)
 }
 
 /**
- * The function is supposed to copy a page from @src_ptable to active
- * ptable. The page which is copied has address @vaddr.
- *
- * Note: use it only to resolve COW!
- */
-static int _vmm_copy_page_to_resolve_cow(proc_t* p, uintptr_t vaddr, ptable_t* src_ptable, int page_index)
-{
-    page_desc_t* old_page_desc = &src_ptable->entities[page_index];
-
-    memzone_t* zone = memzone_find(p, vaddr);
-    if (!zone) {
-        kpanic("Cow: No page in zone");
-        return -EFAULT;
-    }
-
-    if (TEST_FLAG(zone->type, ZONE_TYPE_DEVICE) || TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
-        uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-        return vmm_map_page_lockless(vaddr, old_page_paddr, zone->flags);
-    }
-
-    vmm_alloc_page_lockless(vaddr, zone->flags);
-
-    /* Mapping the old page to do a copy */
-    kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
-    uintptr_t old_page_vaddr = (uintptr_t)tmp_zone.start;
-    uintptr_t old_page_paddr = page_desc_get_frame(*old_page_desc);
-    int err = vmm_map_page_lockless(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
-    if (err) {
-        return err;
-    }
-
-    /*  We don't need to check if there is a problem with cow, since this is a special copy function
-        to resolve cow. So, we know that pages were created recently. Checking cow here would cause an
-        ub, since table has not been setup correctly yet. */
-    memcpy((uint8_t*)vaddr, (uint8_t*)old_page_vaddr, VMM_PAGE_SIZE);
-
-    /* Freeing */
-    vmm_unmap_page_lockless(old_page_vaddr);
-    kmemzone_free(tmp_zone);
-    return 0;
-}
-
-/**
  * ZEROING ON DEMAND FUNCTIONS
  */
 
 #ifdef ZEROING_ON_DEMAND
 static bool _vmm_is_zeroing_on_demand(uintptr_t vaddr)
 {
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
         return true;
     }
@@ -814,7 +759,7 @@ static bool _vmm_is_zeroing_on_demand(uintptr_t vaddr)
 
 static void _vmm_resolve_zeroing_on_demand(uintptr_t vaddr)
 {
-    table_desc_t* ptable_desc = (table_desc_t*)_vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    table_desc_t* ptable_desc = (table_desc_t*)_vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     ptable_t* ptable = _vmm_ensure_active_ptable(vaddr);
 
     if (table_desc_has_attrs(*ptable_desc, TABLE_DESC_ZEROING_ON_DEMAND)) {
@@ -853,7 +798,7 @@ void vmm_zero_user_pages(pdirectory_t* pdir)
 
 static bool _vmm_is_page_swapped(uintptr_t vaddr)
 {
-    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->pdir, vaddr);
+    table_desc_t* ptable_desc = _vmm_pdirectory_lookup(THIS_CPU->active_address_space->pdir, vaddr);
     if (!table_desc_is_present(*ptable_desc)) {
         return false;
     }
@@ -878,7 +823,7 @@ end:
 
 static int _vmm_restore_swapped_page_lockless(uintptr_t vaddr)
 {
-    ASSERT(!_vmm_is_copy_on_write(vaddr));
+    ASSERT(!vmm_is_copy_on_write(vaddr));
 
     memzone_t* zone = _vmm_memzone_for_active_pdir(vaddr);
     if (!zone) {
@@ -913,7 +858,7 @@ int vmm_swap_page(ptable_t* ptable, memzone_t* zone, uintptr_t vaddr)
         return -EINVAL;
     }
 
-    if (_vmm_is_copy_on_write(vaddr)) {
+    if (vmm_is_copy_on_write(vaddr)) {
         return -EBUSY;
     }
 
@@ -958,199 +903,137 @@ int vmm_swap_page(ptable_t* ptable, memzone_t* zone, uintptr_t vaddr)
 }
 
 /**
- * USER PDIR FUNCTIONS
+ * ADDRESS SPACE FUNCTIONS
  */
 
-/**
- * The function is supposed to create all new user's pdir.
- */
-static ALWAYS_INLINE pdirectory_t* vmm_new_user_pdir_lockless()
+static vm_address_space_t* _vmm_alloc_new_address_space_lockless()
 {
-    pdirectory_t* pdir = vm_alloc_pdir();
+    vm_address_space_t* new_address_space = vm_address_space_alloc();
+    pdirectory_t* new_pdir = (pdirectory_t*)vm_alloc_ptable_lv_top();
+    new_address_space->pdir = new_pdir;
 
-    for (int i = VMM_USER_TABLES_START; i < VMM_KERNEL_TABLES_START; i++) {
-        table_desc_clear(&pdir->entities[i]);
+    return new_address_space;
+}
+
+static int _vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
+{
+    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+        table_desc_clear(&new_aspace->pdir->entities[i]);
     }
 
-    for (int i = VMM_KERNEL_TABLES_START; i < VMM_TOTAL_TABLES_PER_DIRECTORY; i++) {
+    for (int i = VMM_KERNEL_TABLES_START; i < pte_entities_at_level[PTABLE_LV_TOP]; i++) {
         if (!IS_INDIVIDUAL_PER_DIR(i)) {
-            pdir->entities[i] = _vmm_kernel_pdir->entities[i];
+            new_aspace->pdir->entities[i] = _vmm_kernel_pdir->entities[i];
         }
     }
 
-    vm_pspace_gen(pdir);
-    return pdir;
+    vm_pspace_gen(new_aspace->pdir);
+    return 0;
 }
 
-pdirectory_t* vmm_new_user_pdir()
+static int _vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
 {
+    vm_address_space_t* active_address_space = THIS_CPU->active_address_space;
+
+    // Copying the top-most entries to the new table.
+    for (int i = 0; i < pte_entities_at_level[PTABLE_LV_TOP]; i++) {
+        new_aspace->pdir->entities[i] = active_address_space->pdir->entities[i];
+    }
+    vm_pspace_gen(new_aspace->pdir);
+
+    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+        table_desc_t* act_ptable_desc = &active_address_space->pdir->entities[i];
+        if (table_desc_has_attrs(*act_ptable_desc, TABLE_DESC_PRESENT)) {
+            table_desc_t* new_ptable_desc = &new_aspace->pdir->entities[i];
+            _vmm_tables_set_cow(i, act_ptable_desc, new_ptable_desc);
+        }
+    }
+
+    system_flush_whole_tlb();
+    return 0;
+}
+
+static vm_address_space_t* vmm_new_address_space_lockless()
+{
+    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_lockless();
+    _vmm_fill_up_new_address_space(new_aspace);
+    return new_aspace;
+}
+
+vm_address_space_t* vmm_new_address_space()
+{
+    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_lockless();
     lock_acquire(&_vmm_lock);
-    pdirectory_t* res = vmm_new_user_pdir_lockless();
+    _vmm_fill_up_new_address_space(new_aspace);
     lock_release(&_vmm_lock);
-    return res;
+    return new_aspace;
 }
 
 /**
  * The function created a new user's pdir from the active pdir.
  * After copying the task we need to flush tlb.
  */
-static ALWAYS_INLINE pdirectory_t* vmm_new_forked_user_pdir_lockless()
+static vm_address_space_t* vmm_new_forked_address_space_lockless()
 {
-    pdirectory_t* new_pdir = vm_alloc_pdir();
-
-    // coping all tables
-    for (int i = 0; i < VMM_TOTAL_TABLES_PER_DIRECTORY; i++) {
-        new_pdir->entities[i] = THIS_CPU->pdir->entities[i];
-    }
-    vm_pspace_gen(new_pdir);
-
-    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-        table_desc_t* act_ptable_desc = &THIS_CPU->pdir->entities[i];
-        if (table_desc_has_attrs(*act_ptable_desc, TABLE_DESC_PRESENT)) {
-            table_desc_t* new_ptable_desc = &new_pdir->entities[i];
-            _vmm_tables_set_cow(i, act_ptable_desc, new_ptable_desc);
-        }
-    }
-
-    system_flush_whole_tlb();
-    return new_pdir;
+    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_lockless();
+    _vmm_fill_up_forked_address_space(new_aspace);
+    memzone_copy(new_aspace, THIS_CPU->active_address_space);
+    return new_aspace;
 }
 
-pdirectory_t* vmm_new_forked_user_pdir()
+vm_address_space_t* vmm_new_forked_address_space()
 {
+    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_lockless();
     lock_acquire(&_vmm_lock);
-    pdirectory_t* res = vmm_new_forked_user_pdir_lockless();
+    _vmm_fill_up_forked_address_space(new_aspace);
     lock_release(&_vmm_lock);
-    return res;
+    memzone_copy(new_aspace, THIS_CPU->active_address_space);
+    return new_aspace;
 }
 
-static ALWAYS_INLINE int vmm_free_pdir_lockless(pdirectory_t* pdir, dynamic_array_t* zones)
+// vmm_free_address_space_lockless frees address space. If target vm_aspace
+// is an active address space, after deletion kernel will be moved to
+// kernel address space.
+static ALWAYS_INLINE int vmm_free_address_space_lockless(vm_address_space_t* vm_aspace)
 {
-    if (!pdir) {
+    ASSERT(vm_aspace->count == 0);
+
+    if (!vm_aspace) {
         return -EINVAL;
     }
 
-    if (pdir == _vmm_kernel_pdir) {
+    if (vm_aspace == _vmm_kernel_address_space_ptr) {
         return -EACCES;
     }
 
-    pdirectory_t* cur_pdir = vmm_get_active_pdir();
-    vmm_switch_pdir_lockless(pdir);
-
-    size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
-    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-        vmm_free_ptable_lockless(table_coverage * i, zones);
-    }
-
-    if (cur_pdir == pdir) {
-        vmm_switch_pdir_lockless(_vmm_kernel_pdir);
-    } else {
-        vmm_switch_pdir_lockless(cur_pdir);
-    }
-    vm_pspace_free(pdir);
-    vm_free_pdir(pdir);
-    return 0;
+    return vm_pspace_free_address_space_lockless(vm_aspace);
 }
 
-int vmm_free_pdir(pdirectory_t* pdir, dynamic_array_t* zones)
+// vmm_free_address_space frees address space. If target vm_aspace
+// is an active address space, after deletion kernel will be moved to
+// kernel address space.
+int vmm_free_address_space(vm_address_space_t* vm_aspace)
 {
     lock_acquire(&_vmm_lock);
-    int res = vmm_free_pdir_lockless(pdir, zones);
+    int res = vmm_free_address_space_lockless(vm_aspace);
     lock_release(&_vmm_lock);
     return res;
 }
 
-void* vmm_bring_to_kernel(uint8_t* src, size_t length)
+vm_address_space_t* vmm_get_active_address_space()
 {
-    if ((uintptr_t)src >= KERNEL_BASE) {
-        return src;
-    }
-    uint8_t* kaddr = kmalloc(length);
-    _vmm_ensure_write_to_range((uintptr_t)kaddr, length);
-    memcpy(kaddr, src, length);
-    return (void*)kaddr;
-}
-
-static ALWAYS_INLINE void vmm_prepare_active_pdir_for_writing_at_lockless(uintptr_t dest_vaddr, size_t length)
-{
-    _vmm_ensure_write_to_range(dest_vaddr, length);
-}
-
-void vmm_prepare_active_pdir_for_writing_at(uintptr_t dest_vaddr, size_t length)
-{
-    lock_acquire(&_vmm_lock);
-    vmm_prepare_active_pdir_for_writing_at_lockless(dest_vaddr, length);
-    lock_release(&_vmm_lock);
-}
-
-static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length)
-{
-    vmm_prepare_active_pdir_for_writing_at_lockless((uintptr_t)dest, length);
-    memcpy(dest, src, length);
-}
-
-void vmm_copy_to_user(void* dest, void* src, size_t length)
-{
-    lock_acquire(&_vmm_lock);
-    vmm_prepare_active_pdir_for_writing_at_lockless((uintptr_t)dest, length);
-    lock_release(&_vmm_lock);
-    memcpy(dest, src, length);
-}
-
-static ALWAYS_INLINE void vmm_copy_to_pdir_lockless(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_t length)
-{
-    pdirectory_t* prev_pdir = vmm_get_active_pdir();
-    uint8_t* ksrc;
-    if ((uintptr_t)src < KERNEL_BASE) {
-        /* Means that it's in user space, so it should be copied here. */
-        ksrc = vmm_bring_to_kernel(src, length);
-    } else {
-        ksrc = src;
-    }
-
-    vmm_switch_pdir_lockless(pdir);
-
-    vmm_prepare_active_pdir_for_writing_at_lockless(dest_vaddr, length);
-    uint8_t* dest = (uint8_t*)dest_vaddr;
-    memcpy(dest, ksrc, length);
-
-    if ((uintptr_t)src < KERNEL_BASE) {
-        kfree(ksrc);
-    }
-
-    vmm_switch_pdir_lockless(prev_pdir);
-}
-
-void vmm_copy_to_pdir(pdirectory_t* pdir, void* src, uintptr_t dest_vaddr, size_t length)
-{
-    pdirectory_t* prev_pdir = vmm_get_active_pdir();
-    uint8_t* ksrc;
-    if ((uintptr_t)src < KERNEL_BASE) {
-        /* Means that it's in user space, so it should be copied here. */
-        ksrc = vmm_bring_to_kernel(src, length);
-    } else {
-        ksrc = src;
-    }
-
-    lock_acquire(&_vmm_lock);
-    vmm_switch_pdir_lockless(pdir);
-    vmm_prepare_active_pdir_for_writing_at_lockless(dest_vaddr, length);
-    lock_release(&_vmm_lock);
-
-    uint8_t* dest = (uint8_t*)dest_vaddr;
-    memcpy(dest, ksrc, length);
-
-    if ((uintptr_t)src < KERNEL_BASE) {
-        kfree(ksrc);
-    }
-
-    vmm_switch_pdir_lockless(prev_pdir);
+    // At first glance we don't need lock here
+    return THIS_CPU->active_address_space;
 }
 
 pdirectory_t* vmm_get_active_pdir()
 {
-    // At first glance we don't need lock here
-    return THIS_CPU->pdir;
+    return vmm_get_active_address_space()->pdir;
+}
+
+vm_address_space_t* vmm_get_kernel_address_space()
+{
+    return _vmm_kernel_address_space_ptr;
 }
 
 pdirectory_t* vmm_get_kernel_pdir()
@@ -1159,12 +1042,110 @@ pdirectory_t* vmm_get_kernel_pdir()
 }
 
 /**
+ * COPY FUNCTIONS
+ */
+
+// _vmm_bring_to_kernel_space brings data to the kernel space if needed.
+static void* _vmm_bring_to_kernel_space(void* data, size_t length)
+{
+    if ((uintptr_t)data >= KERNEL_BASE) {
+        return data;
+    }
+    void* kaddr = kmalloc(length);
+    _vmm_ensure_write_to_range((uintptr_t)kaddr, length);
+    memcpy(kaddr, data, length);
+    return (void*)kaddr;
+}
+
+// vmm_ensure_writing_to_active_address_space_lockless ensures that writing to
+// the address is safe and does NOT cause any faults. It might start resolving CoW
+// if this is needed for writing.
+static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_lockless(uintptr_t dest_vaddr, size_t length)
+{
+    _vmm_ensure_write_to_range(dest_vaddr, length);
+}
+
+// vmm_ensure_writing_to_active_address_space ensures that writing to the address
+// is safe and does NOT cause any faults. It might start resolving CoW if this is
+// needed for writing.
+void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t length)
+{
+    lock_acquire(&_vmm_lock);
+    vmm_ensure_writing_to_active_address_space_lockless(dest_vaddr, length);
+    lock_release(&_vmm_lock);
+}
+
+// vmm_copy_to_user_lockless copies data from the kernel buffer to the active
+// address space.
+static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length)
+{
+    vmm_ensure_writing_to_active_address_space_lockless((uintptr_t)dest, length);
+    memcpy(dest, src, length);
+}
+
+// vmm_copy_to_user copies data from the kernel buffer to the active
+// address space.
+void vmm_copy_to_user(void* dest, void* src, size_t length)
+{
+    lock_acquire(&_vmm_lock);
+    vmm_ensure_writing_to_active_address_space_lockless((uintptr_t)dest, length);
+    lock_release(&_vmm_lock);
+    memcpy(dest, src, length);
+}
+
+// vmm_copy_to_address_space_lockless copies data from the src address
+// of the active address space to dest_vaddr of vm_aspace address space.
+static ALWAYS_INLINE void vmm_copy_to_address_space_lockless(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length)
+{
+    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
+
+    // Copy data to the kernel space, if needed.
+    void* ksrc = _vmm_bring_to_kernel_space(src, length);
+
+    vmm_switch_address_space_lockless(vm_aspace);
+
+    vmm_ensure_writing_to_active_address_space_lockless(dest_vaddr, length);
+    void* dest = (void*)dest_vaddr;
+    memcpy(dest, ksrc, length);
+
+    if ((uintptr_t)src < KERNEL_BASE) {
+        kfree(ksrc);
+    }
+
+    vmm_switch_address_space_lockless(prev_aspace);
+}
+
+// vmm_copy_to_address_space copies data from the src address of the
+// active address space to dest_vaddr of vm_aspace address space.
+void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length)
+{
+    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
+
+    // Copy data to the kernel space, if needed.
+    void* ksrc = _vmm_bring_to_kernel_space(src, length);
+
+    lock_acquire(&_vmm_lock);
+    vmm_switch_address_space_lockless(vm_aspace);
+    vmm_ensure_writing_to_active_address_space_lockless(dest_vaddr, length);
+    lock_release(&_vmm_lock);
+
+    void* dest = (void*)dest_vaddr;
+    memcpy(dest, ksrc, length);
+
+    if ((uintptr_t)src < KERNEL_BASE) {
+        kfree(ksrc);
+    }
+
+    vmm_switch_address_space_lockless(prev_aspace);
+}
+
+/**
  * PF HANDLER FUNCTIONS
  */
 
 static ALWAYS_INLINE int vmm_tune_page_lockless(uintptr_t vaddr, uint32_t settings)
 {
-    if (_vmm_is_copy_on_write(vaddr)) {
+    if (vmm_is_copy_on_write(vaddr)) {
         return -EBUSY;
     }
 
@@ -1234,7 +1215,7 @@ static ALWAYS_INLINE int vmm_alloc_page_lockless(uintptr_t vaddr, uint32_t setti
         return err;
     }
 
-    uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+    void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
     memset(dest, 0, VMM_PAGE_SIZE);
     return 0;
 }
@@ -1253,15 +1234,16 @@ int vmm_alloc_page(uintptr_t vaddr, uint32_t settings)
         return err;
     }
 
-    uint8_t* dest = (uint8_t*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+    void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
     memset(dest, 0, VMM_PAGE_SIZE);
     return 0;
 }
 
 /**
  * The function is supposed to copy a page from @src_ptable to active
- * ptable. The page which is copied has address @vaddr. ONLY TO RESOLVE COW!
+ * ptable. The page which is copied has address @vaddr.
  */
+// vmm_copy_page_lockless
 int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable)
 {
     _vmm_ensure_cow_for_page(src_vaddr);
@@ -1303,36 +1285,7 @@ int vmm_copy_page(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable)
     return res;
 }
 
-static ALWAYS_INLINE int vmm_free_page_lockless(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones)
-{
-    if (_vmm_is_copy_on_write(vaddr)) {
-        return -EBUSY;
-    }
-
-    if (!page_desc_has_attrs(*page, PAGE_DESC_PRESENT)) {
-        return 0;
-    }
-    page_desc_del_attrs(page, PAGE_DESC_PRESENT);
-
-    memzone_t* zone = memzone_find_no_proc(zones, vaddr);
-    if (zone) {
-        if (zone->type & ZONE_TYPE_DEVICE) {
-            return 0;
-        }
-    }
-    vm_free_page_paddr(page_desc_get_frame(*page));
-    return 0;
-}
-
-int vmm_free_page(uintptr_t vaddr, page_desc_t* page, dynamic_array_t* zones)
-{
-    lock_acquire(&_vmm_lock);
-    int res = vmm_free_page_lockless(vaddr, page, zones);
-    lock_release(&_vmm_lock);
-    return res;
-}
-
-static int _vmm_page_not_present_lockless(uintptr_t vaddr)
+static int _vmm_on_page_not_present_lockless(uintptr_t vaddr)
 {
     if (_vmm_is_page_present(vaddr)) {
         return 0;
@@ -1351,7 +1304,7 @@ static int _vmm_page_not_present_lockless(uintptr_t vaddr)
         return -EFAULT;
     }
 
-    if (_vmm_is_copy_on_write(vaddr)) {
+    if (vmm_is_copy_on_write(vaddr)) {
         int err = _vmm_ensure_cow_for_page(vaddr);
         if (err) {
             return err;
@@ -1377,7 +1330,7 @@ int _vmm_pf_on_writing(uintptr_t vaddr)
     lock_acquire(&_vmm_lock);
     int visited = 0;
 
-    if (_vmm_is_copy_on_write(vaddr)) {
+    if (vmm_is_copy_on_write(vaddr)) {
         int err = _vmm_ensure_cow_for_page(vaddr);
         if (err) {
             return err;
@@ -1403,7 +1356,7 @@ int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
 {
     if (_vmm_is_table_not_present(info) || _vmm_is_page_not_present(info)) {
         lock_acquire(&_vmm_lock);
-        int res = _vmm_page_not_present_lockless(vaddr);
+        int res = _vmm_on_page_not_present_lockless(vaddr);
         lock_release(&_vmm_lock);
         return res;
     }
@@ -1419,31 +1372,33 @@ int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
  * CPU BASED FUNCTIONS
  */
 
-static ALWAYS_INLINE int vmm_switch_pdir_lockless(pdirectory_t* pdir)
+// vmm_switch_address_space_lockless switches to vm_aspace address space.
+int vmm_switch_address_space_lockless(vm_address_space_t* vm_aspace)
 {
-    if (!pdir) {
-        return -1;
+    if (!vm_aspace) {
+        return -EINVAL;
     }
 
-    if (((uintptr_t)pdir & (PDIR_SIZE - 1)) != 0) {
-        kpanic("vmm_switch_pdir: wrong pdir");
+    if (((uintptr_t)vm_aspace->pdir & (PDIR_SIZE - 1)) != 0) {
+        kpanic("vmm_switch_address_space_lockless: not aligned pdir");
     }
 
     system_disable_interrupts();
-    if (THIS_CPU->pdir == pdir) {
+    if (THIS_CPU->active_address_space == vm_aspace) {
         system_enable_interrupts();
         return 0;
     }
-    THIS_CPU->pdir = pdir;
-    system_set_pdir((uintptr_t)_vmm_convert_vaddr2paddr((uintptr_t)pdir));
+    THIS_CPU->active_address_space = vm_aspace;
+    system_set_pdir((uintptr_t)_vmm_convert_vaddr2paddr((uintptr_t)vm_aspace->pdir));
     system_enable_interrupts();
     return 0;
 }
 
-int vmm_switch_pdir(pdirectory_t* pdir)
+// vmm_switch_address_space switches to vm_aspace address space.
+int vmm_switch_address_space(vm_address_space_t* vm_aspace)
 {
     lock_acquire(&_vmm_lock);
-    int res = vmm_switch_pdir_lockless(pdir);
+    int res = vmm_switch_address_space_lockless(vm_aspace);
     lock_release(&_vmm_lock);
     return res;
 }

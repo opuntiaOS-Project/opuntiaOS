@@ -717,7 +717,7 @@ static memzone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
     memzone_t* zone;
 
     if (map_private) {
-        zone = memzone_new_random(RUNNING_THREAD->process, params->size);
+        zone = memzone_new_random(RUNNING_THREAD->process->address_space, params->size);
         zone->type = ZONE_TYPE_MAPPED_FILE_PRIVATLY;
         zone->file = dentry_duplicate(fd->dentry);
         zone->offset = params->offset;
@@ -757,7 +757,7 @@ int vfs_munmap(proc_t* p, memzone_t* zone)
     for (uintptr_t vaddr = zone->start; vaddr < zone->start + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
         system_flush_local_tlb_entry(vaddr);
     }
-    memzone_free(p, zone);
+    memzone_free(p->address_space, zone);
 
     return 0;
 }

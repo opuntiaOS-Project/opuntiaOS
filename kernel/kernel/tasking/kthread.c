@@ -99,7 +99,7 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
 
 #ifdef __i386__
     tf_move_stack_pointer(thread->tf, -sizeof(data));
-    vmm_copy_to_pdir(thread->process->pdir, &data, get_stack_pointer(thread->tf), sizeof(data));
+    vmm_copy_to_address_space(thread->process->address_space, &data, get_stack_pointer(thread->tf), sizeof(data));
 #elif __arm__
     thread->tf->r[0] = (uintptr_t)data;
 #endif

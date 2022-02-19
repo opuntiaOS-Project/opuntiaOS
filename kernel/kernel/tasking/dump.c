@@ -43,7 +43,7 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
 
     system_disable_interrupts();
     memzone_t* zone;
-    zone = memzone_new_random(p, elf_file_size);
+    zone = memzone_new_random(p->address_space, elf_file_size);
     if (!zone) {
         vfs_close(&fd);
         system_enable_interrupts();
@@ -55,7 +55,7 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
     // Use kernel hack and read straigth to our buffer. It's implemented in parts,
     // not to take much uninterruptable time reading our symtable.
     uint8_t* copy_to = (uint8_t*)zone->start;
-    vmm_prepare_active_pdir_for_writing_at(zone->start, zone->len);
+    vmm_ensure_writing_to_active_address_space(zone->start, zone->len);
     for (size_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
         system_disable_interrupts();
         fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);
@@ -114,7 +114,7 @@ void dump_and_kill(proc_t* p)
 
     // Hack: kthreads do NOT clean pdirs, so we can share the pdir of
     // the blocked proc to read it's content.
-    dumper_p->pdir = p->pdir;
+    dumper_p->address_space = p->address_space;
 
     resched();
 }

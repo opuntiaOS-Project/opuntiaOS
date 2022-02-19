@@ -31,7 +31,7 @@ typedef struct {
     int id;
     int int_depth_counter;
 
-    pdirectory_t* pdir;
+    vm_address_space_t* active_address_space;
     kmemzone_t sched_stack_zone;
     context_t* sched_context; // context of sched's registers
     struct thread* running_thread;

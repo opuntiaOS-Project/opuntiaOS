@@ -98,7 +98,7 @@ static memzone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
         return 0;
     }
 
-    memzone_t* zone = memzone_new_random(RUNNING_THREAD->process, pl111_screen_buffer_size);
+    memzone_t* zone = memzone_new_random(RUNNING_THREAD->process->address_space, pl111_screen_buffer_size);
     if (!zone) {
         return 0;
     }

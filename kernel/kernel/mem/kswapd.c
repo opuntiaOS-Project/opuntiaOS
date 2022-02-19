@@ -76,7 +76,7 @@ static int find_victim(proc_t* p, pdirectory_t* pdir)
             }
 
             uintptr_t victim_vaddr = table_coverage * pti + VMM_PAGE_SIZE * pgi;
-            memzone_t* zone = memzone_find(p, victim_vaddr);
+            memzone_t* zone = memzone_find(p->address_space, victim_vaddr);
 #ifdef KSWAPD_DEBUG
             log("[kswapd] (pid %d) Find victim at %x", p->pid, victim_vaddr);
 #endif
@@ -109,7 +109,7 @@ void kswapd()
         for (int i = last_pid; i < tasking_get_proc_count(); i++, last_pid++) {
             p = &proc[i];
             if (p->status == PROC_ALIVE) {
-                find_victim(p, p->pdir);
+                find_victim(p, p->address_space->pdir);
             }
             last_pti = 0;
             moved_out_pages_per_pid = 0;

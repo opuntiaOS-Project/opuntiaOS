@@ -214,7 +214,7 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     thread->tf->r[2] = envp_array_sp;
 #endif
     set_stack_pointer(thread->tf, end_sp);
-    vmm_copy_to_pdir(thread->process->pdir, (uint8_t*)tmp_buf, copy_to_sp, total_size_on_stack);
+    vmm_copy_to_address_space(thread->process->address_space, (uint8_t*)tmp_buf, copy_to_sp, total_size_on_stack);
     kfree(tmp_buf);
     return 0;
 }

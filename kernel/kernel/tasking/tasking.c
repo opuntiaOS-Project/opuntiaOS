@@ -96,7 +96,7 @@ proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
     proc_t* p;
     for (int i = 0; i < _tasking_get_proc_count(); i++) {
         p = &proc[i];
-        if (p->status == PROC_ALIVE && p->pdir == pdir) {
+        if (p->status == PROC_ALIVE && p->address_space->pdir == pdir) {
             return p;
         }
     }
@@ -128,7 +128,6 @@ static proc_t* _tasking_setup_proc_with_uid(uid_t uid, gid_t gid)
 static proc_t* _tasking_fork_proc_from_current()
 {
     proc_t* new_proc = _tasking_setup_proc();
-    new_proc->pdir = vmm_new_forked_user_pdir();
     proc_fork_from(new_proc, RUNNING_THREAD);
     return new_proc;
 }
@@ -163,7 +162,7 @@ void tasking_start_init_proc()
 proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
 {
     proc_t* p = _tasking_alloc_kernel_thread(entry_point);
-    p->pdir = vmm_get_kernel_pdir();
+    p->address_space = vmm_get_kernel_address_space();
     kthread_fill_up_stack(p->main_thread, data);
     p->main_thread->status = THREAD_STATUS_RUNNING;
     return p;

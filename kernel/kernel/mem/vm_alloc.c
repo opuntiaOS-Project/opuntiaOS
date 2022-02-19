@@ -66,15 +66,15 @@ int vm_free_mapped_zone(kmemzone_t zone)
     return 0;
 }
 
-pdirectory_t* vm_alloc_pdir()
+pte_t* vm_alloc_ptable_lv_top()
 {
-    kmemzone_t zone = vm_alloc_mapped_zone(PDIR_SIZE, PDIR_SIZE);
-    return (pdirectory_t*)zone.ptr;
+    kmemzone_t zone = vm_alloc_mapped_zone(pte_size_at_level[PTABLE_LV_TOP], pte_size_at_level[PTABLE_LV_TOP]);
+    return (pte_t*)zone.ptr;
 }
 
-void vm_free_pdir(pdirectory_t* pdir)
+void vm_free_ptable_lv_top(pte_t* pdir)
 {
-    if (pdir == vmm_get_kernel_pdir()) {
+    if (pdir == (pte_t*)vmm_get_kernel_pdir()) {
         return;
     }
 

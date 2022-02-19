@@ -158,11 +158,6 @@ static ALWAYS_INLINE int proc_setup_lockless(proc_t* p)
     }
     memset((void*)p->fds, 0, MAX_OPENED_FILES * sizeof(file_descriptor_t));
 
-    /* setting up zones */
-    if (dynarr_init_of_size(memzone_t, &p->zones, 8) != 0) {
-        return -ENOMEM;
-    }
-
     p->status = PROC_ALIVE;
     p->prio = DEFAULT_PRIO;
     return 0;
@@ -230,6 +225,8 @@ int proc_setup_tty(proc_t* p, tty_entry_t* tty)
 int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
 {
     proc_t* from_proc = from_thread->process;
+    new_proc->address_space = vmm_new_forked_address_space();
+
     thread_copy_of(new_proc->main_thread, from_thread);
 
     new_proc->ppid = from_proc->pid;
@@ -253,14 +250,6 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
         }
     }
 
-    for (int i = 0; i < from_proc->zones.size; i++) {
-        memzone_t* zone_to_copy = (memzone_t*)dynarr_get(&from_proc->zones, i);
-        if (zone_to_copy->file) {
-            dentry_duplicate(zone_to_copy->file); // For the copied zone.
-        }
-        dynarr_push(&new_proc->zones, zone_to_copy);
-    }
-
     return 0;
 }
 
@@ -271,25 +260,25 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
 static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
 {
     uint32_t code_size = fd->dentry->inode->size;
-    memzone_t* code_zone = memzone_new_random(p, code_size);
+    memzone_t* code_zone = memzone_new_random(p->address_space, code_size);
     code_zone->type = ZONE_TYPE_CODE;
     code_zone->flags |= ZONE_READABLE | ZONE_EXECUTABLE;
 
     /* THIS IS FOR BSS WHICH COULD BE IN THIS ZONE */
     code_zone->flags |= ZONE_WRITABLE;
 
-    memzone_t* bss_zone = memzone_new_random(p, 2 * 4096);
+    memzone_t* bss_zone = memzone_new_random(p->address_space, 2 * 4096);
     bss_zone->type = ZONE_TYPE_DATA;
     bss_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
-    memzone_t* stack_zone = memzone_new_random_backward(p, VMM_PAGE_SIZE);
+    memzone_t* stack_zone = memzone_new_random_backward(p->address_space, VMM_PAGE_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
 
     /* Copying an exec code */
     uint8_t* prog = kmalloc(fd->dentry->inode->size);
     fd->ops->read(fd->dentry, prog, 0, fd->dentry->inode->size);
-    vmm_copy_to_pdir(p->pdir, prog, code_zone->start, fd->dentry->inode->size);
+    vmm_copy_to_address_space(p->address_space, prog, code_zone->start, fd->dentry->inode->size);
 
     /* Setting registers */
     thread_t* main_thread = p->main_thread;
@@ -316,19 +305,12 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
     }
 
     // Saving data to restore in case of error.
-    pdirectory_t* old_pdir = p->pdir;
-    dynamic_array_t old_zones = p->zones;
+    vm_address_space_t* old_aspace = p->address_space;
 
     // Reallocating proc.
-    pdirectory_t* new_pdir = vmm_new_user_pdir();
-    vmm_switch_pdir(new_pdir);
-    p->pdir = new_pdir;
-
-    if (dynarr_init_of_size(memzone_t, &p->zones, 8) != 0) {
-        dentry_put(dentry);
-        vfs_close(&fd);
-        return -ENOMEM;
-    }
+    vm_address_space_t* new_aspace = vmm_new_address_space();
+    p->address_space = new_aspace;
+    vmm_switch_address_space(p->address_space);
 
     p->main_thread = main_thread;
     err = elf_load(p, &fd);
@@ -347,10 +329,9 @@ success:
     fpu_init_state(p->main_thread->fpu_state);
 #endif
 
-    if (old_pdir) {
-        vmm_free_pdir(old_pdir, &old_zones);
+    if (old_aspace) {
+        vm_address_space_free(old_aspace);
     }
-    dynarr_clear(&old_zones);
 
     // Setting up proc
     p->proc_file = dentry; // dentry isn't put, but is transfered to the proc.
@@ -372,11 +353,9 @@ success:
     return 0;
 
 restore:
-    p->pdir = old_pdir;
-    vmm_switch_pdir(old_pdir);
-    vmm_free_pdir(new_pdir, &p->zones);
-    dynarr_clear(&p->zones);
-    p->zones = old_zones;
+    p->address_space = old_aspace;
+    vmm_switch_address_space(p->address_space);
+    vm_address_space_free(new_aspace);
     vfs_close(&fd);
     dentry_put(dentry);
     return err;
@@ -424,12 +403,11 @@ int proc_free_lockless(proc_t* p)
     proc_kill_all_threads_lockless(p);
 
     if (!p->is_kthread) {
-        vmm_free_pdir(p->pdir, &p->zones);
-        p->pdir = NULL;
+        vm_address_space_free(p->address_space);
+        p->address_space = NULL;
     }
 
     p->is_tracee = false;
-    dynarr_free(&p->zones);
     return 0;
 }
 
