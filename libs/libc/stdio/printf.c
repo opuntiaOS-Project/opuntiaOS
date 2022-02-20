@@ -143,6 +143,10 @@ static int _printf_i64(long value, char* buf, size_t* written, _putch_callback c
 
 static int _printf_string(const char* value, char* buf, size_t* written, _putch_callback callback, void* callback_params)
 {
+    if (!value) {
+        return 0;
+    }
+
     size_t len = strlen(value);
     for (size_t i = 0; i < len; i++) {
         callback(value[i], buf, written, callback_params);
