@@ -91,7 +91,7 @@ proc_t* tasking_get_proc(pid_t pid)
     return NULL;
 }
 
-proc_t* tasking_get_proc_by_pdir(pdirectory_t* pdir)
+proc_t* tasking_get_proc_by_pdir(ptable_t* pdir)
 {
     proc_t* p;
     for (int i = 0; i < _tasking_get_proc_count(); i++) {

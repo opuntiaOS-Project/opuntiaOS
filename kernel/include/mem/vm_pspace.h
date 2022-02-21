@@ -14,16 +14,21 @@
 
 struct vm_address_space;
 
-ptable_t* vm_pspace_get_nth_active_ptable(size_t n);
-ptable_t* vm_pspace_get_vaddr_of_active_ptable(uintptr_t vaddr);
-page_desc_t* vm_pspace_get_page_desc(uintptr_t vaddr);
+ptable_t* vm_pspace_get_nth_active_ptable(size_t n, ptable_lv_t lv);
+ptable_t* vm_pspace_get_vaddr_of_active_ptable(uintptr_t vaddr, ptable_lv_t lv);
 
 void vm_pspace_init();
-void vm_pspace_gen(pdirectory_t* pdir);
-void vm_pspace_free(pdirectory_t* pdir);
-int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t level);
+void vm_pspace_gen(ptable_t* pdir);
+void vm_pspace_free(ptable_t* pdir);
+int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t lv);
 
-ptable_t* vm_pspace_active_address_space_lookup(uintptr_t vaddr, ptable_lv_t lv);
+ptable_t* vm_get_table(uintptr_t vaddr, ptable_lv_t lv);
+ptable_entity_t* vm_get_entity(uintptr_t vaddr, ptable_lv_t lv);
 int vm_pspace_free_address_space_lockless(struct vm_address_space* vm_aspace);
+
+static inline ptable_entity_t* vm_lookup(ptable_t* table, ptable_lv_t lv, uintptr_t vaddr)
+{
+    return &table->entities[VM_VADDR_OFFSET_AT_LEVEL(vaddr, lv)];
+}
 
 #endif // _KERNEL_MEM_VM_PSPACE_H

@@ -13,8 +13,6 @@
 #include <mem/bits/mmu.h>
 #include <mem/bits/swap.h>
 #include <platform/generic/vmm/consts.h>
-#include <platform/generic/vmm/pde.h>
-#include <platform/generic/vmm/pte.h>
 
 int swapfile_init();
 int swapfile_load(uintptr_t vaddr, int id);

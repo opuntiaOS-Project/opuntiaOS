@@ -16,8 +16,7 @@
 #include <mem/pmm.h>
 #include <mem/vm_address_space.h>
 #include <platform/generic/vmm/consts.h>
-#include <platform/generic/vmm/pde.h>
-#include <platform/generic/vmm/pte.h>
+#include <platform/generic/vmm/mmu.h>
 
 #define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
 
@@ -52,13 +51,12 @@ int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t set
 int vmm_unmap_page(uintptr_t vaddr);
 int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages);
 int vmm_copy_page(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable);
-int vmm_swap_page(ptable_t* ptable, struct memzone* zone, uintptr_t vaddr);
+int vmm_swap_page(ptable_entity_t* page_desc, struct memzone* zone, uintptr_t vaddr);
 
 int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings);
 int vmm_map_pages_lockless(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t settings);
 int vmm_unmap_page_lockless(uintptr_t vaddr);
 int vmm_unmap_pages_lockless(uintptr_t vaddr, size_t n_pages);
-int vmm_copy_page_lockless(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable);
 
 vm_address_space_t* vmm_new_address_space();
 vm_address_space_t* vmm_new_forked_address_space();
@@ -70,29 +68,13 @@ void vmm_copy_to_user(void* dest, void* src, size_t length);
 void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length);
 
 vm_address_space_t* vmm_get_active_address_space();
-pdirectory_t* vmm_get_active_pdir();
+ptable_t* vmm_get_active_pdir();
 vm_address_space_t* vmm_get_kernel_address_space();
-pdirectory_t* vmm_get_kernel_pdir();
+ptable_t* vmm_get_kernel_pdir();
 
 int vmm_switch_address_space_lockless(vm_address_space_t* vm_aspace);
 int vmm_switch_address_space(vm_address_space_t* vm_aspace);
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr);
-
-inline static table_desc_t* _vmm_pdirectory_lookup(pdirectory_t* pdir, uintptr_t vaddr)
-{
-    if (pdir) {
-        return &pdir->entities[VMM_OFFSET_IN_DIRECTORY(vaddr)];
-    }
-    return 0;
-}
-
-inline static page_desc_t* _vmm_ptable_lookup(ptable_t* ptable, uintptr_t vaddr)
-{
-    if (ptable) {
-        return &ptable->entities[VMM_OFFSET_IN_TABLE(vaddr)];
-    }
-    return 0;
-}
 
 #endif // _KERNEL_MEM_VMM_H

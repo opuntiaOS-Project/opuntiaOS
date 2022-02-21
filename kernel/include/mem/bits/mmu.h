@@ -23,4 +23,19 @@ enum MMU_FLAGS {
 };
 typedef uint32_t mmu_flags_t;
 
+enum PTABLE_LEVELS {
+    PTABLE_LV0 = 0,
+    PTABLE_LV1 = 1,
+    PTABLE_LV2 = 2,
+    PTABLE_LV3 = 3,
+};
+typedef enum PTABLE_LEVELS ptable_lv_t;
+
+enum PTABLE_ENTITY_STATES {
+    PTABLE_ENTITY_PRESENT,
+    PTABLE_ENTITY_INVALID,
+    PTABLE_ENTITY_ALLOC, // For arm32 pspace, other targets never return this state.
+};
+typedef uint32_t ptable_state_t;
+
 #endif // _KERNEL_MEM_BITS_MMU_H

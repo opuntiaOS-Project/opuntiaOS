@@ -27,9 +27,9 @@ static int moved_out_pages_per_pid = 0;
 static int last_pid = 0, last_pti = 0;
 extern proc_t proc[MAX_PROCESS_COUNT];
 
-static int map_ptable(table_desc_t* ptable_desc)
+static int map_ptable(ptable_entity_t* ptable_desc)
 {
-    uintptr_t ptable_paddr = PAGE_START((uintptr_t)table_desc_get_frame(*ptable_desc));
+    uintptr_t ptable_paddr = PAGE_START((uintptr_t)vm_ptable_entity_get_frame(ptable_desc, PTABLE_LV1));
     if (_mmaped_ptable == ptable_paddr) {
         return 0;
     }
@@ -55,23 +55,23 @@ static void do_sleep()
     ksys1(SYS_NANOSLEEP, KSWAPD_SLEEPTIME);
 }
 
-static int find_victim(proc_t* p, pdirectory_t* pdir)
+static int find_victim(proc_t* p, ptable_t* pdir)
 {
     lock_acquire(&p->vm_lock);
     ptable_t* ptable_map_zone = (ptable_t*)_mapzone.ptr;
-    const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE;
-    const size_t table_coverage = VMM_PAGE_SIZE * VMM_TOTAL_PAGES_PER_TABLE;
+    const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(PTABLE_LV0);
+    const size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(PTABLE_LV0);
 
     for (int pti = last_pti; pti < VMM_KERNEL_TABLES_START; pti++, last_pti++) {
-        table_desc_t* ptable_desc = &pdir->entities[pti];
-        if (!table_desc_has_attrs(*ptable_desc, TABLE_DESC_PRESENT)) {
+        ptable_entity_t* ptable_desc = &pdir->entities[pti];
+        if (!vm_ptable_entity_is_present(ptable_desc, PTABLE_LV1)) {
             continue;
         }
 
         map_ptable(ptable_desc);
-        for (int pgi = 0; pgi < VMM_TOTAL_PAGES_PER_TABLE; pgi++) {
-            page_desc_t* ppage_desc = &ptable_map_zone[pti].entities[pgi];
-            if (!page_desc_has_attrs(*ppage_desc, PAGE_DESC_PRESENT)) {
+        for (int pgi = 0; pgi < PTABLE_ENTITY_COUNT(PTABLE_LV0); pgi++) {
+            ptable_entity_t* ppage_desc = &ptable_map_zone[pti].entities[pgi];
+            if (!vm_ptable_entity_is_present(ppage_desc, PTABLE_LV0)) {
                 continue;
             }
 
@@ -80,7 +80,7 @@ static int find_victim(proc_t* p, pdirectory_t* pdir)
 #ifdef KSWAPD_DEBUG
             log("[kswapd] (pid %d) Find victim at %x", p->pid, victim_vaddr);
 #endif
-            vmm_swap_page(&ptable_map_zone[pti], zone, victim_vaddr);
+            vmm_swap_page(ppage_desc, zone, victim_vaddr);
             after_page_swap();
             if (moved_out_pages_per_pid >= KSWAPD_SWAP_PER_PID_THRESHOLD) {
                 lock_release(&p->vm_lock);

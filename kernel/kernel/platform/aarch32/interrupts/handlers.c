@@ -159,7 +159,7 @@ void data_abort_handler(trapframe_t* tf)
     int res = vmm_page_fault_handler(info, fault_addr);
     if (res != 0) {
         if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
-            snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, data_abort_handler", tf->user_ip);
+            snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap %x at %x, data_abort_handler", fault_addr, tf->user_ip);
             kpanic_tf(err_buf, tf);
         } else {
             log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", info, fault_addr, RUNNING_THREAD->tid, tf->user_ip);

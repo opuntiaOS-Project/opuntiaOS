@@ -202,6 +202,9 @@ memzone_t* memzone_find_no_proc(dynamic_array_t* zones, size_t addr)
 
 memzone_t* memzone_find(vm_address_space_t* vm_aspace, size_t addr)
 {
+    if (!vm_aspace) {
+        return NULL;
+    }
     return memzone_find_no_proc(&vm_aspace->zones, addr);
 }
 

@@ -13,12 +13,12 @@
 
 uintptr_t vm_alloc_pdir_paddr()
 {
-    return (uintptr_t)pmm_alloc_aligned(PDIR_SIZE, PDIR_SIZE);
+    return (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE(PTABLE_LV_TOP), PTABLE_SIZE(PTABLE_LV_TOP));
 }
 
-uintptr_t vm_alloc_ptable_paddr()
+uintptr_t vm_alloc_ptable_paddr(ptable_lv_t lv)
 {
-    return (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE, PTABLE_SIZE);
+    return (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE(lv), PTABLE_SIZE(lv));
 }
 
 uintptr_t vm_alloc_ptables_to_cover_page()
@@ -59,27 +59,30 @@ kmemzone_t vm_alloc_mapped_zone(size_t size, size_t alignment)
 
 int vm_free_mapped_zone(kmemzone_t zone)
 {
-    page_desc_t* page = vm_pspace_get_page_desc(zone.start);
-    pmm_free((void*)page_desc_get_frame(*page), zone.len);
+    ptable_entity_t* page_desc = vm_get_entity(zone.start, PTABLE_LV0);
+    if (!vm_ptable_entity_is_present(page_desc, PTABLE_LV0)) {
+        return -1;
+    }
+    pmm_free((void*)vm_ptable_entity_get_frame(page_desc, PTABLE_LV0), zone.len);
     vmm_unmap_pages_lockless(zone.start, zone.len / VMM_PAGE_SIZE);
     kmemzone_free(zone);
     return 0;
 }
 
-pte_t* vm_alloc_ptable_lv_top()
+ptable_t* vm_alloc_ptable_lv_top()
 {
-    kmemzone_t zone = vm_alloc_mapped_zone(pte_size_at_level[PTABLE_LV_TOP], pte_size_at_level[PTABLE_LV_TOP]);
-    return (pte_t*)zone.ptr;
+    kmemzone_t zone = vm_alloc_mapped_zone(ptable_size_at_level[PTABLE_LV_TOP], ptable_size_at_level[PTABLE_LV_TOP]);
+    return (ptable_t*)zone.ptr;
 }
 
-void vm_free_ptable_lv_top(pte_t* pdir)
+void vm_free_ptable_lv_top(ptable_t* pdir)
 {
-    if (pdir == (pte_t*)vmm_get_kernel_pdir()) {
+    if (pdir == vmm_get_kernel_pdir()) {
         return;
     }
 
     kmemzone_t zone;
     zone.start = (uintptr_t)pdir;
-    zone.len = PDIR_SIZE;
+    zone.len = PTABLE_SIZE(PTABLE_LV_TOP);
     vm_free_mapped_zone(zone);
 }

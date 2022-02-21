@@ -13,6 +13,10 @@
 #define PACKED __attribute__((packed))
 #endif // PACKED
 
+#ifndef MAYBE_UNUSED
+#define MAYBE_UNUSED __attribute__((__unused__))
+#endif // MAYBE_UNUSED
+
 #ifndef ALWAYS_INLINE
 #define ALWAYS_INLINE __attribute__((always_inline)) inline
 #endif // ALWAYS_INLINE
@@ -20,5 +24,9 @@
 #ifndef NORETURN
 #define NORETURN __attribute__((noreturn))
 #endif // NORETURN
+
+#ifndef WARN_UNUSED_RESULT
+#define WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
+#endif // WARN_UNUSED_RESULT
 
 #endif // _KERNEL_LIBKERN_C_ATTRS_H
