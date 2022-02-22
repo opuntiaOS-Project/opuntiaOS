@@ -47,8 +47,9 @@ ptable_t* vm_pspace_get_vaddr_of_active_ptable(uintptr_t vaddr, ptable_lv_t lv)
 }
 
 /**
- * The function is used to init pspace.
- * Used only in the first stage of VM init.
+ * @brief Inits pspace
+ *
+ * @note Called only during the first stage of VM init.
  */
 void vm_pspace_init()
 {
@@ -81,9 +82,9 @@ void vm_pspace_init()
 }
 
 /**
- * The function is used to generate a new pspace.
- * The function returns the table of itself.
- * Pspace table is one page (4KB) long, since the whole length is 4MB.
+ * @brief Generates a new psapce for pdir
+ *
+ * @note The length of pspace table is 4KB long.
  */
 void vm_pspace_gen(ptable_t* pdir)
 {
@@ -122,6 +123,9 @@ void vm_pspace_gen(ptable_t* pdir)
     kmemzone_free(tmp_zone);
 }
 
+/**
+ * @brief Frees pspace for pdir.
+ */
 void vm_pspace_free(ptable_t* pdir)
 {
     ptable_entity_t* ptable_desc = &pdir->entities[VM_VADDR_OFFSET_AT_LEVEL(pspace_zone.start, PTABLE_LV_TOP)];
@@ -132,14 +136,27 @@ void vm_pspace_free(ptable_t* pdir)
     vm_ptable_entity_invalidate(ptable_desc, PTABLE_LV_TOP);
 }
 
+/**
+ * @brief Updates pspace on ptable is created.
+ *
+ * @param vaddr The virtual address the new ptable is mapped to
+ * @param ptable_paddr New ptable physical address
+ * @param lv New ptable level
+ * @return Status of the opertaion
+ */
 int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t lv)
 {
     const uintptr_t pspace_table_vaddr = PAGE_START((uintptr_t)vm_pspace_get_vaddr_of_active_ptable(vaddr, lv));
     return vmm_map_page_lockless(pspace_table_vaddr, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
 }
 
-// vm_get_table returns vaddr of active ptable.
-//
+/**
+ * @brief Returns pointer to an active ptable at lv level
+ *
+ * @param vaddr The virtual address to retrieve a ptable for
+ * @param lv The level of the table that defines the target entity
+ * @return Pointer to the ptable. Might return NULL if not found
+ */
 ptable_t* vm_get_table(uintptr_t vaddr, ptable_lv_t lv)
 {
     if (!THIS_CPU->active_address_space) {
@@ -161,6 +178,13 @@ ptable_t* vm_get_table(uintptr_t vaddr, ptable_lv_t lv)
     return vm_pspace_get_vaddr_of_active_ptable(vaddr, lv);
 }
 
+/**
+ * @brief Returns entity of an active ptable at lv level
+ *
+ * @param vaddr The virtual address to retrieve an entity for
+ * @param lv The level of the table that defines the target entity
+ * @return Pointer to the ptable entity. Might return NULL if not found
+ */
 ptable_entity_t* vm_get_entity(uintptr_t vaddr, ptable_lv_t lv)
 {
     ptable_t* ptable = vm_get_table(vaddr, lv);
@@ -171,7 +195,6 @@ ptable_entity_t* vm_get_entity(uintptr_t vaddr, ptable_lv_t lv)
     return vm_lookup(ptable, lv, vaddr);
 }
 
-// vm_pspace_free_page_lockless frees page.
 static int vm_pspace_free_page_lockless(uintptr_t vaddr, ptable_entity_t* page, dynamic_array_t* zones)
 {
     if (vmm_is_copy_on_write(vaddr)) {
@@ -196,11 +219,9 @@ static int vm_pspace_free_page_lockless(uintptr_t vaddr, ptable_entity_t* page, 
     return 0;
 }
 
-// vm_pspace_free_ptable_lockless frees ptable and all data it contains of an
-// active address space.
-// TODO: Add level.
 static int vm_pspace_free_ptable_lockless(uintptr_t vaddr)
 {
+    // TODO: Free ptable and free page functions should be reimplemented with usage of level.
     vm_address_space_t* active_address_space = THIS_CPU->active_address_space;
 
     if (!active_address_space) {
@@ -256,8 +277,12 @@ static int vm_pspace_free_ptable_lockless(uintptr_t vaddr)
     return 0;
 }
 
-// vm_pspace_free_address_space_lockless removes all ptables and data
-// associated with current address space.
+/**
+ * @brief Clears address space, including all ptables.
+ *
+ * @param vm_aspace Address space to be cleared
+ * @return Return status
+ */
 int vm_pspace_free_address_space_lockless(vm_address_space_t* vm_aspace)
 {
     vm_address_space_t* prev_aspace = vmm_get_active_address_space();

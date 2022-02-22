@@ -42,19 +42,19 @@ int vmm_setup_secondary_cpu();
 
 int vmm_free_address_space(vm_address_space_t* vm_aspace);
 
-int vmm_alloc_page(uintptr_t vaddr, uint32_t settings);
-int vmm_tune_page(uintptr_t vaddr, uint32_t settings);
-int vmm_tune_pages(uintptr_t vaddr, size_t length, uint32_t settings);
+int vmm_alloc_page(uintptr_t vaddr, mmu_flags_t mmu_flags);
+int vmm_tune_page(uintptr_t vaddr, mmu_flags_t mmu_flags);
+int vmm_tune_pages(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags);
 
-int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, uint32_t settings);
-int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t settings);
+int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags);
+int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, mmu_flags_t mmu_flags);
 int vmm_unmap_page(uintptr_t vaddr);
 int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages);
 int vmm_copy_page(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable);
 int vmm_swap_page(ptable_entity_t* page_desc, struct memzone* zone, uintptr_t vaddr);
 
-int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, uint32_t settings);
-int vmm_map_pages_lockless(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, uint32_t settings);
+int vmm_map_page_lockless(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags);
+int vmm_map_pages_lockless(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, mmu_flags_t mmu_flags);
 int vmm_unmap_page_lockless(uintptr_t vaddr);
 int vmm_unmap_pages_lockless(uintptr_t vaddr, size_t n_pages);
 
