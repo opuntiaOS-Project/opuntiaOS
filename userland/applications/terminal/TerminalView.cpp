@@ -24,8 +24,12 @@ void TerminalView::recalc_dimensions(const LG::Rect& frame)
     m_max_rows = (frame.height() - padding() - UI::SafeArea::Bottom) / glyph_height();
     m_max_cols = (frame.width() - 2 * padding()) / glyph_width();
     // FIXME: Add copy and resize on window resize.
-    m_display_data = (char*)malloc(m_max_rows * m_max_cols);
-    memset((uint8_t*)m_display_data, 0, m_max_rows * m_max_cols);
+    char* new_data = (char*)malloc(m_max_rows * m_max_cols);
+    memset(new_data, 0, m_max_rows * m_max_cols);
+    if (m_display_data) {
+        free(m_display_data);
+    }
+    m_display_data = new_data;
 }
 
 void TerminalView::display(const LG::Rect& rect)
@@ -65,8 +69,8 @@ void TerminalView::data_do_new_line()
 {
     char* data_plus_line = m_display_data + (m_max_cols);
     char* data_end_minus_line = m_display_data + (m_max_rows - 1) * m_max_cols;
-    memmove((uint8_t*)m_display_data, (uint8_t*)data_plus_line, (m_max_rows - 1) * m_max_cols);
-    memset((uint8_t*)data_end_minus_line, 0, m_max_cols);
+    memmove(m_display_data, data_plus_line, (m_max_rows - 1) * m_max_cols);
+    memset(data_end_minus_line, 0, m_max_cols);
 }
 
 WindowStatus TerminalView::cursor_positions_do_new_line()
@@ -101,9 +105,13 @@ WindowStatus TerminalView::cursor_position_move_left()
 void TerminalView::new_line()
 {
     will_move_cursor();
-    auto status = cursor_positions_do_new_line();
-    if (status == DoNewLine) {
-        data_do_new_line();
+    WindowStatus status = cursor_positions_do_new_line();
+    switch (status) {
+    case DoNewLine:
+        scroll_line();
+        break;
+    case Normal:
+        break;
     }
     did_move_cursor();
 }

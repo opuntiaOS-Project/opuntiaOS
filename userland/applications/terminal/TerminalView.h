@@ -21,7 +21,7 @@ public:
     inline const LG::Font& font() const { return *m_font_ptr; }
 
     inline int glyph_width() const { return font().glyph_width('.'); }
-    inline int glyph_height() const { return font().glyph_height(); }
+    inline int glyph_height() const { return font().glyph_height() + 2; }
 
     inline LG::Point<int> pos_on_screen() const { return { (int)m_col * glyph_width() + padding(), (int)m_row * glyph_height() + padding() }; }
     inline int pos_in_data() const { return m_max_cols * m_row + m_col; }
