@@ -52,6 +52,9 @@ char* strncpy(char* dest, const char* src, size_t nbytes);
 /* Returns a pointer to the first occurrence of character in the C string str. */
 char* strchr(const char* s, int c);
 
+char* strtok_r(char* str, const char* delim, char** saveptr);
+char* strtok(char* str, const char* delim);
+
 __END_DECLS
 
 #endif // _LIBC_STRING_H

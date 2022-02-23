@@ -6,6 +6,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+#include <stdbool.h>
 #include <string.h>
 
 #ifdef __i386__
@@ -170,4 +171,63 @@ char* strchr(const char* s, int c)
             return NULL;
         }
     }
+}
+
+char* strtok_r(char* str, const char* delim, char** saveptr)
+{
+    if (!str) {
+        if (!saveptr) {
+            return NULL;
+        }
+        str = *saveptr;
+    }
+
+    size_t start = 0;
+    size_t end = 0;
+    size_t n = strlen(str);
+    size_t m = strlen(delim);
+    bool ok = false;
+
+    for (size_t i = 0; i < n; i++) {
+        ok = false;
+        for (size_t j = 0; j < m; j++) {
+            if (str[i] == delim[j]) {
+                if (end - start == 0) {
+                    start++;
+                    break;
+                }
+
+                ok = true;
+            }
+        }
+
+        if (ok) {
+            break;
+        }
+        end++;
+    }
+
+    if (str[start] == '\0') {
+        return NULL;
+    }
+
+    if (end == 0) {
+        *saveptr = NULL;
+        return &str[start];
+    }
+
+    if (str[end] == '\0') {
+        *saveptr = &str[end];
+    } else {
+        *saveptr = &str[end + 1];
+    }
+
+    str[end] = '\0';
+    return &str[start];
+}
+
+char* strtok(char* str, const char* delim)
+{
+    static char* saveptr;
+    return strtok_r(str, delim, &saveptr);
 }
