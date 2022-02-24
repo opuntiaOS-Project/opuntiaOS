@@ -39,8 +39,8 @@ static int alloc_init()
     }
 
     extern int bootloader_start[];
-    size_t alloc_space = (size_t)bootloader_start - dev->paddr;
-    malloc_init((void*)dev->paddr, alloc_space);
+    size_t alloc_space = (size_t)bootloader_start - dev->region_base;
+    malloc_init((void*)dev->region_base, alloc_space);
     return 0;
 }
 
@@ -71,9 +71,10 @@ static void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     log("copying ODT %x -> %x of %d", devtree_start(), odt_ptr, devtree_size());
 #endif
 
-    void* rammap_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, arm_memmap, sizeof(arm_memmap), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
+    memory_map_t* memmap = memmap_init();
+    void* rammap_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, arm_memmap, memmap_size(), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 #ifdef DEBUG_BOOT
-    log("copying RAMMAP %x -> %x of %d", arm_memmap, rammap_ptr, sizeof(arm_memmap));
+    log("copying RAMMAP %x -> %x of %d", memmap, rammap_ptr, memmap_size());
 #endif
 
     boot_desc_t boot_desc;
@@ -82,7 +83,7 @@ static void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     boot_desc.kernel_size = (kernel_size + align_size(sizeof(boot_desc_t), VMM_PAGE_SIZE)) / 1024;
     boot_desc.devtree = odt_ptr;
     boot_desc.memory_map = (void*)rammap_ptr;
-    boot_desc.memory_map_size = sizeof(arm_memmap) / sizeof(arm_memmap[0]);
+    boot_desc.memory_map_size = memmap_size() / sizeof(arm_memmap[0]);
 
     bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_desc, sizeof(boot_desc), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 #ifdef DEBUG_BOOT

@@ -89,6 +89,7 @@ executable("bootarm") {
     "//boot/aarch32/drivers/pl181.c",
     "//boot/aarch32/drivers/uart.c",
     "//boot/aarch32/entry.s",
+    "//boot/aarch32/hw/ram.c",
     "//boot/aarch32/main.c",
     "//boot/aarch32/start_kernel.s",
     "//boot/aarch32/target/cortex-a15/memmap.c",

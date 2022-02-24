@@ -24,7 +24,7 @@ static inline uintptr_t _pl181_mmio_paddr(devtree_entry_t* device)
         kpanic("PL181: Can't find device in the tree.");
     }
 
-    return (uintptr_t)device->paddr;
+    return (uintptr_t)device->region_base;
 }
 
 static inline int _pl181_map_itself(device_t* dev)
@@ -151,7 +151,8 @@ static int _pl181_add_new_device(device_t* new_device)
 static void _pl181_add_device(uint32_t rca, bool ishc, uint32_t capacity)
 {
     devtree_entry_t entry = {
-        .paddr = 0x0,
+        .region_base = 0x0,
+        .region_size = 0x0,
         .type = DEVTREE_ENTRY_TYPE_STORAGE,
         .rel_name_offset = (uint32_t) "p181rdr",
         .flags = 0x0,

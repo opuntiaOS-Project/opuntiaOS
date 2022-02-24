@@ -27,6 +27,7 @@ DEVTREE_ENTRY_TYPE_BUS_CONTROLLER = 5
 DEVTREE_ENTRY = Struct(
     "type" / Int32ul,
     "flags" / Int32ul,
-    "paddr" / Int32ul,
+    "region_base" / Int32ul,
+    "region_size" / Int32ul,
     "rel_name_offset" / Int32ul,
 )

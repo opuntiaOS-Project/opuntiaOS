@@ -29,7 +29,7 @@ static inline uintptr_t _pl031_mmio_paddr()
         kpanic("PL031: Can't find device in the tree.");
     }
 
-    return (uintptr_t)device->paddr;
+    return (uintptr_t)device->region_base;
 }
 
 static inline int _pl031_map_itself()

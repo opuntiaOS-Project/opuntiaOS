@@ -7,6 +7,7 @@
  */
 
 #include "../memmap.h"
+#include "../../hw/ram.h"
 
 memory_map_t arm_memmap[2] = {
     {
@@ -26,3 +27,9 @@ memory_map_t arm_memmap[2] = {
         .acpi_3_0 = 0x0,
     },
 };
+
+memory_map_t* memmap_init()
+{
+    arm_memmap[1].sizeLo = hw_ram_get_size();
+    return arm_memmap;
+}

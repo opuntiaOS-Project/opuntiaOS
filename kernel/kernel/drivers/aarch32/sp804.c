@@ -28,7 +28,7 @@ static inline uintptr_t _sp804_mmio_paddr()
         kpanic("SP804: Can't find device in the tree.");
     }
 
-    return (uintptr_t)device->paddr;
+    return (uintptr_t)device->region_base;
 }
 
 static inline int _sp804_map_itself()

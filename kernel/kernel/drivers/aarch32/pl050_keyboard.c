@@ -30,7 +30,7 @@ static inline uintptr_t _pl050_mmio_paddr(devtree_entry_t* device)
         kpanic("PL050 KBD: Can't find device in the tree.");
     }
 
-    return (uintptr_t)device->paddr;
+    return (uintptr_t)device->region_base;
 }
 
 static inline int _pl050_map_itself(device_t* dev)

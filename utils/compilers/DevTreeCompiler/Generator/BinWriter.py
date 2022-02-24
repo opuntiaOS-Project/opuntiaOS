@@ -10,6 +10,8 @@ from ABI.Translation import *
 
 
 class BinWriter():
+    __debug = False
+
     def __init__(self, irmng, output_file):
         self.irmng = irmng
         self.output_file = output_file
@@ -36,7 +38,8 @@ class BinWriter():
         result = {
             "type": 0,
             "flags": 0,
-            "paddr": 0,
+            "region_base": 0,
+            "region_size": 0,
             "rel_name_offset": len(self.names_binarr),
         }
 
@@ -49,7 +52,9 @@ class BinWriter():
         if "mem" in dev:
             devmem = dev["mem"]
             if "base" in devmem:
-                result["paddr"] = Translator.number(devmem["base"])
+                result["region_base"] = Translator.number(devmem["base"])
+            if "size" in devmem:
+                result["region_size"] = Translator.number(devmem["size"])
 
         self.devs_binarr += DEVTREE_ENTRY.build(result)
         self.names_binarr += bytearray((map(ord,
@@ -71,10 +76,12 @@ class BinWriter():
         self.build_header()
 
         self.res_binarr = self.header_binarr + self.devs_binarr + self.names_binarr
-        # print("Header", self.header_binarr)
-        # print("Devs", self.devs_binarr)
-        # print("Names", self.names_binarr)
-        # print("Res", self.res_binarr)
+
+        if self.__debug:
+            print("Header", self.header_binarr)
+            print("Devs", self.devs_binarr)
+            print("Names", self.names_binarr)
+            print("Res", self.res_binarr)
 
     def write_to_file(self):
         binfile = open(self.output_file, "wb")

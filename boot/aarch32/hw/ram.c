@@ -6,26 +6,17 @@
  * found in the LICENSE file.
  */
 
-#include "uart.h"
+#include "ram.h"
 #include <libboot/devtree/devtree.h>
+#include <libboot/log/log.h>
 
-volatile uint32_t* output = NULL;
-
-void uart_init()
+size_t hw_ram_get_size()
 {
-    devtree_entry_t* dev = devtree_find_device("uart");
+    devtree_entry_t* dev = devtree_find_device("ram");
     if (!dev) {
+        log("Can't find RAM in devtree");
         while (1) { };
     }
-    output = (uint32_t*)dev->region_base;
-}
-
-int uart_write(uint8_t data)
-{
-    if (!output) {
-        return 1;
-    }
-
-    *output = data;
-    return 0;
+    log("ram size %x", dev->region_base);
+    return dev->region_size;
 }

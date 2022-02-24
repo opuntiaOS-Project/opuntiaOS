@@ -32,7 +32,7 @@ static inline uintptr_t _pl111_mmio_paddr(devtree_entry_t* device)
         kpanic("PL111: Can't find device in the tree.");
     }
 
-    return (uintptr_t)device->paddr;
+    return (uintptr_t)device->region_base;
 }
 
 static int _pl111_swap_page_mode(struct memzone* zone, uintptr_t vaddr)

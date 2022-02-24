@@ -22,7 +22,7 @@ static inline uintptr_t _uart_mmio_paddr()
         kpanic("UART: Can't find device in the tree.");
     }
 
-    return (uintptr_t)device->paddr;
+    return (uintptr_t)device->region_base;
 }
 
 static inline int _uart_map_itself()
