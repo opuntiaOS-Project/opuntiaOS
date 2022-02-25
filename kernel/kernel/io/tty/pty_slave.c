@@ -82,7 +82,7 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
         fops.read = pty_slave_read;
         fops.write = pty_slave_write;
         fops.ioctl = pty_slave_ioctl;
-        devfs_inode_t* res = devfs_register(mp, MKDEV(136, id), name, 4, 0777, &fops);
+        devfs_inode_t* res = devfs_register(mp, MKDEV(136, id), name, 4, S_IFCHR | 0777, &fops);
         pty_slaves[id].inode_indx = res->index;
         pty_slaves[id].ptm = ptm;
         pty_slaves[id].buffer = sync_ringbuffer_create_std();

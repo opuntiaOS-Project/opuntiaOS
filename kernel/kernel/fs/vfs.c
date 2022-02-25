@@ -217,7 +217,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
         return -EPERM;
     }
 
-    if (dentry_inode_test_flag(file, S_IFDIR) && !TEST_FLAG(flags, O_DIRECTORY)) {
+    if (dentry_test_mode(file, S_IFDIR) && !TEST_FLAG(flags, O_DIRECTORY)) {
         return -EISDIR;
     }
 
@@ -237,7 +237,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
 #endif
             return -EACCES;
         }
-        if (dentry_inode_test_flag(file, S_IFDIR)) {
+        if (dentry_test_mode(file, S_IFDIR)) {
             return -EISDIR;
         }
     }
@@ -295,7 +295,11 @@ int vfs_close(file_descriptor_t* fd)
 
 int vfs_create(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
-    /* Check if there is a file with the same name */
+    if (!dentry_test_mode(dir, S_IFDIR)) {
+        return -ENOTDIR;
+    }
+
+    // Check if there is a file with the same name
     dentry_t* tmp;
     if (vfs_lookup(dir, name, len, &tmp) == 0) {
         dentry_put(tmp);
@@ -305,12 +309,18 @@ int vfs_create(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t u
     if (!dir->ops->file.create) {
         return -EROFS;
     }
+
+    // Turn mode into a regular file if mode is not set.
+    if (!S_ISSOCK(mode) && !S_ISFIFO(mode) && !S_ISBLK(mode) && !S_ISCHR(mode)) {
+        mode |= S_IFREG;
+    }
+
     return dir->ops->file.create(dir, name, len, mode, uid, gid);
 }
 
 int vfs_unlink(dentry_t* file)
 {
-    if (dentry_inode_test_flag(file, S_IFDIR)) {
+    if (dentry_test_mode(file, S_IFDIR)) {
         return -EPERM;
     }
 
@@ -330,7 +340,7 @@ int vfs_unlink(dentry_t* file)
 
 int vfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
 {
-    if (!dentry_inode_test_flag(dir, S_IFDIR)) {
+    if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
 
@@ -440,7 +450,7 @@ int vfs_write(file_descriptor_t* fd, void* buf, size_t len)
  */
 int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
-    if (!dentry_inode_test_flag(dir, S_IFDIR)) {
+    if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
 
@@ -455,7 +465,7 @@ int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t ui
  */
 int vfs_rmdir(dentry_t* dir)
 {
-    if (!dentry_inode_test_flag(dir, S_IFDIR)) {
+    if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
     if (dentry_test_flag(dir, DENTRY_MOUNTPOINT) || dentry_test_flag(dir, DENTRY_MOUNTED) || dir->d_count != 1) {
@@ -477,7 +487,7 @@ int vfs_rmdir(dentry_t* dir)
 
 int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, size_t len)
 {
-    if (!dentry_inode_test_flag(dir_fd->dentry, S_IFDIR)) {
+    if (!dentry_test_mode(dir_fd->dentry, S_IFDIR)) {
         return -ENOTDIR;
     }
     lock_acquire(&dir_fd->lock);
@@ -639,7 +649,7 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 #endif
         return -EBUSY;
     }
-    if (!dentry_inode_test_flag(mountpoint, S_IFDIR)) {
+    if (!dentry_test_mode(mountpoint, S_IFDIR)) {
 #ifdef VFS_DEBUG
         log("[VFS] Not a dir\n");
 #endif

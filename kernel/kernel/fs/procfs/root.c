@@ -66,9 +66,9 @@ const file_ops_t procfs_root_stat_ops = {
 };
 
 static const procfs_files_t static_procfs_files[] = {
-    { .name = "stat", .mode = 0444, .ops = &procfs_root_stat_ops, .inode_index = procfs_root_sfiles_get_inode_index },
-    { .name = "uptime", .mode = 0444, .ops = &procfs_root_uptime_ops, .inode_index = procfs_root_sfiles_get_inode_index },
-    { .name = "meminfo", .mode = 0444, .ops = &procfs_root_meminfo_ops, .inode_index = procfs_root_sfiles_get_inode_index },
+    { .name = "stat", .mode = S_IFREG | 0444, .ops = &procfs_root_stat_ops, .inode_index = procfs_root_sfiles_get_inode_index },
+    { .name = "uptime", .mode = S_IFREG | 0444, .ops = &procfs_root_uptime_ops, .inode_index = procfs_root_sfiles_get_inode_index },
+    { .name = "meminfo", .mode = S_IFREG | 0444, .ops = &procfs_root_meminfo_ops, .inode_index = procfs_root_sfiles_get_inode_index },
     { .name = "self", .mode = S_IFDIR | 0444, .ops = &procfs_pid_ops, .inode_index = procfs_root_self_get_inode_index },
     { .name = "sys", .mode = S_IFDIR | 0444, .ops = &procfs_sys_ops, .inode_index = procfs_root_self_get_inode_index },
 };

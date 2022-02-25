@@ -3,6 +3,8 @@
 
 #include <sys/types.h>
 
+#define S_IFMT 0xF000
+
 /* MODES */
 #define S_IFSOCK 0xC000 /* [XSI] socket */
 #define S_IFLNK 0xA000 /* [XSI] symbolic link */
@@ -31,6 +33,14 @@
 #define S_IROTH 0x0004
 #define S_IWOTH 0x0002
 #define S_IXOTH 0x0001
+
+#define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
+#define S_ISCHR(m) (((m)&S_IFMT) == S_IFCHR)
+#define S_ISBLK(m) (((m)&S_IFMT) == S_IFBLK)
+#define S_ISREG(m) (((m)&S_IFMT) == S_IFREG)
+#define S_ISFIFO(m) (((m)&S_IFMT) == S_IFIFO)
+#define S_ISLNK(m) (((m)&S_IFMT) == S_IFLNK)
+#define S_ISSOCK(m) (((m)&S_IFMT) == S_IFSOCK)
 
 struct fstat {
     uint32_t dev; /* ID of device containing file */

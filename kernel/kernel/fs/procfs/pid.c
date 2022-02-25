@@ -56,9 +56,9 @@ const file_ops_t procfs_pid_exe_ops = {
 };
 
 static const procfs_files_t static_procfs_files[] = {
-    { .name = "memstat", .mode = 0444, .ops = &procfs_pid_memstat_ops },
-    { .name = "stat", .mode = 0444, .ops = &procfs_pid_stat_ops },
-    { .name = "exe", .mode = 0444, .ops = &procfs_pid_exe_ops },
+    { .name = "memstat", .mode = S_IFREG | 0444, .ops = &procfs_pid_memstat_ops },
+    { .name = "stat", .mode = S_IFREG | 0444, .ops = &procfs_pid_stat_ops },
+    { .name = "exe", .mode = S_IFREG | 0444, .ops = &procfs_pid_exe_ops },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
 

@@ -436,8 +436,8 @@ inline void dentry_rem_flag_lockless(dentry_t* dentry, uint32_t flag)
     dentry->flags &= ~flag;
 }
 
-// dentry_inode_test_flag_lockless test ONE flag and return if it is set.
-inline bool dentry_inode_test_flag_lockless(dentry_t* dentry, mode_t mode)
+// dentry_test_mode_lockless test ONE flag and return if it is set.
+inline bool dentry_test_mode_lockless(dentry_t* dentry, mode_t mode)
 {
     return mode >= 0x1000 ? (dentry->inode->mode & 0xF000) == mode : ((dentry->inode->mode) & mode) > 0;
 }
@@ -467,17 +467,17 @@ inline void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
 inline void dentry_inode_set_flag(dentry_t* dentry, mode_t mode)
 {
     lock_acquire(&dentry->lock);
-    if (!dentry_inode_test_flag_lockless(dentry, mode)) {
+    if (!dentry_test_mode_lockless(dentry, mode)) {
         dentry_set_flag_lockless(dentry, DENTRY_DIRTY);
     }
     dentry->inode->mode |= mode;
     lock_release(&dentry->lock);
 }
 
-inline bool dentry_inode_test_flag(dentry_t* dentry, mode_t mode)
+inline bool dentry_test_mode(dentry_t* dentry, mode_t mode)
 {
     lock_acquire(&dentry->lock);
-    bool res = dentry_inode_test_flag_lockless(dentry, mode);
+    bool res = dentry_test_mode_lockless(dentry, mode);
     lock_release(&dentry->lock);
     return res;
 }
@@ -485,7 +485,7 @@ inline bool dentry_inode_test_flag(dentry_t* dentry, mode_t mode)
 inline void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode)
 {
     lock_acquire(&dentry->lock);
-    if (dentry_inode_test_flag_lockless(dentry, mode)) {
+    if (dentry_test_mode_lockless(dentry, mode)) {
         dentry_set_flag_lockless(dentry, DENTRY_DIRTY);
     }
     dentry->inode->mode &= ~mode;

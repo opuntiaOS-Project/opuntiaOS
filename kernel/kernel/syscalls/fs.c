@@ -31,7 +31,7 @@ void sys_open(trapframe_t* tf)
     kpath = kmem_bring_to_kernel(path, path_len + 1);
 
     // Only permission flags
-    mode_t mode = SYSCALL_VAR3(tf) & 0x777;
+    mode_t mode = SYSCALL_VAR3(tf) & 0777;
 
     if (TEST_FLAG(flags, O_CREAT)) {
         char* kname = vfs_helper_split_path_with_name(kpath, path_len);

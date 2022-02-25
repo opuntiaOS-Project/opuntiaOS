@@ -49,7 +49,7 @@ const file_ops_t procfs_sys_doint_ops = {
 };
 
 static const procfs_files_t static_procfs_files[] = {
-    { .name = "sysctl_enable", .mode = 0744, .ops = &procfs_sys_doint_ops, .data = &_sysctl_enable },
+    { .name = "sysctl_enable", .mode = S_IFCHR | 0744, .ops = &procfs_sys_doint_ops, .data = &_sysctl_enable },
 };
 #define PROCFS_STATIC_FILES_COUNT_AT_LEVEL (sizeof(static_procfs_files) / sizeof(procfs_files_t))
 

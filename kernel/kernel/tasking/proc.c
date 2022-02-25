@@ -505,7 +505,7 @@ static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path)
         return -ENOENT;
     }
 
-    if (!dentry_inode_test_flag(new_cwd, S_IFDIR)) {
+    if (!dentry_test_mode(new_cwd, S_IFDIR)) {
         dentry_put(new_cwd);
         return -ENOTDIR;
     }

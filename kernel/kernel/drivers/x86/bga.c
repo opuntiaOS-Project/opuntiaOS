@@ -131,7 +131,7 @@ static void bga_recieve_notification(uint32_t msg, uint32_t param)
         file_ops_t fops = { 0 };
         fops.ioctl = _bga_ioctl;
         fops.mmap = _bga_mmap;
-        devfs_inode_t* res = devfs_register(mp, MKDEV(10, 156), "bga", 3, 0777, &fops);
+        devfs_inode_t* res = devfs_register(mp, MKDEV(10, 156), "bga", 3, S_IFBLK | 0777, &fops);
 
         dentry_put(mp);
     }
