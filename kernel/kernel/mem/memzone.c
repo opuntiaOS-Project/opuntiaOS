@@ -82,7 +82,7 @@ memzone_t* memzone_extend(vm_address_space_t* vm_aspace, size_t start, size_t le
 
     memzone_t new_zone = { 0 };
     new_zone.type = 0;
-    new_zone.flags = ZONE_USER;
+    new_zone.mmu_flags = MMU_FLAG_NONPRIV;
 
     if (_proc_can_fixup_zone(vm_aspace, &start, (int*)&len)) {
         new_zone.start = start;
@@ -108,7 +108,7 @@ memzone_t* memzone_new(vm_address_space_t* vm_aspace, size_t start, size_t len)
     new_zone.start = start;
     new_zone.len = len;
     new_zone.type = 0;
-    new_zone.flags = ZONE_USER;
+    new_zone.mmu_flags = MMU_FLAG_NONPRIV;
     new_zone.ops = NULL;
 
     if (_proc_can_add_zone(vm_aspace, start, len)) {

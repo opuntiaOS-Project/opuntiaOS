@@ -49,7 +49,7 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
         system_enable_interrupts();
         return -ENOMEM;
     }
-    zone->flags |= ZONE_READABLE;
+    zone->mmu_flags |= MMU_FLAG_PERM_READ;
     system_enable_interrupts();
 
     // Use kernel hack and read straigth to our buffer. It's implemented in parts,

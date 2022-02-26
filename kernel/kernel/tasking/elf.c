@@ -106,13 +106,13 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
     log("Section type %x %x - %x", sh.sh_type, sh.sh_addr, sh.sh_size);
 #endif
     if (sh.sh_flags & SHF_ALLOC) {
-        uint32_t zone_flags = ZONE_READABLE;
+        uint32_t zone_flags = MMU_FLAG_PERM_READ;
         uint32_t zone_type = ZONE_TYPE_NULL;
         if (sh.sh_flags & SHF_WRITE) {
-            zone_flags |= ZONE_WRITABLE;
+            zone_flags |= MMU_FLAG_PERM_WRITE;
         }
         if (sh.sh_flags & SHF_EXECINSTR) {
-            zone_flags |= ZONE_EXECUTABLE;
+            zone_flags |= MMU_FLAG_PERM_EXEC;
         }
         // FIXME: Mapping of zone types is bad.
         switch (sh.sh_type) {
@@ -139,7 +139,7 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
             memzone_t* zone = memzone_extend(p->address_space, sh.sh_addr, sh.sh_size);
             if (zone) {
                 zone->type = zone_type;
-                zone->flags |= zone_flags;
+                zone->mmu_flags |= zone_flags;
             }
         }
     }
@@ -150,7 +150,7 @@ static int _elf_load_alloc_stack(proc_t* p)
 {
     memzone_t* stack_zone = memzone_new_random_backward(p->address_space, USER_STACK_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
-    stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
+    stack_zone->mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE;
     set_base_pointer(p->main_thread->tf, stack_zone->start + USER_STACK_SIZE);
     set_stack_pointer(p->main_thread->tf, stack_zone->start + USER_STACK_SIZE);
     return 0;

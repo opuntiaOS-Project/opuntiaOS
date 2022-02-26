@@ -262,18 +262,18 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     uint32_t code_size = fd->dentry->inode->size;
     memzone_t* code_zone = memzone_new_random(p->address_space, code_size);
     code_zone->type = ZONE_TYPE_CODE;
-    code_zone->flags |= ZONE_READABLE | ZONE_EXECUTABLE;
+    code_zone->mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC;
 
     /* THIS IS FOR BSS WHICH COULD BE IN THIS ZONE */
-    code_zone->flags |= ZONE_WRITABLE;
+    code_zone->mmu_flags |= MMU_FLAG_PERM_WRITE;
 
     memzone_t* bss_zone = memzone_new_random(p->address_space, 2 * 4096);
     bss_zone->type = ZONE_TYPE_DATA;
-    bss_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
+    bss_zone->mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE;
 
     memzone_t* stack_zone = memzone_new_random_backward(p->address_space, VMM_PAGE_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
-    stack_zone->flags |= ZONE_READABLE | ZONE_WRITABLE;
+    stack_zone->mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE;
 
     /* Copying an exec code */
     uint8_t* prog = kmalloc(fd->dentry->inode->size);

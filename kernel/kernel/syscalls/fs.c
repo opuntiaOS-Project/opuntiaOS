@@ -383,13 +383,13 @@ void sys_mmap(trapframe_t* tf)
 
     zone->type |= ZONE_TYPE_MAPPED;
     if (map_read) {
-        zone->flags |= ZONE_READABLE;
+        zone->mmu_flags |= MMU_FLAG_PERM_READ;
     }
     if (map_write) {
-        zone->flags |= ZONE_WRITABLE;
+        zone->mmu_flags |= MMU_FLAG_PERM_WRITE;
     }
     if (map_exec) {
-        zone->flags |= ZONE_EXECUTABLE;
+        zone->mmu_flags |= MMU_FLAG_PERM_EXEC;
     }
 
     return_with_val(zone->start);

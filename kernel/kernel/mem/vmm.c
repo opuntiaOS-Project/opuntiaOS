@@ -584,10 +584,10 @@ static int _vmm_copy_page_to_resolve_cow(uintptr_t vaddr, ptable_entity_t* old_p
 
     if (TEST_FLAG(zone->type, ZONE_TYPE_DEVICE) || TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         uintptr_t old_page_paddr = vm_ptable_entity_get_frame(old_page_desc, PTABLE_LV0);
-        return vmm_map_page_lockless(vaddr, old_page_paddr, zone->flags);
+        return vmm_map_page_lockless(vaddr, old_page_paddr, zone->mmu_flags);
     }
 
-    vmm_alloc_page_lockless(vaddr, zone->flags);
+    vmm_alloc_page_lockless(vaddr, zone->mmu_flags);
 
     /* Mapping the old page to do a copy */
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
@@ -740,7 +740,7 @@ static int vm_alloc_user_page_no_fill_lockless(memzone_t* zone, uintptr_t vaddr)
     if (!zone) {
         return -ESRCH;
     }
-    return vmm_alloc_page_no_fill_lockless(vaddr, zone->flags);
+    return vmm_alloc_page_no_fill_lockless(vaddr, zone->mmu_flags);
 }
 
 static int vm_alloc_user_page_lockless(memzone_t* zone, uintptr_t vaddr)
@@ -748,7 +748,7 @@ static int vm_alloc_user_page_lockless(memzone_t* zone, uintptr_t vaddr)
     if (!zone) {
         return -EFAULT;
     }
-    return vmm_alloc_page_lockless(vaddr, zone->flags);
+    return vmm_alloc_page_lockless(vaddr, zone->mmu_flags);
 }
 
 /**

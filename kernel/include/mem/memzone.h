@@ -18,8 +18,8 @@ struct vm_ops;
 struct memzone {
     uintptr_t start;
     size_t len;
+    mmu_flags_t mmu_flags;
     uint32_t type;
-    uint32_t flags;
     dentry_t* file;
     uintptr_t offset;
     struct vm_ops* ops;

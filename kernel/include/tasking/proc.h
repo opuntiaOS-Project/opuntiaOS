@@ -64,7 +64,7 @@ struct proc {
 
     bool is_kthread;
 
-    /* Trace data */
+    // Trace data
     bool is_tracee;
 };
 typedef struct proc proc_t;

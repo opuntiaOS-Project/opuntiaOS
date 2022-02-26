@@ -758,7 +758,7 @@ memzone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
 
 int vfs_munmap(proc_t* p, memzone_t* zone)
 {
-    if (!TEST_FLAG(zone->flags, ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !TEST_FLAG(zone->flags, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+    if (!TEST_FLAG(zone->mmu_flags, ZONE_TYPE_MAPPED_FILE_PRIVATLY) && !TEST_FLAG(zone->mmu_flags, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
         return -EFAULT;
     }
 
