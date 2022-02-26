@@ -251,10 +251,10 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
         }
     }
 
-    /* If it has custom open, let's use it */
+    // If it has custom open, let's use it.
     if (file->ops->file.open) {
         int res = file->ops->file.open(file, fd, flags);
-        /* Devfs can't find the right one and returns ENOEXEC in this case. */
+        // FS can't find the right one and returns ENOEXEC in this case.
         if (res != -ENOEXEC) {
             return res;
         }

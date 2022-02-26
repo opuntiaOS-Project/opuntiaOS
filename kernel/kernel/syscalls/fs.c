@@ -172,12 +172,12 @@ void sys_unlink(trapframe_t* tf)
 
 void sys_creat(trapframe_t* tf)
 {
-    uint32_t tmp_storage_2 = SYSCALL_VAR2(tf);
-    uint32_t tmp_storage_3 = SYSCALL_VAR3(tf);
+    uintptr_t tmp_storage_2 = SYSCALL_VAR2(tf);
+    uintptr_t tmp_storage_3 = SYSCALL_VAR3(tf);
     SYSCALL_VAR2(tf) = O_CREAT | O_WRONLY | O_TRUNC;
     SYSCALL_VAR3(tf) = SYSCALL_VAR2(tf);
     sys_open(tf);
-    uint32_t result = return_val;
+    uintptr_t result = return_val;
     SYSCALL_VAR2(tf) = tmp_storage_2;
     SYSCALL_VAR3(tf) = tmp_storage_3;
     return_with_val(result);
@@ -200,6 +200,12 @@ void sys_fstat(trapframe_t* tf)
 void sys_fsync(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
+    if (!fd) {
+        return_with_val(-EBADF);
+    }
+    if (fd->type != FD_TYPE_FILE) {
+        return_with_val(-EINVAL);
+    }
     dentry_flush(fd->dentry);
     return_with_val(0);
 }
