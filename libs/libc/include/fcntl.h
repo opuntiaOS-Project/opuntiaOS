@@ -7,7 +7,7 @@
 
 __BEGIN_DECLS
 
-int open(const char* pathname, int flags);
+int open(const char* pathname, int flags, ...);
 int creat(const char* path, mode_t mode);
 
 __END_DECLS

@@ -1,13 +1,21 @@
 #include <fcntl.h>
+#include <stdarg.h>
 #include <sys/mman.h>
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sysdep.h>
 #include <unistd.h>
 
-int open(const char* pathname, int flags)
+int open(const char* pathname, int flags, ...)
 {
-    int res = DO_SYSCALL_3(SYS_OPEN, pathname, flags, S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO);
+    mode_t mode = 0;
+    if ((flags & O_CREAT) != 0) {
+        va_list va;
+        va_start(va, flags);
+        mode = (mode_t)va_arg(va, unsigned);
+        va_end(va);
+    }
+    int res = DO_SYSCALL_3(SYS_OPEN, pathname, flags, mode);
     RETURN_WITH_ERRNO(res, res, -1);
 }
 

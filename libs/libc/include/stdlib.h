@@ -8,6 +8,9 @@
 
 __BEGIN_DECLS
 
+#define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
+
 #ifndef NOMINMAX
 #ifndef max
 #define max(a, b) \

@@ -25,7 +25,7 @@ int main(int argc, char** argv)
         }
 
         if (pid == 0) {
-            fd = open(fname, O_CREAT | O_RDWR);
+            fd = open(fname, O_CREAT | O_RDWR, 0600);
             if (fd < 0) {
                 TestErr("create failed");
             }
