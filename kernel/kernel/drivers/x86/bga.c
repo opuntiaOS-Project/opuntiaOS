@@ -137,6 +137,14 @@ static void bga_recieve_notification(uint32_t msg, uint32_t param)
     }
 }
 
+static void bga_set_resolution(uint32_t width, uint32_t height)
+{
+    _bga_set_resolution(width, height);
+    bga_screen_width = width;
+    bga_screen_height = height;
+    bga_screen_buffer_size = bga_screen_line_size * height * 2;
+}
+
 static inline driver_desc_t _bga_driver_info()
 {
     driver_desc_t bga_desc = { 0 };
@@ -180,12 +188,4 @@ int bga_init_with_dev(device_t* dev)
 #endif
 
     return 0;
-}
-
-void bga_set_resolution(uint16_t width, uint16_t height)
-{
-    _bga_set_resolution(width, height);
-    bga_screen_width = width;
-    bga_screen_height = height;
-    bga_screen_buffer_size = bga_screen_line_size * (uint32_t)height * 2;
 }

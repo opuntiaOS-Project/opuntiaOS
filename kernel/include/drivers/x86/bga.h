@@ -17,6 +17,5 @@
 
 void bga_install();
 int bga_init_with_dev(device_t* dev);
-void bga_set_resolution(uint16_t width, uint16_t height);
 
 #endif //_KERNEL_DRIVERS_X86_BGA_H
