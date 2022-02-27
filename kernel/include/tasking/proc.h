@@ -11,7 +11,7 @@
 
 #include <algo/dynamic_array.h>
 #include <fs/vfs.h>
-#include <io/tty/tty.h>
+#include <io/tty/vconsole.h>
 #include <libkern/atomic.h>
 #include <libkern/lock.h>
 #include <libkern/types.h>
@@ -58,7 +58,6 @@ struct proc {
     dentry_t* proc_file;
     dentry_t* cwd;
     file_descriptor_t* fds;
-    tty_entry_t* tty;
 
     int exit_code;
 
@@ -78,7 +77,7 @@ struct thread* thread_by_pid(pid_t pid);
 int proc_init_storage();
 int proc_setup(proc_t* p);
 int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid);
-int proc_setup_tty(proc_t* p, tty_entry_t* tty);
+int proc_setup_vconsole(proc_t* p, vconsole_entry_t* vconsole);
 int proc_fill_up_stack(proc_t* p, int argc, char** argv, char** env);
 int proc_free(proc_t* p);
 int proc_free_lockless(proc_t* p);

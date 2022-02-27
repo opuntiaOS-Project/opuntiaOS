@@ -28,7 +28,7 @@ bool pty_slave_can_read(dentry_t* dentry, size_t start)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
-    return sync_ringbuffer_space_to_read(&pts->buffer) >= 1;
+    return tty_can_read(&pts->tty, dentry, start);
 }
 
 bool pty_slave_can_write(dentry_t* dentry, size_t start)
@@ -42,12 +42,7 @@ int pty_slave_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
-    uint32_t leno = sync_ringbuffer_space_to_read(&pts->buffer);
-    if (leno > len) {
-        leno = len;
-    }
-    int res = sync_ringbuffer_read(&pts->buffer, buf, leno);
-    return leno;
+    return tty_read(&pts->tty, dentry, buf, start, len);
 }
 
 int pty_slave_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
@@ -60,7 +55,9 @@ int pty_slave_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 
 int pty_slave_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
 {
-    return 0;
+    pty_slave_entry_t* pts = _pts_get(dentry);
+    ASSERT(pts);
+    return tty_ioctl(&pts->tty, dentry, cmd, arg);
 }
 
 int pty_slave_create(int id, pty_master_entry_t* ptm)
@@ -85,11 +82,12 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
         devfs_inode_t* res = devfs_register(mp, MKDEV(136, id), name, 4, S_IFCHR | 0777, &fops);
         pty_slaves[id].inode_indx = res->index;
         pty_slaves[id].ptm = ptm;
-        pty_slaves[id].buffer = sync_ringbuffer_create_std();
-        ASSERT(pty_slaves[id].buffer.ringbuffer.zone.start);
+
+        tty_init(&pty_slaves[id].tty);
+        ASSERT(pty_slaves[id].tty.buffer.ringbuffer.zone.start);
         ptm->pts = &pty_slaves[id];
     } else {
-        pty_slaves[id].buffer.ringbuffer.start = pty_slaves[id].buffer.ringbuffer.end = 0;
+        tty_clear(&pty_slaves[id].tty);
     }
 
     dentry_put(mp);

@@ -9,7 +9,7 @@
 #ifdef FPU_ENABLED
 #include <drivers/x86/fpu.h>
 #endif
-#include <io/tty/tty.h>
+#include <io/tty/vconsole.h>
 #include <libkern/bits/errno.h>
 #include <libkern/bits/sys/wait.h>
 #include <libkern/libkern.h>
@@ -148,7 +148,7 @@ void tasking_start_init_proc()
 {
     system_disable_interrupts();
     proc_t* p = _tasking_setup_proc_with_uid(0, 0);
-    proc_setup_tty(p, tty_new());
+    proc_setup_vconsole(p, vconsole_new());
 
     int err = _tasking_do_exec(p, p->main_thread, "/boot/init", 0, NULL, 0, NULL);
     if (err) {

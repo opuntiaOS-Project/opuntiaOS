@@ -31,7 +31,7 @@ int threads_cnt = 0;
 static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, thread_t* gthread);
 static ALWAYS_INLINE void proc_kill_all_threads_lockless(proc_t* p);
 static ALWAYS_INLINE int proc_setup_lockless(proc_t* p);
-static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty);
+static int proc_setup_vconsole_lockless(proc_t* p, vconsole_entry_t* vconsole);
 
 static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, const char* path);
 static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path);
@@ -185,15 +185,14 @@ int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid)
     return err;
 }
 
-static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty)
+static int proc_setup_vconsole_lockless(proc_t* p, vconsole_entry_t* vconsole)
 {
     file_descriptor_t* fd0 = &p->fds[0];
     file_descriptor_t* fd1 = &p->fds[1];
     file_descriptor_t* fd2 = &p->fds[2];
-    p->tty = tty;
 
     char* path_to_tty = "/dev/tty ";
-    path_to_tty[8] = tty->id + '0';
+    path_to_tty[8] = vconsole->id + '0';
     dentry_t* tty_dentry;
     if (vfs_resolve_path(path_to_tty, &tty_dentry) < 0) {
         return -ENOENT;
@@ -214,10 +213,10 @@ static ALWAYS_INLINE int proc_setup_tty_lockless(proc_t* p, tty_entry_t* tty)
     return 0;
 }
 
-int proc_setup_tty(proc_t* p, tty_entry_t* tty)
+int proc_setup_vconsole(proc_t* p, vconsole_entry_t* vconsole)
 {
     lock_acquire(&p->lock);
-    int res = proc_setup_tty_lockless(p, tty);
+    int res = proc_setup_vconsole_lockless(p, vconsole);
     lock_release(&p->lock);
     return res;
 }
@@ -239,7 +238,6 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
     new_proc->sgid = from_proc->sgid;
     new_proc->cwd = dentry_duplicate(from_proc->cwd);
     new_proc->proc_file = dentry_duplicate(from_proc->proc_file);
-    new_proc->tty = from_proc->tty;
 
     if (from_proc->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {

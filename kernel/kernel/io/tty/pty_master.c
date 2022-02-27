@@ -88,7 +88,7 @@ bool pty_master_can_write(dentry_t* dentry, size_t start)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    return sync_ringbuffer_space_to_write(&ptm->pts->buffer) >= 0;
+    return tty_can_write(&ptm->pts->tty, dentry, start);
 }
 
 int pty_master_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
@@ -107,8 +107,7 @@ int pty_master_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    sync_ringbuffer_write(&ptm->pts->buffer, buf, len);
-    return len;
+    return tty_write(&ptm->pts->tty, dentry, buf, start, len);
 }
 
 int pty_master_fstat(dentry_t* dentry, fstat_t* stat)

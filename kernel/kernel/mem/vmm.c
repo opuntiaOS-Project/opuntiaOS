@@ -1139,6 +1139,19 @@ void vmm_copy_to_user(void* dest, void* src, size_t length)
 }
 
 /**
+ * @brief Copies data from the user buffer to the kernel space.
+ *
+ * @param dest The data destination. Must be kernel address.
+ * @param src The data source.
+ * @param length The length of data to be copied.
+ */
+void vmm_copy_to_kernel(void* dest, void* src, size_t length)
+{
+    ASSERT(IS_KERNEL_VADDR((uintptr_t)dest));
+    memcpy(dest, src, length);
+}
+
+/**
  * @brief Copies data from the source address of the active address space to the
  *        destination virtual address of the target address space.
  *

@@ -10,7 +10,7 @@
 #define _KERNEL_IO_TTY_TTY_H
 
 #include <algo/sync_ringbuffer.h>
-#include <drivers/x86/keyboard.h>
+#include <fs/vfs.h>
 #include <libkern/types.h>
 
 #define TTY_MAX_COUNT 8
@@ -22,11 +22,11 @@ typedef unsigned int tcflag_t;
 
 #define NCCS 32
 struct termios {
-    tcflag_t c_iflag; /* input mode flags */
-    tcflag_t c_oflag; /* output mode flags */
-    tcflag_t c_cflag; /* control mode flags */
-    tcflag_t c_lflag; /* local mode flags */
-    cc_t c_cc[NCCS]; /* control characters */
+    tcflag_t c_iflag; // input mode flags
+    tcflag_t c_oflag; // output mode flags
+    tcflag_t c_cflag; // control mode flags
+    tcflag_t c_lflag; // local mode flags
+    cc_t c_cc[NCCS]; // control characters
 };
 typedef struct termios termios_t;
 
@@ -77,18 +77,20 @@ typedef struct termios termios_t;
 #define TCSAFLUSH 2
 
 struct tty_entry {
-    int id;
-    int inode_indx;
     sync_ringbuffer_t buffer;
-    int lines_avail;
-    uint32_t pgid;
+    int line_count;
+    gid_t pgid;
     termios_t termios;
 };
 typedef struct tty_entry tty_entry_t;
 
-extern tty_entry_t ttys[TTY_MAX_COUNT];
+int tty_init(tty_entry_t* tty);
+int tty_clear(tty_entry_t* tty);
 
-tty_entry_t* tty_new();
-void tty_eat_key(key_t key);
+bool tty_can_read(tty_entry_t* tty, dentry_t* dentry, size_t start);
+int tty_read(tty_entry_t* tty, dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+bool tty_can_write(tty_entry_t* tty, dentry_t* dentry, size_t start);
+int tty_write(tty_entry_t* tty, dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+int tty_ioctl(tty_entry_t* tty, dentry_t* dentry, uint32_t cmd, uint32_t arg);
 
 #endif // _KERNEL_IO_TTY_TTY_H
