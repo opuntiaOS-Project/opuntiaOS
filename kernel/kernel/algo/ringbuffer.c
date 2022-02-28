@@ -92,15 +92,15 @@ size_t ringbuffer_read_with_start(ringbuffer_t* buf, size_t start, uint8_t* hold
 
 size_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data)
 {
-    if (buf->start != buf->end) {
-        *data = buf->zone.ptr[buf->start];
-        buf->start++;
-        if (buf->start == buf->zone.len) {
-            buf->start = 0;
-        }
-        return 1;
+    if (unlikely(buf->start == buf->end)) {
+        return 0;
     }
-    return 0;
+    *data = buf->zone.ptr[buf->start];
+    buf->start++;
+    if (buf->start == buf->zone.len) {
+        buf->start = 0;
+    }
+    return 1;
 }
 
 size_t ringbuffer_write(ringbuffer_t* buf, const uint8_t* holder, size_t siz)
@@ -134,15 +134,15 @@ size_t ringbuffer_write_ignore_bounds(ringbuffer_t* buf, const uint8_t* holder, 
 
 size_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data)
 {
-    if (buf->end + 1 != buf->start) {
-        buf->zone.ptr[buf->end] = data;
-        buf->end++;
-        if (buf->end == buf->zone.len) {
-            buf->end = 0;
-        }
-        return 1;
+    if (unlikely(buf->end + 1 == buf->start)) {
+        return 0;
     }
-    return 0;
+    buf->zone.ptr[buf->end] = data;
+    buf->end++;
+    if (buf->end == buf->zone.len) {
+        buf->end = 0;
+    }
+    return 1;
 }
 
 void ringbuffer_clear(ringbuffer_t* buf)
