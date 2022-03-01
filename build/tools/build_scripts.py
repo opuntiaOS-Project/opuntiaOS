@@ -22,7 +22,7 @@ if arch == "x86":
 if arch == "aarch32":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_ARM"
     QEMU_STD_PATH = "qemu-system-arm"
-    qemu_run_cmd = "${2} -M vexpress-a15 -cpu cortex-a15 -kernel {1}/bootarm.bin  -smp ${3} -serial mon:stdio -vga std -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
+    qemu_run_cmd = "${2} -m 256M -M vexpress-a15 -cpu cortex-a15 -kernel {1}/bootarm.bin -smp ${3} -serial mon:stdio -vga std -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
         base, out, QEMU_PATH_VAR, QEMU_SMP_VAR)
 
 if base[-1] == '/':
