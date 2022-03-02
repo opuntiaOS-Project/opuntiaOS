@@ -1,42 +1,11 @@
 import("//build/libs/TEMPLATE.gni")
+import("//libs/libc/LIBC_SOURCES.gni")
 
 opuntiaOS_static_library("libcxx") {
-  sources = [
-    # shared (with LibC)
-    "../libc/ctype/ctype.c",
-    "../libc/dirent/dirent.c",
-    "../libc/init/_lib.c",
-    "../libc/malloc/malloc.c",
-    "../libc/malloc/slab.c",
-    "../libc/posix/fs.c",
-    "../libc/posix/identity.c",
-    "../libc/posix/sched.c",
-    "../libc/posix/signal.c",
-    "../libc/posix/system.c",
-    "../libc/posix/tasking.c",
-    "../libc/posix/time.c",
-    "../libc/pthread/pthread.c",
-    "../libc/ptrace/ptrace.c",
-    "../libc/pwd/pwd.c",
-    "../libc/pwd/shadow.c",
-    "../libc/setjmp/$target_cpu/setjmp.s",
-    "../libc/socket/socket.c",
-    "../libc/stdio/printf.c",
-    "../libc/stdio/scanf.c",
-    "../libc/stdio/stdio.c",
-    "../libc/stdlib/env.c",
-    "../libc/stdlib/exit.c",
-    "../libc/stdlib/pts.c",
-    "../libc/stdlib/tools.c",
-    "../libc/string/string.c",
-    "../libc/sysdeps/opuntiaos/generic/shared_buffer.c",
-    "../libc/sysdeps/unix/$target_cpu/crt0.s",
-    "../libc/sysdeps/unix/generic/ioctl.c",
-    "../libc/termios/termios.c",
-    "../libc/time/strftime.c",
-    "../libc/time/time.c",
+  sources = libc_sources_for_libcxx
 
-    #private
+  # Private LibCxx sources.
+  sources += [
     "init/_init.cpp",
     "init/_lib.cpp",
     "src/iostream.cpp",

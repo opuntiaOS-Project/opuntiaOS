@@ -1,0 +1,47 @@
+import("//build/libs/TEMPLATE.gni")
+
+# LibC and LibCxx are built seperatly while LibCxx uses all LibC base.
+# This list contains a shared files which will be used to compile both of libs.
+libc_sources = [
+  "ctype/ctype.c",
+  "dirent/dirent.c",
+  "init/_lib.c",
+  "malloc/malloc.c",
+  "malloc/slab.c",
+  "posix/fs.c",
+  "posix/identity.c",
+  "posix/sched.c",
+  "posix/signal.c",
+  "posix/system.c",
+  "posix/tasking.c",
+  "posix/time.c",
+  "pthread/pthread.c",
+  "ptrace/ptrace.c",
+  "pwd/pwd.c",
+  "pwd/shadow.c",
+  "setjmp/$target_cpu/setjmp.s",
+  "socket/socket.c",
+  "stdio/printf.c",
+  "stdio/scanf.c",
+  "stdio/stdio.c",
+  "stdlib/env.c",
+  "stdlib/exit.c",
+  "stdlib/pts.c",
+  "stdlib/tools.c",
+  "string/string.c",
+  "sysdeps/opuntiaos/generic/shared_buffer.c",
+  "sysdeps/unix/$target_cpu/crt0.s",
+  "sysdeps/unix/generic/ioctl.c",
+  "termios/termios.c",
+  "time/strftime.c",
+  "time/time.c",
+]
+
+libc_sources_for_libcxx = []
+foreach(i, libc_sources) {
+  libc_sources_for_libcxx += [ string_join("",
+                                           [
+                                             "../libc/",
+                                             i,
+                                           ]) ]
+}
