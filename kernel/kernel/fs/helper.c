@@ -13,9 +13,9 @@
 #include <mem/kmalloc.h>
 #include <tasking/tasking.h>
 
-#define NORM_FILENAME(x) ((x + 0x3) & (uint32_t)(~0b11))
+#define NORM_FILENAME(x) ((x + 0x3) & (size_t)(~0b11))
 
-ssize_t vfs_helper_write_dirent(dirent_t* buf, size_t buf_len, ino_t inode_index, const char* name)
+ssize_t vfs_helper_write_dirent(dirent_t __user* buf, size_t buf_len, ino_t inode_index, const char* name)
 {
     size_t name_len = strlen(name);
     int phys_rec_len = 8 + NORM_FILENAME(name_len) + 1;
@@ -25,12 +25,14 @@ ssize_t vfs_helper_write_dirent(dirent_t* buf, size_t buf_len, ino_t inode_index
         return -ENOMEM;
     }
 
-    buf->inode = inode_index;
-    buf->rec_len = phys_rec_len;
-    buf->name_len = name_len;
-    uint8_t* buf_u8 = (uint8_t*)buf;
-    memcpy(buf_u8 + 8, name, name_len);
-    buf_u8[virt_rec_len - 1] = '\0';
+    dirent_t kdirent = { 0 };
+    kdirent.inode = inode_index;
+    kdirent.rec_len = phys_rec_len;
+    kdirent.name_len = name_len;
+    umem_copy_to_user(buf, &kdirent, 8);
+    uint8_t __user* buf_u8 = (uint8_t __user*)buf;
+    umem_copy_to_user(buf_u8 + 8, name, name_len);
+    umem_put_user('\0', &buf_u8[virt_rec_len - 1]);
     return phys_rec_len;
 }
 

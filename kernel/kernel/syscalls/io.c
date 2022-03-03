@@ -11,6 +11,7 @@
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
+#include <mem/kmalloc.h>
 #include <platform/generic/syscalls/params.h>
 #include <syscalls/handlers.h>
 #include <tasking/tasking.h>
@@ -41,38 +42,56 @@ void sys_bind(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
     int sockfd = SYSCALL_VAR1(tf);
-    char* name = (char*)SYSCALL_VAR2(tf);
-    uint32_t len = (uint32_t)SYSCALL_VAR3(tf);
 
     file_descriptor_t* sfd = proc_get_fd(p, sockfd);
     if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
         return_with_val(-EBADF);
     }
 
-    if (sfd->sock_entry->domain == PF_LOCAL) {
-        return_with_val(local_socket_bind(sfd, name, len));
+    char __user* name = (char __user*)SYSCALL_VAR2(tf);
+    size_t len = (size_t)SYSCALL_VAR3(tf);
+    char* kname = umem_bring_to_kernel_str_with_len(name, len);
+
+    int ret = 0;
+    switch (sfd->sock_entry->domain) {
+    case PF_LOCAL:
+        ret = local_socket_bind(sfd, kname, len);
+        break;
+
+    default:
+        ret = -EINVAL;
+        break;
     }
 
-    return_with_val(0);
+    kfree(kname);
+    return_with_val(ret);
 }
 
 void sys_connect(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
     int sockfd = SYSCALL_VAR1(tf);
-    char* name = (char*)SYSCALL_VAR2(tf);
-    uint32_t len = (uint32_t)SYSCALL_VAR3(tf);
-
     file_descriptor_t* sfd = proc_get_fd(p, sockfd);
     if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
         return_with_val(-EBADF);
     }
 
-    if (sfd->sock_entry->domain == PF_LOCAL) {
-        return_with_val(local_socket_connect(sfd, name, len));
+    char __user* name = (char __user*)SYSCALL_VAR2(tf);
+    size_t len = (size_t)SYSCALL_VAR3(tf);
+    char* kname = umem_bring_to_kernel_str_with_len(name, len);
+
+    int ret = 0;
+    switch (sfd->sock_entry->domain) {
+    case PF_LOCAL:
+        ret = local_socket_connect(sfd, name, len);
+        break;
+
+    default:
+        ret = -EFAULT;
+        break;
     }
 
-    return_with_val(-EFAULT);
+    return_with_val(ret);
 }
 
 void sys_ioctl(trapframe_t* tf)
@@ -92,7 +111,7 @@ void sys_ioctl(trapframe_t* tf)
 
 void sys_shbuf_create(trapframe_t* tf)
 {
-    uint8_t** buffer = (uint8_t**)SYSCALL_VAR1(tf);
+    uintptr_t __user* buffer = (uintptr_t __user*)SYSCALL_VAR1(tf);
     size_t size = SYSCALL_VAR2(tf);
     return_with_val(shared_buffer_create(buffer, size));
 }
@@ -100,7 +119,7 @@ void sys_shbuf_create(trapframe_t* tf)
 void sys_shbuf_get(trapframe_t* tf)
 {
     int id = SYSCALL_VAR1(tf);
-    uint8_t** buffer = (uint8_t**)SYSCALL_VAR2(tf);
+    uintptr_t __user* buffer = (uintptr_t __user*)SYSCALL_VAR2(tf);
     return_with_val(shared_buffer_get(id, buffer));
 }
 

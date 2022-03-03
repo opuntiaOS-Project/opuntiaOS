@@ -73,7 +73,6 @@ static int _vmm_free_address_space_lockless(vm_address_space_t* vm_aspace);
 static vm_address_space_t* vmm_new_address_space_lockless();
 static vm_address_space_t* vmm_new_forked_address_space_lockless();
 static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_lockless(uintptr_t dest_vaddr, size_t length);
-static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length);
 static ALWAYS_INLINE void vmm_copy_to_address_space_lockless(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length);
 
 static ALWAYS_INLINE int vmm_alloc_page_lockless(uintptr_t vaddr, mmu_flags_t mmu_flags);
@@ -1108,47 +1107,6 @@ void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t len
     lock_acquire(&_vmm_lock);
     vmm_ensure_writing_to_active_address_space_lockless(dest_vaddr, length);
     lock_release(&_vmm_lock);
-}
-
-/**
- * @brief Copies data from the kernel buffer to the active address space.
- *
- * @param dest The data destination.
- * @param src The data source.
- * @param length The length of data to be copied.
- */
-static ALWAYS_INLINE void vmm_copy_to_user_lockless(void* dest, void* src, size_t length)
-{
-    vmm_ensure_writing_to_active_address_space_lockless((uintptr_t)dest, length);
-    memcpy(dest, src, length);
-}
-
-/**
- * @brief Copies data from the kernel buffer to the active address space.
- *
- * @param dest The data destination.
- * @param src The data source.
- * @param length The length of data to be copied.
- */
-void vmm_copy_to_user(void* dest, void* src, size_t length)
-{
-    lock_acquire(&_vmm_lock);
-    vmm_ensure_writing_to_active_address_space_lockless((uintptr_t)dest, length);
-    lock_release(&_vmm_lock);
-    memcpy(dest, src, length);
-}
-
-/**
- * @brief Copies data from the user buffer to the kernel space.
- *
- * @param dest The data destination. Must be kernel address.
- * @param src The data source.
- * @param length The length of data to be copied.
- */
-void vmm_copy_to_kernel(void* dest, void* src, size_t length)
-{
-    ASSERT(IS_KERNEL_VADDR((uintptr_t)dest));
-    memcpy(dest, src, length);
 }
 
 /**

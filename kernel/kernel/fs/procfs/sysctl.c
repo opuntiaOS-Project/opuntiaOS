@@ -23,14 +23,14 @@
 static int _sysctl_enable = 1;
 
 /* PID */
-int procfs_sys_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len);
+int procfs_sys_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len);
 int procfs_sys_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
 static bool procfs_sys_doint_can_read(dentry_t* dentry, size_t start);
-static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+static int procfs_sys_doint_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
 static bool procfs_sys_doint_can_write(dentry_t* dentry, size_t start);
-static int procfs_sys_doint_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+static int procfs_sys_doint_write(dentry_t* dentry, void __user* buf, size_t start, size_t len);
 
 /**
  * DATA
@@ -75,7 +75,7 @@ static uint32_t procfs_sys_sfiles_get_inode_index(dentry_t* dir, int fileid)
  * PID
  */
 
-int procfs_sys_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
+int procfs_sys_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len)
 {
     int already_read = 0;
     dirent_t tmp;
@@ -83,7 +83,7 @@ int procfs_sys_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
     for (int i = 0; i < PROCFS_STATIC_FILES_COUNT_AT_LEVEL; i++) {
         if (*offset <= i) {
             uint32_t inode_index = procfs_sys_sfiles_get_inode_index(dir, i);
-            ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, inode_index, static_procfs_files[i].name);
+            ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, inode_index, static_procfs_files[i].name);
             if (read <= 0) {
                 if (!already_read) {
                     return -EINVAL;
@@ -145,7 +145,7 @@ static bool procfs_sys_doint_can_read(dentry_t* dentry, size_t start)
     return true;
 }
 
-static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+static int procfs_sys_doint_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     int* data = procfs_sys_get_sfile(dentry)->data;
 
@@ -161,7 +161,7 @@ static int procfs_sys_doint_read(dentry_t* dentry, uint8_t* buf, size_t start, s
         return -EFAULT;
     }
 
-    memcpy(buf, res, size);
+    umem_copy_to_user(buf, res, size);
     return size;
 }
 
@@ -170,9 +170,14 @@ static bool procfs_sys_doint_can_write(dentry_t* dentry, size_t start)
     return true;
 }
 
-static int procfs_sys_doint_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+static int procfs_sys_doint_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
+    // Expect to read an integer from sscanf only, buffer size of 32 is enough.
+    char tmp_buf[32];
+    size_t todo_len = min(len, 31);
+    umem_copy_from_user(tmp_buf, buf, todo_len);
+
     int* data = procfs_sys_get_sfile(dentry)->data;
-    sscanf((char*)buf, "%d", data);
-    return len;
+    ssize_t rd = sscanf((char*)tmp_buf, "%d", data);
+    return rd;
 }

@@ -42,13 +42,13 @@ int local_socket_create(int type, int protocol, file_descriptor_t* fd)
 bool local_socket_can_read(dentry_t* dentry, size_t start)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    return sync_ringbuffer_space_to_read_with_custom_start(&sock_entry->buffer, start) != 0;
+    return sync_ringbuffer_space_to_read_from(&sock_entry->buffer, start) != 0;
 }
 
-int local_socket_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int local_socket_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    int read = sync_ringbuffer_read_with_start(&sock_entry->buffer, start, buf, len);
+    int read = sync_ringbuffer_read_user_from(&sock_entry->buffer, start, buf, len);
     return read;
 }
 
@@ -60,19 +60,19 @@ bool local_socket_can_write(dentry_t* dentry, size_t start)
     return true;
 }
 
-int local_socket_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int local_socket_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     socket_t* sock_entry = (socket_t*)dentry;
-    uint32_t written = sync_ringbuffer_write_ignore_bounds(&sock_entry->buffer, buf, len);
+    uint32_t written = sync_ringbuffer_write_user_ignore_bounds(&sock_entry->buffer, buf, len);
     return 0;
 }
 
-int local_socket_bind(file_descriptor_t* sock, char* path, uint32_t len)
+int local_socket_bind(file_descriptor_t* sock, char* path, size_t len)
 {
     lock_acquire(&sock->lock);
     proc_t* p = RUNNING_THREAD->process;
 
-    char* name = vfs_helper_split_path_with_name(path, strlen(path));
+    char* name = vfs_helper_split_path_with_name(path, len);
     dentry_t* location;
     if (vfs_resolve_path_start_from(p->cwd, path, &location) < 0) {
         vfs_helper_restore_full_path_after_split(path, name);
@@ -113,7 +113,7 @@ int local_socket_bind(file_descriptor_t* sock, char* path, uint32_t len)
     return 0;
 }
 
-int local_socket_connect(file_descriptor_t* sock, char* path, uint32_t len)
+int local_socket_connect(file_descriptor_t* sock, char* path, size_t len)
 {
     lock_acquire(&sock->lock);
     proc_t* p = RUNNING_THREAD->process;

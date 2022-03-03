@@ -62,7 +62,7 @@ int procfs_can_write(dentry_t* dentry, size_t start)
     return procfs_inode->ops->can_write(dentry, start);
 }
 
-int procfs_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int procfs_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
     if (!procfs_inode->ops->write) {
@@ -80,7 +80,7 @@ int procfs_can_read(dentry_t* dentry, size_t start)
     return procfs_inode->ops->can_read(dentry, start);
 }
 
-int procfs_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int procfs_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
     if (!procfs_inode->ops->read) {
@@ -89,7 +89,7 @@ int procfs_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
     return procfs_inode->ops->read(dentry, buf, start, len);
 }
 
-int procfs_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
+int procfs_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
     if (!procfs_inode->ops->getdents) {

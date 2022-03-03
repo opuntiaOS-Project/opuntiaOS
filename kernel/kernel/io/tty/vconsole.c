@@ -51,7 +51,7 @@ bool vconsole_can_write(dentry_t* dentry, size_t start)
     return tty_can_write(&vconsole->tty, dentry, start);
 }
 
-int vconsole_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int vconsole_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     return 0;
 }
@@ -101,8 +101,9 @@ int _vconsole_process_esc_seq(uint8_t* buf)
     return 0;
 }
 
-int vconsole_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int vconsole_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
+    uint8_t __user* u8buf = (uint8_t __user*)buf;
 #ifdef VCONSOLE_DEBUG
     time_t cur_time = timeman_now();
     int secs = cur_time % 60;
@@ -114,11 +115,11 @@ int vconsole_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
     log_not_formatted("[%d:%d:%d.%d] ", hrs, mins, secs, ticks);
 #endif
     for (int i = 0; i < len; i++) {
-        if (buf[i] == '\x1b') {
-            i += _vconsole_process_esc_seq(&buf[i]);
+        if (u8buf[i] == '\x1b') {
+            i += _vconsole_process_esc_seq(&u8buf[i]);
         } else {
-            log_not_formatted("%c", buf[i]);
-            // print_char(buf[i], WHITE_ON_BLACK, -1, -1);
+            log_not_formatted("%c", u8buf[i]);
+            // print_char(u8buf[i], WHITE_ON_BLACK, -1, -1);
         }
     }
 

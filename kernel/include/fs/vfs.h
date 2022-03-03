@@ -92,17 +92,17 @@ struct file_descriptor;
 struct file_ops {
     bool (*can_read)(dentry_t*, size_t start);
     bool (*can_write)(dentry_t*, size_t start);
-    int (*read)(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
-    int (*write)(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+    int (*read)(dentry_t* dentry, void __user* buf, size_t start, size_t len);
+    int (*write)(dentry_t* dentry, void __user* buf, size_t start, size_t len);
     int (*open)(dentry_t* dentry, struct file_descriptor* fd, uint32_t flags);
     int (*truncate)(dentry_t*, uint32_t);
     int (*create)(dentry_t* dentry, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
     int (*unlink)(dentry_t* dentry);
-    int (*getdents)(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len);
+    int (*getdents)(dentry_t* dir, void __user* buf, off_t* offset, size_t len);
     int (*lookup)(dentry_t* dentry, const char* name, size_t len, dentry_t** result);
     int (*mkdir)(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
     int (*rmdir)(dentry_t* dir);
-    int (*ioctl)(dentry_t* dentry, uint32_t cmd, uint32_t arg);
+    int (*ioctl)(dentry_t* dentry, uintptr_t cmd, uintptr_t arg);
     int (*fstat)(dentry_t* dentry, fstat_t* stat);
     struct memzone* (*mmap)(dentry_t* dentry, mmap_params_t* params);
 };
@@ -198,7 +198,7 @@ uint32_t dentry_stat_cached_count();
  * VFS HELPERS
  */
 
-ssize_t vfs_helper_write_dirent(dirent_t* buf, size_t buf_len, ino_t inode_index, const char* name);
+ssize_t vfs_helper_write_dirent(dirent_t __user* buf, size_t buf_len, ino_t inode_index, const char* name);
 char* vfs_helper_split_path_with_name(char* name, size_t len);
 void vfs_helper_restore_full_path_after_split(char* path, char* name);
 
@@ -223,11 +223,11 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags);
 int vfs_close(file_descriptor_t* fd);
 bool vfs_can_read(file_descriptor_t* fd);
 bool vfs_can_write(file_descriptor_t* fd);
-int vfs_read(file_descriptor_t* fd, void* buf, size_t len);
-int vfs_write(file_descriptor_t* fd, void* buf, size_t len);
+int vfs_read(file_descriptor_t* fd, void __user* buf, size_t len);
+int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
 int vfs_rmdir(dentry_t* dir);
-int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, size_t len);
+int vfs_getdents(file_descriptor_t* dir_fd, void __user* buf, size_t len);
 int vfs_fstat(file_descriptor_t* fd, fstat_t* stat);
 
 int vfs_get_absolute_path(dentry_t* dent, char* buf, int len);

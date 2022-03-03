@@ -92,6 +92,8 @@ typedef int ssize_t;
 typedef int32_t intptr_t;
 typedef uint32_t uintptr_t;
 
+#define __user
+
 #define bool _Bool
 #define true (1)
 #define false (0)

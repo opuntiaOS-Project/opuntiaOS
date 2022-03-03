@@ -271,17 +271,17 @@ static int _tasking_validate_exec_params(const char** argv, int* kargc, char*** 
 {
     int start_with = *kargc;
     if (argv) {
-        if (!ptrarr_validate_len(argv, 128)) {
+        if (!umem_validate_strarray(argv, USER_PTRARRAY_MAXLEN)) {
             return -EINVAL;
         }
 
-        int argc = ptrarr_len(argv);
+        int argc = ptrarray_len((const void**)argv);
         *kargc += argc;
 
-        /* Validating arguments size */
+        // Validating arguments size
         size_t data_len = 0;
         for (int argi = 0; argi < argc; argi++) {
-            if (!str_validate_len(argv[argi], 128)) {
+            if (!umem_validate_str(argv[argi], USER_STR_MAXLEN)) {
                 return -EINVAL;
             }
             data_len += strlen(argv[argi]) + 1;
@@ -294,9 +294,8 @@ static int _tasking_validate_exec_params(const char** argv, int* kargc, char*** 
     char** res = NULL;
     res = kmalloc(*kargc * sizeof(char*));
 
-    // Inlined part of kmem_bring_to_kernel_ptrarr
     for (int i = start_with; i < *kargc; i++) {
-        res[i] = kmem_bring_to_kernel(argv[i - start_with], strlen(argv[i - start_with]) + 1);
+        res[i] = umem_bring_to_kernel(argv[i - start_with], strlen(argv[i - start_with]) + 1);
     }
 
     *kargv = res;
@@ -312,7 +311,7 @@ static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, 
     return thread_fill_up_stack(p->main_thread, argc, argv, envc, envp);
 }
 
-int tasking_exec(const char* path, const char** argv, const char** envp)
+int tasking_exec(const char __user* path, const char __user** argv, const char __user** envp)
 {
     thread_t* thread = RUNNING_THREAD;
     proc_t* p = RUNNING_THREAD->process;
@@ -322,10 +321,10 @@ int tasking_exec(const char* path, const char** argv, const char** envp)
     int kenvc = 0;
     char** kenv = NULL;
 
-    if (!str_validate_len(path, 128)) {
+    kpath = umem_bring_to_kernel_str(path, USER_STR_MAXLEN);
+    if (!kpath) {
         return -EINVAL;
     }
-    kpath = kmem_bring_to_kernel(path, strlen(path) + 1);
 
     int err = _tasking_validate_exec_params(argv, &kargc, &kargv);
     if (err) {
@@ -385,8 +384,7 @@ int tasking_waitpid(int pid, int* status, int options)
 
     if (status) {
         proc_t* p = tasking_get_proc(pid);
-        int kstatus = p->exit_code;
-        vmm_copy_to_user(status, &kstatus, sizeof(int));
+        *status = p->exit_code;
     }
     return 0;
 }

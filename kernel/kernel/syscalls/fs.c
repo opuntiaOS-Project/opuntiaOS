@@ -20,15 +20,14 @@ void sys_open(trapframe_t* tf)
     proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = proc_get_free_fd(p);
     dentry_t* file;
-    const char* path = (char*)SYSCALL_VAR1(tf);
-    char* kpath = 0;
-    if (!str_validate_len(path, 128)) {
+    char __user* path = (char __user*)SYSCALL_VAR1(tf);
+    if (!umem_validate_str(path, USER_STR_MAXLEN)) {
         return_with_val(-EINVAL);
     }
 
     uint32_t flags = SYSCALL_VAR2(tf);
-    size_t path_len = strlen(path);
-    kpath = kmem_bring_to_kernel(path, path_len + 1);
+    size_t path_len = strlen((char*)path);
+    char* kpath = umem_bring_to_kernel(path, path_len + 1);
 
     // Only permission flags
     mode_t mode = SYSCALL_VAR3(tf) & 0777;
@@ -96,11 +95,10 @@ void sys_read(trapframe_t* tf)
 
     init_read_blocker(RUNNING_THREAD, fd);
 
-    int res = vfs_read(fd, (uint8_t*)SYSCALL_VAR2(tf), (uint32_t)SYSCALL_VAR3(tf));
+    int res = vfs_read(fd, (uint8_t __user*)SYSCALL_VAR2(tf), (uint32_t)SYSCALL_VAR3(tf));
     return_with_val(res);
 }
 
-/* TODO: copying to/from user! */
 void sys_write(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
@@ -113,7 +111,9 @@ void sys_write(trapframe_t* tf)
 
     init_write_blocker(RUNNING_THREAD, fd);
 
-    int res = vfs_write(fd, (uint8_t*)SYSCALL_VAR2(tf), (uint32_t)SYSCALL_VAR3(tf));
+    uint8_t __user* buf = (uint8_t __user*)SYSCALL_VAR2(tf);
+    size_t len = (size_t)SYSCALL_VAR3(tf);
+    int res = vfs_write(fd, buf, len);
     return_with_val(res);
 }
 
@@ -150,16 +150,15 @@ void sys_lseek(trapframe_t* tf)
 void sys_unlink(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    const char* path = (char*)SYSCALL_VAR1(tf);
-    char* kpath = 0;
-    if (!str_validate_len(path, 128)) {
+    char __user* path = (char __user*)SYSCALL_VAR1(tf);
+    char* kpath = umem_bring_to_kernel_str(path, USER_STR_MAXLEN);
+    if (!kpath) {
         return_with_val(-EINVAL);
     }
-    int name_len = strlen(path);
-    kpath = kmem_bring_to_kernel(path, name_len + 1);
 
     dentry_t* file;
     if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
+        kfree(kpath);
         return_with_val(-ENOENT);
     }
 
@@ -186,14 +185,17 @@ void sys_creat(trapframe_t* tf)
 void sys_fstat(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
-    fstat_t* stat = (fstat_t*)SYSCALL_VAR2(tf);
+    fstat_t __user* stat = (fstat_t __user*)SYSCALL_VAR2(tf);
     if (!fd) {
         return_with_val(-EBADF);
     }
     if (!stat) {
         return_with_val(-EINVAL);
     }
-    int res = vfs_fstat(fd, stat);
+
+    fstat_t kstat = { 0 };
+    int res = vfs_fstat(fd, &kstat);
+    umem_copy_to_user(stat, &kstat, sizeof(fstat_t));
     return_with_val(res);
 }
 
@@ -213,13 +215,13 @@ void sys_fsync(trapframe_t* tf)
 void sys_mkdir(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    const char* path = (char*)SYSCALL_VAR1(tf);
-    char* kpath = 0;
-    if (!str_validate_len(path, 128)) {
+    char __user* path = (char __user*)SYSCALL_VAR1(tf);
+    if (!umem_validate_str(path, USER_STR_MAXLEN)) {
         return_with_val(-EINVAL);
     }
-    size_t path_len = strlen(path);
-    kpath = kmem_bring_to_kernel(path, path_len + 1);
+
+    size_t path_len = strlen((char*)path);
+    char* kpath = umem_bring_to_kernel(path, path_len + 1);
     char* kname = vfs_helper_split_path_with_name(kpath, path_len);
     if (!kname) {
         kfree(kpath);
@@ -244,16 +246,15 @@ void sys_mkdir(trapframe_t* tf)
 void sys_rmdir(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    const char* path = (char*)SYSCALL_VAR1(tf);
-    char* kpath = 0;
-    if (!str_validate_len(path, 128)) {
+    char __user* path = (char __user*)SYSCALL_VAR1(tf);
+    char* kpath = umem_bring_to_kernel_str(path, USER_STR_MAXLEN);
+    if (!kpath) {
         return_with_val(-EINVAL);
     }
-    int name_len = strlen(path);
-    kpath = kmem_bring_to_kernel(path, name_len + 1);
 
     dentry_t* dir;
     if (vfs_resolve_path_start_from(p->cwd, kpath, &dir) < 0) {
+        kfree(kpath);
         return_with_val(-ENOENT);
     }
 
@@ -265,15 +266,21 @@ void sys_rmdir(trapframe_t* tf)
 
 void sys_chdir(trapframe_t* tf)
 {
-    /* proc lock */
-    const char* path = (char*)SYSCALL_VAR1(tf);
-    return_with_val(proc_chdir(RUNNING_THREAD->process, path));
+    char __user* path = (char __user*)SYSCALL_VAR1(tf);
+    char* kpath = umem_bring_to_kernel_str(path, USER_STR_MAXLEN);
+    if (!kpath) {
+        return_with_val(-EINVAL);
+    }
+
+    int ret = proc_chdir(RUNNING_THREAD->process, kpath);
+    kfree(kpath);
+    return_with_val(ret);
 }
 
 void sys_getcwd(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    char* buf = (char*)SYSCALL_VAR1(tf);
+    char __user* buf = (char __user*)SYSCALL_VAR1(tf);
     size_t len = (size_t)SYSCALL_VAR2(tf);
 
     int req_len = vfs_get_absolute_path(p->cwd, NULL, 0);
@@ -283,7 +290,7 @@ void sys_getcwd(trapframe_t* tf)
 
     char* kbuf = (char*)kmalloc(req_len + 1);
     req_len = vfs_get_absolute_path(p->cwd, (char*)kbuf, req_len);
-    vmm_copy_to_user(buf, kbuf, req_len + 1);
+    umem_copy_to_user(buf, kbuf, req_len + 1);
     return_with_val(0);
 }
 
@@ -291,23 +298,36 @@ void sys_getdents(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)SYSCALL_VAR1(tf));
-    int read = vfs_getdents(fd, (uint8_t*)SYSCALL_VAR2(tf), SYSCALL_VAR3(tf));
+    int read = vfs_getdents(fd, (uint8_t __user*)SYSCALL_VAR2(tf), SYSCALL_VAR3(tf));
     return_with_val(read);
 }
 
 void sys_select(trapframe_t* tf)
 {
+    fd_set_t kreadfds, kwritefds, kexceptfds;
+    timeval_t ktimeout;
     proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd;
 
     int nfds = SYSCALL_VAR1(tf);
-    fd_set_t* readfds = (fd_set_t*)SYSCALL_VAR2(tf);
-    fd_set_t* writefds = (fd_set_t*)SYSCALL_VAR3(tf);
-    fd_set_t* exceptfds = (fd_set_t*)SYSCALL_VAR4(tf);
-    timeval_t* timeout = (timeval_t*)SYSCALL_VAR5(tf);
     if (nfds < 0 || nfds > FD_SETSIZE) {
         return_with_val(-EINVAL);
     }
+
+    fd_set_t __user* ureadfds = (fd_set_t __user*)SYSCALL_VAR2(tf);
+    fd_set_t __user* uwritefds = (fd_set_t __user*)SYSCALL_VAR3(tf);
+    fd_set_t __user* uexceptfds = (fd_set_t __user*)SYSCALL_VAR4(tf);
+    timeval_t __user* utimeout = (timeval_t __user*)SYSCALL_VAR5(tf);
+
+    fd_set_t* readfds = &kreadfds;
+    fd_set_t* writefds = &kwritefds;
+    fd_set_t* exceptfds = &kexceptfds;
+    timeval_t* timeout = &ktimeout;
+
+    umem_get_user(&kreadfds, ureadfds);
+    umem_get_user(&kwritefds, uwritefds);
+    umem_get_user(&kexceptfds, uexceptfds);
+    umem_get_user(&ktimeout, utimeout);
 
     for (int i = 0; i < nfds; i++) {
         if ((readfds && FD_ISSET(i, readfds)) || (writefds && FD_ISSET(i, writefds)) || (exceptfds && FD_ISSET(i, exceptfds))) {
@@ -343,23 +363,29 @@ void sys_select(trapframe_t* tf)
         }
     }
 
+    umem_put_user(kreadfds, ureadfds);
+    umem_put_user(kwritefds, uwritefds);
+    umem_put_user(kexceptfds, uexceptfds);
+    umem_put_user(ktimeout, utimeout);
     return_with_val(0);
 }
 
 void sys_mmap(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    mmap_params_t* params = (mmap_params_t*)SYSCALL_VAR1(tf);
+    mmap_params_t kparams;
+    mmap_params_t __user* params = (mmap_params_t __user*)SYSCALL_VAR1(tf);
+    umem_get_user(&kparams, params);
 
-    bool map_shared = ((params->flags & MAP_SHARED) > 0);
-    bool map_anonymous = ((params->flags & MAP_ANONYMOUS) > 0);
-    bool map_private = ((params->flags & MAP_PRIVATE) > 0);
-    bool map_stack = ((params->flags & MAP_STACK) > 0);
-    bool map_fixed = ((params->flags & MAP_FIXED) > 0);
+    bool map_shared = ((kparams.flags & MAP_SHARED) > 0);
+    bool map_anonymous = ((kparams.flags & MAP_ANONYMOUS) > 0);
+    bool map_private = ((kparams.flags & MAP_PRIVATE) > 0);
+    bool map_stack = ((kparams.flags & MAP_STACK) > 0);
+    bool map_fixed = ((kparams.flags & MAP_FIXED) > 0);
 
-    bool map_exec = ((params->prot & PROT_EXEC) > 0);
-    bool map_read = ((params->prot & PROT_READ) > 0);
-    bool map_write = ((params->prot & PROT_WRITE) > 0);
+    bool map_exec = ((kparams.prot & PROT_EXEC) > 0);
+    bool map_read = ((kparams.prot & PROT_READ) > 0);
+    bool map_write = ((kparams.prot & PROT_WRITE) > 0);
 
     memzone_t* zone;
 
@@ -371,11 +397,11 @@ void sys_mmap(trapframe_t* tf)
     }
 
     if (map_stack) {
-        zone = memzone_new_random_backward(p->address_space, params->size);
+        zone = memzone_new_random_backward(p->address_space, kparams.size);
     } else if (map_anonymous) {
-        zone = memzone_new_random(p->address_space, params->size);
+        zone = memzone_new_random(p->address_space, kparams.size);
     } else {
-        file_descriptor_t* fd = proc_get_fd(p, params->fd);
+        file_descriptor_t* fd = proc_get_fd(p, kparams.fd);
         /* TODO: Check for read access to the file */
         if (!fd) {
             return_with_val(-EBADFD);
@@ -404,9 +430,9 @@ void sys_mmap(trapframe_t* tf)
 void sys_munmap(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    void* ptr = (void*)SYSCALL_VAR1(tf);
+    uintptr_t ptr = (uintptr_t)SYSCALL_VAR1(tf);
 
-    memzone_t* zone = memzone_find(p->address_space, (uint32_t)ptr);
+    memzone_t* zone = memzone_find(p->address_space, ptr);
     if (!zone) {
         return_with_val(-EFAULT);
     }

@@ -27,13 +27,16 @@ void sys_fork(trapframe_t* tf)
 
 void sys_waitpid(trapframe_t* tf)
 {
-    int ret = tasking_waitpid(SYSCALL_VAR1(tf), (int*)SYSCALL_VAR2(tf), SYSCALL_VAR3(tf));
+    int __user* status = (int __user*)SYSCALL_VAR2(tf);
+    int kstatus = 0;
+    int ret = tasking_waitpid(SYSCALL_VAR1(tf), &kstatus, SYSCALL_VAR3(tf));
+    umem_copy_to_user(status, &kstatus, sizeof(int));
     return_with_val(ret);
 }
 
 void sys_exec(trapframe_t* tf)
 {
-    int res = tasking_exec((char*)SYSCALL_VAR1(tf), (const char**)SYSCALL_VAR2(tf), (const char**)SYSCALL_VAR3(tf));
+    int res = tasking_exec((char __user*)SYSCALL_VAR1(tf), (const char __user**)SYSCALL_VAR2(tf), (const char __user**)SYSCALL_VAR3(tf));
     if (res != 0) {
         return_with_val(res);
     }
@@ -41,7 +44,7 @@ void sys_exec(trapframe_t* tf)
 
 void sys_sigaction(trapframe_t* tf)
 {
-    int res = signal_set_handler(RUNNING_THREAD, (int)SYSCALL_VAR1(tf), (void*)SYSCALL_VAR2(tf));
+    int res = signal_set_handler(RUNNING_THREAD, (int)SYSCALL_VAR1(tf), (uintptr_t)SYSCALL_VAR2(tf));
     return_with_val(res);
 }
 
@@ -94,9 +97,11 @@ void sys_create_thread(trapframe_t* tf)
         return_with_val(-EFAULT);
     }
 
-    thread_create_params_t* params = (thread_create_params_t*)SYSCALL_VAR1(tf);
-    set_instruction_pointer(thread->tf, params->entry_point);
-    uintptr_t esp = params->stack_start + params->stack_size;
+    thread_create_params_t kparams;
+    thread_create_params_t __user* params = (thread_create_params_t __user*)SYSCALL_VAR1(tf);
+    umem_get_user(&kparams, params);
+    set_instruction_pointer(thread->tf, kparams.entry_point);
+    uintptr_t esp = kparams.stack_start + kparams.stack_size;
     set_stack_pointer(thread->tf, esp);
     set_base_pointer(thread->tf, esp);
 

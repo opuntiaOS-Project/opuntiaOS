@@ -136,35 +136,11 @@ int strncmp(const char* a, const char* b, uint32_t num)
     return 0;
 }
 
-bool str_validate_len(const char* s, size_t len)
-{
-    for (int i = 0; i < len + 1; i++) {
-        if (s[i] == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * Ptr array utils
- */
-
-size_t ptrarr_len(const char** s)
+size_t ptrarray_len(const void** s)
 {
     size_t len = 0;
     while (s[len] != 0) {
         ++len;
     }
     return len;
-}
-
-bool ptrarr_validate_len(const char** s, size_t len)
-{
-    for (int i = 0; i < len + 1; i++) {
-        if (s[i] == 0) {
-            return true;
-        }
-    }
-    return false;
 }

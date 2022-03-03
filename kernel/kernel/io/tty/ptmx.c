@@ -24,12 +24,12 @@ bool ptmx_can_write(dentry_t* dentry, size_t start)
     return true;
 }
 
-int ptmx_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int ptmx_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     return 0;
 }
 
-int ptmx_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int ptmx_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     return 0;
 }

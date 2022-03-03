@@ -75,7 +75,7 @@ int shared_buffer_init()
     return 0;
 }
 
-int shared_buffer_create(uint8_t** res_buffer, size_t size)
+int shared_buffer_create(uintptr_t __user* res_buffer, size_t size)
 {
     lock_acquire(&_shared_buffer_lock);
     int buf_id = _shared_buffer_alloc_id();
@@ -98,7 +98,8 @@ int shared_buffer_create(uint8_t** res_buffer, size_t size)
     bitmap_set_range(bitmap, start, blocks_needed);
     vmm_tune_pages((uintptr_t)space, act_size, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC | MMU_FLAG_PERM_READ | MMU_FLAG_NONPRIV);
 
-    *res_buffer = (uint8_t*)&space[1];
+    uintptr_t result_pointer = (uintptr_t)&space[1];
+    umem_put_user(result_pointer, res_buffer);
     buffers[buf_id] = (uint8_t*)&space[1];
 #ifdef SHARED_BUFFER_DEBUG
     log("Buffer created at %x %d", buffers[buf_id], buf_id);
@@ -107,7 +108,7 @@ int shared_buffer_create(uint8_t** res_buffer, size_t size)
     return buf_id;
 }
 
-int shared_buffer_get(int id, uint8_t** res_buffer)
+int shared_buffer_get(int id, uintptr_t __user* res_buffer)
 {
     if (unlikely(id < 0 || SHBUF_MAX_BUFFERS <= id)) {
         return -EINVAL;
@@ -121,7 +122,8 @@ int shared_buffer_get(int id, uint8_t** res_buffer)
 #ifdef SHARED_BUFFER_DEBUG
     log("Buffer opened at %x %d", buffers[id], id);
 #endif
-    *res_buffer = buffers[id];
+    uintptr_t result_pointer = (uintptr_t)buffers[id];
+    umem_put_user(result_pointer, res_buffer);
     lock_release(&_shared_buffer_lock);
     return 0;
 }

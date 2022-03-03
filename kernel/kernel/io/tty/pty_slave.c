@@ -38,18 +38,18 @@ bool pty_slave_can_write(dentry_t* dentry, size_t start)
     return sync_ringbuffer_space_to_write(&pts->ptm->buffer) >= 0;
 }
 
-int pty_slave_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int pty_slave_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
     return tty_read(&pts->tty, dentry, buf, start, len);
 }
 
-int pty_slave_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int pty_slave_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
-    sync_ringbuffer_write(&pts->ptm->buffer, buf, len);
+    sync_ringbuffer_write_user(&pts->ptm->buffer, buf, len);
     return len;
 }
 

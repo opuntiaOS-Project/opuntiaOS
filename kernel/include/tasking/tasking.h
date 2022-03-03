@@ -61,7 +61,7 @@ pid_t tasking_get_proc_count();
  */
 
 void tasking_fork();
-int tasking_exec(const char* path, const char** argv, const char** env);
+int tasking_exec(const char __user* path, const char __user** argv, const char __user** env);
 void tasking_exit(int exit_code);
 int tasking_waitpid(int pid, int* status, int options);
 int tasking_signal(thread_t* thread, int signo);
@@ -72,7 +72,7 @@ int tasking_signal(thread_t* thread, int signo);
 
 void signal_init();
 
-int signal_set_handler(thread_t* thread, int signo, void* handler);
+int signal_set_handler(thread_t* thread, int signo, uintptr_t handler);
 int signal_set_allow(thread_t* thread, int signo);
 int signal_set_private(thread_t* thread, int signo);
 int signal_set_pending(thread_t* thread, int signo);

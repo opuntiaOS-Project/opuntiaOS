@@ -27,16 +27,7 @@ void ringbuffer_free(ringbuffer_t* buf)
     buf->end = 0;
 }
 
-size_t ringbuffer_space_to_read(ringbuffer_t* buf)
-{
-    size_t res = buf->zone.len - buf->start + buf->end;
-    if (buf->start <= buf->end) {
-        res = buf->end - buf->start;
-    }
-    return res;
-}
-
-size_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, size_t start)
+ssize_t ringbuffer_space_to_read_from(ringbuffer_t* buf, size_t start)
 {
     start %= buf->zone.len;
     size_t res = buf->zone.len - start + buf->end;
@@ -46,7 +37,12 @@ size_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, size_t star
     return res;
 }
 
-size_t ringbuffer_space_to_write(ringbuffer_t* buf)
+ssize_t ringbuffer_space_to_read(ringbuffer_t* buf)
+{
+    return ringbuffer_space_to_read_from(buf, buf->start);
+}
+
+ssize_t ringbuffer_space_to_write(ringbuffer_t* buf)
 {
     size_t res = buf->zone.len - buf->end + buf->start;
     if (buf->start > buf->end) {
@@ -55,78 +51,154 @@ size_t ringbuffer_space_to_write(ringbuffer_t* buf)
     return res;
 }
 
-size_t ringbuffer_read(ringbuffer_t* buf, uint8_t* holder, size_t siz)
+/**
+ * @brief Reads data from the ring buffer from a particular place.
+ *
+ * @param rbuf The target ringbuffer.
+ * @param startptr The pointer to the start, should be within rbuf bounds.
+ * @param buf The buffer to read to.
+ * @param siz The buffer's size.
+ * @return The count of read bytes.
+ */
+static size_t ringbuffer_read_from_impl(ringbuffer_t* rbuf, size_t* startptr, uint8_t* buf, size_t siz)
 {
     size_t i = 0;
-    if (buf->start > buf->end) {
-        for (; i < siz && buf->start < buf->zone.len; i++, buf->start++) {
-            holder[i] = buf->zone.ptr[buf->start];
-        }
-        if (buf->start == buf->zone.len) {
-            buf->start = 0;
-        }
-    }
-    for (; i < siz && buf->start < buf->end; i++, buf->start++) {
-        holder[i] = buf->zone.ptr[buf->start];
-    }
-    return i;
-}
+    size_t start = *startptr;
 
-size_t ringbuffer_read_with_start(ringbuffer_t* buf, size_t start, uint8_t* holder, size_t siz)
-{
-    size_t i = 0;
-    start %= buf->zone.len;
-    if (start > buf->end) {
-        for (; i < siz && start < buf->zone.len; i++, start++) {
-            holder[i] = buf->zone.ptr[start];
-        }
-        if (start == buf->zone.len) {
+    if (start > rbuf->end) {
+        size_t todo = min(siz - i, rbuf->zone.len - start);
+        memcpy(&buf[i], &rbuf->zone.ptr[start], todo);
+        start += todo;
+        i += todo;
+
+        if (start == rbuf->zone.len) {
             start = 0;
         }
     }
-    for (; i < siz && start < buf->end; i++, start++) {
-        holder[i] = buf->zone.ptr[start];
-    }
+    size_t todo = min(siz - i, rbuf->end - start);
+    memcpy(&buf[i], &rbuf->zone.ptr[start], todo);
+    start += todo;
+    i += todo;
+    *startptr = start;
     return i;
 }
 
-size_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data)
-{
-    if (unlikely(buf->start == buf->end)) {
-        return 0;
-    }
-    *data = buf->zone.ptr[buf->start];
-    buf->start++;
-    if (buf->start == buf->zone.len) {
-        buf->start = 0;
-    }
-    return 1;
-}
-
-size_t ringbuffer_write(ringbuffer_t* buf, const uint8_t* holder, size_t siz)
+/**
+ * @brief Reads data from the ring buffer from a particular place into user buffer.
+ *
+ * @param rbuf The target ringbuffer.
+ * @param startptr The pointer to the start, should be within rbuf bounds.
+ * @param buf The buffer to read to.
+ * @param siz The buffer's size.
+ * @return The count of read bytes.
+ */
+static size_t ringbuffer_read_user_from_impl(ringbuffer_t* rbuf, size_t* startptr, uint8_t __user* buf, size_t siz)
 {
     size_t i = 0;
-    if (buf->end >= buf->start) {
-        for (; i < siz && buf->end < buf->zone.len; i++, buf->end++) {
-            buf->zone.ptr[buf->end] = holder[i];
-        }
-        if (buf->end == buf->zone.len) {
-            buf->end = 0;
+    size_t start = *startptr;
+
+    if (start > rbuf->end) {
+        size_t todo = min(siz - i, rbuf->zone.len - start);
+        umem_copy_to_user(&buf[i], &rbuf->zone.ptr[start], todo);
+        start += todo;
+        i += todo;
+
+        if (start == rbuf->zone.len) {
+            start = 0;
         }
     }
-    for (; i < siz && buf->end < buf->start; i++, buf->end++) {
-        buf->zone.ptr[buf->end] = holder[i];
-    }
+    size_t todo = min(siz - i, rbuf->end - start);
+    umem_copy_to_user(&buf[i], &rbuf->zone.ptr[start], todo);
+    start += todo;
+    i += todo;
+    *startptr = start;
     return i;
 }
 
-size_t ringbuffer_write_ignore_bounds(ringbuffer_t* buf, const uint8_t* holder, size_t siz)
+size_t ringbuffer_read_from(ringbuffer_t* rbuf, size_t start, uint8_t* buf, size_t siz)
+{
+    size_t mystart = start;
+    mystart %= rbuf->zone.len; // normalizing start pointer.
+    return ringbuffer_read_from_impl(rbuf, &mystart, buf, siz);
+}
+
+size_t ringbuffer_read(ringbuffer_t* rbuf, uint8_t* buf, size_t siz)
+{
+    return ringbuffer_read_from_impl(rbuf, &rbuf->start, buf, siz);
+}
+
+size_t ringbuffer_read_user_from(ringbuffer_t* rbuf, size_t start, uint8_t __user* buf, size_t siz)
+{
+    size_t mystart = start;
+    mystart %= rbuf->zone.len; // normalizing start pointer.
+    return ringbuffer_read_user_from_impl(rbuf, &mystart, buf, siz);
+}
+
+size_t ringbuffer_read_user(ringbuffer_t* rbuf, uint8_t __user* buf, size_t siz)
+{
+    return ringbuffer_read_user_from_impl(rbuf, &rbuf->start, buf, siz);
+}
+
+size_t ringbuffer_write(ringbuffer_t* rbuf, const uint8_t* buf, size_t siz)
+{
+    size_t i = 0;
+    if (rbuf->end >= rbuf->start) {
+        size_t todo = min(siz - i, rbuf->zone.len - rbuf->end);
+        memcpy(&rbuf->zone.ptr[rbuf->end], &buf[i], todo);
+        rbuf->end += todo;
+        i += todo;
+
+        if (rbuf->end == rbuf->zone.len) {
+            rbuf->end = 0;
+        }
+    }
+    size_t todo = min(siz - i, rbuf->start - rbuf->end);
+    memcpy(&rbuf->zone.ptr[rbuf->end], &buf[i], todo);
+    rbuf->end += todo;
+    i += todo;
+    return i;
+}
+
+size_t ringbuffer_write_user(ringbuffer_t* rbuf, const uint8_t __user* buf, size_t siz)
+{
+    size_t i = 0;
+    if (rbuf->end >= rbuf->start) {
+        size_t todo = min(siz - i, rbuf->zone.len - rbuf->end);
+        umem_copy_from_user(&rbuf->zone.ptr[rbuf->end], &buf[i], todo);
+        rbuf->end += todo;
+        i += todo;
+
+        if (rbuf->end == rbuf->zone.len) {
+            rbuf->end = 0;
+        }
+    }
+    size_t todo = min(siz - i, rbuf->start - rbuf->end);
+    umem_copy_from_user(&rbuf->zone.ptr[rbuf->end], &buf[i], todo);
+    rbuf->end += todo;
+    i += todo;
+    return i;
+}
+
+size_t ringbuffer_write_ignore_bounds(ringbuffer_t* rbuf, const uint8_t* buf, size_t siz)
 {
     size_t i = 0;
     for (; i < siz; i++) {
-        buf->zone.ptr[buf->end++] = holder[i];
-        if (buf->end == buf->zone.len) {
-            buf->end = 0;
+        rbuf->zone.ptr[rbuf->end++] = buf[i];
+        if (rbuf->end == rbuf->zone.len) {
+            rbuf->end = 0;
+        }
+    }
+    return i;
+}
+
+size_t ringbuffer_write_user_ignore_bounds(ringbuffer_t* rbuf, const uint8_t* __user buf, size_t siz)
+{
+    size_t i = 0;
+    for (; i < siz; i++) {
+        umem_put_user(buf[i], &rbuf->zone.ptr[rbuf->end]);
+        rbuf->end++;
+        if (rbuf->end == rbuf->zone.len) {
+            rbuf->end = 0;
         }
     }
     return i;

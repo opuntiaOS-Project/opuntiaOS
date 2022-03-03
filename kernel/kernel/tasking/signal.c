@@ -55,13 +55,13 @@ void signal_init()
  * HELPER FUNCTIONS
  */
 
-int signal_set_handler(thread_t* thread, int signo, void* handler)
+int signal_set_handler(thread_t* thread, int signo, uintptr_t handler)
 {
     if (signo < 0 || signo >= SIGNALS_CNT || signo == SIGSTOP || signo == SIGKILL) {
         return -EINVAL;
     }
 
-    thread->signal_handlers[signo] = handler;
+    thread->signal_handlers[signo] = (void*)handler;
     return 0;
 }
 

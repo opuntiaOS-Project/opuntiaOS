@@ -23,18 +23,25 @@ struct __ringbuffer {
 typedef struct __ringbuffer ringbuffer_t;
 
 ringbuffer_t ringbuffer_create(size_t size);
-#define ringbuffer_create_std() ringbuffer_create(RINGBUFFER_STD_SIZE)
-void ringbuffer_free(ringbuffer_t* buf);
+static ALWAYS_INLINE ringbuffer_t ringbuffer_create_std() { return ringbuffer_create(RINGBUFFER_STD_SIZE); }
+void ringbuffer_free(ringbuffer_t* rbuf);
 
-size_t ringbuffer_space_to_read(ringbuffer_t* buf);
-size_t ringbuffer_space_to_read_with_custom_start(ringbuffer_t* buf, size_t start);
-size_t ringbuffer_space_to_write(ringbuffer_t* buf);
-size_t ringbuffer_read(ringbuffer_t* buf, uint8_t*, size_t);
-size_t ringbuffer_read_with_start(ringbuffer_t* buf, size_t start, uint8_t* holder, size_t siz);
-size_t ringbuffer_write(ringbuffer_t* buf, const uint8_t*, size_t);
-size_t ringbuffer_write_ignore_bounds(ringbuffer_t* buf, const uint8_t* holder, size_t siz);
-size_t ringbuffer_read_one(ringbuffer_t* buf, uint8_t* data);
-size_t ringbuffer_write_one(ringbuffer_t* buf, uint8_t data);
-void ringbuffer_clear(ringbuffer_t* buf);
+ssize_t ringbuffer_space_to_read_from(ringbuffer_t* rbuf, size_t start);
+ssize_t ringbuffer_space_to_read(ringbuffer_t* rbuf);
+ssize_t ringbuffer_space_to_write(ringbuffer_t* rbuf);
+
+size_t ringbuffer_read_from(ringbuffer_t* rbuf, size_t ustart, uint8_t __user* buf, size_t siz);
+size_t ringbuffer_read_user_from(ringbuffer_t* rbuf, size_t ustart, uint8_t __user* buf, size_t siz);
+size_t ringbuffer_read(ringbuffer_t* rbuf, uint8_t*, size_t);
+size_t ringbuffer_read_user(ringbuffer_t* rbuf, uint8_t __user* buf, size_t siz);
+
+size_t ringbuffer_write(ringbuffer_t* rbuf, const uint8_t*, size_t);
+size_t ringbuffer_write_user(ringbuffer_t* rbuf, const uint8_t __user* buf, size_t siz);
+size_t ringbuffer_write_ignore_bounds(ringbuffer_t* rbuf, const uint8_t* buf, size_t siz);
+size_t ringbuffer_write_user_ignore_bounds(ringbuffer_t* rbuf, const uint8_t* __user buf, size_t siz);
+
+size_t ringbuffer_read_one(ringbuffer_t* rbuf, uint8_t* data);
+size_t ringbuffer_write_one(ringbuffer_t* rbuf, uint8_t data);
+void ringbuffer_clear(ringbuffer_t* rbuf);
 
 #endif //_KERNEL_ALGO_RINGBUFFER_H

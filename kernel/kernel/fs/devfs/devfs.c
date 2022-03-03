@@ -296,7 +296,7 @@ int devfs_free_inode(dentry_t* dentry)
     return 0;
 }
 
-int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
+int devfs_getdents(dentry_t* dir, void __user* buf, uint32_t* offset, uint32_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
@@ -311,7 +311,7 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 
     /* Return . */
     if (*offset == 0) {
-        ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, devfs_inode->index, ".");
+        ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, devfs_inode->index, ".");
         if (read <= 0) {
             if (!already_read) {
                 return -EINVAL;
@@ -330,7 +330,7 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
             inode_index = devfs_inode->parent->index;
         }
 
-        ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, inode_index, "..");
+        ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, inode_index, "..");
         if (read <= 0) {
             if (!already_read) {
                 return -EINVAL;
@@ -354,7 +354,7 @@ int devfs_getdents(dentry_t* dir, uint8_t* buf, uint32_t* offset, uint32_t len)
 
     while (*offset != 0xffffffff) {
         devfs_inode_t* child_devfs_inode = (devfs_inode_t*)*offset;
-        ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, child_devfs_inode->index, child_devfs_inode->name);
+        ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, child_devfs_inode->index, child_devfs_inode->name);
         if (read <= 0) {
             lock_release(&_devfs_lock);
             if (!already_read) {
@@ -447,7 +447,7 @@ int devfs_can_write(dentry_t* dentry, size_t start)
     return true;
 }
 
-int devfs_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int devfs_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers->read) {
@@ -456,7 +456,7 @@ int devfs_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
     return -EFAULT;
 }
 
-int devfs_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int devfs_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
     if (devfs_inode->handlers->write) {

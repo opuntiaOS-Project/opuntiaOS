@@ -28,18 +28,18 @@ static uint32_t procfs_root_sfiles_get_inode_index(int fileid);
 static uint32_t procfs_root_self_get_inode_index(int fileid);
 
 /* PID */
-int procfs_root_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len);
+int procfs_root_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len);
 int procfs_root_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
 static bool procfs_root_uptime_can_read(dentry_t* dentry, size_t start);
-static int procfs_root_uptime_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+static int procfs_root_uptime_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
 
 static bool procfs_root_stat_can_read(dentry_t* dentry, size_t start);
-static int procfs_root_stat_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+static int procfs_root_stat_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
 
 static bool procfs_root_meminfo_can_read(dentry_t* dentry, size_t start);
-static int procfs_root_meminfo_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+static int procfs_root_meminfo_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
 
 /**
  * DATA
@@ -102,7 +102,7 @@ static uint32_t procfs_root_pid_get_inode_index(int procid)
  * ROOT
  */
 
-int procfs_root_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
+int procfs_root_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len)
 {
     char name[8];
     int already_read = 0;
@@ -110,7 +110,7 @@ int procfs_root_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
 
     for (int i = 0; i < PROCFS_STATIC_FILES_COUNT_AT_LEVEL; i++) {
         if (*offset <= i) {
-            ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, static_procfs_files[i].inode_index(i), static_procfs_files[i].name);
+            ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, static_procfs_files[i].inode_index(i), static_procfs_files[i].name);
             if (read <= 0) {
                 if (!already_read) {
                     return -EINVAL;
@@ -129,7 +129,7 @@ int procfs_root_getdents(dentry_t* dir, uint8_t* buf, off_t* offset, size_t len)
         if (proc[pidi].status == PROC_ALIVE) {
             snprintf(name, 8, "%d", proc[pidi].pid);
             uint32_t inode_index = procfs_root_pid_get_inode_index(proc[pidi].pid);
-            ssize_t read = vfs_helper_write_dirent((dirent_t*)(buf + already_read), len, inode_index, name);
+            ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, inode_index, name);
             if (read <= 0) {
                 if (!already_read) {
                     return -EINVAL;
@@ -212,7 +212,7 @@ static bool procfs_root_uptime_can_read(dentry_t* dentry, size_t start)
     return true;
 }
 
-static int procfs_root_uptime_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+static int procfs_root_uptime_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     char res[16];
     snprintf(res, 16, "%d", timeman_seconds_since_boot());
@@ -226,7 +226,7 @@ static int procfs_root_uptime_read(dentry_t* dentry, uint8_t* buf, size_t start,
         return -EFAULT;
     }
 
-    memcpy(buf, res, size);
+    umem_copy_to_user(buf, res, size);
     return size;
 }
 
@@ -235,7 +235,7 @@ static bool procfs_root_stat_can_read(dentry_t* dentry, size_t start)
     return true;
 }
 
-static int procfs_root_stat_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+static int procfs_root_stat_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     char res[128];
     int offset = 0;
@@ -256,7 +256,7 @@ static int procfs_root_stat_read(dentry_t* dentry, uint8_t* buf, size_t start, s
         return -EFAULT;
     }
 
-    memcpy(buf, res, size);
+    umem_copy_to_user(buf, res, size);
     return size;
 }
 
@@ -265,7 +265,7 @@ static bool procfs_root_meminfo_can_read(dentry_t* dentry, size_t start)
     return true;
 }
 
-static int procfs_root_meminfo_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+static int procfs_root_meminfo_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     char res[128];
     snprintf(res, 128, "MemTotal: %u kB\nMemFree: %u kB\n", pmm_get_ram_in_kb(), pmm_get_free_space_in_kb());
@@ -279,6 +279,6 @@ static int procfs_root_meminfo_read(dentry_t* dentry, uint8_t* buf, size_t start
         return -EFAULT;
     }
 
-    memcpy(buf, res, size);
+    umem_copy_to_user(buf, res, size);
     return size;
 }

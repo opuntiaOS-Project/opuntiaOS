@@ -64,23 +64,3 @@ int memcmp(const void* src1, const void* src2, uint32_t nbytes)
     }
     return 0;
 }
-
-char* kmem_bring_to_kernel(const char* data, uint32_t size)
-{
-    char* kdata = kmalloc(size);
-    if (kdata) {
-        memcpy(kdata, data, size);
-    }
-    return kdata;
-}
-
-char** kmem_bring_to_kernel_ptrarr(const char** data, uint32_t size)
-{
-    char** res = kmalloc(size * sizeof(char*));
-
-    for (int i = 0; i < size; i++) {
-        res[i] = kmem_bring_to_kernel(data[i], strlen(data[i]) + 1);
-    }
-
-    return res;
-}

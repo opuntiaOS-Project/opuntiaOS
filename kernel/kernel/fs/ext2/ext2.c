@@ -34,6 +34,8 @@ driver_desc_t _ext2_driver_info();
 /* DRIVE RELATED FUNCTIONS */
 static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, uint32_t len);
 static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, uint32_t len);
+static void _ext2_user_read_from_dev(vfs_device_t* dev, void __user* buf, uint32_t start, uint32_t len);
+static void _ext2_user_write_to_dev(vfs_device_t* dev, void __user* buf, uint32_t start, uint32_t len);
 static uint32_t _ext2_get_disk_size(vfs_device_t* dev);
 
 /* UTILS */
@@ -96,8 +98,8 @@ int ext2_prepare_fs(vfs_device_t* dev);
 int ext2_save_state(vfs_device_t* dev);
 fsdata_t get_fsdata(dentry_t* dentry);
 
-int ext2_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
-int ext2_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len);
+int ext2_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
+int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len);
 int ext2_truncate(dentry_t* dentry, uint32_t len);
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid);
@@ -119,10 +121,12 @@ static void _ext2_read_from_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start,
 
     while (len) {
         read(dev->dev, sector, tmp_buf);
-        for (int i = 0; i < min(512 - start_offset, len); i++) {
-            buf[already_read++] = tmp_buf[start_offset + i];
-        }
-        len -= min(512 - start_offset, len);
+
+        size_t to_read = min(512 - start_offset, len);
+        memcpy(&buf[already_read], &tmp_buf[start_offset], to_read);
+
+        len -= to_read;
+        already_read += to_read;
         sector++;
         start_offset = 0;
     }
@@ -140,11 +144,57 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
         if (start_offset != 0 || len < 512) {
             read(dev->dev, sector, tmp_buf);
         }
-        for (int i = 0; i < min(512 - start_offset, len); i++) {
-            tmp_buf[start_offset + i] = buf[already_written++];
-        }
+
+        size_t to_write = min(512 - start_offset, len);
+        memcpy(&tmp_buf[start_offset], &buf[already_written], to_write);
         write(dev->dev, sector, tmp_buf, 512);
-        len -= min(512 - start_offset, len);
+        len -= to_write;
+        already_written += to_write;
+        sector++;
+        start_offset = 0;
+    }
+}
+
+static void _ext2_user_read_from_dev(vfs_device_t* dev, void __user* buf, uint32_t start, uint32_t len)
+{
+    void (*read)(device_t * d, uint32_t s, uint8_t * r) = devman_function_handler(dev->dev, DRIVER_STORAGE_READ);
+    int already_read = 0;
+    uint32_t sector = start / 512;
+    uint32_t start_offset = start % 512;
+    uint8_t tmp_buf[512];
+
+    while (len) {
+        read(dev->dev, sector, tmp_buf);
+
+        size_t to_read = min(512 - start_offset, len);
+        umem_copy_to_user(buf + already_read, &tmp_buf[start_offset], to_read);
+
+        len -= to_read;
+        already_read += to_read;
+        sector++;
+        start_offset = 0;
+    }
+}
+
+static void _ext2_user_write_to_dev(vfs_device_t* dev, void __user* buf, uint32_t start, uint32_t len)
+{
+    void (*read)(device_t * d, uint32_t s, uint8_t * r) = devman_function_handler(dev->dev, DRIVER_STORAGE_READ);
+    void (*write)(device_t * d, uint32_t s, uint8_t * r, uint32_t siz) = devman_function_handler(dev->dev, DRIVER_STORAGE_WRITE);
+    int already_written = 0;
+    uint32_t sector = start / 512;
+    uint32_t start_offset = start % 512;
+    uint8_t tmp_buf[512];
+    while (len != 0) {
+        if (start_offset != 0 || len < 512) {
+            read(dev->dev, sector, tmp_buf);
+        }
+
+        size_t to_write = min(512 - start_offset, len);
+        umem_copy_from_user(&tmp_buf[start_offset], buf + already_written, to_write);
+
+        write(dev->dev, sector, tmp_buf, 512);
+        len -= to_write;
+        already_written += to_write;
         sector++;
         start_offset = 0;
     }
@@ -572,7 +622,7 @@ static bool _ext2_is_dir_empty(dentry_t* dir)
  * @scanned_bytes: keeps the result value how many bytes were scanned in this block.
  * return: returns an error (if return < 0) or count of bytes written to @buf.
  */
-static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint8_t* buf, uint32_t len, uint32_t inner_offset, uint32_t* scanned_bytes)
+static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, void __user* buf, uint32_t len, uint32_t inner_offset, uint32_t* scanned_bytes)
 {
     if (block_index == 0) {
         return -EINVAL;
@@ -602,8 +652,10 @@ static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t blo
         if (start_of_entry->inode != 0) {
             // Change it here, to have the correct copied data.
             start_of_entry->rec_len = real_rec_len;
-            memcpy(buf + already_read, (uint8_t*)start_of_entry, real_rec_len);
-            buf[already_read + real_rec_len - 1] = '\0';
+
+            umem_copy_to_user(buf + already_read, (void*)start_of_entry, real_rec_len);
+            char __user* cbuf = (char __user*)buf;
+            umem_put_user('\0', &cbuf[already_read + real_rec_len - 1]);
 
             already_read += real_rec_len;
             len -= real_rec_len;
@@ -816,7 +868,7 @@ bool ext2_can_write(dentry_t* dentry, size_t start)
     return true;
 }
 
-int ext2_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int ext2_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
@@ -836,7 +888,7 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
     for (uint32_t virt_block_index = start_block_index; virt_block_index <= end_block_index; virt_block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dentry, virt_block_index);
         uint32_t read_from_block = min(have_to_read, block_len - read_offset);
-        _ext2_read_from_dev(dentry->dev, buf + already_read, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + read_offset, read_from_block);
+        _ext2_user_read_from_dev(dentry->dev, buf + already_read, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + read_offset, read_from_block);
         have_to_read -= read_from_block;
         already_read += read_from_block;
         read_offset = 0;
@@ -846,7 +898,7 @@ int ext2_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
     return already_read;
 }
 
-int ext2_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
@@ -866,7 +918,7 @@ int ext2_write(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
             data_block_index = _ext2_get_block_of_inode(dentry, virt_block_index);
         }
 
-        _ext2_write_to_dev(dentry->dev, buf + already_written, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + write_offset, write_to_block);
+        _ext2_user_write_to_dev(dentry->dev, buf + already_written, _ext2_get_block_offset(dentry->fsdata.sb, data_block_index) + write_offset, write_to_block);
         to_write -= write_to_block;
         already_written += write_to_block;
         write_offset = 0;
@@ -999,7 +1051,7 @@ int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
     return 0;
 }
 
-int ext2_getdents(dentry_t* dentry, uint8_t* buf, uint32_t* offset, uint32_t len)
+int ext2_getdents(dentry_t* dentry, void __user* buf, uint32_t* offset, uint32_t len)
 {
     lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);

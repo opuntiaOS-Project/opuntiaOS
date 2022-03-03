@@ -16,10 +16,10 @@
 
 void sys_uname(trapframe_t* tf)
 {
-    utsname_t* buf = (utsname_t*)SYSCALL_VAR1(tf);
-    vmm_copy_to_user(buf->sysname, OSTYPE, sizeof(OSTYPE));
-    vmm_copy_to_user(buf->release, OSRELEASE, sizeof(OSRELEASE));
-    vmm_copy_to_user(buf->version, VERSION_VARIANT, sizeof(VERSION_VARIANT));
-    vmm_copy_to_user(buf->machine, MACHINE, sizeof(MACHINE));
+    utsname_t __user* buf = (utsname_t __user*)SYSCALL_VAR1(tf);
+    umem_copy_to_user(buf->sysname, OSTYPE, sizeof(OSTYPE));
+    umem_copy_to_user(buf->release, OSRELEASE, sizeof(OSRELEASE));
+    umem_copy_to_user(buf->version, VERSION_VARIANT, sizeof(VERSION_VARIANT));
+    umem_copy_to_user(buf->machine, MACHINE, sizeof(MACHINE));
     return_with_val(0);
 }

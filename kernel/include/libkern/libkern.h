@@ -4,6 +4,7 @@
 #include <libkern/kassert.h>
 #include <libkern/mem.h>
 #include <libkern/types.h>
+#include <libkern/umem.h>
 
 #define KB (1024)
 #define MB (1024 * 1024)
@@ -21,10 +22,7 @@ void reverse(char s[]);
 size_t strlen(const char* s);
 int strcmp(const char* a, const char* b);
 int strncmp(const char* a, const char* b, uint32_t num);
-bool str_validate_len(const char* c, size_t len);
-
-size_t ptrarr_len(const char** s);
-bool ptrarr_validate_len(const char** s, size_t len);
+size_t ptrarray_len(const void** s);
 
 #ifndef max
 #define max(a, b) \

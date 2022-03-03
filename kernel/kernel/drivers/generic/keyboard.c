@@ -33,7 +33,7 @@ static bool _generic_keyboard_can_read(dentry_t* dentry, size_t start)
     return ringbuffer_space_to_read(&gkeyboard_buffer) >= 1;
 }
 
-static int _generic_keyboard_read(dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+static int _generic_keyboard_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     uint32_t read_len;
 
@@ -41,7 +41,7 @@ static int _generic_keyboard_read(dentry_t* dentry, uint8_t* buf, size_t start, 
     if (read_len > len)
         read_len = len;
 
-    ringbuffer_read(&gkeyboard_buffer, buf, read_len);
+    ringbuffer_read_user(&gkeyboard_buffer, buf, read_len);
     return read_len;
 }
 

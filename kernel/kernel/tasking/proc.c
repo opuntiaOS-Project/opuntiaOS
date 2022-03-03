@@ -491,14 +491,8 @@ void proc_kill_all_threads(proc_t* p)
 
 static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path)
 {
-    char* kpath = NULL;
-    if (!str_validate_len(path, 128)) {
-        return -EINVAL;
-    }
-    kpath = kmem_bring_to_kernel(path, strlen(path) + 1);
-
     dentry_t* new_cwd = NULL;
-    int ret = vfs_resolve_path_start_from(p->cwd, kpath, &new_cwd);
+    int ret = vfs_resolve_path_start_from(p->cwd, path, &new_cwd);
     if (ret) {
         return -ENOENT;
     }

@@ -136,7 +136,7 @@ void isr_handler(trapframe_t* frame)
             break;
 
         if (proc) {
-            log_warn("Crash: pf err %d at %x: %d pid, %x eip\n",
+            log_warn("Crash: pf err %d at %x: %d pid, %x eip",
                 frame->err, read_cr2(), proc->pid, frame->eip);
             dump_and_kill(proc);
         } else {

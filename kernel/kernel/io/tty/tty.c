@@ -51,23 +51,23 @@ bool tty_can_write(tty_entry_t* tty, dentry_t* dentry, size_t start)
     return true;
 }
 
-int tty_read(tty_entry_t* tty, dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int tty_read(tty_entry_t* tty, dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     size_t leno = sync_ringbuffer_space_to_read(&tty->buffer);
     if (leno > len) {
         leno = len;
     }
-    int res = sync_ringbuffer_read(&tty->buffer, buf, leno);
+    int res = sync_ringbuffer_read_user(&tty->buffer, buf, leno);
     if (TEST_FLAG(tty->termios.c_lflag, ICANON) && res == leno) {
         tty->line_count--;
     }
     return leno;
 }
 
-int tty_write(tty_entry_t* tty, dentry_t* dentry, uint8_t* buf, size_t start, size_t len)
+int tty_write(tty_entry_t* tty, dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
     // TODO: Check line count correctly. Both read & write funcs.
-    sync_ringbuffer_write(&tty->buffer, buf, len);
+    sync_ringbuffer_write_user(&tty->buffer, buf, len);
     tty->line_count++;
     return len;
 }
@@ -81,12 +81,12 @@ int tty_ioctl(tty_entry_t* tty, dentry_t* dentry, uint32_t cmd, uint32_t arg)
         tty->pgid = arg;
         return 0;
     case TCGETS:
-        vmm_copy_to_user((void*)arg, (void*)&tty->termios, sizeof(termios_t));
+        umem_copy_to_user((void __user*)arg, (void*)&tty->termios, sizeof(termios_t));
         return 0;
     case TCSETS:
     case TCSETSW:
     case TCSETSF:
-        vmm_copy_to_kernel((void*)&tty->termios, (void*)arg, sizeof(termios_t));
+        umem_copy_from_user((void*)&tty->termios, (void __user*)arg, sizeof(termios_t));
         if (cmd == TCSETSF) {
             tty_clear(tty);
         }

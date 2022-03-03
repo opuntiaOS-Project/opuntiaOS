@@ -398,7 +398,7 @@ bool vfs_can_write(file_descriptor_t* fd)
     return res;
 }
 
-int vfs_read(file_descriptor_t* fd, void* buf, size_t len)
+int vfs_read(file_descriptor_t* fd, void __user* buf, size_t len)
 {
     lock_acquire(&fd->lock);
     if (!fd->ops->read) {
@@ -410,7 +410,7 @@ int vfs_read(file_descriptor_t* fd, void* buf, size_t len)
         return -ENOEXEC;
     }
 
-    int read = fd->ops->read(fd->dentry, (uint8_t*)buf, fd->offset, len);
+    int read = fd->ops->read(fd->dentry, (uint8_t __user*)buf, fd->offset, len);
     if (read > 0) {
         fd->offset += read;
     }
@@ -418,7 +418,7 @@ int vfs_read(file_descriptor_t* fd, void* buf, size_t len)
     return read;
 }
 
-int vfs_write(file_descriptor_t* fd, void* buf, size_t len)
+int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len)
 {
     lock_acquire(&fd->lock);
     if (!fd->ops->write) {
@@ -430,7 +430,7 @@ int vfs_write(file_descriptor_t* fd, void* buf, size_t len)
         return -EROFS;
     }
 
-    int written = fd->ops->write(fd->dentry, (uint8_t*)buf, fd->offset, len);
+    int written = fd->ops->write(fd->dentry, (uint8_t __user*)buf, fd->offset, len);
     if (written > 0) {
         fd->offset += written;
     }
@@ -485,7 +485,7 @@ int vfs_rmdir(dentry_t* dir)
     return err;
 }
 
-int vfs_getdents(file_descriptor_t* dir_fd, uint8_t* buf, size_t len)
+int vfs_getdents(file_descriptor_t* dir_fd, void __user* buf, size_t len)
 {
     if (!dentry_test_mode(dir_fd->dentry, S_IFDIR)) {
         return -ENOTDIR;
@@ -508,16 +508,13 @@ int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
     }
 
     // For drives we set MAJOR=0 and MINOR=drive's id.
-    fstat_t kstat = { 0 };
-
-    kstat.dev = MKDEV(0, fd->dentry->dev_indx);
-    kstat.ino = fd->dentry->inode_indx;
-    kstat.mode = fd->dentry->inode->mode;
-    kstat.size = fd->dentry->inode->size;
+    stat->dev = MKDEV(0, fd->dentry->dev_indx);
+    stat->ino = fd->dentry->inode_indx;
+    stat->mode = fd->dentry->inode->mode;
+    stat->size = fd->dentry->inode->size;
     // TODO: Fill more stat data here.
 
     lock_release(&fd->lock);
-    vmm_copy_to_user(stat, &kstat, sizeof(fstat_t));
     return 0;
 }
 

@@ -64,8 +64,6 @@ vm_address_space_t* vmm_new_forked_address_space();
 bool vmm_is_copy_on_write(uintptr_t vaddr);
 
 void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t length);
-void vmm_copy_to_user(void* dest, void* src, size_t length);
-void vmm_copy_to_kernel(void* dest, void* src, size_t length);
 void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length);
 
 vm_address_space_t* vmm_get_active_address_space();
