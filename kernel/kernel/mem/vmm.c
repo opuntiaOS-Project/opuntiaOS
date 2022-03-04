@@ -245,6 +245,15 @@ int vmm_setup_secondary_cpu()
  * VM TOOLS
  */
 
+static inline void _vmm_sleep_lockless()
+{
+    extern void resched();
+
+    lock_release(&_vmm_lock);
+    resched();
+    lock_acquire(&_vmm_lock);
+}
+
 static inline void _vmm_table_desc_init_from_allocated_state(ptable_entity_t* ptable_desc, ptable_lv_t lv)
 {
     uintptr_t frame = vm_ptable_entity_get_frame(ptable_desc, lv);
@@ -275,11 +284,13 @@ static int _vmm_allocate_ptable_lockless(uintptr_t vaddr, ptable_lv_t ptable_lv)
         goto skip_allocation;
     }
 
-    uintptr_t ptables_paddr = vm_alloc_ptables_to_cover_page();
-    if (!ptables_paddr) {
-        log_error(" vmm_allocate_ptable: No free space in pmm to alloc ptables");
-        return -ENOMEM;
-    }
+    uintptr_t ptables_paddr = 0;
+    do {
+        ptables_paddr = vm_alloc_ptables_to_cover_page();
+        if (!ptables_paddr) {
+            _vmm_sleep_lockless();
+        }
+    } while (!ptables_paddr);
 
     const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(ptable_lv);
     const size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(ptable_lv);
@@ -1226,12 +1237,18 @@ int vmm_tune_pages(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags)
 
 static ALWAYS_INLINE int vmm_alloc_page_no_fill_lockless(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
-    uintptr_t paddr = vm_alloc_page_paddr();
-    if (!paddr) {
-        /* TODO: Swap pages to make it able to allocate. */
-        kpanic("NO PHYSICAL SPACE");
-    }
-    return vmm_map_page_lockless(vaddr, paddr, mmu_flags);
+    uintptr_t paddr = 0;
+    bool spinned = false;
+    do {
+        paddr = vm_alloc_page_paddr();
+        if (!paddr) {
+            spinned = true;
+            _vmm_sleep_lockless();
+        }
+    } while (!paddr);
+
+    int res = vmm_map_page_lockless(vaddr, paddr, mmu_flags);
+    return res;
 }
 
 static ALWAYS_INLINE int vmm_alloc_page_lockless(uintptr_t vaddr, mmu_flags_t mmu_flags)
