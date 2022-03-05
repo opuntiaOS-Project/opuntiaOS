@@ -40,6 +40,14 @@ static inline void _sched_enqueue_impl(sched_data_t* sched, thread_t* thread);
 /* DEBUG */
 static void _debug_print_runqueue(runqueue_t* it);
 
+/**
+ * Idle thread runs when no workload is available on a cpu.
+ *
+ * Idle thread should be available to run all the time. In order to
+ * to avoid blocking, allocations are forbidden when an idle thread
+ * is running, thus interrupts should guarantee no allocation
+ * during handling all of them.
+ */
 static void _idle_thread()
 {
     while (1) {

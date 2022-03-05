@@ -7,6 +7,7 @@
  */
 
 #include <algo/ringbuffer.h>
+#include <mem/vmm.h>
 
 ringbuffer_t ringbuffer_create(size_t size)
 {
@@ -15,6 +16,10 @@ ringbuffer_t ringbuffer_create(size_t size)
     if (!buf.zone.start) {
         return buf;
     }
+
+    // Calling this function will map pages for the whole range.
+    vmm_ensure_writing_to_active_address_space(buf.zone.start, buf.zone.len);
+
     buf.start = 0;
     buf.end = 0;
     return buf;

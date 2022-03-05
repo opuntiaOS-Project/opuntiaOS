@@ -248,6 +248,9 @@ int vmm_setup_secondary_cpu()
 
 static inline void _vmm_sleep_lockless()
 {
+    // Double-check that idle thread does not allocate and not preempt.
+    // Look at the comment about idle thread in sched.c.
+    ASSERT(RUNNING_THREAD != THIS_CPU->idle_thread);
     extern void resched();
 
     lock_release(&_vmm_lock);
