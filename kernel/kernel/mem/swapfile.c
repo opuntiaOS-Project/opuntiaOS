@@ -30,6 +30,16 @@ int swapfile_init()
     return 0;
 }
 
+int swapfile_new_ref(int id)
+{
+    return 0;
+}
+
+int swapfile_rem_ref(int id)
+{
+    return 0;
+}
+
 int swapfile_load(uintptr_t vaddr, int id)
 {
     if (!_swapfile) {
@@ -42,6 +52,8 @@ int swapfile_load(uintptr_t vaddr, int id)
 
     size_t offset = (id - 1) * VMM_PAGE_SIZE;
     _swapfile->ops->file.read(_swapfile, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
+
+    swapfile_rem_ref(id);
     return 0;
 }
 
@@ -53,5 +65,7 @@ int swapfile_store(uintptr_t vaddr)
 
     _swapfile->ops->file.write(_swapfile, (void*)PAGE_START(vaddr), _nextid * VMM_PAGE_SIZE, VMM_PAGE_SIZE);
     _nextid++;
+
+    swapfile_new_ref(_nextid);
     return _nextid;
 }

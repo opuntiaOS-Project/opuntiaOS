@@ -56,6 +56,7 @@ static memzone_t* _vmm_memzone_for_active_address_space(uintptr_t vaddr);
 
 static void* _vmm_bring_to_kernel_space(void* src, size_t length);
 
+static bool _vmm_is_page_swapped_entity(ptable_entity_t* page_desc);
 static bool _vmm_is_page_swapped(uintptr_t vaddr);
 static int _vmm_restore_swapped_page_lockless(uintptr_t vaddr);
 
@@ -688,6 +689,16 @@ static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
             uintptr_t page_vaddr = table_start + (offset_in_table_set * VMM_PAGE_SIZE);
 
             ptable_entity_t* page_desc = &src_ptable->entities[offset_in_table_set];
+            if (_vmm_is_page_swapped_entity(page_desc)) {
+                ptable_entity_t* current_page_desc = vm_get_entity(vaddr, PTABLE_LV0);
+                ASSERT(current_page_desc); // Double-check that the page descriptor is already allocated.
+
+                uintptr_t id = ((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) >> PAGE_DESC_FRAME_OFFSET);
+                swapfile_new_ref(id);
+                *current_page_desc = *page_desc;
+                continue;
+            }
+
             if (!vm_ptable_entity_is_present(page_desc, lower_level(lv))) {
                 continue;
             }
@@ -779,7 +790,9 @@ static int vm_alloc_page_with_perm(uintptr_t vaddr)
  */
 static int _vmm_ensure_write_to_page(uintptr_t vaddr)
 {
-    _vmm_ensure_cow_for_page(vaddr);
+    if (!IS_KERNEL_VADDR(vaddr)) {
+        _vmm_ensure_cow_for_page(vaddr);
+    }
 
     if (!_vmm_is_page_present(vaddr)) {
         int err = vm_alloc_page_with_perm(vaddr);
@@ -811,33 +824,31 @@ static int _vmm_ensure_write_to_range(uintptr_t vaddr, size_t length)
  * SWAP FUNCTIONS
  */
 
-static bool _vmm_is_page_swapped(uintptr_t vaddr)
+static bool _vmm_is_page_swapped_entity(ptable_entity_t* page_desc)
 {
-    bool status = true;
-    ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
     if (!page_desc) {
-        status = false;
-        goto end;
+        return false;
     }
 
     if (vm_ptable_entity_is_present(page_desc, PTABLE_LV0)) {
-        status = false;
-        goto end;
+        return false;
     }
 
     if (!vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) {
-        status = false;
-        goto end;
+        return false;
     }
 
-end:
-    return status;
+    return true;
+}
+
+static bool _vmm_is_page_swapped(uintptr_t vaddr)
+{
+    ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
+    return _vmm_is_page_swapped_entity(page_desc);
 }
 
 static int _vmm_restore_swapped_page_lockless(uintptr_t vaddr)
 {
-    ASSERT(!vmm_is_copy_on_write(vaddr));
-
     memzone_t* zone = _vmm_memzone_for_active_address_space(vaddr);
     if (!zone) {
         return -1;
@@ -1288,10 +1299,6 @@ static int _vmm_on_page_not_present_lockless(uintptr_t vaddr)
         return 0;
     }
 
-    if (_vmm_is_page_swapped(vaddr)) {
-        return _vmm_restore_swapped_page_lockless(vaddr);
-    }
-
     if (IS_KERNEL_VADDR(vaddr)) {
         return vm_alloc_kernel_page_lockless(vaddr);
     }
@@ -1306,6 +1313,10 @@ static int _vmm_on_page_not_present_lockless(uintptr_t vaddr)
         if (err) {
             return err;
         }
+    }
+
+    if (_vmm_is_page_swapped(vaddr)) {
+        return _vmm_restore_swapped_page_lockless(vaddr);
     }
 
     int err = vm_alloc_user_page_no_fill_lockless(zone, vaddr);
