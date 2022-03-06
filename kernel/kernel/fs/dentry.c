@@ -124,27 +124,27 @@ static dentry_t* dentry_cache_find_empty_entry()
     return &last->data[0];
 }
 
-static inline void dentry_delete_inode(dentry_t* dentry)
+static inline void dentry_delete_inode_locked(dentry_t* dentry)
 {
-    ASSERT(dentry->d_count == 0 && dentry_test_flag_lockless(dentry, DENTRY_INODE_TO_BE_DELETED));
+    ASSERT(dentry->d_count == 0 && dentry_test_flag_locked(dentry, DENTRY_INODE_TO_BE_DELETED));
     dentry->ops->dentry.free_inode(dentry);
 }
 
-static inline void dentry_flush_inode(dentry_t* dentry)
+static inline void dentry_flush_inode_locked(dentry_t* dentry)
 {
-    if (dentry_test_flag_lockless(dentry, DENTRY_DIRTY) && dentry->inode) {
+    if (dentry_test_flag_locked(dentry, DENTRY_DIRTY) && dentry->inode) {
         dentry->ops->dentry.write_inode(dentry);
-        dentry_rem_flag_lockless(dentry, DENTRY_DIRTY);
+        dentry_rem_flag_locked(dentry, DENTRY_DIRTY);
     }
 }
 
 /**
- * dentry_delete_from_cache compeletly deletes dentry from cache.
+ * dentry_delete_from_cache_locked compeletly deletes dentry from cache.
  * In case when file was deleted and after that a new was created
  * with the same inode_id, dentry can't recognize and could use old
  * inode data. We need delete dentry from cache and free inode.
  */
-static void dentry_delete_from_cache(dentry_t* dentry)
+static void dentry_delete_from_cache_locked(dentry_t* dentry)
 {
     /* This marks the dentry as deleted. */
     dentry->inode_indx = 0;
@@ -161,15 +161,15 @@ static void dentry_delete_from_cache(dentry_t* dentry)
 }
 
 /**
- * dentry_prefree puts the dentry in a state when it can be
+ * dentry_prefree_locked puts the dentry in a state when it can be
  * safely replaced with a new one.
  * Note: the dentry stays valid and can be reused without needless to
  *       read all data again.
  */
-static void dentry_prefree(dentry_t* dentry)
+static void dentry_prefree_locked(dentry_t* dentry)
 {
     if (!can_cache_inodes) {
-        dentry_delete_from_cache(dentry);
+        dentry_delete_from_cache_locked(dentry);
     } else {
         if (need_to_free_inode_cache()) {
             free_inode_cache();
@@ -248,10 +248,18 @@ dentry_t* dentry_get_parent(dentry_t* dentry)
     return res;
 }
 
+static inline int dentry_flush_locked(dentry_t* dentry)
+{
+    dentry_flush_inode_locked(dentry);
+    return 0;
+}
+
 int dentry_flush(dentry_t* dentry)
 {
-    dentry_flush_inode(dentry);
-    return 0;
+    lock_acquire(&dentry->lock);
+    int res = dentry_flush_locked(dentry);
+    lock_release(&dentry->lock);
+    return res;
 }
 
 /**
@@ -272,7 +280,7 @@ void kdentryflusherd()
                     // Keep only locks here might not be as effective as with disabled interrupts.
                     lock_acquire(&dentry_cache_block->data[i].lock);
                     system_disable_interrupts();
-                    dentry_flush(&dentry_cache_block->data[i]);
+                    dentry_flush_locked(&dentry_cache_block->data[i]);
                     system_enable_interrupts();
                     lock_release(&dentry_cache_block->data[i].lock);
                 }
@@ -346,13 +354,13 @@ dentry_t* dentry_duplicate(dentry_t* dentry)
     return dentry;
 }
 
-static inline void dentry_put_impl(dentry_t* dentry)
+static inline void dentry_put_impl_locked(dentry_t* dentry)
 {
     if (dentry->parent) {
         dentry_put(dentry->parent);
     }
 
-    if (dentry_test_flag_lockless(dentry, DENTRY_CUSTOM)) {
+    if (dentry_test_flag_locked(dentry, DENTRY_CUSTOM)) {
         dentry->inode_indx = 0;
         if (dentry->ops->dentry.free_inode) {
             dentry->ops->dentry.free_inode(dentry);
@@ -360,48 +368,48 @@ static inline void dentry_put_impl(dentry_t* dentry)
         return;
     }
 
-    if (dentry_test_flag_lockless(dentry, DENTRY_INODE_TO_BE_DELETED)) {
+    if (dentry_test_flag_locked(dentry, DENTRY_INODE_TO_BE_DELETED)) {
 #ifdef DENTRY_DEBUG
         log("Inode delete %d", dentry->inode_indx);
 #endif
-        dentry_delete_inode(dentry);
-        dentry_delete_from_cache(dentry);
+        dentry_delete_inode_locked(dentry);
+        dentry_delete_from_cache_locked(dentry);
         return;
     }
 #ifdef DENTRY_DEBUG
     log("Inode flushed %d", dentry->inode_indx);
 #endif
-    dentry_flush_inode(dentry);
-    dentry_prefree(dentry);
+    dentry_flush_inode_locked(dentry);
+    dentry_prefree_locked(dentry);
 }
 
 void dentry_force_put(dentry_t* dentry)
 {
     lock_acquire(&dentry->lock);
-    if (dentry_test_flag_lockless(dentry, DENTRY_MOUNTPOINT)) {
+    if (dentry_test_flag_locked(dentry, DENTRY_MOUNTPOINT)) {
         lock_release(&dentry->lock);
         return;
     }
 
     dentry->d_count = 0;
-    dentry_put_impl(dentry);
+    dentry_put_impl_locked(dentry);
     lock_release(&dentry->lock);
 }
 
-inline void dentry_put_lockless(dentry_t* dentry)
+inline void dentry_put_locked(dentry_t* dentry)
 {
     ASSERT(dentry->d_count > 0);
     dentry->d_count--;
 
     if (dentry->d_count == 0) {
-        dentry_put_impl(dentry);
+        dentry_put_impl_locked(dentry);
     }
 }
 
 void dentry_put(dentry_t* dentry)
 {
     lock_acquire(&dentry->lock);
-    dentry_put_lockless(dentry);
+    dentry_put_locked(dentry);
     lock_release(&dentry->lock);
 }
 
@@ -421,23 +429,23 @@ void dentry_put_all_dentries_of_dev(uint32_t dev_indx)
     }
 }
 
-inline void dentry_set_flag_lockless(dentry_t* dentry, uint32_t flag)
+inline void dentry_set_flag_locked(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags |= flag;
 }
 
-inline bool dentry_test_flag_lockless(dentry_t* dentry, uint32_t flag)
+inline bool dentry_test_flag_locked(dentry_t* dentry, uint32_t flag)
 {
     return (dentry->flags & flag) > 0;
 }
 
-inline void dentry_rem_flag_lockless(dentry_t* dentry, uint32_t flag)
+inline void dentry_rem_flag_locked(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags &= ~flag;
 }
 
-// dentry_test_mode_lockless test ONE flag and return if it is set.
-inline bool dentry_test_mode_lockless(dentry_t* dentry, mode_t mode)
+// dentry_test_mode_locked test ONE flag and return if it is set.
+inline bool dentry_test_mode_locked(dentry_t* dentry, mode_t mode)
 {
     return mode >= 0x1000 ? (dentry->inode->mode & 0xF000) == mode : ((dentry->inode->mode) & mode) > 0;
 }
@@ -467,8 +475,8 @@ inline void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
 inline void dentry_inode_set_flag(dentry_t* dentry, mode_t mode)
 {
     lock_acquire(&dentry->lock);
-    if (!dentry_test_mode_lockless(dentry, mode)) {
-        dentry_set_flag_lockless(dentry, DENTRY_DIRTY);
+    if (!dentry_test_mode_locked(dentry, mode)) {
+        dentry_set_flag_locked(dentry, DENTRY_DIRTY);
     }
     dentry->inode->mode |= mode;
     lock_release(&dentry->lock);
@@ -477,7 +485,7 @@ inline void dentry_inode_set_flag(dentry_t* dentry, mode_t mode)
 inline bool dentry_test_mode(dentry_t* dentry, mode_t mode)
 {
     lock_acquire(&dentry->lock);
-    bool res = dentry_test_mode_lockless(dentry, mode);
+    bool res = dentry_test_mode_locked(dentry, mode);
     lock_release(&dentry->lock);
     return res;
 }
@@ -485,8 +493,8 @@ inline bool dentry_test_mode(dentry_t* dentry, mode_t mode)
 inline void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode)
 {
     lock_acquire(&dentry->lock);
-    if (dentry_test_mode_lockless(dentry, mode)) {
-        dentry_set_flag_lockless(dentry, DENTRY_DIRTY);
+    if (dentry_test_mode_locked(dentry, mode)) {
+        dentry_set_flag_locked(dentry, DENTRY_DIRTY);
     }
     dentry->inode->mode &= ~mode;
     lock_release(&dentry->lock);

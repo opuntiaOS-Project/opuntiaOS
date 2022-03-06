@@ -28,17 +28,17 @@ int threads_cnt = 0;
  * LOCKLESS
  */
 
-static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, thread_t* gthread);
-static ALWAYS_INLINE void proc_kill_all_threads_lockless(proc_t* p);
-static ALWAYS_INLINE int proc_setup_lockless(proc_t* p);
-static int proc_setup_vconsole_lockless(proc_t* p, vconsole_entry_t* vconsole);
+static ALWAYS_INLINE void proc_kill_all_threads_except_locked(proc_t* p, thread_t* gthread);
+static ALWAYS_INLINE void proc_kill_all_threads_locked(proc_t* p);
+static ALWAYS_INLINE int proc_setup_locked(proc_t* p);
+static int proc_setup_vconsole_locked(proc_t* p, vconsole_entry_t* vconsole);
 
-static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, const char* path);
-static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path);
+static ALWAYS_INLINE int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path);
+static ALWAYS_INLINE int proc_chdir_locked(proc_t* p, const char* path);
 
-static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p);
-static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t index);
-static ALWAYS_INLINE int proc_is_fd_opened_lockless(file_descriptor_t* fd);
+static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_locked(proc_t* p);
+static ALWAYS_INLINE file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index);
+static ALWAYS_INLINE int fd_is_opened(file_descriptor_t* fd);
 
 /**
  * THREAD STORAGE
@@ -128,7 +128,7 @@ int proc_init_storage()
  * INIT FUNCTIONS
  */
 
-static ALWAYS_INLINE int proc_setup_lockless(proc_t* p)
+static ALWAYS_INLINE int proc_setup_locked(proc_t* p)
 {
     p->pid = proc_alloc_pid();
     p->pgid = p->pid;
@@ -166,7 +166,7 @@ static ALWAYS_INLINE int proc_setup_lockless(proc_t* p)
 int proc_setup(proc_t* p)
 {
     lock_acquire(&p->lock);
-    int res = proc_setup_lockless(p);
+    int res = proc_setup_locked(p);
     lock_release(&p->lock);
     return res;
 }
@@ -174,7 +174,7 @@ int proc_setup(proc_t* p)
 int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid)
 {
     lock_acquire(&p->lock);
-    int err = proc_setup_lockless(p);
+    int err = proc_setup_locked(p);
     p->uid = uid;
     p->gid = gid;
     p->euid = uid;
@@ -185,7 +185,7 @@ int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid)
     return err;
 }
 
-static int proc_setup_vconsole_lockless(proc_t* p, vconsole_entry_t* vconsole)
+static int proc_setup_vconsole_locked(proc_t* p, vconsole_entry_t* vconsole)
 {
     file_descriptor_t* fd0 = &p->fds[0];
     file_descriptor_t* fd1 = &p->fds[1];
@@ -216,7 +216,7 @@ static int proc_setup_vconsole_lockless(proc_t* p, vconsole_entry_t* vconsole)
 int proc_setup_vconsole(proc_t* p, vconsole_entry_t* vconsole)
 {
     lock_acquire(&p->lock);
-    int res = proc_setup_vconsole_lockless(p, vconsole);
+    int res = proc_setup_vconsole_locked(p, vconsole);
     lock_release(&p->lock);
     return res;
 }
@@ -241,7 +241,7 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
 
     if (from_proc->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
-            if (proc_is_fd_opened_lockless(&from_proc->fds[i])) {
+            if (fd_is_opened(&from_proc->fds[i])) {
                 file_descriptor_t* fd = &new_proc->fds[i];
                 proc_copy_fd(&from_proc->fds[i], fd);
             }
@@ -288,7 +288,7 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     return 0;
 }
 
-static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, const char* path)
+static ALWAYS_INLINE int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path)
 {
     int err;
     file_descriptor_t fd;
@@ -318,7 +318,7 @@ static ALWAYS_INLINE int proc_load_lockless(proc_t* p, thread_t* main_thread, co
 
 success:
     // Clearing proc
-    proc_kill_all_threads_except_lockless(p, p->main_thread);
+    proc_kill_all_threads_except_locked(p, p->main_thread);
     p->pid = p->main_thread->tid;
     if (p->proc_file) {
         dentry_put(p->proc_file);
@@ -363,7 +363,7 @@ int proc_load(proc_t* p, thread_t* main_thread, const char* path)
 {
     lock_acquire(&p->vm_lock);
     lock_acquire(&p->lock);
-    int res = proc_load_lockless(p, main_thread, path);
+    int res = proc_load_locked(p, main_thread, path);
     lock_release(&p->lock);
     lock_release(&p->vm_lock);
     return res;
@@ -373,7 +373,7 @@ int proc_load(proc_t* p, thread_t* main_thread, const char* path)
  * PROC FREE FUNCTIONS
  */
 
-int proc_free_lockless(proc_t* p)
+int proc_free_locked(proc_t* p)
 {
     if (p->status != PROC_DYING || p->pid == 0) {
         return -ESRCH;
@@ -382,7 +382,7 @@ int proc_free_lockless(proc_t* p)
     /* closing opend fds */
     if (p->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
-            if (proc_is_fd_opened_lockless(&p->fds[i])) {
+            if (fd_is_opened(&p->fds[i])) {
                 /* think as an active fd */
                 vfs_close(&p->fds[i]);
             }
@@ -398,7 +398,7 @@ int proc_free_lockless(proc_t* p)
     }
 
     /* Key parts deletion. After that line you can't work with this process. */
-    proc_kill_all_threads_lockless(p);
+    proc_kill_all_threads_locked(p);
 
     if (!p->is_kthread) {
         vm_address_space_free(p->address_space);
@@ -413,7 +413,7 @@ int proc_free(proc_t* p)
 {
     lock_acquire(&p->vm_lock);
     lock_acquire(&p->lock);
-    int res = proc_free_lockless(p);
+    int res = proc_free_locked(p);
     lock_release(&p->lock);
     lock_release(&p->vm_lock);
     return res;
@@ -458,7 +458,7 @@ thread_t* proc_create_thread(proc_t* p)
     return thread;
 }
 
-static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, thread_t* gthread)
+static ALWAYS_INLINE void proc_kill_all_threads_except_locked(proc_t* p, thread_t* gthread)
 {
     foreach_thread(p)
     {
@@ -468,15 +468,15 @@ static ALWAYS_INLINE void proc_kill_all_threads_except_lockless(proc_t* p, threa
     }
 }
 
-static ALWAYS_INLINE void proc_kill_all_threads_lockless(proc_t* p)
+static ALWAYS_INLINE void proc_kill_all_threads_locked(proc_t* p)
 {
-    proc_kill_all_threads_except_lockless(p, NULL);
+    proc_kill_all_threads_except_locked(p, NULL);
 }
 
 void proc_kill_all_threads_except(proc_t* p, thread_t* gthread)
 {
     lock_acquire(&p->lock);
-    proc_kill_all_threads_except_lockless(p, gthread);
+    proc_kill_all_threads_except_locked(p, gthread);
     lock_release(&p->lock);
 }
 
@@ -489,7 +489,7 @@ void proc_kill_all_threads(proc_t* p)
  * PROC FS FUNCTIONS
  */
 
-static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path)
+static ALWAYS_INLINE int proc_chdir_locked(proc_t* p, const char* path)
 {
     dentry_t* new_cwd = NULL;
     int ret = vfs_resolve_path_start_from(p->cwd, path, &new_cwd);
@@ -513,7 +513,7 @@ static ALWAYS_INLINE int proc_chdir_lockless(proc_t* p, const char* path)
 int proc_chdir(proc_t* p, const char* path)
 {
     lock_acquire(&p->lock);
-    int res = proc_chdir_lockless(p, path);
+    int res = proc_chdir_locked(p, path);
     lock_release(&p->lock);
     return res;
 }
@@ -535,17 +535,17 @@ int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
     return -1;
 }
 
-static ALWAYS_INLINE int proc_is_fd_opened_lockless(file_descriptor_t* fd)
+static ALWAYS_INLINE int fd_is_opened(file_descriptor_t* fd)
 {
     return fd->dentry != NULL;
 }
 
-static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p)
+static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_locked(proc_t* p)
 {
     ASSERT(p->fds);
 
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
-        if (!proc_is_fd_opened_lockless(&p->fds[i])) {
+        if (!fd_is_opened(&p->fds[i])) {
             lock_init(&p->fds[i].lock);
             return &p->fds[i];
         }
@@ -557,12 +557,12 @@ static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_lockless(proc_t* p)
 file_descriptor_t* proc_get_free_fd(proc_t* p)
 {
     lock_acquire(&p->lock);
-    file_descriptor_t* res = proc_get_free_fd_lockless(p);
+    file_descriptor_t* res = proc_get_free_fd_locked(p);
     lock_release(&p->lock);
     return res;
 }
 
-static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t index)
+static ALWAYS_INLINE file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index)
 {
     ASSERT(p->fds);
 
@@ -570,7 +570,7 @@ static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t
         return NULL;
     }
 
-    if (!proc_is_fd_opened_lockless(&p->fds[index])) {
+    if (!fd_is_opened(&p->fds[index])) {
         return NULL;
     }
 
@@ -580,7 +580,7 @@ static ALWAYS_INLINE file_descriptor_t* proc_get_fd_lockless(proc_t* p, uint32_t
 file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
 {
     lock_acquire(&p->lock);
-    file_descriptor_t* res = proc_get_fd_lockless(p, index);
+    file_descriptor_t* res = proc_get_fd_locked(p, index);
     lock_release(&p->lock);
     return res;
 }

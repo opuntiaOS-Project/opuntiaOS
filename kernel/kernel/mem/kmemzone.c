@@ -31,7 +31,7 @@
 #define ZONER_TO_BITMAP_INDEX(x) ((x - KERNEL_BASE) >> 12)
 #define ZONER_FROM_BITMAP_INDEX(x) ((x << 12) + KERNEL_BASE)
 
-static uint32_t _zoner_next_vaddr;
+static uintptr_t _zoner_next_vaddr;
 static uint8_t* _zoner_bitmap;
 static lock_t _zoner_lock;
 static bitmap_t bitmap;
@@ -40,16 +40,16 @@ static bool _zoner_bitmap_set;
 /**
  * The function is used to allocate zones before bitmap is set.
  */
-static uint32_t _zoner_new_vzone_lockless(size_t size)
+static uintptr_t _zoner_new_vzone_locked(size_t size)
 {
-    uint32_t res = _zoner_next_vaddr;
+    uintptr_t res = _zoner_next_vaddr;
     _zoner_next_vaddr += size;
     return res;
 }
 
-static uint32_t _zoner_new_vzone_aligned_lockless(size_t size, size_t alignment)
+static uintptr_t _zoner_new_vzone_aligned_locked(size_t size, size_t alignment)
 {
-    uint32_t res = _zoner_next_vaddr;
+    uintptr_t res = _zoner_next_vaddr;
     _zoner_next_vaddr += size + alignment;
     res += alignment;
     res = res - (res % alignment);
@@ -62,7 +62,7 @@ static uint32_t _zoner_new_vzone_aligned_lockless(size_t size, size_t alignment)
 void kmemzone_init_stage2()
 {
     lock_acquire(&_zoner_lock);
-    _zoner_bitmap = (uint8_t*)_zoner_new_vzone_lockless(ZONER_BITMAP_SIZE);
+    _zoner_bitmap = (uint8_t*)_zoner_new_vzone_locked(ZONER_BITMAP_SIZE);
     bitmap = bitmap_wrap(_zoner_bitmap, ZONER_BITMAP_SIZE * 8);
     memset(_zoner_bitmap, 0, ZONER_BITMAP_SIZE);
     _zoner_bitmap_set = true;
@@ -100,7 +100,7 @@ kmemzone_t kmemzone_new(size_t size)
     kmemzone_t zone;
 
     if (!_zoner_bitmap_set) {
-        zone.start = _zoner_new_vzone_lockless(size);
+        zone.start = _zoner_new_vzone_locked(size);
     } else {
         size_t blocks = size / VMM_PAGE_SIZE;
         int start = bitmap_find_space(bitmap, blocks);
@@ -138,7 +138,7 @@ kmemzone_t kmemzone_new_aligned(size_t size, size_t alignment)
     kmemzone_t zone;
 
     if (!_zoner_bitmap_set) {
-        zone.start = _zoner_new_vzone_aligned_lockless(size, alignment);
+        zone.start = _zoner_new_vzone_aligned_locked(size, alignment);
     } else {
         size_t blocks = size / VMM_PAGE_SIZE;
         size_t blocks_alignment = alignment / VMM_PAGE_SIZE;
@@ -167,7 +167,7 @@ kmemzone_t kmemzone_new_aligned(size_t size, size_t alignment)
  * Returns new zone vaddr start.
  * Note, the function does NOT map this vaddr, it's on your own.
  */
-static ALWAYS_INLINE int kmemzone_free_lockless(kmemzone_t zone)
+static ALWAYS_INLINE int kmemzone_free_locked(kmemzone_t zone)
 {
     /* Checking if it was allocated with bitmap */
     if (zone.start < _zoner_next_vaddr) {
@@ -182,7 +182,7 @@ static ALWAYS_INLINE int kmemzone_free_lockless(kmemzone_t zone)
 int kmemzone_free(kmemzone_t zone)
 {
     lock_acquire(&_zoner_lock);
-    int res = kmemzone_free_lockless(zone);
+    int res = kmemzone_free_locked(zone);
     lock_release(&_zoner_lock);
     return res;
 }

@@ -670,7 +670,7 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 int vfs_umount(dentry_t* mounted_dentry)
 {
     lock_acquire(&mounted_dentry->lock);
-    if (!dentry_test_flag_lockless(mounted_dentry, DENTRY_MOUNTED)) {
+    if (!dentry_test_flag_locked(mounted_dentry, DENTRY_MOUNTED)) {
 #ifdef VFS_DEBUG
         log_warn("[VFS] Not mounted\n");
 #endif
@@ -680,7 +680,7 @@ int vfs_umount(dentry_t* mounted_dentry)
 
     dentry_t* mountpoint = mounted_dentry->mountpoint;
 
-    if (!dentry_test_flag_lockless(mountpoint, DENTRY_MOUNTPOINT)) {
+    if (!dentry_test_flag_locked(mountpoint, DENTRY_MOUNTPOINT)) {
 #ifdef VFS_DEBUG
         log_warn("[VFS] Not a mountpoint\n");
 #endif
@@ -688,13 +688,13 @@ int vfs_umount(dentry_t* mounted_dentry)
         return -EPERM;
     }
 
-    dentry_rem_flag_lockless(mounted_dentry, DENTRY_MOUNTED);
+    dentry_rem_flag_locked(mounted_dentry, DENTRY_MOUNTED);
     dentry_rem_flag(mountpoint, DENTRY_MOUNTPOINT);
 
     mounted_dentry->mountpoint = NULL;
     mountpoint->mounted_dentry = NULL;
 
-    dentry_put_lockless(mounted_dentry);
+    dentry_put_locked(mounted_dentry);
     dentry_put(mountpoint);
 
     if (dentry_test_flag(mountpoint, DENTRY_MOUNTED)) {

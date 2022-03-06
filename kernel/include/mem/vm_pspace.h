@@ -24,7 +24,7 @@ int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_l
 
 ptable_t* vm_get_table(uintptr_t vaddr, ptable_lv_t lv);
 ptable_entity_t* vm_get_entity(uintptr_t vaddr, ptable_lv_t lv);
-int vm_pspace_free_address_space_lockless(struct vm_address_space* vm_aspace);
+int vm_pspace_free_address_space_locked(struct vm_address_space* vm_aspace);
 
 static inline ptable_entity_t* vm_lookup(ptable_t* table, ptable_lv_t lv, uintptr_t vaddr)
 {

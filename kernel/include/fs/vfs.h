@@ -186,11 +186,11 @@ void dentry_inode_set_flag(dentry_t* dentry, mode_t mode);
 bool dentry_test_mode(dentry_t* dentry, mode_t mode);
 void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode);
 
-void dentry_put_lockless(dentry_t* dentry);
-void dentry_set_flag_lockless(dentry_t* dentry, dentry_flag_t flag);
-bool dentry_test_flag_lockless(dentry_t* dentry, dentry_flag_t flag);
-void dentry_rem_flag_lockless(dentry_t* dentry, dentry_flag_t flag);
-bool dentry_test_mode_lockless(dentry_t* dentry, mode_t mode);
+void dentry_put_locked(dentry_t* dentry);
+void dentry_set_flag_locked(dentry_t* dentry, dentry_flag_t flag);
+bool dentry_test_flag_locked(dentry_t* dentry, dentry_flag_t flag);
+void dentry_rem_flag_locked(dentry_t* dentry, dentry_flag_t flag);
+bool dentry_test_mode_locked(dentry_t* dentry, mode_t mode);
 
 uint32_t dentry_stat_cached_count();
 

@@ -229,18 +229,21 @@ void tasking_kill_dying()
     for (int i = 0; i < _tasking_get_proc_count(); i++) {
         p = &proc[i];
         if (p->status == PROC_DYING) {
+            lock_acquire(&p->vm_lock);
             lock_acquire(&p->lock);
             if (unlikely(p->status != PROC_DYING)) {
                 lock_release(&p->lock);
+                lock_release(&p->vm_lock);
                 continue;
             }
-            proc_free_lockless(p);
+            proc_free_locked(p);
             if (tasking_should_become_zombie(p)) {
                 p->status = PROC_ZOMBIE;
             } else {
                 tasking_evict_proc_entry(p);
             }
             lock_release(&p->lock);
+            lock_release(&p->vm_lock);
         }
     }
 }

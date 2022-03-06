@@ -53,7 +53,7 @@ kmemzone_t vm_alloc_mapped_zone(size_t size, size_t alignment)
     // TODO: Currently only sequence allocation is implemented.
     kmemzone_t zone = kmemzone_new_aligned(size, alignment);
     uintptr_t paddr = (uintptr_t)pmm_alloc_aligned(size, alignment);
-    vmm_map_pages_lockless(zone.start, paddr, size / VMM_PAGE_SIZE, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
+    vmm_map_pages_locked(zone.start, paddr, size / VMM_PAGE_SIZE, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
     return zone;
 }
 
@@ -64,7 +64,7 @@ int vm_free_mapped_zone(kmemzone_t zone)
         return -1;
     }
     pmm_free((void*)vm_ptable_entity_get_frame(page_desc, PTABLE_LV0), zone.len);
-    vmm_unmap_pages_lockless(zone.start, zone.len / VMM_PAGE_SIZE);
+    vmm_unmap_pages_locked(zone.start, zone.len / VMM_PAGE_SIZE);
     kmemzone_free(zone);
     return 0;
 }

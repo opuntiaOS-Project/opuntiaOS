@@ -94,7 +94,7 @@ void vm_pspace_gen(ptable_t* pdir)
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     ptable_t* new_ptable = (ptable_t*)tmp_zone.start;
 
-    vmm_map_page_lockless((uintptr_t)new_ptable, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
+    vmm_map_page_locked((uintptr_t)new_ptable, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
 
     /* The code assumes that the length of tables which cover pspace
        is 4KB and that the tables are fit in a single page and are continuous. */
@@ -119,7 +119,7 @@ void vm_pspace_gen(ptable_t* pdir)
 
         pdir->entities[VMM_OFFSET_IN_DIRECTORY(ptable_vaddr_for)] = pspace_table;
     }
-    vmm_unmap_page_lockless((uintptr_t)new_ptable);
+    vmm_unmap_page_locked((uintptr_t)new_ptable);
     kmemzone_free(tmp_zone);
 }
 
@@ -147,7 +147,7 @@ void vm_pspace_free(ptable_t* pdir)
 int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t lv)
 {
     const uintptr_t pspace_table_vaddr = PAGE_START((uintptr_t)vm_pspace_get_vaddr_of_active_ptable(vaddr, lv));
-    return vmm_map_page_lockless(pspace_table_vaddr, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
+    return vmm_map_page_locked(pspace_table_vaddr, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
 }
 
 /**
@@ -195,7 +195,7 @@ ptable_entity_t* vm_get_entity(uintptr_t vaddr, ptable_lv_t lv)
     return vm_lookup(ptable, lv, vaddr);
 }
 
-static int vm_pspace_free_page_lockless(uintptr_t vaddr, ptable_entity_t* page, dynamic_array_t* zones)
+static int vm_pspace_free_page_locked(uintptr_t vaddr, ptable_entity_t* page, dynamic_array_t* zones)
 {
     if (vmm_is_copy_on_write(vaddr)) {
         return -EBUSY;
@@ -219,7 +219,7 @@ static int vm_pspace_free_page_lockless(uintptr_t vaddr, ptable_entity_t* page, 
     return 0;
 }
 
-static int vm_pspace_free_ptable_lockless(uintptr_t vaddr)
+static int vm_pspace_free_ptable_locked(uintptr_t vaddr)
 {
     // TODO: Free ptable and free page functions should be reimplemented with usage of level.
     vm_address_space_t* active_address_space = THIS_CPU->active_address_space;
@@ -247,7 +247,7 @@ static int vm_pspace_free_ptable_lockless(uintptr_t vaddr)
     uintptr_t pages_vstart = TABLE_START(vaddr);
     for (uintptr_t i = 0, pages_voffset = 0; i < PTABLE_ENTITY_COUNT(PTABLE_LV0); i++, pages_voffset += VMM_PAGE_SIZE) {
         ptable_entity_t* page_desc = &ptable->entities[i];
-        vm_pspace_free_page_lockless(pages_vstart + pages_voffset, page_desc, &active_address_space->zones);
+        vm_pspace_free_page_locked(pages_vstart + pages_voffset, page_desc, &active_address_space->zones);
     }
 
     uintptr_t ptable_vaddr_start = PAGE_START((uintptr_t)ptable);
@@ -273,7 +273,7 @@ static int vm_pspace_free_ptable_lockless(uintptr_t vaddr)
     }
 
     // Cleaning Pspace
-    vmm_unmap_page_lockless(ptable_vaddr_start);
+    vmm_unmap_page_locked(ptable_vaddr_start);
     return 0;
 }
 
@@ -283,20 +283,20 @@ static int vm_pspace_free_ptable_lockless(uintptr_t vaddr)
  * @param vm_aspace Address space to be cleared
  * @return Return status
  */
-int vm_pspace_free_address_space_lockless(vm_address_space_t* vm_aspace)
+int vm_pspace_free_address_space_locked(vm_address_space_t* vm_aspace)
 {
     vm_address_space_t* prev_aspace = vmm_get_active_address_space();
-    vmm_switch_address_space_lockless(vm_aspace);
+    vmm_switch_address_space_locked(vm_aspace);
 
     size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(PTABLE_LV0);
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-        vm_pspace_free_ptable_lockless(table_coverage * i);
+        vm_pspace_free_ptable_locked(table_coverage * i);
     }
 
     if (prev_aspace == vm_aspace) {
-        vmm_switch_address_space_lockless(vmm_get_kernel_address_space());
+        vmm_switch_address_space_locked(vmm_get_kernel_address_space());
     } else {
-        vmm_switch_address_space_lockless(prev_aspace);
+        vmm_switch_address_space_locked(prev_aspace);
     }
     vm_pspace_free(vm_aspace->pdir);
     vm_free_ptable_lv_top(vm_aspace->pdir);
