@@ -114,7 +114,7 @@ static memzone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
     zone->ops = &mmap_file_vm_ops;
 
     for (int offset = 0; offset < bga_screen_buffer_size; offset += VMM_PAGE_SIZE) {
-        vmm_map_page(zone->start + offset, bga_buf_paddr + offset, zone->mmu_flags);
+        vmm_map_page(zone->vaddr + offset, bga_buf_paddr + offset, zone->mmu_flags);
     }
 
     return zone;

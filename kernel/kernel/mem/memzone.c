@@ -29,13 +29,13 @@ static inline bool _proc_can_fixup_zone(vm_address_space_t* vm_aspace, size_t* s
 
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(&vm_aspace->zones, i);
-        if (_pzones_intersect(*start_ptr, *len_ptr, zone->start, zone->len)) {
-            if (*start_ptr >= zone->start) {
-                int move = (zone->start + zone->len) - (*start_ptr);
+        if (_pzones_intersect(*start_ptr, *len_ptr, zone->vaddr, zone->len)) {
+            if (*start_ptr >= zone->vaddr) {
+                int move = (zone->vaddr + zone->len) - (*start_ptr);
                 *start_ptr += move;
                 *len_ptr -= move;
             } else {
-                int move = (*start_ptr + *len_ptr) - zone->start;
+                int move = (*start_ptr + *len_ptr) - zone->vaddr;
                 *len_ptr -= move;
             }
 
@@ -54,7 +54,7 @@ static inline bool _proc_can_add_zone(vm_address_space_t* vm_aspace, size_t star
 
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(&vm_aspace->zones, i);
-        if (_pzones_intersect(start, len, zone->start, zone->len)) {
+        if (_pzones_intersect(start, len, zone->vaddr, zone->len)) {
             return false;
         }
     }
@@ -85,7 +85,7 @@ memzone_t* memzone_extend(vm_address_space_t* vm_aspace, size_t start, size_t le
     new_zone.mmu_flags = MMU_FLAG_NONPRIV;
 
     if (_proc_can_fixup_zone(vm_aspace, &start, (int*)&len)) {
-        new_zone.start = start;
+        new_zone.vaddr = start;
         new_zone.len = len;
         if (!dynarr_push(&vm_aspace->zones, &new_zone)) {
             return NULL;
@@ -105,7 +105,7 @@ memzone_t* memzone_new(vm_address_space_t* vm_aspace, size_t start, size_t len)
     }
 
     memzone_t new_zone = { 0 };
-    new_zone.start = start;
+    new_zone.vaddr = start;
     new_zone.len = len;
     new_zone.type = 0;
     new_zone.mmu_flags = MMU_FLAG_NONPRIV;
@@ -139,9 +139,9 @@ memzone_t* memzone_new_random(vm_address_space_t* vm_aspace, size_t len)
 
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(&vm_aspace->zones, i);
-        if (_proc_can_add_zone(vm_aspace, zone->start + zone->len, len)) {
-            if (min_start > zone->start + zone->len) {
-                min_start = zone->start + zone->len;
+        if (_proc_can_add_zone(vm_aspace, zone->vaddr + zone->len, len)) {
+            if (min_start > zone->vaddr + zone->len) {
+                min_start = zone->vaddr + zone->len;
             }
         }
     }
@@ -172,9 +172,9 @@ memzone_t* memzone_new_random_backward(vm_address_space_t* vm_aspace, size_t len
 
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(&vm_aspace->zones, i);
-        if (_proc_can_add_zone(vm_aspace, zone->start - len, len)) {
-            if (max_end < zone->start) {
-                max_end = zone->start;
+        if (_proc_can_add_zone(vm_aspace, zone->vaddr - len, len)) {
+            if (max_end < zone->vaddr) {
+                max_end = zone->vaddr;
             }
         }
     }
@@ -192,7 +192,7 @@ memzone_t* memzone_find_no_proc(dynamic_array_t* zones, size_t addr)
 
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(zones, i);
-        if (zone->start <= addr && addr < zone->start + zone->len) {
+        if (zone->vaddr <= addr && addr < zone->vaddr + zone->len) {
             return zone;
         }
     }

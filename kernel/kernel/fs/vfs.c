@@ -709,7 +709,8 @@ static int _vfs_loadpage_from_mmap_file(struct memzone* zone, uintptr_t vaddr)
 {
     ASSERT(zone->type & ZONE_TYPE_MAPPED_FILE_PRIVATLY);
 
-    size_t offset = zone->offset + (PAGE_START(vaddr) - zone->start);
+    // Could ignore file_size here, because in case of EOF file_ops->read() stops reading.
+    size_t offset = zone->file_offset + (PAGE_START(vaddr) - zone->vaddr);
     lock_acquire(&zone->file->lock);
     zone->file->ops->file.read(zone->file, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
     lock_release(&zone->file->lock);
@@ -727,7 +728,8 @@ static memzone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
         zone = memzone_new_random(RUNNING_THREAD->process->address_space, params->size);
         zone->type = ZONE_TYPE_MAPPED_FILE_PRIVATLY;
         zone->file = dentry_duplicate(fd->dentry);
-        zone->offset = params->offset;
+        zone->file_offset = params->offset;
+        zone->file_size = fd->dentry->inode->size;
         zone->ops = &mmap_file_vm_ops;
     } else {
         /* TODO */
@@ -761,7 +763,7 @@ int vfs_munmap(proc_t* p, memzone_t* zone)
 
     dentry_put(zone->file);
 
-    for (uintptr_t vaddr = zone->start; vaddr < zone->start + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
+    for (uintptr_t vaddr = zone->vaddr; vaddr < zone->vaddr + zone->len + 1; vaddr += VMM_PAGE_SIZE) {
         system_flush_local_tlb_entry(vaddr);
     }
     memzone_free(p->address_space, zone);

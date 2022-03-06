@@ -276,13 +276,13 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     /* Copying an exec code */
     uint8_t* prog = kmalloc(fd->dentry->inode->size);
     fd->ops->read(fd->dentry, prog, 0, fd->dentry->inode->size);
-    vmm_copy_to_address_space(p->address_space, prog, code_zone->start, fd->dentry->inode->size);
+    vmm_copy_to_address_space(p->address_space, prog, code_zone->vaddr, fd->dentry->inode->size);
 
     /* Setting registers */
     thread_t* main_thread = p->main_thread;
-    set_base_pointer(main_thread->tf, stack_zone->start + VMM_PAGE_SIZE);
-    set_stack_pointer(main_thread->tf, stack_zone->start + VMM_PAGE_SIZE);
-    set_instruction_pointer(main_thread->tf, code_zone->start);
+    set_base_pointer(main_thread->tf, stack_zone->vaddr + VMM_PAGE_SIZE);
+    set_stack_pointer(main_thread->tf, stack_zone->vaddr + VMM_PAGE_SIZE);
+    set_instruction_pointer(main_thread->tf, code_zone->vaddr);
 
     kfree(prog);
     return 0;

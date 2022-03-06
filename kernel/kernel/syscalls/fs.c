@@ -424,7 +424,7 @@ void sys_mmap(trapframe_t* tf)
         zone->mmu_flags |= MMU_FLAG_PERM_EXEC;
     }
 
-    return_with_val(zone->start);
+    return_with_val(zone->vaddr);
 }
 
 void sys_munmap(trapframe_t* tf)

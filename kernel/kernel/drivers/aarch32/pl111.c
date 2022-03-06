@@ -109,7 +109,7 @@ static memzone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
     zone->ops = &mmap_file_vm_ops;
 
     for (int offset = 0; offset < pl111_screen_buffer_size; offset += VMM_PAGE_SIZE) {
-        vmm_map_page(zone->start + offset, (uint32_t)(pl111_bufs_paddr[0] + offset), zone->mmu_flags);
+        vmm_map_page(zone->vaddr + offset, (uint32_t)(pl111_bufs_paddr[0] + offset), zone->mmu_flags);
     }
 
     return zone;
