@@ -175,6 +175,10 @@ WindowManager::Window* WindowManager::top_window_in_view(WindowType type) const
 #ifdef TARGET_DESKTOP
 void WindowManager::on_active_window_will_change()
 {
+    if (!m_active_window) {
+        return;
+    }
+
     if (m_active_window->type() == WindowType::AppList) {
         m_active_window->set_visible(false);
         on_window_became_invisible(m_active_window);
