@@ -693,7 +693,7 @@ static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
 
             ptable_entity_t* page_desc = &src_ptable->entities[offset_in_table_set];
             if (_vmm_is_page_swapped_entity(page_desc)) {
-                ptable_entity_t* current_page_desc = vm_get_entity(vaddr, PTABLE_LV0);
+                ptable_entity_t* current_page_desc = vm_get_entity(page_vaddr, PTABLE_LV0);
                 ASSERT(current_page_desc); // Double-check that the page descriptor is already allocated.
 
                 uintptr_t id = ((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) >> PAGE_DESC_FRAME_OFFSET);
