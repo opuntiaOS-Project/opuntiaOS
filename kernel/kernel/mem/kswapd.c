@@ -70,7 +70,7 @@ static int find_victim(proc_t* p, ptable_t* pdir)
 
         map_ptable(ptable_desc);
         for (int pgi = 0; pgi < PTABLE_ENTITY_COUNT(PTABLE_LV0); pgi++) {
-            ptable_entity_t* ppage_desc = &ptable_map_zone[pti].entities[pgi];
+            ptable_entity_t* ppage_desc = &ptable_map_zone->entities[pgi];
             if (!vm_ptable_entity_is_present(ppage_desc, PTABLE_LV0)) {
                 continue;
             }
@@ -108,6 +108,10 @@ void kswapd()
         proc_t* p;
         for (int i = last_pid; i < tasking_get_proc_count(); i++, last_pid++) {
             p = &proc[i];
+            if (p->is_kthread) {
+                continue;
+            }
+
             if (p->status == PROC_ALIVE) {
                 find_victim(p, p->address_space->pdir);
             }
