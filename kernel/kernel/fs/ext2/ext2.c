@@ -313,6 +313,14 @@ static int _ext2_set_block_of_inode_lev1(dentry_t* dentry, uint32_t cur_block, u
     uint32_t offset_inner = inode_block_index % lev_contain;
     uint32_t res;
     _ext2_read_from_dev(dentry->dev, (uint8_t*)&res, _ext2_get_block_offset(dentry->fsdata.sb, cur_block) + offset * 4, 4);
+    if (!res) {
+        int err = _ext2_allocate_block_index(dentry->dev, dentry->fsdata, &res, 0);
+        if (err) {
+            return err;
+        }
+        _ext2_write_to_dev(dentry->dev, (uint8_t*)&res, _ext2_get_block_offset(dentry->fsdata.sb, cur_block) + offset * 4, 4);
+    }
+
     return res ? _ext2_set_block_of_inode_lev0(dentry, res, offset_inner, val) : -1;
 }
 
@@ -324,6 +332,14 @@ static int _ext2_set_block_of_inode_lev2(dentry_t* dentry, uint32_t cur_block, u
     uint32_t offset_inner = inode_block_index % lev_contain;
     uint32_t res;
     _ext2_read_from_dev(dentry->dev, (uint8_t*)&res, _ext2_get_block_offset(dentry->fsdata.sb, cur_block) + offset * 4, 4);
+    if (!res) {
+        int err = _ext2_allocate_block_index(dentry->dev, dentry->fsdata, &res, 0);
+        if (err) {
+            return err;
+        }
+        _ext2_write_to_dev(dentry->dev, (uint8_t*)&res, _ext2_get_block_offset(dentry->fsdata.sb, cur_block) + offset * 4, 4);
+    }
+
     return res ? _ext2_set_block_of_inode_lev1(dentry, res, offset_inner, val) : -1;
 }
 
@@ -337,11 +353,30 @@ int _ext2_set_block_of_inode(dentry_t* dentry, uint32_t inode_block_index, uint3
         return 0;
     }
     if (inode_block_index < 12 + block_len) { // single indirect
+        if (!dentry->inode->block[12]) {
+            int err = _ext2_allocate_block_index(dentry->dev, dentry->fsdata, &dentry->inode->block[12], 0);
+            if (err) {
+                return err;
+            }
+        }
         return _ext2_set_block_of_inode_lev0(dentry, dentry->inode->block[12], inode_block_index - 12, val);
     }
     if (inode_block_index < 12 + block_len + block_len * block_len) { // double indirect
+        if (!dentry->inode->block[13]) {
+            int err = _ext2_allocate_block_index(dentry->dev, dentry->fsdata, &dentry->inode->block[13], 0);
+            if (err) {
+                return err;
+            }
+        }
         return _ext2_set_block_of_inode_lev1(dentry, dentry->inode->block[13], inode_block_index - 12 - block_len, val);
-    } // triple indirect
+    }
+
+    if (!dentry->inode->block[14]) {
+        int err = _ext2_allocate_block_index(dentry->dev, dentry->fsdata, &dentry->inode->block[14], 0);
+        if (err) {
+            return err;
+        }
+    }
     return _ext2_set_block_of_inode_lev2(dentry, dentry->inode->block[14], inode_block_index - (12 + block_len + block_len * block_len), val);
 }
 
@@ -368,6 +403,7 @@ static int _ext2_allocate_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32
         uint32_t group_id = (pref_group + i) % groups_cnt;
         if (GROUP_TABLES[group_id].free_blocks_count) {
             if (_ext2_find_free_block_index(dev, fsdata, block_index, group_id) == 0) {
+                GROUP_TABLES[group_id].free_blocks_count--;
                 return 0;
             }
         }
@@ -387,6 +423,7 @@ static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
 
     _ext2_bitmap_unset_bit(block_bitmap, off);
     _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].block_bitmap), block_len);
+    GROUP_TABLES[group_index].free_blocks_count++;
     return 0;
 }
 
@@ -913,7 +950,10 @@ int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
         uint32_t write_to_block = min(to_write, block_len - write_offset);
 
         if (blocks_allocated <= virt_block_index) {
-            _ext2_allocate_block_for_inode(dentry, 0, &data_block_index);
+            int err = _ext2_allocate_block_for_inode(dentry, 0, &data_block_index);
+            if (err) {
+                return err;
+            }
         } else {
             data_block_index = _ext2_get_block_of_inode(dentry, virt_block_index);
         }
