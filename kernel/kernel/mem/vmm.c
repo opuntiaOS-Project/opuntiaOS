@@ -23,6 +23,7 @@
 #include <tasking/tasking.h>
 
 // #define VMM_DEBUG
+// #define VMM_DEBUG_SWAP
 
 static vm_address_space_t _vmm_kernel_address_space;
 static vm_address_space_t* _vmm_kernel_address_space_ptr = &_vmm_kernel_address_space;
@@ -705,6 +706,9 @@ static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
                 ASSERT(current_page_desc); // Double-check that the page descriptor is already allocated.
 
                 uintptr_t id = ((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) >> PAGE_DESC_FRAME_OFFSET);
+#ifdef VMM_DEBUG_SWAP
+                log("   %d :: new ref for swapped %x == id %d", RUNNING_THREAD->tid, page_vaddr, id);
+#endif
                 swapfile_new_ref(id);
                 *current_page_desc = *page_desc;
                 continue;
@@ -881,6 +885,15 @@ static int _vmm_restore_swapped_page_locked(uintptr_t vaddr)
     }
 
     system_flush_all_cpus_tlb_entry(vaddr);
+
+#ifdef VMM_DEBUG_SWAP
+    uint32_t checksum = 0;
+    uint32_t* old_page_vaddr_shit = (uint32_t*)PAGE_START(vaddr);
+    for (int i = 0; i < VMM_PAGE_SIZE / 4; i++) {
+        checksum ^= old_page_vaddr_shit[i];
+    }
+    log("Swap: %d restore %x == id %d (%x *%x) chksm %x", RUNNING_THREAD->tid, vaddr, id, page, *page, checksum);
+#endif
     return 0;
 }
 
@@ -922,6 +935,15 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
             return -1;
         }
     }
+
+#ifdef VMM_DEBUG_SWAP
+    uint32_t checksum = 0;
+    uint32_t* old_page_vaddr_shit = (uint32_t*)PAGE_START(old_page_vaddr);
+    for (int i = 0; i < VMM_PAGE_SIZE / 4; i++) {
+        checksum ^= old_page_vaddr_shit[i];
+    }
+    log("Swap: %d put to swap %x == id %d (%x *%x) chksm %x", RUNNING_THREAD->tid, vaddr, new_frame, page_desc, *page_desc, checksum);
+#endif
 
     vm_free_page_paddr(vm_ptable_entity_get_frame(page_desc, PTABLE_LV0));
     vm_ptable_entity_invalidate(page_desc, PTABLE_LV0);

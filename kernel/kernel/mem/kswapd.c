@@ -62,29 +62,36 @@ static int find_victim(proc_t* p, ptable_t* pdir)
     const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(PTABLE_LV0);
     const size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(PTABLE_LV0);
 
-    for (int pti = last_pti; pti < VMM_KERNEL_TABLES_START; pti++, last_pti++) {
+    for (int pti = last_pti; pti < VMM_KERNEL_TABLES_START; pti += ptables_per_page, last_pti += ptables_per_page) {
         ptable_entity_t* ptable_desc = &pdir->entities[pti];
         if (!vm_ptable_entity_is_present(ptable_desc, PTABLE_LV1)) {
             continue;
         }
 
         map_ptable(ptable_desc);
-        for (int pgi = 0; pgi < PTABLE_ENTITY_COUNT(PTABLE_LV0); pgi++) {
-            ptable_entity_t* ppage_desc = &ptable_map_zone->entities[pgi];
-            if (!vm_ptable_entity_is_present(ppage_desc, PTABLE_LV0)) {
-                continue;
-            }
+        for (int ptii = 0; ptii < ptables_per_page; ptii++) {
+            for (int pgi = 0; pgi < PTABLE_ENTITY_COUNT(PTABLE_LV0); pgi++) {
+                ptable_entity_t* ppage_desc = &ptable_map_zone[ptii].entities[pgi];
+                if (!vm_ptable_entity_is_present(ppage_desc, PTABLE_LV0)) {
+                    continue;
+                }
 
-            uintptr_t victim_vaddr = table_coverage * pti + VMM_PAGE_SIZE * pgi;
-            memzone_t* zone = memzone_find(p->address_space, victim_vaddr);
+                uintptr_t victim_vaddr = table_coverage * (pti + ptii) + VMM_PAGE_SIZE * pgi;
+                memzone_t* zone = memzone_find(p->address_space, victim_vaddr);
 #ifdef KSWAPD_DEBUG
-            log("[kswapd] (pid %d) Find victim at %x", p->pid, victim_vaddr);
+                log("[kswapd] (pid %d) Find victim at %x", p->pid, victim_vaddr);
 #endif
-            vmm_swap_page(ppage_desc, zone, victim_vaddr);
-            after_page_swap();
-            if (moved_out_pages_per_pid >= KSWAPD_SWAP_PER_PID_THRESHOLD) {
-                lock_release(&p->vm_lock);
-                return 0;
+                // Should not allow preemption at vmm_swap_page(), since it holds _vmm_lock.
+                // Context switch could freeze cpu, since it would be not be possible to switch
+                // address space. _vmm_lock might need to be replaced with per address space lock.
+                system_disable_interrupts();
+                vmm_swap_page(ppage_desc, zone, victim_vaddr);
+                system_enable_interrupts();
+                after_page_swap();
+                if (moved_out_pages_per_pid >= KSWAPD_SWAP_PER_PID_THRESHOLD) {
+                    lock_release(&p->vm_lock);
+                    return 0;
+                }
             }
         }
     }
