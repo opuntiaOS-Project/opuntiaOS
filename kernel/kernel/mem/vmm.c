@@ -661,7 +661,15 @@ static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
     uintptr_t ptable_serve_vaddr_start = (vaddr / (table_coverage * ptables_per_page)) * (table_coverage * ptables_per_page);
 
     // Copying old ptables which cover the full page. See a comment above vmm_allocate_ptable.
-    kmemzone_t src_ptable_zone = vm_alloc_mapped_zone(VMM_PAGE_SIZE, VMM_PAGE_SIZE);
+    kmemzone_t src_ptable_zone;
+    int err = 0;
+    do {
+        err = vm_alloc_mapped_zone(VMM_PAGE_SIZE, VMM_PAGE_SIZE, &src_ptable_zone);
+        if (err) {
+            _vmm_sleep_locked();
+        }
+    } while (err);
+
     ptable_t* src_ptable = (ptable_t*)src_ptable_zone.ptr;
     ptable_t* root_ptable = (ptable_t*)PAGE_START((uintptr_t)vm_get_table(vaddr, lower_level(lv)));
     memcpy(src_ptable, root_ptable, VMM_PAGE_SIZE);
@@ -673,7 +681,7 @@ static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
     }
 
     // Setting up new ptables.
-    int err = _vmm_force_allocate_ptable_locked(vaddr, lower_level(lv));
+    err = _vmm_force_allocate_ptable_locked(vaddr, lower_level(lv));
     if (err) {
         return err;
     }
@@ -938,9 +946,15 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
 static vm_address_space_t* _vmm_alloc_new_address_space_locked()
 {
     vm_address_space_t* new_address_space = vm_address_space_alloc();
-    ptable_t* new_pdir = vm_alloc_ptable_lv_top();
-    new_address_space->pdir = new_pdir;
+    ptable_t* new_pdir;
+    do {
+        new_pdir = vm_alloc_ptable_lv_top();
+        if (!new_pdir) {
+            _vmm_sleep_locked();
+        }
+    } while (!new_pdir);
 
+    new_address_space->pdir = new_pdir;
     return new_address_space;
 }
 

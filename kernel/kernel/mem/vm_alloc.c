@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include <libkern/bits/errno.h>
 #include <mem/pmm.h>
 #include <mem/vm_alloc.h>
 #include <mem/vm_pspace.h>
@@ -41,7 +42,7 @@ void vm_free_page_paddr(uintptr_t addr)
     pmm_free((void*)addr, VMM_PAGE_SIZE);
 }
 
-kmemzone_t vm_alloc_mapped_zone(size_t size, size_t alignment)
+int vm_alloc_mapped_zone(size_t size, size_t alignment, kmemzone_t* kmemzone)
 {
     if (size % VMM_PAGE_SIZE) {
         size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
@@ -50,11 +51,16 @@ kmemzone_t vm_alloc_mapped_zone(size_t size, size_t alignment)
         alignment += VMM_PAGE_SIZE - (alignment % VMM_PAGE_SIZE);
     }
 
-    // TODO: Currently only sequence allocation is implemented.
-    kmemzone_t zone = kmemzone_new_aligned(size, alignment);
+    // Currntly can map only consequent paddrs, might be fixed.
     uintptr_t paddr = (uintptr_t)pmm_alloc_aligned(size, alignment);
+    if (!paddr) {
+        return -ENOMEM;
+    }
+
+    kmemzone_t zone = kmemzone_new_aligned(size, alignment);
     vmm_map_pages_locked(zone.start, paddr, size / VMM_PAGE_SIZE, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
-    return zone;
+    *kmemzone = zone;
+    return 0;
 }
 
 int vm_free_mapped_zone(kmemzone_t zone)
@@ -71,7 +77,11 @@ int vm_free_mapped_zone(kmemzone_t zone)
 
 ptable_t* vm_alloc_ptable_lv_top()
 {
-    kmemzone_t zone = vm_alloc_mapped_zone(ptable_size_at_level[PTABLE_LV_TOP], ptable_size_at_level[PTABLE_LV_TOP]);
+    kmemzone_t zone;
+    int err = vm_alloc_mapped_zone(ptable_size_at_level[PTABLE_LV_TOP], ptable_size_at_level[PTABLE_LV_TOP], &zone);
+    if (err) {
+        return NULL;
+    }
     return (ptable_t*)zone.ptr;
 }
 

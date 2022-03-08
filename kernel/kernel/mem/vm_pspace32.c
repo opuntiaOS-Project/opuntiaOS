@@ -91,6 +91,7 @@ void vm_pspace_gen(ptable_t* pdir)
     const uintptr_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(PTABLE_LV0);
     ptable_t* cur_ptable = vm_pspace_get_nth_active_ptable(VMM_OFFSET_IN_DIRECTORY(pspace_zone.start), PTABLE_LV0);
     uintptr_t ptable_paddr = vm_alloc_ptables_to_cover_page();
+    ASSERT(ptable_paddr);
     kmemzone_t tmp_zone = kmemzone_new(VMM_PAGE_SIZE);
     ptable_t* new_ptable = (ptable_t*)tmp_zone.start;
 
