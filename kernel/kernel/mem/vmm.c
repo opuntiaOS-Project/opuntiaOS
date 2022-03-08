@@ -220,6 +220,8 @@ static bool _vmm_map_kernel()
  * VM SETUP
  */
 
+int vmm_init_setup_finished = 0;
+
 int vmm_setup()
 {
     lock_init(&_vmm_lock);
@@ -234,6 +236,7 @@ int vmm_setup()
 
     // After kmalloc is set up, we can allocate dynarr for zones.
     dynarr_init_of_size(memzone_t, &_vmm_kernel_address_space.zones, 4);
+    vmm_init_setup_finished = 1;
     return 0;
 }
 

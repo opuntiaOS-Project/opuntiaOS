@@ -43,12 +43,18 @@ static ALWAYS_INLINE void lock_release(lock_t* lock)
 }
 
 #ifdef DEBUG_LOCK
-#define lock_acquire(x)                                    \
-    log("acquire lock %s %s:%d ", #x, __FILE__, __LINE__); \
+#define lock_acquire(x)                                        \
+    extern int vmm_init_setup_finished;                        \
+    if (vmm_init_setup_finished) {                             \
+        log("acquire lock %s %s:%d ", #x, __FILE__, __LINE__); \
+    }                                                          \
     lock_acquire(x);
 
-#define lock_release(x)                                    \
-    log("release lock %s %s:%d ", #x, __FILE__, __LINE__); \
+#define lock_release(x)                                        \
+    extern int vmm_init_setup_finished;                        \
+    if (vmm_init_setup_finished) {                             \
+        log("release lock %s %s:%d ", #x, __FILE__, __LINE__); \
+    }                                                          \
     lock_release(x);
 #endif
 
