@@ -64,9 +64,6 @@ static int _elf_load_page_content(memzone_t* zone, uintptr_t vaddr)
 
 static int _elf_swap_page_mode(memzone_t* zone, uintptr_t vaddr)
 {
-    if (zone->type == ZONE_TYPE_CODE) {
-        return SWAP_DROP;
-    }
     return SWAP_TO_DEV;
 }
 
