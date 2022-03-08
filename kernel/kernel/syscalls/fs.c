@@ -324,10 +324,26 @@ void sys_select(trapframe_t* tf)
     fd_set_t* exceptfds = &kexceptfds;
     timeval_t* timeout = &ktimeout;
 
-    umem_get_user(&kreadfds, ureadfds);
-    umem_get_user(&kwritefds, uwritefds);
-    umem_get_user(&kexceptfds, uexceptfds);
-    umem_get_user(&ktimeout, utimeout);
+    if (ureadfds) {
+        umem_get_user(&kreadfds, ureadfds);
+    } else {
+        readfds = NULL;
+    }
+    if (uwritefds) {
+        umem_get_user(&kwritefds, uwritefds);
+    } else {
+        writefds = NULL;
+    }
+    if (uexceptfds) {
+        umem_get_user(&kexceptfds, uexceptfds);
+    } else {
+        exceptfds = NULL;
+    }
+    if (utimeout) {
+        umem_get_user(&ktimeout, utimeout);
+    } else {
+        timeout = NULL;
+    }
 
     for (int i = 0; i < nfds; i++) {
         if ((readfds && FD_ISSET(i, readfds)) || (writefds && FD_ISSET(i, writefds)) || (exceptfds && FD_ISSET(i, exceptfds))) {
@@ -363,10 +379,18 @@ void sys_select(trapframe_t* tf)
         }
     }
 
-    umem_put_user(kreadfds, ureadfds);
-    umem_put_user(kwritefds, uwritefds);
-    umem_put_user(kexceptfds, uexceptfds);
-    umem_put_user(ktimeout, utimeout);
+    if (ureadfds) {
+        umem_put_user(kreadfds, ureadfds);
+    }
+    if (uwritefds) {
+        umem_put_user(kwritefds, uwritefds);
+    }
+    if (uexceptfds) {
+        umem_put_user(kexceptfds, uexceptfds);
+    }
+    if (utimeout) {
+        umem_put_user(ktimeout, utimeout);
+    }
     return_with_val(0);
 }
 
