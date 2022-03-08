@@ -893,11 +893,6 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
         return -EINVAL;
     }
 
-    if (vmm_is_copy_on_write(vaddr)) {
-        lock_release(&_vmm_lock);
-        return -EBUSY;
-    }
-
     int swap_mode = SWAP_TO_DEV;
     if (zone->ops && zone->ops->swap_page_mode) {
         swap_mode = zone->ops->swap_page_mode(zone, vaddr);

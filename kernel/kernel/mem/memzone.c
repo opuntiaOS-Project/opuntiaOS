@@ -215,6 +215,9 @@ int memzone_free_no_proc(dynamic_array_t* zones, memzone_t* givzone)
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(zones, i);
         if (givzone == zone) {
+            if (givzone->file) {
+                dentry_put(givzone->file);
+            }
             _proc_swap_zones(zone, dynarr_get(zones, zones_count - 1));
             dynarr_pop(zones);
             return 0;
