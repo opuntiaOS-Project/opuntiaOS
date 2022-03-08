@@ -68,7 +68,14 @@ static void _pmm_init_ram()
     for (int i = 0; i < pmm_state.boot_desc->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
             pmm_state.ram_offset = min(pmm_state.ram_offset, memory_map[i].startLo);
+
+            // This is a hack, since memory map differs a lot for x86 and arm.
+            // Might need to unify this somehow (maybe pass info from bootloader?).
+#ifdef __i386__
             pmm_state.ram_size = max(pmm_state.ram_size, memory_map[i].startLo + memory_map[i].sizeLo);
+#elif __arm__
+            pmm_state.ram_size += memory_map[i].sizeLo;
+#endif
         }
     }
 }
