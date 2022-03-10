@@ -22,13 +22,49 @@ int uint2048_init(uint2048_t* d, uint32_t n)
     return 0;
 }
 
-int uint2048_init_bytes(uint2048_t* d, char* f, size_t n)
+int uint2048_init_bytes(uint2048_t* d, const char* f, size_t n)
 {
-    if (n > 2048) {
+    if (n > sizeof(uint2048_t)) {
         return -1;
     }
     memset(d->bucket, 0, sizeof(uint2048_t));
     memcpy(d->bucket, f, n);
+    return 0;
+}
+
+static inline uint32_t char_to_u32_safe_convert(char x)
+{
+    return x > 0 ? x : 256 + x;
+}
+
+int uint2048_init_bytes_be(uint2048_t* d, const char* f, size_t n)
+{
+    if (n > sizeof(uint2048_t)) {
+        return -1;
+    }
+
+    size_t i = 0;
+    uint32_t bytes4 = 0;
+    size_t dd = (n / 4) * 4;
+    size_t dr = n - dd;
+    for (int fi = n - 4; fi >= 0; fi -= 4) {
+        bytes4 = 0;
+        bytes4 |= char_to_u32_safe_convert(f[fi]) << 24;
+        bytes4 |= char_to_u32_safe_convert(f[fi + 1]) << 16;
+        bytes4 |= char_to_u32_safe_convert(f[fi + 2]) << 8;
+        bytes4 |= char_to_u32_safe_convert(f[fi + 3]) << 0;
+        d->bucket[i++] = bytes4;
+    }
+
+    bytes4 = 0;
+    for (int remi = dr - 1; remi >= 0; remi--) {
+        bytes4 |= char_to_u32_safe_convert(f[dd + remi]) << (remi * 8);
+    }
+    d->bucket[i++] = bytes4;
+
+    while (i < N_UINT2048)
+        d->bucket[i++] = 0;
+
     return 0;
 }
 
@@ -226,6 +262,16 @@ bool uint2048_less_equal(uint2048_t* a, uint2048_t* b)
             return true;
         }
         if (a->bucket[i] > b->bucket[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool uint2048_equal(uint2048_t* a, uint2048_t* b)
+{
+    for (int i = 0; i < N_UINT2048; i++) {
+        if (a->bucket[i] != b->bucket[i]) {
             return false;
         }
     }

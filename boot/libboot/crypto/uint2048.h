@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _BOOT_LIBBOOT_CRYPTO_UINT256_H
-#define _BOOT_LIBBOOT_CRYPTO_UINT256_H
+#ifndef _BOOT_LIBBOOT_CRYPTO_UINT2048_H
+#define _BOOT_LIBBOOT_CRYPTO_UINT2048_H
 
 #include <libboot/mem/mem.h>
 #include <libboot/types.h>
@@ -23,7 +23,8 @@ struct uint2048 {
 typedef struct uint2048 uint2048_t;
 
 int uint2048_init(uint2048_t* d, uint32_t n);
-int uint2048_init_bytes(uint2048_t* d, char* f, size_t n);
+int uint2048_init_bytes(uint2048_t* d, const char* f, size_t n);
+int uint2048_init_bytes_be(uint2048_t* d, const char* f, size_t n);
 int uint2048_copy(uint2048_t* dest, uint2048_t* src);
 
 int uint2048_add(uint2048_t* a, uint2048_t* b, uint2048_t* c);
@@ -38,6 +39,7 @@ int uint2048_mult(uint2048_t* a, uint2048_t* b, uint2048_t* c);
 int uint2048_div(uint2048_t* a, uint2048_t* b, uint2048_t* ans, uint2048_t* rem);
 int uint2048_pow(uint2048_t* ua, uint2048_t* up, uint2048_t* mod, uint2048_t* ans);
 
+bool uint2048_equal(uint2048_t* a, uint2048_t* b);
 bool uint2048_less(uint2048_t* a, uint2048_t* b);
 bool uint2048_less_equal(uint2048_t* a, uint2048_t* b);
 
@@ -46,4 +48,4 @@ bool uint2048_is_odd(uint2048_t* a);
 
 int uint2048_dump(uint2048_t* a);
 
-#endif // _BOOT_LIBBOOT_CRYPTO_UINT256_H
+#endif // _BOOT_LIBBOOT_CRYPTO_UINT2048_H
