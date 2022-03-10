@@ -17,6 +17,5 @@ size_t hw_ram_get_size()
         log("Can't find RAM in devtree");
         while (1) { };
     }
-    log("ram size %x", dev->region_base);
     return dev->region_size;
 }

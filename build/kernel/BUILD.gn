@@ -119,9 +119,20 @@ executable("kernel_build") {
   ldflags = [ "-T$linker_script" ]
 }
 
+action("kernel_signature") {
+  deps = [ ":kernel_build" ]
+  script = "//build/kernel/sign_kernel.py"
+  outputs = [ "$root_out_dir/base/boot/.kernsign" ]
+  args = [
+    rebase_path("$root_out_dir/$kernel_out_path/kernel.bin", root_build_dir),
+    rebase_path("$root_out_dir/base/boot/.kernsign", root_build_dir),
+  ]
+}
+
 group("kernel") {
   deps = [
     ":kernel_build",
+    ":kernel_signature",
     "//build/boot:boot",
   ]
 }
