@@ -8,17 +8,10 @@
 
 #include <libboot/fs/ext2_lite.h>
 #include <libboot/mem/mem.h>
+#include <libboot/types.h>
 
 superblock_t superblock;
 drive_desc_t* active_drive_desc;
-
-uint32_t _ext2_lite_min(uint32_t a, uint32_t b)
-{
-    if (a < b) {
-        return a;
-    }
-    return b;
-}
 
 uint32_t _ext2_lite_get_block_len()
 {
@@ -39,11 +32,11 @@ void _ext2_lite_read(uint8_t* buf, uint32_t start, uint32_t len)
         uint32_t sector = start / 512;
         uint32_t start_offset = start % 512;
         read(sector, tmp_read_buf);
-        for (int i = 0; i < _ext2_lite_min(512 - start_offset, len); i++) {
+        for (int i = 0; i < min(512 - start_offset, len); i++) {
             buf[already_read++] = tmp_read_buf[start_offset + i];
         }
-        len -= _ext2_lite_min(512 - start_offset, len);
-        start += _ext2_lite_min(512 - start_offset, len);
+        len -= min(512 - start_offset, len);
+        start += min(512 - start_offset, len);
     }
 }
 
@@ -84,8 +77,9 @@ int ext2_lite_init(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
         return -1;
     }
 
-    // fs_desc->get_file_desc = ext2_lite_read;
+    fs_desc->get_inode = (void*)ext2_lite_get_inode;
     fs_desc->read = ext2_lite_read;
+    fs_desc->read_from_inode = (void*)ext2_lite_read_inode;
     return 0;
 }
 
@@ -200,19 +194,6 @@ uint32_t _ext2_lite_get_block_of_file_lev2(uint32_t cur_block, uint32_t file_blo
     return _ext2_lite_get_block_of_file_lev1(buf[offset], offset_inner);
 }
 
-uint32_t _ext2_lite_get_block_of_file_lev3(uint32_t cur_block, uint32_t file_block_index)
-{
-    _ext2_lite_read(tmp_block_buf, _ext2_lite_get_offset_of_block(cur_block), _ext2_lite_get_block_len());
-    uint32_t* buf = (uint32_t*)tmp_block_buf;
-
-    uint32_t block_len = _ext2_lite_get_block_len() / 4;
-    uint32_t lev_contain = block_len * block_len * block_len;
-    uint32_t offset = file_block_index / lev_contain;
-    uint32_t offset_inner = file_block_index % lev_contain;
-
-    return _ext2_lite_get_block_of_file_lev2(buf[offset], offset_inner);
-}
-
 // TODO think of more effecient version
 uint32_t _ext2_lite_get_block_of_file(inode_t* inode, uint32_t file_block_index)
 {
@@ -224,17 +205,14 @@ uint32_t _ext2_lite_get_block_of_file(inode_t* inode, uint32_t file_block_index)
     } else if (file_block_index < 12 + block_len + block_len * block_len) { // double indirect
         return _ext2_lite_get_block_of_file_lev1(inode->block[13], file_block_index - 12 - block_len);
     } else { // triple indirect
-        return _ext2_lite_get_block_of_file_lev0(inode->block[14], file_block_index - (12 + block_len + block_len * block_len));
+        return _ext2_lite_get_block_of_file_lev2(inode->block[14], file_block_index - (12 + block_len + block_len * block_len));
     }
 }
 
-// TODO think of more effecient version
 // Note to save mem: the func reuses tmp_block_buf.
-int ext2_lite_read(drive_desc_t* drive_desc, char* path, uint8_t* buf, uint32_t from, uint32_t len)
+int ext2_lite_read_inode(drive_desc_t* drive_desc, inode_t* inode, uint8_t* buf, uint32_t from, uint32_t len)
 {
     active_drive_desc = drive_desc;
-    inode_t inode;
-    ext2_lite_get_inode(drive_desc, path, &inode);
 
     const uint32_t block_len = _ext2_lite_get_block_len();
     uint32_t start_block_index = from / block_len;
@@ -243,16 +221,21 @@ int ext2_lite_read(drive_desc_t* drive_desc, char* path, uint8_t* buf, uint32_t 
     uint32_t write_offset = 0;
 
     for (uint32_t block_index = start_block_index; block_index <= end_block_index; block_index++) {
-        uint32_t data_block_index = _ext2_lite_get_block_of_file(&inode, block_index);
+        uint32_t data_block_index = _ext2_lite_get_block_of_file(inode, block_index);
         _ext2_lite_read(tmp_block_buf, _ext2_lite_get_offset_of_block(data_block_index), _ext2_lite_get_block_len());
-        for (int i = 0; i < _ext2_lite_min(len, block_len - read_offset); i++) {
+        for (int i = 0; i < min(len, block_len - read_offset); i++) {
             buf[write_offset++] = tmp_block_buf[read_offset + i];
         }
-        len -= _ext2_lite_min(len, block_len - read_offset);
+        len -= min(len, block_len - read_offset);
         read_offset = 0;
     }
-    if (len != 0) {
-        return -1;
-    }
-    return 0;
+    return write_offset;
+}
+
+int ext2_lite_read(drive_desc_t* drive_desc, char* path, uint8_t* buf, uint32_t from, uint32_t len)
+{
+    active_drive_desc = drive_desc;
+    inode_t inode;
+    ext2_lite_get_inode(drive_desc, path, &inode);
+    return ext2_lite_read_inode(drive_desc, &inode, buf, from, len);
 }

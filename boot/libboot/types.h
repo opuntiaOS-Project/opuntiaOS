@@ -39,4 +39,18 @@ typedef __builtin_va_list va_list;
 #define ALIGNED(x) __attribute__((aligned(x)))
 #define PACKED __attribute__((packed))
 
+#ifndef max
+#define max(a, b) \
+    ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+#endif /* max */
+
+#ifndef min
+#define min(a, b) \
+    ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
+#endif /* min */
+
 #endif // _BOOT_LIBBOOT_TYPES_H
