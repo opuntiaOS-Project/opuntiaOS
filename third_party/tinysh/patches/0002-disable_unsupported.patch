@@ -1,0 +1,273 @@
+--- src/simple-c-shell_old.c	2022-03-11 17:47:26.000000000 +0300
++++ src/simple-c-shell.c	2022-03-11 17:50:48.000000000 +0300
+@@ -26,7 +26,37 @@
+ #include <sys/wait.h>
+ #include <fcntl.h>
+ #include <termios.h>
+-#include "util.h"
++
++#define TRUE 1
++#define FALSE !TRUE
++
++// Shell pid, pgid, terminal modes
++static pid_t GBSH_PID;
++static pid_t GBSH_PGID;
++static int GBSH_IS_INTERACTIVE;
++static struct termios GBSH_TMODES;
++
++static char* currentDirectory;
++extern char** environ;
++
++// struct sigaction act_child;
++// struct sigaction act_int;
++
++int no_reprint_prmpt;
++
++pid_t pid;
++
++
++/**
++ * SIGNAL HANDLERS
++ */
++// signal handler for SIGCHLD */
++void signalHandler_child(int p);
++// signal handler for SIGINT
++void signalHandler_int(int p);
++
++
++int changeDirectory(char * args[]);
+ 
+ #define LIMIT 256 // max number of tokens for a command
+ #define MAXLINE 1024 // max number of characters from user input
+@@ -39,51 +69,53 @@
+ 		// See if we are running interactively
+         GBSH_PID = getpid();
+         // The shell is interactive if STDIN is the terminal  
+-        GBSH_IS_INTERACTIVE = isatty(STDIN_FILENO);  
++        GBSH_IS_INTERACTIVE = 1;  
+ 
+-		if (GBSH_IS_INTERACTIVE) {
+-			// Loop until we are in the foreground
+-			while (tcgetpgrp(STDIN_FILENO) != (GBSH_PGID = getpgrp()))
+-					kill(GBSH_PID, SIGTTIN);             
++		// if (GBSH_IS_INTERACTIVE) {
++		// 	// Loop until we are in the foreground
++		// 	while (tcgetpgrp(STDIN_FILENO) != (GBSH_PGID = getpgrp()))
++		// 			kill(GBSH_PID, SIGTTIN);             
+ 	              
+ 	              
+-	        // Set the signal handlers for SIGCHILD and SIGINT
+-			act_child.sa_handler = signalHandler_child;
+-			act_int.sa_handler = signalHandler_int;			
+-			
+-			/**The sigaction structure is defined as something like
+-			
+-			struct sigaction {
+-				void (*sa_handler)(int);
+-				void (*sa_sigaction)(int, siginfo_t *, void *);
+-				sigset_t sa_mask;
+-				int sa_flags;
+-				void (*sa_restorer)(void);
++	    //     // Set the signal handlers for SIGCHILD and SIGINT
++		// 	// act_child.sa_handler = signalHandler_child;
++		// 	// act_int.sa_handler = signalHandler_int;			
++			
++		// 	/**The sigaction structure is defined as something like
++			
++		// 	struct sigaction {
++		// 		void (*sa_handler)(int);
++		// 		void (*sa_sigaction)(int, siginfo_t *, void *);
++		// 		sigset_t sa_mask;
++		// 		int sa_flags;
++		// 		void (*sa_restorer)(void);
+ 				
+-			}*/
++		// 	}*/
+ 			
+-			sigaction(SIGCHLD, &act_child, 0);
+-			sigaction(SIGINT, &act_int, 0);
++		// 	sigaction(SIGCHLD, signalHandler_child);
++		// 	sigaction(SIGINT, signalHandler_int);
+ 			
+-			// Put ourselves in our own process group
+-			setpgid(GBSH_PID, GBSH_PID); // we make the shell process the new process group leader
+-			GBSH_PGID = getpgrp();
+-			if (GBSH_PID != GBSH_PGID) {
+-					printf("Error, the shell is not process group leader");
+-					exit(EXIT_FAILURE);
+-			}
+-			// Grab control of the terminal
+-			tcsetpgrp(STDIN_FILENO, GBSH_PGID);  
+-			
+-			// Save default terminal attributes for shell
+-			tcgetattr(STDIN_FILENO, &GBSH_TMODES);
+-
+-			// Get the current directory that will be used in different methods
+-			currentDirectory = (char*) calloc(1024, sizeof(char));
+-        } else {
+-                printf("Could not make the shell interactive.\n");
+-                exit(EXIT_FAILURE);
+-        }
++		// 	// Put ourselves in our own process group
++		// 	setpgid(GBSH_PID, GBSH_PID); // we make the shell process the new process group leader
++		// 	GBSH_PGID = getpgrp();
++		// 	if (GBSH_PID != GBSH_PGID) {
++		// 			printf("Error, the shell is not process group leader");
++		// 			exit(EXIT_FAILURE);
++		// 	}
++		// 	// Grab control of the terminal
++		// 	tcsetpgrp(STDIN_FILENO, GBSH_PGID);  
++			
++		// 	// Save default terminal attributes for shell
++		// 	tcgetattr(STDIN_FILENO, &GBSH_TMODES);
++
++		// 	// Get the current directory that will be used in different methods
++			// currentDirectory = (char*) calloc(1024, sizeof(char));
++        // } else {
++        //         printf("Could not make the shell interactive.\n");
++        //         exit(EXIT_FAILURE);
++        // }
++        // putenv("LOGNAME=anon");
++        currentDirectory = (char*) calloc(1024, sizeof(char));
+ }
+ 
+ /**
+@@ -132,8 +164,8 @@
+  */
+ void shellPrompt(){
+ 	// We print the prompt in the form "<user>@<host> <cwd> >"
+-	char hostn[1204] = "";
+-	gethostname(hostn, sizeof(hostn));
++	char hostn[1204] = "mbp";
++	// gethostname(hostn, sizeof(hostn));
+ 	printf("%s@%s %s > ", getenv("LOGNAME"), hostn, getcwd(currentDirectory, 1024));
+ }
+ 
+@@ -211,6 +243,11 @@
+ 	}
+ 	return 0;
+ }
++
++int doEcho(char * args[], int option) {
++    printf("%s", args[1]);
++	return 0;
++}
+  
+ /**
+ * Method for launching a program. It can be run in the background
+@@ -291,7 +328,7 @@
+ 		 
+ 		setenv("parent",getcwd(currentDirectory, 1024),1);
+ 		
+-		if (execvp(args[0],args)==err){
++        if (execvp(args[0],args)==err){
+ 			printf("err");
+ 			kill(getpid(),SIGTERM);
+ 		}		 
+@@ -302,6 +339,7 @@
+ /**
+ * Method used to manage pipes.
+ */ 
++/*
+ void pipeHandler(char * args[]){
+ 	// File descriptors
+ 	int filedes[2]; // pos. 0 output, pos. 1 input of the pipe
+@@ -440,6 +478,7 @@
+ 		i++;	
+ 	}
+ }
++*/
+ 			
+ /**
+ * Method used to handle the commands entered via the standard input
+@@ -475,19 +514,21 @@
+ 			if ( (strcmp(args[j],">") == 0) && (args[j+1] != NULL) ){
+ 				fileDescriptor = open(args[j+1], O_CREAT | O_TRUNC | O_WRONLY, 0600); 
+ 				// We replace de standard output with the appropriate file
+-				standardOut = dup(STDOUT_FILENO); 	// first we make a copy of stdout
++				fflush(stdout);
++                standardOut = dup(STDOUT_FILENO); 	// first we make a copy of stdout
+ 													// because we'll want it back
+ 				dup2(fileDescriptor, STDOUT_FILENO); 
+ 				close(fileDescriptor);
+ 				printf("%s\n", getcwd(currentDirectory, 1024));
+-				dup2(standardOut, STDOUT_FILENO);
++				fflush(stdout);
++                dup2(standardOut, STDOUT_FILENO);
+ 			}
+ 		}else{
+ 			printf("%s\n", getcwd(currentDirectory, 1024));
+ 		}
+ 	} 
+  	// 'clear' command clears the screen
+-	else if (strcmp(args[0],"clear") == 0) system("clear");
++	// else if (strcmp(args[0],"clear") == 0) system("clear");
+ 	// 'cd' command to change directory
+ 	else if (strcmp(args[0],"cd") == 0) changeDirectory(args);
+ 	// 'environ' command to list the environment variables
+@@ -497,11 +538,13 @@
+ 			if ( (strcmp(args[j],">") == 0) && (args[j+1] != NULL) ){
+ 				fileDescriptor = open(args[j+1], O_CREAT | O_TRUNC | O_WRONLY, 0600); 
+ 				// We replace de standard output with the appropriate file
+-				standardOut = dup(STDOUT_FILENO); 	// first we make a copy of stdout
++				fflush(stdout);
++                standardOut = dup(STDOUT_FILENO); 	// first we make a copy of stdout
+ 													// because we'll want it back
+ 				dup2(fileDescriptor, STDOUT_FILENO); 
+ 				close(fileDescriptor);
+ 				manageEnviron(args,0);
++                fflush(stdout);
+ 				dup2(standardOut, STDOUT_FILENO);
+ 			}
+ 		}else{
+@@ -512,6 +555,25 @@
+ 	else if (strcmp(args[0],"setenv") == 0) manageEnviron(args,1);
+ 	// 'unsetenv' command to undefine environment variables
+ 	else if (strcmp(args[0],"unsetenv") == 0) manageEnviron(args,2);
++    else if (strcmp(args[0],"echo") == 0){
++		if (args[j] != NULL){
++			// If we want file output
++			if ( (strcmp(args[j],">") == 0) && (args[j+1] != NULL) ){
++				fileDescriptor = open(args[j+1], O_CREAT | O_TRUNC | O_WRONLY, 0600); 
++				// We replace de standard output with the appropriate file
++				fflush(stdout);
++                standardOut = dup(STDOUT_FILENO); 	// first we make a copy of stdout
++													// because we'll want it back
++				dup2(fileDescriptor, STDOUT_FILENO); 
++				close(fileDescriptor);
++				doEcho(args,0);
++                fflush(stdout);
++				dup2(standardOut, STDOUT_FILENO);
++			}
++		}else{
++			doEcho(args,0);
++		}
++	}
+ 	else{
+ 		// If none of the preceding commands were used, we invoke the
+ 		// specified program. We have to detect if I/O redirection,
+@@ -525,7 +587,7 @@
+ 			// the appropriate method that will handle the different
+ 			// executions
+ 			}else if (strcmp(args[i],"|") == 0){
+-				pipeHandler(args);
++				// pipeHandler(args);
+ 				return 1;
+ 			// If '<' is detected, we have Input and Output redirection.
+ 			// First we check if the structure given is the correct one,
+@@ -590,7 +652,7 @@
+ 	
+ 	// We call the method of initialization and the welcome screen
+ 	init();
+-	welcomeScreen();
++	// welcomeScreen();
+     
+     // We set our extern char** environ to the environment, so that
+     // we can treat it later in other methods
+@@ -626,4 +688,4 @@
+ 	}          
+ 
+ 	exit(0);
+-}
++}
+\ No newline at end of file

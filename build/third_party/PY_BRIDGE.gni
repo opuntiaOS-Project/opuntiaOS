@@ -1,0 +1,33 @@
+# Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+#  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+#
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/userland/USERLAND_FLAGS.gni")
+import("//toolchains/COMPILERS.gni")
+
+if (uland_ld_flags == []) {
+  port_ld_flags = [ "__EMPTY__" ]
+} else {
+  port_ld_flags = uland_ld_flags
+}
+
+py_bridging_args = [
+  # outpath here is inserted
+  rebase_path("//", root_build_dir), # rootdir
+  "$target_cpu",  # target cpu
+  "$host",  # host compiler
+  string_join(" ",
+              [
+                toolchain_ar,
+                toolchain_cc,
+                toolchain_cxx,
+                toolchain_ld,
+                toolchain_asm,
+                toolchain_target,
+              ]),  # compiler_toolchain
+  string_join(" ", uland_c_flags),  # c_flags
+  string_join(" ", uland_cc_flags),  # cc_flags
+  string_join(" ", port_ld_flags),  # ld_flags
+]

@@ -1,0 +1,83 @@
+# Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+#  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+#
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+uland_c_flags = [
+  "-Werror",
+  "-Wno-address-of-packed-member",
+]
+
+if (userland_symbols) {
+  uland_c_flags += [ "-ggdb" ]
+}
+
+if (optimize) {
+  uland_c_flags += [ "-Os" ]
+}
+
+uland_cc_flags = [
+  "-std=c++2a",
+  "-fno-sized-deallocation",
+  "-fno-rtti",
+  "-fno-exceptions",
+  "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
+]
+
+uland_objcc_flags = uland_cc_flags + [
+                      "-fno-objc-exceptions",
+                      "-fno-objc-arc",
+                    ]
+
+uland_asm_flags = []
+uland_ld_flags = []
+
+if (device_type == "desktop") {
+  uland_c_flags += [ "-DTARGET_DESKTOP" ]
+}
+if (device_type == "mobile") {
+  uland_c_flags += [ "-DTARGET_MOBILE" ]
+}
+
+if (target_cpu == "x86") {
+  uland_asm_flags += [
+    "-f",
+    "elf",
+  ]
+}
+
+if (target_cpu == "aarch32") {
+  uland_c_flags += [
+    "-fno-builtin",
+    "-march=armv7-a",
+    "-mfpu=neon-vfpv4",
+    "-mfloat-abi=softfp",
+    "-fno-pie",
+  ]
+  uland_asm_flags += [
+    "-march=armv7-a",
+    "-mfpu=neon-vfpv4",
+    "-mfloat-abi=softfp",
+    "-mcpu=cortex-a15",
+  ]
+  uland_ld_flags += [ "-nostdlib" ]
+
+  if (host == "gnu") {
+    uland_ld_flags += [
+      "-nostdinc",
+      "-nodefaultlibs",
+      "-nostartfiles",
+      "-lgcc",
+    ]
+  }
+
+  if (host == "llvm") {
+    uland_ld_flags += [
+      "--oformat",
+      "elf32-littlearm",
+      rebase_path("//toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-arm.a",
+                  ""),
+    ]
+  }
+}

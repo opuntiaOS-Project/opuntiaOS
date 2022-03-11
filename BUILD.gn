@@ -9,6 +9,7 @@ group("build") {
     "//build/libs:libs",
     "//build/servers:servers",
     "//build/userland:userland",
+    "//build/third_party:third_party",
   ]
 
   if (compile_tests) {
