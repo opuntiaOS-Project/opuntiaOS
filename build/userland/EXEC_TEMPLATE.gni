@@ -42,6 +42,17 @@ template("opuntiaOS_executable_template") {
     }
   }
 
+  linkflags = []
+  if (defined(invoker.need_sign_section) && invoker.need_sign_section == true) {
+    # Adding empty section for a signature.
+    # HACK: Since ldflags follow inputs for linker we put this
+    # section as a first flag, but it will be treated as input.
+    linkflags += [ rebase_path("$root_out_dir/tmp/elfsign_section.o", "") ]
+  }
+  if (defined(invoker.ldflags)) {
+    linkflags += invoker.ldflags
+  }
+
   executable(app_build_name) {
     if (defined(invoker.install_path)) {
       output_name = "base/" + invoker.install_path + app_name
@@ -53,6 +64,7 @@ template("opuntiaOS_executable_template") {
     deps = depbuilders
     include_dirs = includes
     configs = confs
+    ldflags = linkflags
     forward_variables_from(invoker,
                            [
                              "cflags",
@@ -61,7 +73,6 @@ template("opuntiaOS_executable_template") {
                              "cflags_objc",
                              "cflags_objcc",
                              "asmflags",
-                             "ldflags",
                              "public_deps",
                            ])
   }

@@ -4,17 +4,24 @@
 
 group("build") {
   deps = [
-    ":scripts",
+    ":env",
     "//build/kernel:kernel",
     "//build/libs:libs",
     "//build/servers:servers",
-    "//build/userland:userland",
     "//build/third_party:third_party",
+    "//build/userland:userland",
   ]
 
   if (compile_tests) {
     deps += [ "//build/test:test" ]
   }
+}
+
+group("env") {
+  deps = [
+    ":scripts",
+    "//build/tools:prepare_env",
+  ]
 }
 
 group("scripts") {

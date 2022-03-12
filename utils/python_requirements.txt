@@ -1,2 +1,3 @@
 construct==2.10.67
 gitpython==3.1.27
+pyelftools==0.28

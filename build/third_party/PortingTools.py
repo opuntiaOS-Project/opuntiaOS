@@ -5,7 +5,6 @@
 # found in the LICENSE file.
 
 import os
-from sre_constants import ASSERT
 import subprocess
 import sys
 from pathlib import Path

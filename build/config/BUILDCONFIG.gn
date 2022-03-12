@@ -36,6 +36,8 @@ if (device_type == "d") {
 if (target_cpu == "aarch32") {
   # Currently we support only vexpress-a15.
   target_board = "vexpress-a15"
+} else {
+  target_board = "i686"
 }
 
 if (host == "gnu") {
