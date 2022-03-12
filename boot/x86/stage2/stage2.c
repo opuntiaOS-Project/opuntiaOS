@@ -50,7 +50,7 @@ void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, mem_desc_t* mem_d
     boot_desc_t boot_desc;
     boot_desc.vaddr = kernel_vaddr;
     boot_desc.paddr = kernel_paddr;
-    boot_desc.kernel_size = (kernel_size + align_size(sizeof(boot_desc_t), VMM_PAGE_SIZE)) / 1024;
+    boot_desc.kernel_size = (kernel_size + align_size(sizeof(boot_desc_t), VMM_PAGE_SIZE));
     boot_desc.devtree = NULL;
     boot_desc.memory_map = (void*)0xA00;
     boot_desc.memory_map_size = mem_desc->memory_map_size;

@@ -8,7 +8,7 @@
 
 struct pmm_state {
     size_t kernel_va_base;
-    size_t kernel_size;
+    size_t kernel_data_size; // Kernel + MAT size.
 
     bitmap_t mat;
     boot_desc_t* boot_desc;

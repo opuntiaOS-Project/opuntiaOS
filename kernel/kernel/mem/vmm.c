@@ -27,12 +27,11 @@
 
 static vm_address_space_t _vmm_kernel_address_space;
 static vm_address_space_t* _vmm_kernel_address_space_ptr = &_vmm_kernel_address_space;
+static uintptr_t _vmm_kernel_pdir_paddr;
 static ptable_t* _vmm_kernel_pdir;
 static lock_t _vmm_lock;
 static kmemzone_t pspace_zone;
 uintptr_t kernel_ptables_start_paddr = 0x0;
-
-#define vmm_kernel_pdir_phys2virt(paddr) ((void*)((uintptr_t)paddr + KERNEL_BASE - KERNEL_PM_BASE))
 
 /**
  * PRIVATE FUNCTIONS
@@ -91,8 +90,8 @@ static int vmm_tune_pages_locked(uintptr_t vaddr, size_t length, mmu_flags_t mmu
  */
 static void vm_alloc_kernel_pdir()
 {
-    uintptr_t paddr = (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE(PTABLE_LV_TOP), PTABLE_SIZE(PTABLE_LV_TOP));
-    _vmm_kernel_pdir = (ptable_t*)vmm_kernel_pdir_phys2virt(paddr);
+    _vmm_kernel_pdir_paddr = (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE(PTABLE_LV_TOP), PTABLE_SIZE(PTABLE_LV_TOP));
+    _vmm_kernel_pdir = (ptable_t*)(_vmm_kernel_pdir_paddr + pmm_get_state()->boot_desc->vaddr - pmm_get_state()->boot_desc->paddr);
     _vmm_kernel_address_space.count = 1;
     _vmm_kernel_address_space.pdir = _vmm_kernel_pdir;
     lock_init(&_vmm_kernel_address_space.lock);
@@ -140,16 +139,13 @@ static bool _vmm_init_switch_to_kernel_pdir()
  *
  * @note Called only during the first stage of VM init.
  */
-static void _vmm_map_init_kernel_pages(uintptr_t paddr, uintptr_t vaddr)
+static void _vmm_map_kernel_page(uintptr_t paddr, uintptr_t vaddr)
 {
     ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - VMM_KERNEL_TABLES_START) * PTABLE_SIZE(PTABLE_LV0));
-    for (uintptr_t phyz = paddr, virt = vaddr, i = 0; i < PTABLE_ENTITY_COUNT(PTABLE_LV0); phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
-        ptable_entity_t new_page_entity;
-        vm_ptable_entity_set_default_flags(&new_page_entity, PTABLE_LV0);
-        vm_ptable_entity_set_mmu_flags(&new_page_entity, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
-        vm_ptable_entity_set_frame(&new_page_entity, PTABLE_LV0, phyz);
-        ptable_paddr->entities[i] = new_page_entity;
-    }
+    ptable_entity_t* page_desc = vm_lookup(ptable_paddr, PTABLE_LV0, vaddr);
+    vm_ptable_entity_set_default_flags(page_desc, PTABLE_LV0);
+    vm_ptable_entity_set_mmu_flags(page_desc, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
+    vm_ptable_entity_set_frame(page_desc, PTABLE_LV0, paddr);
 }
 
 /**
@@ -194,10 +190,19 @@ static bool _vmm_create_kernel_ptables()
         }
     }
 
-    int te = 0;
-    do {
-        _vmm_map_init_kernel_pages(kernel_mapping_table[te].paddr, kernel_mapping_table[te].vaddr);
-    } while (!kernel_mapping_table[te++].last);
+    const pmm_state_t* pmm_state = pmm_get_state();
+    uintptr_t paddr = pmm_state->boot_desc->paddr;
+    uintptr_t vaddr = pmm_state->kernel_va_base;
+    uintptr_t end_vaddr = pmm_state->kernel_va_base + pmm_state->kernel_data_size;
+    while (vaddr < end_vaddr) {
+        _vmm_map_kernel_page(paddr, vaddr);
+        vaddr += VMM_PAGE_SIZE;
+        paddr += VMM_PAGE_SIZE;
+    }
+
+    for (uintptr_t iaddr = 0; iaddr < PTABLE_SIZE(PTABLE_LV_TOP); iaddr += VMM_PAGE_SIZE) {
+        _vmm_map_kernel_page(_vmm_kernel_pdir_paddr + iaddr, (uintptr_t)_vmm_kernel_pdir + iaddr);
+    }
 
     return true;
 }

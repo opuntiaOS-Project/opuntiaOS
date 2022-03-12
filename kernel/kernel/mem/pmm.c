@@ -83,10 +83,11 @@ static void _pmm_init_ram()
 static void _pmm_allocate_mat()
 {
     size_t mat_cover_len = pmm_state.ram_size - pmm_state.ram_offset;
-    pmm_state.mat = bitmap_wrap((void*)(pmm_state.kernel_va_base + pmm_state.kernel_size), mat_cover_len / PMM_BLOCK_SIZE);
+    pmm_state.mat = bitmap_wrap((void*)(pmm_state.kernel_va_base + pmm_state.kernel_data_size), mat_cover_len / PMM_BLOCK_SIZE);
     pmm_state.max_blocks = mat_cover_len / PMM_BLOCK_SIZE;
     pmm_state.used_blocks = pmm_state.max_blocks;
     memset(pmm_state.mat.data, 0xff, pmm_state.mat.len / 8);
+    pmm_state.kernel_data_size += ROUND_CEIL(pmm_state.mat.len / 8, PMM_BLOCK_SIZE);
 }
 
 static void _pmm_init_mat()
@@ -106,7 +107,7 @@ static void _pmm_init_from_desc(boot_desc_t* boot_desc)
 {
     pmm_state.boot_desc = boot_desc;
     pmm_state.kernel_va_base = ROUND_CEIL(boot_desc->vaddr, PMM_BLOCK_SIZE);
-    pmm_state.kernel_size = ROUND_CEIL(boot_desc->kernel_size * 1024, PMM_BLOCK_SIZE);
+    pmm_state.kernel_data_size = ROUND_CEIL(boot_desc->kernel_size, PMM_BLOCK_SIZE);
 
     _pmm_init_ram();
     _pmm_allocate_mat();
@@ -117,12 +118,8 @@ static void _pmm_init_from_desc(boot_desc_t* boot_desc)
         _pmm_mark_used_region(pmm_state.ram_offset, boot_desc->paddr - pmm_state.ram_offset);
     }
 
-    // Marking kernel as used.
-    _pmm_mark_used_region(boot_desc->paddr, boot_desc->kernel_size * 1024);
-
-    // Marking MAT as used.
-    size_t mat_pa_base = (size_t)pmm_state.mat.data - boot_desc->vaddr + boot_desc->paddr;
-    _pmm_mark_used_region(mat_pa_base, pmm_state.mat.len / 8);
+    // Marking all kernel data as used.
+    _pmm_mark_used_region(boot_desc->paddr, pmm_state.kernel_data_size);
 }
 
 void pmm_setup(boot_desc_t* boot_desc)
