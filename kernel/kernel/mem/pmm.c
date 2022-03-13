@@ -64,8 +64,8 @@ static void _pmm_init_ram()
     pmm_state.ram_offset = (size_t)-1;
     pmm_state.ram_size = 0;
 
-    memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_desc->memory_map;
-    for (int i = 0; i < pmm_state.boot_desc->memory_map_size; i++) {
+    memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->memory_map;
+    for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
             pmm_state.ram_offset = min(pmm_state.ram_offset, memory_map[i].startLo);
 
@@ -92,8 +92,8 @@ static void _pmm_allocate_mat()
 
 static void _pmm_init_mat()
 {
-    memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_desc->memory_map;
-    for (int i = 0; i < pmm_state.boot_desc->memory_map_size; i++) {
+    memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->memory_map;
+    for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
 #ifdef DEBUG_PMM
             log("  %d: %x - %x", i, memory_map[i].startLo, memory_map[i].sizeLo);
@@ -103,28 +103,28 @@ static void _pmm_init_mat()
     }
 }
 
-static void _pmm_init_from_desc(boot_desc_t* boot_desc)
+static void _pmm_init_from_desc(boot_args_t* boot_args)
 {
-    pmm_state.boot_desc = boot_desc;
-    pmm_state.kernel_va_base = ROUND_CEIL(boot_desc->vaddr, PMM_BLOCK_SIZE);
-    pmm_state.kernel_data_size = ROUND_CEIL(boot_desc->kernel_size, PMM_BLOCK_SIZE);
+    pmm_state.boot_args = boot_args;
+    pmm_state.kernel_va_base = ROUND_CEIL(boot_args->vaddr, PMM_BLOCK_SIZE);
+    pmm_state.kernel_data_size = ROUND_CEIL(boot_args->kernel_size, PMM_BLOCK_SIZE);
 
     _pmm_init_ram();
     _pmm_allocate_mat();
     _pmm_init_mat();
 
     // Marking all locations before kernel as used.
-    if (boot_desc->paddr > pmm_state.ram_offset) {
-        _pmm_mark_used_region(pmm_state.ram_offset, boot_desc->paddr - pmm_state.ram_offset);
+    if (boot_args->paddr > pmm_state.ram_offset) {
+        _pmm_mark_used_region(pmm_state.ram_offset, boot_args->paddr - pmm_state.ram_offset);
     }
 
     // Marking all kernel data as used.
-    _pmm_mark_used_region(boot_desc->paddr, pmm_state.kernel_data_size);
+    _pmm_mark_used_region(boot_args->paddr, pmm_state.kernel_data_size);
 }
 
-void pmm_setup(boot_desc_t* boot_desc)
+void pmm_setup(boot_args_t* boot_args)
 {
-    _pmm_init_from_desc(boot_desc);
+    _pmm_init_from_desc(boot_args);
 }
 
 static void* pmm_alloc_blocks(size_t count)
@@ -217,4 +217,9 @@ size_t pmm_get_free_space_in_kb()
 const pmm_state_t* pmm_get_state()
 {
     return &pmm_state;
+}
+
+const boot_args_t* boot_args()
+{
+    return pmm_state.boot_args;
 }

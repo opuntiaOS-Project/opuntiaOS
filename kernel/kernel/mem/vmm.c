@@ -91,7 +91,7 @@ static int vmm_tune_pages_locked(uintptr_t vaddr, size_t length, mmu_flags_t mmu
 static void vm_alloc_kernel_pdir()
 {
     _vmm_kernel_pdir_paddr = (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE(PTABLE_LV_TOP), PTABLE_SIZE(PTABLE_LV_TOP));
-    _vmm_kernel_pdir = (ptable_t*)(_vmm_kernel_pdir_paddr + pmm_get_state()->boot_desc->vaddr - pmm_get_state()->boot_desc->paddr);
+    _vmm_kernel_pdir = (ptable_t*)(_vmm_kernel_pdir_paddr + pmm_get_state()->boot_args->vaddr - pmm_get_state()->boot_args->paddr);
     _vmm_kernel_address_space.count = 1;
     _vmm_kernel_address_space.pdir = _vmm_kernel_pdir;
     lock_init(&_vmm_kernel_address_space.lock);
@@ -191,7 +191,7 @@ static bool _vmm_create_kernel_ptables()
     }
 
     const pmm_state_t* pmm_state = pmm_get_state();
-    uintptr_t paddr = pmm_state->boot_desc->paddr;
+    uintptr_t paddr = pmm_state->boot_args->paddr;
     uintptr_t vaddr = pmm_state->kernel_va_base;
     uintptr_t end_vaddr = pmm_state->kernel_va_base + pmm_state->kernel_data_size;
     while (vaddr < end_vaddr) {

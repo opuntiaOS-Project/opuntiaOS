@@ -11,7 +11,7 @@ struct pmm_state {
     size_t kernel_data_size; // Kernel + MAT size.
 
     bitmap_t mat;
-    boot_desc_t* boot_desc;
+    boot_args_t* boot_args;
 
     size_t ram_size;
     size_t ram_offset;
@@ -21,7 +21,7 @@ struct pmm_state {
 };
 typedef struct pmm_state pmm_state_t;
 
-void pmm_setup(boot_desc_t* boot_desc);
+void pmm_setup(boot_args_t* boot_args);
 
 void* pmm_alloc(size_t size);
 void* pmm_alloc_aligned(size_t size, size_t alignment);
@@ -35,5 +35,6 @@ size_t pmm_get_block_size();
 size_t pmm_get_ram_in_kb();
 size_t pmm_get_free_space_in_kb();
 const pmm_state_t* pmm_get_state();
+const boot_args_t* boot_args();
 
 #endif // _KERNEL_MEM_PMM_H

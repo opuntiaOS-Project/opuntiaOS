@@ -51,9 +51,9 @@ static driver_desc_t _devtree_driver_info()
     return dt_desc;
 }
 
-int devtree_init(boot_desc_t* boot_desc)
+int devtree_init(boot_args_t* boot_args)
 {
-    void* devtree = boot_desc->devtree;
+    void* devtree = boot_args->devtree;
     if (!devtree) {
         return 1;
     }

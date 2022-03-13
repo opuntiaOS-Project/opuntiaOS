@@ -27,14 +27,16 @@ struct mem_desc {
 };
 typedef struct mem_desc mem_desc_t;
 
-struct boot_desc {
+struct boot_args {
     size_t paddr;
     size_t vaddr;
     void* memory_map;
     size_t memory_map_size;
     size_t kernel_size;
     void* devtree;
+    char cmd_args[32];
+    char init_process[32];
 };
-typedef struct boot_desc boot_desc_t;
+typedef struct boot_args boot_args_t;
 
 #endif // _BOOT_LIBBOOT_ABI_MEMORY_H

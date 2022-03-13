@@ -60,16 +60,16 @@ void launching()
     ksys1(SYS_EXIT, 0);
 }
 
-void stage3(boot_desc_t* boot_desc)
+void stage3(boot_args_t* boot_args)
 {
     boot_cpu_finish(&__boot_cpu_launched);
     system_disable_interrupts();
-    devtree_init(boot_desc);
+    devtree_init(boot_args);
     logger_setup();
     platform_init_boot_cpu();
 
     // mem setup
-    pmm_setup(boot_desc);
+    pmm_setup(boot_args);
     vmm_setup();
     platform_setup_boot_cpu();
     boot_cpu_finish(&__boot_cpu_setup_devices);

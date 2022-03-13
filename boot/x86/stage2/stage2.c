@@ -19,7 +19,7 @@
 
 // #define DEBUG_BOOT
 
-static boot_desc_t boot_desc;
+static boot_args_t boot_args;
 
 int prepare_boot_disk(drive_desc_t* drive_desc)
 {
@@ -47,15 +47,16 @@ void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, mem_desc_t* mem_d
     int res = elf_load_kernel(drive_desc, fs_desc, KERNEL_PATH, &kernel_vaddr, &kernel_paddr, &kernel_size);
     kernel_size = align_size(kernel_size, VMM_PAGE_SIZE);
 
-    boot_desc_t boot_desc;
-    boot_desc.vaddr = kernel_vaddr;
-    boot_desc.paddr = kernel_paddr;
-    boot_desc.kernel_size = (kernel_size + align_size(sizeof(boot_desc_t), VMM_PAGE_SIZE));
-    boot_desc.devtree = NULL;
-    boot_desc.memory_map = (void*)0xA00;
-    boot_desc.memory_map_size = mem_desc->memory_map_size;
+    boot_args_t boot_args;
+    boot_args.vaddr = kernel_vaddr;
+    boot_args.paddr = kernel_paddr;
+    boot_args.kernel_size = (kernel_size + align_size(sizeof(boot_args_t), VMM_PAGE_SIZE));
+    boot_args.devtree = NULL;
+    boot_args.memory_map = (void*)0xA00;
+    boot_args.memory_map_size = mem_desc->memory_map_size;
+    memcpy(boot_args.init_process, "/boot/init", sizeof("/boot/init"));
 
-    bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_desc, sizeof(boot_desc), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
+    bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_args, sizeof(boot_args), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 }
 
 #define tmp_buf_size (4096)
