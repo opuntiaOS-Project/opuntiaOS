@@ -56,6 +56,16 @@ size_t strlen(const char* s)
     return i;
 }
 
+size_t strnlen(const char* s, size_t maxlen)
+{
+    size_t i = 0;
+    while (s[i] != '\0' && maxlen) {
+        i++;
+        maxlen--;
+    }
+    return i;
+}
+
 void* memset(void* dest, uint8_t fll, uint32_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {

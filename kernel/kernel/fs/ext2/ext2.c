@@ -791,7 +791,7 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
         if (start_of_entry->inode == child_dentry->inode_indx) {
             /* FIXME: just fix that */
             if (!prev_entry) {
-                kpanic("Ext2: can't delete first entry.");
+                kpanic("Ext2: can't delete first entry!");
             }
 
             /* deleting entry */

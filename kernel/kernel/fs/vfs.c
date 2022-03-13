@@ -224,7 +224,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
     if (TEST_FLAG(flags, O_EXEC)) {
         if (vfs_perm_to_execute(file, cur_thread) != 0) {
 #ifdef VFS_DEBUG
-            log("can't open exec");
+            log("Can't open exec");
 #endif
             return -EACCES;
         }
@@ -233,7 +233,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
     if (TEST_FLAG(flags, O_WRONLY)) {
         if (vfs_perm_to_write(file, cur_thread) != 0) {
 #ifdef VFS_DEBUG
-            log("can't open write");
+            log("Can't open write");
 #endif
             return -EACCES;
         }
@@ -245,7 +245,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
     if (TEST_FLAG(flags, O_RDONLY)) {
         if (vfs_perm_to_read(file, cur_thread) != 0) {
 #ifdef VFS_DEBUG
-            log("can't open read");
+            log("Can't open read");
 #endif
             return -EACCES;
         }

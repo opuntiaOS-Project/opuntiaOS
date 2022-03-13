@@ -13,6 +13,7 @@
 #include <libboot/crypto/sha256.h>
 #include <libboot/crypto/signature.h>
 #include <libboot/crypto/uint2048.h>
+#include <libboot/crypto/validate.h>
 #include <libboot/devtree/devtree.h>
 #include <libboot/elf/elf_lite.h>
 #include <libboot/fs/ext2_lite.h>
@@ -61,6 +62,22 @@ static int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     return -1;
 }
 
+static int validate_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
+{
+    log("Validating Kernel...");
+    if (!validate_elf(KERNEL_PATH, drive_desc, fs_desc)) {
+        log("Can't validate kernel");
+        while (1) { }
+    }
+
+    if (!validate_elf("/boot/init", drive_desc, fs_desc)) {
+        log("Can't validate /boot/init");
+        while (1) { }
+    }
+
+    return 0;
+}
+
 static void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 {
     int res = elf_load_kernel(drive_desc, fs_desc, KERNEL_PATH, &kernel_vaddr, &kernel_paddr, &kernel_size);
@@ -95,45 +112,6 @@ static void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 #endif
 }
 
-#define tmp_buf_size (4096)
-char tmp_buf[tmp_buf_size];
-bool validate_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
-{
-    log("Validating Kernel");
-    inode_t kernel_file_inode;
-    fs_desc->get_inode(drive_desc, KERNEL_PATH, &kernel_file_inode);
-
-    sha256_ctx_t shactx;
-    char hash[32];
-    size_t from = 0;
-    size_t rem_to_read = kernel_file_inode.size;
-
-    sha256_init(&shactx);
-    while (rem_to_read) {
-        size_t will_read = min(tmp_buf_size, rem_to_read);
-        int rd = fs_desc->read_from_inode(drive_desc, &kernel_file_inode, (void*)tmp_buf, from, will_read);
-        from += will_read;
-        sha256_update(&shactx, tmp_buf, rd);
-        rem_to_read -= will_read;
-    }
-
-    sha256_hash(&shactx, hash);
-
-    fs_desc->read(drive_desc, "/boot/.kernsign", (void*)tmp_buf, 0, 128);
-    uint2048_t signature;
-    uint2048_init_bytes(&signature, tmp_buf, 128);
-    uint2048_t public_e;
-    uint2048_init_bytes(&public_e, pub_opuntiaos_key_e, pub_opuntiaos_key_e_len);
-    uint2048_t public_n;
-    uint2048_init_bytes(&public_n, pub_opuntiaos_key_n, 128);
-    uint2048_t signed_ihash;
-    uint2048_pow(&signature, &public_e, &public_n, &signed_ihash);
-
-    uint2048_t ihash;
-    uint2048_init_bytes_be(&ihash, hash, 32);
-    return uint2048_equal(&signed_ihash, &ihash);
-}
-
 void load_boot_cpu()
 {
     devtree_init((void*)_odt_phys, (uint32_t)_odt_phys_end - (uint32_t)_odt_phys);
@@ -145,10 +123,7 @@ void load_boot_cpu()
     fs_desc_t fs_desc;
     prepare_boot_disk(&drive_desc);
     prepare_fs(&drive_desc, &fs_desc);
-    if (!validate_kernel(&drive_desc, &fs_desc)) {
-        log("Can't validate kernel");
-        while (1) { }
-    }
+    validate_kernel(&drive_desc, &fs_desc);
     load_kernel(&drive_desc, &fs_desc);
     vm_setup(kernel_vaddr, kernel_paddr, kernel_size);
 

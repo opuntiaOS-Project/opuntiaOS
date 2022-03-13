@@ -2,7 +2,7 @@
 
 #define initsystem_path "/System/initsystem"
 
-int main() 
+int main()
 {
     execlp(initsystem_path, initsystem_path, NULL);
     return 0;

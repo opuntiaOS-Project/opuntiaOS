@@ -172,6 +172,9 @@ int uint2048_mult(uint2048_t* a, uint2048_t* b, uint2048_t* c)
 
     uint2048_init(c, 0);
     for (int i = 0; i < N_UINT2048; i++) {
+        if (!a->bucket[i]) {
+            continue;
+        }
         uint2048_mult_by_digit(b, &p, a->bucket[i]);
         uint2048_shl(&p, i);
         uint2048_add(c, &p, c);

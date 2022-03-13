@@ -4,24 +4,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/security/SIGN_TEMPLATE.gni")
 import("//build/userland/EXEC_TEMPLATE.gni")
-
-template("opuntiaOS_signexec") {
-  app_name = target_name
-  assert(defined(invoker.binpath), "Install path must be provided")
-
-  binpath = invoker.binpath
-  action("sign_$app_name") {
-    script = "//build/userland/sign_executable.py"
-    inputs = [ "$root_out_dir/base/$binpath" ]
-    outputs = [ "$root_out_dir/tmp/$app_name.signed" ]
-    deps = [ ":$app_name" + "_build" ]
-    args = [
-      rebase_path("$root_out_dir/base/$binpath", root_build_dir),
-      rebase_path("$root_out_dir/tmp/$app_name.signed", ""),
-    ]
-  }
-}
 
 template("opuntiaOS_executable") {
   app_name = target_name

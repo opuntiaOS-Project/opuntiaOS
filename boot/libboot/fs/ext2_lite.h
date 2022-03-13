@@ -125,8 +125,8 @@ typedef struct {
 } dir_entry_t;
 
 int ext2_lite_init(drive_desc_t* drive_desc, fs_desc_t* fs_desc);
-int ext2_lite_get_inode(drive_desc_t* drive_desc, char* path, inode_t* file_inode);
-int ext2_lite_read(drive_desc_t* drive_desc, char* path, uint8_t* buf, uint32_t from, uint32_t len);
+int ext2_lite_get_inode(drive_desc_t* drive_desc, const char* path, inode_t* file_inode);
+int ext2_lite_read(drive_desc_t* drive_desc, const char* path, uint8_t* buf, uint32_t from, uint32_t len);
 int ext2_lite_read_inode(drive_desc_t* drive_desc, inode_t* inode, uint8_t* buf, uint32_t from, uint32_t len);
 
 #endif // _BOOT_LIBBOOT_FS_EXT2_LITE

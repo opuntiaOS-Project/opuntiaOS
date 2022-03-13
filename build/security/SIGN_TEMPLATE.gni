@@ -1,0 +1,22 @@
+# Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+#  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+#
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+template("opuntiaOS_signexec") {
+  app_name = target_name
+  assert(defined(invoker.binpath), "Install path must be provided")
+
+  binpath = invoker.binpath
+  action("sign_$app_name") {
+    script = "//build/security/sign_executable.py"
+    inputs = [ "$root_out_dir/base/$binpath" ]
+    outputs = [ "$root_out_dir/tmp/$binpath.signed" ]
+    deps = [ ":$app_name" + "_build" ]
+    args = [
+      rebase_path("$root_out_dir/base/$binpath", root_build_dir),
+      rebase_path("$root_out_dir/tmp/$binpath.signed", ""),
+    ]
+  }
+}

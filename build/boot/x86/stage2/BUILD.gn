@@ -11,6 +11,7 @@ executable("stage2") {
     "//boot/libboot/crypto/sha256.c",
     "//boot/libboot/crypto/signature.c",
     "//boot/libboot/crypto/uint2048.c",
+    "//boot/libboot/crypto/validate.c",
     "//boot/libboot/devtree/devtree.c",
     "//boot/libboot/elf/elf_lite.c",
     "//boot/libboot/fs/ext2_lite.c",

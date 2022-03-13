@@ -38,7 +38,7 @@ void pit_setup()
 {
     int err = _pit_set_frequency(TIMER_TICKS_PER_SECOND);
     if (err) {
-        kpanic("Pit: failed to set frequency");
+        kpanic("PIT: failed to set frequency");
     }
     set_irq_handler(IRQ0, pit_handler);
 }

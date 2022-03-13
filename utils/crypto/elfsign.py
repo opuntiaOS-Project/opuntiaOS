@@ -31,6 +31,18 @@ elffile_path = args.target
 signfield_loc = 0
 sha256_hash = hashlib.sha256()
 
+def int_to_bytes(n, nsize=128):
+    xs = bytearray()
+    while (n):
+        by = n % 256
+        xs.append(by)
+        n //= 256
+
+    while len(xs) < nsize:
+        xs.append(0)
+
+    return xs
+
 with open(elffile_path, 'rb') as elffile:
     signature_section = None
     for section in ELFFile(elffile).iter_sections():
@@ -47,6 +59,7 @@ with open(elffile_path, 'rb') as elffile:
             if byte != 0:
                 print("Signature:", ''.join('{:02x}'.format(x)
                                             for x in signature_section.data()[:128]))
+
                 print("Elf file is already signed.")
                 exit(0)
 
@@ -56,19 +69,6 @@ with open(elffile_path, 'rb') as elffile:
         seg_head = segment.header
         if seg_head.p_type == "PT_LOAD":
             sha256_hash.update(segment.data())
-
-
-def int_to_bytes(n, nsize=128):
-    xs = bytearray()
-    while (n):
-        by = n % 256
-        xs.append(by)
-        n //= 256
-
-    while len(xs) < nsize:
-        xs.append(0)
-
-    return xs
 
 
 hash = int(codecs.encode(sha256_hash.digest(), 'hex'), 16)

@@ -10,6 +10,7 @@
 #define _BOOT_LIBBOOT_ELF_ELF_LITE
 
 #include <libboot/abi/drivers.h>
+#include <libboot/fs/ext2_lite.h>
 #include <libboot/types.h>
 
 enum E_IDENT_FIELDS {
@@ -140,7 +141,18 @@ typedef struct {
     uint32_t sh_entsize;
 } elf_section_header_32_t;
 
-int elf_load_header(drive_desc_t* drive_desc, fs_desc_t* fs_desc, char* path);
-int elf_load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, char* path, uint32_t* kernel_vaddr, uint32_t* kernel_paddr, uint32_t* kernel_size);
+struct elfctx {
+    drive_desc_t* drive_desc;
+    fs_desc_t* fs_desc;
+    inode_t file_inode;
+    elf_header_32_t header;
+};
+typedef struct elfctx elfctx_t;
+
+int elf_init_ctx(drive_desc_t* drive_desc, fs_desc_t* fs_desc, const char* path, elfctx_t* elfctx);
+int elf_read_program_header(elfctx_t* elfctx, size_t id, elf_program_header_32_t* program_header);
+int elf_read_section_header(elfctx_t* elfctx, uint32_t id, elf_section_header_32_t* section_header);
+
+int elf_load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, const char* path, uint32_t* kernel_vaddr, uint32_t* kernel_paddr, uint32_t* kernel_size);
 
 #endif // _BOOT_LIBBOOT_ELF_ELF_LITE

@@ -28,8 +28,8 @@ struct drive_desc {
 typedef struct drive_desc drive_desc_t;
 
 struct fs_desc {
-    int (*get_inode)(drive_desc_t* drive_desc, char* path, void* file_inode);
-    int (*read)(drive_desc_t* drive_desc, char* path, uint8_t* buf, uint32_t from, uint32_t len);
+    int (*get_inode)(drive_desc_t* drive_desc, const char* path, void* file_inode);
+    int (*read)(drive_desc_t* drive_desc, const char* path, uint8_t* buf, uint32_t from, uint32_t len);
     int (*read_from_inode)(drive_desc_t* drive_desc, void* file_inode, uint8_t* buf, uint32_t from, uint32_t len);
 };
 typedef struct fs_desc fs_desc_t;

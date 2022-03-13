@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/security/SIGN_TEMPLATE.gni")
+
 kernel_out_path = "base/boot"
 
 kernel_c_flags = [
@@ -116,24 +118,22 @@ executable("kernel_build") {
 
   configs = [ ":kernel_flags" ]
 
-  ldflags = [ "-T$linker_script" ]
+  ldflags = [
+    # See comment at EXEC_TEMPLATE.gni about elfsign_section.o.
+    # It is required to sign a binary.
+    rebase_path("$root_out_dir/tmp/elfsign_section.o", ""),
+    "-T$linker_script",
+  ]
 }
 
-action("kernel_signature") {
-  deps = [ ":kernel_build" ]
-  script = "//build/kernel/sign_kernel.py"
-  inputs = [ "$root_out_dir/base/boot/kernel.bin" ]
-  outputs = [ "$root_out_dir/base/boot/.kernsign" ]
-  args = [
-    rebase_path("$root_out_dir/$kernel_out_path/kernel.bin", root_build_dir),
-    rebase_path("$root_out_dir/base/boot/.kernsign", root_build_dir),
-  ]
+opuntiaOS_signexec("kernel") {
+  binpath = "boot/kernel.bin"
 }
 
 group("kernel") {
   deps = [
     ":kernel_build",
-    ":kernel_signature",
+    ":sign_kernel",
     "//build/boot:boot",
   ]
 }
