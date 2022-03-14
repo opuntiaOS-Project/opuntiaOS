@@ -34,7 +34,7 @@ int uint2048_init_bytes(uint2048_t* d, const char* f, size_t n)
 
 static inline uint32_t char_to_u32_safe_convert(char x)
 {
-    return x > 0 ? x : 256 + x;
+    return x >= 0 ? x : 256 + x;
 }
 
 int uint2048_init_bytes_be(uint2048_t* d, const char* f, size_t n)
@@ -62,8 +62,9 @@ int uint2048_init_bytes_be(uint2048_t* d, const char* f, size_t n)
     }
     d->bucket[i++] = bytes4;
 
-    while (i < N_UINT2048)
+    while (i < N_UINT2048) {
         d->bucket[i++] = 0;
+    }
 
     return 0;
 }
