@@ -17,7 +17,7 @@ out = sys.argv[3]
 if arch == "x86":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_X86"
     QEMU_STD_PATH = "qemu-system-i386"
-    qemu_run_cmd = "${2} -m 256M --drive file={1}/os-image.bin,format=raw,index=0,if=floppy -device piix3-ide,id=ide -drive id=disk,format=raw,file={1}/one.img,if=none -device ide-hd,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std".format(
+    qemu_run_cmd = "${2} -m 256M --drive file={1}/os-image.bin,format=raw,index=0,if=floppy -device piix3-ide,id=ide -drive id=disk,format=raw,file={1}/one.img,if=none -device ide-hd,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std -qmp unix:./qmp-sock,server,nowait".format(
         base, out, QEMU_PATH_VAR)
 if arch == "aarch32":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_ARM"
