@@ -22,7 +22,7 @@ int swapfile_init()
         kpanic("No /var dir is found");
     }
 
-    vfs_create(var_dir, "swapfile", 8, 600, 0, 0);
+    vfs_create(var_dir, "swapfile", 8, 0600, 0, 0);
     if (vfs_resolve_path("/var/swapfile", &_swapfile) < 0) {
         _swapfile = NULL;
     }
