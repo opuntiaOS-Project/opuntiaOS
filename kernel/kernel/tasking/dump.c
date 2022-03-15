@@ -151,11 +151,16 @@ static int dump_map_kernel_elf_file()
         return -ENOMEM;
     }
 
+    data_access_type_t prev_access_type = THIS_CPU->data_access_type;
+    THIS_CPU->data_access_type = DATA_ACCESS_KERNEL;
+
     uint8_t* copy_to = (uint8_t*)kernel_file_mapping_zone.ptr;
     for (size_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
         fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);
         copy_to += READ_PER_CYCLE;
     }
+
+    THIS_CPU->data_access_type = prev_access_type;
 
     vfs_close(&fd);
     return 0;

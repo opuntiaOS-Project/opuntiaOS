@@ -27,6 +27,12 @@ enum CPU_STATE {
     CPU_IN_USERLAND,
 };
 
+typedef int data_access_type_t;
+enum DATA_ACCESS_TYPE {
+    DATA_ACCESS_REGULAR,
+    DATA_ACCESS_KERNEL, // Allows umem_copy on kernel addresses.
+};
+
 typedef struct {
     int id;
     int int_depth_counter;
@@ -36,6 +42,7 @@ typedef struct {
     context_t* sched_context; // context of sched's registers
     struct thread* running_thread;
     cpu_state_t current_state;
+    data_access_type_t data_access_type;
     struct thread* idle_thread;
 
     sched_data_t sched;

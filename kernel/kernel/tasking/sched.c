@@ -81,6 +81,7 @@ static inline void _add_cpu_count()
 static void _init_cpu(cpu_t* cpu)
 {
     cpu->current_state = CPU_IN_KERNEL;
+    cpu->data_access_type = DATA_ACCESS_REGULAR;
 
     cpu->sched_stack_zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_alloc_page(cpu->sched_stack_zone.start, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);

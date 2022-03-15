@@ -208,18 +208,26 @@ int elf_check_header(elf_header_32_t* header)
 
 int elf_load(proc_t* p, file_descriptor_t* fd)
 {
+    data_access_type_t prev_access_type = THIS_CPU->data_access_type;
+    THIS_CPU->data_access_type = DATA_ACCESS_KERNEL;
+
     elf_header_32_t header;
+
     int err = vfs_read(fd, &header, sizeof(header));
     if (err != sizeof(header)) {
+        THIS_CPU->data_access_type = prev_access_type;
         return err;
     }
 
     err = elf_check_header(&header);
     if (err) {
+        THIS_CPU->data_access_type = prev_access_type;
         return err;
     }
 
-    return _elf_do_load(p, fd, &header);
+    err = _elf_do_load(p, fd, &header);
+    THIS_CPU->data_access_type = prev_access_type;
+    return err;
 }
 
 int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_entries, char** strtab)

@@ -8,6 +8,9 @@
 
 #include <libkern/libkern.h>
 #include <mem/kmalloc.h>
+#include <tasking/cpu.h>
+
+#define DEBUG_UMEM_ACCESSES
 
 /**
  * @brief Checks if the given string is valid and does not exceed the maximum length.
@@ -116,6 +119,8 @@ char** umem_bring_to_kernel_strarray(const char __user** data, size_t maxlen)
     return res;
 }
 
+#define access_ok(src, len) (THIS_CPU->data_access_type == DATA_ACCESS_KERNEL || (IS_USER_VADDR(src) && IS_USER_VADDR(src + len - 1)))
+
 /**
  * @brief Copies data from the kernel buffer to the active address space.
  *
@@ -125,6 +130,13 @@ char** umem_bring_to_kernel_strarray(const char __user** data, size_t maxlen)
  */
 void umem_copy_to_user(void __user* dest, const void* src, size_t length)
 {
+    if (!access_ok((uintptr_t)dest, length)) {
+#ifdef DEBUG_UMEM_ACCESSES
+        // TODO: Remove kpanic when kernel is checked.
+        kpanic("Access is not allowed. Were we in kernel?");
+#endif // DEBUG_UMEM_ACCESSES
+        return;
+    }
     memcpy((void*)dest, src, length);
 }
 
@@ -137,5 +149,12 @@ void umem_copy_to_user(void __user* dest, const void* src, size_t length)
  */
 void umem_copy_from_user(void* dest, const void __user* src, size_t length)
 {
+    if (!access_ok((uintptr_t)src, length)) {
+#ifdef DEBUG_UMEM_ACCESSES
+        // TODO: Remove kpanic when kernel is checked.
+        kpanic("Access is not allowed. Were we in kernel?");
+#endif // DEBUG_UMEM_ACCESSES
+        return;
+    }
     memcpy(dest, (void*)src, length);
 }
