@@ -12,6 +12,12 @@
 #include <libkern/types.h>
 #include <platform/aarch32/system.h>
 
+static inline uint32_t extract_bits(uint32_t a, int bottom, int top)
+{
+    int diff = top - bottom + 1;
+    return (a >> bottom) & ((1 << (diff)) - 1);
+}
+
 static inline uint32_t read_r3()
 {
     uint32_t val;
@@ -136,6 +142,42 @@ static inline uint32_t read_cpu_id_register()
                  : "=r"(res)
                  :);
     return res;
+}
+
+static inline uint32_t read_midr()
+{
+    uint32_t res;
+    asm volatile("mrc p15, 0, %0, c0, c0, 0"
+                 : "=r"(res)
+                 :);
+    return res;
+}
+
+static inline uint32_t read_actlr()
+{
+    uint32_t res;
+    asm volatile("mrc p15, 0, %0, c1, c0, 1"
+                 : "=r"(res)
+                 :);
+    return res;
+}
+
+static inline void write_actlr(uint32_t val)
+{
+    asm volatile("mcr p15, 0, %0, c1, c0, 1"
+                 :
+                 : "r"(val)
+                 : "memory");
+    system_instruction_barrier();
+}
+
+static inline void write_iciallu(uint32_t val)
+{
+    asm volatile("mcr p15, 0, %0, c7, c5, 0"
+                 :
+                 : "r"(val)
+                 : "memory");
+    system_instruction_barrier();
 }
 
 #endif /* _KERNEL_PLATFORM_AARCH32_REGISTERS_H */
