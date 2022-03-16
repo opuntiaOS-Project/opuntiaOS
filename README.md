@@ -9,7 +9,6 @@
 ### Kernel
 
 * x86-32 and ARMv7 kernel with pre-emptive multi-threading
-* Purgeable memory
 * Ext2 filesystems
 * /dev and /proc filesystems
 * Local sockets
@@ -29,6 +28,12 @@
 * Composing windows manager for desktop and mobile
 * Simple UI apps
 * Terminal
+
+### Boot
+
+* Custom bootloaders for x86-32 and ARMv7
+* Kernel validation during the boot proccess
+* Custom device tree
 
 ## How to build and run opuntiaOS?
 

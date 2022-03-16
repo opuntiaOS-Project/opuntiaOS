@@ -8,7 +8,7 @@ The userland of opuntiaOS contains several custom libraries
 * [LibCxx](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libcxx) - the standard library for C++, targeting C++17 and above.
 * [LibCxx-ABI](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libcxxabi) the support library for LibCxx.
 * [LibObjC](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libobjc) - the Objective-C runtime library.
-* [LibFoundation](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libobjc) - provides a base layer of functionality for apps and libraries which are implemented in C++ and Objective-C.
+* [LibFoundation](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libfoundation) - provides a base layer of functionality for apps and libraries which are implemented in C++ and Objective-C.
 * [LibIPC](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libipc) - manages inter-prcess communication for C++.
 * [LibG](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libg) - provides low-level 2D rendering.
 * [LibUI](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/libs/libui) - provides the required tools to build UI applications.
