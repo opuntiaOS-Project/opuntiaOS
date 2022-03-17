@@ -34,6 +34,7 @@
 * Custom bootloaders for x86-32 and ARMv7
 * Kernel validation during the boot proccess
 * Custom device tree
+* [learn more](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/boot.md)
 
 ## How to build and run opuntiaOS?
 
