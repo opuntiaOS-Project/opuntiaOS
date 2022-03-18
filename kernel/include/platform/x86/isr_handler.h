@@ -15,6 +15,5 @@
 
 void isr_handler(trapframe_t* tf);
 void isr_standart_handler(trapframe_t* tf);
-uint32_t rcr2();
 
 #endif

@@ -231,7 +231,7 @@ void resched_dont_save_context()
 
 void resched()
 {
-    if (RUNNING_THREAD) {
+    if (likely(RUNNING_THREAD)) {
         RUNNING_THREAD->stat_total_running_ticks += timeman_ticks_since_boot() - RUNNING_THREAD->start_time_in_ticks;
         // Add the thread back to runqueue only if thread is still running.
         if (RUNNING_THREAD->status == THREAD_STATUS_RUNNING) {
@@ -276,7 +276,7 @@ void sched_dequeue(thread_t* thread)
     }
 }
 
-void switch_to_thread(thread_t* thread)
+static void switch_to_thread(thread_t* thread)
 {
     if (thread->pending_signals_mask) {
         signal_dispatch_pending(thread);

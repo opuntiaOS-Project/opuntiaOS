@@ -25,11 +25,13 @@ uint32_t active_cpu_count();
 
 static inline void sched_tick()
 {
-    if (RUNNING_THREAD) {
-        RUNNING_THREAD->ticks_until_preemption--;
-        if (!RUNNING_THREAD->ticks_until_preemption) {
-            resched();
-        }
+    if (!RUNNING_THREAD) {
+        return;
+    }
+
+    RUNNING_THREAD->ticks_until_preemption--;
+    if (!RUNNING_THREAD->ticks_until_preemption) {
+        resched();
     }
 }
 
