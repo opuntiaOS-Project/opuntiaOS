@@ -193,7 +193,7 @@ void scheduler_init()
 void schedule_activate_cpu()
 {
     int id = system_cpu_id();
-    ASSERT(id < CPU_CNT);
+    ASSERT(id < MAX_CPU_CNT);
     _init_cpu(&cpus[id]);
     cpus[id].id = id;
 }

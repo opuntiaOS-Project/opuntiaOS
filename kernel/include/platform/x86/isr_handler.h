@@ -14,6 +14,5 @@
 #include <platform/x86/idt.h>
 
 void isr_handler(trapframe_t* tf);
-void isr_standart_handler(trapframe_t* tf);
 
 #endif

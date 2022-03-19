@@ -16,7 +16,7 @@
 #include <platform/generic/tasking/context.h>
 #include <tasking/bits/sched.h>
 
-#define CPU_CNT 4
+#define MAX_CPU_CNT 4
 #define THIS_CPU (&cpus[system_cpu_id()])
 #define FPU_ENABLED
 
@@ -59,6 +59,6 @@ typedef struct {
 #endif // FPU_ENABLED
 } cpu_t;
 
-extern cpu_t cpus[CPU_CNT];
+extern cpu_t cpus[MAX_CPU_CNT];
 
 #endif // _KERNEL_TASKING_BITS_CPU_H
