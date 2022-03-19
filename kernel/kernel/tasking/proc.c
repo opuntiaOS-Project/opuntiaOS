@@ -28,16 +28,16 @@ int threads_cnt = 0;
  * LOCKLESS
  */
 
-static ALWAYS_INLINE void proc_kill_all_threads_except_locked(proc_t* p, thread_t* gthread);
+static void proc_kill_all_threads_except_locked(proc_t* p, thread_t* gthread);
 static ALWAYS_INLINE void proc_kill_all_threads_locked(proc_t* p);
-static ALWAYS_INLINE int proc_setup_locked(proc_t* p);
+static int proc_setup_locked(proc_t* p);
 static int proc_setup_vconsole_locked(proc_t* p, vconsole_entry_t* vconsole);
 
-static ALWAYS_INLINE int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path);
-static ALWAYS_INLINE int proc_chdir_locked(proc_t* p, const char* path);
+static int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path);
+static int proc_chdir_locked(proc_t* p, const char* path);
 
-static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_locked(proc_t* p);
-static ALWAYS_INLINE file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index);
+static file_descriptor_t* proc_get_free_fd_locked(proc_t* p);
+static file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index);
 static ALWAYS_INLINE int fd_is_opened(file_descriptor_t* fd);
 
 /**
@@ -128,7 +128,7 @@ int proc_init_storage()
  * INIT FUNCTIONS
  */
 
-static ALWAYS_INLINE int proc_setup_locked(proc_t* p)
+static int proc_setup_locked(proc_t* p)
 {
     p->pid = proc_alloc_pid();
     p->pgid = p->pid;
@@ -288,7 +288,7 @@ static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
     return 0;
 }
 
-static ALWAYS_INLINE int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path)
+static int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path)
 {
     int err;
     file_descriptor_t fd;
@@ -458,7 +458,7 @@ thread_t* proc_create_thread(proc_t* p)
     return thread;
 }
 
-static ALWAYS_INLINE void proc_kill_all_threads_except_locked(proc_t* p, thread_t* gthread)
+static void proc_kill_all_threads_except_locked(proc_t* p, thread_t* gthread)
 {
     foreach_thread(p)
     {
@@ -489,7 +489,7 @@ void proc_kill_all_threads(proc_t* p)
  * PROC FS FUNCTIONS
  */
 
-static ALWAYS_INLINE int proc_chdir_locked(proc_t* p, const char* path)
+static int proc_chdir_locked(proc_t* p, const char* path)
 {
     dentry_t* new_cwd = NULL;
     int ret = vfs_resolve_path_start_from(p->cwd, path, &new_cwd);
@@ -540,7 +540,7 @@ static ALWAYS_INLINE int fd_is_opened(file_descriptor_t* fd)
     return fd->dentry != NULL;
 }
 
-static ALWAYS_INLINE file_descriptor_t* proc_get_free_fd_locked(proc_t* p)
+static file_descriptor_t* proc_get_free_fd_locked(proc_t* p)
 {
     ASSERT(p->fds);
 
@@ -562,7 +562,7 @@ file_descriptor_t* proc_get_free_fd(proc_t* p)
     return res;
 }
 
-static ALWAYS_INLINE file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index)
+static file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index)
 {
     ASSERT(p->fds);
 
