@@ -18,7 +18,6 @@
 #include <platform/generic/cpu.h>
 #include <platform/generic/system.h>
 #include <platform/generic/vmm/mapping_table.h>
-#include <platform/generic/vmm/pf_types.h>
 
 /**
  * VM system for 32bit machines is designed to support 2-level address

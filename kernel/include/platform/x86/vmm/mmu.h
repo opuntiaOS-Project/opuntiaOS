@@ -15,9 +15,11 @@
 #include <platform/x86/vmm/pte.h>
 
 typedef uint32_t ptable_entity_t;
+typedef uint32_t arch_pf_info_t;
 
 ptable_entity_t vm_mmu_to_arch_flags(mmu_flags_t mmu_flags, ptable_lv_t lv);
 mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv);
+mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info);
 
 void vm_ptable_entity_set_default_flags(ptable_entity_t* entity, ptable_lv_t lv);
 void vm_ptable_entity_allocated(ptable_entity_t* entity, ptable_lv_t lv);

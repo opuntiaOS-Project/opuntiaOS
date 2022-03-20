@@ -109,6 +109,26 @@ mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
     return mmu_flags;
 }
 
+mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info)
+{
+    mmu_pf_info_flags_t res = 0;
+
+    // pl0 bit is set at aarch32/interrupt_handlers.c
+    if (((info >> 31) & 0x1) == 0) {
+        res |= MMU_PF_INFO_ON_NONPRIV_ACCESS;
+    }
+    if (((info >> 11) & 0x1) == 0x1) {
+        res |= MMU_PF_INFO_ON_WRITE;
+    }
+    if ((info & 0b1101) == 0b0101) {
+        res |= MMU_PF_INFO_ON_NOT_PRESENT;
+    }
+    if ((info & 0b1111) == 0b1111) {
+        res |= MMU_PF_INFO_SECURITY_VIOLATION;
+    }
+    return res;
+}
+
 ptable_state_t vm_ptable_entity_state(ptable_entity_t* entity, ptable_lv_t lv)
 {
     ptable_entity_t arch_flags = *entity;

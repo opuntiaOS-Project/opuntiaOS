@@ -75,6 +75,21 @@ mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
     return mmu_flags;
 }
 
+mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info)
+{
+    mmu_pf_info_flags_t res = 0;
+    if ((info & 0b100) == 0b100) {
+        res |= MMU_PF_INFO_ON_NONPRIV_ACCESS;
+    }
+    if ((info & 0b010) == 0b010) {
+        res |= MMU_PF_INFO_ON_WRITE;
+    }
+    if ((info & 0b001) == 0) {
+        res |= MMU_PF_INFO_ON_NOT_PRESENT;
+    }
+    return res;
+}
+
 ptable_state_t vm_ptable_entity_state(ptable_entity_t* entity, ptable_lv_t lv)
 {
     ptable_entity_t arch_flags = *entity;

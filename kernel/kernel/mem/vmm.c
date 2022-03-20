@@ -19,7 +19,6 @@
 #include <platform/generic/cpu.h>
 #include <platform/generic/system.h>
 #include <platform/generic/vmm/mapping_table.h>
-#include <platform/generic/vmm/pf_types.h>
 #include <tasking/tasking.h>
 
 // #define VMM_DEBUG
@@ -1397,14 +1396,16 @@ int _vmm_pf_on_writing(uintptr_t vaddr)
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
 {
-    if (_vmm_is_table_not_present(info) || _vmm_is_page_not_present(info)) {
+    mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);
+
+    if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_NOT_PRESENT)) {
         lock_acquire(&_vmm_lock);
         int res = _vmm_on_page_not_present_locked(vaddr);
         lock_release(&_vmm_lock);
         return res;
     }
 
-    if (_vmm_is_caused_writing(info)) {
+    if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_WRITE)) {
         return _vmm_pf_on_writing(vaddr);
     }
 

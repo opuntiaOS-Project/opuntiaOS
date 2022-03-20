@@ -23,6 +23,14 @@ enum MMU_FLAGS {
 };
 typedef uint32_t mmu_flags_t;
 
+enum MMU_PF_INFO_FLAGS {
+    MMU_PF_INFO_ON_NOT_PRESENT = (1 << 0),
+    MMU_PF_INFO_ON_WRITE = (1 << 1),
+    MMU_PF_INFO_ON_NONPRIV_ACCESS = (1 << 2),
+    MMU_PF_INFO_SECURITY_VIOLATION = (1 << 3),
+};
+typedef uint32_t mmu_pf_info_flags_t;
+
 enum PTABLE_LEVELS {
     PTABLE_LV0 = 0,
     PTABLE_LV1 = 1,
