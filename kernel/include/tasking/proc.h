@@ -71,7 +71,7 @@ typedef struct proc proc_t;
 /**
  * PROC FUNCTIONS
  */
-uint32_t proc_alloc_pid();
+pid_t proc_alloc_pid();
 struct thread* thread_by_pid(pid_t pid);
 
 int proc_init_storage();
@@ -109,7 +109,7 @@ int proc_block_all_threads(proc_t* p, const struct blocker* blocker);
 
 int proc_chdir(proc_t* p, const char* path);
 file_descriptor_t* proc_get_free_fd(proc_t* p);
-file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index);
+file_descriptor_t* proc_get_fd(proc_t* p, size_t index);
 int proc_get_fd_id(proc_t* proc, file_descriptor_t* fd);
 int proc_copy_fd(file_descriptor_t* oldfd, file_descriptor_t* newfd);
 

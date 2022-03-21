@@ -98,7 +98,7 @@ int procfs_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len)
     return procfs_inode->ops->getdents(dir, buf, offset, len);
 }
 
-int procfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
+int procfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
     if (!procfs_inode->ops->lookup) {

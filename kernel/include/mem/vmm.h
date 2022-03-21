@@ -74,6 +74,6 @@ ptable_t* vmm_get_kernel_pdir();
 int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace);
 int vmm_switch_address_space(vm_address_space_t* vm_aspace);
 
-int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr);
+int vmm_page_fault_handler(arch_pf_info_t info, uintptr_t vaddr);
 
 #endif // _KERNEL_MEM_VMM_H

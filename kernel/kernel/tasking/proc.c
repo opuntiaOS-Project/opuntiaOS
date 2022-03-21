@@ -37,7 +37,7 @@ static int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path);
 static int proc_chdir_locked(proc_t* p, const char* path);
 
 static file_descriptor_t* proc_get_free_fd_locked(proc_t* p);
-static file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index);
+static file_descriptor_t* proc_get_fd_locked(proc_t* p, size_t index);
 static ALWAYS_INLINE int fd_is_opened(file_descriptor_t* fd);
 
 /**
@@ -562,7 +562,7 @@ file_descriptor_t* proc_get_free_fd(proc_t* p)
     return res;
 }
 
-static file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index)
+static file_descriptor_t* proc_get_fd_locked(proc_t* p, size_t index)
 {
     ASSERT(p->fds);
 
@@ -577,7 +577,7 @@ static file_descriptor_t* proc_get_fd_locked(proc_t* p, uint32_t index)
     return &p->fds[index];
 }
 
-file_descriptor_t* proc_get_fd(proc_t* p, uint32_t index)
+file_descriptor_t* proc_get_fd(proc_t* p, size_t index)
 {
     lock_acquire(&p->lock);
     file_descriptor_t* res = proc_get_fd_locked(p, index);

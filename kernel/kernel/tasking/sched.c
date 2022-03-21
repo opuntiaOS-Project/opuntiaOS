@@ -25,7 +25,7 @@
 
 static time_t _sched_timeslices[];
 static int _enqueued_tasks;
-static uint32_t _active_cpus;
+static size_t _active_cpus;
 
 extern void switch_contexts(context_t** old, context_t* new);
 extern void switch_to_context(context_t* new);
@@ -68,7 +68,7 @@ static void _create_idle_thread(cpu_t* cpu)
     _sched_enqueue_impl(&cpu->sched, idle_proc->main_thread);
 }
 
-uint32_t active_cpu_count()
+size_t active_cpu_count()
 {
     return atomic_load(&_active_cpus);
 }

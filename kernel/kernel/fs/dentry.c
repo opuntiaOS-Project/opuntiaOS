@@ -29,10 +29,9 @@ extern dynamic_array_t _vfs_fses;
 extern uint32_t root_fs_dev_id;
 
 static bool can_cache_inodes = 1;
-static uint32_t stat_cached_dentries = 0; /* Count of dentries which are held. */
-static uint32_t stat_cached_inodes_area_size = 0; /* Sum of all areas which is used for holding inodes. */
+static size_t stat_cached_dentries = 0; /* Count of dentries which are held. */
+static size_t stat_cached_inodes_area_size = 0; /* Sum of all areas which is used for holding inodes. */
 static dentry_cache_list_t* dentry_cache;
-static uint16_t* dentry_cahced;
 
 static inline bool need_to_free_inode_cache()
 {

@@ -10,7 +10,7 @@
 #include <mem/kmalloc.h>
 
 #ifdef __i386__
-void* memset(void* dest, uint8_t fll, uint32_t nbytes)
+void* memset(void* dest, uint8_t fll, size_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
         *((uint8_t*)dest + i) = fll;
@@ -19,7 +19,7 @@ void* memset(void* dest, uint8_t fll, uint32_t nbytes)
 }
 #endif
 
-void* memcpy(void* dest, const void* src, uint32_t nbytes)
+void* memcpy(void* dest, const void* src, size_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
         *(char*)(dest + i) = *(char*)(src + i);
@@ -27,7 +27,7 @@ void* memcpy(void* dest, const void* src, uint32_t nbytes)
     return dest;
 }
 
-void* memmove(void* dest, const void* src, uint32_t nbytes)
+void* memmove(void* dest, const void* src, size_t nbytes)
 {
     if (src > dest) {
         for (int i = 0; i < nbytes; ++i) {
@@ -41,7 +41,7 @@ void* memmove(void* dest, const void* src, uint32_t nbytes)
     return dest;
 }
 
-void* memccpy(void* dest, const void* src, uint8_t stop, uint32_t nbytes)
+void* memccpy(void* dest, const void* src, uint8_t stop, size_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
         *((uint8_t*)dest + i) = *((uint8_t*)src + i);
@@ -52,7 +52,7 @@ void* memccpy(void* dest, const void* src, uint8_t stop, uint32_t nbytes)
     return NULL;
 }
 
-int memcmp(const void* src1, const void* src2, uint32_t nbytes)
+int memcmp(const void* src1, const void* src2, size_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {
         if (*(uint8_t*)(src1 + i) < *((uint8_t*)src2 + i)) {

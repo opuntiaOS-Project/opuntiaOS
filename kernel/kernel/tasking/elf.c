@@ -253,7 +253,7 @@ int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_e
     return 0;
 }
 
-ssize_t elf_find_function_in_symtab(void* symtab_p, size_t syms_n, uint32_t ip)
+ssize_t elf_find_function_in_symtab(void* symtab_p, size_t syms_n, uintptr_t ip)
 {
     elf_sym_32_t* symtab = (elf_sym_32_t*)(symtab_p);
     uint32_t prev = 0;

@@ -95,7 +95,7 @@ void sys_read(trapframe_t* tf)
 
     init_read_blocker(RUNNING_THREAD, fd);
 
-    int res = vfs_read(fd, (uint8_t __user*)SYSCALL_VAR2(tf), (uint32_t)SYSCALL_VAR3(tf));
+    int res = vfs_read(fd, (uint8_t __user*)SYSCALL_VAR2(tf), (size_t)SYSCALL_VAR3(tf));
     return_with_val(res);
 }
 
@@ -297,7 +297,7 @@ void sys_getcwd(trapframe_t* tf)
 void sys_getdents(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
-    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (uint32_t)SYSCALL_VAR1(tf));
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (size_t)SYSCALL_VAR1(tf));
     int read = vfs_getdents(fd, (uint8_t __user*)SYSCALL_VAR2(tf), SYSCALL_VAR3(tf));
     return_with_val(read);
 }
