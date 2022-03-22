@@ -23,8 +23,6 @@
 #define MACHINE_ARCH EM_ARM
 #endif
 
-#define PAGES_PER_COPING_BUFFER 8
-#define COPING_BUFFER_LEN (PAGES_PER_COPING_BUFFER * VMM_PAGE_SIZE)
 #define USER_STACK_SIZE VMM_PAGE_SIZE
 
 static int _elf_load_page_content(memzone_t* zone, uintptr_t vaddr);
