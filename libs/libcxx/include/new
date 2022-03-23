@@ -3,6 +3,7 @@
 #ifndef _LIBCXX_NEW
 #define _LIBCXX_NEW
 
+#include <cstddef>
 #include <cstdlib>
 
 _LIBCXX_BEGIN_NAMESPACE_STD
