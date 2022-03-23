@@ -25,7 +25,6 @@ group("userland") {
     "//userland/system/applist:applist",
     "//userland/system/dock:dock",
     "//userland/system/homescreen:homescreen",
-    "//userland/system/init:init",
     "//userland/utilities/cat:cat",
     "//userland/utilities/kill:kill",
     "//userland/utilities/ls:ls",
@@ -41,7 +40,7 @@ group("userland") {
   # Make sure that we don't run any tests/benchmarks, since
   # tests/benchmarks use thier own entry point.
   if (test_method == "none") {
-    deps += [ "//userland/system/initsystem:initsystem" ]
+    deps += [ "//userland/system/launchd:launchd" ]
   }
 
   if (compile_tests) {

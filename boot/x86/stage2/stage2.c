@@ -16,6 +16,8 @@
 #include <libboot/types.h>
 
 // #define DEBUG_BOOT
+#define KERNEL_PATH "/boot/kernel.bin"
+#define LAUNCHD_PATH "/System/launchd"
 
 static boot_args_t boot_args;
 
@@ -44,8 +46,8 @@ static int validate_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
         while (1) { }
     }
 
-    if (!validate_elf("/boot/init", drive_desc, fs_desc)) {
-        log("Can't validate /boot/init");
+    if (!validate_elf(LAUNCHD_PATH, drive_desc, fs_desc)) {
+        log("Can't validate launchd");
         while (1) { }
     }
 
@@ -68,7 +70,7 @@ void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, mem_desc_t* mem_d
     boot_args.devtree = NULL;
     boot_args.memory_map = (void*)0xA00;
     boot_args.memory_map_size = mem_desc->memory_map_size;
-    memcpy(boot_args.init_process, "/boot/init", sizeof("/boot/init"));
+    memcpy(boot_args.init_process, LAUNCHD_PATH, sizeof(LAUNCHD_PATH));
 
     bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_args, sizeof(boot_args), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 }

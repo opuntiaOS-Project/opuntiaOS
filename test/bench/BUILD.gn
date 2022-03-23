@@ -1,6 +1,7 @@
 import("//build/userland/TEMPLATE.gni")
 
-opuntiaOS_executable("initsystem") {
+opuntiaOS_executable("launchd") {
+  signexec = true
   install_path = "System/"
   sources = [
     "main.cpp",

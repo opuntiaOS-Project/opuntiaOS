@@ -1,3 +1,4 @@
+#include <new>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -25,8 +26,8 @@ struct runentry {
 };
 typedef struct runentry runentry_t;
 
-static runentry_t* head = NULL;
-static runentry_t* last = NULL;
+static runentry_t* head = nullptr;
+static runentry_t* last = nullptr;
 
 launchentry_t lentries[] = {
     { "/System/window_server", RESTART_ON_FAILURE },
@@ -35,10 +36,10 @@ launchentry_t lentries[] = {
 
 int runentry_add(const launchentry_t* launchentry, pid_t pid)
 {
-    runentry_t* renew = malloc(sizeof(runentry_t));
+    runentry_t* renew = new runentry_t();
     renew->launchentry = launchentry;
     renew->pid = pid;
-    renew->next = NULL;
+    renew->next = nullptr;
 
     if (last == NULL) {
         head = last = renew;
