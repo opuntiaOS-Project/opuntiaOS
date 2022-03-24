@@ -16,7 +16,7 @@ public:
     TerminalView(UI::View* superview, UI::Window* window, const LG::Rect&, int ptmx);
 
     const LG::Color& font_color() const { return m_font_color; }
-    const LG::Color cursor_color() const { return LG::Color(80, 80, 80, 255); }
+    const LG::Color cursor_color() const { return m_cursor_visible ? LG::Color(80, 80, 80, 255) : background_color(); }
     const LG::Color& background_color() const { return m_background_color; }
     inline const LG::Font& font() const { return *m_font_ptr; }
 
@@ -56,21 +56,13 @@ private:
     void push_back_char(char c);
     void send_input();
 
-    inline void will_move_cursor()
+    inline void invalidate_cursor_glyph()
     {
         auto pt = pos_on_screen();
         set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + spacing(), glyph_height()));
     }
-
-    inline void did_move_cursor()
-    {
-        auto pt = pos_on_screen();
-        set_needs_display(LG::Rect(pt.x(), pt.y(), cursor_width() + spacing(), glyph_height()));
-    }
-
-    LG::Color m_background_color { LG::Color(47, 47, 53) };
-    LG::Color m_font_color { LG::Color::LightSystemText };
-    LG::Font* m_font_ptr { LG::Font::load_from_file("/res/fonts/Liza.font/10/regular.font") };
+    inline void will_move_cursor() { invalidate_cursor_glyph(); }
+    inline void did_move_cursor() { invalidate_cursor_glyph(); }
 
     constexpr int padding() const { return 2; }
     constexpr int spacing() const { return 2; }
@@ -78,6 +70,11 @@ private:
 
     int m_ptmx { -1 };
     std::string m_input {};
+
+    bool m_cursor_visible { true };
+    LG::Color m_background_color { LG::Color(47, 47, 53) };
+    LG::Color m_font_color { LG::Color::LightSystemText };
+    LG::Font* m_font_ptr { LG::Font::load_from_file("/res/fonts/Liza.font/10/regular.font") };
 
     size_t m_max_cols { 0 };
     size_t m_max_rows { 0 };

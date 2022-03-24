@@ -17,6 +17,11 @@ TerminalView::TerminalView(UI::View* superview, UI::Window* window, const LG::Re
     , m_ptmx(ptmx)
 {
     recalc_dimensions(frame);
+    LFoundation::EventLoop::the().add(LFoundation::Timer([this] {
+        this->m_cursor_visible = !this->m_cursor_visible;
+        this->invalidate_cursor_glyph();
+    },
+        400, LFoundation::Timer::Repeat));
 }
 
 void TerminalView::recalc_dimensions(const LG::Rect& frame)
@@ -40,6 +45,10 @@ void TerminalView::display(const LG::Rect& rect)
     ctx.set_fill_color(background_color());
     ctx.fill(bounds());
 
+    ctx.set_fill_color(cursor_color());
+    auto cursor_left_corner = pos_on_screen();
+    ctx.fill(LG::Rect(cursor_left_corner.x(), cursor_left_corner.y(), cursor_width(), glyph_height()));
+
     auto& f = font();
     ctx.set_fill_color(font_color());
     LG::Point<int> text_start { padding(), padding() };
@@ -53,10 +62,6 @@ void TerminalView::display(const LG::Rect& rect)
         text_start.set_x(padding());
         text_start.offset_by(0, glyph_height());
     }
-
-    ctx.set_fill_color(cursor_color());
-    auto cursor_left_corner = pos_on_screen();
-    ctx.fill(LG::Rect(cursor_left_corner.x(), cursor_left_corner.y(), cursor_width(), glyph_height()));
 }
 
 void TerminalView::scroll_line()
