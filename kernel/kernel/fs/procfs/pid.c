@@ -67,12 +67,12 @@ static const procfs_files_t static_procfs_files[] = {
  * HELPERS
  */
 
-uint32_t procfs_pid_get_pid_from_inode_index(uint32_t inode_index)
+pid_t procfs_pid_get_pid_from_inode_index(ino_t inode_index)
 {
     return (inode_index >> 18) & 0b1111111111;
 }
 
-static uint32_t procfs_pid_sfiles_get_inode_index(dentry_t* dir, int fileid)
+static ino_t procfs_pid_sfiles_get_inode_index(dentry_t* dir, int fileid)
 {
     uint32_t owner_pid = procfs_root_get_pid_from_inode_index(dir->inode_indx);
     uint32_t body = (owner_pid << 18) | (fileid & 0x3ffff);

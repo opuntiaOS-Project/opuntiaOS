@@ -14,25 +14,25 @@
 #include <mem/kmemzone.h>
 
 struct kmalloc_header {
-    uint32_t len;
+    size_t len;
 };
 typedef struct kmalloc_header kmalloc_header_t;
 
 static lock_t _kmalloc_lock;
 static kmemzone_t _kmalloc_zone;
-static uint32_t _kmalloc_bitmap_len = 0;
+static size_t _kmalloc_bitmap_len = 0;
 static uint8_t* _kmalloc_bitmap;
 static bitmap_t bitmap;
 
-static inline uint32_t kmalloc_to_vaddr(int start)
+static inline uintptr_t kmalloc_to_vaddr(int start)
 {
-    uint32_t vaddr = (uint32_t)_kmalloc_zone.start + start * KMALLOC_BLOCK_SIZE;
-    return (uint32_t)_kmalloc_zone.start + start * KMALLOC_BLOCK_SIZE;
+    uintptr_t vaddr = (uintptr_t)_kmalloc_zone.start + start * KMALLOC_BLOCK_SIZE;
+    return (uintptr_t)_kmalloc_zone.start + start * KMALLOC_BLOCK_SIZE;
 }
 
-static inline int kmalloc_to_index(uint32_t vaddr)
+static inline int kmalloc_to_index(uintptr_t vaddr)
 {
-    return (vaddr - (uint32_t)_kmalloc_zone.start) / KMALLOC_BLOCK_SIZE;
+    return (vaddr - (uintptr_t)_kmalloc_zone.start) / KMALLOC_BLOCK_SIZE;
 }
 
 static void _kmalloc_init_bitmap()
@@ -45,7 +45,7 @@ static void _kmalloc_init_bitmap()
 
     /* Setting bitmap as a busy region. */
     int blocks_needed = (_kmalloc_bitmap_len + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
-    bitmap_set_range(bitmap, kmalloc_to_index((uint32_t)_kmalloc_bitmap), blocks_needed);
+    bitmap_set_range(bitmap, kmalloc_to_index((uintptr_t)_kmalloc_bitmap), blocks_needed);
 }
 
 void kmalloc_init()

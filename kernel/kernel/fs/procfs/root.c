@@ -78,22 +78,22 @@ static const procfs_files_t static_procfs_files[] = {
  * HELPERS
  */
 
-static uint32_t procfs_root_sfiles_get_inode_index(int fileid)
+static ino_t procfs_root_sfiles_get_inode_index(int fileid)
 {
     return procfs_inode_get_index(PROCFS_ROOT_LEVEL, fileid);
 }
 
-static uint32_t procfs_root_self_get_inode_index(int fileid)
+static ino_t procfs_root_self_get_inode_index(int fileid)
 {
     return procfs_inode_get_index(PROCFS_ROOT_LEVEL, RUNNING_THREAD->process->pid + PROCFS_STATIC_FILES_COUNT_AT_LEVEL);
 }
 
-uint32_t procfs_root_get_pid_from_inode_index(uint32_t inode_index)
+pid_t procfs_root_get_pid_from_inode_index(ino_t inode_index)
 {
     return (inode_index & 0x0fffffff) - PROCFS_STATIC_FILES_COUNT_AT_LEVEL;
 }
 
-static uint32_t procfs_root_pid_get_inode_index(int procid)
+static ino_t procfs_root_pid_get_inode_index(int procid)
 {
     return procfs_inode_get_index(PROCFS_ROOT_LEVEL, procid + PROCFS_STATIC_FILES_COUNT_AT_LEVEL);
 }

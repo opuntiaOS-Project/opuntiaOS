@@ -56,7 +56,7 @@ typedef struct procfs_inode procfs_inode_t;
 void procfs_install();
 int procfs_mount();
 
-uint32_t procfs_root_get_pid_from_inode_index(uint32_t inode_index);
+pid_t procfs_root_get_pid_from_inode_index(ino_t inode_index);
 
 static inline ino_t procfs_inode_get_index(uint32_t level, uint32_t main)
 {

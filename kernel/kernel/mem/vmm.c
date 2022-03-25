@@ -895,9 +895,9 @@ static int _vmm_restore_swapped_page_locked(uintptr_t vaddr)
 
 #ifdef VMM_DEBUG_SWAP
     uint32_t checksum = 0;
-    uint32_t* old_page_vaddr_shit = (uint32_t*)PAGE_START(vaddr);
+    uint32_t* old_page_vaddr = (uint32_t*)PAGE_START(vaddr);
     for (int i = 0; i < VMM_PAGE_SIZE / 4; i++) {
-        checksum ^= old_page_vaddr_shit[i];
+        checksum ^= old_page_vaddr[i];
     }
     log("Swap: %d restore %x == id %d (%x *%x) chksm %x", RUNNING_THREAD->tid, vaddr, id, page, *page, checksum);
 #endif
@@ -945,9 +945,9 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
 
 #ifdef VMM_DEBUG_SWAP
     uint32_t checksum = 0;
-    uint32_t* old_page_vaddr_shit = (uint32_t*)PAGE_START(old_page_vaddr);
+    uint32_t* old_page_vaddr = (uint32_t*)PAGE_START(old_page_vaddr);
     for (int i = 0; i < VMM_PAGE_SIZE / 4; i++) {
-        checksum ^= old_page_vaddr_shit[i];
+        checksum ^= old_page_vaddr[i];
     }
     log("Swap: %d put to swap %x == id %d (%x *%x) chksm %x", RUNNING_THREAD->tid, vaddr, new_frame, page_desc, *page_desc, checksum);
 #endif

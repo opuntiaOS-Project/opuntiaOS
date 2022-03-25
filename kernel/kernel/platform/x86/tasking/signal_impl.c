@@ -9,7 +9,7 @@
 #include <platform/generic/tasking/signal_impl.h>
 #include <tasking/thread.h>
 
-int signal_impl_prepare_stack(thread_t* thread, int signo, uint32_t old_sp, uint32_t magic)
+int signal_impl_prepare_stack(thread_t* thread, int signo, uintptr_t old_sp, uintptr_t magic)
 {
     tf_push_to_stack(thread->tf, thread->tf->eflags);
     tf_push_to_stack(thread->tf, thread->tf->eip);
@@ -28,7 +28,7 @@ int signal_impl_prepare_stack(thread_t* thread, int signo, uint32_t old_sp, uint
     return 0;
 }
 
-int signal_impl_restore_stack(thread_t* thread, uint32_t* old_sp, uint32_t* magic)
+int signal_impl_restore_stack(thread_t* thread, uintptr_t* old_sp, uintptr_t* magic)
 {
     tf_move_stack_pointer(thread->tf, 12); /* cleaning 3 last pushes */
     *magic = tf_pop_to_stack(thread->tf);
