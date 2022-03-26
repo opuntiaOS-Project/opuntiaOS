@@ -54,9 +54,9 @@ static int _elf_load_page_content(memzone_t* zone, uintptr_t vaddr)
         memset((void*)PAGE_START(vaddr), 0, VMM_PAGE_SIZE);
     }
 
-    lock_acquire(&zone->file->lock);
+    spinlock_acquire(&zone->file->lock);
     zone->file->ops->file.read(zone->file, page_start_ptr, offset, rem_len);
-    lock_release(&zone->file->lock);
+    spinlock_release(&zone->file->lock);
     return 0;
 }
 

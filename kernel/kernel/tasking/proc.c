@@ -56,7 +56,7 @@ static thread_list_node_t* proc_alloc_thread_storage_node()
 static thread_t* _proc_alloc_thread()
 {
     ASSERT(thread_list.next_empty_node != NULL);
-    lock_acquire(&thread_list.lock);
+    spinlock_acquire(&thread_list.lock);
     if (!thread_list.next_empty_node->empty_spots) {
         thread_list_node_t* node = proc_alloc_thread_storage_node();
         thread_list.tail->next = node;
@@ -70,7 +70,7 @@ static thread_t* _proc_alloc_thread()
             thread_list.next_empty_node->empty_spots--;
             thread_list.next_empty_index++;
             thread_list.next_empty_node->thread_storage[i].status = THREAD_STATUS_ALLOCATED;
-            lock_release(&thread_list.lock);
+            spinlock_release(&thread_list.lock);
             return &thread_list.next_empty_node->thread_storage[i];
         }
     }
@@ -115,7 +115,7 @@ pid_t proc_alloc_pid()
 
 int proc_init_storage()
 {
-    lock_init(&thread_list.lock);
+    spinlock_init(&thread_list.lock);
     thread_list_node_t* node = proc_alloc_thread_storage_node();
     thread_list.head = node;
     thread_list.tail = node;
@@ -165,15 +165,15 @@ static int proc_setup_locked(proc_t* p)
 
 int proc_setup(proc_t* p)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     int res = proc_setup_locked(p);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return res;
 }
 
 int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     int err = proc_setup_locked(p);
     p->uid = uid;
     p->gid = gid;
@@ -181,7 +181,7 @@ int proc_setup_with_uid(proc_t* p, uid_t uid, gid_t gid)
     p->egid = gid;
     p->suid = uid;
     p->sgid = gid;
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return err;
 }
 
@@ -215,9 +215,9 @@ static int proc_setup_vconsole_locked(proc_t* p, vconsole_entry_t* vconsole)
 
 int proc_setup_vconsole(proc_t* p, vconsole_entry_t* vconsole)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     int res = proc_setup_vconsole_locked(p, vconsole);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return res;
 }
 
@@ -328,11 +328,11 @@ restore:
 
 int proc_load(proc_t* p, thread_t* main_thread, const char* path)
 {
-    lock_acquire(&p->vm_lock);
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->vm_lock);
+    spinlock_acquire(&p->lock);
     int res = proc_load_locked(p, main_thread, path);
-    lock_release(&p->lock);
-    lock_release(&p->vm_lock);
+    spinlock_release(&p->lock);
+    spinlock_release(&p->vm_lock);
     return res;
 }
 
@@ -378,17 +378,17 @@ int proc_free_locked(proc_t* p)
 
 int proc_free(proc_t* p)
 {
-    lock_acquire(&p->vm_lock);
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->vm_lock);
+    spinlock_acquire(&p->lock);
     int res = proc_free_locked(p);
-    lock_release(&p->lock);
-    lock_release(&p->vm_lock);
+    spinlock_release(&p->lock);
+    spinlock_release(&p->vm_lock);
     return res;
 }
 
 int proc_die(proc_t* p)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     p->status = PROC_DYING;
     foreach_thread(p)
     {
@@ -396,18 +396,18 @@ int proc_die(proc_t* p)
     }
 
     tasking_evict_zombies_waiting_for(p);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return 0;
 }
 
 int proc_block_all_threads(proc_t* p, const blocker_t* blocker)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     foreach_thread(p)
     {
         thread_init_blocker(thread, blocker);
     }
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return 0;
 }
 
@@ -417,11 +417,11 @@ int proc_block_all_threads(proc_t* p, const blocker_t* blocker)
 
 thread_t* proc_create_thread(proc_t* p)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     thread_t* thread = proc_alloc_thread();
     thread_setup(p, thread);
     sched_enqueue(thread);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return thread;
 }
 
@@ -442,9 +442,9 @@ static ALWAYS_INLINE void proc_kill_all_threads_locked(proc_t* p)
 
 void proc_kill_all_threads_except(proc_t* p, thread_t* gthread)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     proc_kill_all_threads_except_locked(p, gthread);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
 }
 
 void proc_kill_all_threads(proc_t* p)
@@ -479,15 +479,15 @@ static int proc_chdir_locked(proc_t* p, const char* path)
 
 int proc_chdir(proc_t* p, const char* path)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     int res = proc_chdir_locked(p, path);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return res;
 }
 
 int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     ASSERT(p->fds);
     /* Calculating id with pointers */
     uintptr_t start = (uintptr_t)p->fds;
@@ -495,10 +495,10 @@ int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
     fd_ptr -= start;
     int fd_res = fd_ptr / sizeof(file_descriptor_t);
     if (!(fd_ptr % sizeof(file_descriptor_t))) {
-        lock_release(&p->lock);
+        spinlock_release(&p->lock);
         return fd_res;
     }
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return -1;
 }
 
@@ -513,7 +513,7 @@ static file_descriptor_t* proc_get_free_fd_locked(proc_t* p)
 
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
         if (!fd_is_opened(&p->fds[i])) {
-            lock_init(&p->fds[i].lock);
+            spinlock_init(&p->fds[i].lock);
             return &p->fds[i];
         }
     }
@@ -523,9 +523,9 @@ static file_descriptor_t* proc_get_free_fd_locked(proc_t* p)
 
 file_descriptor_t* proc_get_free_fd(proc_t* p)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     file_descriptor_t* res = proc_get_free_fd_locked(p);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return res;
 }
 
@@ -546,23 +546,23 @@ static file_descriptor_t* proc_get_fd_locked(proc_t* p, size_t index)
 
 file_descriptor_t* proc_get_fd(proc_t* p, size_t index)
 {
-    lock_acquire(&p->lock);
+    spinlock_acquire(&p->lock);
     file_descriptor_t* res = proc_get_fd_locked(p, index);
-    lock_release(&p->lock);
+    spinlock_release(&p->lock);
     return res;
 }
 
 int proc_copy_fd(file_descriptor_t* oldfd, file_descriptor_t* newfd)
 {
-    lock_acquire(&oldfd->lock);
+    spinlock_acquire(&oldfd->lock);
     if (oldfd->type == FD_TYPE_FILE) {
         newfd->type = FD_TYPE_FILE;
         newfd->dentry = dentry_duplicate(oldfd->dentry);
         newfd->offset = oldfd->offset;
         newfd->flags = oldfd->flags;
         newfd->ops = oldfd->ops;
-        lock_init(&newfd->lock);
-        lock_release(&oldfd->lock);
+        spinlock_init(&newfd->lock);
+        spinlock_release(&oldfd->lock);
         return 0;
     } else if (oldfd->type == FD_TYPE_SOCKET) {
         newfd->type = FD_TYPE_SOCKET;
@@ -570,11 +570,11 @@ int proc_copy_fd(file_descriptor_t* oldfd, file_descriptor_t* newfd)
         newfd->offset = oldfd->offset;
         newfd->flags = oldfd->flags;
         newfd->ops = oldfd->ops;
-        lock_init(&newfd->lock);
-        lock_release(&oldfd->lock);
+        spinlock_init(&newfd->lock);
+        spinlock_release(&oldfd->lock);
         return 0;
     }
 
-    lock_release(&oldfd->lock);
+    spinlock_release(&oldfd->lock);
     return -1;
 }

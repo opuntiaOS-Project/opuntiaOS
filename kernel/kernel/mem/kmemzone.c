@@ -33,7 +33,7 @@
 
 static uintptr_t _zoner_next_vaddr;
 static uint8_t* _zoner_bitmap;
-static lock_t _zoner_lock;
+static spinlock_t _zoner_lock;
 static bitmap_t bitmap;
 static bool _zoner_bitmap_set;
 
@@ -61,18 +61,18 @@ static uintptr_t _zoner_new_vzone_aligned_locked(size_t size, size_t alignment)
  */
 void kmemzone_init_stage2()
 {
-    lock_acquire(&_zoner_lock);
+    spinlock_acquire(&_zoner_lock);
     _zoner_bitmap = (uint8_t*)_zoner_new_vzone_locked(ZONER_BITMAP_SIZE);
     bitmap = bitmap_wrap(_zoner_bitmap, ZONER_BITMAP_SIZE * 8);
     memset(_zoner_bitmap, 0, ZONER_BITMAP_SIZE);
     _zoner_bitmap_set = true;
     bitmap_set_range(bitmap, 0, ZONER_TO_BITMAP_INDEX(_zoner_next_vaddr));
-    lock_release(&_zoner_lock);
+    spinlock_release(&_zoner_lock);
 }
 
 void kmemzone_init()
 {
-    lock_init(&_zoner_lock);
+    spinlock_init(&_zoner_lock);
 
     const pmm_state_t* pmm_state = pmm_get_state();
     uintptr_t start_vaddr = (uintptr_t)pmm_state->mat.data + pmm_state->mat.len / 8;
@@ -92,7 +92,7 @@ void kmemzone_init()
  */
 kmemzone_t kmemzone_new(size_t size)
 {
-    lock_acquire(&_zoner_lock);
+    spinlock_acquire(&_zoner_lock);
     if (size % VMM_PAGE_SIZE) {
         size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
     }
@@ -108,7 +108,7 @@ kmemzone_t kmemzone_new(size_t size)
         if (start < 0) {
             zone.start = 0;
             zone.len = 0;
-            lock_release(&_zoner_lock);
+            spinlock_release(&_zoner_lock);
             return zone;
         }
 
@@ -120,13 +120,13 @@ kmemzone_t kmemzone_new(size_t size)
     }
 
     zone.len = size;
-    lock_release(&_zoner_lock);
+    spinlock_release(&_zoner_lock);
     return zone;
 }
 
 kmemzone_t kmemzone_new_aligned(size_t size, size_t alignment)
 {
-    lock_acquire(&_zoner_lock);
+    spinlock_acquire(&_zoner_lock);
     if (size % VMM_PAGE_SIZE) {
         size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
     }
@@ -147,7 +147,7 @@ kmemzone_t kmemzone_new_aligned(size_t size, size_t alignment)
         if (start < 0) {
             zone.start = 0;
             zone.len = 0;
-            lock_release(&_zoner_lock);
+            spinlock_release(&_zoner_lock);
             return zone;
         }
 
@@ -159,7 +159,7 @@ kmemzone_t kmemzone_new_aligned(size_t size, size_t alignment)
     }
 
     zone.len = size;
-    lock_release(&_zoner_lock);
+    spinlock_release(&_zoner_lock);
     return zone;
 }
 
@@ -181,8 +181,8 @@ static ALWAYS_INLINE int kmemzone_free_locked(kmemzone_t zone)
 
 int kmemzone_free(kmemzone_t zone)
 {
-    lock_acquire(&_zoner_lock);
+    spinlock_acquire(&_zoner_lock);
     int res = kmemzone_free_locked(zone);
-    lock_release(&_zoner_lock);
+    spinlock_release(&_zoner_lock);
     return res;
 }

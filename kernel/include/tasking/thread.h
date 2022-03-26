@@ -119,7 +119,7 @@ struct thread_list {
     struct thread_list_node* head;
     struct thread_list_node* next_empty_node;
     int next_empty_index;
-    lock_t lock;
+    spinlock_t lock;
     struct thread_list_node* tail;
 };
 typedef struct thread_list thread_list_t;

@@ -13,12 +13,12 @@
 #include <libkern/stdarg.h>
 
 // Turn off lock debug output for log.
-#ifdef DEBUG_LOCK
-#undef lock_acquire
-#undef lock_release
+#ifdef DEBUG_SPINLOCK
+#undef spinlock_acquire
+#undef spinlock_release
 #endif
 
-static lock_t _log_lock;
+static spinlock_t _log_lock;
 
 static int putch_callback_stream(char c, char* buf_base, size_t* written, void* callback_params)
 {
@@ -42,50 +42,50 @@ static int vlog_fmt(const char* init_msg, const char* format, va_list arg)
 
 int log(const char* format, ...)
 {
-    lock_acquire(&_log_lock);
+    spinlock_acquire(&_log_lock);
     va_list arg;
     va_start(arg, format);
     int ret = vlog_fmt("\033[1;37m[LOG]\033[0m  ", format, arg);
     va_end(arg);
-    lock_release(&_log_lock);
+    spinlock_release(&_log_lock);
     return ret;
 }
 
 int log_warn(const char* format, ...)
 {
-    lock_acquire(&_log_lock);
+    spinlock_acquire(&_log_lock);
     va_list arg;
     va_start(arg, format);
     int ret = vlog_fmt("\033[1;33m[WARN]\033[0m ", format, arg);
     va_end(arg);
-    lock_release(&_log_lock);
+    spinlock_release(&_log_lock);
     return ret;
 }
 
 int log_error(const char* format, ...)
 {
-    lock_acquire(&_log_lock);
+    spinlock_acquire(&_log_lock);
     va_list arg;
     va_start(arg, format);
     int ret = vlog_fmt("\033[1;31m[ERR]\033[0m  ", format, arg);
     va_end(arg);
-    lock_release(&_log_lock);
+    spinlock_release(&_log_lock);
     return ret;
 }
 
 int log_not_formatted(const char* format, ...)
 {
-    lock_acquire(&_log_lock);
+    spinlock_acquire(&_log_lock);
     va_list arg;
     va_start(arg, format);
     int ret = vlog_unfmt(format, arg);
     va_end(arg);
-    lock_release(&_log_lock);
+    spinlock_release(&_log_lock);
     return ret;
 }
 
 void logger_setup()
 {
-    lock_init(&_log_lock);
+    spinlock_init(&_log_lock);
     uart_setup();
 }

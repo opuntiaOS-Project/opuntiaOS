@@ -28,7 +28,7 @@ static vm_address_space_t _vmm_kernel_address_space;
 static vm_address_space_t* _vmm_kernel_address_space_ptr = &_vmm_kernel_address_space;
 static uintptr_t _vmm_kernel_pdir_paddr;
 static ptable_t* _vmm_kernel_pdir;
-static lock_t _vmm_lock;
+static spinlock_t _vmm_lock;
 static kmemzone_t pspace_zone;
 uintptr_t kernel_ptables_start_paddr = 0x0;
 
@@ -93,7 +93,7 @@ static void vm_alloc_kernel_pdir()
     _vmm_kernel_pdir = (ptable_t*)(_vmm_kernel_pdir_paddr + pmm_get_state()->boot_args->vaddr - pmm_get_state()->boot_args->paddr);
     _vmm_kernel_address_space.count = 1;
     _vmm_kernel_address_space.pdir = _vmm_kernel_pdir;
-    lock_init(&_vmm_kernel_address_space.lock);
+    spinlock_init(&_vmm_kernel_address_space.lock);
     memset((void*)_vmm_kernel_address_space.pdir, 0, PTABLE_SIZE(PTABLE_LV_TOP));
 
     // Set as an active one to set up kernel address space.
@@ -228,7 +228,7 @@ int vmm_init_setup_finished = 0;
 
 int vmm_setup()
 {
-    lock_init(&_vmm_lock);
+    spinlock_init(&_vmm_lock);
     kmemzone_init();
     vm_alloc_kernel_pdir();
     _vmm_create_kernel_ptables();
@@ -261,9 +261,9 @@ static inline void _vmm_sleep_locked()
     ASSERT(RUNNING_THREAD != THIS_CPU->idle_thread);
     extern void resched();
 
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     resched();
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
 }
 
 static inline void _vmm_table_desc_init_from_allocated_state(ptable_entity_t* ptable_desc, ptable_lv_t lv)
@@ -337,9 +337,9 @@ skip_allocation:
  */
 static int _vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = _vmm_allocate_ptable_locked(vaddr, lv);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -367,9 +367,9 @@ static int _vmm_force_allocate_ptable_locked(uintptr_t vaddr, ptable_lv_t lv)
  */
 int vmm_force_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = _vmm_force_allocate_ptable_locked(vaddr, lv);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -438,9 +438,9 @@ int vmm_map_page_locked(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
  */
 int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = vmm_map_page_locked(vaddr, paddr, mmu_flags);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -478,9 +478,9 @@ int vmm_unmap_page_locked(uintptr_t vaddr)
  */
 int vmm_unmap_page(uintptr_t vaddr)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = vmm_unmap_page_locked(vaddr);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -519,9 +519,9 @@ int vmm_map_pages_locked(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, mmu_f
  */
 int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, mmu_flags_t mmu_flags)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = vmm_map_pages_locked(vaddr, paddr, n_pages, mmu_flags);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -555,9 +555,9 @@ int vmm_unmap_pages_locked(uintptr_t vaddr, size_t n_pages)
  */
 int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = vmm_unmap_pages_locked(vaddr, n_pages);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -906,10 +906,10 @@ static int _vmm_restore_swapped_page_locked(uintptr_t vaddr)
 
 int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
 
     if (!zone) {
-        lock_release(&_vmm_lock);
+        spinlock_release(&_vmm_lock);
         return -EINVAL;
     }
 
@@ -919,7 +919,7 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
     }
 
     if (swap_mode == SWAP_NOT_ALLOWED) {
-        lock_release(&_vmm_lock);
+        spinlock_release(&_vmm_lock);
         return -EPERM;
     }
 
@@ -928,7 +928,7 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
     uintptr_t old_page_paddr = vm_ptable_entity_get_frame(page_desc, PTABLE_LV0);
     int err = vmm_map_page_locked(old_page_vaddr, old_page_paddr, MMU_FLAG_PERM_READ);
     if (err) {
-        lock_release(&_vmm_lock);
+        spinlock_release(&_vmm_lock);
         return err;
     }
 
@@ -938,7 +938,7 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
         if (new_frame < 0) {
             vmm_unmap_page_locked(old_page_vaddr);
             kmemzone_free(tmp_zone);
-            lock_release(&_vmm_lock);
+            spinlock_release(&_vmm_lock);
             return -1;
         }
     }
@@ -959,7 +959,7 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
 
     vmm_unmap_page_locked(old_page_vaddr);
     kmemzone_free(tmp_zone);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return 0;
 }
 
@@ -1030,9 +1030,9 @@ static vm_address_space_t* vmm_new_address_space_locked()
 vm_address_space_t* vmm_new_address_space()
 {
     vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_locked();
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     _vmm_fill_up_new_address_space(new_aspace);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return new_aspace;
 }
 
@@ -1059,9 +1059,9 @@ static vm_address_space_t* vmm_new_forked_address_space_locked()
 vm_address_space_t* vmm_new_forked_address_space()
 {
     vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_locked();
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     _vmm_fill_up_forked_address_space(new_aspace);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     memzone_copy(new_aspace, THIS_CPU->active_address_space);
     return new_aspace;
 }
@@ -1097,9 +1097,9 @@ static int _vmm_free_address_space_locked(vm_address_space_t* vm_aspace)
  */
 int vmm_free_address_space(vm_address_space_t* vm_aspace)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = _vmm_free_address_space_locked(vm_aspace);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -1167,9 +1167,9 @@ static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_locked(uint
  */
 void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t length)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     vmm_ensure_writing_to_active_address_space_locked(dest_vaddr, length);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
 }
 
 /**
@@ -1217,10 +1217,10 @@ void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr
     // Copy data to the kernel space, if needed.
     void* ksrc = _vmm_bring_to_kernel_space(src, length);
 
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     vmm_switch_address_space_locked(vm_aspace);
     vmm_ensure_writing_to_active_address_space_locked(dest_vaddr, length);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
 
     void* dest = (void*)dest_vaddr;
     memcpy(dest, ksrc, length);
@@ -1263,9 +1263,9 @@ static int vmm_tune_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags)
 
 int vmm_tune_page(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = vmm_tune_page_locked(vaddr, mmu_flags);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -1281,9 +1281,9 @@ static int vmm_tune_pages_locked(uintptr_t vaddr, size_t length, mmu_flags_t mmu
 
 int vmm_tune_pages(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = vmm_tune_pages_locked(vaddr, length, mmu_flags);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }
 
@@ -1315,14 +1315,14 @@ static ALWAYS_INLINE int vmm_alloc_page_locked(uintptr_t vaddr, mmu_flags_t mmu_
 
 int vmm_alloc_page(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     if (_vmm_is_page_present(vaddr)) {
-        lock_release(&_vmm_lock);
+        spinlock_release(&_vmm_lock);
         return -EALREADY;
     }
 
     int err = vmm_alloc_page_no_fill_locked(vaddr, mmu_flags);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     if (err) {
         return err;
     }
@@ -1374,7 +1374,7 @@ static int _vmm_on_page_not_present_locked(uintptr_t vaddr)
 
 int _vmm_pf_on_writing(uintptr_t vaddr)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int visited = 0;
 
     if (vmm_is_copy_on_write(vaddr)) {
@@ -1386,11 +1386,11 @@ int _vmm_pf_on_writing(uintptr_t vaddr)
     }
 
     if (!visited) {
-        lock_release(&_vmm_lock);
+        spinlock_release(&_vmm_lock);
         return -EFAULT;
     }
 
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return 0;
 }
 
@@ -1399,9 +1399,9 @@ int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
     mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);
 
     if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_NOT_PRESENT)) {
-        lock_acquire(&_vmm_lock);
+        spinlock_acquire(&_vmm_lock);
         int res = _vmm_on_page_not_present_locked(vaddr);
-        lock_release(&_vmm_lock);
+        spinlock_release(&_vmm_lock);
         return res;
     }
 
@@ -1451,8 +1451,8 @@ int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace)
  */
 int vmm_switch_address_space(vm_address_space_t* vm_aspace)
 {
-    lock_acquire(&_vmm_lock);
+    spinlock_acquire(&_vmm_lock);
     int res = vmm_switch_address_space_locked(vm_aspace);
-    lock_release(&_vmm_lock);
+    spinlock_release(&_vmm_lock);
     return res;
 }

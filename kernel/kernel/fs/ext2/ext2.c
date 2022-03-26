@@ -25,9 +25,9 @@
 #define TO_EXT_BLOCKS_CNT(sb, x) (x / (2 << (sb->log_block_size)))
 #define NORM_FILENAME(x) (x + ((4 - (x & 0b11)) & 0b11))
 
-static superblock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
+static superbspinlock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
 static groups_info_t _ext2_group_table_info[MAX_DEVICES_COUNT];
-static lock_t _ext2_lock;
+static spinlock_t _ext2_lock;
 
 driver_desc_t _ext2_driver_info();
 
@@ -44,11 +44,11 @@ static inline void _ext2_bitmap_set_bit(uint8_t* bitmap, uint32_t index);
 static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index);
 
 /* GROUPS FUNCTIONS */
-static inline uint32_t _ext2_get_group_len(superblock_t* sb);
-static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superblock_t* sb);
+static inline uint32_t _ext2_get_group_len(superbspinlock_t* sb);
+static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superbspinlock_t* sb);
 
 /* BLOCK FUNCTIONS */
-static uint32_t _ext2_get_block_offset(superblock_t* sb, uint32_t block_index);
+static uint32_t _ext2_get_block_offset(superbspinlock_t* sb, uint32_t block_index);
 
 static uint32_t _ext2_get_block_of_inode_lev0(dentry_t* dentry, uint32_t cur_block, uint32_t inode_block_index);
 static uint32_t _ext2_get_block_of_inode_lev1(dentry_t* dentry, uint32_t cur_block, uint32_t inode_block_index);
@@ -229,12 +229,12 @@ static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index)
  * GROUPS FUNCTIONS
  */
 
-static inline uint32_t _ext2_get_group_len(superblock_t* sb)
+static inline uint32_t _ext2_get_group_len(superbspinlock_t* sb)
 {
     return BLOCK_LEN(sb) * BLOCK_LEN(sb) * 8;
 }
 
-static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superblock_t* sb)
+static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superbspinlock_t* sb)
 {
     uint32_t sz = _ext2_get_disk_size(dev) - SUPERBLOCK_START;
     uint32_t ans = sz / _ext2_get_group_len(sb);
@@ -249,7 +249,7 @@ static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superblock_t* sb)
  * BLOCK FUNCTIONS
  */
 
-static uint32_t _ext2_get_block_offset(superblock_t* sb, uint32_t block_index)
+static uint32_t _ext2_get_block_offset(superbspinlock_t* sb, uint32_t block_index)
 {
     return SUPERBLOCK_START + (block_index - 1) * BLOCK_LEN(sb);
 }
@@ -907,14 +907,14 @@ bool ext2_can_write(dentry_t* dentry, size_t start)
 
 int ext2_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
     uint32_t start_block_index = start / block_len;
     uint32_t end_block_index = min((start + len - 1) / block_len, blocks_allocated - 1);
 
     if (start >= dentry->inode->size) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
         return 0;
     }
 
@@ -931,13 +931,13 @@ int ext2_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
         read_offset = 0;
     }
 
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     return already_read;
 }
 
 int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t start_block_index = start / block_len;
     uint32_t end_block_index = (start + len) / block_len;
@@ -970,15 +970,15 @@ int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
     dentry->inode->mtime = (uint32_t)timeman_now();
     dentry_set_flag(dentry, DENTRY_DIRTY);
 
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     return already_written;
 }
 
 int ext2_truncate(dentry_t* dentry, uint32_t len)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     if (dentry->inode->size <= len) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
         return 0;
     }
 
@@ -996,33 +996,33 @@ int ext2_truncate(dentry_t* dentry, uint32_t len)
     dentry->inode->size = len;
     dentry->inode->mtime = (uint32_t)timeman_now();
     dentry_set_flag(dentry, DENTRY_DIRTY);
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     return 0;
 }
 
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     uint32_t block_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
     for (int block_index = 0; block_index < block_per_dir; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
         uint32_t res_inode_indx = 0;
         if (_ext2_lookup_block(dir->dev, dir->fsdata, data_block_index, name, len, &res_inode_indx) == 0) {
             *result = dentry_get(dir->dev_indx, res_inode_indx);
-            lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
             return 0;
         }
     }
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     return -ENOENT;
 }
 
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     uint32_t new_dir_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_dir_inode_indx, 0) < 0) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -ENOSPC;
     }
 
@@ -1030,70 +1030,70 @@ int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t
 
     if (_ext2_setup_dir(new_dir, dir, mode, uid, gid) < 0) {
         dentry_put(new_dir);
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -EFAULT;
     }
     if (_ext2_add_child(dir, new_dir, name, len) < 0) {
         dentry_put(new_dir);
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -EFAULT;
     }
 
     dentry_put(new_dir);
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     return 0;
 }
 
 int ext2_rmdir(dentry_t* dir)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     dentry_t* parent_dir = dentry_get_parent(dir);
 
     if (!parent_dir) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -EPERM;
     }
 
     if (_ext2_is_dir_empty(dir)) {
         if (_ext2_rm_child(parent_dir, dir) < 0) {
-            lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
             return -EFAULT;
         }
         parent_dir->inode->links_count--;
         dir->inode->links_count--;
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return 0;
     }
 
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     return -ENOTEMPTY;
 }
 
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     const uint32_t block_len = BLOCK_LEN(dir->fsdata.sb);
     uint32_t blocks_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
     if (*offset >= blocks_per_dir * block_len) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -1;
     }
 
     for (uint32_t block_index = *offset / block_len; block_index < blocks_per_dir; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
         if (_ext2_getdirent_block(dir->dev, dir->fsdata, data_block_index, offset, res) == 0) {
-            lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
             return 0;
         }
     }
 
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     return 0;
 }
 
 int ext2_getdents(dentry_t* dentry, void __user* buf, uint32_t* offset, uint32_t len)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t start_block_index = *offset / block_len;
     uint32_t end_block_index = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
@@ -1105,7 +1105,7 @@ int ext2_getdents(dentry_t* dentry, void __user* buf, uint32_t* offset, uint32_t
         uint32_t read_from_block = min(len, block_len - read_offset);
         int act_read = _ext2_getdents_block(dentry->dev, dentry->fsdata, data_block_index, buf + already_read, read_from_block, read_offset, offset);
         if (act_read < 0) {
-            lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
             if (already_read == 0) {
                 return act_read;
             }
@@ -1116,82 +1116,82 @@ int ext2_getdents(dentry_t* dentry, void __user* buf, uint32_t* offset, uint32_t
         read_offset = 0;
     }
 
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     return already_read;
 }
 
 int ext2_create(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     uint32_t new_file_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_file_inode_indx, 0) < 0) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -ENOSPC;
     }
     dentry_t* new_file = dentry_get(dir->dev_indx, new_file_inode_indx);
 
     if (_ext2_setup_file(new_file, mode, uid, gid) < 0) {
         dentry_put(new_file);
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -EFAULT;
     }
 
     if (_ext2_add_child(dir, new_file, name, len) < 0) {
         dentry_put(new_file);
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
         return -EFAULT;
     }
 
     dentry_put(new_file);
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     return 0;
 }
 
 int ext2_rm(dentry_t* dentry)
 {
-    lock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     dentry_t* parent_dir = dentry_get_parent(dentry);
 
     if (!parent_dir) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
         return -EPERM;
     }
 
     if (_ext2_rm_child(parent_dir, dentry) < 0) {
-        lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
         return -EFAULT;
     }
 
-    lock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     return 0;
 }
 
 int ext2_recognize_drive(vfs_device_t* dev)
 {
-    lock_acquire(&VFS_DEVICE_LOCK);
-    superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
+    spinlock_acquire(&VFS_DEVICE_LOCK);
+    superbspinlock_t* superblock = (superbspinlock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
 
     if (superblock->magic != 0xEF53) {
         kfree(superblock);
-        lock_release(&VFS_DEVICE_LOCK);
+        spinlock_release(&VFS_DEVICE_LOCK);
         return -EINVAL;
     }
     if (superblock->rev_level != 0) {
         kfree(superblock);
-        lock_release(&VFS_DEVICE_LOCK);
+        spinlock_release(&VFS_DEVICE_LOCK);
         return -EINVAL;
     }
 
     kfree(superblock);
-    lock_release(&VFS_DEVICE_LOCK);
+    spinlock_release(&VFS_DEVICE_LOCK);
     return 0;
 }
 
 int ext2_prepare_fs(vfs_device_t* dev)
 {
-    lock_acquire(&VFS_DEVICE_LOCK);
-    superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
+    spinlock_acquire(&VFS_DEVICE_LOCK);
+    superbspinlock_t* superblock = (superbspinlock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     _ext2_superblocks[dev->dev->id] = superblock;
 
@@ -1202,19 +1202,19 @@ int ext2_prepare_fs(vfs_device_t* dev)
 
     _ext2_group_table_info[dev->dev->id].count = groups_cnt;
     _ext2_group_table_info[dev->dev->id].table = group_table;
-    lock_release(&VFS_DEVICE_LOCK);
+    spinlock_release(&VFS_DEVICE_LOCK);
     return 0;
 }
 
 int ext2_save_state(vfs_device_t* dev)
 {
-    lock_acquire(&VFS_DEVICE_LOCK);
+    spinlock_acquire(&VFS_DEVICE_LOCK);
     if (!_ext2_superblocks[dev->dev->id]) {
-        lock_release(&VFS_DEVICE_LOCK);
+        spinlock_release(&VFS_DEVICE_LOCK);
         return -1;
     }
 
-    superblock_t* superblock = _ext2_superblocks[dev->dev->id];
+    superbspinlock_t* superblock = _ext2_superblocks[dev->dev->id];
 
     uint32_t group_table_len = _ext2_group_table_info[dev->dev->id].count * GROUP_LEN;
     group_desc_t* group_table = _ext2_group_table_info[dev->dev->id].table;
@@ -1223,7 +1223,7 @@ int ext2_save_state(vfs_device_t* dev)
 
     _ext2_write_to_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     kfree(superblock);
-    lock_release(&VFS_DEVICE_LOCK);
+    spinlock_release(&VFS_DEVICE_LOCK);
     return 0;
 }
 

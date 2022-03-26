@@ -19,7 +19,7 @@ vm_address_space_t* vm_address_space_alloc()
 
     memset(res, 0, sizeof(vm_address_space_t));
     res->count = 1;
-    lock_init(&res->lock);
+    spinlock_init(&res->lock);
     if (dynarr_init(memzone_t, &res->zones) != 0) {
         kfree(res);
         return NULL;

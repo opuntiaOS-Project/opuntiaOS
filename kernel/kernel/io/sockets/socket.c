@@ -20,7 +20,7 @@ static socket_t* _socket_create(int domain, int type, int protocol)
     socket_list[next_socket].protocol = protocol;
     socket_list[next_socket].buffer = sync_ringbuffer_create_std();
     socket_list[next_socket].d_count = 1;
-    lock_init(&socket_list[next_socket].lock);
+    spinlock_init(&socket_list[next_socket].lock);
     return &socket_list[next_socket++];
 }
 
@@ -38,20 +38,20 @@ int socket_create(int domain, int type, int protocol, file_descriptor_t* fd, fil
 
 socket_t* socket_duplicate(socket_t* sock)
 {
-    lock_acquire(&sock->lock);
+    spinlock_acquire(&sock->lock);
     sock->d_count++;
-    lock_release(&sock->lock);
+    spinlock_release(&sock->lock);
     return sock;
 }
 
 int socket_put(socket_t* sock)
 {
-    lock_acquire(&sock->lock);
+    spinlock_acquire(&sock->lock);
     sock->d_count--;
     ASSERT(sock->d_count > 0);
     if (sock->d_count == 0) {
         sync_ringbuffer_free(&sock->buffer);
     }
-    lock_release(&sock->lock);
+    spinlock_release(&sock->lock);
     return 0;
 }

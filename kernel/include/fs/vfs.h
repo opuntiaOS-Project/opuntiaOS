@@ -31,14 +31,14 @@ typedef struct {
 } groups_info_t;
 
 typedef struct {
-    superblock_t* sb;
+    superbspinlock_t* sb;
     groups_info_t* gt;
 } fsdata_t;
 
 typedef struct {
     int fs;
     device_t* dev;
-    lock_t lock;
+    spinlock_t lock;
 } vfs_device_t;
 
 struct dirent {
@@ -64,7 +64,7 @@ struct dentry {
     dentry_flag_t flags;
     ino_t inode_indx;
     inode_t* inode;
-    lock_t lock;
+    spinlock_t lock;
     fsdata_t fsdata;
     struct fs_ops* ops;
     dev_t dev_indx;
@@ -84,7 +84,7 @@ struct dentry_cache_list {
     struct dentry_cache_list* next;
     dentry_t* data;
     size_t len;
-    lock_t lock;
+    spinlock_t lock;
 };
 typedef struct dentry_cache_list dentry_cache_list_t;
 
@@ -147,7 +147,7 @@ struct file_descriptor {
     off_t offset;
     int flags;
     file_ops_t* ops;
-    lock_t lock;
+    spinlock_t lock;
 };
 typedef struct file_descriptor file_descriptor_t;
 
@@ -158,7 +158,7 @@ struct socket {
     int protocol;
     sync_ringbuffer_t buffer;
     file_descriptor_t bind_file;
-    lock_t lock;
+    spinlock_t lock;
 };
 typedef struct socket socket_t;
 

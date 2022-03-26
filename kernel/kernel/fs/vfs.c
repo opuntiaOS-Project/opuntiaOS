@@ -115,7 +115,7 @@ int vfs_add_dev(device_t* dev)
     }
 
     _vfs_devices[dev->id].dev = dev;
-    lock_init(&_vfs_devices[dev->id].lock);
+    spinlock_init(&_vfs_devices[dev->id].lock);
     if (!dev->is_virtual) {
         if (vfs_choose_fs_of_dev(&_vfs_devices[dev->id]) < 0) {
             return -ENOENT;
@@ -265,7 +265,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
     fd->dentry = dentry_duplicate(file);
     fd->offset = 0;
     fd->ops = &file->ops->file;
-    lock_init(&fd->lock);
+    spinlock_init(&fd->lock);
     return 0;
 }
 
@@ -287,9 +287,9 @@ int vfs_close(file_descriptor_t* fd)
     if (!fd) {
         return -EFAULT;
     }
-    lock_acquire(&fd->lock);
+    spinlock_acquire(&fd->lock);
     int res = _int_vfs_do_close(fd);
-    lock_release(&fd->lock);
+    spinlock_release(&fd->lock);
     return res;
 }
 
@@ -378,31 +378,31 @@ int vfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
 
 bool vfs_can_read(file_descriptor_t* fd)
 {
-    lock_acquire(&fd->lock);
+    spinlock_acquire(&fd->lock);
     bool res = true;
     if (fd->ops->can_read) {
         res = fd->ops->can_read(fd->dentry, fd->offset);
     }
-    lock_release(&fd->lock);
+    spinlock_release(&fd->lock);
     return res;
 }
 
 bool vfs_can_write(file_descriptor_t* fd)
 {
-    lock_acquire(&fd->lock);
+    spinlock_acquire(&fd->lock);
     bool res = true;
     if (fd->ops->can_write) {
         res = fd->ops->can_write(fd->dentry, fd->offset);
     }
-    lock_release(&fd->lock);
+    spinlock_release(&fd->lock);
     return res;
 }
 
 int vfs_read(file_descriptor_t* fd, void __user* buf, size_t len)
 {
-    lock_acquire(&fd->lock);
+    spinlock_acquire(&fd->lock);
     if (!fd->ops->read) {
-        lock_release(&fd->lock);
+        spinlock_release(&fd->lock);
         return 0;
     }
 
@@ -414,15 +414,15 @@ int vfs_read(file_descriptor_t* fd, void __user* buf, size_t len)
     if (read > 0) {
         fd->offset += read;
     }
-    lock_release(&fd->lock);
+    spinlock_release(&fd->lock);
     return read;
 }
 
 int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len)
 {
-    lock_acquire(&fd->lock);
+    spinlock_acquire(&fd->lock);
     if (!fd->ops->write) {
-        lock_release(&fd->lock);
+        spinlock_release(&fd->lock);
         return 0;
     }
 
@@ -441,7 +441,7 @@ int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len)
         }
     }
 
-    lock_release(&fd->lock);
+    spinlock_release(&fd->lock);
     return written;
 }
 
@@ -490,20 +490,20 @@ int vfs_getdents(file_descriptor_t* dir_fd, void __user* buf, size_t len)
     if (!dentry_test_mode(dir_fd->dentry, S_IFDIR)) {
         return -ENOTDIR;
     }
-    lock_acquire(&dir_fd->lock);
+    spinlock_acquire(&dir_fd->lock);
     ASSERT(dir_fd->ops->getdents && "FS marked file as dir, but no getdents impl");
     int res = dir_fd->ops->getdents(dir_fd->dentry, buf, &dir_fd->offset, len);
-    lock_release(&dir_fd->lock);
+    spinlock_release(&dir_fd->lock);
     return res;
 }
 
 int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
 {
-    lock_acquire(&fd->lock);
+    spinlock_acquire(&fd->lock);
     // Check if we have a custom fstat
     if (fd->ops->fstat) {
         int res = fd->ops->fstat(fd->dentry, stat);
-        lock_release(&fd->lock);
+        spinlock_release(&fd->lock);
         return res;
     }
 
@@ -514,7 +514,7 @@ int vfs_fstat(file_descriptor_t* fd, fstat_t* stat)
     stat->size = fd->dentry->inode->size;
     // TODO: Fill more stat data here.
 
-    lock_release(&fd->lock);
+    spinlock_release(&fd->lock);
     return 0;
 }
 
@@ -669,12 +669,12 @@ int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
 
 int vfs_umount(dentry_t* mounted_dentry)
 {
-    lock_acquire(&mounted_dentry->lock);
+    spinlock_acquire(&mounted_dentry->lock);
     if (!dentry_test_flag_locked(mounted_dentry, DENTRY_MOUNTED)) {
 #ifdef VFS_DEBUG
         log_warn("[VFS] Not mounted\n");
 #endif
-        lock_release(&mounted_dentry->lock);
+        spinlock_release(&mounted_dentry->lock);
         return -EPERM;
     }
 
@@ -684,7 +684,7 @@ int vfs_umount(dentry_t* mounted_dentry)
 #ifdef VFS_DEBUG
         log_warn("[VFS] Not a mountpoint\n");
 #endif
-        lock_release(&mounted_dentry->lock);
+        spinlock_release(&mounted_dentry->lock);
         return -EPERM;
     }
 
@@ -701,7 +701,7 @@ int vfs_umount(dentry_t* mounted_dentry)
         vfs_umount(mountpoint);
     }
 
-    lock_release(&mounted_dentry->lock);
+    spinlock_release(&mounted_dentry->lock);
     return 0;
 }
 
@@ -711,9 +711,9 @@ static int _vfs_loadpage_from_mmap_file(struct memzone* zone, uintptr_t vaddr)
 
     // Could ignore file_size here, because in case of EOF file_ops->read() stops reading.
     size_t offset = zone->file_offset + (PAGE_START(vaddr) - zone->vaddr);
-    lock_acquire(&zone->file->lock);
+    spinlock_acquire(&zone->file->lock);
     zone->file->ops->file.read(zone->file, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
-    lock_release(&zone->file->lock);
+    spinlock_release(&zone->file->lock);
     return 0;
 }
 
@@ -741,17 +741,17 @@ static memzone_t* _vfs_do_mmap(file_descriptor_t* fd, mmap_params_t* params)
 
 memzone_t* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params)
 {
-    lock_acquire(&fd->lock);
+    spinlock_acquire(&fd->lock);
     /* Check if we have a custom mmap for a dentry */
     if (fd->dentry->ops->file.mmap) {
         memzone_t* res = fd->dentry->ops->file.mmap(fd->dentry, params);
         if ((uintptr_t)res != VFS_USE_STD_MMAP) {
-            lock_release(&fd->lock);
+            spinlock_release(&fd->lock);
             return res;
         }
     }
     memzone_t* res = _vfs_do_mmap(fd, params);
-    lock_release(&fd->lock);
+    spinlock_release(&fd->lock);
     return res;
 }
 

@@ -106,8 +106,8 @@ proc_t* tasking_get_proc_by_pdir(ptable_t* pdir)
 static inline proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[_tasking_next_proc_id()];
-    lock_init(&p->vm_lock);
-    lock_init(&p->lock);
+    spinlock_init(&p->vm_lock);
+    spinlock_init(&p->lock);
     return p;
 }
 
@@ -229,11 +229,11 @@ void tasking_kill_dying()
     for (int i = 0; i < _tasking_get_proc_count(); i++) {
         p = &proc[i];
         if (p->status == PROC_DYING) {
-            lock_acquire(&p->vm_lock);
-            lock_acquire(&p->lock);
+            spinlock_acquire(&p->vm_lock);
+            spinlock_acquire(&p->lock);
             if (unlikely(p->status != PROC_DYING)) {
-                lock_release(&p->lock);
-                lock_release(&p->vm_lock);
+                spinlock_release(&p->lock);
+                spinlock_release(&p->vm_lock);
                 continue;
             }
             proc_free_locked(p);
@@ -242,8 +242,8 @@ void tasking_kill_dying()
             } else {
                 tasking_evict_proc_entry(p);
             }
-            lock_release(&p->lock);
-            lock_release(&p->vm_lock);
+            spinlock_release(&p->lock);
+            spinlock_release(&p->vm_lock);
         }
     }
 }

@@ -18,7 +18,7 @@ struct kmalloc_header {
 };
 typedef struct kmalloc_header kmalloc_header_t;
 
-static lock_t _kmalloc_lock;
+static spinlock_t _kmalloc_lock;
 static kmemzone_t _kmalloc_zone;
 static size_t _kmalloc_bitmap_len = 0;
 static uint8_t* _kmalloc_bitmap;
@@ -50,14 +50,14 @@ static void _kmalloc_init_bitmap()
 
 void kmalloc_init()
 {
-    lock_init(&_kmalloc_lock);
+    spinlock_init(&_kmalloc_lock);
     _kmalloc_zone = kmemzone_new(KMALLOC_SPACE_SIZE);
     _kmalloc_init_bitmap();
 }
 
 void* kmalloc(size_t size)
 {
-    lock_acquire(&_kmalloc_lock);
+    spinlock_acquire(&_kmalloc_lock);
     int act_size = size + sizeof(kmalloc_header_t);
 
     int blocks_needed = (act_size + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
@@ -70,7 +70,7 @@ void* kmalloc(size_t size)
 
     kmalloc_header_t* space = (kmalloc_header_t*)kmalloc_to_vaddr(start);
     bitmap_set_range(bitmap, start, blocks_needed);
-    lock_release(&_kmalloc_lock);
+    spinlock_release(&_kmalloc_lock);
 
     vmm_ensure_writing_to_active_address_space((uintptr_t)space, act_size);
     space->len = act_size;
@@ -99,9 +99,9 @@ void kfree(void* ptr)
 
     kmalloc_header_t* sptr = (kmalloc_header_t*)ptr;
     int blocks_to_delete = (sptr[-1].len + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
-    lock_acquire(&_kmalloc_lock);
+    spinlock_acquire(&_kmalloc_lock);
     bitmap_unset_range(bitmap, kmalloc_to_index((size_t)&sptr[-1]), blocks_to_delete);
-    lock_release(&_kmalloc_lock);
+    spinlock_release(&_kmalloc_lock);
 }
 
 void kfree_aligned(void* ptr)

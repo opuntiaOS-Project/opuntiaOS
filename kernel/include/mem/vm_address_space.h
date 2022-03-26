@@ -18,7 +18,7 @@ struct vm_address_space {
     ptable_t* pdir;
     dynamic_array_t zones;
     int count;
-    lock_t lock;
+    spinlock_t lock;
 };
 typedef struct vm_address_space vm_address_space_t;
 

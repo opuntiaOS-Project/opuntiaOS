@@ -35,7 +35,7 @@ static devfs_inode_t* devfs_root;
 
 static uint32_t next_inode_index = 2;
 
-static lock_t _devfs_lock;
+static spinlock_t _devfs_lock;
 
 /**
  * Zones Management
@@ -265,29 +265,29 @@ int devfs_prepare_fs(vfs_device_t* vdev)
 
 int devfs_read_inode(dentry_t* dentry)
 {
-    lock_acquire(&_devfs_lock);
+    spinlock_acquire(&_devfs_lock);
     /*  We currently have a uniqueue structure of inode for devfs. So we need to be
         confident using inode in vfs, since inode and devfs_inode are not similar. */
     devfs_inode_t* devfs_inode = _devfs_get_devfs_inode(dentry->inode_indx);
     if (!devfs_inode) {
-        lock_release(&_devfs_lock);
+        spinlock_release(&_devfs_lock);
         return -EFAULT;
     }
     memcpy((void*)dentry->inode, (void*)devfs_inode, DEVFS_INODE_LEN);
-    lock_release(&_devfs_lock);
+    spinlock_release(&_devfs_lock);
     return 0;
 }
 
 int devfs_write_inode(dentry_t* dentry)
 {
-    lock_acquire(&_devfs_lock);
+    spinlock_acquire(&_devfs_lock);
     devfs_inode_t* devfs_inode = _devfs_get_devfs_inode(dentry->inode_indx);
     if (!devfs_inode) {
-        lock_release(&_devfs_lock);
+        spinlock_release(&_devfs_lock);
         return -EFAULT;
     }
     memcpy((void*)devfs_inode, (void*)dentry->inode, DEVFS_INODE_LEN);
-    lock_release(&_devfs_lock);
+    spinlock_release(&_devfs_lock);
     return 0;
 }
 
@@ -343,10 +343,10 @@ int devfs_getdents(dentry_t* dir, void __user* buf, uint32_t* offset, uint32_t l
     }
 
     /* Scanining dir from the start */
-    lock_acquire(&_devfs_lock);
+    spinlock_acquire(&_devfs_lock);
     if (*offset == 2) {
         if (!devfs_inode->first) {
-            lock_release(&_devfs_lock);
+            spinlock_release(&_devfs_lock);
             return 0;
         }
         *offset = (uint32_t)devfs_inode->first;
@@ -356,7 +356,7 @@ int devfs_getdents(dentry_t* dir, void __user* buf, uint32_t* offset, uint32_t l
         devfs_inode_t* child_devfs_inode = (devfs_inode_t*)*offset;
         ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, child_devfs_inode->index, child_devfs_inode->name);
         if (read <= 0) {
-            lock_release(&_devfs_lock);
+            spinlock_release(&_devfs_lock);
             if (!already_read) {
                 return -EINVAL;
             }
@@ -371,7 +371,7 @@ int devfs_getdents(dentry_t* dir, void __user* buf, uint32_t* offset, uint32_t l
         }
     }
 
-    lock_release(&_devfs_lock);
+    spinlock_release(&_devfs_lock);
     return already_read;
 }
 
@@ -544,11 +544,11 @@ devman_register_driver_installation(devfs_install);
 
 devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len)
 {
-    lock_acquire(&_devfs_lock);
+    spinlock_acquire(&_devfs_lock);
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
     devfs_inode_t* new_entry = _devfs_alloc_entry(devfs_inode);
     if (!new_entry) {
-        lock_release(&_devfs_lock);
+        spinlock_release(&_devfs_lock);
         return 0;
     }
 
@@ -557,17 +557,17 @@ devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len)
     new_entry->mode = S_IFDIR;
     _devfs_set_name(new_entry, name, len);
 
-    lock_release(&_devfs_lock);
+    spinlock_release(&_devfs_lock);
     return new_entry;
 }
 
 devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers)
 {
-    lock_acquire(&_devfs_lock);
+    spinlock_acquire(&_devfs_lock);
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
     devfs_inode_t* new_entry = _devfs_alloc_entry(devfs_inode);
     if (!new_entry) {
-        lock_release(&_devfs_lock);
+        spinlock_release(&_devfs_lock);
         return NULL;
     }
 
@@ -577,13 +577,13 @@ devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, u
     _devfs_set_handlers(new_entry, handlers);
     dentry_set_flag(dir, DENTRY_DIRTY);
 
-    lock_release(&_devfs_lock);
+    spinlock_release(&_devfs_lock);
     return new_entry;
 }
 
 int devfs_mount()
 {
-    lock_init(&_devfs_lock);
+    spinlock_init(&_devfs_lock);
     dentry_t* mp;
     if (vfs_resolve_path("/dev", &mp) < 0) {
         return -ENOENT;

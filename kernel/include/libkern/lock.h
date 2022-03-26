@@ -14,48 +14,48 @@
 #include <libkern/log.h>
 #include <libkern/types.h>
 
-// #define DEBUG_LOCK
+// #define DEBUG_SPINLOCK
 
-struct lock {
+struct spinlock {
     int status;
-#ifdef DEBUG_LOCK
+#ifdef DEBUG_SPINLOCK
 
-#endif // DEBUG_LOCK
+#endif // DEBUG_SPINLOCK
 };
-typedef struct lock lock_t;
+typedef struct spinlock spinlock_t;
 
-static ALWAYS_INLINE void lock_init(lock_t* lock)
+static ALWAYS_INLINE void spinlock_init(spinlock_t* lock)
 {
     __atomic_store_n(&lock->status, 0, __ATOMIC_RELAXED);
 }
 
-static ALWAYS_INLINE void lock_acquire(lock_t* lock)
+static ALWAYS_INLINE void spinlock_acquire(spinlock_t* lock)
 {
     while (__atomic_exchange_n(&lock->status, 1, __ATOMIC_ACQUIRE) == 1) {
         // TODO: May be some cpu sleep?
     }
 }
 
-static ALWAYS_INLINE void lock_release(lock_t* lock)
+static ALWAYS_INLINE void spinlock_release(spinlock_t* lock)
 {
     ASSERT(lock->status == 1);
     __atomic_store_n(&lock->status, 0, __ATOMIC_RELEASE);
 }
 
-#ifdef DEBUG_LOCK
-#define lock_acquire(x)                                        \
+#ifdef DEBUG_SPINLOCK
+#define spinlock_acquire(x)                                    \
     extern int vmm_init_setup_finished;                        \
     if (vmm_init_setup_finished) {                             \
         log("acquire lock %s %s:%d ", #x, __FILE__, __LINE__); \
     }                                                          \
-    lock_acquire(x);
+    spinlock_acquire(x);
 
-#define lock_release(x)                                        \
+#define spinlock_release(x)                                    \
     extern int vmm_init_setup_finished;                        \
     if (vmm_init_setup_finished) {                             \
         log("release lock %s %s:%d ", #x, __FILE__, __LINE__); \
     }                                                          \
-    lock_release(x);
+    spinlock_release(x);
 #endif
 
 #endif // _KERNEL_LIBKERN_LOCK_H

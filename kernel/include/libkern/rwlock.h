@@ -18,50 +18,50 @@
 
 struct rwlock {
     int readers;
-    lock_t lock;
-#ifdef DEBUG_LOCK
+    spinlock_t lock;
+#ifdef DEBUG_SPINLOCK
 
-#endif // DEBUG_LOCK
+#endif // DEBUG_SPINLOCK
 };
-typedef struct rwlock rwlock_t;
+typedef struct rwlock rwspinlock_t;
 
-static ALWAYS_INLINE void rwlock_init(rwlock_t* rwlock)
+static ALWAYS_INLINE void rwspinlock_init(rwspinlock_t* rwlock)
 {
 }
 
-static ALWAYS_INLINE void rwlock_r_acquire(rwlock_t* rwlock)
+static ALWAYS_INLINE void rwlock_r_acquire(rwspinlock_t* rwlock)
 {
-    lock_acquire(&rwlock->lock);
+    spinlock_acquire(&rwlock->lock);
     rwlock->readers++;
-    lock_release(&rwlock->lock);
+    spinlock_release(&rwlock->lock);
 }
 
-static ALWAYS_INLINE void rwlock_r_release(rwlock_t* rwlock)
+static ALWAYS_INLINE void rwlock_r_release(rwspinlock_t* rwlock)
 {
-    lock_acquire(&rwlock->lock);
+    spinlock_acquire(&rwlock->lock);
     ASSERT(rwlock->readers >= 0);
     rwlock->readers--;
-    lock_release(&rwlock->lock);
+    spinlock_release(&rwlock->lock);
 }
 
-static ALWAYS_INLINE void rwlock_w_acquire(rwlock_t* rwlock)
+static ALWAYS_INLINE void rwlock_w_acquire(rwspinlock_t* rwlock)
 {
     for (;;) {
-        lock_acquire(&rwlock->lock);
+        spinlock_acquire(&rwlock->lock);
         if (!rwlock->readers) {
             return;
         }
-        lock_release(&rwlock->lock);
+        spinlock_release(&rwlock->lock);
     }
 }
 
-static ALWAYS_INLINE void rwlock_w_release(rwlock_t* rwlock)
+static ALWAYS_INLINE void rwlock_w_release(rwspinlock_t* rwlock)
 {
-    lock_release(&rwlock->lock);
+    spinlock_release(&rwlock->lock);
 }
 
-// #define DEBUG_LOCK
-#ifdef DEBUG_LOCK
+// #define DEBUG_SPINLOCK
+#ifdef DEBUG_SPINLOCK
 #define rwlock_r_acquire(x)                                    \
     log("acquire r rwlock %s %s:%d ", #x, __FILE__, __LINE__); \
     rwlock_r_acquire(x);
