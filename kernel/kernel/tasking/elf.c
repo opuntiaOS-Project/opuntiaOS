@@ -79,7 +79,7 @@ static int _elf_load_interpret_program_header_entry(proc_t* p, file_descriptor_t
 #endif
     switch (ph.p_type) {
     case PT_LOAD:
-        zone = memzone_extend(p->address_space, ph.p_vaddr, ph.p_memsz);
+        zone = memzone_new(p->address_space, ph.p_vaddr, ph.p_memsz);
         if (!zone) {
             return 0;
         }

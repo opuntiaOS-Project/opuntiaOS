@@ -16,6 +16,11 @@
  * PROC ZONING
  */
 
+static inline bool _pzones_addr_inside(memzone_t* zone, uintptr_t addr)
+{
+    return zone->vaddr <= addr && addr <= zone->vaddr + zone->len - 1;
+}
+
 static inline bool _pzones_intersect(size_t start1, size_t size1, size_t start2, size_t size2)
 {
     size_t end1 = start1 + size1 - 1;
@@ -69,31 +74,36 @@ static inline void _proc_swap_zones(memzone_t* one, memzone_t* two)
     *two = tmp;
 }
 
-/**
- * Inserts zone, which won't overlap with existing ones.
- */
-memzone_t* memzone_extend(vm_address_space_t* vm_aspace, size_t start, size_t len)
+memzone_t* memzone_split(vm_address_space_t* vm_aspace, memzone_t* zone, uintptr_t addr)
 {
-    len += (start & (VMM_PAGE_SIZE - 1));
-    start &= ~(VMM_PAGE_SIZE - 1);
-    if (len % VMM_PAGE_SIZE) {
-        len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
+    addr &= ~(VMM_PAGE_SIZE - 1);
+
+    // Zone which size is VMM_PAGE_SIZE could not be splitted.
+    if (zone->len <= VMM_PAGE_SIZE) {
+        return NULL;
     }
 
-    memzone_t new_zone = { 0 };
-    new_zone.type = 0;
-    new_zone.mmu_flags = MMU_FLAG_NONPRIV;
-
-    if (_proc_can_fixup_zone(vm_aspace, &start, (int*)&len)) {
-        new_zone.vaddr = start;
-        new_zone.len = len;
-        if (!dynarr_push(&vm_aspace->zones, &new_zone)) {
-            return NULL;
-        }
-        return (memzone_t*)dynarr_get(&vm_aspace->zones, vm_aspace->zones.size - 1);
+    if (!_pzones_addr_inside(zone, addr)) {
+        return NULL;
     }
 
-    return NULL;
+    if (zone->vaddr != addr) {
+        return NULL;
+    }
+
+    size_t orig_zone_len = addr - zone->vaddr;
+    size_t new_zone_len = zone->len - orig_zone_len;
+
+    size_t old_len = zone->len;
+    zone->len = orig_zone_len;
+
+    memzone_t* new_zone = memzone_new(vm_aspace, addr, new_zone_len);
+    if (!new_zone) {
+        zone->len = old_len;
+        return NULL;
+    }
+
+    return new_zone;
 }
 
 memzone_t* memzone_new(vm_address_space_t* vm_aspace, size_t start, size_t len)
@@ -111,13 +121,15 @@ memzone_t* memzone_new(vm_address_space_t* vm_aspace, size_t start, size_t len)
     new_zone.mmu_flags = MMU_FLAG_NONPRIV;
     new_zone.ops = NULL;
 
-    if (_proc_can_add_zone(vm_aspace, start, len)) {
-        if (!dynarr_push(&vm_aspace->zones, &new_zone)) {
-            return NULL;
-        }
-        return (memzone_t*)dynarr_get(&vm_aspace->zones, vm_aspace->zones.size - 1);
+    if (!_proc_can_add_zone(vm_aspace, start, len)) {
+        return NULL;
     }
-    return NULL;
+
+    if (!dynarr_push(&vm_aspace->zones, &new_zone)) {
+        return NULL;
+    }
+
+    return (memzone_t*)dynarr_get(&vm_aspace->zones, vm_aspace->zones.size - 1);
 }
 
 // TODO: Think of more efficient way

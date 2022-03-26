@@ -29,11 +29,11 @@ typedef struct memzone memzone_t;
 
 struct vm_address_space;
 memzone_t* memzone_new(struct vm_address_space* vm_aspace, size_t start, size_t len);
-memzone_t* memzone_extend(struct vm_address_space* vm_aspaceroc, size_t start, size_t len);
 memzone_t* memzone_new_random(struct vm_address_space* vm_aspace, size_t len);
 memzone_t* memzone_new_random_backward(struct vm_address_space* vm_aspace, size_t len);
 memzone_t* memzone_find(struct vm_address_space* vm_aspace, size_t addr);
 memzone_t* memzone_find_no_proc(dynamic_array_t* zones, size_t addr);
+memzone_t* memzone_split(struct vm_address_space* vm_aspace, memzone_t* zone, uintptr_t addr);
 int memzone_free_no_proc(dynamic_array_t*, memzone_t*);
 int memzone_free(struct vm_address_space* vm_aspace, memzone_t*);
 
