@@ -255,39 +255,6 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
  * LOAD FUNCTIONS
  */
 
-static int _proc_load_bin(proc_t* p, file_descriptor_t* fd)
-{
-    uint32_t code_size = fd->dentry->inode->size;
-    memzone_t* code_zone = memzone_new_random(p->address_space, code_size);
-    code_zone->type = ZONE_TYPE_CODE;
-    code_zone->mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC;
-
-    /* THIS IS FOR BSS WHICH COULD BE IN THIS ZONE */
-    code_zone->mmu_flags |= MMU_FLAG_PERM_WRITE;
-
-    memzone_t* bss_zone = memzone_new_random(p->address_space, 2 * 4096);
-    bss_zone->type = ZONE_TYPE_DATA;
-    bss_zone->mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE;
-
-    memzone_t* stack_zone = memzone_new_random_backward(p->address_space, VMM_PAGE_SIZE);
-    stack_zone->type = ZONE_TYPE_STACK;
-    stack_zone->mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE;
-
-    /* Copying an exec code */
-    uint8_t* prog = kmalloc(fd->dentry->inode->size);
-    fd->ops->read(fd->dentry, prog, 0, fd->dentry->inode->size);
-    vmm_copy_to_address_space(p->address_space, prog, code_zone->vaddr, fd->dentry->inode->size);
-
-    /* Setting registers */
-    thread_t* main_thread = p->main_thread;
-    set_base_pointer(main_thread->tf, stack_zone->vaddr + VMM_PAGE_SIZE);
-    set_stack_pointer(main_thread->tf, stack_zone->vaddr + VMM_PAGE_SIZE);
-    set_instruction_pointer(main_thread->tf, code_zone->vaddr);
-
-    kfree(prog);
-    return 0;
-}
-
 static int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path)
 {
     int err;
