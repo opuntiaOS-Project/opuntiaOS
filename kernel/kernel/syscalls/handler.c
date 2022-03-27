@@ -74,7 +74,9 @@ static const void* syscalls[] = {
 #ifdef __i386__
 int ksyscall_impl(int id, int a, int b, int c, int d)
 {
+#ifndef PREEMPT_KERNEL
     system_disable_interrupts();
+#endif
     trapframe_t* tf;
     trapframe_t tf_on_stack;
     tf = &tf_on_stack;
@@ -83,11 +85,13 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
     SYSCALL_VAR2(tf) = b;
     SYSCALL_VAR3(tf) = c;
     sys_handler(tf);
-    /* This hack has to be here, when a context switching happens
-       during a syscall (e.g. when block occurs). The hack will start
-       interrupts again after it has become a running thread. */
-    cpu_enter_kernel_space();
+
+#ifndef PREEMPT_KERNEL
+    // This hack has to be here, when a context switching happens
+    // during a syscall (e.g. when block occurs). The hack will start
+    // interrupts again after it has become a running thread.
     system_enable_interrupts();
+#endif
     return SYSCALL_VAR1(tf);
 }
 #elif __arm__
@@ -112,12 +116,20 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
 
 void sys_handler(trapframe_t* tf)
 {
+#ifdef PREEMPT_KERNEL
+    system_enable_interrupts_no_counter();
+#else
     system_disable_interrupts();
-    cpu_enter_kernel_space();
+#endif
+
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
     void (*callee)(trapframe_t*) = (void*)syscalls[SYSCALL_ID(tf)];
     callee(tf);
-    cpu_leave_kernel_space();
+    cpu_set_state(prev_cpu_state);
+
+#ifndef PREEMPT_KERNEL
     system_enable_interrupts_only_counter();
+#endif
 }
 
 void sys_restart_syscall(trapframe_t* tf)

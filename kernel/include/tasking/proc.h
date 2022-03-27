@@ -95,7 +95,6 @@ int kthread_setup(proc_t* p);
 int kthread_setup_regs(proc_t* p, void* entry_point);
 void kthread_setup_segment_regs(proc_t* p);
 int kthread_fill_up_stack(struct thread* thread, void* data);
-int kthread_free(proc_t* p);
 
 int proc_load(proc_t* p, struct thread* main_thread, const char* path);
 int proc_fork_from(proc_t* new_proc, struct thread* from_thread);

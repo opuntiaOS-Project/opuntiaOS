@@ -296,6 +296,12 @@ static void switch_to_thread(thread_t* thread)
 void sched()
 {
     for (;;) {
+#ifdef PREEMPT_KERNEL
+        // With kernel preemption on, we should check that we reshed only when
+        // interrupt counter equals to 0.
+        ASSERT(THIS_CPU->int_depth_counter == 0);
+#endif
+        system_disable_interrupts();
         sched_data_t* sched = &THIS_CPU->sched;
         while (!sched->master_buf[sched->next_read_prio].head) {
             sched->next_read_prio++;
@@ -324,6 +330,7 @@ void sched()
         _debug_print_runqueue(sched->master_buf);
 #endif
         ASSERT(thread->status == THREAD_STATUS_RUNNING);
+        system_enable_interrupts();
         switch_to_thread(thread);
     }
 }

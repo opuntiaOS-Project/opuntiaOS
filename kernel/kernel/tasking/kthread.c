@@ -105,9 +105,3 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
 #endif
     return 0;
 }
-
-int kthread_free(proc_t* p)
-{
-    /* proc_free can free kthreads too */
-    return proc_free(p);
-}

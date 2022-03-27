@@ -52,6 +52,13 @@ static inline void wait_for_boot_cpu_to_finish(int* wt)
     }
 }
 
+static inline void kernel_preempt_setup()
+{
+#ifdef PREEMPT_KERNEL
+    system_enable_interrupts();
+#endif
+}
+
 void launching()
 {
     tasking_run_kernel_thread(kdentryflusherd, NULL);
@@ -97,6 +104,7 @@ void stage3(boot_args_t* boot_args)
     schedule_activate_cpu();
     tasking_run_kernel_thread(launching, NULL);
     boot_cpu_finish(&__boot_cpu_setup_tasking);
+    kernel_preempt_setup();
     resched(); /* Starting a scheduler */
 
     system_stop();

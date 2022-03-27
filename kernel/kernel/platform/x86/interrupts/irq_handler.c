@@ -11,33 +11,50 @@
 #include <tasking/cpu.h>
 #include <tasking/tasking.h>
 
+extern void x86_process_tf_for_kthread(trapframe_t* tf);
+
 static inline void irq_redirect(uint8_t int_no)
 {
     void (*func)() = (void*)handlers[int_no];
     func();
 }
 
-void irq_handler(trapframe_t* tf)
+static void irq_accept_next(int int_no)
 {
-    system_disable_interrupts();
-    cpu_enter_kernel_space();
-
-    if (tf->int_no >= IRQ_SLAVE_OFFSET) {
+    if (int_no >= IRQ_SLAVE_OFFSET) {
         port_byte_out(0xA0, 0x20);
     }
     port_byte_out(0x20, 0x20);
+}
 
-    if (likely(RUNNING_THREAD)) {
-        if (RUNNING_THREAD->process->is_kthread) {
-            RUNNING_THREAD->tf = tf;
-        }
+void irq_handler(trapframe_t* tf)
+{
+#ifdef PREEMPT_KERNEL
+    system_enable_interrupts_no_counter();
+#else
+    system_disable_interrupts();
+#endif
+    x86_process_tf_for_kthread(tf);
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
+
+    switch (tf->int_no) {
+    case 1:
+        // Since the timer handler could call resched(), it is needed
+        // to reset irq before calling the handler.
+        irq_accept_next(tf->int_no);
+        irq_redirect(tf->int_no);
+
+    default:
+        irq_redirect(tf->int_no);
+        irq_accept_next(tf->int_no);
     }
 
-    irq_redirect(tf->int_no);
-    /* We are leaving interrupt, and later interrupts will be on,
-       when flags are restored */
-    cpu_leave_kernel_space();
+    cpu_set_state(prev_cpu_state);
+#ifndef PREEMPT_KERNEL
+    // We are leaving interrupt, and later interrupts will be on,
+    // when flags are restored.
     system_enable_interrupts_only_counter();
+#endif
 }
 
 void irq_empty_handler()

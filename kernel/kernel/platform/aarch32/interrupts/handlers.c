@@ -127,7 +127,7 @@ void prefetch_abort_handler(trapframe_t* tf)
     system_disable_interrupts();
     int trap_state = THIS_CPU->current_state;
 
-    cpu_enter_kernel_space();
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
     uint32_t fault_addr = tf->user_ip;
     uint32_t info = read_ifsr();
     uint32_t is_pl0 = read_spsr() & 0xf; // See CPSR M field values
@@ -142,7 +142,7 @@ void prefetch_abort_handler(trapframe_t* tf)
             dump_and_kill(RUNNING_THREAD->process);
         }
     }
-    cpu_leave_kernel_space();
+    cpu_set_state(prev_cpu_state);
     system_enable_interrupts_only_counter();
 }
 
@@ -151,7 +151,7 @@ void data_abort_handler(trapframe_t* tf)
     system_disable_interrupts();
     int trap_state = THIS_CPU->current_state;
 
-    cpu_enter_kernel_space();
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
     uint32_t fault_addr = read_far();
     uint32_t info = read_dfsr();
     uint32_t is_pl0 = read_spsr() & 0xf; // See CPSR M field values
@@ -166,7 +166,7 @@ void data_abort_handler(trapframe_t* tf)
             dump_and_kill(RUNNING_THREAD->process);
         }
     }
-    cpu_leave_kernel_space();
+    cpu_set_state(prev_cpu_state);
     system_enable_interrupts_only_counter();
 }
 
@@ -194,13 +194,13 @@ static inline void _irq_redirect(irq_line_t line)
 void irq_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
-    cpu_enter_kernel_space();
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
     uint32_t int_disc = gic_descriptor.interrupt_descriptor();
     /* We end the interrupt before handle it, since we can
        call sched() and not return here. */
     gic_descriptor.end_interrupt(int_disc);
     _irq_redirect(int_disc & 0x1ff);
-    cpu_leave_kernel_space();
+    cpu_set_state(prev_cpu_state);
     system_enable_interrupts_only_counter();
 }
 

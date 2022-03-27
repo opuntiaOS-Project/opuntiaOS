@@ -58,19 +58,29 @@ static const char* exception_messages[32] = {
     "Reserved"
 };
 
+void x86_process_tf_for_kthread(trapframe_t* tf)
+{
+    if (likely(RUNNING_THREAD)) {
+        if (RUNNING_THREAD->process->is_kthread && cpu_get_state() == CPU_IN_USERLAND) {
+            RUNNING_THREAD->tf = tf;
+        }
+    }
+}
+
 void isr_handler(trapframe_t* frame)
 {
-    int res;
-    proc_t* proc;
-
+#ifdef PREEMPT_KERNEL
+    system_enable_interrupts_no_counter();
+#else
     system_disable_interrupts();
-    cpu_enter_kernel_space();
+#endif
+    x86_process_tf_for_kthread(frame);
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
 
-    proc = NULL;
+    int res;
+    proc_t* proc = NULL;
     if (likely(RUNNING_THREAD)) {
         proc = RUNNING_THREAD->process;
-        if (RUNNING_THREAD->process->is_kthread)
-            RUNNING_THREAD->tf = frame;
     }
 
     switch (frame->int_no) {
@@ -157,8 +167,10 @@ void isr_handler(trapframe_t* frame)
         system_stop();
     }
 
-    /* When we are leaving the interrupt handler, we want to jump back into
-       user space and enable the x86 PIC again */
-    cpu_leave_kernel_space();
+    cpu_set_state(prev_cpu_state);
+#ifndef PREEMPT_KERNEL
+    // When we are leaving the interrupt handler, we want to jump back into
+    // user space and enable the x86 PIC again.
     system_enable_interrupts_only_counter();
+#endif
 }

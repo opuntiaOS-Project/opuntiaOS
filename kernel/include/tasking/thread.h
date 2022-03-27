@@ -30,7 +30,7 @@ enum THREAD_STATUS {
 struct thread;
 struct blocker {
     int reason;
-    int (*should_unblock)(struct thread* p);
+    int (*should_unblock)(struct thread* thread);
     bool should_unblock_for_signal;
 };
 typedef struct blocker blocker_t;
@@ -153,7 +153,7 @@ static ALWAYS_INLINE int thread_is_alive(thread_t* thread) { return !thread_is_f
 int thread_init_blocker(thread_t* thread, const struct blocker* blocker);
 
 int init_join_blocker(thread_t* thread, int wait_for_pid);
-int init_read_blocker(thread_t* p, file_descriptor_t* bfd);
+int init_read_blocker(thread_t* thread, file_descriptor_t* bfd);
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd);
 int init_sleep_blocker(thread_t* thread, time_t time);
 int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout);

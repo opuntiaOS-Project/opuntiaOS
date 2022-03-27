@@ -35,6 +35,10 @@ static ALWAYS_INLINE int interruptible_area_end(int old)
     return 0;
 }
 
+#ifdef PREEMPT_KERNEL
 #define INTERRUPTIBLE_AREA for (int __i = 0, __j = interruptible_area_start(); __i < 1; interruptible_area_end(__j), __i++)
+#else
+#define INTERRUPTIBLE_AREA if (true)
+#endif
 
 #endif // _KERNEL_SYSCALLS_INTERRUPTIBLE_AREA_H

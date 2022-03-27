@@ -10,6 +10,15 @@
 #include <platform/aarch32/system.h>
 #include <tasking/tasking.h>
 
+bool system_can_preempt_kernel()
+{
+#ifdef PREEMPT_KERNEL
+    return THIS_CPU->int_depth_counter == 0;
+#else
+    return 0;
+#endif
+}
+
 void system_disable_interrupts()
 {
     THIS_CPU->int_depth_counter++;

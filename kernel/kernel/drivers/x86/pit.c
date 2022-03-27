@@ -45,7 +45,9 @@ void pit_setup()
 
 void pit_handler()
 {
+    system_disable_interrupts();
     cpu_tick();
     timeman_timer_tick();
+    system_enable_interrupts();
     sched_tick();
 }

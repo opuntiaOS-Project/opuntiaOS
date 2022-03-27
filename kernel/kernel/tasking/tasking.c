@@ -53,8 +53,12 @@ pid_t tasking_get_proc_count()
 #ifdef __i386__
 void _tasking_jumper()
 {
-    cpu_leave_kernel_space();
+    cpu_enter_user_space();
+#ifndef PREEMPT_KERNEL
+    // The jumper is called during the creation of a new thread, thus
+    // interrupt counter should not be affected when preemtion is on.
     system_enable_interrupts_only_counter();
+#endif
     return;
 }
 #endif

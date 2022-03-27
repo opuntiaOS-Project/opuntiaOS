@@ -3,22 +3,23 @@
 # found in the LICENSE file.
 
 declare_args() {
+  # Common
   is_debug = true
-  compile_tests = true
-  kernel_symbols = true
-  userland_symbols = true
-  static_analyze = false
-
   optimize = true
-
-  objc_support = false
-
-  test_method = "none"
-
   host = "gnu"
-  llvm_bin_path = getenv("LLVM_BIN_PATH")
+  llvm_bin_path = ""
   device_type = "desktop"
-  target_board = ""
+  target_board = "i686"
+
+  # Kernel Flags
+  kernel_symbols = true
+  kernel_preempt = true
+
+  # Userland
+  userland_symbols = true
+  compile_tests = true
+  objc_support = false
+  test_method = "none"
 }
 
 if (target_cpu == "") {
@@ -46,5 +47,6 @@ if (host == "gnu") {
 
 if (host == "llvm") {
   objc_support = true
+  llvm_bin_path = getenv("LLVM_BIN_PATH")
   set_default_toolchain("//toolchains:llvm-cross-compiler")
 }

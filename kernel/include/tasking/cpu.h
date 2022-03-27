@@ -17,12 +17,24 @@
 
 #define RUNNING_THREAD (THIS_CPU->running_thread)
 
-static inline void cpu_enter_kernel_space()
+static inline cpu_state_t cpu_enter_kernel_space()
 {
+    cpu_state_t prev = THIS_CPU->current_state;
     THIS_CPU->current_state = CPU_IN_KERNEL;
+    return prev;
 }
 
-static inline void cpu_leave_kernel_space()
+static inline cpu_state_t cpu_get_state()
+{
+    return THIS_CPU->current_state;
+}
+
+static inline void cpu_set_state(cpu_state_t state)
+{
+    THIS_CPU->current_state = state;
+}
+
+static inline void cpu_enter_user_space()
 {
     THIS_CPU->current_state = CPU_IN_USERLAND;
 }
