@@ -10,6 +10,7 @@
 #include <libkern/bits/errno.h>
 #include <libkern/log.h>
 #include <mem/swapfile.h>
+#include <platform/generic/cpu.h>
 
 static dentry_t* _swapfile = NULL;
 static int _nextid = 0;
@@ -50,8 +51,13 @@ int swapfile_load(uintptr_t vaddr, int id)
         return -ENOENT;
     }
 
+    data_access_type_t prev_access_type = THIS_CPU->data_access_type;
+    THIS_CPU->data_access_type = DATA_ACCESS_KERNEL;
+
     size_t offset = (id - 1) * VMM_PAGE_SIZE;
     _swapfile->ops->file.read(_swapfile, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
+
+    THIS_CPU->data_access_type = prev_access_type;
 
     swapfile_rem_ref(id);
     return 0;
@@ -63,8 +69,13 @@ int swapfile_store(uintptr_t vaddr)
         return -ENODEV;
     }
 
+    data_access_type_t prev_access_type = THIS_CPU->data_access_type;
+    THIS_CPU->data_access_type = DATA_ACCESS_KERNEL;
+
     _swapfile->ops->file.write(_swapfile, (void*)PAGE_START(vaddr), _nextid * VMM_PAGE_SIZE, VMM_PAGE_SIZE);
     _nextid++;
+
+    THIS_CPU->data_access_type = prev_access_type;
 
     swapfile_new_ref(_nextid);
     return _nextid;
