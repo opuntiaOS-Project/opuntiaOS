@@ -1372,9 +1372,8 @@ static int _vmm_on_page_not_present_locked(uintptr_t vaddr)
     return 0;
 }
 
-int _vmm_pf_on_writing(uintptr_t vaddr)
+static int _vmm_pf_on_writing_locked(uintptr_t vaddr)
 {
-    spinlock_acquire(&_vmm_lock);
     int visited = 0;
 
     if (vmm_is_copy_on_write(vaddr)) {
@@ -1386,11 +1385,9 @@ int _vmm_pf_on_writing(uintptr_t vaddr)
     }
 
     if (!visited) {
-        spinlock_release(&_vmm_lock);
         return -EFAULT;
     }
 
-    spinlock_release(&_vmm_lock);
     return 0;
 }
 
@@ -1406,7 +1403,9 @@ int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
     }
 
     if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_WRITE)) {
-        return _vmm_pf_on_writing(vaddr);
+        spinlock_acquire(&_vmm_lock);
+        int res = _vmm_pf_on_writing_locked(vaddr);
+        spinlock_release(&_vmm_lock);
     }
 
     return 0;
@@ -1451,8 +1450,6 @@ int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace)
  */
 int vmm_switch_address_space(vm_address_space_t* vm_aspace)
 {
-    spinlock_acquire(&_vmm_lock);
     int res = vmm_switch_address_space_locked(vm_aspace);
-    spinlock_release(&_vmm_lock);
     return res;
 }
