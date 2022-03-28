@@ -8,6 +8,7 @@
 
 #include <algo/bitmap.h>
 #include <libkern/libkern.h>
+#include <libkern/lock.h>
 #include <libkern/log.h>
 #include <mem/pmm.h>
 
@@ -17,6 +18,7 @@ static void _pmm_init_ram();
 static void _pmm_allocate_mat();
 
 static pmm_state_t pmm_state;
+static spinlock_t _pmm_global_lock;
 
 static inline void* _pmm_block_id_to_ptr(size_t value)
 {
@@ -105,6 +107,7 @@ static void _pmm_init_mat()
 
 static void _pmm_init_from_desc(boot_args_t* boot_args)
 {
+    spinlock_init(&_pmm_global_lock);
     pmm_state.boot_args = boot_args;
     pmm_state.kernel_va_base = ROUND_CEIL(boot_args->vaddr, PMM_BLOCK_SIZE);
     pmm_state.kernel_data_size = ROUND_CEIL(boot_args->kernel_size, PMM_BLOCK_SIZE);
@@ -156,13 +159,13 @@ static int pmm_free_blocks(size_t block_id, size_t count)
     return bitmap_unset_range(pmm_state.mat, block_id, count);
 }
 
-void* pmm_alloc(size_t size)
+void* pmm_alloc_locked(size_t size)
 {
     size_t block_count = (size + PMM_BLOCK_SIZE - 1) / PMM_BLOCK_SIZE;
     return pmm_alloc_blocks(block_count);
 }
 
-void* pmm_alloc_aligned(size_t size, size_t align)
+void* pmm_alloc_aligned_locked(size_t size, size_t align)
 {
     size_t block_count = (size + PMM_BLOCK_SIZE - 1) / PMM_BLOCK_SIZE;
     size_t block_align = (align + PMM_BLOCK_SIZE - 1) / PMM_BLOCK_SIZE;
@@ -172,11 +175,35 @@ void* pmm_alloc_aligned(size_t size, size_t align)
     return pmm_alloc_blocks_aligned(block_count, block_align);
 }
 
-int pmm_free(void* block, size_t size)
+int pmm_free_locked(void* block, size_t size)
 {
     size_t block_id = _pmm_ptr_to_block_id(block);
     size_t block_count = (size + PMM_BLOCK_SIZE - 1) / PMM_BLOCK_SIZE;
     return pmm_free_blocks(block_id, block_count);
+}
+
+void* pmm_alloc(size_t size)
+{
+    spinlock_acquire(&_pmm_global_lock);
+    void* res = pmm_alloc_locked(size);
+    spinlock_release(&_pmm_global_lock);
+    return res;
+}
+
+void* pmm_alloc_aligned(size_t size, size_t align)
+{
+    spinlock_acquire(&_pmm_global_lock);
+    void* res = pmm_alloc_aligned_locked(size, align);
+    spinlock_release(&_pmm_global_lock);
+    return res;
+}
+
+int pmm_free(void* block, size_t size)
+{
+    spinlock_acquire(&_pmm_global_lock);
+    int res = pmm_free_locked(block, size);
+    spinlock_release(&_pmm_global_lock);
+    return res;
 }
 
 size_t pmm_get_ram_size()
