@@ -41,7 +41,9 @@ static inline void cpu_enter_user_space()
 
 static inline void cpu_tick()
 {
-    if (THIS_CPU->running_thread->process->is_kthread) {
+    if (!THIS_CPU->running_thread) {
+        THIS_CPU->stat_system_and_idle_ticks++;
+    } else if (THIS_CPU->running_thread->process->is_kthread) {
         THIS_CPU->stat_system_and_idle_ticks++;
     } else {
         THIS_CPU->stat_user_ticks++;
