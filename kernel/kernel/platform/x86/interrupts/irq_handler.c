@@ -43,6 +43,7 @@ void irq_handler(trapframe_t* tf)
         // to reset irq before calling the handler.
         irq_accept_next(tf->int_no);
         irq_redirect(tf->int_no);
+        break;
 
     default:
         irq_redirect(tf->int_no);
