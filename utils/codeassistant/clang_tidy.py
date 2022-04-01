@@ -82,7 +82,7 @@ class ClassTidyLauncher():
         self.process_includes()
         self.get_files()
         self.c_back_flags = self.back_flags
-        self.c_back_flags += ["-std=gnu99"]
+        self.c_back_flags += ["-std=gnu11"]
         ret = ""
         if len(self.c_files) > 0:
             ret += self.run_clang_tidy(self.front_flags,
