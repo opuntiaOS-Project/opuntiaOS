@@ -31,6 +31,7 @@ static inline void sched_tick()
 
     RUNNING_THREAD->ticks_until_preemption--;
     if (!RUNNING_THREAD->ticks_until_preemption) {
+        log("   will resched");
         resched();
     }
 }

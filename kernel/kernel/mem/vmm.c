@@ -748,6 +748,7 @@ static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
 static int _vmm_ensure_cow_for_page(uintptr_t vaddr)
 {
     if (vmm_is_copy_on_write(vaddr)) {
+        log("  Do cow");
         int err = _vmm_resolve_copy_on_write(vaddr, PTABLE_LV_TOP);
         if (err) {
             return err;
@@ -1372,6 +1373,9 @@ static int _vmm_pf_on_writing_locked(uintptr_t vaddr)
             return err;
         }
         visited++;
+    } else {
+        ptable_entity_t* ptable_desc = vm_get_entity(vaddr, PTABLE_LV0);
+        log("[%x] = %x\n", vaddr, *ptable_desc);
     }
 
     if (!visited) {
@@ -1383,6 +1387,7 @@ static int _vmm_pf_on_writing_locked(uintptr_t vaddr)
 
 int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
 {
+    system_disable_interrupts();
     vm_address_space_t* active_address_space = vmm_get_active_address_space();
     mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);
 
@@ -1390,15 +1395,20 @@ int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
         spinlock_acquire(&active_address_space->lock);
         int res = _vmm_on_page_not_present_locked(vaddr);
         spinlock_release(&active_address_space->lock);
+        system_enable_interrupts();
         return res;
     }
 
     if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_WRITE)) {
         spinlock_acquire(&active_address_space->lock);
+        log("info %x", info);
         int res = _vmm_pf_on_writing_locked(vaddr);
         spinlock_release(&active_address_space->lock);
+        system_enable_interrupts();
+        return res;
     }
 
+    system_enable_interrupts();
     return 0;
 }
 

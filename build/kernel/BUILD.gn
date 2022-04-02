@@ -23,7 +23,7 @@ if (optimize) {
   kernel_c_flags += [ "-Os" ]
 }
 
-if (target_cpu == "x86" && kernel_preempt) {
+if (kernel_preempt) {
   kernel_c_flags += [ "-DPREEMPT_KERNEL" ]
 }
 

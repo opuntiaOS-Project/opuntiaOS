@@ -55,7 +55,7 @@ static inline void wait_for_boot_cpu_to_finish(int* wt)
 static inline void kernel_preempt_setup()
 {
 #ifdef PREEMPT_KERNEL
-    system_enable_interrupts();
+    system_enable_interrupts_only_counter();
 #endif
 }
 
@@ -98,13 +98,18 @@ void stage3(boot_args_t* boot_args)
     // pty
     ptmx_install();
 
+    log("fine");
+
     // init scheduling
     tasking_init();
     scheduler_init();
+    log("fine2");
     schedule_activate_cpu();
     tasking_run_kernel_thread(launching, NULL);
+    log("fine3");
     boot_cpu_finish(&__boot_cpu_setup_tasking);
     kernel_preempt_setup();
+    log("reshced");
     resched(); /* Starting a scheduler */
 
     system_stop();
@@ -120,6 +125,7 @@ void boot_secondary_cpu()
 
     wait_for_boot_cpu_to_finish(&__boot_cpu_setup_tasking);
     schedule_activate_cpu();
+    kernel_preempt_setup();
     resched();
 
     system_stop();

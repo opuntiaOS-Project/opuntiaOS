@@ -117,7 +117,7 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
 void sys_handler(trapframe_t* tf)
 {
 #ifdef PREEMPT_KERNEL
-    system_enable_interrupts_no_counter();
+    // system_enable_interrupts_no_counter();
 #else
     system_disable_interrupts();
 #endif

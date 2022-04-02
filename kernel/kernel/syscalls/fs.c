@@ -101,6 +101,8 @@ void sys_read(trapframe_t* tf)
 
 void sys_write(trapframe_t* tf)
 {
+    // log("spinning at %x", RUNNING_THREAD->tid);
+    // while (1) {}
     file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
     if (!fd) {
         return_with_val(-EBADF);

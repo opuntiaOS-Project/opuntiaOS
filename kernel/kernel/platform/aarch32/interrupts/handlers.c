@@ -80,7 +80,12 @@ void irq_set_gic_desc(gic_descritptor_t gic_desc)
 
 void undefined_handler(trapframe_t* tf)
 {
+#ifdef PREEMPT_KERNEL
+    // system_enable_interrupts_no_counter();
+#else
     system_disable_interrupts();
+#endif
+
 #ifdef FPU_ENABLED
     if (!RUNNING_THREAD) {
         goto undefined_h;
@@ -103,7 +108,9 @@ void undefined_handler(trapframe_t* tf)
     fpu_restore(RUNNING_THREAD->fpu_state);
     THIS_CPU->fpu_for_thread = RUNNING_THREAD;
     THIS_CPU->fpu_for_pid = RUNNING_THREAD->tid;
+#ifndef PREEMPT_KERNEL
     system_enable_interrupts_only_counter();
+#endif
     return;
 #endif // FPU_ENABLED
 
@@ -114,7 +121,9 @@ undefined_h:
         log("undefined_handler address; ip: %x, running tid: %d", tf->user_ip, RUNNING_THREAD->tid);
         ASSERT(false);
     }
+#ifndef PREEMPT_KERNEL
     system_enable_interrupts_only_counter();
+#endif
 }
 
 void svc_handler(trapframe_t* tf)
@@ -124,7 +133,12 @@ void svc_handler(trapframe_t* tf)
 
 void prefetch_abort_handler(trapframe_t* tf)
 {
+    // log("prefetch_abort_handler");
+#ifdef PREEMPT_KERNEL
+    // system_enable_interrupts_no_counter();
+#else
     system_disable_interrupts();
+#endif
     int trap_state = THIS_CPU->current_state;
 
     cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
@@ -143,31 +157,47 @@ void prefetch_abort_handler(trapframe_t* tf)
         }
     }
     cpu_set_state(prev_cpu_state);
+#ifndef PREEMPT_KERNEL
     system_enable_interrupts_only_counter();
+#endif
+    // log("   ex prefetch_abort_handler");
 }
 
 void data_abort_handler(trapframe_t* tf)
 {
+#ifdef PREEMPT_KERNEL
+    // system_enable_interrupts_no_counter();
+#else
     system_disable_interrupts();
-    int trap_state = THIS_CPU->current_state;
+#endif
 
     cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
     uint32_t fault_addr = read_far();
     uint32_t info = read_dfsr();
     uint32_t is_pl0 = read_spsr() & 0xf; // See CPSR M field values
     info |= ((is_pl0 != 0) << 31); // Set the 31bit as type
+
+    if (RUNNING_THREAD) {
+        log("data_abort_handler[cpu: %d, %d -- %d] %x == %x", THIS_CPU->id, RUNNING_THREAD->tid, prev_cpu_state, tf, fault_addr);
+    }
+
     int res = vmm_page_fault_handler(info, fault_addr);
     if (res != 0) {
-        if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
+        if (prev_cpu_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
             snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap %x at %x, data_abort_handler", fault_addr, tf->user_ip);
             kpanic_tf(err_buf, tf);
         } else {
+            log("sp %x", tf->user_sp);
             log_warn("Crash: pf err %d at %x: %d pid, %x eip\n", info, fault_addr, RUNNING_THREAD->tid, tf->user_ip);
             dump_and_kill(RUNNING_THREAD->process);
+            kpanic_tf("stop", tf);
         }
     }
     cpu_set_state(prev_cpu_state);
+#ifndef PREEMPT_KERNEL
     system_enable_interrupts_only_counter();
+#endif
+    // log("   ex data_abort_handler");
 }
 
 /**
@@ -193,15 +223,40 @@ static inline void _irq_redirect(irq_line_t line)
 
 void irq_handler(trapframe_t* tf)
 {
+    if (RUNNING_THREAD)
+        log("irq_handler[cpu: %d, %d] %x", THIS_CPU->id, RUNNING_THREAD->tid, tf);
+    else {
+        log("irq_handler[cpu: %d, none] %x", THIS_CPU->id, tf);
+    }
+    trapframe_t on_stack = *tf;
+    ASSERT(memcmp(&on_stack, tf, sizeof(trapframe_t)) == 0);
+#ifdef PREEMPT_KERNEL
+    // system_enable_interrupts_no_counter();
+#else
     system_disable_interrupts();
+#endif
     cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
     uint32_t int_disc = gic_descriptor.interrupt_descriptor();
-    /* We end the interrupt before handle it, since we can
-       call sched() and not return here. */
-    gic_descriptor.end_interrupt(int_disc);
-    _irq_redirect(int_disc & 0x1ff);
+
+    switch (int_disc & 0x1ff) {
+    case SP804_TIMER1_IRQ_LINE:
+        // Since the timer handler could call resched(), it is needed
+        // to reset irq before calling the handler.
+        gic_descriptor.end_interrupt(int_disc);
+        _irq_redirect(int_disc & 0x1ff);
+        break;
+
+    default:
+        _irq_redirect(int_disc & 0x1ff);
+        gic_descriptor.end_interrupt(int_disc);
+    }
+
     cpu_set_state(prev_cpu_state);
+#ifndef PREEMPT_KERNEL
     system_enable_interrupts_only_counter();
+#endif
+    ASSERT(memcmp(&on_stack, tf, sizeof(trapframe_t)) == 0);
+    log("   ex irq_handler");
 }
 
 void fast_irq_handler()

@@ -278,6 +278,7 @@ void sched_dequeue(thread_t* thread)
 
 static void switch_to_thread(thread_t* thread)
 {
+    system_disable_interrupts();
     if (thread->pending_signals_mask) {
         signal_dispatch_pending(thread);
         if (thread->status != THREAD_STATUS_RUNNING) {
@@ -290,6 +291,7 @@ static void switch_to_thread(thread_t* thread)
     thread->start_time_in_ticks = timeman_ticks_since_boot();
     thread->ticks_until_preemption = _sched_get_timeslice(thread);
     switchuvm(thread);
+    system_enable_interrupts();
     switch_contexts(&(THIS_CPU->sched_context), thread->context);
 }
 
@@ -323,9 +325,9 @@ void sched()
             thread->sched_next->sched_prev = NULL;
         }
         thread->sched_next = thread->sched_prev = NULL;
-#ifdef SCHED_DEBUG
+// #ifdef SCHED_DEBUG
         log("next to run %d %x %x [cpu %d]", thread->tid, thread->process->prio, thread->tf, THIS_CPU->id);
-#endif
+// #endif
 #ifdef SCHED_SHOW_STAT
         _debug_print_runqueue(sched->master_buf);
 #endif

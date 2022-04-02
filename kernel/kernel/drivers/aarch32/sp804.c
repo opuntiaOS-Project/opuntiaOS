@@ -48,9 +48,12 @@ static inline void _sp804_clear_interrupt(volatile sp804_registers_t* timer)
 
 static void _sp804_int_handler()
 {
+    system_disable_interrupts();
+    log("   in sp804 [cpu %d]", THIS_CPU->id);
     _sp804_clear_interrupt(timer1);
     cpu_tick();
     timeman_timer_tick();
+    system_enable_interrupts();
     sched_tick();
 }
 
