@@ -199,7 +199,7 @@ void schedule_activate_cpu()
 }
 
 extern thread_list_t thread_list;
-void sched_unbspinlock_threads()
+static void sched_unblock_threads()
 {
     thread_t* thread;
 
@@ -308,7 +308,7 @@ void sched()
             if (sched->next_read_prio >= TOTAL_PRIOS_COUNT) {
                 if (THIS_CPU->id == 0) {
                     tasking_kill_dying();
-                    sched_unbspinlock_threads();
+                    sched_unblock_threads();
                 }
                 _sched_swap_buffers(sched);
             }
