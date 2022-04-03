@@ -137,9 +137,11 @@ void Compositor::copy_changes_to_second_buffer(const std::vector<LG::Rect>& area
     }
 
     for (int i = 0; i < invalidated_areas.size(); i++) {
-        ctx.add_clip(invalidated_areas[i]);
-        m_menu_bar.draw(ctx);
-        ctx.reset_clip();
+        if (m_menu_bar.bounds().intersects(invalidated_areas[i])) {
+            ctx.add_clip(invalidated_areas[i]);
+            m_menu_bar.draw(ctx);
+            ctx.reset_clip();
+        }
     }
 
 #ifdef TARGET_MOBILE
