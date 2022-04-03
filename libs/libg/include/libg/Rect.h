@@ -14,6 +14,7 @@
 #include <libipc/Decodable.h>
 #include <libipc/Encodable.h>
 #include <libipc/Encoder.h>
+#include <ostream>
 #include <sys/types.h>
 #include <utility>
 
@@ -158,6 +159,13 @@ inline LG::Rect Rect::intersection(const Rect& other) const
         return LG::Rect(0, 0, 0, 0);
     }
     return LG::Rect(a, b, c - a + 1, d - b + 1);
+}
+
+template <class CharT, class Traits>
+std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const LG::Rect& rect)
+{
+    os << "Rect(" << rect.origin().x() << ", " << rect.origin().y() << " : " << rect.width() << "w " << rect.height() << "h)";
+    return os;
 }
 
 } // namespace LG
