@@ -1,6 +1,6 @@
 .global setjmp
 setjmp:
-    stm     r0!, {r4-r12,lr}
+    stm    r0!, {r4-r12,lr}
     mov    r1, sp
     ldm    r0!, {r1}
 #ifdef __ARM_NEON__
