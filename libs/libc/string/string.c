@@ -92,6 +92,18 @@ int memcmp(const void* src1, const void* src2, size_t nbytes)
     return 0;
 }
 
+void* memchr(const void* ptr, int c, size_t size)
+{
+    char ch = c;
+    const char* cptr = (const char*)ptr;
+    for (size_t i = 0; i < size; i++) {
+        if (cptr[i] == ch) {
+            return (char*)(cptr + i);
+        }
+    }
+    return NULL;
+}
+
 int strcmp(const char* a, const char* b)
 {
     while (*a == *b && *a != '\0' && *b != '\0') {
@@ -230,4 +242,44 @@ char* strtok(char* str, const char* delim)
 {
     static char* saveptr;
     return strtok_r(str, delim, &saveptr);
+}
+
+char* strstr(const char* haystack, const char* needle)
+{
+    size_t n = strlen(needle);
+
+    while (*haystack) {
+        if (!memcmp(haystack, needle, n)) {
+            return (char*)haystack;
+        }
+        haystack++;
+    }
+    return NULL;
+}
+
+char* strcat(char* dest, const char* src)
+{
+    size_t dest_len = strlen(dest);
+    size_t i = 0;
+
+    while (src[i] != '\0') {
+        dest[dest_len + i] = src[i];
+        i++;
+    }
+    dest[dest_len + i] = '\0';
+    return dest;
+}
+
+char* strrchr(const char* str, int ch)
+{
+    char c;
+    char* last = NULL;
+
+    while ((c = *str)) {
+        if (c == ch) {
+            last = (char*)(str);
+        }
+        str++;
+    }
+    return last;
 }

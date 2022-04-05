@@ -32,6 +32,7 @@ void* memccpy(void* dest, const void* __restrict src, int stop, size_t nbytes);
 /* Compare 'nbytes' from 'src1' and 'src2'. Return 0 if all the bytes match,
    otherwise return the difference. */
 int memcmp(const void* src1, const void* src2, size_t nbytes);
+void* memchr(const void* ptr, int c, size_t size);
 
 /* Calculate the string length starting from 'str'. */
 size_t strlen(const char* str);
@@ -54,6 +55,10 @@ char* strchr(const char* s, int c);
 
 char* strtok_r(char* str, const char* delim, char** saveptr);
 char* strtok(char* str, const char* delim);
+
+char* strstr(const char* haystack, const char* needle);
+char* strcat(char* dest, const char* src);
+char* strrchr(const char* str, int ch);
 
 __END_DECLS
 
