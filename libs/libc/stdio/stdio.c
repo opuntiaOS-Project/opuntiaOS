@@ -137,7 +137,23 @@ size_t fwrite(const void* ptr, size_t size, size_t count, FILE* stream)
     return _fwrite_internal(ptr, size * count, stream);
 }
 
-/* TODO: Implement fseek */
+static void _drop_rbuf(FILE* stream)
+{
+    stream->_r = 0;
+    stream->_ungotc = UNGOTC_EMPTY;
+}
+
+int fseek(FILE* stream, uint32_t offset, int origin)
+{
+    if (!stream) {
+        set_errno(EINVAL);
+        return 0;
+    }
+    fflush(stream);
+    _drop_rbuf(stream);
+
+    return lseek(stream->_file, offset, origin);
+}
 
 int fputc(int c, FILE* stream)
 {
@@ -156,6 +172,19 @@ int putc(int c, FILE* stream)
 int putchar(int c)
 {
     return fputc(c, stdout);
+}
+
+long ftell(FILE* stream)
+{
+    if (!stream) {
+        set_errno(EINVAL);
+        return 0;
+    }
+
+    fflush(stream);
+    _drop_rbuf(stream);
+
+    return lseek(stream->_file, 0, SEEK_CUR);
 }
 
 int fputs(const char* s, FILE* stream)

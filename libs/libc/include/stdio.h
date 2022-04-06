@@ -9,6 +9,7 @@
 #ifndef _LIBC_STDIO_H
 #define _LIBC_STDIO_H
 
+#include <bits/fcntl.h>
 #include <stddef.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
