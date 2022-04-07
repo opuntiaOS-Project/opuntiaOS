@@ -56,6 +56,9 @@ char* getenv(const char* name);
 int setenv(const char* name, const char* value, int overwrite);
 int unsetenv(const char* name);
 
+long strtol(const char* nptr, char** endptr, int base);
+void qsort(void* base, size_t nitems, size_t size, int (*compar)(const void*, const void*));
+
 __END_DECLS
 
 #endif // _LIBC_STDLIB_H

@@ -1,3 +1,7 @@
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,4 +19,114 @@ int atoi(const char* s)
         res += (s[i] - '0') * mul;
     }
     return res;
+}
+
+long strtol(const char* nptr, char** endptr, int base)
+{
+    const char* p = nptr;
+    const char* endp = nptr;
+    bool negative = false;
+    bool overflow = false;
+    unsigned long n = 0;
+
+    if (base < 0 || base == 1 || base > 36) {
+        set_errno(EINVAL);
+        return 0;
+    }
+
+    while (isspace(*p)) {
+        p++;
+    }
+
+    if (*p == '+') {
+        p++;
+    } else if (*p == '-') {
+        negative = 1;
+        p++;
+    }
+
+    if (*p == '0') {
+        p++;
+        endp = p;
+        if (base == 16 && (*p == 'X' || *p == 'x')) {
+            p++;
+        } else if (base == 0) {
+            if (*p == 'X' || *p == 'x') {
+                base = 16, p++;
+            } else {
+                base = 8;
+            }
+        }
+    } else if (base == 0) {
+        base = 10;
+    }
+
+    unsigned long cutoff = (negative) ? -(LONG_MIN / base) : LONG_MAX / base;
+    int cutlim = (negative) ? -(LONG_MIN % base) : LONG_MAX % base;
+
+    for (;;) {
+        int digit;
+        if (*p >= 'a') {
+            digit = (*p - 'a') + 10;
+        } else if (*p >= 'A') {
+            digit = *p - 'A' + 10;
+        } else if (*p <= '9') {
+            digit = *p - '0';
+        } else {
+            break;
+        }
+        if (digit < 0 || digit >= base) {
+            break;
+        }
+        p++;
+        endp = p;
+
+        if (overflow) {
+            if (endptr) {
+                continue;
+            }
+            break;
+        }
+
+        if (n > cutoff || (n == cutoff && digit > cutlim)) {
+            overflow = 1;
+            continue;
+        }
+        n = n * base + digit;
+    }
+
+    if (endptr) {
+        *endptr = (char*)endp;
+    }
+
+    if (overflow) {
+        set_errno(ERANGE);
+        return ((negative) ? LONG_MIN : LONG_MAX);
+    }
+    return (long)((negative) ? -n : n);
+}
+
+#define SWAPARR(a, b, size)          \
+    do {                             \
+        size_t __size = (size);      \
+        char *__a = (a), *__b = (b); \
+        do {                         \
+            char __tmp = *__a;       \
+            *__a++ = *__b;           \
+            *__b++ = __tmp;          \
+        } while (--__size > 0);      \
+    } while (0)
+
+void qsort(void* vbase, size_t n, size_t size, int (*compar)(const void*, const void*))
+{
+    // TODO: Implement quick sort.
+    char* base = (char*)vbase;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (compar(&base[i * size], &base[j * size]) > 0) {
+                SWAPARR(&base[i * size], &base[j * size], size);
+            }
+        }
+    }
 }
