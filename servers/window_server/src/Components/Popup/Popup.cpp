@@ -27,7 +27,7 @@ void Popup::on_set_data()
     size_t max_height = 0;
     for (auto& item : m_data) {
         max_width = std::max(max_width, Helpers::text_width(item.text, m_font));
-        max_height += m_font.glyph_height() + spacing();
+        max_height += m_font.size() + spacing();
     }
     max_width = std::max(max_width, min_width());
     bounds().set_width(max_width + 2 * spacing());
@@ -46,7 +46,7 @@ void Popup::draw(LG::Context& ctx)
     ctx.set_fill_color(Color::Shadow);
     ctx.draw_box_shading(bounds(), LG::Shading(LG::Shading::Type::Box, 0, LG::Shading::SystemSpread), LG::CornerMask(LG::CornerMask::SystemRadius));
 
-    const size_t line_height = (m_font.glyph_height() + spacing());
+    const size_t line_height = (m_font.size() + spacing());
     int height = bounds().min_y() + spacing();
 
     for (int i = 0; i < m_data.size(); i++) {

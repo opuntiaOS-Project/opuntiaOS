@@ -66,13 +66,22 @@ WindowFrame::WindowFrame(Window& window)
     , m_control_panel_buttons()
 {
     set_style(StatusBarStyle::StandardLight);
+    LG::GlyphMetrics metrics = {
+        .width = 10,
+        .height = 10,
+        .top_bearing = 10,
+        .left_bearing = 0,
+        .baseline = 0,
+        .advance = 10,
+        .font_size = 10
+    };
 
     auto* close = new Button();
-    close->set_icon(LG::GlyphBitmap(s_close_button_glyph_data, 10, 10));
+    close->set_icon(LG::Glyph(s_close_button_glyph_data, metrics, LG::Glyph::ConstDataMarker {}));
     auto* maximize = new Button();
-    maximize->set_icon(LG::GlyphBitmap(s_maximise_button_glyph_data, 10, 10));
+    maximize->set_icon(LG::Glyph(s_maximise_button_glyph_data, metrics, LG::Glyph::ConstDataMarker {}));
     auto* minimize = new Button();
-    minimize->set_icon(LG::GlyphBitmap(s_minimise_button_glyph_data, 10, 10));
+    minimize->set_icon(LG::Glyph(s_minimise_button_glyph_data, metrics, LG::Glyph::ConstDataMarker {}));
 
     close->set_title_color(LG::Color(196, 128, 128));
 

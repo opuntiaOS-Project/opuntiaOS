@@ -246,7 +246,7 @@ void WindowManager::bring_to_front(Window& window)
         m_compositor.invalidate(menu_bar().bounds());
     }
 }
-#endif // TARGET_DESKTOP
+#endif
 
 #ifdef TARGET_DESKTOP
 bool WindowManager::continue_window_move()

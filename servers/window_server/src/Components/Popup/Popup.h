@@ -87,7 +87,7 @@ public:
         }
 
         size_t data_size = m_data.size();
-        const size_t line_height = (m_font.glyph_height() + 8);
+        const size_t line_height = (m_font.size() + 8);
         int prev_hovered_item = m_hovered_item;
         int rel_y = cursor_manager.y() - bounds().min_y();
         rel_y -= 4; // Offset of the first element;
@@ -133,7 +133,7 @@ public:
             return;
         }
 
-        const size_t line_height = (m_font.glyph_height() + 8);
+        const size_t line_height = (m_font.size() + 8);
         Compositor::the().invalidate(LG::Rect(bounds().min_x(), bounds().min_y() + 4 + line_height * m_hovered_item, bounds().width(), line_height));
         m_hovered_item = HoveredItem::No;
     }

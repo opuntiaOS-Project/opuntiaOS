@@ -1,0 +1,17 @@
+# Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+#  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+#
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/third_party/PY_BRIDGE.gni")
+
+gnstate = [ rebase_path("$root_out_dir/tmp/libs/libfreetype.a", root_build_dir) ] +
+          py_bridging_args
+
+action("libfreetype_build") {
+  script = "//libs/libfreetype/package.py"
+  outputs = [ "$root_out_dir/tmp/libs/libfreetype.a" ]
+  args = gnstate
+  deps = [ "//libs/libc:libc" ]
+}

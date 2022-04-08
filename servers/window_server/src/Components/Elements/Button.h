@@ -25,7 +25,7 @@ public:
     const std::string& title() const { return m_title; }
 
     void set_font(const LG::Font& font) { m_font = font, recalc_dims(); }
-    void set_icon(const LG::GlyphBitmap& icon) { m_is_icon_set = true, m_icon = icon, recalc_dims(); }
+    void set_icon(const LG::Glyph& icon) { m_is_icon_set = true, m_icon = icon, recalc_dims(); }
 
     void set_title_color(const LG::Color& color) { m_title_color = color; }
     const LG::Color& title_color() const { return m_title_color; }
@@ -40,13 +40,13 @@ public:
 private:
     void recalc_dims();
     size_t text_width();
-    inline size_t text_height() const { return font().glyph_height(); }
+    inline size_t text_height() const { return font().size(); }
 
     LG::Rect m_bounds {};
     std::string m_title {};
     LG::Font m_font { LG::Font::system_font() };
     LG::Color m_title_color;
-    LG::GlyphBitmap m_icon;
+    LG::Glyph m_icon;
 
     bool m_is_icon_set { false };
 };

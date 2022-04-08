@@ -135,29 +135,49 @@ void Context::draw_with_bounds(const Rect& rect, const PixelBitmap& bitmap)
     }
 }
 
-void Context::draw(const Point<int>& start, const GlyphBitmap& bitmap)
+void Context::draw(const Point<int>& start, const Glyph& bitmap)
 {
-    Rect draw_bounds(start.x() + m_draw_offset.x(), start.y() + m_draw_offset.y(), bitmap.width(), bitmap.height());
+    if (!bitmap.data<uint8_t>()) {
+        return;
+    }
+
+    Rect draw_bounds(start.x() + m_draw_offset.x() + bitmap.left(), start.y() + m_draw_offset.y() + bitmap.top(), bitmap.width(), bitmap.height());
     draw_bounds.intersect(m_clip);
     if (draw_bounds.empty()) {
         return;
     }
 
-    auto& color = fill_color();
+    auto color = fill_color();
     int min_x = draw_bounds.min_x();
     int min_y = draw_bounds.min_y();
     int max_x = draw_bounds.max_x();
     int max_y = draw_bounds.max_y();
-    int offset_x = -start.x() - m_draw_offset.x();
-    int offset_y = -start.y() - m_draw_offset.y();
+    int offset_x = -start.x() - m_draw_offset.x() - bitmap.left();
+    int offset_y = -start.y() - m_draw_offset.y() - bitmap.top();
     int bitmap_y = min_y + offset_y;
-    for (int y = min_y; y <= max_y; y++, bitmap_y++) {
-        int bitmap_x = min_x + offset_x;
-        for (int x = min_x; x <= max_x; x++, bitmap_x++) {
-            if (bitmap.bit_at(bitmap_x, bitmap_y)) {
-                m_bitmap[y][x] = color;
+
+    switch (bitmap.type()) {
+    case Glyph::Type::PlainBitmap:
+        for (int y = min_y; y <= max_y; y++, bitmap_y++) {
+            int bitmap_x = min_x + offset_x;
+            for (int x = min_x; x <= max_x; x++, bitmap_x++) {
+                if (bitmap.bit_at(bitmap_x, bitmap_y)) {
+                    m_bitmap[y][x] = color;
+                }
             }
         }
+        return;
+    case Glyph::Type::FreeType:
+        for (int y = min_y; y <= max_y; y++, bitmap_y++) {
+            int bitmap_x = min_x + offset_x;
+            for (int x = min_x; x <= max_x; x++, bitmap_x++) {
+                color.set_alpha(bitmap.alpha_at(bitmap_x, bitmap_y));
+                m_bitmap[y][x].mix_with(color);
+            }
+        }
+        return;
+    default:
+        break;
     }
 }
 

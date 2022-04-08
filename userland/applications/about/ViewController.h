@@ -33,7 +33,7 @@ public:
         utsname_t uts;
         int rc = uname(&uts);
 
-        auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 24));
+        auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 34));
         label.set_text_color(LG::Color::DarkSystemText);
         label.set_text("About");
         label.set_font(LG::Font::system_font(LG::Font::SystemTitleSize));

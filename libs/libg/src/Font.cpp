@@ -36,39 +36,39 @@ struct [[gnu::packed]] FontFileHeader {
 
 Font& Font::system_font(int size)
 {
-    const int buf_size = 40;
-    char buf[buf_size];
     static Font* s_system_font_ptr[SystemMaxSize + 1];
-    const static char* s_system_font_path = "/res/fonts/system.font/%d/regular.font";
-    snprintf(buf, buf_size, s_system_font_path, size);
     if (!s_system_font_ptr[size]) {
-        s_system_font_ptr[size] = Font::load_from_file(buf);
+        s_system_font_ptr[size] = Font::load_from_file_ttf("/GoogleSans.ttf", size);
     }
     return *s_system_font_ptr[size];
 }
 
 Font& Font::system_bold_font(int size)
 {
-    const int buf_size = 40;
-    char buf[buf_size];
-    static Font* s_system_bold_font_ptr[SystemMaxSize + 1];
-    const static char* s_system_bold_font_path = "/res/fonts/system.font/%d/bold.font";
-    snprintf(buf, buf_size, s_system_bold_font_path, size);
-    if (!s_system_bold_font_ptr[size]) {
-        s_system_bold_font_ptr[size] = Font::load_from_file(buf);
+    static Font* s_system_font_ptr[SystemMaxSize + 1];
+    if (!s_system_font_ptr[size]) {
+        s_system_font_ptr[size] = Font::load_from_file_ttf("/GoogleSansBold.ttf", size);
     }
-    return *s_system_bold_font_ptr[size];
+    return *s_system_font_ptr[size];
 }
 
-Font::Font(uint32_t* raw_data, uint8_t* width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width, uint8_t glyph_spacing)
-    : m_raw_data(raw_data)
-    , m_width_data(width_data)
-    , m_width(width)
-    , m_height(height)
-    , m_count(count)
-    , m_dynamic_width(dynamic_width)
-    , m_spacing(glyph_spacing)
+Font::Font(const SerenityOSFontDesc& desc, size_t font_size)
+    : m_font_type(FontType::SerenityOS)
+    , m_font_size(font_size)
+    , m_const_width(desc.dynamic_width ? 0 : desc.width)
 {
+    // TODO: SerenityOS bitmap fonts does not requier a cache.
+    m_font_desc.serenity = desc;
+    m_font_cache = new FontCacher();
+}
+
+Font::Font(const FreeTypeFontDesc& desc, size_t font_size)
+    : m_font_type(FontType::FreeType)
+    , m_font_size(font_size)
+    , m_const_width(0)
+{
+    m_font_desc.free_type = desc;
+    m_font_cache = new FontCacher();
 }
 
 Font* Font::load_from_file(const char* path)
@@ -114,12 +114,102 @@ Font* Font::load_from_mem(uint8_t* font_data)
         width_data = (uint8_t*)((uint8_t*)(raw_data) + count * bytes_per_glyph);
     }
 
-    return new Font(raw_data, width_data, header.glyph_width, header.glyph_height, count, header.is_variable_width, header.glyph_spacing);
+    SerenityOSFontDesc desc = {
+        .raw_data = raw_data,
+        .width_data = width_data,
+        .height = header.glyph_height,
+        .width = header.glyph_width,
+        .spacing = header.glyph_spacing,
+        .dynamic_width = (bool)header.is_variable_width,
+        .count = count,
+    };
+    return new Font(desc, header.glyph_height);
 }
 
-GlyphBitmap Font::glyph_bitmap(size_t ch) const
+Font* Font::load_from_file_ttf(const char* path, size_t size)
 {
-    return GlyphBitmap(&m_raw_data[ch * m_height], glyph_width(ch), m_height);
+    FT_Library library;
+    FT_Face face;
+
+    int error = FT_Init_FreeType(&library);
+    if (error) {
+        return nullptr;
+    }
+
+    error = FT_New_Face(library, path, 0, &face);
+    if (error) {
+        return nullptr;
+    }
+
+    error = FT_Set_Pixel_Sizes(face, 0, size);
+    if (error) {
+        return nullptr;
+    }
+
+    FreeTypeFontDesc desc = {
+        .face = face,
+        .height = size,
+    };
+    return new Font(desc, size);
+}
+
+Glyph Font::SerenityOSFontDesc::load_glyph(size_t ch) const
+{
+    size_t w = dynamic_width ? width_data[ch] : width;
+    GlyphMetrics metrics = {
+        .width = (uint8_t)w,
+        .height = (uint8_t)height,
+        .top_bearing = (uint8_t)height,
+        .left_bearing = 0,
+        .baseline = 0,
+        .advance = (uint8_t)(w + spacing),
+        .font_size = (uint16_t)height
+    };
+    return Glyph(&raw_data[ch * height], metrics, Glyph::ConstDataMarker {});
+}
+
+Glyph Font::FreeTypeFontDesc::load_glyph(size_t ch) const
+{
+    if (ch == ' ') {
+        size_t width = height / 2;
+        GlyphMetrics metrics = {
+            .width = (uint8_t)width,
+            .height = (uint8_t)height,
+            .top_bearing = 0,
+            .left_bearing = 0,
+            .baseline = 0,
+            .advance = (uint8_t)width,
+            .font_size = (uint16_t)height
+        };
+        return Glyph(nullptr, metrics, Glyph::ConstDataMarker {});
+    }
+
+    FT_Load_Char(face, ch, FT_LOAD_RENDER);
+    FT_GlyphSlot glyph = face->glyph;
+    FT_Bitmap bitmap = glyph->bitmap;
+
+    GlyphMetrics metrics = {
+        .width = (uint8_t)bitmap.width,
+        .height = (uint8_t)bitmap.rows,
+        .top_bearing = (uint8_t)glyph->bitmap_top,
+        .left_bearing = (uint8_t)glyph->bitmap_left,
+        .baseline = 2,
+        .advance = (uint8_t)(glyph->advance.x >> 6),
+        .font_size = (uint16_t)height
+    };
+    return Glyph(bitmap.buffer, metrics);
+}
+
+Glyph Font::load_glyph(size_t ch) const
+{
+    switch (m_font_type) {
+    case FontType::SerenityOS:
+        return m_font_desc.serenity.load_glyph(ch);
+    case FontType::FreeType:
+        return m_font_desc.free_type.load_glyph(ch);
+    default:
+        std::abort();
+    }
 }
 
 } // namespace LG

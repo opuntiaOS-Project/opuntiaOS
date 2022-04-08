@@ -4,5 +4,8 @@ opuntiaOS_executable("testlibcxx") {
   install_path = "bin/"
   sources = [ "main.cpp" ]
   configs = [ "//build/userland:userland_flags" ]
-  deplibs = [ "libcxx" ]
+  deplibs = [
+    "libcxx",
+    "libfoundation",
+  ]
 }

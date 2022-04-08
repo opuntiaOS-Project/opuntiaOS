@@ -14,6 +14,7 @@ opuntiaOS_static_library("libg") {
     "libcxx",
     "libfoundation",
     "libipc",
+    "libfreetype",
   ]
   configs = [ "//build/libs:libcxx_flags" ]
 

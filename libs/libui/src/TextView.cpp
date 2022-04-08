@@ -29,8 +29,7 @@ void TextView::display(const LG::Rect& rect)
     ctx.add_clip(rect);
 
     auto& f = font();
-    const size_t letter_spacing = f.glyph_spacing();
-    const size_t line_height = f.glyph_height();
+    const size_t line_height = f.size();
 
     int start_x = -content_offset().x();
     int start_y = -content_offset().y();
@@ -44,11 +43,11 @@ void TextView::display(const LG::Rect& rect)
             continue;
         }
 
-        size_t glyph_width = f.glyph_width(m_text[i]) + letter_spacing;
-        if (bounds().contains(cur_x, cur_y) || bounds().contains(cur_x + glyph_width, cur_y + line_height)) {
-            ctx.draw({ cur_x, cur_y }, f.glyph_bitmap(m_text[i]));
+        size_t glyph_advance = f.glyph(m_text[i]).advance();
+        if (bounds().contains(cur_x, cur_y) || bounds().contains(cur_x + glyph_advance, cur_y + line_height)) {
+            ctx.draw({ cur_x, cur_y }, f.glyph(m_text[i]));
         }
-        cur_x += glyph_width;
+        cur_x += glyph_advance;
     }
 
     display_scroll_indicators(ctx);
@@ -66,8 +65,8 @@ void TextView::mouse_exited()
 
 void TextView::recalc_text_size()
 {
-    const size_t letter_spacing = font().glyph_spacing();
-    const size_t line_height = font().glyph_height();
+    auto& f = font();
+    const size_t line_height = f.size();
 
     int cur_x = 0;
     int max_x = 0;
@@ -81,7 +80,7 @@ void TextView::recalc_text_size()
             continue;
         }
 
-        size_t glyph_width = font().glyph_width(m_text[i]) + letter_spacing;
+        size_t glyph_width = f.glyph(m_text[i]).advance();
         cur_x += glyph_width;
     }
 

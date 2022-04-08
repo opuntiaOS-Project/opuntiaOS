@@ -8,39 +8,26 @@
 
 #pragma once
 
+#include <libfreetype/freetype/freetype.h>
 #include <libg/Color.h>
+#include <libg/Glyph.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>
 #include <sys/types.h>
 
 namespace LG {
 
-class Font;
-class GlyphBitmap {
+class FontCacher {
 public:
-    friend class Font;
-    GlyphBitmap() = default;
-    GlyphBitmap(const uint32_t* rows, uint8_t width, uint8_t height)
-        : m_rows(rows)
-        , m_width(width)
-        , m_height(height)
-    {
-    }
+    FontCacher() = default;
+    ~FontCacher() = default;
 
-    ~GlyphBitmap() = default;
-
-    inline bool bit_at(int x, int y) const { return row(y) & (1 << x); }
-    inline size_t width() const { return m_width; }
-    inline size_t height() const { return m_height; }
-
-    inline const uint32_t* rows() const { return m_rows; }
-    inline uint32_t row(uint32_t index) const { return m_rows[index]; }
-    inline bool empty() { return !m_rows || !m_width || !m_height; }
+    void cache(int ch, Glyph&& gl) { m_cache[ch] = std::move(gl); }
+    const Glyph& get(int ch) const { return m_cache[ch]; }
+    bool has(int ch) const { return !m_cache[ch].empty(); }
 
 private:
-    const uint32_t* m_rows { nullptr };
-    uint8_t m_width { 0 };
-    uint8_t m_height { 0 };
+    Glyph m_cache[256];
 };
 
 class Font {
@@ -49,27 +36,63 @@ public:
     static const int SystemTitleSize = 24;
     static const int SystemMaxSize = 36;
 
-    Font(uint32_t* raw_data, uint8_t* width_data, uint8_t width, uint8_t height, size_t count, bool dynamic_width, uint8_t glyph_spacing);
     ~Font() = default;
 
     static Font& system_font(int of_size = SystemDefaultSize);
     static Font& system_bold_font(int of_size = SystemDefaultSize);
     static Font* load_from_file(const char* path);
+    static Font* load_from_file_ttf(const char* path, size_t size);
     static Font* load_from_mem(uint8_t* path);
 
-    inline size_t glyph_width(size_t ch) const { return m_dynamic_width ? m_width_data[ch] : m_width; }
-    inline size_t glyph_height() const { return m_height; }
-    inline size_t glyph_spacing() const { return m_spacing; }
-    GlyphBitmap glyph_bitmap(size_t ch) const;
+    inline size_t size() const { return m_font_size; }
+    inline const Glyph& glyph(size_t ch) const
+    {
+        if (!m_font_cache->has(ch)) {
+            m_font_cache->cache(ch, load_glyph(ch));
+        }
+        return m_font_cache->get(ch);
+    }
 
 private:
-    uint32_t* m_raw_data;
-    uint8_t* m_width_data;
-    size_t m_width;
-    size_t m_height;
-    size_t m_spacing;
-    size_t m_count;
-    bool m_dynamic_width;
+    enum FontType {
+        SerenityOS,
+        FreeType,
+    };
+
+    struct SerenityOSFontDesc final {
+        uint32_t* raw_data;
+        uint8_t* width_data;
+        uint8_t height;
+        uint8_t width;
+        uint8_t spacing;
+        bool dynamic_width;
+        size_t count;
+
+        Glyph load_glyph(size_t ch) const;
+    };
+
+    struct FreeTypeFontDesc final {
+        FT_Face face;
+        size_t height;
+
+        Glyph load_glyph(size_t ch) const;
+    };
+
+    Font(const SerenityOSFontDesc& font_desc, size_t font_size);
+    Font(const FreeTypeFontDesc& font_desc, size_t font_size);
+
+    Glyph load_glyph(size_t ch) const;
+
+    size_t m_font_size { 0 };
+    size_t m_const_width { 0 }; // If const width is 0, width id calculated dynamicly for each glyph.
+
+    FontCacher* m_font_cache { nullptr };
+
+    FontType m_font_type;
+    union {
+        SerenityOSFontDesc serenity;
+        FreeTypeFontDesc free_type;
+    } m_font_desc;
 };
 
 } // namespace LG

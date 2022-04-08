@@ -31,7 +31,7 @@ public:
     void set_with_bounds(const Rect& rect, const PixelBitmap& bitmap);
     void draw(const Point<int>& start, const PixelBitmap& bitmap);
     void draw_with_bounds(const Rect& rect, const PixelBitmap& bitmap);
-    void draw(const Point<int>& start, const GlyphBitmap& bitmap);
+    void draw(const Point<int>& start, const Glyph& bitmap);
     void draw_rounded(const Point<int>& start, const PixelBitmap& bitmap, const CornerMask& mask = { 0, false, false });
     void draw_shading(const Rect& rect, const Shading& shading);
     void draw_box_shading(const Rect& rect, const Shading& shading, const CornerMask& mask = { 0, false, false });

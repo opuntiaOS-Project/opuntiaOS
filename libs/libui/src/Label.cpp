@@ -29,11 +29,10 @@ void Label::display(const LG::Rect& rect)
     ctx.add_clip(rect);
 
     auto& f = font();
-    const size_t letter_spacing = f.glyph_spacing();
-
     size_t label_width = bounds().width() - content_edge_insets().left() - content_edge_insets().right();
     size_t txt_width = text_width();
-    size_t dots_width = font().glyph_width('.') * 3 + letter_spacing * 2;
+    size_t dot_width = f.glyph('.').width();
+    size_t dots_width = f.glyph('.').advance();
 
     bool need_to_stop_rendering_text = (txt_width > label_width);
     size_t width_when_stop_rendering_text = content_edge_insets().left() + label_width - dots_width;
@@ -51,16 +50,16 @@ void Label::display(const LG::Rect& rect)
 
     ctx.set_fill_color(text_color());
     for (int i = 0; i < m_text.size(); i++) {
-        size_t glyph_width = f.glyph_width(m_text[i]) + letter_spacing;
-        if (need_to_stop_rendering_text && text_start.x() + glyph_width > width_when_stop_rendering_text) {
+        size_t glyph_advance = f.glyph(m_text[i]).advance();
+        if (need_to_stop_rendering_text && text_start.x() + glyph_advance > width_when_stop_rendering_text) {
             for (int j = 0; j < 3; j++) {
-                ctx.draw(text_start, f.glyph_bitmap('.'));
-                text_start.offset_by(f.glyph_width('.') + letter_spacing, 0);
+                ctx.draw(text_start, f.glyph('.'));
+                text_start.offset_by(f.glyph('.').advance(), 0);
             }
             return;
         }
-        ctx.draw(text_start, f.glyph_bitmap(m_text[i]));
-        text_start.offset_by(glyph_width, 0);
+        ctx.draw(text_start, f.glyph(m_text[i]));
+        text_start.offset_by(glyph_advance, 0);
     }
 }
 
@@ -90,17 +89,16 @@ size_t Label::text_width() const
 
     size_t width = 0;
     auto& f = font();
-    const size_t letter_spacing = f.glyph_spacing();
 
     for (int i = 0; i < m_text.size(); i++) {
-        width += f.glyph_width(m_text[i]) + letter_spacing;
+        width += f.glyph(m_text[i]).advance();
     }
-    return width - letter_spacing;
+    return width;
 }
 
 size_t Label::text_height() const
 {
-    return font().glyph_height();
+    return font().size();
 }
 
 } // namespace UI

@@ -41,12 +41,11 @@ void Button::display(const LG::Rect& rect)
     }
 
     auto& f = font();
-    const size_t letter_spacing = f.glyph_spacing();
-
     ctx.set_fill_color(title_color());
     for (int i = 0; i < m_title.size(); i++) {
-        ctx.draw(text_start, f.glyph_bitmap(m_title[i]));
-        text_start.offset_by(f.glyph_width(m_title[i]) + letter_spacing, 0);
+        auto& glyph = f.glyph(m_title[i]);
+        ctx.draw(text_start, glyph);
+        text_start.offset_by(glyph.advance(), 0);
     }
 }
 
@@ -86,18 +85,17 @@ size_t Button::text_width()
 {
     size_t width = 0;
     auto& f = font();
-    const size_t letter_spacing = f.glyph_spacing();
 
     for (int i = 0; i < m_title.size(); i++) {
-        width += f.glyph_width(m_title[i]);
+        auto& glyph = f.glyph(m_title[i]);
+        width += glyph.advance();
     }
-    width += std::max(size_t(0), m_title.size() - 1) * letter_spacing;
     return width;
 }
 
 size_t Button::text_height() const
 {
-    return font().glyph_height();
+    return font().size();
 }
 
 } // namespace UI

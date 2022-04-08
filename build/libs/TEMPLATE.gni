@@ -12,8 +12,9 @@ template("opuntiaOS_static_library") {
   compiled_lib_output_name_base = "$root_out_dir/tmp/libs/"
   compiled_lib_output_name = compiled_lib_output_name_base + lib_name
   final_lib_output_name = "$root_out_dir/base/libs/" + lib_name + ".a"
-  deplib_list = []
-  deplib_bulders_list = []
+  building_deplib_bulders_list = []
+  linking_deplib_bulders_list = []
+  linking_deplib_list = []
   includes = []
 
   if (defined(invoker.include_dirs)) {
@@ -23,9 +24,17 @@ template("opuntiaOS_static_library") {
   if (defined(invoker.deplibs)) {
     foreach(i, invoker.deplibs) {
       fullname = "//libs/" + i + ":" + i
-      deplib_bulders_list += [ fullname + "_build" ]
-      deplib_list += [ compiled_lib_output_name_base +
-                       get_label_info(fullname, "name") + ".a" ]
+
+      # To speed up compilation we have separate deps for builing and linking stages.
+      # The only library which is required to be a dependancy for building stage is libfreetype,
+      # since its header files might not be available initially (they are archived).
+      if (i == "libfreetype") {
+        building_deplib_bulders_list += [ fullname + "_build" ]
+      }
+
+      linking_deplib_bulders_list += [ fullname + "_build" ]
+      linking_deplib_list += [ compiled_lib_output_name_base +
+                               get_label_info(fullname, "name") + ".a" ]
       includes += [ "//libs/" + i + "/include" ]
 
       # Also adding libc includes.
@@ -37,15 +46,16 @@ template("opuntiaOS_static_library") {
       # When libcxx is a dependency, we also have to link to libcxxabi.
       # We add libcxxabi as a dependency.
       if (i == "libcxx") {
-        deplib_bulders_list += [ "//libs/libcxxabi:libcxxabi_build" ]
-        deplib_list += [ compiled_lib_output_name_base + "libcxxabi.a" ]
+        linking_deplib_bulders_list += [ "//libs/libcxxabi:libcxxabi_build" ]
+        linking_deplib_list += [ compiled_lib_output_name_base + "libcxxabi.a" ]
       }
     }
   }
   includes += [ "//libs/" + lib_name + "/include" ]
 
-  deplib_list += [ compiled_lib_output_name + ".a" ]
-  deplib_bulders_list += [ "//libs/" + lib_name + ":" + lib_build_name ]
+  # The output library is passed at the end.
+  linking_deplib_list += [ compiled_lib_output_name + ".a" ]
+  linking_deplib_bulders_list += [ "//libs/" + lib_name + ":" + lib_build_name ]
 
   # Use a strange __EMPTY_PATH_, empty string can't be passed as an arg.
   path_to_bins = "__EMPTY_PATH_"
@@ -60,7 +70,7 @@ template("opuntiaOS_static_library") {
     rebase_path("$final_lib_output_name", root_build_dir),
   ]
 
-  foreach(i, deplib_list) {
+  foreach(i, linking_deplib_list) {
     script_args += [ rebase_path(i, root_build_dir) ]
   }
 
@@ -73,6 +83,7 @@ template("opuntiaOS_static_library") {
     output_name = "tmp/libs/" + lib_name
     sources = invoker.sources
     include_dirs = includes
+    deps = building_deplib_bulders_list
     forward_variables_from(invoker,
                            [
                              "configs",
@@ -89,9 +100,9 @@ template("opuntiaOS_static_library") {
 
   action(lib_name) {
     script = "//build/libs/merge_libs.py"
-    inputs = deplib_list
+    inputs = linking_deplib_list
     outputs = [ "$final_lib_output_name" ]
-    deps = deplib_bulders_list
+    deps = linking_deplib_bulders_list
     args = script_args
   }
 }

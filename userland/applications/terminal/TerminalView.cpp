@@ -56,7 +56,7 @@ void TerminalView::display(const LG::Rect& rect)
     for (int i = 0; i < m_max_rows; i++) {
         for (int j = 0; j < m_max_cols; j++) {
             int idx = i * m_max_cols + j;
-            ctx.draw(text_start, f.glyph_bitmap(m_display_data[idx]));
+            ctx.draw(text_start, f.glyph(m_display_data[idx]));
             text_start.offset_by(glyph_width(), 0);
         }
         text_start.set_x(padding());

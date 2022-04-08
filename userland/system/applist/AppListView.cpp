@@ -26,7 +26,7 @@ AppListView::AppListView(UI::View* superview, const LG::Rect& frame)
 AppListView::AppListView(UI::View* superview, UI::Window* window, const LG::Rect& frame)
     : UI::View(superview, window, frame)
 {
-    auto& label = add_subview<UI::Label>(LG::Rect(16, 16, 16, 24));
+    auto& label = add_subview<UI::Label>(LG::Rect(16, 16, 16, 36));
     label.set_text_color(LG::Color::DarkSystemText);
     label.set_text("App List");
     label.set_font(LG::Font::system_font(LG::Font::SystemTitleSize));
