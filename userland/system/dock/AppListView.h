@@ -21,6 +21,17 @@ public:
 
     void display(const LG::Rect& rect) override;
     void mouse_down(const LG::Point<int>& location) override { on_click(); }
+    virtual void mouse_entered(const LG::Point<int>& location) override
+    {
+        View::mouse_entered(location);
+        set_needs_display();
+    }
+
+    virtual void mouse_exited() override
+    {
+        View::mouse_exited();
+        set_needs_display();
+    }
 
 private:
     void on_click();

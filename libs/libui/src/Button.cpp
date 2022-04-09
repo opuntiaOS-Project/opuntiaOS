@@ -53,12 +53,14 @@ void Button::mouse_entered(const LG::Point<int>& location)
 {
     send_actions(UI::Event::Type::MouseEnterEvent);
     View::mouse_entered(location);
+    set_needs_display();
 }
 
 void Button::mouse_exited()
 {
     send_actions(UI::Event::Type::MouseLeaveEvent);
     View::mouse_exited();
+    set_needs_display();
 }
 
 void Button::mouse_down(const LG::Point<int>& location)

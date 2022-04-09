@@ -31,6 +31,18 @@ public:
     DockEntity& entity() { return m_launch_entity; }
     const DockEntity& entity() const { return m_launch_entity; }
 
+    virtual void mouse_entered(const LG::Point<int>& location) override
+    {
+        View::mouse_entered(location);
+        set_needs_display();
+    }
+
+    virtual void mouse_exited() override
+    {
+        View::mouse_exited();
+        set_needs_display();
+    }
+
 private:
     void on_click();
     void launch()

@@ -107,14 +107,12 @@ void View::mouse_moved(const LG::Point<int>& location)
 void View::mouse_entered(const LG::Point<int>& location)
 {
     set_hovered(true);
-    set_needs_display();
 }
 
 void View::mouse_exited()
 {
     set_hovered(false);
     set_active(false);
-    set_needs_display();
 }
 
 void View::mouse_down(const LG::Point<int>& location)
