@@ -78,10 +78,10 @@ Font* Font::load_from_file(const char* path)
         return nullptr;
     }
 
-    fstat_t stat;
+    stat_t stat;
     fstat(fd, &stat);
 
-    uint8_t* ptr = (uint8_t*)mmap(NULL, stat.size, PROT_READ, MAP_PRIVATE, fd, 0);
+    uint8_t* ptr = (uint8_t*)mmap(NULL, stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     auto* res = Font::load_from_mem(ptr);
 
     close(fd);

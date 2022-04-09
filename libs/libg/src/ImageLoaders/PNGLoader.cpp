@@ -32,13 +32,13 @@ namespace PNG {
             return PixelBitmap();
         }
 
-        fstat_t stat;
+        stat_t stat;
         fstat(fd, &stat);
 
-        uint8_t* ptr = (uint8_t*)mmap(NULL, stat.size, PROT_READ, MAP_PRIVATE, fd, 0);
+        uint8_t* ptr = (uint8_t*)mmap(NULL, stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
         PixelBitmap bitmap = load_from_mem(ptr);
 
-        munmap(ptr, stat.size);
+        munmap(ptr, stat.st_size);
         close(fd);
         return bitmap;
     }

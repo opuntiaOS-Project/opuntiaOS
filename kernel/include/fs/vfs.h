@@ -33,6 +33,7 @@ typedef struct {
 typedef struct {
     superblock_t* sb;
     groups_info_t* gt;
+    size_t blksize;
 } fsdata_t;
 
 typedef struct {

@@ -21,17 +21,17 @@ int ptsname_r(int fd, char* buf, size_t buflen)
         return -ERANGE;
     }
 
-    fstat_t stat;
+    stat_t stat;
     if (fstat(fd, &stat) < 0) {
         return errno;
     }
 
-    if (!MASTER_PTY(stat.dev)) {
+    if (!MASTER_PTY(stat.st_dev)) {
         set_errno(ENOTTY);
         return -ENOTTY;
     }
 
-    int ptyno = minor(stat.dev);
+    int ptyno = minor(stat.st_dev);
 
     char* p = strcpy(buf, _PATH_PTS);
     p[len + 0] = '0' + ptyno;

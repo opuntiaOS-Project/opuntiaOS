@@ -185,7 +185,7 @@ void sys_creat(trapframe_t* tf)
 void sys_fstat(trapframe_t* tf)
 {
     file_descriptor_t* fd = proc_get_fd(RUNNING_THREAD->process, (int)SYSCALL_VAR1(tf));
-    fstat_t __user* stat = (fstat_t __user*)SYSCALL_VAR2(tf);
+    stat_t __user* stat = (stat_t __user*)SYSCALL_VAR2(tf);
     if (!fd) {
         return_with_val(-EBADF);
     }
@@ -193,9 +193,9 @@ void sys_fstat(trapframe_t* tf)
         return_with_val(-EINVAL);
     }
 
-    fstat_t kstat = { 0 };
+    stat_t kstat = { 0 };
     int res = vfs_fstat(fd, &kstat);
-    umem_copy_to_user(stat, &kstat, sizeof(fstat_t));
+    umem_copy_to_user(stat, &kstat, sizeof(stat_t));
     return_with_val(res);
 }
 

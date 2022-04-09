@@ -1233,6 +1233,7 @@ fsdata_t get_fsdata(dentry_t* dentry)
     fsdata_t fsdata;
     fsdata.sb = _ext2_superblocks[dentry->dev_indx];
     fsdata.gt = &_ext2_group_table_info[dentry->dev_indx];
+    fsdata.blksize = BLOCK_LEN(fsdata.sb);
     return fsdata;
 }
 

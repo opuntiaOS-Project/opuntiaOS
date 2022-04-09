@@ -48,8 +48,9 @@ int procfs_free_inode(dentry_t* dentry)
 fsdata_t procfs_data(dentry_t* dentry)
 {
     fsdata_t fsdata;
-    fsdata.sb = 0;
-    fsdata.gt = 0;
+    fsdata.sb = NULL;
+    fsdata.gt = NULL;
+    fsdata.blksize = 1;
     return fsdata;
 }
 

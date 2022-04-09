@@ -245,11 +245,12 @@ static int _devfs_setup_root()
 
 fsdata_t devfs_data(dentry_t* dentry)
 {
-    /* Set everything to 0, since devfs isn't supposed to be used by several devices.
-       All of mount of devfs will show the same info. */
+    // Set everything to NULL, since devfs isn't supposed to be used by several devices.
+    // All of mount of devfs will show the same info.
     fsdata_t fsdata;
-    fsdata.sb = 0;
-    fsdata.gt = 0;
+    fsdata.sb = NULL;
+    fsdata.gt = NULL;
+    fsdata.blksize = 1;
     return fsdata;
 }
 
@@ -465,13 +466,28 @@ int devfs_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
     return -EFAULT;
 }
 
-int devfs_fstat(dentry_t* dentry, fstat_t* stat)
+int devfs_fstat(dentry_t* dentry, stat_t* stat)
 {
+    // Filling the default data, while custom fstat function of a
+    // device could rewrite this.
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
-    stat->dev = devfs_inode->dev_id;
-    stat->ino = devfs_inode->index;
-    stat->mode = devfs_inode->mode;
-    // Calling a custom fstat
+    stat->st_dev = devfs_inode->dev_id;
+    stat->st_ino = devfs_inode->index;
+    stat->st_mode = devfs_inode->mode;
+    stat->st_size = 0;
+    stat->st_uid = 0;
+    stat->st_gid = 0;
+    stat->st_blksize = 1;
+    stat->st_nlink = 1;
+    stat->st_blocks = 0;
+    stat->st_atim.tv_sec = 0;
+    stat->st_atim.tv_nsec = 0;
+    stat->st_mtim.tv_sec = 0;
+    stat->st_mtim.tv_nsec = 0;
+    stat->st_ctim.tv_sec = 0;
+    stat->st_ctim.tv_nsec = 0;
+
+    // Calling a custom fstat if present.
     if (devfs_inode->handlers->fstat) {
         return devfs_inode->handlers->fstat(dentry, stat);
     }

@@ -8,7 +8,7 @@
 __BEGIN_DECLS
 
 int mkdir(const char* path);
-int fstat(int nfds, fstat_t* stat);
+int fstat(int nfds, stat_t* stat);
 
 __END_DECLS
 

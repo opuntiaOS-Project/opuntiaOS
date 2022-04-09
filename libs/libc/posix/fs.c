@@ -88,7 +88,7 @@ int unlink(const char* path)
     RETURN_WITH_ERRNO(res, 0, -1);
 }
 
-int fstat(int nfds, fstat_t* stat)
+int fstat(int nfds, stat_t* stat)
 {
     int res = DO_SYSCALL_2(SYS_FSTAT, nfds, stat);
     RETURN_WITH_ERRNO(res, 0, -1);

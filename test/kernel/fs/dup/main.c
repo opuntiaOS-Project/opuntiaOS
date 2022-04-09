@@ -23,17 +23,17 @@ int main(int argc, char** argv)
         TestErr("Succesfully write to read only file");
     }
 
-    fstat_t stat;
+    stat_t stat;
     if (fstat(fd, &stat) < 0) {
         TestErr("Can't read fstat of orig file");
     }
 
-    fstat_t newstat;
+    stat_t newstat;
     if (fstat(dupfd, &newstat) < 0) {
         TestErr("Can't read fstat of dup file");
     }
 
-    if (memcmp(&stat, &newstat, sizeof(fstat_t)) != 0) {
+    if (memcmp(&stat, &newstat, sizeof(stat_t)) != 0) {
         TestErr("Different stat info of files");
     }
     return 0;

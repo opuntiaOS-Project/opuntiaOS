@@ -28,7 +28,7 @@ bool pty_master_can_read(dentry_t* dentry, size_t start);
 bool pty_master_can_write(dentry_t* dentry, size_t start);
 int pty_master_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
 int pty_master_write(dentry_t* dentry, void __user* buf, size_t start, size_t len);
-int pty_master_fstat(dentry_t* dentry, fstat_t* stat);
+int pty_master_fstat(dentry_t* dentry, stat_t* stat);
 
 static fs_ops_t pty_master_ops = {
     .recognize = 0,
@@ -110,11 +110,11 @@ int pty_master_write(dentry_t* dentry, void __user* buf, size_t start, size_t le
     return tty_write(&ptm->pts->tty, dentry, buf, start, len);
 }
 
-int pty_master_fstat(dentry_t* dentry, fstat_t* stat)
+int pty_master_fstat(dentry_t* dentry, stat_t* stat)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    stat->dev = MKDEV(128, INODE2PTSNO(dentry->inode_indx));
+    stat->st_dev = MKDEV(128, INODE2PTSNO(dentry->inode_indx));
     return 0;
 }
 
