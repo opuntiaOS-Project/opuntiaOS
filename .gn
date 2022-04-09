@@ -6,12 +6,5 @@ buildconfig = "//build/config/BUILDCONFIG.gn"
 script_executable = "python3"
 
 default_args = {
-  is_debug = true
-  compile_tests = true
-  optimize = true
-  objc_support = false
-  test_method = "none"
-  host = "gnu"
-  device_type = "desktop"
-  target_board = "i686"
+  # Set in buildconfig
 }
