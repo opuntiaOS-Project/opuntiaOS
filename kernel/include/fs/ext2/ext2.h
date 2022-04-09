@@ -13,7 +13,7 @@
 #include <libkern/types.h>
 
 #define SUPERBLOCK_START 1024
-#define SUPERBLOCK_LEN (sizeof(superbspinlock_t))
+#define SUPERBLOCK_LEN (sizeof(superblock_t))
 struct PACKED superblock {
     uint32_t inodes_count;
     uint32_t blocks_count;
@@ -58,7 +58,7 @@ struct PACKED superblock {
     // current jurnalling is unsupported
     uint8_t unused[1024 - 206];
 };
-typedef struct superblock superbspinlock_t;
+typedef struct superblock superblock_t;
 
 #define GROUP_LEN (sizeof(group_desc_t))
 struct PACKED group_desc {

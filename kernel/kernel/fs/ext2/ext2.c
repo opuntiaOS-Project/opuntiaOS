@@ -25,7 +25,7 @@
 #define TO_EXT_BLOCKS_CNT(sb, x) (x / (2 << (sb->log_block_size)))
 #define NORM_FILENAME(x) (x + ((4 - (x & 0b11)) & 0b11))
 
-static superbspinlock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
+static superblock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
 static groups_info_t _ext2_group_table_info[MAX_DEVICES_COUNT];
 static spinlock_t _ext2_lock;
 
@@ -44,11 +44,11 @@ static inline void _ext2_bitmap_set_bit(uint8_t* bitmap, uint32_t index);
 static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index);
 
 /* GROUPS FUNCTIONS */
-static inline uint32_t _ext2_get_group_len(superbspinlock_t* sb);
-static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superbspinlock_t* sb);
+static inline uint32_t _ext2_get_group_len(superblock_t* sb);
+static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superblock_t* sb);
 
 /* BLOCK FUNCTIONS */
-static uint32_t _ext2_get_block_offset(superbspinlock_t* sb, uint32_t block_index);
+static uint32_t _ext2_get_block_offset(superblock_t* sb, uint32_t block_index);
 
 static uint32_t _ext2_get_block_of_inode_lev0(dentry_t* dentry, uint32_t cur_block, uint32_t inode_block_index);
 static uint32_t _ext2_get_block_of_inode_lev1(dentry_t* dentry, uint32_t cur_block, uint32_t inode_block_index);
@@ -229,12 +229,12 @@ static inline void _ext2_bitmap_unset_bit(uint8_t* bitmap, uint32_t index)
  * GROUPS FUNCTIONS
  */
 
-static inline uint32_t _ext2_get_group_len(superbspinlock_t* sb)
+static inline uint32_t _ext2_get_group_len(superblock_t* sb)
 {
     return BLOCK_LEN(sb) * BLOCK_LEN(sb) * 8;
 }
 
-static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superbspinlock_t* sb)
+static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superblock_t* sb)
 {
     uint32_t sz = _ext2_get_disk_size(dev) - SUPERBLOCK_START;
     uint32_t ans = sz / _ext2_get_group_len(sb);
@@ -249,7 +249,7 @@ static inline int _ext2_get_groups_cnt(vfs_device_t* dev, superbspinlock_t* sb)
  * BLOCK FUNCTIONS
  */
 
-static uint32_t _ext2_get_block_offset(superbspinlock_t* sb, uint32_t block_index)
+static uint32_t _ext2_get_block_offset(superblock_t* sb, uint32_t block_index)
 {
     return SUPERBLOCK_START + (block_index - 1) * BLOCK_LEN(sb);
 }
@@ -1169,7 +1169,7 @@ int ext2_rm(dentry_t* dentry)
 int ext2_recognize_drive(vfs_device_t* dev)
 {
     spinlock_acquire(&VFS_DEVICE_LOCK);
-    superbspinlock_t* superblock = (superbspinlock_t*)kmalloc(SUPERBLOCK_LEN);
+    superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
 
     if (superblock->magic != 0xEF53) {
@@ -1191,7 +1191,7 @@ int ext2_recognize_drive(vfs_device_t* dev)
 int ext2_prepare_fs(vfs_device_t* dev)
 {
     spinlock_acquire(&VFS_DEVICE_LOCK);
-    superbspinlock_t* superblock = (superbspinlock_t*)kmalloc(SUPERBLOCK_LEN);
+    superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     _ext2_superblocks[dev->dev->id] = superblock;
 
@@ -1214,7 +1214,7 @@ int ext2_save_state(vfs_device_t* dev)
         return -1;
     }
 
-    superbspinlock_t* superblock = _ext2_superblocks[dev->dev->id];
+    superblock_t* superblock = _ext2_superblocks[dev->dev->id];
 
     uint32_t group_table_len = _ext2_group_table_info[dev->dev->id].count * GROUP_LEN;
     group_desc_t* group_table = _ext2_group_table_info[dev->dev->id].table;

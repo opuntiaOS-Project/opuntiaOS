@@ -31,7 +31,7 @@ typedef struct {
 } groups_info_t;
 
 typedef struct {
-    superbspinlock_t* sb;
+    superblock_t* sb;
     groups_info_t* gt;
 } fsdata_t;
 
@@ -103,7 +103,7 @@ struct file_ops {
     int (*mkdir)(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
     int (*rmdir)(dentry_t* dir);
     int (*ioctl)(dentry_t* dentry, uintptr_t cmd, uintptr_t arg);
-    int (*fstat)(dentry_t* dentry, fstat_t* stat);
+    int (*fstat)(dentry_t* dentry, stat_t* stat);
     struct memzone* (*mmap)(dentry_t* dentry, mmap_params_t* params);
 };
 typedef struct file_ops file_ops_t;
@@ -228,7 +228,7 @@ int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len);
 int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
 int vfs_rmdir(dentry_t* dir);
 int vfs_getdents(file_descriptor_t* dir_fd, void __user* buf, size_t len);
-int vfs_fstat(file_descriptor_t* fd, fstat_t* stat);
+int vfs_fstat(file_descriptor_t* fd, stat_t* stat);
 
 int vfs_get_absolute_path(dentry_t* dent, char* buf, int len);
 
