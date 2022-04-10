@@ -17,10 +17,13 @@ public:
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override
     {
-        if (event->type() == UI::Event::Type::NotifyWindowCreateEvent) {
+        switch (event->type()) {
+        case UI::Event::Type::NotifyWindowCreateEvent: {
             UI::NotifyWindowCreateEvent& own_event = *(UI::NotifyWindowCreateEvent*)event.get();
             HomeScreenView* it = (HomeScreenView*)superview();
             it->on_window_create(own_event.bundle_id(), own_event.icon_path(), own_event.window_id(), own_event.window_type());
+            break;
+        }
         }
 
         Window::receive_event(std::move(event));

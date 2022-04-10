@@ -49,9 +49,12 @@ public:
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override
     {
-        if (event->type() == UI::Event::Type::UIHandlerInvoke) {
+        switch (event->type()) {
+        case UI::Event::Type::UIHandlerInvoke: {
             CallEvent& own_event = *(CallEvent*)event.get();
             own_event.m_callback(own_event.view());
+            break;
+        }
         }
     }
 };

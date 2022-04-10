@@ -24,8 +24,10 @@ public:
     virtual void view_did_load() { }
     virtual void receive_event(std::unique_ptr<LFoundation::Event> event) override
     {
-        if (event->type() == Event::Type::ViewDidLoad) {
+        switch (event->type()) {
+        case Event::Type::ViewDidLoad:
             view_did_load();
+            break;
         }
     }
 

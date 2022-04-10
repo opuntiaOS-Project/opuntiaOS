@@ -3,12 +3,15 @@
 
 void DockWindow::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
-    if (event->type() == UI::Event::Type::NotifyWindowCreateEvent) {
+    switch (event->type()) {
+    case UI::Event::Type::NotifyWindowCreateEvent: {
         UI::NotifyWindowCreateEvent& own_event = *(UI::NotifyWindowCreateEvent*)event.get();
         DockView* it = (DockView*)superview();
         it->on_window_create(own_event.bundle_id(), own_event.icon_path(), own_event.window_id(), own_event.window_type());
+        break;
     }
-    if (event->type() == UI::Event::Type::NotifyWindowStatusChangedEvent) {
+
+    case UI::Event::Type::NotifyWindowStatusChangedEvent: {
         UI::NotifyWindowStatusChangedEvent& own_event = *(UI::NotifyWindowStatusChangedEvent*)event.get();
         DockView* it = (DockView*)superview();
         if (own_event.type() == UI::WindowStatusUpdateType::Removed) {
@@ -17,16 +20,22 @@ void DockWindow::receive_event(std::unique_ptr<LFoundation::Event> event)
         if (own_event.type() == UI::WindowStatusUpdateType::Minimized) {
             it->on_window_minimize(own_event.changed_window_id());
         }
+        break;
     }
-    if (event->type() == UI::Event::Type::NotifyWindowIconChangedEvent) {
+
+    case UI::Event::Type::NotifyWindowIconChangedEvent: {
         UI::NotifyWindowIconChangedEvent& own_event = *(UI::NotifyWindowIconChangedEvent*)event.get();
         DockView* it = (DockView*)superview();
         it->set_icon(own_event.changed_window_id(), own_event.icon_path());
+        break;
     }
-    if (event->type() == UI::Event::Type::NotifyWindowTitleChangedEvent) {
+
+    case UI::Event::Type::NotifyWindowTitleChangedEvent: {
         UI::NotifyWindowTitleChangedEvent& own_event = *(UI::NotifyWindowTitleChangedEvent*)event.get();
         DockView* it = (DockView*)superview();
         it->set_title(own_event.changed_window_id(), own_event.title());
+        break;
+    }
     }
 
     Window::receive_event(std::move(event));

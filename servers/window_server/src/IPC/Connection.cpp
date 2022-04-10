@@ -34,9 +34,12 @@ Connection::Connection(int connection_fd)
 
 void Connection::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
-    if (event->type() == WinServer::Event::Type::SendEvent) {
+    switch (event->type()) {
+    case WinServer::Event::Type::SendEvent: {
         std::unique_ptr<SendEvent> send_event = std::move(event);
         m_connection_with_clients.send_message(*send_event->message());
+        break;
+    }
     }
 }
 

@@ -101,50 +101,51 @@ bool Window::did_format_change()
 
 void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
-    if (event->type() == Event::Type::MouseEvent) {
+    switch (event->type()) {
+    case Event::Type::MouseEvent:
         if (m_superview) {
             MouseEvent& own_event = *(MouseEvent*)event.get();
             m_superview->receive_mouse_move_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::MouseActionEvent) {
+    case Event::Type::MouseActionEvent:
         if (m_superview) {
             MouseActionEvent& own_event = *(MouseActionEvent*)event.get();
             auto& view = m_superview->hit_test({ (int)own_event.x(), (int)own_event.y() });
             view.receive_mouse_action_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::MouseLeaveEvent) {
+    case Event::Type::MouseLeaveEvent:
         if (m_superview) {
             MouseLeaveEvent& own_event = *(MouseLeaveEvent*)event.get();
             m_superview->receive_mouse_leave_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::MouseWheelEvent) {
+    case Event::Type::MouseWheelEvent:
         if (m_superview) {
             MouseWheelEvent& own_event = *(MouseWheelEvent*)event.get();
             m_superview->receive_mouse_wheel_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::KeyUpEvent) {
+    case Event::Type::KeyUpEvent:
         if (m_focused_view) {
             KeyUpEvent& own_event = *(KeyUpEvent*)event.get();
             m_focused_view->receive_keyup_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::KeyDownEvent) {
+    case Event::Type::KeyDownEvent:
         if (m_focused_view) {
             KeyDownEvent& own_event = *(KeyDownEvent*)event.get();
             m_focused_view->receive_keydown_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::DisplayEvent) {
+    case Event::Type::DisplayEvent:
         if (m_superview) {
             DisplayEvent& own_event = *(DisplayEvent*)event.get();
 
@@ -157,16 +158,16 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
 
             m_superview->receive_display_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::LayoutEvent) {
+    case Event::Type::LayoutEvent:
         if (m_superview) {
             LayoutEvent& own_event = *(LayoutEvent*)event.get();
             m_superview->receive_layout_event(own_event);
         }
-    }
+        break;
 
-    if (event->type() == Event::Type::MenuBarActionEvent) {
+    case Event::Type::MenuBarActionEvent: {
         MenuBarActionEvent& own_event = *(MenuBarActionEvent*)event.get();
         for (Menu& menu : menubar().menus()) {
             if (menu.menu_id() == own_event.menu_id()) {
@@ -175,19 +176,23 @@ void Window::receive_event(std::unique_ptr<LFoundation::Event> event)
                 }
             }
         }
+        break;
     }
 
-    if (event->type() == Event::Type::PopupActionEvent) {
+    case Event::Type::PopupActionEvent: {
         PopupActionEvent& own_event = *(PopupActionEvent*)event.get();
         auto& menu = popup_manager().menu();
         if (own_event.item_id() < menu.items().size()) [[likely]] {
             menu.items()[own_event.item_id()].invoke();
         }
+        break;
     }
 
-    if (event->type() == Event::Type::ResizeEvent) {
+    case Event::Type::ResizeEvent: {
         ResizeEvent& own_event = *(ResizeEvent*)event.get();
         resize(own_event);
+        break;
+    }
     }
 }
 

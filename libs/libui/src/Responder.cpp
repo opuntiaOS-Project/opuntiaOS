@@ -37,17 +37,24 @@ void Responder::send_display_message_to_self(Window& win, const LG::Rect& displa
 
 void Responder::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
-    if (event->type() == Event::Type::MouseEvent) {
+    switch (event->type()) {
+    case Event::Type::MouseEvent: {
         MouseEvent& own_event = *(MouseEvent*)event.get();
         receive_mouse_move_event(own_event);
+        break;
     }
-    if (event->type() == Event::Type::DisplayEvent) {
+
+    case Event::Type::DisplayEvent: {
         DisplayEvent& own_event = *(DisplayEvent*)event.get();
         receive_display_event(own_event);
+        break;
     }
-    if (event->type() == Event::Type::LayoutEvent) {
+
+    case Event::Type::LayoutEvent: {
         LayoutEvent& own_event = *(LayoutEvent*)event.get();
         receive_layout_event(own_event);
+        break;
+    }
     }
 }
 

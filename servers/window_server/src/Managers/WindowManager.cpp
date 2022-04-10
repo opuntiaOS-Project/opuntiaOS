@@ -445,10 +445,13 @@ void WindowManager::receive_keyboard_event(std::unique_ptr<LFoundation::Event> e
 
 void WindowManager::receive_event(std::unique_ptr<LFoundation::Event> event)
 {
-    if (event->type() == WinServer::Event::Type::MouseEvent) {
+    switch (event->type()) {
+    case WinServer::Event::Type::MouseEvent:
         receive_mouse_event(std::move(event));
-    } else if (event->type() == WinServer::Event::Type::KeyboardEvent) {
+        break;
+    case WinServer::Event::Type::KeyboardEvent:
         receive_keyboard_event(std::move(event));
+        break;
     }
 }
 

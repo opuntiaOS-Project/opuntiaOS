@@ -90,7 +90,8 @@ public:
 
     void receive_event(std::unique_ptr<LFoundation::Event> event) override
     {
-        if (event->type() == LFoundation::Event::Type::DeferredInvoke) {
+        switch (event->type()) {
+        case LFoundation::Event::Type::DeferredInvoke: {
             // Note: The event was sent from pump_messages() and callback of CallEvent is 0!
             // Do NOT call callback here!
             auto msg = std::move(m_messages);
@@ -99,6 +100,8 @@ public:
                     m_client_decoder.handle(*msg[i]);
                 }
             }
+            break;
+        }
         }
     }
 
