@@ -32,6 +32,7 @@ void sys_waitpid(trapframe_t* tf);
 void sys_creat(trapframe_t* tf);
 void sys_exec(trapframe_t* tf);
 void sys_chdir(trapframe_t* tf);
+void sys_chmod(trapframe_t* tf);
 void sys_getcwd(trapframe_t* tf);
 void sys_sigaction(trapframe_t* tf);
 void sys_sigreturn(trapframe_t* tf);

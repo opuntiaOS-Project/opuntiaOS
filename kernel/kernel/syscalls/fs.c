@@ -277,6 +277,28 @@ void sys_chdir(trapframe_t* tf)
     return_with_val(ret);
 }
 
+void sys_chmod(trapframe_t* tf)
+{
+    proc_t* p = RUNNING_THREAD->process;
+    char __user* path = (char __user*)SYSCALL_VAR1(tf);
+    mode_t mode = (mode_t)SYSCALL_VAR2(tf);
+    char* kpath = umem_bring_to_kernel_str(path, USER_STR_MAXLEN);
+    if (!kpath) {
+        return_with_val(-EINVAL);
+    }
+
+    dentry_t* file;
+    int err = vfs_resolve_path_start_from(p->cwd, path, &file);
+    if (err) {
+        kfree(kpath);
+        return_with_val(-ENOENT);
+    }
+
+    err = vfs_chmod(file, mode);
+    kfree(kpath);
+    return_with_val(err);
+}
+
 void sys_getcwd(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;

@@ -230,6 +230,7 @@ int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t ui
 int vfs_rmdir(dentry_t* dir);
 int vfs_getdents(file_descriptor_t* dir_fd, void __user* buf, size_t len);
 int vfs_fstat(file_descriptor_t* fd, stat_t* stat);
+int vfs_chmod(dentry_t* dentry, mode_t mode);
 
 int vfs_get_absolute_path(dentry_t* dent, char* buf, int len);
 

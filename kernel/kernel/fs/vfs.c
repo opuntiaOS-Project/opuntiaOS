@@ -527,6 +527,23 @@ int vfs_fstat(file_descriptor_t* fd, stat_t* stat)
     return 0;
 }
 
+int vfs_chmod(dentry_t* dentry, mode_t mode)
+{
+    proc_t* current_p = RUNNING_THREAD->process;
+    if (!dentry) {
+        return -ENOENT;
+    }
+
+    // TODO: Check if FS is readonly.
+    if (dentry->inode->uid != current_p->euid && !proc_is_su(current_p)) {
+        return -EPERM;
+    }
+
+    dentry_set_flag(dentry, DENTRY_DIRTY);
+    dentry->inode->mode = (dentry->inode->mode & ~(uint32_t)07777) | (mode & (uint32_t)07777);
+    return 0;
+}
+
 int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result)
 {
     if (!path) {
