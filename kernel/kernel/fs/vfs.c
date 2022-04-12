@@ -507,22 +507,34 @@ int vfs_fstat(file_descriptor_t* fd, stat_t* stat)
         return res;
     }
 
-    // For drives we set MAJOR=0 and MINOR=drive's id.
-    stat->st_dev = MKDEV(0, fd->dentry->dev_indx);
-    stat->st_ino = fd->dentry->inode_indx;
-    stat->st_mode = fd->dentry->inode->mode;
-    stat->st_size = fd->dentry->inode->size;
-    stat->st_uid = fd->dentry->inode->uid;
-    stat->st_gid = fd->dentry->inode->gid;
-    stat->st_blksize = fd->dentry->fsdata.blksize;
-    stat->st_nlink = fd->dentry->inode->links_count;
-    stat->st_blocks = fd->dentry->inode->blocks;
-    stat->st_atim.tv_sec = fd->dentry->inode->atime;
-    stat->st_atim.tv_nsec = 0;
-    stat->st_mtim.tv_sec = fd->dentry->inode->mtime;
-    stat->st_mtim.tv_nsec = 0;
-    stat->st_ctim.tv_sec = fd->dentry->inode->ctime;
-    stat->st_ctim.tv_nsec = 0;
+    switch (fd->type) {
+    case FD_TYPE_FILE:
+        // For drives we set MAJOR=0 and MINOR=drive's id.
+        stat->st_dev = MKDEV(0, fd->dentry->dev_indx);
+        stat->st_ino = fd->dentry->inode_indx;
+        stat->st_mode = fd->dentry->inode->mode;
+        stat->st_size = fd->dentry->inode->size;
+        stat->st_uid = fd->dentry->inode->uid;
+        stat->st_gid = fd->dentry->inode->gid;
+        stat->st_blksize = fd->dentry->fsdata.blksize;
+        stat->st_nlink = fd->dentry->inode->links_count;
+        stat->st_blocks = fd->dentry->inode->blocks;
+        stat->st_atim.tv_sec = fd->dentry->inode->atime;
+        stat->st_atim.tv_nsec = 0;
+        stat->st_mtim.tv_sec = fd->dentry->inode->mtime;
+        stat->st_mtim.tv_nsec = 0;
+        stat->st_ctim.tv_sec = fd->dentry->inode->ctime;
+        stat->st_ctim.tv_nsec = 0;
+        break;
+
+    case FD_TYPE_SOCKET:
+        ASSERT(false && "No fstat for FD_TYPE_SOCKET");
+        break;
+
+    default:
+        break;
+    }
+
     spinlock_release(&fd->lock);
     return 0;
 }
