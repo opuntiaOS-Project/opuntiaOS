@@ -31,31 +31,31 @@ int pty_master_write(dentry_t* dentry, void __user* buf, size_t start, size_t le
 int pty_master_fstat(dentry_t* dentry, stat_t* stat);
 
 static fs_ops_t pty_master_ops = {
-    .recognize = 0,
-    .prepare_fs = 0,
-    .eject_device = 0,
+    .recognize = NULL,
+    .prepare_fs = NULL,
+    .eject_device = NULL,
     .dentry = {
-        .read_inode = 0,
-        .write_inode = 0,
+        .read_inode = NULL,
+        .write_inode = NULL,
         .free_inode = _pty_master_free_dentry_data,
-        .get_fsdata = 0,
+        .get_fsdata = NULL,
     },
     .file = {
         .can_read = pty_master_can_read,
         .can_write = pty_master_can_write,
         .read = pty_master_read,
         .write = pty_master_write,
-        .open = 0,
-        .truncate = 0,
-        .create = 0,
-        .unlink = 0,
-        .getdents = 0,
-        .lookup = 0,
-        .mkdir = 0,
-        .rmdir = 0,
+        .open = NULL,
+        .truncate = NULL,
+        .create = NULL,
+        .unlink = NULL,
+        .getdents = NULL,
+        .lookup = NULL,
+        .mkdir = NULL,
+        .rmdir = NULL,
         .fstat = pty_master_fstat,
-        .ioctl = 0,
-        .mmap = 0,
+        .ioctl = NULL,
+        .mmap = NULL,
     }
 };
 
