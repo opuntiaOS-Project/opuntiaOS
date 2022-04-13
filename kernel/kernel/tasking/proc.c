@@ -304,14 +304,14 @@ success:
         p->cwd = dentry_get_parent(p->proc_file);
     }
 
-    if (TEST_FLAG(fd.dentry->inode->mode, S_ISUID)) {
-        p->euid = fd.dentry->inode->uid;
-        p->suid = fd.dentry->inode->uid;
+    if (TEST_FLAG(dentry->inode->mode, S_ISUID)) {
+        p->euid = dentry->inode->uid;
+        p->suid = dentry->inode->uid;
     }
 
-    if (TEST_FLAG(fd.dentry->inode->mode, S_ISGID)) {
-        p->egid = fd.dentry->inode->gid;
-        p->sgid = fd.dentry->inode->gid;
+    if (TEST_FLAG(dentry->inode->mode, S_ISGID)) {
+        p->egid = dentry->inode->gid;
+        p->sgid = dentry->inode->gid;
     }
 
     vfs_close(&fd);
@@ -346,11 +346,9 @@ int proc_free_locked(proc_t* p)
         return -ESRCH;
     }
 
-    /* closing opend fds */
     if (p->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
             if (fd_is_opened(&p->fds[i])) {
-                /* think as an active fd */
                 vfs_close(&p->fds[i]);
             }
         }
@@ -504,7 +502,7 @@ int proc_get_fd_id(proc_t* p, file_descriptor_t* fd)
 
 static ALWAYS_INLINE int fd_is_opened(file_descriptor_t* fd)
 {
-    return fd->dentry != NULL;
+    return fd->file != NULL;
 }
 
 static file_descriptor_t* proc_get_free_fd_locked(proc_t* p)
@@ -513,7 +511,6 @@ static file_descriptor_t* proc_get_free_fd_locked(proc_t* p)
 
     for (int i = 0; i < MAX_OPENED_FILES; i++) {
         if (!fd_is_opened(&p->fds[i])) {
-            spinlock_init(&p->fds[i].lock);
             return &p->fds[i];
         }
     }
@@ -554,27 +551,8 @@ file_descriptor_t* proc_get_fd(proc_t* p, size_t index)
 
 int proc_copy_fd(file_descriptor_t* oldfd, file_descriptor_t* newfd)
 {
-    spinlock_acquire(&oldfd->lock);
-    if (oldfd->type == FD_TYPE_FILE) {
-        newfd->type = FD_TYPE_FILE;
-        newfd->dentry = dentry_duplicate(oldfd->dentry);
-        newfd->offset = oldfd->offset;
-        newfd->flags = oldfd->flags;
-        newfd->ops = oldfd->ops;
-        spinlock_init(&newfd->lock);
-        spinlock_release(&oldfd->lock);
-        return 0;
-    } else if (oldfd->type == FD_TYPE_SOCKET) {
-        newfd->type = FD_TYPE_SOCKET;
-        newfd->sock_entry = socket_duplicate(oldfd->sock_entry);
-        newfd->offset = oldfd->offset;
-        newfd->flags = oldfd->flags;
-        newfd->ops = oldfd->ops;
-        spinlock_init(&newfd->lock);
-        spinlock_release(&oldfd->lock);
-        return 0;
-    }
-
-    spinlock_release(&oldfd->lock);
-    return -1;
+    newfd->file = file_duplicate(oldfd->file);
+    newfd->offset = oldfd->offset;
+    newfd->flags = oldfd->flags;
+    return 0;
 }

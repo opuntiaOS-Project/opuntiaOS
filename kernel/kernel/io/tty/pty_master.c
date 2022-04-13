@@ -24,11 +24,11 @@
 pty_master_entry_t pty_masters[PTYS_COUNT];
 
 int _pty_master_free_dentry_data(dentry_t* dentry);
-bool pty_master_can_read(dentry_t* dentry, size_t start);
-bool pty_master_can_write(dentry_t* dentry, size_t start);
-int pty_master_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
-int pty_master_write(dentry_t* dentry, void __user* buf, size_t start, size_t len);
-int pty_master_fstat(dentry_t* dentry, stat_t* stat);
+bool pty_master_can_read(file_t* file, size_t start);
+bool pty_master_can_write(file_t* file, size_t start);
+int pty_master_read(file_t* file, void __user* buf, size_t start, size_t len);
+int pty_master_write(file_t* file, void __user* buf, size_t start, size_t len);
+int pty_master_fstat(file_t* file, stat_t* stat);
 
 static fs_ops_t pty_master_ops = {
     .recognize = NULL,
@@ -73,28 +73,35 @@ int _pty_master_free_dentry_data(dentry_t* dentry)
 {
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
+
     ptm->dentry.inode_indx = 0;
     return 0;
 }
 
-bool pty_master_can_read(dentry_t* dentry, size_t start)
+bool pty_master_can_read(file_t* file, size_t start)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
+
     return sync_ringbuffer_space_to_read(&ptm->buffer) >= 1;
 }
 
-bool pty_master_can_write(dentry_t* dentry, size_t start)
+bool pty_master_can_write(file_t* file, size_t start)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    return tty_can_write(&ptm->pts->tty, dentry, start);
+
+    return tty_can_write(&ptm->pts->tty, file, start);
 }
 
-int pty_master_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int pty_master_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
+
     uint32_t leno = sync_ringbuffer_space_to_read(&ptm->buffer);
     if (leno > len) {
         leno = len;
@@ -103,17 +110,21 @@ int pty_master_read(dentry_t* dentry, void __user* buf, size_t start, size_t len
     return leno;
 }
 
-int pty_master_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int pty_master_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
-    return tty_write(&ptm->pts->tty, dentry, buf, start, len);
+
+    return tty_write(&ptm->pts->tty, file, buf, start, len);
 }
 
-int pty_master_fstat(dentry_t* dentry, stat_t* stat)
+int pty_master_fstat(file_t* file, stat_t* stat)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
+
     stat->st_dev = MKDEV(128, INODE2PTSNO(dentry->inode_indx));
     return 0;
 }
@@ -145,11 +156,9 @@ int pty_master_alloc(file_descriptor_t* fd)
     dentry_set_flag(&ptm->dentry, DENTRY_CUSTOM);
     ptm->dentry.ops = &pty_master_ops;
 
-    fd->dentry = &ptm->dentry;
-    fd->ops = &pty_master_ops.file;
+    fd->file = file_init_dentry_move(&ptm->dentry);
     fd->flags = O_RDWR;
     fd->offset = 0;
-    fd->type = FD_TYPE_FILE;
 
     pty_slave_create(INODE2PTSNO(ptm->dentry.inode_indx), ptm);
     ptm->buffer = sync_ringbuffer_create_std();

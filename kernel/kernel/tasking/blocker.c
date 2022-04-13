@@ -51,10 +51,10 @@ int init_join_blocker(thread_t* thread, int wait_for_pid)
 
 int should_unblock_read_block(thread_t* thread)
 {
-    if (!thread->blocker_data.rw.fd->ops->can_read) {
+    if (!thread->blocker_data.rw.fd->file->ops->can_read) {
         return 1;
     }
-    return thread->blocker_data.rw.fd->ops->can_read(thread->blocker_data.rw.fd->dentry, thread->blocker_data.rw.fd->offset);
+    return thread->blocker_data.rw.fd->file->ops->can_read(thread->blocker_data.rw.fd->file, thread->blocker_data.rw.fd->offset);
 }
 
 int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
@@ -76,10 +76,10 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
 
 int should_unblock_write_block(thread_t* thread)
 {
-    if (!thread->blocker_data.rw.fd->ops->can_write) {
+    if (!thread->blocker_data.rw.fd->file->ops->can_write) {
         return 1;
     }
-    return thread->blocker_data.rw.fd->ops->can_write(thread->blocker_data.rw.fd->dentry, thread->blocker_data.rw.fd->offset);
+    return thread->blocker_data.rw.fd->file->ops->can_write(thread->blocker_data.rw.fd->file, thread->blocker_data.rw.fd->offset);
 }
 
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
@@ -131,7 +131,7 @@ int should_unblock_select_block(thread_t* thread)
     for (int i = 0; i < thread->blocker_data.select.nfds; i++) {
         if (FD_ISSET(i, &thread->blocker_data.select.readfds)) {
             fd = proc_get_fd(thread->process, i);
-            if (fd->ops->can_read(fd->dentry, fd->offset)) {
+            if (fd->file->ops->can_read(fd->file, fd->offset)) {
                 return true;
             }
         }
@@ -140,7 +140,7 @@ int should_unblock_select_block(thread_t* thread)
     for (int i = 0; i < thread->blocker_data.select.nfds; i++) {
         if (FD_ISSET(i, &thread->blocker_data.select.writefds)) {
             fd = proc_get_fd(thread->process, i);
-            if (fd->ops->can_write(fd->dentry, fd->offset)) {
+            if (fd->file->ops->can_write(fd->file, fd->offset)) {
                 return true;
             }
         }

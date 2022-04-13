@@ -38,7 +38,7 @@ int tty_clear(tty_entry_t* tty)
     return 0;
 }
 
-bool tty_can_read(tty_entry_t* tty, dentry_t* dentry, size_t start)
+bool tty_can_read(tty_entry_t* tty, file_t* file, size_t start)
 {
     if (TEST_FLAG(tty->termios.c_lflag, ICANON)) {
         return tty->line_count > 0;
@@ -46,12 +46,12 @@ bool tty_can_read(tty_entry_t* tty, dentry_t* dentry, size_t start)
     return sync_ringbuffer_space_to_read(&tty->buffer) >= 1;
 }
 
-bool tty_can_write(tty_entry_t* tty, dentry_t* dentry, size_t start)
+bool tty_can_write(tty_entry_t* tty, file_t* file, size_t start)
 {
     return true;
 }
 
-int tty_read(tty_entry_t* tty, dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int tty_read(tty_entry_t* tty, file_t* file, void __user* buf, size_t start, size_t len)
 {
     size_t leno = sync_ringbuffer_space_to_read(&tty->buffer);
     if (leno > len) {
@@ -64,7 +64,7 @@ int tty_read(tty_entry_t* tty, dentry_t* dentry, void __user* buf, size_t start,
     return leno;
 }
 
-int tty_write(tty_entry_t* tty, dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int tty_write(tty_entry_t* tty, file_t* file, void __user* buf, size_t start, size_t len)
 {
     // TODO: Check line count correctly. Both read & write funcs.
     sync_ringbuffer_write_user(&tty->buffer, buf, len);
@@ -72,7 +72,7 @@ int tty_write(tty_entry_t* tty, dentry_t* dentry, void __user* buf, size_t start
     return len;
 }
 
-int tty_ioctl(tty_entry_t* tty, dentry_t* dentry, uint32_t cmd, uint32_t arg)
+int tty_ioctl(tty_entry_t* tty, file_t* file, uint32_t cmd, uint32_t arg)
 {
     switch (cmd) {
     case TIOCGPGRP:

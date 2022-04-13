@@ -24,40 +24,50 @@ static pty_slave_entry_t* _pts_get(dentry_t* dentry)
     return NULL;
 }
 
-bool pty_slave_can_read(dentry_t* dentry, size_t start)
+bool pty_slave_can_read(file_t* file, size_t start)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
-    return tty_can_read(&pts->tty, dentry, start);
+
+    return tty_can_read(&pts->tty, file, start);
 }
 
-bool pty_slave_can_write(dentry_t* dentry, size_t start)
+bool pty_slave_can_write(file_t* file, size_t start)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
+
     return sync_ringbuffer_space_to_write(&pts->ptm->buffer) >= 0;
 }
 
-int pty_slave_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int pty_slave_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
-    return tty_read(&pts->tty, dentry, buf, start, len);
+
+    return tty_read(&pts->tty, file, buf, start, len);
 }
 
-int pty_slave_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int pty_slave_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
+
     sync_ringbuffer_write_user(&pts->ptm->buffer, buf, len);
     return len;
 }
 
-int pty_slave_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+int pty_slave_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     pty_slave_entry_t* pts = _pts_get(dentry);
     ASSERT(pts);
-    return tty_ioctl(&pts->tty, dentry, cmd, arg);
+
+    return tty_ioctl(&pts->tty, file, cmd, arg);
 }
 
 int pty_slave_create(int id, pty_master_entry_t* ptm)

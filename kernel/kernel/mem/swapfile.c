@@ -12,7 +12,7 @@
 #include <mem/swapfile.h>
 #include <platform/generic/cpu.h>
 
-static dentry_t* _swapfile = NULL;
+static file_t* _swapfile = NULL;
 static int _nextid = 0;
 
 int swapfile_init()
@@ -24,10 +24,13 @@ int swapfile_init()
     }
 
     vfs_create(var_dir, "swapfile", 8, 0600, 0, 0);
-    if (vfs_resolve_path("/var/swapfile", &_swapfile) < 0) {
-        _swapfile = NULL;
+
+    dentry_t* swapfile_dentry;
+    if (vfs_resolve_path("/var/swapfile", &swapfile_dentry) < 0) {
+        return -1;
     }
 
+    _swapfile = file_init_dentry_move(swapfile_dentry);
     return 0;
 }
 
@@ -55,7 +58,7 @@ int swapfile_load(uintptr_t vaddr, int id)
     THIS_CPU->data_access_type = DATA_ACCESS_KERNEL;
 
     size_t offset = (id - 1) * VMM_PAGE_SIZE;
-    _swapfile->ops->file.read(_swapfile, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
+    _swapfile->ops->read(_swapfile, (void*)PAGE_START(vaddr), offset, VMM_PAGE_SIZE);
 
     THIS_CPU->data_access_type = prev_access_type;
 
@@ -72,7 +75,7 @@ int swapfile_store(uintptr_t vaddr)
     data_access_type_t prev_access_type = THIS_CPU->data_access_type;
     THIS_CPU->data_access_type = DATA_ACCESS_KERNEL;
 
-    _swapfile->ops->file.write(_swapfile, (void*)PAGE_START(vaddr), _nextid * VMM_PAGE_SIZE, VMM_PAGE_SIZE);
+    _swapfile->ops->write(_swapfile, (void*)PAGE_START(vaddr), _nextid * VMM_PAGE_SIZE, VMM_PAGE_SIZE);
     _nextid++;
 
     THIS_CPU->data_access_type = prev_access_type;

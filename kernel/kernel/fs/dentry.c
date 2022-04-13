@@ -31,6 +31,16 @@ extern uint32_t root_fs_dev_id;
 static bool can_cache_inodes = 1;
 static size_t stat_cached_dentries = 0; /* Count of dentries which are held. */
 static size_t stat_cached_inodes_area_size = 0; /* Sum of all areas which is used for holding inodes. */
+
+struct dentry_cache_list {
+    struct dentry_cache_list* prev;
+    struct dentry_cache_list* next;
+    dentry_t* data;
+    size_t len;
+    spinlock_t lock;
+};
+typedef struct dentry_cache_list dentry_cache_list_t;
+
 static dentry_cache_list_t* dentry_cache;
 
 static inline bool need_to_free_inode_cache()

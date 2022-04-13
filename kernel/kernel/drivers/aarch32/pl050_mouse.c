@@ -48,12 +48,12 @@ static inline int _pl050_map_itself(device_t* device)
     return 0;
 }
 
-static bool _mouse_can_read(dentry_t* dentry, size_t start)
+static bool _mouse_can_read(file_t* file, size_t start)
 {
     return ringbuffer_space_to_read(&mouse_buffer) >= 1;
 }
 
-static int _mouse_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+static int _mouse_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
     size_t leno = ringbuffer_space_to_read(&mouse_buffer);
     if (leno > len) {

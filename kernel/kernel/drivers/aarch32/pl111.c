@@ -75,7 +75,7 @@ static int _pl111_init_buffer(uint32_t width, uint32_t height)
     return 0;
 }
 
-static int _pl111_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+static int _pl111_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
 {
     switch (cmd) {
     case BGA_GET_HEIGHT:
@@ -90,7 +90,7 @@ static int _pl111_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
     }
 }
 
-static memzone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
+static memzone_t* _pl111_mmap(file_t* file, mmap_params_t* params)
 {
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
 
@@ -105,7 +105,7 @@ static memzone_t* _pl111_mmap(dentry_t* dentry, mmap_params_t* params)
 
     zone->mmu_flags |= MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_UNCACHED;
     zone->type |= ZONE_TYPE_DEVICE;
-    zone->file = dentry_duplicate(dentry);
+    zone->file = file_duplicate(file);
     zone->ops = &mmap_file_vm_ops;
 
     for (int offset = 0; offset < pl111_screen_buffer_size; offset += VMM_PAGE_SIZE) {

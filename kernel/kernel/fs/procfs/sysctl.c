@@ -27,10 +27,10 @@ int procfs_sys_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t l
 int procfs_sys_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
-static bool procfs_sys_doint_can_read(dentry_t* dentry, size_t start);
-static int procfs_sys_doint_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
-static bool procfs_sys_doint_can_write(dentry_t* dentry, size_t start);
-static int procfs_sys_doint_write(dentry_t* dentry, void __user* buf, size_t start, size_t len);
+static bool procfs_sys_doint_can_read(file_t* file, size_t start);
+static int procfs_sys_doint_read(file_t* file, void __user* buf, size_t start, size_t len);
+static bool procfs_sys_doint_can_write(file_t* file, size_t start);
+static int procfs_sys_doint_write(file_t* file, void __user* buf, size_t start, size_t len);
 
 /**
  * DATA
@@ -140,13 +140,14 @@ int procfs_sys_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** re
  * FILES
  */
 
-static bool procfs_sys_doint_can_read(dentry_t* dentry, size_t start)
+static bool procfs_sys_doint_can_read(file_t* file, size_t start)
 {
     return true;
 }
 
-static int procfs_sys_doint_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+static int procfs_sys_doint_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     int* data = procfs_sys_get_sfile(dentry)->data;
 
     char res[16];
@@ -165,13 +166,15 @@ static int procfs_sys_doint_read(dentry_t* dentry, void __user* buf, size_t star
     return size;
 }
 
-static bool procfs_sys_doint_can_write(dentry_t* dentry, size_t start)
+static bool procfs_sys_doint_can_write(file_t* file, size_t start)
 {
     return true;
 }
 
-static int procfs_sys_doint_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+static int procfs_sys_doint_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
+
     // Expect to read an integer from sscanf only, buffer size of 32 is enough.
     char tmp_buf[32];
     size_t todo_len = min(len, 31);

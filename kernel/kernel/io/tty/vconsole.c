@@ -39,19 +39,21 @@ inline static vconsole_entry_t* _vconsole_active()
     return active_vconsole;
 }
 
-bool vconsole_can_read(dentry_t* dentry, size_t start)
+bool vconsole_can_read(file_t* file, size_t start)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     vconsole_entry_t* vconsole = _vconsole_get(dentry);
-    return tty_can_read(&vconsole->tty, dentry, start);
+    return tty_can_read(&vconsole->tty, file, start);
 }
 
-bool vconsole_can_write(dentry_t* dentry, size_t start)
+bool vconsole_can_write(file_t* file, size_t start)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     vconsole_entry_t* vconsole = _vconsole_get(dentry);
-    return tty_can_write(&vconsole->tty, dentry, start);
+    return tty_can_write(&vconsole->tty, file, start);
 }
 
-int vconsole_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int vconsole_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
     return 0;
 }
@@ -101,7 +103,7 @@ int _vconsole_process_esc_seq(uint8_t* buf)
     return 0;
 }
 
-int vconsole_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int vconsole_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
     uint8_t __user* u8buf = (uint8_t __user*)buf;
 #ifdef VCONSOLE_DEBUG
@@ -126,10 +128,11 @@ int vconsole_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
     return len;
 }
 
-int vconsole_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+int vconsole_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
 {
+    dentry_t* dentry = file_dentry_assert(file);
     vconsole_entry_t* vconsole = _vconsole_get(dentry);
-    return tty_ioctl(&vconsole->tty, dentry, cmd, arg);
+    return tty_ioctl(&vconsole->tty, file, cmd, arg);
 }
 
 vconsole_entry_t* vconsole_new()

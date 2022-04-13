@@ -55,7 +55,7 @@ static int _elf_load_page_content(memzone_t* zone, uintptr_t vaddr)
     }
 
     spinlock_acquire(&zone->file->lock);
-    zone->file->ops->file.read(zone->file, page_start_ptr, offset, rem_len);
+    zone->file->ops->read(zone->file, page_start_ptr, offset, rem_len);
     spinlock_release(&zone->file->lock);
     return 0;
 }
@@ -101,7 +101,7 @@ static int _elf_load_interpret_program_header_entry(proc_t* p, file_descriptor_t
         // pages. So, we have to fix offset and size to match start of zone->vaddr.
         zone->file_offset = ph.p_offset - (ph.p_vaddr - PAGE_START(ph.p_vaddr));
         zone->file_size = ph.p_filesz + (ph.p_vaddr - PAGE_START(ph.p_vaddr));
-        zone->file = dentry_duplicate(fd->dentry);
+        zone->file = file_duplicate(fd->file);
         zone->ops = &elf_vm_ops;
         break;
     default:

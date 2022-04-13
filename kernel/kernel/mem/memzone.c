@@ -228,7 +228,7 @@ int memzone_free_no_proc(dynamic_array_t* zones, memzone_t* givzone)
         memzone_t* zone = (memzone_t*)dynarr_get(zones, i);
         if (givzone == zone) {
             if (givzone->file) {
-                dentry_put(givzone->file);
+                file_put(givzone->file);
             }
             _proc_swap_zones(zone, dynarr_get(zones, zones_count - 1));
             dynarr_pop(zones);
@@ -249,7 +249,7 @@ int memzone_copy(vm_address_space_t* to_vm_aspace, vm_address_space_t* from_vm_a
     for (int i = 0; i < from_vm_aspace->zones.size; i++) {
         memzone_t* zone_to_copy = (memzone_t*)dynarr_get(&from_vm_aspace->zones, i);
         if (zone_to_copy->file) {
-            dentry_duplicate(zone_to_copy->file); // For the copied zone.
+            file_duplicate(zone_to_copy->file); // For the copied zone.
         }
         dynarr_push(&to_vm_aspace->zones, zone_to_copy);
     }

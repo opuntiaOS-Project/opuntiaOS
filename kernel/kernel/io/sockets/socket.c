@@ -8,6 +8,7 @@
 
 #include <algo/sync_ringbuffer.h>
 #include <io/sockets/socket.h>
+#include <libkern/bits/errno.h>
 #include <libkern/kassert.h>
 
 socket_t socket_list[MAX_SOCKET_COUNT];
@@ -26,13 +27,14 @@ static socket_t* _socket_create(int domain, int type, int protocol)
 
 int socket_create(int domain, int type, int protocol, file_descriptor_t* fd, file_ops_t* ops)
 {
-    fd->type = FD_TYPE_SOCKET;
-    fd->flags = O_RDWR;
-    fd->sock_entry = _socket_create(domain, type, protocol);
-    fd->ops = ops;
-    if (!fd->sock_entry) {
-        return -1;
+    socket_t* new_sock = _socket_create(domain, type, protocol);
+    if (!new_sock) {
+        return -ENOMEM;
     }
+
+    fd->file = file_init_socket_move(new_sock, ops);
+    fd->flags = O_RDWR;
+    fd->offset = 0;
     return 0;
 }
 

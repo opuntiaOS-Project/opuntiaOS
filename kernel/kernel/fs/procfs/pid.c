@@ -26,11 +26,11 @@ int procfs_pid_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t l
 int procfs_pid_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
 
 /* FILES */
-static bool procfs_pid_memstat_can_read(dentry_t* dentry, size_t start);
-static int procfs_pid_memstat_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
+static bool procfs_pid_memstat_can_read(file_t* file, size_t start);
+static int procfs_pid_memstat_read(file_t* file, void __user* buf, size_t start, size_t len);
 
-static bool procfs_pid_exe_can_read(dentry_t* dentry, size_t start);
-static int procfs_pid_exe_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
+static bool procfs_pid_exe_can_read(file_t* file, size_t start);
+static int procfs_pid_exe_read(file_t* file, void __user* buf, size_t start, size_t len);
 
 /**
  * DATA
@@ -148,12 +148,12 @@ int procfs_pid_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** re
  * FILES
  */
 
-static bool procfs_pid_memstat_can_read(dentry_t* dentry, size_t start)
+static bool procfs_pid_memstat_can_read(file_t* file, size_t start)
 {
     return true;
 }
 
-static int procfs_pid_memstat_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+static int procfs_pid_memstat_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
     if (start == 12) {
         return 0;
@@ -166,13 +166,15 @@ static int procfs_pid_memstat_read(dentry_t* dentry, void __user* buf, size_t st
     return 12;
 }
 
-static bool procfs_pid_exe_can_read(dentry_t* dentry, size_t start)
+static bool procfs_pid_exe_can_read(file_t* file, size_t start)
 {
     return true;
 }
 
-static int procfs_pid_exe_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+static int procfs_pid_exe_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
+
     int pid = procfs_pid_get_pid_from_inode_index(dentry->inode_indx);
     thread_t* th = thread_by_pid(pid);
     if (!th) {

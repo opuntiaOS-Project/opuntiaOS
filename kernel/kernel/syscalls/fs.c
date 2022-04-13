@@ -124,7 +124,12 @@ void sys_lseek(trapframe_t* tf)
         return_with_val(-EBADF);
     }
 
+    if (fd->file->type != FTYPE_FILE) {
+        return_with_val(-ESPIPE);
+    }
+
     int whence = SYSCALL_VAR3(tf);
+    dentry_t* dentry = file_dentry(fd->file);
 
     switch (whence) {
     case SEEK_SET:
@@ -134,13 +139,13 @@ void sys_lseek(trapframe_t* tf)
         fd->offset += SYSCALL_VAR2(tf);
         break;
     case SEEK_END:
-        fd->offset = fd->dentry->inode->size - SYSCALL_VAR2(tf);
+        fd->offset = dentry->inode->size - SYSCALL_VAR2(tf);
         break;
     default:
         return_with_val(-EINVAL);
     }
 
-    if (fd->offset >= fd->dentry->inode->size) {
+    if (fd->offset >= dentry->inode->size) {
         return_with_val(-EOVERFLOW);
     }
 
@@ -205,10 +210,10 @@ void sys_fsync(trapframe_t* tf)
     if (!fd) {
         return_with_val(-EBADF);
     }
-    if (fd->type != FD_TYPE_FILE) {
+    if (fd->file->type != FTYPE_FILE) {
         return_with_val(-EINVAL);
     }
-    dentry_flush(fd->dentry);
+    dentry_flush(fd->file->dentry);
     return_with_val(0);
 }
 
@@ -390,12 +395,12 @@ void sys_select(trapframe_t* tf)
     for (int i = 0; i < nfds; i++) {
         fd = proc_get_fd(p, i);
         if (readfds && FD_ISSET(i, &(RUNNING_THREAD->blocker_data.select.readfds))) {
-            if (fd->ops->can_read && fd->ops->can_read(fd->dentry, fd->offset)) {
+            if (fd->file->ops->can_read && fd->file->ops->can_read(fd->file, fd->offset)) {
                 FD_SET(i, readfds);
             }
         }
         if (writefds && FD_ISSET(i, &(RUNNING_THREAD->blocker_data.select.writefds))) {
-            if (fd->ops->can_write && fd->ops->can_write(fd->dentry, fd->offset)) {
+            if (fd->file->ops->can_write && fd->file->ops->can_write(fd->file, fd->offset)) {
                 FD_SET(i, writefds);
             }
         }
@@ -448,7 +453,7 @@ void sys_mmap(trapframe_t* tf)
         zone = memzone_new_random(p->address_space, kparams.size);
     } else {
         file_descriptor_t* fd = proc_get_fd(p, kparams.fd);
-        /* TODO: Check for read access to the file */
+        // TODO: Check for read access to the file.
         if (!fd) {
             return_with_val(-EBADFD);
         }
@@ -491,7 +496,7 @@ void sys_munmap(trapframe_t* tf)
         return_with_val(vfs_munmap(p, zone));
     }
 
-    // TODO: Split or remove zone
+    // TODO: Split or remove zone.
     return_with_val(0);
 }
 

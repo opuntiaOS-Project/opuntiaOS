@@ -14,22 +14,22 @@
 
 // #define PTY_DEBUG
 
-bool ptmx_can_read(dentry_t* dentry, size_t start)
+bool ptmx_can_read(file_t* file, size_t start)
 {
     return true;
 }
 
-bool ptmx_can_write(dentry_t* dentry, size_t start)
+bool ptmx_can_write(file_t* file, size_t start)
 {
     return true;
 }
 
-int ptmx_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int ptmx_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
     return 0;
 }
 
-int ptmx_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int ptmx_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
     return 0;
 }

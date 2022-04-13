@@ -98,9 +98,9 @@ int ext2_prepare_fs(vfs_device_t* dev);
 int ext2_save_state(vfs_device_t* dev);
 fsdata_t get_fsdata(dentry_t* dentry);
 
-int ext2_read(dentry_t* dentry, void __user* buf, size_t start, size_t len);
-int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len);
-int ext2_truncate(dentry_t* dentry, uint32_t len);
+int ext2_read(file_t* file, void __user* buf, size_t start, size_t len);
+int ext2_write(file_t* file, void __user* buf, size_t start, size_t len);
+int ext2_truncate(file_t* file, uint32_t len);
 int ext2_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result);
 int ext2_mkdir(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid);
 int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
@@ -895,18 +895,20 @@ static int _ext2_setup_file(dentry_t* file, mode_t mode, uid_t uid, gid_t gid)
  * API FUNTIONS
  */
 
-bool ext2_can_read(dentry_t* dentry, size_t start)
+bool ext2_can_read(file_t* file, size_t start)
 {
     return true;
 }
 
-bool ext2_can_write(dentry_t* dentry, size_t start)
+bool ext2_can_write(file_t* file, size_t start)
 {
     return true;
 }
 
-int ext2_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int ext2_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
+
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
@@ -935,8 +937,10 @@ int ext2_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
     return already_read;
 }
 
-int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int ext2_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
+
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t start_block_index = start / block_len;
@@ -974,8 +978,10 @@ int ext2_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
     return already_written;
 }
 
-int ext2_truncate(dentry_t* dentry, uint32_t len)
+int ext2_truncate(file_t* file, uint32_t len)
 {
+    dentry_t* dentry = file_dentry_assert(file);
+
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     if (dentry->inode->size <= len) {
         spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));

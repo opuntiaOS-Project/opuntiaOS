@@ -3,7 +3,7 @@
 
 #include <libkern/types.h>
 
-#define FD_SETSIZE 8
+#define FD_SETSIZE 32
 
 struct fd_set {
     uint8_t fds[FD_SETSIZE / 8];

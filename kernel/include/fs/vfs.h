@@ -80,32 +80,24 @@ struct dentry {
 };
 typedef struct dentry dentry_t;
 
-struct dentry_cache_list {
-    struct dentry_cache_list* prev;
-    struct dentry_cache_list* next;
-    dentry_t* data;
-    size_t len;
-    spinlock_t lock;
-};
-typedef struct dentry_cache_list dentry_cache_list_t;
-
+struct file;
 struct file_descriptor;
 struct file_ops {
-    bool (*can_read)(dentry_t*, size_t start);
-    bool (*can_write)(dentry_t*, size_t start);
-    int (*read)(dentry_t* dentry, void __user* buf, size_t start, size_t len);
-    int (*write)(dentry_t* dentry, void __user* buf, size_t start, size_t len);
+    bool (*can_read)(struct file* file, size_t start);
+    bool (*can_write)(struct file* file, size_t start);
+    int (*read)(struct file* file, void __user* buf, size_t start, size_t len);
+    int (*write)(struct file* file, void __user* buf, size_t start, size_t len);
+    int (*truncate)(struct file* file, size_t len);
     int (*open)(dentry_t* dentry, struct file_descriptor* fd, uint32_t flags);
-    int (*truncate)(dentry_t*, uint32_t);
     int (*create)(dentry_t* dentry, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
     int (*unlink)(dentry_t* dentry);
     int (*getdents)(dentry_t* dir, void __user* buf, off_t* offset, size_t len);
     int (*lookup)(dentry_t* dentry, const char* name, size_t len, dentry_t** result);
     int (*mkdir)(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
     int (*rmdir)(dentry_t* dir);
-    int (*ioctl)(dentry_t* dentry, uintptr_t cmd, uintptr_t arg);
-    int (*fstat)(dentry_t* dentry, stat_t* stat);
-    struct memzone* (*mmap)(dentry_t* dentry, mmap_params_t* params);
+    int (*ioctl)(struct file* file, uintptr_t cmd, uintptr_t arg);
+    int (*fstat)(struct file* file, stat_t* stat);
+    struct memzone* (*mmap)(struct file* file, mmap_params_t* params);
 };
 typedef struct file_ops file_ops_t;
 
@@ -133,22 +125,28 @@ struct fs_desc {
 };
 typedef struct fs_desc fs_desc_t;
 
+typedef uint32_t file_type_t;
 enum FD_TYPE {
-    FD_TYPE_FILE,
-    FD_TYPE_SOCKET,
+    FTYPE_FILE,
+    FTYPE_SOCKET,
 };
 
-// TODO: Locks might be implemented as RWLocks.
-struct file_descriptor {
-    uint32_t type;
+struct file {
+    size_t count;
+    file_type_t type;
     union {
-        dentry_t* dentry; // type == FD_TYPE_FILE
-        struct socket* sock_entry; // type == FD_TYPE_SOCKET
+        dentry_t* dentry; // type == FTYPE_FILE
+        struct socket* socket; // type == FTYPE_SOCKET
     };
-    off_t offset;
-    int flags;
     file_ops_t* ops;
     spinlock_t lock;
+};
+typedef struct file file_t;
+
+struct file_descriptor {
+    file_t* file;
+    off_t offset;
+    int flags;
 };
 typedef struct file_descriptor file_descriptor_t;
 
@@ -158,7 +156,7 @@ struct socket {
     int type;
     int protocol;
     sync_ringbuffer_t buffer;
-    file_descriptor_t bind_file;
+    file_t* bind_file;
     spinlock_t lock;
 };
 typedef struct socket socket_t;
@@ -202,6 +200,32 @@ uint32_t dentry_stat_cached_count();
 ssize_t vfs_helper_write_dirent(dirent_t __user* buf, size_t buf_len, ino_t inode_index, const char* name);
 char* vfs_helper_split_path_with_name(char* name, size_t len);
 void vfs_helper_restore_full_path_after_split(char* path, char* name);
+
+/**
+ * FILE HELPERS
+ */
+
+static inline dentry_t* file_dentry(file_t* file) { return file->type == FTYPE_FILE ? file->dentry : NULL; }
+static inline socket_t* file_socket(file_t* file) { return file->type == FTYPE_SOCKET ? file->socket : NULL; }
+static inline dentry_t* file_dentry_assert(file_t* file)
+{
+    ASSERT(file->type == FTYPE_FILE);
+    return file->dentry;
+}
+static inline socket_t* file_socket_assert(file_t* file)
+{
+    ASSERT(file->type == FTYPE_SOCKET);
+    return file->socket;
+}
+file_t* file_init_dentry(dentry_t* dentry);
+file_t* file_init_dentry_move(dentry_t* dentry);
+
+file_t* file_init_socket(socket_t* socket, file_ops_t* ops);
+file_t* file_init_socket_move(socket_t* socket, file_ops_t* ops);
+
+file_t* file_duplicate(file_t* file);
+file_t* file_duplicate_locked(file_t* file);
+void file_put(file_t* file);
 
 /**
  * VFS APIS

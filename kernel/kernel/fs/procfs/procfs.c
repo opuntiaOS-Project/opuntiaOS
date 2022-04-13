@@ -54,40 +54,40 @@ fsdata_t procfs_data(dentry_t* dentry)
     return fsdata;
 }
 
-int procfs_can_write(dentry_t* dentry, size_t start)
+int procfs_can_write(file_t* file, size_t start)
 {
-    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)file_dentry_assert(file)->inode;
     if (!procfs_inode->ops->can_write) {
         return -ENOEXEC;
     }
-    return procfs_inode->ops->can_write(dentry, start);
+    return procfs_inode->ops->can_write(file, start);
 }
 
-int procfs_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int procfs_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
-    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)file_dentry_assert(file)->inode;
     if (!procfs_inode->ops->write) {
         return -ENOEXEC;
     }
-    return procfs_inode->ops->write(dentry, buf, start, len);
+    return procfs_inode->ops->write(file, buf, start, len);
 }
 
-int procfs_can_read(dentry_t* dentry, size_t start)
+int procfs_can_read(file_t* file, size_t start)
 {
-    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)file_dentry_assert(file)->inode;
     if (!procfs_inode->ops->can_read) {
         return -ENOEXEC;
     }
-    return procfs_inode->ops->can_read(dentry, start);
+    return procfs_inode->ops->can_read(file, start);
 }
 
-int procfs_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int procfs_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
-    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)file_dentry_assert(file)->inode;
     if (!procfs_inode->ops->read) {
         return -ENOEXEC;
     }
-    return procfs_inode->ops->read(dentry, buf, start, len);
+    return procfs_inode->ops->read(file, buf, start, len);
 }
 
 int procfs_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len)

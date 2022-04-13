@@ -78,7 +78,7 @@ static void _bga_set_resolution(uint16_t width, uint16_t height)
     bga_screen_line_size = (uint32_t)width * 4;
 }
 
-static int _bga_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+static int _bga_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
 {
     uint32_t y_offset = 0;
     switch (cmd) {
@@ -95,7 +95,7 @@ static int _bga_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
     }
 }
 
-static memzone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
+static memzone_t* _bga_mmap(file_t* file, mmap_params_t* params)
 {
     bool map_shared = ((params->flags & MAP_SHARED) > 0);
 
@@ -110,7 +110,7 @@ static memzone_t* _bga_mmap(dentry_t* dentry, mmap_params_t* params)
 
     zone->mmu_flags |= MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_UNCACHED;
     zone->type |= ZONE_TYPE_DEVICE;
-    zone->file = dentry_duplicate(dentry);
+    zone->file = file_duplicate(file);
     zone->ops = &mmap_file_vm_ops;
 
     for (int offset = 0; offset < bga_screen_buffer_size; offset += VMM_PAGE_SIZE) {

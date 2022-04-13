@@ -20,7 +20,7 @@ struct memzone {
     size_t len;
     mmu_flags_t mmu_flags;
     uint32_t type;
-    dentry_t* file;
+    file_t* file;
     off_t file_offset;
     size_t file_size;
     struct vm_ops* ops;

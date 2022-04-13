@@ -430,47 +430,47 @@ int devfs_open(dentry_t* dentry, file_descriptor_t* fd, uint32_t flags)
     return -ENOEXEC;
 }
 
-int devfs_can_read(dentry_t* dentry, size_t start)
+int devfs_can_read(file_t* file, size_t start)
 {
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     if (devfs_inode->handlers->can_read) {
-        return devfs_inode->handlers->can_read(dentry, start);
+        return devfs_inode->handlers->can_read(file, start);
     }
     return true;
 }
 
-int devfs_can_write(dentry_t* dentry, size_t start)
+int devfs_can_write(file_t* file, size_t start)
 {
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     if (devfs_inode->handlers->can_write) {
-        return devfs_inode->handlers->can_write(dentry, start);
+        return devfs_inode->handlers->can_write(file, start);
     }
     return true;
 }
 
-int devfs_read(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int devfs_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     if (devfs_inode->handlers->read) {
-        return devfs_inode->handlers->read(dentry, buf, start, len);
+        return devfs_inode->handlers->read(file, buf, start, len);
     }
     return -EFAULT;
 }
 
-int devfs_write(dentry_t* dentry, void __user* buf, size_t start, size_t len)
+int devfs_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     if (devfs_inode->handlers->write) {
-        return devfs_inode->handlers->write(dentry, buf, start, len);
+        return devfs_inode->handlers->write(file, buf, start, len);
     }
     return -EFAULT;
 }
 
-int devfs_fstat(dentry_t* dentry, stat_t* stat)
+int devfs_fstat(file_t* file, stat_t* stat)
 {
     // Filling the default data, while custom fstat function of a
     // device could rewrite this.
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     stat->st_dev = devfs_inode->dev_id;
     stat->st_ino = devfs_inode->index;
     stat->st_mode = devfs_inode->mode;
@@ -489,27 +489,28 @@ int devfs_fstat(dentry_t* dentry, stat_t* stat)
 
     // Calling a custom fstat if present.
     if (devfs_inode->handlers->fstat) {
-        return devfs_inode->handlers->fstat(dentry, stat);
+        return devfs_inode->handlers->fstat(file, stat);
     }
     return 0;
 }
 
-int devfs_ioctl(dentry_t* dentry, uint32_t cmd, uint32_t arg)
+int devfs_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
 {
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     if (devfs_inode->handlers->ioctl) {
-        return devfs_inode->handlers->ioctl(dentry, cmd, arg);
+        return devfs_inode->handlers->ioctl(file, cmd, arg);
     }
     return -EFAULT;
 }
 
-memzone_t* devfs_mmap(dentry_t* dentry, mmap_params_t* params)
+memzone_t* devfs_mmap(file_t* file, mmap_params_t* params)
 {
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     if (devfs_inode->handlers->mmap) {
-        return devfs_inode->handlers->mmap(dentry, params);
+        return devfs_inode->handlers->mmap(file, params);
     }
-    /* If we don't have a custom impl, let's used a std one */
+
+    // If no custom impl, let's used a standard one.
     return (memzone_t*)VFS_USE_STD_MMAP;
 }
 

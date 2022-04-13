@@ -44,7 +44,7 @@ void sys_bind(trapframe_t* tf)
     int sockfd = SYSCALL_VAR1(tf);
 
     file_descriptor_t* sfd = proc_get_fd(p, sockfd);
-    if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
+    if (sfd->file->type != FTYPE_SOCKET || !sfd->file->socket) {
         return_with_val(-EBADF);
     }
 
@@ -53,7 +53,7 @@ void sys_bind(trapframe_t* tf)
     char* kname = umem_bring_to_kernel_str_with_len(name, len);
 
     int ret = 0;
-    switch (sfd->sock_entry->domain) {
+    switch (sfd->file->socket->domain) {
     case PF_LOCAL:
         ret = local_socket_bind(sfd, kname, len);
         break;
@@ -72,7 +72,7 @@ void sys_connect(trapframe_t* tf)
     proc_t* p = RUNNING_THREAD->process;
     int sockfd = SYSCALL_VAR1(tf);
     file_descriptor_t* sfd = proc_get_fd(p, sockfd);
-    if (sfd->type != FD_TYPE_SOCKET || !sfd->sock_entry) {
+    if (sfd->file->type != FTYPE_SOCKET || !sfd->file->socket) {
         return_with_val(-EBADF);
     }
 
@@ -81,7 +81,7 @@ void sys_connect(trapframe_t* tf)
     char* kname = umem_bring_to_kernel_str_with_len(name, len);
 
     int ret = 0;
-    switch (sfd->sock_entry->domain) {
+    switch (sfd->file->socket->domain) {
     case PF_LOCAL:
         ret = local_socket_connect(sfd, name, len);
         break;
@@ -91,6 +91,7 @@ void sys_connect(trapframe_t* tf)
         break;
     }
 
+    kfree(kname);
     return_with_val(ret);
 }
 
@@ -103,10 +104,10 @@ void sys_ioctl(trapframe_t* tf)
         return_with_val(-EBADF);
     }
 
-    if (!fd->dentry->ops->file.ioctl) {
+    if (!fd->file->ops->ioctl) {
         return_with_val(-EACCES);
     }
-    return_with_val(fd->dentry->ops->file.ioctl(fd->dentry, SYSCALL_VAR2(tf), SYSCALL_VAR3(tf)));
+    return_with_val(fd->file->ops->ioctl(fd->file, SYSCALL_VAR2(tf), SYSCALL_VAR3(tf)));
 }
 
 void sys_shbuf_create(trapframe_t* tf)

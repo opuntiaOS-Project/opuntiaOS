@@ -58,7 +58,7 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
     vmm_ensure_writing_to_active_address_space(zone->vaddr, zone->len);
     for (size_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
         system_disable_interrupts();
-        fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);
+        fd.file->ops->read(fd.file, copy_to, read, READ_PER_CYCLE);
         system_enable_interrupts();
         copy_to += READ_PER_CYCLE;
     }
@@ -156,7 +156,7 @@ static int dump_map_kernel_elf_file()
 
     uint8_t* copy_to = (uint8_t*)kernel_file_mapping_zone.ptr;
     for (size_t read = 0; read < elf_file_size; read += READ_PER_CYCLE) {
-        fd.ops->read(fd.dentry, copy_to, read, READ_PER_CYCLE);
+        fd.file->ops->read(fd.file, copy_to, read, READ_PER_CYCLE);
         copy_to += READ_PER_CYCLE;
     }
 
