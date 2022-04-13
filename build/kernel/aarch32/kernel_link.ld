@@ -75,9 +75,9 @@ SECTIONS
 		. += 0x1000;
 		STACK_UNDEFINED_TOP =  .;
 	}
-	__stack__end = .;
+	__stack_end = .;
 
 	.ARM.exidx : { *(.ARM.exidx) }
 
-	_end = .;
+	__end = .;
 }

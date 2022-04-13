@@ -21,8 +21,8 @@ extern char __data_end[];
 extern char __bss_start[];
 extern char __bss_end[];
 extern char __stack_start[];
-extern char __stack__end[];
-extern char _end[];
+extern char __stack_end[];
+extern char __end[];
 
 struct __kmemzone {
     union {

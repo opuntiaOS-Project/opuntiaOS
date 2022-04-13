@@ -55,6 +55,6 @@ SECTIONS
 		. += 0x1000;
 		STACK_TOP =  .;
 	}
-	__stack__end = .;
-	_end = .;
+	__stack_end = .;
+	__end = .;
 }
