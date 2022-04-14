@@ -49,7 +49,6 @@ file_t* file_init_socket(socket_t* socket, file_ops_t* ops)
     file_t* file = file_alloc();
     file->count = 1;
     file->type = FTYPE_SOCKET;
-    extern socket_t* socket_duplicate(socket_t * sock);
     file->socket = socket_duplicate(socket);
     file->ops = ops;
     spinlock_init(&file->lock);

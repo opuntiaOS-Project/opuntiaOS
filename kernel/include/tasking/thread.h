@@ -30,7 +30,7 @@ enum THREAD_STATUS {
 struct thread;
 struct blocker {
     int reason;
-    int (*should_unblock)(struct thread* thread);
+    bool (*should_unblock)(struct thread* thread);
     bool should_unblock_for_signal;
 };
 typedef struct blocker blocker_t;

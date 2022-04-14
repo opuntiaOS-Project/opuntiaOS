@@ -14,17 +14,17 @@
 #include <tasking/thread.h>
 #include <time/time_manager.h>
 
-int should_unblock_join_block(thread_t* thread)
+bool should_unblock_join_block(thread_t* thread)
 {
     if (thread_is_freed(thread->blocker_data.join.joinee) || thread->blocker_data.join.join_pid != thread->blocker_data.join.joinee->tid) {
-        return 1;
+        return true;
     }
 
     const int status = thread->blocker_data.join.joinee->status;
     if (status == THREAD_STATUS_DYING) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 extern thread_t* tasking_get_thread(pid_t tid);
@@ -49,10 +49,10 @@ int init_join_blocker(thread_t* thread, int wait_for_pid)
     return 0;
 }
 
-int should_unblock_read_block(thread_t* thread)
+bool should_unblock_read_block(thread_t* thread)
 {
     if (!thread->blocker_data.rw.fd->file->ops->can_read) {
-        return 1;
+        return true;
     }
     return thread->blocker_data.rw.fd->file->ops->can_read(thread->blocker_data.rw.fd->file, thread->blocker_data.rw.fd->offset);
 }
@@ -74,10 +74,10 @@ int init_read_blocker(thread_t* thread, file_descriptor_t* bfd)
     return 0;
 }
 
-int should_unblock_write_block(thread_t* thread)
+bool should_unblock_write_block(thread_t* thread)
 {
     if (!thread->blocker_data.rw.fd->file->ops->can_write) {
-        return 1;
+        return true;
     }
     return thread->blocker_data.rw.fd->file->ops->can_write(thread->blocker_data.rw.fd->file, thread->blocker_data.rw.fd->offset);
 }
@@ -99,7 +99,7 @@ int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
     return 0;
 }
 
-int should_unblock_sleep_block(thread_t* thread)
+bool should_unblock_sleep_block(thread_t* thread)
 {
     return thread->blocker_data.sleep.until <= timeman_now();
 }
@@ -121,7 +121,7 @@ int init_sleep_blocker(thread_t* thread, time_t time)
     return 0;
 }
 
-int should_unblock_select_block(thread_t* thread)
+bool should_unblock_select_block(thread_t* thread)
 {
     if (thread->blocker_data.sleep.until != 0 && thread->blocker_data.sleep.until <= timeman_now()) {
         return true;
