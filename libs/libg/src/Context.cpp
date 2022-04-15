@@ -326,7 +326,6 @@ void Context::draw_rounded_helper(const Point<int>& start, size_t radius, const 
         return;
     }
 
-    int radius2 = radius * radius;
     int min_x = draw_bounds.min_x();
     int min_y = draw_bounds.min_y();
     int max_x = draw_bounds.max_x();
@@ -334,18 +333,18 @@ void Context::draw_rounded_helper(const Point<int>& start, size_t radius, const 
     int offset_x = -(start.x() - radius) - m_draw_offset.x() + m_bitmap_offset.x();
     int offset_y = -(start.y() - radius) - m_draw_offset.y() + m_bitmap_offset.y();
     int bitmap_y = min_y + offset_y;
-
+    size_t radius2 = radius * radius;
     for (int y = min_y; y <= max_y; y++) {
         int bitmap_x = min_x + offset_x;
         for (int x = min_x; x <= max_x; x++) {
-            int x2 = (x - center.x()) * (x - center.x());
-            int y2 = (y - center.y()) * (y - center.y());
-            int dist = x2 + y2;
+            size_t x2 = (x - center.x()) * (x - center.x());
+            size_t y2 = (y - center.y()) * (y - center.y());
+            size_t dist = x2 + y2;
             if (dist <= radius2) {
                 m_bitmap[y][x].mix_with(bitmap[bitmap_y][bitmap_x]);
             } else {
                 auto color = bitmap[bitmap_y][bitmap_x];
-                float fdist = 0.5 - (LFoundation::fast_sqrt((float)(dist)) - radius);
+                float fdist = 0.6 - 0.4 * (LFoundation::fast_sqrt((float)(dist)) - radius);
                 fdist = std::max(std::min(fdist, 1.0f), 0.0f);
                 int alpha = int(color.alpha() * fdist);
                 color.set_alpha(alpha);
@@ -375,16 +374,16 @@ void Context::fill_rounded_helper(const Point<int>& start, size_t radius)
     int min_y = draw_bounds.min_y();
     int max_x = draw_bounds.max_x();
     int max_y = draw_bounds.max_y();
-    int radius2 = radius * radius;
+    size_t radius2 = radius * radius;
     for (int y = min_y; y <= max_y; y++) {
         for (int x = min_x; x <= max_x; x++) {
-            int x2 = (x - center.x()) * (x - center.x());
-            int y2 = (y - center.y()) * (y - center.y());
-            int dist = x2 + y2;
+            size_t x2 = (x - center.x()) * (x - center.x());
+            size_t y2 = (y - center.y()) * (y - center.y());
+            size_t dist = x2 + y2;
             if (dist <= radius2) {
                 m_bitmap[y][x].mix_with(fill_color());
             } else {
-                float fdist = 0.5 - (LFoundation::fast_sqrt((float)(dist)) - radius);
+                float fdist = 0.6 - 0.4 * (LFoundation::fast_sqrt((float)(dist)) - radius);
                 fdist = std::max(std::min(fdist, 1.0f), 0.0f);
                 int alpha = int(fill_color().alpha() * fdist);
                 color.set_alpha(alpha);
