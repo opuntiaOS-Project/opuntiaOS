@@ -126,7 +126,7 @@ struct fs_desc {
 typedef struct fs_desc fs_desc_t;
 
 typedef uint32_t file_type_t;
-enum FD_TYPE {
+enum FTYPES {
     FTYPE_FILE,
     FTYPE_SOCKET,
 };
@@ -138,7 +138,10 @@ struct file {
         dentry_t* dentry; // type == FTYPE_FILE
         struct socket* socket; // type == FTYPE_SOCKET
     };
+    uint32_t flags;
     file_ops_t* ops;
+
+    // Protects flags.
     spinlock_t lock;
 };
 typedef struct file file_t;

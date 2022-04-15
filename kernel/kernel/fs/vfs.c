@@ -404,7 +404,7 @@ int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len)
     spinlock_acquire(&fd->file->lock);
     if (!fd->file->ops->write) {
         spinlock_release(&fd->file->lock);
-        return EROFS;
+        return -EROFS;
     }
 
     int written = fd->file->ops->write(fd->file, (uint8_t __user*)buf, fd->offset, len);
@@ -422,11 +422,12 @@ int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len)
     return written;
 }
 
-/**
- * A caller to vfs_mkdir should garantee that dentry_t* dir is alive.
- */
 int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
+    if (!dir) {
+        return -EINVAL;
+    }
+
     if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
@@ -437,14 +438,16 @@ int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t ui
     return dir->ops->file.mkdir(dir, name, len, mode | S_IFDIR, uid, gid);
 }
 
-/**
- * A caller to vfs_rmdir should garantee that dentry_t* dir is alive.
- */
 int vfs_rmdir(dentry_t* dir)
 {
+    if (!dir) {
+        return -EINVAL;
+    }
+
     if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
+
     if (dentry_test_flag(dir, DENTRY_MOUNTPOINT) || dentry_test_flag(dir, DENTRY_MOUNTED) || dir->d_count != 1) {
         return -EBUSY;
     }
@@ -452,6 +455,7 @@ int vfs_rmdir(dentry_t* dir)
     if (!dir->ops->file.rmdir) {
         return -EROFS;
     }
+
     int err = dir->ops->file.rmdir(dir);
     if (!err) {
 #ifdef VFS_DEBUG
@@ -466,7 +470,7 @@ int vfs_getdents(file_descriptor_t* fd, void __user* buf, size_t len)
 {
     dentry_t* dir_dentry = file_dentry_assert(fd->file);
     if (!dir_dentry) {
-        return -ENOTDIR;
+        return -EINVAL;
     }
 
     if (!dentry_test_mode(dir_dentry, S_IFDIR)) {
