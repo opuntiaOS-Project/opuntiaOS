@@ -12,9 +12,12 @@ int main(int argc, char** argv)
 
     fd = open("dirfile", 0);
     if (fd >= 0) {
-        TestErr("create dirfile succeeded");
+        TestErr("opened dirfile which does not exist");
     }
     fd = open("dirfile", O_CREAT);
+    if (fd < 0) {
+        TestErr("cannot create dirfile");
+    }
     if (chdir("dirfile") == 0) {
         TestErr("chdir dirfile succeeded");
     }
@@ -26,7 +29,7 @@ int main(int argc, char** argv)
     if (fd >= 0) {
         TestErr("open . for writing succeeded");
     }
-    fd = open(".", 0);
+    fd = open(".", O_RDONLY);
     if (write(fd, "x", 1) > 0) {
         TestErr("write . succeeded");
     }
