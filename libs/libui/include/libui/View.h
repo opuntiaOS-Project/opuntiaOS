@@ -14,6 +14,7 @@
 #include <libui/Constraint.h>
 #include <libui/ContextManager.h>
 #include <libui/EdgeInsets.h>
+#include <libui/GestureManager.h>
 #include <libui/Layer.h>
 #include <libui/Responder.h>
 #include <optional>
@@ -84,6 +85,13 @@ public:
     inline void turn_on_constraint_based_layout(bool b) { m_constraint_based_layout = b; }
     void add_constraint(const Constraint& constraint) { m_constrints.push_back(constraint); }
     const std::vector<UI::Constraint>& constraints() const { return m_constrints; }
+
+    template <class RecognizerT, class ActionType>
+    inline void add_gesture_recognizer(ActionType m_target)
+    {
+        RecognizerT* recognizer = new RecognizerT(m_target);
+        m_gesture_manager.add(recognizer);
+    }
 
     virtual void layout_subviews();
     inline void set_needs_layout()
@@ -173,6 +181,8 @@ private:
 
     LG::Color m_background_color { LG::Color::White };
     Layer m_layer;
+
+    GestureManager m_gesture_manager;
 };
 
 inline void View::constraint_interpreter(const Constraint& constraint)

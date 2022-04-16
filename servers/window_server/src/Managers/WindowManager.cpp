@@ -352,9 +352,11 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         if (window.type() == WindowType::Standard && active_window() != &window) {
             curr_hovered_window = nullptr;
         } else {
-            LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
-            point.offset_by(-window.content_bounds().origin());
-            send_event(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y()));
+            if (m_cursor_manager.is_changed<CursorManager::Params::Coords>()) {
+                LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
+                point.offset_by(-window.content_bounds().origin());
+                send_event(new MouseMoveMessage(window.connection_id(), window.id(), point.x(), point.y()));
+            }
             curr_hovered_window = &window;
         }
     } else if (m_cursor_manager.is_changed<CursorManager::Params::LeftButton>() && m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {

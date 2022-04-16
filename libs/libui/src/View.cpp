@@ -102,6 +102,7 @@ void View::did_display(const LG::Rect& rect)
 
 void View::mouse_moved(const LG::Point<int>& location)
 {
+    m_gesture_manager.mouse_moved(location);
 }
 
 void View::mouse_entered(const LG::Point<int>& location)
@@ -117,14 +118,14 @@ void View::mouse_exited()
 
 void View::mouse_down(const LG::Point<int>& location)
 {
-    m_active = true;
-    set_needs_display();
+    set_active(true);
+    m_gesture_manager.mouse_down(location);
 }
 
 void View::mouse_up()
 {
-    m_active = false;
-    set_needs_display();
+    set_active(false);
+    m_gesture_manager.mouse_up();
 }
 
 void View::mouse_wheel_event(int wheel_data)

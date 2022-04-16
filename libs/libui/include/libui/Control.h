@@ -15,9 +15,8 @@
 #include <libui/View.h>
 #include <libui/Window.h>
 
-typedef std::function<void(UI::View*)> target_func_type;
-
 namespace details {
+typedef std::function<void(UI::View*)> target_func_type;
 
 class CallEvent final : public UI::Event {
 public:
@@ -66,7 +65,7 @@ class Control : public View {
 
 public:
     struct Target {
-        target_func_type target_func;
+        details::target_func_type target_func;
         UI::Event::Type for_event;
     };
 
