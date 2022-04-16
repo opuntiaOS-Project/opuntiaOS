@@ -297,8 +297,9 @@ int devfs_free_inode(dentry_t* dentry)
     return 0;
 }
 
-int devfs_getdents(dentry_t* dir, void __user* buf, uint32_t* offset, uint32_t len)
+int devfs_getdents(const path_t* path, void __user* buf, uint32_t* offset, uint32_t len)
 {
+    dentry_t* dir = path->dentry;
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
     /* Currently we leave, dir when offset is the max number. */
@@ -376,20 +377,21 @@ int devfs_getdents(dentry_t* dir, void __user* buf, uint32_t* offset, uint32_t l
     return already_read;
 }
 
-int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** result)
+int devfs_lookup(const path_t* path, const char* name, uint32_t len, path_t* result)
 {
+    dentry_t* dir = path->dentry;
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
 
     if (len == 1) {
         if (name[0] == '.') {
-            *result = dentry_get(dir->dev_indx, devfs_inode->index);
+            result->dentry = dentry_get(dir->dev_indx, devfs_inode->index);
             return 0;
         }
     }
 
     if (len == 2) {
         if (name[0] == '.' && name[1] == '.') {
-            *result = dentry_get(dir->dev_indx, devfs_inode->parent->index);
+            result->dentry = dentry_get(dir->dev_indx, devfs_inode->parent->index);
             return 0;
         }
     }
@@ -399,7 +401,7 @@ int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** resul
         uint32_t child_name_len = strlen(child->name);
         if (len == child_name_len) {
             if (strncmp(name, child->name, len) == 0) {
-                *result = dentry_get(dir->dev_indx, child->index);
+                result->dentry = dentry_get(dir->dev_indx, child->index);
                 return 0;
             }
         }
@@ -409,21 +411,21 @@ int devfs_lookup(dentry_t* dir, const char* name, uint32_t len, dentry_t** resul
     return -ENOENT;
 }
 
-int devfs_mkdir_dummy(dentry_t* dir, const char* name, uint32_t len, mode_t mode, uid_t uid)
+int devfs_mkdir_dummy(const path_t* path, const char* name, uint32_t len, mode_t mode, uid_t uid)
 {
     return -1;
 }
 
-int devfs_rmdir_dummy(dentry_t* dir)
+int devfs_rmdir_dummy(const path_t* path)
 {
     return -1;
 }
 
-int devfs_open(dentry_t* dentry, file_descriptor_t* fd, uint32_t flags)
+int devfs_open(const path_t* path, file_descriptor_t* fd, uint32_t flags)
 {
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dentry->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)path->dentry->inode;
     if (devfs_inode->handlers->open) {
-        return devfs_inode->handlers->open(dentry, fd, flags);
+        return devfs_inode->handlers->open(path, fd, flags);
     }
     /*  The device doesn't have custom open, so returns ENOEXEC in this case
         according to vfs. */
@@ -559,17 +561,17 @@ devman_register_driver_installation(devfs_install);
  * Register a device.
  */
 
-devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len)
+devfs_inode_t* devfs_mkdir(const path_t* vfspath, const char* name, uint32_t len)
 {
     spinlock_acquire(&_devfs_lock);
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)vfspath->dentry->inode;
     devfs_inode_t* new_entry = _devfs_alloc_entry(devfs_inode);
     if (!new_entry) {
         spinlock_release(&_devfs_lock);
         return 0;
     }
 
-    dentry_set_flag(dir, DENTRY_DIRTY);
+    dentry_set_flag(vfspath->dentry, DENTRY_DIRTY);
 
     new_entry->mode = S_IFDIR;
     _devfs_set_name(new_entry, name, len);
@@ -578,10 +580,10 @@ devfs_inode_t* devfs_mkdir(dentry_t* dir, const char* name, uint32_t len)
     return new_entry;
 }
 
-devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers)
+devfs_inode_t* devfs_register(const path_t* vfspath, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers)
 {
     spinlock_acquire(&_devfs_lock);
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)vfspath->dentry->inode;
     devfs_inode_t* new_entry = _devfs_alloc_entry(devfs_inode);
     if (!new_entry) {
         spinlock_release(&_devfs_lock);
@@ -592,7 +594,7 @@ devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, u
     new_entry->mode = mode;
     _devfs_set_name(new_entry, name, len);
     _devfs_set_handlers(new_entry, handlers);
-    dentry_set_flag(dir, DENTRY_DIRTY);
+    dentry_set_flag(vfspath->dentry, DENTRY_DIRTY);
 
     spinlock_release(&_devfs_lock);
     return new_entry;
@@ -601,8 +603,8 @@ devfs_inode_t* devfs_register(dentry_t* dir, uint32_t devid, const char* name, u
 int devfs_mount()
 {
     spinlock_init(&_devfs_lock);
-    dentry_t* mp;
-    if (vfs_resolve_path("/dev", &mp) < 0) {
+    path_t vfspth;
+    if (vfs_resolve_path("/dev", &vfspth) < 0) {
         return -ENOENT;
     }
     int driver_id = vfs_get_fs_id("devfs");
@@ -611,8 +613,8 @@ int devfs_mount()
         return -ENOENT;
     }
     log("devfs: %x", driver_id);
-    int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), driver_id);
-    dentry_put(mp);
+    int err = vfs_mount(&vfspth, new_virtual_device(DEVICE_STORAGE), driver_id);
+    path_put(&vfspth);
     if (!err) {
         devman_send_notification(DEVMAN_NOTIFICATION_DEVFS_READY, 0);
     }

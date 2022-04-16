@@ -66,17 +66,17 @@ static int _mouse_read(file_t* file, void __user* buf, size_t start, size_t len)
 static void pl050_mouse_recieve_notification(uint32_t msg, uint32_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
-        dentry_t* mp;
-        if (vfs_resolve_path("/dev", &mp) < 0) {
+        path_t vfspth;
+        if (vfs_resolve_path("/dev", &vfspth) < 0) {
             kpanic("Can't init pl050_mouse in /dev");
         }
 
         file_ops_t fops = { 0 };
         fops.can_read = _mouse_can_read;
         fops.read = _mouse_read;
-        devfs_inode_t* res = devfs_register(mp, MKDEV(10, 1), "mouse", 5, S_IFCHR | 0400, &fops);
+        devfs_inode_t* res = devfs_register(&vfspth, MKDEV(10, 1), "mouse", 5, S_IFCHR | 0400, &fops);
 
-        dentry_put(mp);
+        path_put(&vfspth);
     }
 }
 

@@ -80,6 +80,11 @@ struct dentry {
 };
 typedef struct dentry dentry_t;
 
+struct path {
+    dentry_t* dentry;
+};
+typedef struct path path_t;
+
 struct file;
 struct file_descriptor;
 struct file_ops {
@@ -88,13 +93,13 @@ struct file_ops {
     int (*read)(struct file* file, void __user* buf, size_t start, size_t len);
     int (*write)(struct file* file, void __user* buf, size_t start, size_t len);
     int (*truncate)(struct file* file, size_t len);
-    int (*open)(dentry_t* dentry, struct file_descriptor* fd, uint32_t flags);
-    int (*create)(dentry_t* dentry, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
-    int (*unlink)(dentry_t* dentry);
+    int (*open)(const path_t* path, struct file_descriptor* fd, uint32_t flags);
+    int (*create)(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
+    int (*unlink)(const path_t* path);
     int (*getdents)(dentry_t* dir, void __user* buf, off_t* offset, size_t len);
-    int (*lookup)(dentry_t* dentry, const char* name, size_t len, dentry_t** result);
-    int (*mkdir)(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
-    int (*rmdir)(dentry_t* dir);
+    int (*lookup)(const path_t* path, const char* name, size_t len, path_t* result_path);
+    int (*mkdir)(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
+    int (*rmdir)(const path_t* path);
     int (*ioctl)(struct file* file, uintptr_t cmd, uintptr_t arg);
     int (*fstat)(struct file* file, stat_t* stat);
     struct memzone* (*mmap)(struct file* file, mmap_params_t* params);
@@ -139,7 +144,11 @@ struct file {
         struct socket* socket; // type == FTYPE_SOCKET
     };
     uint32_t flags;
+    path_t path;
     file_ops_t* ops;
+
+    // Used by socket to keep data.
+    void* auxdata;
 
     // Protects flags.
     spinlock_t lock;
@@ -220,15 +229,22 @@ static inline socket_t* file_socket_assert(file_t* file)
     ASSERT(file->type == FTYPE_SOCKET);
     return file->socket;
 }
-file_t* file_init_dentry(dentry_t* dentry);
-file_t* file_init_dentry_move(dentry_t* dentry);
-
+file_t* file_init_pseudo_dentry(dentry_t* pseudo_dentry);
 file_t* file_init_socket(socket_t* socket, file_ops_t* ops);
-file_t* file_init_socket_move(socket_t* socket, file_ops_t* ops);
+file_t* file_init_path(const path_t* path);
 
 file_t* file_duplicate(file_t* file);
 file_t* file_duplicate_locked(file_t* file);
 void file_put(file_t* file);
+
+static inline bool path_is_valid(const path_t* path) { return path && path->dentry; }
+path_t path_duplicate(const path_t* path);
+void path_put(path_t* path);
+inline path_t vfs_empty_path()
+{
+    path_t a = { .dentry = NULL };
+    return a;
+}
 
 /**
  * VFS APIS
@@ -241,27 +257,27 @@ int vfs_add_fs(driver_t* fs);
 int vfs_get_fs_id(const char* name);
 void vfs_eject_device(device_t* t_new_dev);
 
-int vfs_resolve_path(const char* path, dentry_t** result);
-int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result);
+int vfs_resolve_path(const char* path, path_t* result);
+int vfs_resolve_path_start_from(const path_t* vfspath, const char* path, path_t* result);
 
-int vfs_create(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
-int vfs_unlink(dentry_t* file);
-int vfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
-int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags);
+int vfs_create(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
+int vfs_unlink(const path_t* path);
+int vfs_lookup(const path_t* path, const char* name, size_t len, path_t* result);
+int vfs_open(const path_t* path, file_descriptor_t* fd, int flags);
 int vfs_close(file_descriptor_t* fd);
 bool vfs_can_read(file_descriptor_t* fd);
 bool vfs_can_write(file_descriptor_t* fd);
 int vfs_read(file_descriptor_t* fd, void __user* buf, size_t len);
 int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len);
-int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
-int vfs_rmdir(dentry_t* dir);
+int vfs_mkdir(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
+int vfs_rmdir(const path_t* path);
 int vfs_getdents(file_descriptor_t* dir_fd, void __user* buf, size_t len);
 int vfs_fstat(file_descriptor_t* fd, stat_t* stat);
-int vfs_chmod(dentry_t* dentry, mode_t mode);
+int vfs_chmod(const path_t* path, mode_t mode);
 
-int vfs_get_absolute_path(dentry_t* dent, char* buf, int len);
+int vfs_get_absolute_path(const path_t* path, char* buf, int len);
 
-int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx);
+int vfs_mount(path_t* mount_path, device_t* dev, uint32_t fs_indx);
 int vfs_umount(dentry_t* mountpoint);
 
 struct proc;

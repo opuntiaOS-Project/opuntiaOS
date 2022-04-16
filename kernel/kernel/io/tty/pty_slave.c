@@ -74,8 +74,8 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
 {
     ASSERT(0 <= id && id < 10 && id <= PTYS_COUNT);
 
-    dentry_t* mp;
-    if (vfs_resolve_path("/dev", &mp) < 0) {
+    path_t vfspth;
+    if (vfs_resolve_path("/dev", &vfspth) < 0) {
         return 0;
     }
 
@@ -89,7 +89,7 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
         fops.read = pty_slave_read;
         fops.write = pty_slave_write;
         fops.ioctl = pty_slave_ioctl;
-        devfs_inode_t* res = devfs_register(mp, MKDEV(136, id), name, 4, S_IFCHR | 0777, &fops);
+        devfs_inode_t* res = devfs_register(&vfspth, MKDEV(136, id), name, 4, S_IFCHR | 0777, &fops);
         pty_slaves[id].inode_indx = res->index;
         pty_slaves[id].ptm = ptm;
 
@@ -100,6 +100,6 @@ int pty_slave_create(int id, pty_master_entry_t* ptm)
         tty_clear(&pty_slaves[id].tty);
     }
 
-    dentry_put(mp);
+    path_put(&vfspth);
     return 0;
 }

@@ -201,14 +201,14 @@ int vfs_add_fs(driver_t* new_driver)
     return 0;
 }
 
-int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
+int vfs_open(const path_t* path, file_descriptor_t* fd, int flags)
 {
-    thread_t* cur_thread = RUNNING_THREAD;
-
-    if (!file) {
-        return -EFAULT;
+    if (!path_is_valid(path)) {
+        return -EINVAL;
     }
 
+    dentry_t* file = path->dentry;
+    thread_t* cur_thread = RUNNING_THREAD;
     if (!fd) {
         return -EFAULT;
     }
@@ -253,7 +253,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
 
     // If it has custom open, let's use it.
     if (file->ops->file.open) {
-        int res = file->ops->file.open(file, fd, flags);
+        int res = file->ops->file.open(path, fd, flags);
         // FS can't find the right one and returns ENOEXEC in this case.
         if (res != -ENOEXEC) {
             return res;
@@ -261,7 +261,7 @@ int vfs_open(dentry_t* file, file_descriptor_t* fd, int flags)
     }
 
     fd->flags = flags;
-    fd->file = file_init_dentry(file);
+    fd->file = file_init_path(path);
     fd->offset = 0;
     return 0;
 }
@@ -278,16 +278,21 @@ int vfs_close(file_descriptor_t* fd)
     return 0;
 }
 
-int vfs_create(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
+int vfs_create(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
+    if (!path_is_valid(path)) {
+        return -EINVAL;
+    }
+
+    dentry_t* dir = path->dentry;
     if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
 
     // Check if there is a file with the same name
-    dentry_t* tmp;
-    if (vfs_lookup(dir, name, len, &tmp) == 0) {
-        dentry_put(tmp);
+    path_t tmp_path;
+    if (vfs_lookup(path, name, len, &tmp_path) == 0) {
+        path_put(&tmp_path);
         return -EEXIST;
     }
 
@@ -300,11 +305,16 @@ int vfs_create(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t u
         mode |= S_IFREG;
     }
 
-    return dir->ops->file.create(dir, name, len, mode, uid, gid);
+    return dir->ops->file.create(path, name, len, mode, uid, gid);
 }
 
-int vfs_unlink(dentry_t* file)
+int vfs_unlink(const path_t* filepath)
 {
+    if (!path_is_valid(filepath)) {
+        return -EINVAL;
+    }
+
+    dentry_t* file = filepath->dentry;
     if (dentry_test_mode(file, S_IFDIR)) {
         return -EPERM;
     }
@@ -320,18 +330,23 @@ int vfs_unlink(dentry_t* file)
     if (!file->ops->file.unlink) {
         return -EROFS;
     }
-    return file->ops->file.unlink(file);
+    return file->ops->file.unlink(filepath);
 }
 
-int vfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
+int vfs_lookup(const path_t* path, const char* name, size_t len, path_t* result)
 {
+    if (!path_is_valid(path)) {
+        return -EINVAL;
+    }
+
+    dentry_t* dir = path->dentry;
     if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
 
     if (len == 1) {
         if (name[0] == '.') {
-            *result = dentry_duplicate(dir);
+            result->dentry = dentry_duplicate(dir);
             return 0;
         }
     }
@@ -343,7 +358,7 @@ int vfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
 #endif
         if (len == 2) {
             if (name[0] == '.' && name[1] == '.') {
-                *result = dentry_duplicate(dir->parent);
+                result->dentry = dentry_duplicate(dir->parent);
                 return 0;
             }
         }
@@ -353,7 +368,7 @@ int vfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
         return -ENOEXEC;
     }
 
-    int err = dir->ops->file.lookup(dir, name, len, result);
+    int err = dir->ops->file.lookup(path, name, len, result);
     if (err) {
         return err;
     }
@@ -422,12 +437,13 @@ int vfs_write(file_descriptor_t* fd, void __user* buf, size_t len)
     return written;
 }
 
-int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
+int vfs_mkdir(const path_t* dirpath, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
-    if (!dir) {
+    if (!path_is_valid(dirpath)) {
         return -EINVAL;
     }
 
+    dentry_t* dir = dirpath->dentry;
     if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
@@ -435,15 +451,16 @@ int vfs_mkdir(dentry_t* dir, const char* name, size_t len, mode_t mode, uid_t ui
     if (!dir->ops->file.mkdir) {
         return -EROFS;
     }
-    return dir->ops->file.mkdir(dir, name, len, mode | S_IFDIR, uid, gid);
+    return dir->ops->file.mkdir(dirpath, name, len, mode | S_IFDIR, uid, gid);
 }
 
-int vfs_rmdir(dentry_t* dir)
+int vfs_rmdir(const path_t* dirpath)
 {
-    if (!dir) {
+    if (!path_is_valid(dirpath)) {
         return -EINVAL;
     }
 
+    dentry_t* dir = dirpath->dentry;
     if (!dentry_test_mode(dir, S_IFDIR)) {
         return -ENOTDIR;
     }
@@ -456,7 +473,7 @@ int vfs_rmdir(dentry_t* dir)
         return -EROFS;
     }
 
-    int err = dir->ops->file.rmdir(dir);
+    int err = dir->ops->file.rmdir(dirpath);
     if (!err) {
 #ifdef VFS_DEBUG
         log("Rmdir: will be deleted %d", dir->inode_indx);
@@ -526,56 +543,59 @@ int vfs_fstat(file_descriptor_t* fd, stat_t* stat)
     return 0;
 }
 
-int vfs_chmod(dentry_t* dentry, mode_t mode)
+int vfs_chmod(const path_t* vfspath, mode_t mode)
 {
-    proc_t* current_p = RUNNING_THREAD->process;
-    if (!dentry) {
-        return -ENOENT;
+    if (!path_is_valid(vfspath)) {
+        return -EINVAL;
     }
 
-    // TODO: Check if FS is readonly.
+    proc_t* current_p = RUNNING_THREAD->process;
+    dentry_t* dentry = vfspath->dentry;
     if (dentry->inode->uid != current_p->euid && !proc_is_su(current_p)) {
         return -EPERM;
     }
 
+    // TODO: Check if FS is readonly.
     dentry_set_flag(dentry, DENTRY_DIRTY);
     dentry->inode->mode = (dentry->inode->mode & ~(uint32_t)07777) | (mode & (uint32_t)07777);
     return 0;
 }
 
-int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** result)
+int vfs_resolve_path_start_from(const path_t* vfspath, const char* path, path_t* result)
 {
-    if (!path) {
-        return -EFAULT;
-    }
-
+    path_t intpath;
     dentry_t* cur_dent;
 
-    if (!dentry || path[0] == '/') {
+    if (!vfspath || !vfspath->dentry || path[0] == '/') {
         cur_dent = dentry_get(root_fs_dev_id, 2);
-        while (*path == '/')
+        while (*path == '/') {
             path++;
+        }
     } else {
-        cur_dent = dentry_duplicate(dentry);
+        cur_dent = dentry_duplicate(vfspath->dentry);
     }
 
     while (*path != '\0') {
-        while (*path == '/')
+        while (*path == '/') {
             path++;
+        }
         const char* name = path;
 
         int len = 0;
-        while (*path != '\0' && *path != '/')
+        while (*path != '\0' && *path != '/') {
             path++, len++;
+        }
 
         if (len == 0) {
             break;
         }
 
         dentry_t* parent_dent = cur_dent;
-        if (vfs_lookup(cur_dent, name, len, &cur_dent) < 0) {
+        intpath.dentry = cur_dent;
+        if (vfs_lookup(&intpath, name, len, &intpath) < 0) {
             return -ENOENT;
         }
+        cur_dent = intpath.dentry;
 
         dentry_t* lookuped_dent = cur_dent;
         while (dentry_test_flag(cur_dent, DENTRY_MOUNTPOINT)) {
@@ -598,14 +618,14 @@ int vfs_resolve_path_start_from(dentry_t* dentry, const char* path, dentry_t** r
         dentry_put(parent_dent);
     }
 
-    *result = dentry_duplicate(cur_dent);
+    result->dentry = dentry_duplicate(cur_dent);
     dentry_put(cur_dent);
     return 0;
 }
 
-int vfs_resolve_path(const char* path, dentry_t** result)
+int vfs_resolve_path(const char* path, path_t* result)
 {
-    return vfs_resolve_path_start_from((dentry_t*)NULL, path, result);
+    return vfs_resolve_path_start_from((path_t*)NULL, path, result);
 }
 
 bool _vfs_is_root_dentry(dentry_t* dent)
@@ -613,9 +633,14 @@ bool _vfs_is_root_dentry(dentry_t* dent)
     return dent && dent->dev_indx == root_fs_dev_id && dent->inode_indx == 2;
 }
 
-int _vfs_len_of_absolute_path(dentry_t* dent)
+int _vfs_len_of_absolute_path(const path_t* path)
 {
     int path_len = 0;
+    if (!path_is_valid(path)) {
+        return 0;
+    }
+
+    dentry_t* dent = path->dentry;
     if (_vfs_is_root_dentry(dent)) {
         return 2;
     }
@@ -632,9 +657,14 @@ int _vfs_len_of_absolute_path(dentry_t* dent)
     return path_len + 1;
 }
 
-int vfs_get_absolute_path(dentry_t* dent, char* buf, int len)
+int vfs_get_absolute_path(const path_t* path, char* buf, int len)
 {
-    int req_len = _vfs_len_of_absolute_path(dent);
+    if (!path_is_valid(path)) {
+        return 0;
+    }
+
+    dentry_t* dent = path->dentry;
+    int req_len = _vfs_len_of_absolute_path(path);
     if (req_len < 0 || !buf) {
         return req_len;
     }
@@ -663,8 +693,13 @@ int vfs_get_absolute_path(dentry_t* dent, char* buf, int len)
     return req_len;
 }
 
-int vfs_mount(dentry_t* mountpoint, device_t* dev, uint32_t fs_indx)
+int vfs_mount(path_t* mount_path, device_t* dev, uint32_t fs_indx)
 {
+    dentry_t* mountpoint = mount_path->dentry;
+    if (!mountpoint) {
+        return -EINVAL;
+    }
+
     if (dentry_test_flag(mountpoint, DENTRY_MOUNTPOINT)) {
 #ifdef VFS_DEBUG
         log("[VFS] Already a mount point\n");

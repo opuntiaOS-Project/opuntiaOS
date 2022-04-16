@@ -32,9 +32,10 @@ int socket_create(int domain, int type, int protocol, file_descriptor_t* fd, fil
         return -ENOMEM;
     }
 
-    fd->file = file_init_socket_move(new_sock, ops);
+    fd->file = file_init_socket(new_sock, ops);
     fd->flags = O_RDWR;
     fd->offset = 0;
+    socket_put(new_sock);
     return 0;
 }
 

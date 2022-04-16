@@ -99,13 +99,13 @@ int procfs_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len)
     return procfs_inode->ops->getdents(dir, buf, offset, len);
 }
 
-int procfs_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
+int procfs_lookup(const path_t* path, const char* name, size_t len, path_t* result)
 {
-    procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)path->dentry->inode;
     if (!procfs_inode->ops->lookup) {
         return -ENOEXEC;
     }
-    return procfs_inode->ops->lookup(dir, name, len, result);
+    return procfs_inode->ops->lookup(path, name, len, result);
 }
 
 driver_desc_t _procfs_driver_info()
@@ -144,8 +144,8 @@ devman_register_driver_installation(procfs_install);
 
 int procfs_mount()
 {
-    dentry_t* mp;
-    if (vfs_resolve_path("/proc", &mp) < 0) {
+    path_t vfspth;
+    if (vfs_resolve_path("/proc", &vfspth) < 0) {
         return -ENOENT;
     }
     int driver_id = vfs_get_fs_id("procfs");
@@ -158,7 +158,7 @@ int procfs_mount()
 #ifdef PROCFS_DEBUG
     log("procfs: %x", driver_id);
 #endif
-    int err = vfs_mount(mp, new_virtual_device(DEVICE_STORAGE), driver_id);
-    dentry_put(mp);
+    int err = vfs_mount(&vfspth, new_virtual_device(DEVICE_STORAGE), driver_id);
+    path_put(&vfspth);
     return err;
 }

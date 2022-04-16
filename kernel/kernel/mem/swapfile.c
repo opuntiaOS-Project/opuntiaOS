@@ -17,20 +17,21 @@ static int _nextid = 0;
 
 int swapfile_init()
 {
-    dentry_t* var_dir = NULL;
-    if (vfs_resolve_path("/var", &var_dir) < 0) {
+    path_t vfspth;
+    if (vfs_resolve_path("/var", &vfspth) < 0) {
         // Instead of panicing we can create the dir here.
         kpanic("No /var dir is found");
     }
 
-    vfs_create(var_dir, "swapfile", 8, 0600, 0, 0);
+    vfs_create(&vfspth, "swapfile", 8, 0600, 0, 0);
 
-    dentry_t* swapfile_dentry;
-    if (vfs_resolve_path("/var/swapfile", &swapfile_dentry) < 0) {
+    path_t swapfile_path;
+    if (vfs_resolve_path("/var/swapfile", &swapfile_path) < 0) {
         return -1;
     }
 
-    _swapfile = file_init_dentry_move(swapfile_dentry);
+    _swapfile = file_init_path(&swapfile_path);
+    path_put(&swapfile_path);
     return 0;
 }
 

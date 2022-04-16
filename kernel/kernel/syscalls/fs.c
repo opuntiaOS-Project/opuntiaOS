@@ -19,7 +19,6 @@ void sys_open(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
     file_descriptor_t* fd = proc_get_free_fd(p);
-    dentry_t* file;
     char __user* path = (char __user*)SYSCALL_VAR1(tf);
     if (!umem_validate_str(path, USER_STR_MAXLEN)) {
         return_with_val(-EINVAL);
@@ -40,31 +39,32 @@ void sys_open(trapframe_t* tf)
         }
         size_t name_len = strlen(kname);
 
-        dentry_t* dir;
-        if (vfs_resolve_path_start_from(p->cwd, kpath, &dir) < 0) {
+        path_t rootdir;
+        if (vfs_resolve_path_start_from(&p->cwd, kpath, &rootdir) < 0) {
             kfree(kname);
             kfree(kpath);
             return_with_val(-ENOENT);
         }
 
-        int err = vfs_create(dir, kname, name_len, mode, p->uid, p->gid);
+        int err = vfs_create(&rootdir, kname, name_len, mode, p->uid, p->gid);
         if (err && TEST_FLAG(flags, O_EXCL)) {
-            dentry_put(dir);
+            path_put(&rootdir);
             kfree(kname);
             kfree(kpath);
             return_with_val(err);
         }
 
         vfs_helper_restore_full_path_after_split(kpath, kname);
-        dentry_put(dir);
+        path_put(&rootdir);
         kfree(kname);
     }
 
-    if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
+    path_t filepath;
+    if (vfs_resolve_path_start_from(&p->cwd, kpath, &filepath) < 0) {
         return_with_val(-ENOENT);
     }
-    int err = vfs_open(file, fd, flags);
-    dentry_put(file);
+    int err = vfs_open(&filepath, fd, flags);
+    path_put(&filepath);
     if (err) {
         return_with_val(err);
     }
@@ -161,15 +161,15 @@ void sys_unlink(trapframe_t* tf)
         return_with_val(-EINVAL);
     }
 
-    dentry_t* file;
-    if (vfs_resolve_path_start_from(p->cwd, kpath, &file) < 0) {
+    path_t filepath;
+    if (vfs_resolve_path_start_from(&p->cwd, kpath, &filepath) < 0) {
         kfree(kpath);
         return_with_val(-ENOENT);
     }
 
-    int ret = vfs_unlink(file);
+    int ret = vfs_unlink(&filepath);
 
-    dentry_put(file);
+    path_put(&filepath);
     kfree(kpath);
     return_with_val(ret);
 }
@@ -234,15 +234,16 @@ void sys_mkdir(trapframe_t* tf)
     }
     size_t name_len = strlen(kname);
 
-    dentry_t* dir;
-    if (vfs_resolve_path_start_from(p->cwd, kpath, &dir) < 0) {
+    path_t dirpath;
+    if (vfs_resolve_path_start_from(&p->cwd, kpath, &dirpath) < 0) {
         kfree(kname);
         kfree(kpath);
         return_with_val(-ENOENT);
     }
 
     mode_t dir_mode = S_IFDIR | S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-    int res = vfs_mkdir(dir, kname, name_len, dir_mode, p->uid, p->gid);
+    int res = vfs_mkdir(&dirpath, kname, name_len, dir_mode, p->uid, p->gid);
+    path_put(&dirpath);
     kfree(kname);
     kfree(kpath);
     return_with_val(res);
@@ -257,14 +258,14 @@ void sys_rmdir(trapframe_t* tf)
         return_with_val(-EINVAL);
     }
 
-    dentry_t* dir;
-    if (vfs_resolve_path_start_from(p->cwd, kpath, &dir) < 0) {
+    path_t dirpath;
+    if (vfs_resolve_path_start_from(&p->cwd, kpath, &dirpath) < 0) {
         kfree(kpath);
         return_with_val(-ENOENT);
     }
 
-    int res = vfs_rmdir(dir);
-    dentry_put(dir);
+    int res = vfs_rmdir(&dirpath);
+    path_put(&dirpath);
     kfree(kpath);
     return_with_val(res);
 }
@@ -292,14 +293,15 @@ void sys_chmod(trapframe_t* tf)
         return_with_val(-EINVAL);
     }
 
-    dentry_t* file;
-    int err = vfs_resolve_path_start_from(p->cwd, path, &file);
+    path_t filepath;
+    int err = vfs_resolve_path_start_from(&p->cwd, path, &filepath);
     if (err) {
         kfree(kpath);
         return_with_val(-ENOENT);
     }
 
-    err = vfs_chmod(file, mode);
+    err = vfs_chmod(&filepath, mode);
+    path_put(&filepath);
     kfree(kpath);
     return_with_val(err);
 }
@@ -310,13 +312,13 @@ void sys_getcwd(trapframe_t* tf)
     char __user* buf = (char __user*)SYSCALL_VAR1(tf);
     size_t len = (size_t)SYSCALL_VAR2(tf);
 
-    int req_len = vfs_get_absolute_path(p->cwd, NULL, 0);
+    int req_len = vfs_get_absolute_path(&p->cwd, NULL, 0);
     if (len < req_len) {
         return_with_val(-EFAULT);
     }
 
     char* kbuf = (char*)kmalloc(req_len + 1);
-    req_len = vfs_get_absolute_path(p->cwd, (char*)kbuf, req_len);
+    req_len = vfs_get_absolute_path(&p->cwd, (char*)kbuf, req_len);
     umem_copy_to_user(buf, kbuf, req_len + 1);
     return_with_val(0);
 }

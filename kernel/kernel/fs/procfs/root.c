@@ -29,7 +29,7 @@ static uint32_t procfs_root_self_get_inode_index(int fileid);
 
 /* PID */
 int procfs_root_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len);
-int procfs_root_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result);
+int procfs_root_lookup(const path_t* path, const char* name, size_t len, path_t* result);
 
 /* FILES */
 static bool procfs_root_uptime_can_read(file_t* file, size_t start);
@@ -145,21 +145,22 @@ int procfs_root_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t 
     return already_read;
 }
 
-int procfs_root_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** result)
+int procfs_root_lookup(const path_t* path, const char* name, size_t len, path_t* result)
 {
     char pid_name[8];
+    dentry_t* dir = path->dentry;
     procfs_inode_t* procfs_inode = (procfs_inode_t*)dir->inode;
 
     if (len == 1) {
         if (name[0] == '.') {
-            *result = dentry_duplicate(dir);
+            result->dentry = dentry_duplicate(dir);
             return 0;
         }
     }
 
     if (len == 2) {
         if (name[0] == '.' && name[1] == '.') {
-            *result = dentry_duplicate(dir->parent);
+            result->dentry = dentry_duplicate(dir->parent);
             return 0;
         }
     }
@@ -169,9 +170,9 @@ int procfs_root_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** r
         if (len == child_name_len) {
             if (strncmp(name, static_procfs_files[i].name, len) == 0) {
                 int newly_allocated;
-                *result = dentry_get_no_inode(dir->dev_indx, static_procfs_files[i].inode_index(i), &newly_allocated);
+                result->dentry = dentry_get_no_inode(dir->dev_indx, static_procfs_files[i].inode_index(i), &newly_allocated);
                 if (newly_allocated) {
-                    procfs_inode_t* new_procfs_inode = (procfs_inode_t*)((*result)->inode);
+                    procfs_inode_t* new_procfs_inode = (procfs_inode_t*)(result->dentry->inode);
                     new_procfs_inode->mode = static_procfs_files[i].mode;
                     new_procfs_inode->ops = static_procfs_files[i].ops;
                 }
@@ -188,9 +189,9 @@ int procfs_root_lookup(dentry_t* dir, const char* name, size_t len, dentry_t** r
             if (len == child_name_len) {
                 if (strncmp(name, pid_name, len) == 0) {
                     int newly_allocated;
-                    *result = dentry_get_no_inode(dir->dev_indx, procfs_root_pid_get_inode_index(proc[pidi].pid), &newly_allocated);
+                    result->dentry = dentry_get_no_inode(dir->dev_indx, procfs_root_pid_get_inode_index(proc[pidi].pid), &newly_allocated);
                     if (newly_allocated) {
-                        procfs_inode_t* new_procfs_inode = (procfs_inode_t*)((*result)->inode);
+                        procfs_inode_t* new_procfs_inode = (procfs_inode_t*)(result->dentry->inode);
                         new_procfs_inode->mode = S_IFDIR | 0444;
                         new_procfs_inode->ops = &procfs_pid_ops;
                     }

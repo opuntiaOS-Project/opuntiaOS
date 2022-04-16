@@ -145,23 +145,21 @@ int pty_master_alloc(file_descriptor_t* fd)
         return -EBUSY;
     }
 
-    /*
-       DENTRY_CUSTOM is set for the dentry, since it's not a cache of
-       a file (or a dir). We also set a required function for this
-       type of dentries free_inode, which is called when dentry is
-       freed.
-    */
+    // DENTRY_CUSTOM is set for the dentry, since it's not a cache of
+    // a file (or a dir). We also set a required function for this
+    // type of dentries free_inode, which is called when dentry is
+    // freed.
     ptm->dentry.d_count = 1;
     ptm->dentry.flags = 0;
     dentry_set_flag(&ptm->dentry, DENTRY_CUSTOM);
     ptm->dentry.ops = &pty_master_ops;
 
-    fd->file = file_init_dentry_move(&ptm->dentry);
+    fd->file = file_init_pseudo_dentry(&ptm->dentry);
     fd->flags = O_RDWR;
     fd->offset = 0;
+    dentry_put(&ptm->dentry);
 
     pty_slave_create(INODE2PTSNO(ptm->dentry.inode_indx), ptm);
     ptm->buffer = sync_ringbuffer_create_std();
-
     return 0;
 }

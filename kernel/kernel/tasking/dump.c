@@ -33,13 +33,14 @@ static int dumper_map_elf_file(proc_t* p, size_t* mapped_at)
     // so we create a new zone in the proc and map elf file there.
     file_descriptor_t fd;
     system_disable_interrupts();
-    int err = vfs_open(p->proc_file, &fd, O_RDONLY);
+    int err = vfs_open(&p->proc_file->path, &fd, O_RDONLY);
     system_enable_interrupts();
     if (err) {
         return err;
     }
 
-    size_t elf_file_size = p->proc_file->inode->size;
+    dentry_t* proc_file_dentry = file_dentry_assert(p->proc_file);
+    size_t elf_file_size = proc_file_dentry->inode->size;
 
     system_disable_interrupts();
     memzone_t* zone;
@@ -125,28 +126,28 @@ void dump_and_kill(proc_t* p)
  */
 static int dump_map_kernel_elf_file()
 {
-    dentry_t* kernel_file;
+    path_t kernel_file_path;
     file_descriptor_t fd;
-    int err = vfs_resolve_path("/boot/kernel.bin", &kernel_file);
+    int err = vfs_resolve_path("/boot/kernel.bin", &kernel_file_path);
     if (err) {
         return err;
     }
 
     // Kernel file's dentry is left in an open state to protect file
     // from deletion.
-    kernel_file = dentry_duplicate(kernel_file);
+    dentry_duplicate(kernel_file_path.dentry);
 
-    err = vfs_open(kernel_file, &fd, O_RDONLY);
+    err = vfs_open(&kernel_file_path, &fd, O_RDONLY);
     if (err) {
-        dentry_put(kernel_file);
+        path_put(&kernel_file_path);
         return err;
     }
 
-    size_t elf_file_size = kernel_file->inode->size;
+    size_t elf_file_size = kernel_file_path.dentry->inode->size;
 
     kernel_file_mapping_zone = kmemzone_new(elf_file_size);
     if (!kernel_file_mapping_zone.ptr) {
-        dentry_put(kernel_file);
+        path_put(&kernel_file_path);
         vfs_close(&fd);
         return -ENOMEM;
     }

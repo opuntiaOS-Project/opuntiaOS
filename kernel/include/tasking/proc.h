@@ -55,8 +55,8 @@ struct proc {
     uid_t suid;
     gid_t sgid;
 
-    dentry_t* proc_file;
-    dentry_t* cwd;
+    file_t* proc_file;
+    path_t cwd;
     file_descriptor_t* fds;
 
     int exit_code;

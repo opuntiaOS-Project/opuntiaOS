@@ -149,7 +149,7 @@ static int proc_setup_locked(proc_t* p)
 
     /* setting dentries */
     p->proc_file = NULL;
-    p->cwd = NULL;
+    p->cwd = vfs_empty_path();
 
     /* allocating space for open files */
     p->fds = kmalloc(MAX_OPENED_FILES * sizeof(file_descriptor_t));
@@ -193,23 +193,23 @@ static int proc_setup_vconsole_locked(proc_t* p, vconsole_entry_t* vconsole)
 
     char* path_to_tty = "/dev/tty ";
     path_to_tty[8] = vconsole->id + '0';
-    dentry_t* tty_dentry;
-    if (vfs_resolve_path(path_to_tty, &tty_dentry) < 0) {
+    path_t tty_path;
+    if (vfs_resolve_path(path_to_tty, &tty_path) < 0) {
         return -ENOENT;
     }
-    int err = vfs_open(tty_dentry, fd0, O_RDWR);
+    int err = vfs_open(&tty_path, fd0, O_RDWR);
     if (err) {
         return err;
     }
-    err = vfs_open(tty_dentry, fd1, O_RDWR);
+    err = vfs_open(&tty_path, fd1, O_RDWR);
     if (err) {
         return err;
     }
-    err = vfs_open(tty_dentry, fd2, O_RDWR);
+    err = vfs_open(&tty_path, fd2, O_RDWR);
     if (err) {
         return err;
     }
-    dentry_put(tty_dentry);
+    path_put(&tty_path);
     return 0;
 }
 
@@ -236,8 +236,8 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
     new_proc->egid = from_proc->egid;
     new_proc->suid = from_proc->suid;
     new_proc->sgid = from_proc->sgid;
-    new_proc->cwd = dentry_duplicate(from_proc->cwd);
-    new_proc->proc_file = dentry_duplicate(from_proc->proc_file);
+    new_proc->cwd = path_duplicate(&from_proc->cwd);
+    new_proc->proc_file = file_duplicate(from_proc->proc_file);
 
     if (from_proc->fds) {
         for (int i = 0; i < MAX_OPENED_FILES; i++) {
@@ -257,15 +257,14 @@ int proc_fork_from(proc_t* new_proc, thread_t* from_thread)
 
 static int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path)
 {
-    int err;
-    file_descriptor_t fd;
-    dentry_t* dentry;
-
-    if (vfs_resolve_path_start_from(p->cwd, path, &dentry) != 0) {
+    path_t bin_path;
+    if (vfs_resolve_path_start_from(&p->cwd, path, &bin_path) != 0) {
         return -ENOENT;
     }
-    if (vfs_open(dentry, &fd, O_EXEC) != 0) {
-        dentry_put(dentry);
+
+    file_descriptor_t fd;
+    if (vfs_open(&bin_path, &fd, O_EXEC) != 0) {
+        path_put(&bin_path);
         return -ENOENT;
     }
 
@@ -278,7 +277,7 @@ static int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path)
     vmm_switch_address_space(p->address_space);
 
     p->main_thread = main_thread;
-    err = elf_load(p, &fd);
+    int err = elf_load(p, &fd);
     if (err) {
         goto restore;
     }
@@ -288,7 +287,7 @@ success:
     proc_kill_all_threads_except_locked(p, p->main_thread);
     p->pid = p->main_thread->tid;
     if (p->proc_file) {
-        dentry_put(p->proc_file);
+        file_put(p->proc_file);
     }
 #ifdef FPU_ENABLED
     fpu_init_state(p->main_thread->fpu_state);
@@ -299,21 +298,22 @@ success:
     }
 
     // Setting up proc
-    p->proc_file = dentry; // dentry isn't put, but is transfered to the proc.
-    if (!p->cwd) {
-        p->cwd = dentry_get_parent(p->proc_file);
+    p->proc_file = file_init_path(&bin_path);
+    if (!path_is_valid(&p->cwd)) {
+        p->cwd.dentry = dentry_duplicate(dentry_get_parent(bin_path.dentry));
     }
 
-    if (TEST_FLAG(dentry->inode->mode, S_ISUID)) {
-        p->euid = dentry->inode->uid;
-        p->suid = dentry->inode->uid;
+    if (TEST_FLAG(bin_path.dentry->inode->mode, S_ISUID)) {
+        p->euid = bin_path.dentry->inode->uid;
+        p->suid = bin_path.dentry->inode->uid;
     }
 
-    if (TEST_FLAG(dentry->inode->mode, S_ISGID)) {
-        p->egid = dentry->inode->gid;
-        p->sgid = dentry->inode->gid;
+    if (TEST_FLAG(bin_path.dentry->inode->mode, S_ISGID)) {
+        p->egid = bin_path.dentry->inode->gid;
+        p->sgid = bin_path.dentry->inode->gid;
     }
 
+    path_put(&bin_path);
     vfs_close(&fd);
     return 0;
 
@@ -322,7 +322,7 @@ restore:
     vmm_switch_address_space(p->address_space);
     vm_address_space_free(new_aspace);
     vfs_close(&fd);
-    dentry_put(dentry);
+    path_put(&bin_path);
     return err;
 }
 
@@ -356,10 +356,10 @@ int proc_free_locked(proc_t* p)
     }
 
     if (p->proc_file) {
-        dentry_put(p->proc_file);
+        file_put(p->proc_file);
     }
-    if (p->cwd) {
-        dentry_put(p->cwd);
+    if (path_is_valid(&p->cwd)) {
+        path_put(&p->cwd);
     }
 
     /* Key parts deletion. After that line you can't work with this process. */
@@ -456,22 +456,22 @@ void proc_kill_all_threads(proc_t* p)
 
 static int proc_chdir_locked(proc_t* p, const char* path)
 {
-    dentry_t* new_cwd = NULL;
-    int ret = vfs_resolve_path_start_from(p->cwd, path, &new_cwd);
+    path_t new_cwd_path;
+    int ret = vfs_resolve_path_start_from(&p->cwd, path, &new_cwd_path);
     if (ret) {
         return -ENOENT;
     }
 
-    if (!dentry_test_mode(new_cwd, S_IFDIR)) {
-        dentry_put(new_cwd);
+    if (!dentry_test_mode(new_cwd_path.dentry, S_IFDIR)) {
+        path_put(&new_cwd_path);
         return -ENOTDIR;
     }
 
-    /* Put an old one back */
-    if (p->cwd) {
-        dentry_put(p->cwd);
+    // Put an old one back.
+    if (path_is_valid(&p->cwd)) {
+        path_put(&p->cwd);
     }
-    p->cwd = new_cwd;
+    p->cwd = new_cwd_path;
     return 0;
 }
 

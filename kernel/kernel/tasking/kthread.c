@@ -63,7 +63,7 @@ int kthread_setup(proc_t* p)
 
     /* setting dentries */
     p->proc_file = NULL;
-    p->cwd = NULL;
+    p->cwd = vfs_empty_path();
 
     p->fds = NULL;
 

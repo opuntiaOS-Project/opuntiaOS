@@ -137,8 +137,8 @@ int vconsole_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
 
 vconsole_entry_t* vconsole_new()
 {
-    dentry_t* mp;
-    if (vfs_resolve_path("/dev", &mp) < 0) {
+    path_t vfspth;
+    if (vfs_resolve_path("/dev", &vfspth) < 0) {
         return 0;
     }
 
@@ -150,7 +150,7 @@ vconsole_entry_t* vconsole_new()
     fops.read = vconsole_read;
     fops.write = vconsole_write;
     fops.ioctl = vconsole_ioctl;
-    devfs_inode_t* res = devfs_register(mp, MKDEV(4, next_vconsole), name, 4, S_IFCHR | 0777, &fops);
+    devfs_inode_t* res = devfs_register(&vfspth, MKDEV(4, next_vconsole), name, 4, S_IFCHR | 0777, &fops);
     vconsoles[next_vconsole].id = next_vconsole;
     vconsoles[next_vconsole].inode_indx = res->index;
 
@@ -161,7 +161,7 @@ vconsole_entry_t* vconsole_new()
     }
     next_vconsole++;
 
-    dentry_put(mp);
+    path_put(&vfspth);
     return &vconsoles[next_vconsole - 1];
 }
 

@@ -74,8 +74,8 @@ int local_socket_bind(file_descriptor_t* sock, char* path, size_t len)
     proc_t* p = RUNNING_THREAD->process;
 
     char* name = vfs_helper_split_path_with_name(path, len);
-    dentry_t* location;
-    if (vfs_resolve_path_start_from(p->cwd, path, &location) < 0) {
+    path_t location;
+    if (vfs_resolve_path_start_from(&p->cwd, path, &location) < 0) {
         vfs_helper_restore_full_path_after_split(path, name);
         kfree(name);
         spinlock_release(&sock->file->lock);
@@ -83,27 +83,28 @@ int local_socket_bind(file_descriptor_t* sock, char* path, size_t len)
     }
 
     mode_t file_mode = S_IFSOCK | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-    vfs_create(location, name, strlen(name), file_mode, p->uid, p->gid);
+    vfs_create(&location, name, strlen(name), file_mode, p->uid, p->gid);
 
-    dentry_t* bind_dentry;
-    int res = vfs_resolve_path_start_from(location, name, &bind_dentry);
+    path_t bind_path;
+    int res = vfs_resolve_path_start_from(&location, name, &bind_path);
     if (res < 0) {
 #ifdef LOCAL_SOCKET_DEBUG
         log_error("Bind: can't find path to file : %d pid\n", p->pid);
 #endif
-        dentry_put(location);
+        path_put(&location);
         spinlock_release(&sock->file->lock);
         return res;
     }
-    dentry_put(location);
+    path_put(&location);
 
 #ifdef LOCAL_SOCKET_DEBUG
     log("Bind local socket at %x : %d pid", sock->file->socket, p->pid);
 #endif
 
-    bind_dentry->sock = socket_duplicate(sock_entry);
-    sock_entry->bind_file = file_init_dentry_move(bind_dentry);
+    bind_path.dentry->sock = socket_duplicate(sock_entry);
+    sock_entry->bind_file = file_init_path(&bind_path);
 
+    path_put(&bind_path);
     vfs_helper_restore_full_path_after_split(path, name);
     spinlock_release(&sock->file->lock);
     return 0;
@@ -113,27 +114,27 @@ int local_socket_connect(file_descriptor_t* sock, char* path, size_t len)
 {
     proc_t* p = RUNNING_THREAD->process;
 
-    dentry_t* bind_dentry;
-    int res = vfs_resolve_path_start_from(p->cwd, path, &bind_dentry);
+    path_t bind_path;
+    int res = vfs_resolve_path_start_from(&p->cwd, path, &bind_path);
     if (res < 0) {
 #ifdef LOCAL_SOCKET_DEBUG
         log_error("Connect: can't find path to file %s : %d pid\n", path, p->pid);
 #endif
         return res;
     }
-    if ((bind_dentry->inode->mode & S_IFSOCK) == 0) {
+    if ((bind_path.dentry->inode->mode & S_IFSOCK) == 0) {
 #ifdef LOCAL_SOCKET_DEBUG
         log_error("Connect: file not a socket : %d pid\n", p->pid);
 #endif
         return -ENOTSOCK;
     }
 
-    if (!bind_dentry->sock) {
+    if (!bind_path.dentry->sock) {
         return -EBADF;
     }
     sock->flags = O_RDWR;
-    sock->file = file_init_socket(bind_dentry->sock, &local_socket_ops);
-    sock->offset = bind_dentry->sock->buffer.ringbuffer.end; // Starting to read from the end.
+    sock->file = file_init_socket(bind_path.dentry->sock, &local_socket_ops);
+    sock->offset = bind_path.dentry->sock->buffer.ringbuffer.end; // Starting to read from the end.
 #ifdef LOCAL_SOCKET_DEBUG
     log("Connected to local socket at %x : %d pid", bind_dentry->sock, p->pid);
 #endif

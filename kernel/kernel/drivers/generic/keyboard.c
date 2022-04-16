@@ -47,16 +47,16 @@ static int _generic_keyboard_read(file_t* file, void __user* buf, size_t start, 
 
 int generic_keyboard_create_devfs()
 {
-    dentry_t* mp;
-    if (vfs_resolve_path("/dev", &mp) < 0)
+    path_t vfspth;
+    if (vfs_resolve_path("/dev", &vfspth) < 0)
         return -1;
 
     file_ops_t fops = { 0 };
     fops.can_read = _generic_keyboard_can_read;
     fops.read = _generic_keyboard_read;
-    devfs_inode_t* res = devfs_register(mp, MKDEV(11, 0), "kbd", 3, S_IFCHR | 0400, &fops);
+    devfs_inode_t* res = devfs_register(&vfspth, MKDEV(11, 0), "kbd", 3, S_IFCHR | 0400, &fops);
 
-    dentry_put(mp);
+    path_put(&vfspth);
     return 0;
 }
 

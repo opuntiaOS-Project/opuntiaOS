@@ -123,17 +123,17 @@ static memzone_t* _bga_mmap(file_t* file, mmap_params_t* params)
 static void bga_recieve_notification(uint32_t msg, uint32_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
-        dentry_t* mp;
-        if (vfs_resolve_path("/dev", &mp) < 0) {
+        path_t vfspth;
+        if (vfs_resolve_path("/dev", &vfspth) < 0) {
             kpanic("Can't init bga in /dev");
         }
 
         file_ops_t fops = { 0 };
         fops.ioctl = _bga_ioctl;
         fops.mmap = _bga_mmap;
-        devfs_inode_t* res = devfs_register(mp, MKDEV(10, 156), "bga", 3, S_IFBLK | 0777, &fops);
+        devfs_inode_t* res = devfs_register(&vfspth, MKDEV(10, 156), "bga", 3, S_IFBLK | 0777, &fops);
 
-        dentry_put(mp);
+        path_put(&vfspth);
     }
 }
 
