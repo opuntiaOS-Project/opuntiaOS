@@ -42,6 +42,8 @@ if (target_cpu == "x86") {
     "-mno-sse2",
   ]
   kernel_asm_flags += [
+    "-w+all",
+    "-Werror",
     "-f",
     "elf",
   ]
