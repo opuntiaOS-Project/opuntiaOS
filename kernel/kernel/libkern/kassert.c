@@ -12,7 +12,6 @@
 void assert_handler(const char* cond, const char* func, const char* file, int line)
 {
     log("Kernel assertion failed: %s, function %s, file %s:%d\n", cond, func, file, line);
-    extern int dump_kernel(const char* err);
     dump_kernel(NULL);
     system_stop();
 }
