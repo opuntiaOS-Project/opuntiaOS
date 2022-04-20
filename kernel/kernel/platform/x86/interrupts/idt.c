@@ -110,7 +110,7 @@ inline void init_irq_handlers()
 
 inline void idt_element_setup(uint8_t n, void* handler_addr, bool is_user)
 {
-    idt[n].offset_lower = (uint32_t)handler_addr & 0xffff;
+    idt[n].offset_lower = (uintptr_t)handler_addr & 0xffff;
     idt[n].segment = INIT_CODE_SEG;
     idt[n].zero = 0;
     idt[n].type = 0x8E;
@@ -119,5 +119,5 @@ inline void idt_element_setup(uint8_t n, void* handler_addr, bool is_user)
     if (is_user) {
         idt[n].type |= (0b1100000);
     }
-    idt[n].offset_upper = (uint32_t)handler_addr >> 16;
+    idt[n].offset_upper = (uintptr_t)handler_addr >> 16;
 }

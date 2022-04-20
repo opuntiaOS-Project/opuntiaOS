@@ -18,7 +18,7 @@ void switchuvm(thread_t* thread)
 {
     system_disable_interrupts();
     gdt[GDT_SEG_TSS] = GDT_SEG_BG(SEGTSS_TYPE, &tss, sizeof(tss) - 1, 0);
-    uint32_t esp0 = ((uint32_t)thread->tf + sizeof(trapframe_t));
+    uintptr_t esp0 = ((uintptr_t)thread->tf + sizeof(trapframe_t));
     tss.esp0 = esp0;
     tss.ss0 = (GDT_SEG_KDATA << 3);
     tss.iomap_offset = sizeof(tss);
