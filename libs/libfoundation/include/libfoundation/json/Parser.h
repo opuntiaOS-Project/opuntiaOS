@@ -37,6 +37,9 @@ public:
 private:
     StringObject* parse_string();
     DictObject* parse_dict();
+    ListObject* parse_list();
+    BoolObject* parse_bool();
+    NullObject* parse_null();
     Object* parse_object();
 
     Object* m_root_object { nullptr };

@@ -45,6 +45,55 @@ DictObject* Parser::parse_dict()
     return res;
 }
 
+ListObject* Parser::parse_list()
+{
+    auto* res = new ListObject();
+
+    m_lexer.skip_spaces();
+    assert(m_lexer.eat_token('['));
+    for (;;) {
+        auto obj = parse_object();
+        res->data().push_back(obj);
+
+        if (m_lexer.lookup_char() == ',') {
+            assert(m_lexer.eat_token(','));
+        } else {
+            break;
+        }
+    }
+    assert(m_lexer.eat_token(']'));
+    return res;
+}
+
+BoolObject* Parser::parse_bool()
+{
+    auto* res = new BoolObject();
+
+    m_lexer.skip_spaces();
+
+    std::string tmp;
+    m_lexer.eat_string(tmp);
+
+    if (tmp == "true") {
+        res->data() = true;
+    } else if (tmp == "false") {
+        res->data() = false;
+    } else {
+        assert(false);
+    }
+
+    return res;
+}
+
+NullObject* Parser::parse_null()
+{
+    m_lexer.skip_spaces();
+    std::string tmp;
+    m_lexer.eat_string(tmp);
+    assert(tmp == "null");
+    return new NullObject();
+}
+
 Object* Parser::parse_object()
 {
     m_lexer.skip_spaces();
@@ -53,6 +102,15 @@ Object* Parser::parse_object()
         return parse_dict();
     case '\"':
         return parse_string();
+    case '[':
+        return parse_list();
+    case 'n':
+        // Only null is expected to start with n
+        return parse_null();
+    case 't':
+    case 'f':
+        // Only true or false is expected to start with n
+        return parse_bool();
     default:
         assert(false);
     }

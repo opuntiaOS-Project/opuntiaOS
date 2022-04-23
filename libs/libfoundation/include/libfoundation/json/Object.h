@@ -23,6 +23,9 @@ public:
         String,
         Number,
         Dict,
+        List,
+        Null,
+        Bool,
         Invalid,
     };
     constexpr static Object::Type ObjType = Type::Invalid;
@@ -95,6 +98,61 @@ public:
 
 private:
     std::map<std::string, Object*> m_data;
+};
+
+class ListObject : public Object {
+public:
+    constexpr static Object::Type ObjType = Type::List;
+
+    ListObject()
+        : Object(ObjType)
+    {
+    }
+
+    ~ListObject()
+    {
+        for (auto& i : m_data) {
+            delete i;
+        }
+    }
+
+    std::vector<Object*>& data() { return m_data; }
+    const std::vector<Object*>& data() const { return m_data; }
+
+private:
+    std::vector<Object*> m_data;
+};
+
+class NullObject : public Object {
+public:
+    constexpr static Object::Type ObjType = Type::Null;
+
+    NullObject()
+        : Object(ObjType)
+    {
+    }
+
+    ~NullObject() = default;
+
+private:
+};
+
+class BoolObject : public Object {
+public:
+    constexpr static Object::Type ObjType = Type::Bool;
+
+    BoolObject()
+        : Object(ObjType)
+    {
+    }
+
+    ~BoolObject() = default;
+
+    bool& data() { return m_data; }
+    const bool& data() const { return m_data; }
+
+private:
+    bool m_data;
 };
 
 class InvalidObject : public Object {
