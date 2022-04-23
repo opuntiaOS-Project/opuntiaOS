@@ -320,6 +320,16 @@ bool operator==(const std::basic_string<CharT, Traits, Allocator>& a, const std:
 }
 
 template <class CharT, class Traits, class Allocator>
+bool operator==(const std::basic_string<CharT, Traits, Allocator>& a, const CharT* cstr)
+{
+    size_t bsize = Traits::length(cstr);
+    if (a.size() != bsize) {
+        return false;
+    }
+    return Traits::compare(a.c_str(), cstr, a.size()) == 0;
+}
+
+template <class CharT, class Traits, class Allocator>
 bool operator<(const std::basic_string<CharT, Traits, Allocator>& a, const std::basic_string<CharT, Traits, Allocator>& b)
 {
     int eq = Traits::compare(a.c_str(), b.c_str(), std::min(a.size(), b.size()));
