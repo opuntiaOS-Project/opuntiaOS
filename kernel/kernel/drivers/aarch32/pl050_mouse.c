@@ -189,8 +189,12 @@ int pl050_mouse_init(device_t* dev)
     _mouse_send_cmd_and_data(0xF3, 200);
     _mouse_send_cmd_and_data(0xF3, 100);
     _mouse_send_cmd_and_data(0xF3, 80);
-    irq_register_handler(PL050_MOUSE_IRQ_LINE, 0, 0, _pl050_mouse_int_handler, BOOT_CPU_MASK);
     mouse_buffer = ringbuffer_create_std();
+
+    devtree_entry_t* devtree_entry = dev->device_desc.devtree.entry;
+    ASSERT(devtree_entry->irq_lane > 0);
+    irq_flags_t irqflags = irq_flags_from_devtree(devtree_entry->irq_flags);
+    irq_register_handler(devtree_entry->irq_lane, devtree_entry->irq_priority, irqflags, _pl050_mouse_int_handler, BOOT_CPU_MASK);
     return 0;
 }
 

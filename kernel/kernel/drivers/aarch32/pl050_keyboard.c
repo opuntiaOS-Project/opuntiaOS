@@ -89,9 +89,12 @@ int pl050_keyboard_init(device_t* dev)
     // Turning Scan Code Set 1
     _keyboard_send_cmd(0xF0);
     _keyboard_send_cmd(0x01);
-
-    irq_register_handler(PL050_KEYBOARD_IRQ_LINE, 0, 0, _pl050_keyboard_int_handler, BOOT_CPU_MASK);
     generic_keyboard_init();
+
+    devtree_entry_t* devtree_entry = dev->device_desc.devtree.entry;
+    ASSERT(devtree_entry->irq_lane > 0);
+    irq_flags_t irqflags = irq_flags_from_devtree(devtree_entry->irq_flags);
+    irq_register_handler(devtree_entry->irq_lane, devtree_entry->irq_priority, irqflags, _pl050_keyboard_int_handler, BOOT_CPU_MASK);
     return 0;
 }
 

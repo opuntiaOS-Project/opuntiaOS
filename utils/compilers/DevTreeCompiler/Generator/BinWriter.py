@@ -40,6 +40,9 @@ class BinWriter():
             "flags": 0,
             "region_base": 0,
             "region_size": 0,
+            "irq_lane": 0,
+            "irq_flags": 0,
+            "irq_priority": 0,
             "rel_name_offset": len(self.names_binarr),
         }
 
@@ -47,7 +50,8 @@ class BinWriter():
             result["type"] = Translator.entry_type(dev["type"])
 
         if "flags" in dev:
-            result["flags"] = Translator.entry_flags(dev["flags"])
+            result["flags"] = Translator.flags(
+                dev["flags"], Translator.entry_flag_translator)
 
         if "mem" in dev:
             devmem = dev["mem"]
@@ -55,6 +59,16 @@ class BinWriter():
                 result["region_base"] = Translator.number(devmem["base"])
             if "size" in devmem:
                 result["region_size"] = Translator.number(devmem["size"])
+
+        if "irq" in dev:
+            devint = dev["irq"]
+            if "lane" in devint:
+                result["irq_lane"] = Translator.number(devint["lane"])
+            if "flags" in devint:
+                result["irq_flags"] = Translator.flags(
+                    devint["flags"], Translator.irq_flag_translator)
+            if "priority" in devint:
+                result["irq_priority"] = Translator.number(devint["priority"])
 
         self.devs_binarr += DEVTREE_ENTRY.build(result)
         self.names_binarr += bytearray((map(ord,

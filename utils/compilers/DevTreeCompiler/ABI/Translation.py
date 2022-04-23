@@ -10,9 +10,16 @@ from ABI.Structs import *
 class Translator():
 
     @staticmethod
-    def entry_flag(s):
+    def entry_flag_translator(s):
         translation = {
             "MMIO": DEVTREE_ENTRY_FLAGS_MMIO,
+        }
+        return translation.get(s, 0)
+
+    @staticmethod
+    def irq_flag_translator(s):
+        translation = {
+            "EDGE_TRIGGER": DEVTREE_IRQ_FLAGS_EDGE_TRIGGER,
         }
         return translation.get(s, 0)
 
@@ -33,12 +40,12 @@ class Translator():
         return int(s, base=0)
 
     @staticmethod
-    def entry_flags(s):
+    def flags(s, flagcb):
         flags = 0x0
         ents = s.split(" ")
 
         for ent in ents:
-            t = Translator.entry_flag(s)
+            t = flagcb(s)
             if t != None:
                 flags |= t
 

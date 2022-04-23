@@ -24,7 +24,8 @@ enum DRIVERS_TYPE {
     DRIVER_CHAR_DEVICE = (1 << 6),
     DRIVER_VIRTUAL_FILE_SYSTEM = (1 << 7),
     DRIVER_FILE_SYSTEM = (1 << 8),
-    DRIVER_VIRTUAL = (1 << 9),
+    DRIVER_TIMER = (1 << 9),
+    DRIVER_VIRTUAL = (1 << 10),
 };
 
 // Api function of DRIVER_STORAGE type

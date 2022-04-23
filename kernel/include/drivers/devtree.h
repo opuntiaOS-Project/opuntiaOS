@@ -38,6 +38,9 @@ struct PACKED devtree_entry {
     uint32_t flags;
     uint32_t region_base;
     uint32_t region_size;
+    uint32_t irq_lane;
+    uint32_t irq_flags;
+    uint32_t irq_priority;
     uint32_t rel_name_offset;
 };
 typedef struct devtree_entry devtree_entry_t;

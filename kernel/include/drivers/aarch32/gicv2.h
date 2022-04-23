@@ -69,7 +69,7 @@ struct gicv2_cpu_interface_registers {
 };
 typedef struct gicv2_cpu_interface_registers gicv2_cpu_interface_registers_t;
 
-void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_type_t type, int cpu_mask);
+void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_flags_t flags, int cpu_mask);
 void gicv2_install();
 void gicv2_install_secondary_cpu();
 uint32_t gicv2_interrupt_descriptor();

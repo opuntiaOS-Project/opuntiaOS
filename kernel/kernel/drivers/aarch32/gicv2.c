@@ -53,7 +53,7 @@ static inline int _gicv2_map_itself()
     return 0;
 }
 
-void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_type_t type, int cpu_mask)
+void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_flags_t flags, int cpu_mask)
 {
     int id_1bit_offset = id / 32;
     int id_1bit_bitpos = id % 32;
@@ -70,7 +70,7 @@ void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_type_t type, int 
     /* Setting priority */
     distributor_registers->ipriorityr[id_8bit_offset] |= (prior << id_8bit_bitpos);
 
-    if ((type & IRQ_TYPE_EDGE_TRIGGERED_MASK) == IRQ_TYPE_EDGE_TRIGGERED_MASK) {
+    if (TEST_FLAG(flags, IRQ_FLAG_EDGE_TRIGGERED)) {
         distributor_registers->ipriorityr[id_8bit_offset] |= (prior << id_8bit_bitpos);
     } else {
         distributor_registers->ipriorityr[id_8bit_offset] &= ~(uint32_t)(prior << id_8bit_bitpos);
