@@ -10,7 +10,7 @@ class Window;
 class Connection {
 public:
     static Connection& the();
-    explicit Connection(int connection_fd);
+    explicit Connection(const LIPC::DoubleSidedConnection&);
 
     void greeting();
     int new_window(const Window& window);
@@ -27,8 +27,8 @@ public:
 private:
     void setup_listners();
 
-    int m_connection_fd;
     int m_connection_id;
+    LIPC::DoubleSidedConnection m_connection;
     ClientConnection<BaseWindowServerDecoder, ClientDecoder> m_connection_with_server;
     BaseWindowServerDecoder m_server_decoder;
     ClientDecoder m_client_decoder;

@@ -10,6 +10,7 @@
 #include "../../shared/Connections/WSConnection.h"
 #include "ServerDecoder.h"
 #include <libfoundation/EventReceiver.h>
+#include <libipc/DoubleSidedConnection.h>
 #include <libipc/ServerConnection.h>
 
 namespace WinServer {
@@ -22,7 +23,7 @@ public:
         return *s_WinServer_Connection_the;
     }
 
-    explicit Connection(int connection_fd);
+    explicit Connection(const LIPC::DoubleSidedConnection& conn);
 
     inline void listen()
     {
@@ -34,7 +35,7 @@ public:
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
 private:
-    int m_connection_fd;
+    LIPC::DoubleSidedConnection m_connection;
     int m_connections_number { 0 };
     ServerConnection<WindowServerDecoder, BaseWindowClientDecoder> m_connection_with_clients;
     WindowServerDecoder m_server_decoder;

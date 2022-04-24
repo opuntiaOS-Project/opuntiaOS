@@ -11,21 +11,29 @@
 #include <libfoundation/EventLoop.h>
 #include <sys/socket.h>
 
+#define WINSERVER_REQUEST_SOCKET_PATH "/tmp/winserver_requests.sock"
+#define WINSERVER_REQUEST_SOCKET_PATH_SIZE sizeof(WINSERVER_REQUEST_SOCKET_PATH)
+
+#define WINSERVER_RESPONSE_SOCKET_PATH "/tmp/winserver_response.sock"
+#define WINSERVER_RESPONSE_SOCKET_PATH_SIZE sizeof(WINSERVER_RESPONSE_SOCKET_PATH)
+
 namespace WinServer {
 
 Connection* s_WinServer_Connection_the = nullptr;
 
-Connection::Connection(int connection_fd)
-    : m_connection_fd(connection_fd)
+Connection::Connection(const LIPC::DoubleSidedConnection& conn)
+    : m_connection(conn)
     , m_server_decoder()
     , m_client_decoder()
-    , m_connection_with_clients(m_connection_fd, m_server_decoder, m_client_decoder)
+    , m_connection_with_clients(m_connection, m_server_decoder, m_client_decoder)
 {
     s_WinServer_Connection_the = this;
-    int err = bind(m_connection_fd, "/tmp/win.sock", 13);
-    if (!err) {
+    int err1 = bind(m_connection.c2s_fd(), WINSERVER_REQUEST_SOCKET_PATH, WINSERVER_REQUEST_SOCKET_PATH_SIZE);
+    int err2 = bind(m_connection.s2c_fd(), WINSERVER_RESPONSE_SOCKET_PATH, WINSERVER_RESPONSE_SOCKET_PATH_SIZE);
+
+    if (!err1 && !err2) {
         LFoundation::EventLoop::the().add(
-            m_connection_fd, [] {
+            m_connection.c2s_fd(), [] {
                 Connection::the().listen();
             },
             nullptr);

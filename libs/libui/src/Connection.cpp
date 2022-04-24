@@ -20,35 +20,54 @@
 
 namespace UI {
 
+#define WINSERVER_REQUEST_SOCKET_PATH "/tmp/winserver_requests.sock"
+#define WINSERVER_REQUEST_SOCKET_PATH_SIZE sizeof(WINSERVER_REQUEST_SOCKET_PATH)
+
+#define WINSERVER_RESPONSE_SOCKET_PATH "/tmp/winserver_response.sock"
+#define WINSERVER_RESPONSE_SOCKET_PATH_SIZE sizeof(WINSERVER_RESPONSE_SOCKET_PATH)
+
 static Connection* s_the = nullptr;
 
 Connection& Connection::the()
 {
     // FIXME: Thread-safe method to be applied
     if (!s_the) {
-        new Connection(socket(PF_LOCAL, 0, 0));
+        auto conn = LIPC::DoubleSidedConnection(socket(PF_LOCAL, 0, 0), socket(PF_LOCAL, 0, 0));
+        new Connection(conn);
     }
     return *s_the;
 }
 
-Connection::Connection(int connection_fd)
-    : m_connection_fd(connection_fd)
+Connection::Connection(const LIPC::DoubleSidedConnection& connection)
+    : m_connection(connection)
     , m_server_decoder()
     , m_client_decoder()
-    , m_connection_with_server(m_connection_fd, m_server_decoder, m_client_decoder)
+    , m_connection_with_server(m_connection, m_server_decoder, m_client_decoder)
 {
     s_the = this;
-    if (m_connection_fd > 0) {
-        bool connected = false;
+    if (m_connection.c2s_fd() > 0 && m_connection.s2c_fd() > 0) {
+        bool req_connected = false;
+        bool resp_connected = false;
         // Trying to connect for 100 times. If unsuccesfull, it crashes.
         for (int i = 0; i < 100; i++) {
-            if (connect(m_connection_fd, "/tmp/win.sock", 13) == 0) {
-                connected = true;
+            if (!req_connected) {
+                if (connect(m_connection.c2s_fd(), WINSERVER_REQUEST_SOCKET_PATH, WINSERVER_REQUEST_SOCKET_PATH_SIZE) == 0) {
+                    req_connected = true;
+                }
+            }
+            if (!resp_connected) {
+                if (connect(m_connection.s2c_fd(), WINSERVER_RESPONSE_SOCKET_PATH, WINSERVER_RESPONSE_SOCKET_PATH_SIZE) == 0) {
+                    resp_connected = true;
+                }
+            }
+
+            if (req_connected && resp_connected) {
                 break;
             }
             sched_yield();
         }
-        if (!connected) {
+
+        if (!req_connected || !resp_connected) {
             goto crash;
         }
 
@@ -63,7 +82,7 @@ crash:
 void Connection::setup_listners()
 {
     LFoundation::EventLoop::the().add(
-        m_connection_fd, [] {
+        m_connection.s2c_fd(), [] {
             Connection::the().listen();
         },
         nullptr);

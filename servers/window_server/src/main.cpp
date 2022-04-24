@@ -19,7 +19,7 @@ int main()
     WinServer::InitManager::load_screen();
 
     auto* event_loop = new LFoundation::EventLoop();
-    WinServer::InitManager::load_core_component<WinServer::Connection>(socket(PF_LOCAL, 0, 0));
+    WinServer::InitManager::load_core_component<WinServer::Connection>(LIPC::DoubleSidedConnection(socket(PF_LOCAL, 0, 0), socket(PF_LOCAL, 0, 0)));
     WinServer::InitManager::load_core_component<WinServer::CursorManager>();
     WinServer::InitManager::load_core_component<WinServer::ResourceManager, 4>();
     WinServer::InitManager::load_core_component<WinServer::Popup>();

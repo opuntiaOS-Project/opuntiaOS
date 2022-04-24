@@ -1,9 +1,18 @@
+/*
+ * Copyright (C) 2020-2022 The opuntiaOS Project Authors.
+ *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
+ *
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
 #pragma once
 #include <cstdlib>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/Logger.h>
+#include <libipc/DoubleSidedConnection.h>
 #include <libipc/Message.h>
 #include <libipc/MessageDecoder.h>
 #include <unistd.h>
@@ -12,8 +21,8 @@
 template <typename ServerDecoder, typename ClientDecoder>
 class ClientConnection : public LFoundation::EventReceiver {
 public:
-    ClientConnection(int sock_fd, ServerDecoder& server_decoder, ClientDecoder& client_decoder)
-        : m_connection_fd(sock_fd)
+    ClientConnection(const LIPC::DoubleSidedConnection& connection, ServerDecoder& server_decoder, ClientDecoder& client_decoder)
+        : m_connection(connection)
         , m_server_decoder(server_decoder)
         , m_client_decoder(client_decoder)
         , m_messages()
@@ -25,7 +34,7 @@ public:
     bool send_message(const Message& msg) const
     {
         auto encoded_msg = msg.encode();
-        int wrote = write(m_connection_fd, encoded_msg.data(), encoded_msg.size());
+        int wrote = write(m_connection.c2s_fd(), encoded_msg.data(), encoded_msg.size());
         return wrote == encoded_msg.size();
     }
 
@@ -54,7 +63,7 @@ public:
         char tmpbuf[1024];
 
         int read_cnt;
-        while ((read_cnt = read(m_connection_fd, tmpbuf, sizeof(tmpbuf)))) {
+        while ((read_cnt = read(m_connection.s2c_fd(), tmpbuf, sizeof(tmpbuf)))) {
             if (read_cnt <= 0) {
                 Logger::debug << getpid() << " :: ClientConnection read error" << std::endl;
                 return;
@@ -107,7 +116,7 @@ public:
 
 private:
     int m_accepted_key { -1 };
-    int m_connection_fd;
+    LIPC::DoubleSidedConnection m_connection;
     std::vector<std::unique_ptr<Message>> m_messages;
     ServerDecoder& m_server_decoder;
     ClientDecoder& m_client_decoder;

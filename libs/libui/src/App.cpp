@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include <libipc/DoubleSidedConnection.h>
 #include <libui/App.h>
 #include <memory>
 #include <sys/socket.h>
@@ -16,7 +17,7 @@ App* s_UI_App_the = nullptr;
 
 App::App()
     : m_event_loop()
-    , m_server_connection(socket(PF_LOCAL, 0, 0))
+    , m_server_connection(LIPC::DoubleSidedConnection(socket(PF_LOCAL, 0, 0), socket(PF_LOCAL, 0, 0)))
 {
     s_UI_App_the = this;
 }
