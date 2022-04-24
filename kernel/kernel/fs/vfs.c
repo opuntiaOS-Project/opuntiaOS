@@ -186,6 +186,7 @@ int vfs_add_fs(driver_t* new_driver)
     new_ops->file.create = new_driver->desc.functions[DRIVER_FILE_SYSTEM_CREATE];
     new_ops->file.unlink = new_driver->desc.functions[DRIVER_FILE_SYSTEM_UNLINK];
     new_ops->file.fstat = new_driver->desc.functions[DRIVER_FILE_SYSTEM_FSTAT];
+    new_ops->file.fchmod = new_driver->desc.functions[DRIVER_FILE_SYSTEM_FCHMOD];
     new_ops->file.ioctl = new_driver->desc.functions[DRIVER_FILE_SYSTEM_IOCTL];
     new_ops->file.mmap = new_driver->desc.functions[DRIVER_FILE_SYSTEM_MMAP];
 
@@ -201,25 +202,10 @@ int vfs_add_fs(driver_t* new_driver)
     return 0;
 }
 
-int vfs_open(const path_t* path, file_descriptor_t* fd, int flags)
+int vfs_check_open_perms(const path_t* path, int flags)
 {
-    if (!path_is_valid(path)) {
-        return -EINVAL;
-    }
-
     dentry_t* file = path->dentry;
     thread_t* cur_thread = RUNNING_THREAD;
-    if (!fd) {
-        return -EFAULT;
-    }
-
-    if (dentry_test_flag(file, DENTRY_PRIVATE)) {
-        return -EPERM;
-    }
-
-    if (dentry_test_mode(file, S_IFDIR) && !TEST_FLAG(flags, O_DIRECTORY)) {
-        return -EISDIR;
-    }
 
     if (TEST_FLAG(flags, O_EXEC)) {
         if (vfs_perm_to_execute(file, cur_thread) != 0) {
@@ -249,6 +235,33 @@ int vfs_open(const path_t* path, file_descriptor_t* fd, int flags)
 #endif
             return -EACCES;
         }
+    }
+
+    return 0;
+}
+
+int vfs_open(const path_t* path, file_descriptor_t* fd, int flags)
+{
+    if (!path_is_valid(path)) {
+        return -EINVAL;
+    }
+
+    dentry_t* file = path->dentry;
+    if (!fd) {
+        return -EFAULT;
+    }
+
+    if (dentry_test_flag(file, DENTRY_PRIVATE)) {
+        return -EPERM;
+    }
+
+    if (dentry_test_mode(file, S_IFDIR) && !TEST_FLAG(flags, O_DIRECTORY)) {
+        return -EISDIR;
+    }
+
+    int err = vfs_check_open_perms(path, flags);
+    if (err) {
+        return err;
     }
 
     // If it has custom open, let's use it.
@@ -559,6 +572,19 @@ int vfs_chmod(const path_t* vfspath, mode_t mode)
     dentry_set_flag(dentry, DENTRY_DIRTY);
     dentry->inode->mode = (dentry->inode->mode & ~(uint32_t)07777) | (mode & (uint32_t)07777);
     return 0;
+}
+
+int vfs_fchmod(file_descriptor_t* fd, mode_t mode)
+{
+    spinlock_acquire(&fd->file->lock);
+    if (!fd->file->ops->fchmod) {
+        spinlock_release(&fd->file->lock);
+        return -EROFS;
+    }
+
+    int err = fd->file->ops->fchmod(fd->file, mode);
+    spinlock_release(&fd->file->lock);
+    return err;
 }
 
 int vfs_resolve_path_start_from(const path_t* vfspath, const char* path, path_t* result)

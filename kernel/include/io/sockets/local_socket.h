@@ -16,6 +16,7 @@ bool local_socket_can_read(file_t* file, size_t start);
 int local_socket_read(file_t* file, void __user* buf, size_t start, size_t len);
 bool local_socket_can_write(file_t* file, size_t start);
 int local_socket_write(file_t* file, void __user* buf, size_t start, size_t len);
+int local_socket_fchmod(file_t* file, mode_t mode);
 
 int local_socket_bind(file_descriptor_t* sock, char* name, size_t len);
 int local_socket_connect(file_descriptor_t* sock, char* name, size_t len);

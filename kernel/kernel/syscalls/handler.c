@@ -30,6 +30,7 @@ static const void* syscalls[] = {
     [SYS_EXECVE] = sys_exec,
     [SYS_CHDIR] = sys_chdir,
     [SYS_CHMOD] = sys_chmod,
+    [SYS_FCHMOD] = sys_fchmod,
     [SYS_GETCWD] = sys_getcwd,
     [SYS_SIGACTION] = sys_sigaction,
     [SYS_SIGRETURN] = sys_sigreturn,

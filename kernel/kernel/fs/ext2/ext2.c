@@ -12,6 +12,7 @@
 #include <libkern/lock.h>
 #include <libkern/log.h>
 #include <mem/kmalloc.h>
+#include <tasking/tasking.h>
 #include <time/time_manager.h>
 
 #define MAX_BLOCK_LEN 1024
@@ -892,7 +893,7 @@ static int _ext2_setup_file(dentry_t* file, mode_t mode, uid_t uid, gid_t gid)
 }
 
 /**
- * API FUNTIONS
+ * API FUNCTIONS
  */
 
 bool ext2_can_read(file_t* file, size_t start)
@@ -1177,6 +1178,20 @@ int ext2_rm(const path_t* path)
     return 0;
 }
 
+int ext2_fchmod(file_t* file, mode_t mode)
+{
+    dentry_t* dentry = file_dentry_assert(file);
+
+    proc_t* current_p = RUNNING_THREAD->process;
+    if (dentry->inode->uid != current_p->euid && !proc_is_su(current_p)) {
+        return -EPERM;
+    }
+
+    dentry_set_flag(dentry, DENTRY_DIRTY);
+    dentry->inode->mode = (dentry->inode->mode & ~(uint32_t)07777) | (mode & (uint32_t)07777);
+    return 0;
+}
+
 int ext2_recognize_drive(vfs_device_t* dev)
 {
     spinlock_acquire(&VFS_DEVICE_LOCK);
@@ -1278,6 +1293,7 @@ driver_desc_t _ext2_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = ext2_rm;
 
     fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FCHMOD] = ext2_fchmod;
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = NULL;
 

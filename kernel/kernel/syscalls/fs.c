@@ -306,6 +306,16 @@ void sys_chmod(trapframe_t* tf)
     return_with_val(err);
 }
 
+void sys_fchmod(trapframe_t* tf)
+{
+    proc_t* p = RUNNING_THREAD->process;
+    file_descriptor_t* fd = (file_descriptor_t*)proc_get_fd(p, (size_t)SYSCALL_VAR1(tf));
+    mode_t mode = (mode_t)SYSCALL_VAR2(tf);
+
+    int err = vfs_fchmod(fd, mode);
+    return_with_val(err);
+}
+
 void sys_getcwd(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;

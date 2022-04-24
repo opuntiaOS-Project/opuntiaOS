@@ -496,6 +496,15 @@ int devfs_fstat(file_t* file, stat_t* stat)
     return 0;
 }
 
+int devfs_fchmod(file_t* file, mode_t mode)
+{
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
+    if (devfs_inode->handlers->fchmod) {
+        return devfs_inode->handlers->fchmod(file, mode);
+    }
+    return -EROFS;
+}
+
 int devfs_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
@@ -545,6 +554,7 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_UNLINK] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = devfs_fstat;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FCHMOD] = devfs_fchmod;
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = devfs_ioctl;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = devfs_mmap;
 

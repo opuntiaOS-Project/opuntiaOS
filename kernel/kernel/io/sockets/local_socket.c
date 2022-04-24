@@ -31,6 +31,7 @@ static file_ops_t local_socket_ops = {
     .rmdir = NULL,
     .fstat = NULL,
     .ioctl = NULL,
+    .fchmod = local_socket_fchmod,
     .mmap = NULL,
 };
 
@@ -67,6 +68,13 @@ int local_socket_write(file_t* file, void __user* buf, size_t start, size_t len)
     return 0;
 }
 
+int local_socket_fchmod(file_t* file, mode_t mode)
+{
+    socket_t* sock_entry = file_socket_assert(file);
+    sock_entry->mode = (sock_entry->mode & ~(uint32_t)07777) | (mode & (uint32_t)07777);
+    return 0;
+}
+
 int local_socket_bind(file_descriptor_t* sock, char* path, size_t len)
 {
     spinlock_acquire(&sock->file->lock);
@@ -82,7 +90,7 @@ int local_socket_bind(file_descriptor_t* sock, char* path, size_t len)
         return -ENOENT;
     }
 
-    mode_t file_mode = S_IFSOCK | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+    mode_t file_mode = S_IFSOCK | sock_entry->mode;
     vfs_create(&location, name, strlen(name), file_mode, p->uid, p->gid);
 
     path_t bind_path;
@@ -122,11 +130,17 @@ int local_socket_connect(file_descriptor_t* sock, char* path, size_t len)
 #endif
         return res;
     }
+
     if ((bind_path.dentry->inode->mode & S_IFSOCK) == 0) {
 #ifdef LOCAL_SOCKET_DEBUG
         log_error("Connect: file not a socket : %d pid\n", p->pid);
 #endif
         return -ENOTSOCK;
+    }
+
+    int err = vfs_check_open_perms(&bind_path, O_RDWR);
+    if (err) {
+        return err;
     }
 
     if (!bind_path.dentry->sock) {

@@ -54,6 +54,7 @@ static fs_ops_t pty_master_ops = {
         .mkdir = NULL,
         .rmdir = NULL,
         .fstat = pty_master_fstat,
+        .fchmod = NULL,
         .ioctl = NULL,
         .mmap = NULL,
     }

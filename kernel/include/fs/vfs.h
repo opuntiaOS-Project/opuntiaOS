@@ -102,6 +102,7 @@ struct file_ops {
     int (*rmdir)(const path_t* path);
     int (*ioctl)(struct file* file, uintptr_t cmd, uintptr_t arg);
     int (*fstat)(struct file* file, stat_t* stat);
+    int (*fchmod)(struct file* file, mode_t mode);
     struct memzone* (*mmap)(struct file* file, mmap_params_t* params);
 };
 typedef struct file_ops file_ops_t;
@@ -167,6 +168,7 @@ struct socket {
     int domain;
     int type;
     int protocol;
+    mode_t mode;
     sync_ringbuffer_t buffer;
     file_t* bind_file;
     spinlock_t lock;
@@ -274,6 +276,7 @@ int vfs_rmdir(const path_t* path);
 int vfs_getdents(file_descriptor_t* dir_fd, void __user* buf, size_t len);
 int vfs_fstat(file_descriptor_t* fd, stat_t* stat);
 int vfs_chmod(const path_t* path, mode_t mode);
+int vfs_fchmod(file_descriptor_t* fd, mode_t mode);
 
 int vfs_get_absolute_path(const path_t* path, char* buf, int len);
 
@@ -285,6 +288,7 @@ struct memzone* vfs_mmap(file_descriptor_t* fd, mmap_params_t* params);
 int vfs_munmap(struct proc* p, struct memzone*);
 
 struct thread;
+int vfs_check_open_perms(const path_t* path, int flags);
 int vfs_perm_to_read(dentry_t* dentry, struct thread* t);
 int vfs_perm_to_write(dentry_t* dentry, struct thread* t);
 int vfs_perm_to_execute(dentry_t* dentry, struct thread* t);

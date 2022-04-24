@@ -21,6 +21,7 @@ static socket_t* _socket_create(int domain, int type, int protocol)
     socket_list[next_socket].protocol = protocol;
     socket_list[next_socket].buffer = sync_ringbuffer_create_std();
     socket_list[next_socket].d_count = 1;
+    socket_list[next_socket].mode = 0777;
     spinlock_init(&socket_list[next_socket].lock);
     return &socket_list[next_socket++];
 }
