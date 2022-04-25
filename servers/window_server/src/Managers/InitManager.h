@@ -55,10 +55,12 @@ public:
         WinServer::LoadingScreen::the().move_progress<T, Cost>();
     }
 
-    static inline int launch_app(const char* path)
+    static inline int launch_app(const char* path, int uid = 0)
     {
         int pid = fork();
         if (!pid) {
+            setuid(uid);
+            setgid(uid);
             for (int i = 3; i < 32; i++) {
                 close(i);
             }

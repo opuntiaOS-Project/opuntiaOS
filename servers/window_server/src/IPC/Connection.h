@@ -23,7 +23,7 @@ public:
         return *s_WinServer_Connection_the;
     }
 
-    explicit Connection(const LIPC::DoubleSidedConnection& conn);
+    Connection();
 
     inline void listen()
     {

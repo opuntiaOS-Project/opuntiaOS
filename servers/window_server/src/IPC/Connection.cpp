@@ -21,8 +21,8 @@ namespace WinServer {
 
 Connection* s_WinServer_Connection_the = nullptr;
 
-Connection::Connection(const LIPC::DoubleSidedConnection& conn)
-    : m_connection(conn)
+Connection::Connection()
+    : m_connection(LIPC::DoubleSidedConnection(socket(PF_LOCAL, 0, 0), socket(PF_LOCAL, 0, 0)))
     , m_server_decoder()
     , m_client_decoder()
     , m_connection_with_clients(m_connection, m_server_decoder, m_client_decoder)
