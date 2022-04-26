@@ -15,6 +15,10 @@ kernel_c_flags = [
 kernel_asm_flags = []
 kernel_ld_flags = []
 
+if (debug_build) {
+  kernel_c_flags += [ "-DDEBUG_KERNEL" ]
+}
+
 if (kernel_symbols) {
   kernel_c_flags += [ "-ggdb" ]
 }

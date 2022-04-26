@@ -94,6 +94,7 @@ void* kmalloc_page_aligned()
 void kfree(void* ptr)
 {
     if (!ptr) {
+        DEBUG_ASSERT("NULL at kfree");
         return;
     }
 
@@ -107,6 +108,7 @@ void kfree(void* ptr)
 void kfree_aligned(void* ptr)
 {
     if (!ptr) {
+        DEBUG_ASSERT("NULL at kfree_aligned");
         return;
     }
 

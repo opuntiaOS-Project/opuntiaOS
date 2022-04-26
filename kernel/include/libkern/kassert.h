@@ -21,6 +21,16 @@ void assert_handler(const char* cond, const char* func, const char* file, int li
         assert_handler(#x, __func__, __FILE__, __LINE__); \
     }
 
+#ifdef DEBUG_KERNEL
+#define DEBUG_ASSERT(x)                                   \
+    if (unlikely(!(x))) {                                 \
+        assert_handler(#x, __func__, __FILE__, __LINE__); \
+    }
+#else
+#undef DEBUG_ASSERT
+#define DEBUG_ASSERT(x)
+#endif
+
 void kpanic(const char* msg) NORETURN;
 void kpanic_tf(const char* err_msg, trapframe_t* tf) NORETURN;
 
