@@ -7,8 +7,9 @@
  */
 
 #pragma once
-#include "../../../servers/window_server/shared/Connections/WSConnection.h"
-#include "../../../servers/window_server/shared/MessageContent/Window.h"
+#include <libapi/window_server/Connections/WSConnection.h>
+#include <libapi/window_server/MessageContent/MenuBar.h>
+#include <libapi/window_server/MessageContent/Window.h>
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/SharedBuffer.h>

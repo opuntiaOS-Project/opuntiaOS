@@ -11,8 +11,8 @@ import os
 import sys
 
 connections = [
-    ["servers/window_server/shared/Connections/ws_connection.ipc",
-        "servers/window_server/shared/Connections/WSConnection.h"],
+    ["libs/libapi/includes/libapi/window_server/Connections/ws_connection.ipc",
+        "libs/libapi/includes/libapi/window_server/Connections/WSConnection.h"],
 ]
 
 for conn in connections:

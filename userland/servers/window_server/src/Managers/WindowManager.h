@@ -7,7 +7,6 @@
  */
 
 #pragma once
-#include "../../shared/Connections/WSConnection.h"
 #include "../Components/ControlBar/ControlBar.h"
 #include "../Components/MenuBar/MenuBar.h"
 #include "../Components/Security/Violations.h"
@@ -19,6 +18,7 @@
 #include "../SystemApps/SystemApp.h"
 #include "../Target/Generic/Window.h"
 #include <algorithm>
+#include <libapi/window_server/Connections/WSConnection.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/EventReceiver.h>
 #include <libipc/ServerConnection.h>

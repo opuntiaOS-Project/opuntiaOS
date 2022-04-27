@@ -39,6 +39,10 @@ template("opuntiaOS_executable_template") {
       if (i == "libcxx") {
         includes += [ "//libs/libc/include" ]
       }
+
+      if (i == "libui") {
+        includes += [ "//libs/libapi/include" ]
+      }
     }
   }
 

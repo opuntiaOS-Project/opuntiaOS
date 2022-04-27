@@ -1,0 +1,6 @@
+import("//build/libs/TEMPLATE.gni")
+
+opuntiaOS_static_library("libapi") {
+  sources = []
+  configs = [ "//build/libs:lib_flags" ]
+}

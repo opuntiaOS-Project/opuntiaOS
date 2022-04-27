@@ -7,14 +7,14 @@
  */
 
 #include "Compositor.h"
-#include "Components/Base/BaseWindow.h"
-#include "Components/ControlBar/ControlBar.h"
-#include "Components/MenuBar/MenuBar.h"
-#include "Components/Popup/Popup.h"
-#include "Devices/Screen.h"
-#include "Managers/CursorManager.h"
-#include "Managers/ResourceManager.h"
-#include "Managers/WindowManager.h"
+#include "../Components/Base/BaseWindow.h"
+#include "../Components/ControlBar/ControlBar.h"
+#include "../Components/MenuBar/MenuBar.h"
+#include "../Components/Popup/Popup.h"
+#include "../Devices/Screen.h"
+#include "../Managers/CursorManager.h"
+#include "../Managers/ResourceManager.h"
+#include "../Managers/WindowManager.h"
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/Memory.h>
 #include <libg/Context.h>

@@ -24,7 +24,7 @@ int setup_shell()
         open(pname, O_RDONLY);
         open(pname, O_WRONLY);
         open(pname, O_WRONLY);
-        execlp("/bin/onesh", "/bin/onesh", NULL);
+        execlp("/bin/tinysh", "/bin/tinysh", NULL);
         std::abort();
     }
 

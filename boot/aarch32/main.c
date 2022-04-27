@@ -23,7 +23,7 @@
 
 // #define DEBUG_BOOT
 #define KERNEL_PATH "/boot/kernel.bin"
-#define LAUNCHD_PATH "/System/launchd"
+#define LAUNCH_SERVER_PATH "/System/launch_server"
 
 extern void jump_to_kernel(void*);
 extern uint32_t _odt_phys[];
@@ -71,8 +71,8 @@ static int validate_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
         while (1) { }
     }
 
-    if (!validate_elf(LAUNCHD_PATH, drive_desc, fs_desc)) {
-        log("Can't validate launchd");
+    if (!validate_elf(LAUNCH_SERVER_PATH, drive_desc, fs_desc)) {
+        log("Can't validate launch_server");
         while (1) { }
     }
 
@@ -105,7 +105,7 @@ static void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     boot_args.devtree = odt_ptr;
     boot_args.memory_map = (void*)rammap_ptr;
     boot_args.memory_map_size = memmap_size() / sizeof(arm_memmap[0]);
-    memcpy(boot_args.init_process, LAUNCHD_PATH, sizeof(LAUNCHD_PATH));
+    memcpy(boot_args.init_process, LAUNCH_SERVER_PATH, sizeof(LAUNCH_SERVER_PATH));
 
     bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_args, sizeof(boot_args), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
 #ifdef DEBUG_BOOT

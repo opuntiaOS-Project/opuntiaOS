@@ -43,6 +43,11 @@ template("opuntiaOS_static_library") {
         includes += [ "//libs/libc/include" ]
       }
 
+      # LibAPI is a lightweight library to use shared headers with API between libs and apps.
+      if (i == "libui") {
+        includes += [ "//libs/libapi/include" ]
+      }
+
       # When libcxx is a dependency, we also have to link to libcxxabi.
       # We add libcxxabi as a dependency.
       if (i == "libcxx") {

@@ -34,7 +34,7 @@ int main()
     WinServer::InitManager::add_widget<WinServer::Clock>();
     WinServer::InitManager::add_widget<WinServer::ControlPanelToggle>();
 
-    WinServer::InitManager::launch_app(LAUNCH_PATH);
+    WinServer::InitManager::launch_app(LAUNCH_PATH, 10);
 
     WinServer::LoadingScreen::destroy_the();
     return event_loop->run();

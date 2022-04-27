@@ -5,7 +5,7 @@
 
 void load_from_file(LaunchServer::LaunchWatchdog& launch_watchdog)
 {
-    auto json_parser = LFoundation::Json::Parser("/System/launchd_config.json");
+    auto json_parser = LFoundation::Json::Parser("/System/launch_server_config.json");
     LFoundation::Json::Object* jobj_root = json_parser.object();
     if (jobj_root->invalid()) {
         std::abort();

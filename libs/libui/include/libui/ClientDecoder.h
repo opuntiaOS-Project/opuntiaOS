@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#include "../../../servers/window_server/shared/Connections/WSConnection.h"
+#include <libapi/window_server/Connections/WSConnection.h>
 #include <libfoundation/EventLoop.h>
 
 namespace UI {

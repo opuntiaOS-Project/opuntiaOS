@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../../../../servers/window_server/shared/MessageContent/MouseAction.h"
+#include <libapi/window_server/MessageContent/MouseAction.h>
 #include <libfoundation/Event.h>
 #include <libg/Rect.h>
 #include <string>

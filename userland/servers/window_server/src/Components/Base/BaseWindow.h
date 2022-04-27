@@ -7,10 +7,10 @@
  */
 
 #pragma once
-#include "../../../shared/MessageContent/MenuBar.h"
-#include "../../../shared/MessageContent/Window.h"
 #include "../../IPC/Connection.h"
 #include "../MenuBar/MenuItem.h"
+#include <libapi/window_server/MessageContent/MenuBar.h>
+#include <libapi/window_server/MessageContent/Window.h>
 #include <libfoundation/SharedBuffer.h>
 #include <libg/PixelBitmap.h>
 #include <libg/Rect.h>

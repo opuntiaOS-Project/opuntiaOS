@@ -28,6 +28,7 @@ public:
     }
 
     void add(const Exec& exec) { m_execs.push_back(exec); }
+    void add(Exec&& exec) { m_execs.push_back(std::move(exec)); }
 
 private:
     std::vector<Exec> m_execs;

@@ -7,9 +7,9 @@
  */
 
 #include "WindowManager.h"
-#include "../../shared/MessageContent/MouseAction.h"
 #include "../Devices/Screen.h"
 #include "../Managers/CursorManager.h"
+#include <libapi/window_server/MessageContent/MouseAction.h>
 #include <libfoundation/KeyboardMapping.h>
 #include <libfoundation/Logger.h>
 

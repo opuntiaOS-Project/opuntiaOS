@@ -7,10 +7,10 @@
  */
 
 #pragma once
-#include "../../../shared/MessageContent/MenuBar.h"
 #include "../../Managers/CursorManager.h"
 #include "MenuItem.h"
 #include "Widgets/BaseWidget.h"
+#include <libapi/window_server/MessageContent/MenuBar.h>
 #include <libfoundation/EventLoop.h>
 #include <libfoundation/Logger.h>
 #include <libg/Context.h>

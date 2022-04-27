@@ -25,6 +25,7 @@ opuntiaOS_static_library("libui") {
     "libfoundation",
     "libipc",
     "libg",
+    "libapi",
     "libfreetype",
   ]
   configs = [ "//build/libs:libcxx_flags" ]

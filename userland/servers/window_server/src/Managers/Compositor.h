@@ -7,8 +7,8 @@
  */
 
 #pragma once
-#include "../shared/Connections/WSConnection.h"
-#include "IPC/ServerDecoder.h"
+#include "../IPC/ServerDecoder.h"
+#include <libapi/window_server/Connections/WSConnection.h>
 #include <libipc/ServerConnection.h>
 #include <vector>
 

@@ -46,7 +46,7 @@ opuntiaOS_executable("window_server") {
     "libfoundation",
     "libipc",
     "libg",
-    "libui",
+    "libapi",
   ]
 
   include_dirs = [ "//servers/window_server/src/" ]

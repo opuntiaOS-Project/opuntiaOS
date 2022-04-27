@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#include "../../../../servers/window_server/shared/MessageContent/MenuBar.h"
+#include <libapi/window_server/MessageContent/MouseAction.h>
 #include <libui/Common/MenuItem.h>
 #include <string>
 #include <utility>

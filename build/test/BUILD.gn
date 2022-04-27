@@ -8,12 +8,12 @@ group("test") {
   # If we run test, let's include the entry point.
   if (test_method == "tests") {
     deps += [
-      "//test/runner:launchd",
+      "//test/runner:launch_server",
       "//test/kernel:test_kernel",
     ]
   }
 
   if (test_method == "bench") {
-    deps += [ "//test/bench:launchd" ]
+    deps += [ "//test/bench:launch_server" ]
   }
 }

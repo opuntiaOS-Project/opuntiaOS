@@ -7,8 +7,8 @@
  */
 
 #pragma once
-#include "../../shared/Connections/WSConnection.h"
 #include "../Managers/Compositor.h"
+#include <libapi/window_server/Connections/WSConnection.h>
 
 namespace WinServer {
 
