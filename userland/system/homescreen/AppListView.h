@@ -18,7 +18,7 @@ public:
     void set_target_window_id(int winid) { m_target_window_id = winid; }
 
     void display(const LG::Rect& rect) override;
-    void mouse_down(const LG::Point<int>& location) override { on_click(); }
+    void mouse_up() override { on_click(); }
 
 private:
     void on_click();

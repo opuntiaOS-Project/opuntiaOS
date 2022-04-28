@@ -16,7 +16,7 @@ public:
     IconView(View* superview, const LG::Rect& frame);
 
     void display(const LG::Rect& rect) override;
-    void mouse_down(const LG::Point<int>& location) override { on_click(); }
+    void mouse_up() override { on_click(); }
 
     static constexpr size_t underline_height() { return 3; }
 
