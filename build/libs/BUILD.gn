@@ -88,7 +88,6 @@ group("libs") {
   deps = [
     "//libs/libc:libc",
     "//libs/libcxx:libcxx",
-    "//libs/libcxxabi:libcxxabi",
     "//libs/libfoundation:libfoundation",
     "//libs/libg:libg",
     "//libs/libui:libui",

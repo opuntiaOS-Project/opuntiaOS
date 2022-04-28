@@ -1,6 +1,11 @@
 import("//build/libs/TEMPLATE.gni")
 import("//libs/libc/LIBC_SOURCES.gni")
 
+libcxxabi_sources = [ "abi/cxa_runtime.cpp" ]
+if (target_cpu == "aarch32") {
+  libcxxabi_sources += [ "abi/aeabi_runtime.cpp" ]
+}
+
 opuntiaOS_static_library("libcxx") {
   sources = libc_sources_for_libcxx
 
@@ -10,6 +15,7 @@ opuntiaOS_static_library("libcxx") {
     "init/_lib.cpp",
     "src/iostream.cpp",
   ]
+  sources += libcxxabi_sources
 
   if (target_cpu == "aarch32") {
     sources += [ "../libc/string/routines/aarch32/memset.S" ]
@@ -18,11 +24,8 @@ opuntiaOS_static_library("libcxx") {
   include_dirs = [
     "include/",
     "//libs/libc/include/",
-    "//libs/libcxxabi/include/",
     "//libs/",
   ]
-
-  deplibs = [ "libcxxabi" ]
 
   configs = [ "//build/libs:libcxx_flags" ]
 

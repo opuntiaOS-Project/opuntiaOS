@@ -47,13 +47,6 @@ template("opuntiaOS_static_library") {
       if (i == "libui") {
         includes += [ "//libs/libapi/include" ]
       }
-
-      # When libcxx is a dependency, we also have to link to libcxxabi.
-      # We add libcxxabi as a dependency.
-      if (i == "libcxx") {
-        linking_deplib_bulders_list += [ "//libs/libcxxabi:libcxxabi_build" ]
-        linking_deplib_list += [ compiled_lib_output_name_base + "libcxxabi.a" ]
-      }
     }
   }
   includes += [ "//libs/" + lib_name + "/include" ]
