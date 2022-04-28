@@ -77,7 +77,7 @@ void ProcessInfo::parse_info_file()
             break;
         }
     }
-    memcpy(&execpath[start], "info.json", sizeof("info.json") + 1);
+    memcpy(&execpath[start], "info.json", sizeof("info.json"));
 
     auto json_parser = LFoundation::Json::Parser(execpath);
     LFoundation::Json::Object* jobj_root = json_parser.object();
