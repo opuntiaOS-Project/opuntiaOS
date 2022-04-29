@@ -6,6 +6,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+
 #include <drivers/generic/keyboard.h>
 #include <drivers/generic/keyboard_mappings/scancode_set1.h>
 #include <fs/devfs/devfs.h>
