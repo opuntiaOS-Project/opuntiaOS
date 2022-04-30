@@ -6,11 +6,13 @@
  * found in the LICENSE file.
  */
 
+#include <drivers/generic/screen.h>
 #include <drivers/generic/uart.h>
-#include <libkern/libkern.h>
 #include <libkern/lock.h>
 #include <libkern/log.h>
 #include <libkern/stdarg.h>
+#include <libkern/types.h>
+#include <mem/boot.h>
 
 // Turn off lock debug output for log.
 #ifdef DEBUG_SPINLOCK
@@ -22,7 +24,7 @@ static spinlock_t _log_lock;
 
 static int putch_callback_stream(char c, char* buf_base, size_t* written, void* callback_params)
 {
-    return uart_write(COM1, c);
+    return (uart_write(COM1, c) && screen_put_char(c));
 }
 
 static int vlog_unfmt(const char* format, va_list arg)
@@ -45,7 +47,7 @@ int log(const char* format, ...)
     spinlock_acquire(&_log_lock);
     va_list arg;
     va_start(arg, format);
-    int ret = vlog_fmt("\033[1;37m[LOG]\033[0m  ", format, arg);
+    int ret = vlog_fmt("[LOG]  ", format, arg);
     va_end(arg);
     spinlock_release(&_log_lock);
     return ret;
@@ -56,7 +58,7 @@ int log_warn(const char* format, ...)
     spinlock_acquire(&_log_lock);
     va_list arg;
     va_start(arg, format);
-    int ret = vlog_fmt("\033[1;33m[WARN]\033[0m ", format, arg);
+    int ret = vlog_fmt("[WARN] ", format, arg);
     va_end(arg);
     spinlock_release(&_log_lock);
     return ret;
@@ -67,7 +69,7 @@ int log_error(const char* format, ...)
     spinlock_acquire(&_log_lock);
     va_list arg;
     va_start(arg, format);
-    int ret = vlog_fmt("\033[1;31m[ERR]\033[0m  ", format, arg);
+    int ret = vlog_fmt("[ERR]  ", format, arg);
     va_end(arg);
     spinlock_release(&_log_lock);
     return ret;
@@ -84,8 +86,9 @@ int log_not_formatted(const char* format, ...)
     return ret;
 }
 
-void logger_setup()
+void logger_setup(boot_args_t* boot_args)
 {
     spinlock_init(&_log_lock);
     uart_setup();
+    screen_setup(boot_args);
 }

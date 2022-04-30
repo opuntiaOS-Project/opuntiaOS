@@ -7,7 +7,7 @@ import glob
 import sys
 # sys.argv[2] Target to generate for
 
-platforms = ['x86', 'aarch32']
+platforms = ['x86', 'aarch32', 'aarch64']
 
 ignore_platforms = []
 
@@ -30,15 +30,29 @@ def is_file_blocked(name):
     return False
 
 
-for path, subdirs, files in os.walk("../kernel/kernel"):
-    for name in files:
-        # It runs from out dir, at least it should
-        file = "//" + path[3:] + "/" + name
-        if not is_file_type(file, 'c') and not is_file_type(file, 's') and not is_file_type(file, 'S'):
-            continue
-        if is_file_blocked(file):
-            continue
-        print(file)
+if sys.argv[2] == "aarch64":
+    print("//kernel/kernel/platform/aarch64/interrupts/interrupts.s")
+    print("//kernel/kernel/drivers/aarch64/apl/uart.c")
+    print("//kernel/kernel/drivers/generic/screen.c")
+    print("//kernel/kernel/libkern/log.c")
+    print("//kernel/kernel/libkern/printf.c")
+    print("//kernel/kernel/libkern/kassert.c")
+    print("//kernel/kernel/libkern/utils.c")
+    print("//kernel/kernel/libkern/mem.c")
+    print("//kernel/kernel/platform/aarch64/system.c")
+    print("//kernel/kernel/kernel.c")
+    print("//kernel/kernel/algo/bitmap.c")
+    print("//kernel/kernel/mem/pmm.c")
+else:
+    for path, subdirs, files in os.walk("../kernel/kernel"):
+        for name in files:
+            # It runs from out dir, at least it should
+            file = "//" + path[3:] + "/" + name
+            if not is_file_type(file, 'c') and not is_file_type(file, 's') and not is_file_type(file, 'S'):
+                continue
+            if is_file_blocked(file):
+                continue
+            print(file)
 
 
 def special_paths(platform):

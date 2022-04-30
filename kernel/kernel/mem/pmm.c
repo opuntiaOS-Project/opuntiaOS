@@ -12,7 +12,7 @@
 #include <libkern/log.h>
 #include <mem/pmm.h>
 
-// define DEBUG_PMM
+#define DEBUG_PMM
 
 static void _pmm_init_ram();
 static void _pmm_allocate_mat();
@@ -35,7 +35,7 @@ void _pmm_mark_avail_region(size_t region_start, size_t region_len)
     region_start = ROUND_CEIL(region_start, PMM_BLOCK_SIZE) - pmm_state.ram_offset;
     region_len = ROUND_FLOOR(region_len, PMM_BLOCK_SIZE);
 #ifdef DEBUG_PMM
-    log("PMM: Marked as avail: %x - %x", region_start + pmm_state.ram_offset, region_len);
+    log("PMM: Marked as avail: %zx - %zx", region_start + pmm_state.ram_offset, region_len);
 #endif
 
     size_t block_id = region_start / PMM_BLOCK_SIZE;
@@ -50,7 +50,7 @@ void _pmm_mark_used_region(size_t region_start, size_t region_len)
     region_start = ROUND_FLOOR(region_start, PMM_BLOCK_SIZE) - pmm_state.ram_offset;
     region_len = ROUND_CEIL(region_len, PMM_BLOCK_SIZE);
 #ifdef DEBUG_PMM
-    log("PMM: Marked as used: %x - %x", region_start + pmm_state.ram_offset, region_len);
+    log("PMM: Marked as used: %zx - %zx", region_start + pmm_state.ram_offset, region_len);
 #endif
 
     size_t block_id = region_start / PMM_BLOCK_SIZE;
@@ -69,13 +69,19 @@ static void _pmm_init_ram()
     memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->memory_map;
     for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
-            pmm_state.ram_offset = min(pmm_state.ram_offset, memory_map[i].startLo);
+            uint64_t start = ((uint64_t)memory_map[i].startHi << 32) + memory_map[i].startLo;
+            uint64_t size = ((uint64_t)memory_map[i].sizeHi << 32) + memory_map[i].sizeLo;
+            pmm_state.ram_offset = min(pmm_state.ram_offset, start);
+
+            log("Pmm desc: %zx %zx", start, size);
 
             // This is a hack, since memory map differs a lot for x86 and arm.
             // Might need to unify this somehow (maybe pass info from bootloader?).
 #ifdef __i386__
-            pmm_state.ram_size = max(pmm_state.ram_size, memory_map[i].startLo + memory_map[i].sizeLo);
+            pmm_state.ram_size = max(pmm_state.ram_size, start + memory_map[i].sizeLo);
 #elif __arm__
+            pmm_state.ram_size += memory_map[i].sizeLo;
+#elif __aarch64__
             pmm_state.ram_size += memory_map[i].sizeLo;
 #endif
         }
@@ -84,10 +90,13 @@ static void _pmm_init_ram()
 
 static void _pmm_allocate_mat()
 {
-    size_t mat_cover_len = pmm_state.ram_size - pmm_state.ram_offset;
+    size_t mat_cover_len = pmm_state.ram_size;
     pmm_state.mat = bitmap_wrap((void*)(pmm_state.kernel_va_base + pmm_state.kernel_data_size), mat_cover_len / PMM_BLOCK_SIZE);
     pmm_state.max_blocks = mat_cover_len / PMM_BLOCK_SIZE;
     pmm_state.used_blocks = pmm_state.max_blocks;
+#ifdef DEBUG_PMM
+    log("Allocated MAT @ %p - %zx", pmm_state.mat.data, pmm_state.mat.len);
+#endif
     memset(pmm_state.mat.data, 0xff, pmm_state.mat.len / 8);
     pmm_state.kernel_data_size += ROUND_CEIL(pmm_state.mat.len / 8, PMM_BLOCK_SIZE);
 }
@@ -97,10 +106,12 @@ static void _pmm_init_mat()
     memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->memory_map;
     for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
         if (memory_map[i].type == 1) {
+            uint64_t start = ((uint64_t)memory_map[i].startHi << 32) + memory_map[i].startLo;
+            uint64_t size = ((uint64_t)memory_map[i].sizeHi << 32) + memory_map[i].sizeLo;
 #ifdef DEBUG_PMM
-            log("  %d: %x - %x", i, memory_map[i].startLo, memory_map[i].sizeLo);
+            log("  %d: %zx - %zx", i, start, size);
 #endif
-            _pmm_mark_avail_region(memory_map[i].startLo, memory_map[i].sizeLo);
+            _pmm_mark_avail_region(start, size);
         }
     }
 }

@@ -42,7 +42,7 @@ elif (arch == "x86"):
         OBJCOPY_TARGET = "elf32-i386"
 else:
     print("Unsupported arch {0}".format(arch))
-    exit(1)
+    exit(0)
 
 outpath_abs = os.getcwd() + '/' + outpath
 
