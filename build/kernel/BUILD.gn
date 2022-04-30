@@ -92,6 +92,26 @@ if (target_cpu == "aarch32") {
   }
 }
 
+if (target_cpu == "aarch64") {
+  print(target_cpu)
+  kernel_c_flags += [
+    "-fno-builtin",
+    "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
+    "-fno-pie",
+  ]
+  kernel_asm_flags += [
+    "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
+  ]
+  kernel_ld_flags += [ "-nostdlib" ]
+
+  if (host == "llvm") {
+    kernel_ld_flags += [
+      "--oformat",
+      "elf64-littlearm",
+    ]
+  }
+}
+
 config("kernel_flags") {
   cflags = kernel_c_flags
   asmflags = kernel_asm_flags
@@ -132,19 +152,10 @@ executable("kernel_build") {
   ldflags = [
     # See comment at EXEC_TEMPLATE.gni about elfsign_section.o.
     # It is required to sign a binary.
-    rebase_path("$root_out_dir/tmp/elfsign_section.o", ""),
     "-T$linker_script",
   ]
 }
 
-opuntiaOS_signexec("kernel") {
-  binpath = "boot/kernel.bin"
-}
-
 group("kernel") {
-  deps = [
-    ":kernel_build",
-    ":sign_kernel",
-    "//build/boot:boot",
-  ]
+  deps = [ ":kernel_build" ]
 }

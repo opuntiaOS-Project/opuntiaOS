@@ -155,6 +155,7 @@ static ssize_t _printf_internal(char* buf, const char* format, _putch_callback c
     const char* p = format;
     size_t written = 0;
     while (*p) {
+        int z_arg = 0;
         int l_arg = 0;
         int h_arg = 0;
         if (*p == '%' && *(p + 1)) {
@@ -164,6 +165,12 @@ static ssize_t _printf_internal(char* buf, const char* format, _putch_callback c
             switch (*p) {
             case 'l':
                 l_arg++;
+                if (*(p + 1)) {
+                    goto parse_args;
+                }
+                break;
+            case 'z':
+                z_arg++;
                 if (*(p + 1)) {
                     goto parse_args;
                 }
@@ -191,7 +198,10 @@ static ssize_t _printf_internal(char* buf, const char* format, _putch_callback c
                 }
                 break;
             case 'u':
-                if (l_arg) {
+                if (z_arg) {
+                    size_t value = va_arg(arg, size_t);
+                    _printf_u64(value, buf, &written, callback, callback_params);
+                } else if (l_arg) {
                     uint64_t value = va_arg(arg, uint64_t);
                     _printf_u64(value, buf, &written, callback, callback_params);
                 } else {
@@ -200,7 +210,10 @@ static ssize_t _printf_internal(char* buf, const char* format, _putch_callback c
                 }
                 break;
             case 'x':
-                if (l_arg) {
+                if (z_arg) {
+                    size_t value = va_arg(arg, size_t);
+                    _printf_hex64(value, buf, &written, callback, callback_params);
+                } else if (l_arg) {
                     uint64_t value = va_arg(arg, uint64_t);
                     _printf_hex64(value, buf, &written, callback, callback_params);
                 } else {
@@ -228,6 +241,11 @@ static ssize_t _printf_internal(char* buf, const char* format, _putch_callback c
                 const char* value = va_arg(arg, const char*);
                 _printf_string(value, buf, &written, callback, callback_params);
             } break;
+            case 'p': {
+                uintptr_t value = va_arg(arg, uintptr_t);
+                _printf_hex64(value, buf, &written, callback, callback_params);
+            } break;
+
             default:
                 break;
             }

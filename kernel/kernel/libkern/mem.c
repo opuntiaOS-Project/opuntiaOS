@@ -7,9 +7,8 @@
  */
 
 #include <libkern/libkern.h>
-#include <mem/kmalloc.h>
 
-#ifdef __i386__
+#ifndef __arm__
 void* memset(void* dest, uint8_t fll, size_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i) {

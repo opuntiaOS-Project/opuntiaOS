@@ -80,17 +80,25 @@ typedef __time_t time_t;
 #if defined(__clang__)
 typedef unsigned int size_t;
 typedef int ssize_t;
+typedef int32_t intptr_t;
+typedef uint32_t uintptr_t;
 #elif defined(__GNUC__) || defined(__GNUG__)
 typedef unsigned long size_t;
 typedef long ssize_t;
+typedef int32_t intptr_t;
+typedef uint32_t uintptr_t;
 #endif
 #elif __arm__
 typedef unsigned int size_t;
 typedef int ssize_t;
-#endif
-
 typedef int32_t intptr_t;
 typedef uint32_t uintptr_t;
+#elif __aarch64__
+typedef uint64_t size_t;
+typedef int64_t ssize_t;
+typedef int64_t intptr_t;
+typedef uint64_t uintptr_t;
+#endif
 
 #define __user
 

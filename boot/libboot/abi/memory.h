@@ -27,6 +27,15 @@ struct mem_desc {
 };
 typedef struct mem_desc mem_desc_t;
 
+struct fb_boot_desc {
+    uintptr_t vaddr;
+    uintptr_t paddr;
+    size_t width;
+    size_t height;
+    size_t pixels_per_row;
+};
+typedef struct fb_boot_desc fb_boot_desc_t;
+
 struct boot_args {
     size_t paddr;
     size_t vaddr;
@@ -34,6 +43,7 @@ struct boot_args {
     size_t memory_map_size;
     size_t kernel_size;
     void* devtree;
+    fb_boot_desc_t fb_boot_desc;
     char cmd_args[32];
     char init_process[32];
 };

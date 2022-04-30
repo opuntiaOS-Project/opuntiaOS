@@ -4,7 +4,8 @@
 #include <libkern/printf.h>
 #include <libkern/types.h>
 
-void logger_setup();
+struct boot_args;
+void logger_setup(struct boot_args* boot_args);
 
 int log(const char* format, ...);
 int log_warn(const char* format, ...);
