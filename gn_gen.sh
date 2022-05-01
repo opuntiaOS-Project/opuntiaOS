@@ -34,6 +34,11 @@ for arg in "$@"; do
     tests
     bench
 
+--target_board
+    Possible values (aarch64):
+        qemu-virt (default)
+        apl
+
 --help
   Prints all options of ./gn_gen.sh"
         exit

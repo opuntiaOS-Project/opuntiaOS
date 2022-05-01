@@ -89,6 +89,6 @@ int log_not_formatted(const char* format, ...)
 void logger_setup(boot_args_t* boot_args)
 {
     spinlock_init(&_log_lock);
-    uart_setup();
+    uart_setup(boot_args);
     screen_setup(boot_args);
 }

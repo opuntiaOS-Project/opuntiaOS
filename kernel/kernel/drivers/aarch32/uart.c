@@ -9,6 +9,7 @@
 #include <drivers/aarch32/uart.h>
 #include <drivers/devtree.h>
 #include <drivers/driver_manager.h>
+#include <mem/boot.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
 
@@ -36,7 +37,7 @@ static inline int _uart_map_itself()
 }
 
 /* No setup for arm version now */
-void uart_setup()
+void uart_setup(boot_args_t* boot_args)
 {
 }
 

@@ -6,13 +6,13 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_DRIVERS_AARCH32_GICV2_H
-#define _KERNEL_DRIVERS_AARCH32_GICV2_H
+#ifndef _KERNEL_DRIVERS_AARCH64_GICV2_H
+#define _KERNEL_DRIVERS_AARCH64_GICV2_H
 
 #include <drivers/driver_manager.h>
 #include <libkern/mask.h>
 #include <libkern/types.h>
-#include <platform/aarch32/interrupts.h>
+#include <platform/aarch64/interrupts.h>
 
 enum GICDControlMasks {
     MASKDEFINE(GICD_ENABLE, 0, 1),
@@ -74,4 +74,4 @@ void gicv2_install_secondary_cpu();
 uint32_t gicv2_interrupt_descriptor();
 void gicv2_end(uint32_t int_disc);
 
-#endif //_KERNEL_DRIVERS_AARCH32_GICV2_H
+#endif //_KERNEL_DRIVERS_AARCH64_GICV2_H
