@@ -31,7 +31,7 @@ def is_file_blocked(name):
 
 
 if sys.argv[2] == "aarch64":
-    print("//kernel/kernel/platform/aarch64/interrupts/interrupts.s")
+    print("//kernel/kernel/platform/aarch64/interrupts/interrupts.S")
     print("//kernel/kernel/drivers/aarch64/apl/uart.c")
     print("//kernel/kernel/drivers/generic/screen.c")
     print("//kernel/kernel/libkern/log.c")
@@ -43,6 +43,11 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/kernel.c")
     print("//kernel/kernel/algo/bitmap.c")
     print("//kernel/kernel/mem/pmm.c")
+    print("//kernel/kernel/platform/aarch64/qemu/qemuboot.c")
+    print("//kernel/kernel/platform/aarch64/init.c")
+    print("//kernel/kernel/platform/aarch64/interrupts/handlers.c")
+    print("//kernel/kernel/drivers/aarch64/timer.c")
+    print("//kernel/kernel/drivers/aarch64/gicv2.c")
 else:
     for path, subdirs, files in os.walk("../kernel/kernel"):
         for name in files:

@@ -9,7 +9,7 @@ declare_args() {
   host = "gnu"
   llvm_bin_path = ""
   device_type = "desktop"
-  target_board = "i686"
+  target_board = ""
 
   # Kernel Flags
   kernel_symbols = true
@@ -37,8 +37,14 @@ if (device_type == "d") {
 if (target_cpu == "aarch32") {
   # Currently we support only vexpress-a15.
   target_board = "vexpress-a15"
-} else {
+}
+if (target_cpu == "x86") {
   target_board = "i686"
+}
+if (target_cpu == "aarch64") {
+  if (target_board == "") {
+    target_board = "qemu_virt"
+  }
 }
 
 if (host == "gnu") {

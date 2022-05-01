@@ -11,12 +11,14 @@
 
 #include <libkern/types.h>
 
-// Fake UART for a cpu 10X
+// Fake UART for aarch64.
+// TODO(aarch64): Better to remove this COM1 at all for logger.
 #define COM1 (0x0)
 
-static inline void uart_setup() { }
+struct boot_args;
+void uart_setup(struct boot_args* boot_args);
 static inline void uart_remap() { }
-static inline int uart_write(int port, uint8_t data) { return -1; }
+int uart_write(int port, uint8_t data);
 static inline int uart_read(int port, uint8_t* data) { return -1; }
 
 #endif /* _KERNEL_DRIVERS_AARCH64_APL_UART_H */

@@ -8,37 +8,26 @@
 
 #include <drivers/generic/screen.h>
 #include <libkern/types.h>
+#include <mem/boot.h>
 
-static uintptr_t gUartBase = 0x200000000 + 0x20a0c0000;
+volatile uint8_t* uart = NULL;
 
-#define rULCON0 (*(volatile uint32_t*)(gUartBase + 0x00)) // UART 0 Line control
-#define rUCON0 (*(volatile uint32_t*)(gUartBase + 0x04)) // UART 0 Control
-#define rUFCON0 (*(volatile uint32_t*)(gUartBase + 0x08)) // UART 0 FIFO control
-#define rUMCON0 (*(volatile uint32_t*)(gUartBase + 0x0c)) // UART 0 Modem control
-#define rUTRSTAT0 (*(volatile uint32_t*)(gUartBase + 0x10)) // UART 0 Tx/Rx status
-#define rUERSTAT0 (*(volatile uint32_t*)(gUartBase + 0x14)) // UART 0 Rx error status
-#define rUFSTAT0 (*(volatile uint32_t*)(gUartBase + 0x18)) // UART 0 FIFO status
-#define rUMSTAT0 (*(volatile uint32_t*)(gUartBase + 0x1c)) // UART 0 Modem status
-#define rUTXH0 (*(volatile uint32_t*)(gUartBase + 0x20)) // UART 0 Transmission Hold
-#define rURXH0 (*(volatile uint32_t*)(gUartBase + 0x24)) // UART 0 Receive buffer
-#define rUBRDIV0 (*(volatile uint32_t*)(gUartBase + 0x28)) // UART 0 Baud rate divisor
-#define rUDIVSLOT0 (*(volatile uint32_t*)(gUartBase + 0x2C)) // UART 0 Baud rate divisor
-#define rUINTM0 (*(volatile uint32_t*)(gUartBase + 0x38)) // UART 0 Baud rate divisor
-
-void serial_putc(char c)
+void uart_setup(boot_args_t* boot_args)
 {
-    if (c == '\n')
-        serial_putc('\r');
-    if (!gUartBase)
-        return;
-    while (!(rUTRSTAT0 & 0x04)) { }
-    rUTXH0 = (unsigned)(c);
-    return;
+    // This is a huuuge stub.
+    // We have 2 platforms for aarch64: apl uses screen.h and
+    // qemu-virt uses uart, so setting it up for it only.
+    if (boot_args && boot_args->vaddr == 0x40000000) {
+        uart = (uint8_t*)0x09000000;
+    }
 }
 
-int uart_write(char data)
+int uart_write(int port, uint8_t data)
 {
-    serial_putc(data);
+    if (!uart) {
+        return -1;
+    }
+    *uart = data;
     return 0;
 }
 

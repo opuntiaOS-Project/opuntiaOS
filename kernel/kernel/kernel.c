@@ -6,9 +6,9 @@
  * found in the LICENSE file.
  */
 
-// #include <platform/generic/init.h>
-// #include <platform/generic/registers.h>
-// #include <platform/generic/system.h>
+#include <platform/generic/init.h>
+#include <platform/generic/registers.h>
+#include <platform/generic/system.h>
 
 #include <libkern/types.h>
 
@@ -70,18 +70,20 @@ static inline void wait_for_boot_cpu_to_finish(int* wt)
 void stage3(boot_args_t* boot_args)
 {
     boot_cpu_finish(&__boot_cpu_launched);
-    // system_disable_interrupts();
+    system_disable_interrupts();
     // devtree_init(boot_args);
     logger_setup(boot_args);
-    log("Starting opuntiaOS");
-    
-    // platform_init_boot_cpu();
+    log("Starting opuntiaOS, el %d", current_el());
+
+    platform_init_boot_cpu();
 
     // mem setup
     pmm_setup(boot_args);
-    while (1) {}
+    system_enable_interrupts_no_counter();
     // vmm_setup();
-    // platform_setup_boot_cpu();
+
+    platform_setup_boot_cpu();
+    while (1) { }
     // boot_cpu_finish(&__boot_cpu_setup_devices);
 
     // // installing drivers

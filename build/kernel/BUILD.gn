@@ -93,7 +93,6 @@ if (target_cpu == "aarch32") {
 }
 
 if (target_cpu == "aarch64") {
-  print(target_cpu)
   kernel_c_flags += [
     "-fno-builtin",
     "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
@@ -109,6 +108,16 @@ if (target_cpu == "aarch64") {
       "--oformat",
       "elf64-littlearm",
     ]
+  }
+
+  # Qemu virt is used as a test platform.
+  if (target_board == "qemu_virt") {
+    kernel_c_flags += [ "-DTARGET_QEMU_VIRT" ]
+    kernel_asm_flags += [ "-DTARGET_QEMU_VIRT" ]
+  }
+  if (target_board == "apl") {
+    kernel_c_flags += [ "-DTARGET_APL" ]
+    kernel_asm_flags += [ "-DTARGET_APL" ]
   }
 }
 

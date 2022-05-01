@@ -20,16 +20,32 @@
 void system_disable_interrupts();
 void system_enable_interrupts();
 void system_enable_interrupts_only_counter();
+
+inline static void system_instruction_barrier()
+{
+    asm volatile("isb");
+}
+
+inline static void system_data_synchronise_barrier()
+{
+    asm volatile("dsb sy");
+}
+
+inline static void system_data_memory_barrier()
+{
+    asm volatile("dmb sy");
+}
+
 inline static void system_disable_interrupts_no_counter()
 {
     asm volatile("msr daifset, #0xf");
-    asm volatile("isb");
+    system_instruction_barrier();
 }
 
 inline static void system_enable_interrupts_no_counter()
 {
     asm volatile("msr daifclr, #0xf");
-    asm volatile("isb");
+    system_instruction_barrier();
 }
 
 /**
