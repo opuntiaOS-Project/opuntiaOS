@@ -25,7 +25,6 @@
 
 #define TASKING_DEBUG
 
-cpu_t cpus[MAX_CPU_CNT];
 proc_t proc[MAX_PROCESS_COUNT];
 static pid_t nxt_proc = 0;
 

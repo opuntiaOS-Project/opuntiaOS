@@ -43,11 +43,20 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/kernel.c")
     print("//kernel/kernel/algo/bitmap.c")
     print("//kernel/kernel/mem/pmm.c")
-    print("//kernel/kernel/platform/aarch64/qemu/qemuboot.c")
     print("//kernel/kernel/platform/aarch64/init.c")
     print("//kernel/kernel/platform/aarch64/interrupts/handlers.c")
     print("//kernel/kernel/drivers/aarch64/timer.c")
     print("//kernel/kernel/drivers/aarch64/gicv2.c")
+    
+    print("//kernel/kernel/platform/aarch64/prekernel/qemuboot.c")
+    print("//kernel/kernel/platform/aarch64/prekernel/prekernel.S")
+    print("//kernel/kernel/platform/aarch64/prekernel/prekernel_vm.c")
+    print("//kernel/kernel/mem/bits64/vmm64.c")
+    print("//kernel/kernel/mem/bits64/vm_pspace64.c")
+    print("//kernel/kernel/mem/vm_alloc.c")
+    print("//kernel/kernel/mem/kmemzone.c")
+    print("//kernel/kernel/platform/aarch64/vmm/mmu.c")
+    print("//kernel/kernel/tasking/cpu.c")
 else:
     for path, subdirs, files in os.walk("../kernel/kernel"):
         for name in files:

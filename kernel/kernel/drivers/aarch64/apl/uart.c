@@ -17,7 +17,7 @@ void uart_setup(boot_args_t* boot_args)
     // This is a huuuge stub.
     // We have 2 platforms for aarch64: apl uses screen.h and
     // qemu-virt uses uart, so setting it up for it only.
-    if (boot_args && boot_args->vaddr == 0x40000000) {
+    if (boot_args && boot_args->paddr == 0x40000000) {
         uart = (uint8_t*)0x09000000;
     }
 }

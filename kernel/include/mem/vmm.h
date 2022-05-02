@@ -18,6 +18,8 @@
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/mmu.h>
 
+#define KERNEL_BASE 0x800000000000
+
 #define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
 
 #define IS_KERNEL_VADDR(vaddr) (vaddr >= KERNEL_BASE)
