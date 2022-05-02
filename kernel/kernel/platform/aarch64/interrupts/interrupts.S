@@ -1,14 +1,17 @@
 .extern stage3
 #ifdef TARGET_QEMU_VIRT
 .extern qemu_virt_boot_init
+.extern vm_setup
 #endif
 
-.section ".interrupt_vector_table"
+.section ".text"
 .global trap_return
 aarch64_entry:
     ldr x30, =STACK_TOP
     mov sp, x30
 #ifdef TARGET_QEMU_VIRT
+    ldr x3, =vm_setup
+    blr x3
     ldr x3, =qemu_virt_boot_init
     blr x3
 #endif

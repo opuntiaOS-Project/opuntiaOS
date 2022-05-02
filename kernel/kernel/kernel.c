@@ -18,6 +18,7 @@
 // #include <mem/kmalloc.h>
 // #include <mem/kswapd.h>
 #include <mem/pmm.h>
+#include <mem/vmm.h>
 
 // #include <fs/devfs/devfs.h>
 // #include <fs/ext2/ext2.h>
@@ -79,8 +80,7 @@ void stage3(boot_args_t* boot_args)
 
     // mem setup
     pmm_setup(boot_args);
-    system_enable_interrupts_no_counter();
-    // vmm_setup();
+    vmm_setup();
 
     platform_setup_boot_cpu();
     while (1) { }

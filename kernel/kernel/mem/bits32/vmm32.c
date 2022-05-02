@@ -994,7 +994,7 @@ static int _vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
 {
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         vm_ptable_entity_invalidate(&new_aspace->pdir->entities[i], PTABLE_LV_TOP);
-    }
+}
 
     for (int i = VMM_KERNEL_TABLES_START; i < PTABLE_ENTITY_COUNT(PTABLE_LV_TOP); i++) {
         if (!IS_INDIVIDUAL_PER_DIR(i)) {

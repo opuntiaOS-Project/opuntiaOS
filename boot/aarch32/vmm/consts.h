@@ -9,8 +9,8 @@
 #ifndef _BOOT_VMM_CONSTS_H
 #define _BOOT_VMM_CONSTS_H
 
-#define VMM_PTE_COUNT (256)
-#define VMM_PDE_COUNT (4096)
+#define VMM_LV0_ENTITY_COUNT (256)
+#define VMM_LV1_ENTITY_COUNT (4096)
 #define VMM_PAGE_SIZE (4096)
 
 #define VMM_OFFSET_IN_DIRECTORY(a) (((a) >> 20) & 0xfff)

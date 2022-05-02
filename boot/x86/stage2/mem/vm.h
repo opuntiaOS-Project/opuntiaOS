@@ -5,8 +5,8 @@
 #include "pte.h"
 #include <libboot/types.h>
 
-#define VMM_PTE_COUNT (1024)
-#define VMM_PDE_COUNT (1024)
+#define VMM_LV0_ENTITY_COUNT (1024)
+#define VMM_LV1_ENTITY_COUNT (1024)
 #define VMM_PAGE_SIZE (4096)
 
 enum VMM_ERR_CODES {
@@ -16,11 +16,11 @@ enum VMM_ERR_CODES {
 };
 
 typedef struct {
-    page_desc_t entities[VMM_PTE_COUNT];
+    page_desc_t entities[VMM_LV0_ENTITY_COUNT];
 } ptable_t;
 
 typedef struct pdirectory {
-    table_desc_t entities[VMM_PDE_COUNT];
+    table_desc_t entities[VMM_LV1_ENTITY_COUNT];
 } pdirectory_t;
 
 int vm_setup();

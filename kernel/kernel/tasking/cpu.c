@@ -8,6 +8,8 @@
 
 #include <tasking/cpu.h>
 
+cpu_t cpus[MAX_CPU_CNT];
+
 void _asm_cpu_enter_user_space()
 {
     cpu_enter_user_space();

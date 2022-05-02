@@ -49,11 +49,11 @@ struct PACKED table_desc {
 typedef struct table_desc table_desc_t;
 
 typedef struct {
-    page_desc_t entities[VMM_PTE_COUNT];
+    page_desc_t entities[VMM_LV0_ENTITY_COUNT];
 } ptable_t;
 
 typedef struct pdirectory {
-    table_desc_t entities[VMM_PDE_COUNT];
+    table_desc_t entities[VMM_LV1_ENTITY_COUNT];
 } pdirectory_t;
 
 void vm_setup(size_t kernel_vaddr, size_t kernel_paddr, size_t kernel_size);

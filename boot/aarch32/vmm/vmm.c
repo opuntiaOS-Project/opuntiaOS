@@ -76,7 +76,7 @@ static ptable_t* vm_alloc_ptable()
 static ptable_t* map_table(size_t tphyz, size_t tvirt)
 {
     ptable_t* table = vm_alloc_ptable();
-    for (size_t phyz = tphyz, virt = tvirt, i = 0; i < VMM_PTE_COUNT; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
+    for (size_t phyz = tphyz, virt = tvirt, i = 0; i < VMM_LV0_ENTITY_COUNT; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
         page_desc_t new_page;
         new_page.one = 1;
         new_page.baddr = (phyz / VMM_PAGE_SIZE);
@@ -105,7 +105,7 @@ static void vm_init()
 {
     pdir = vm_alloc_pdir();
 
-    for (int i = 0; i < VMM_PDE_COUNT; i++) {
+    for (int i = 0; i < VMM_LV1_ENTITY_COUNT; i++) {
         pdir->entities[i].valid = 0;
     }
 }
@@ -129,7 +129,7 @@ void vm_setup(size_t kernel_vaddr, size_t kernel_paddr, size_t kernel_size)
 
     size_t table_paddr = ALIGN_TO_TABLE(kernel_paddr);
     size_t table_vaddr = ALIGN_TO_TABLE(kernel_vaddr);
-    const size_t bytes_per_table = VMM_PTE_COUNT * VMM_PAGE_SIZE;
+    const size_t bytes_per_table = VMM_LV0_ENTITY_COUNT * VMM_PAGE_SIZE;
     const size_t tables_per_kernel = align_size((kernel_size + bytes_per_table - 1) / bytes_per_table, 4);
     for (int i = 0; i < tables_per_kernel; i++) {
         map_table(table_paddr, table_paddr);
