@@ -1,5 +1,5 @@
 _pa_base = 0x40000000;
-_va_base = 0xfffffff000000000;
+_va_base = 0xffffff8000000000;
 
 /* _pa_base = 0xc10000000;
 _va_base = 0xc10000000; */
@@ -15,6 +15,7 @@ SECTIONS
 		*(.prekernel_entry)
 		*(.prekernel_code)
 		*(.prekernel_data)
+		*(.prekernel_rodata)
 	}
 	.prekernel_stack ALIGN(4K) :
 	{

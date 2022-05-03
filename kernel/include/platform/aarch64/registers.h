@@ -21,4 +21,13 @@ static inline uint64_t current_el()
     return el >> 2;
 }
 
+static inline uint64_t current_sp()
+{
+    uint64_t el;
+    asm volatile("mov %x0, sp"
+                 : "=r"(el)
+                 :);
+    return el;
+}
+
 #endif /* _KERNEL_PLATFORM_AARCH64_REGISTERS_H */

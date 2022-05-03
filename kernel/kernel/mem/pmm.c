@@ -82,7 +82,7 @@ static void _pmm_init_ram()
 #elif __arm__
             pmm_state.ram_size += memory_map[i].sizeLo;
 #elif __aarch64__
-            pmm_state.ram_size += memory_map[i].sizeLo;
+            pmm_state.ram_size += size;
 #endif
         }
     }

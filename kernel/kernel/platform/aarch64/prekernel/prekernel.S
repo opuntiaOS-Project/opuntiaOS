@@ -1,24 +1,27 @@
 .extern stage3
 #ifdef TARGET_QEMU_VIRT
-.extern qemu_virt_boot_init
-.extern vm_setup
+.extern prekernel_qemu_virt_boot
+.extern prekernel_vm_setup
+.extern prekernel_move_args
 #endif
 
 .section ".prekernel_entry"
-// Prekernel works with start addresses.
 prekernel_entry:
     ldr x30, =PREKERNEL_STACK_TOP
     mov sp, x30
 #ifdef TARGET_QEMU_VIRT
-    ldr x3, =qemu_virt_boot_init
+    ldr x3, =prekernel_qemu_virt_boot
     blr x3
 #endif
     mov x19, x0
-    ldr x3, =vm_setup
+    ldr x3, =prekernel_vm_setup
     blr x3
-    mov x0, x19
+    msr spsel, #1
     ldr x30, =STACK_TOP
     mov sp, x30
+    mov x0, x19
+    ldr x3, =prekernel_move_args
+    blr x3
     ldr x3, =stage3
     blr x3
 entry_loop:
