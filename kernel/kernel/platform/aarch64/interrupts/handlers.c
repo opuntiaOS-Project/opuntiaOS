@@ -45,11 +45,13 @@ void interrupts_setup()
 void serror_handler(trapframe_t* tf)
 {
     log("serror_handler");
+    while (1) {}
 }
 
 void sync_handler(trapframe_t* tf)
 {
     log("sync_handler");
+    while (1) {}
 }
 
 void irq_handler(trapframe_t* tf)

@@ -74,7 +74,7 @@ void stage3(boot_args_t* boot_args)
     system_disable_interrupts();
     // devtree_init(boot_args);
     logger_setup(boot_args);
-    log("Starting opuntiaOS, el %d", current_el());
+    log("Starting opuntiaOS, el %d, sp %zx", current_el(), current_sp());
 
     platform_init_boot_cpu();
 

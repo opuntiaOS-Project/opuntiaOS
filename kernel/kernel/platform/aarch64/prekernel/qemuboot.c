@@ -23,8 +23,8 @@ static memory_map_t __attribute__((section(".prekernel_data"))) qemu_virt_memmap
 
 static boot_args_t __attribute__((section(".prekernel_data"))) qemu_boot_args = {
     .paddr = 0x40000000,
-    .vaddr = 0x40000000,
-    .kernel_size = 8 << 20, // 8mb is enough.
+    .vaddr = 0x40000000, // This is a hack for a prekernel.
+    .kernel_size = 1 << 20, // 1mb is enough.
     .memory_map = &qemu_virt_memmap,
     .memory_map_size = 1,
     .devtree = NULL,
@@ -32,8 +32,8 @@ static boot_args_t __attribute__((section(".prekernel_data"))) qemu_boot_args = 
 };
 
 // For QEMU-virt the boot env is simulated.
-boot_args_t* qemu_virt_boot_init() __attribute__((section(".prekernel_code")));
-boot_args_t* qemu_virt_boot_init()
+boot_args_t* prekernel_qemu_virt_boot() __attribute__((section(".prekernel_code")));
+boot_args_t* prekernel_qemu_virt_boot()
 {
     return &qemu_boot_args;
 }
