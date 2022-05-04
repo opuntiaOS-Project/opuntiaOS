@@ -154,7 +154,7 @@ static void _pl181_add_device(uint32_t rca, bool ishc, uint32_t capacity)
         .region_base = 0x0,
         .region_size = 0x0,
         .type = DEVTREE_ENTRY_TYPE_STORAGE,
-        .rel_name_offset = (uint32_t) "p181rdr",
+        .rel_name_offset = devtree_new_entry_name("p181rdr"),
         .flags = 0x0,
     };
 

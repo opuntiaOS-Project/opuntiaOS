@@ -49,5 +49,6 @@ int devtree_init(boot_args_t* boot_args);
 devtree_entry_t* devtree_find_device(const char* name);
 const char* devtree_name_of_entry(devtree_entry_t* en);
 devtree_entry_t* devtree_new_entry(const devtree_entry_t* from);
+uint32_t devtree_new_entry_name(const char* ptr);
 
 #endif // _KERNEL_DRIVERS_DEVTREE_H

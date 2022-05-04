@@ -9,6 +9,8 @@
 #include <drivers/aarch64/gicv2.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <platform/aarch64/interrupts.h>
 #include <platform/aarch64/registers.h>
 
@@ -23,7 +25,8 @@ static gic_descritptor_t gicv2_descriptor = {
     .end_interrupt = gicv2_end,
     .enable_irq = gicv2_enable_irq,
 };
-
+static kmemzone_t distributor_zone;
+static kmemzone_t cpu_interface_zone;
 volatile gicv2_distributor_registers_t* distributor_registers;
 volatile gicv2_cpu_interface_registers_t* cpu_interface_registers;
 
@@ -39,15 +42,15 @@ static inline uintptr_t _gicv2_cpu_interface_offset()
 
 static inline int _gicv2_map_itself()
 {
-    // uint32_t cbar = read_cbar();
+    uintptr_t cbar = 0;
 
-    // distributor_zone = kmemzone_new(VMM_PAGE_SIZE);
-    // vmm_map_page(distributor_zone.start, cbar + _gicv2_distributor_offset(), MMU_FLAG_DEVICE);
-    distributor_registers = (gicv2_distributor_registers_t*)_gicv2_distributor_offset();
+    distributor_zone = kmemzone_new(VMM_PAGE_SIZE);
+    vmm_map_page(distributor_zone.start, cbar + _gicv2_distributor_offset(), MMU_FLAG_DEVICE);
+    distributor_registers = (gicv2_distributor_registers_t*)distributor_zone.ptr;
 
-    // cpu_interface_zone = kmemzone_new(VMM_PAGE_SIZE);
-    // vmm_map_page(cpu_interface_zone.start, cbar + _gicv2_cpu_interface_offset(), MMU_FLAG_DEVICE);
-    cpu_interface_registers = (gicv2_cpu_interface_registers_t*)_gicv2_cpu_interface_offset();
+    cpu_interface_zone = kmemzone_new(VMM_PAGE_SIZE);
+    vmm_map_page(cpu_interface_zone.start, cbar + _gicv2_cpu_interface_offset(), MMU_FLAG_DEVICE);
+    cpu_interface_registers = (gicv2_cpu_interface_registers_t*)cpu_interface_zone.ptr;
     return 0;
 }
 

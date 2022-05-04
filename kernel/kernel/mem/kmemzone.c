@@ -62,10 +62,13 @@ static uintptr_t _zoner_new_vzone_aligned_locked(size_t size, size_t alignment)
 void kmemzone_init_stage2()
 {
     spinlock_acquire(&_zoner_lock);
+
     _zoner_bitmap = (uint8_t*)_zoner_new_vzone_locked(ZONER_BITMAP_SIZE);
-    bitmap = bitmap_wrap(_zoner_bitmap, ZONER_BITMAP_SIZE * 8);
+    vmm_ensure_writing_to_active_address_space((uintptr_t)_zoner_bitmap, ZONER_BITMAP_SIZE);
     memset(_zoner_bitmap, 0, ZONER_BITMAP_SIZE);
+
     _zoner_bitmap_set = true;
+    bitmap = bitmap_wrap(_zoner_bitmap, ZONER_BITMAP_SIZE * 8);
     bitmap_set_range(bitmap, 0, ZONER_TO_BITMAP_INDEX(_zoner_next_vaddr));
     spinlock_release(&_zoner_lock);
 }

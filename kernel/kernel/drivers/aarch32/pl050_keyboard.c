@@ -43,7 +43,7 @@ static inline int _pl050_map_itself(device_t* dev)
     return 0;
 }
 
-static void pl050_keyboard_recieve_notification(uint32_t msg, uint32_t param)
+static void pl050_keyboard_recieve_notification(uintptr_t msg, uintptr_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {

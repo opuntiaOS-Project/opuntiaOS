@@ -72,7 +72,7 @@ void stage3(boot_args_t* boot_args)
 {
     boot_cpu_finish(&__boot_cpu_launched);
     system_disable_interrupts();
-    // devtree_init(boot_args);
+    devtree_init(boot_args);
     logger_setup(boot_args);
     log("Starting opuntiaOS, el %d, sp %zx", current_el(), current_sp());
 
@@ -80,11 +80,10 @@ void stage3(boot_args_t* boot_args)
 
     // mem setup
     pmm_setup(boot_args);
-    vmm_setup();
+    vmm_setup(boot_args);
 
     platform_setup_boot_cpu();
-    while (1) { }
-    // boot_cpu_finish(&__boot_cpu_setup_devices);
+    boot_cpu_finish(&__boot_cpu_setup_devices);
 
     // // installing drivers
     // devman_init();
@@ -112,7 +111,7 @@ void stage3(boot_args_t* boot_args)
     // kernel_preempt_setup();
     // resched(); /* Starting a scheduler */
 
-    // system_stop();
+    system_stop();
 }
 
 // void boot_secondary_cpu()

@@ -95,7 +95,7 @@ enum DRIVER_FILE_SYSTEM_OPERTAION {
 struct driver;
 struct device;
 typedef struct {
-    void (*recieve_notification)(uint32_t key, uint32_t val);
+    void (*recieve_notification)(uintptr_t key, uintptr_t val);
     int (*on_start)();
     int (*on_stop)();
     int (*init_with_dev)(struct device* device);

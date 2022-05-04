@@ -11,8 +11,6 @@
 
 #include <libkern/types.h>
 #include <mem/bits/mmu.h>
-#include <platform/aarch64/vmm/pde.h>
-#include <platform/aarch64/vmm/pte.h>
 
 typedef uint64_t ptable_entity_t;
 typedef uint64_t arch_pf_info_t;

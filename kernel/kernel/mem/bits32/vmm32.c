@@ -226,13 +226,13 @@ static bool _vmm_map_kernel()
 
 int vmm_init_setup_finished = 0;
 
-int vmm_setup()
+int vmm_setup(boot_args_t* args)
 {
     spinlock_init(&_vmm_global_lock);
     kmemzone_init();
     vm_alloc_kernel_pdir();
     _vmm_create_kernel_ptables();
-    vm_pspace_init();
+    vm_pspace_init(args);
     _vmm_init_switch_to_kernel_pdir();
     _vmm_map_kernel();
     kmemzone_init_stage2();

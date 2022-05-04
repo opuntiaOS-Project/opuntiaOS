@@ -56,7 +56,7 @@ static int notify_drivers_about_device(device_t* new_device)
         // Sending notification to existing drivers about the new device.
         if (TEST_FLAG(drivers[i].desc.listened_device_mask, new_device->type)) {
             if (drivers[i].desc.system_funcs.recieve_notification) {
-                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DEVICE, (uint32_t)new_device);
+                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DEVICE, (uintptr_t)new_device);
             }
         }
     }
@@ -70,14 +70,14 @@ static int notify_drivers_about_driver(driver_t* new_driver)
         // Sending notification to existing drivers about the new one.
         if (TEST_FLAG(drivers[i].desc.listened_driver_mask, new_driver->desc.type)) {
             if (drivers[i].desc.system_funcs.recieve_notification) {
-                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uint32_t)new_driver);
+                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uintptr_t)new_driver);
             }
         }
 
         // Letting the new driver know about the already created ones.
         if (TEST_FLAG(new_driver->desc.listened_driver_mask, drivers[i].desc.type)) {
             if (drivers[i].desc.system_funcs.recieve_notification) {
-                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uint32_t)&drivers[i]);
+                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uintptr_t)&drivers[i]);
             }
         }
     }

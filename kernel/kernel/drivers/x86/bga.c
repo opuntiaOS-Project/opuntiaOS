@@ -120,7 +120,7 @@ static memzone_t* _bga_mmap(file_t* file, mmap_params_t* params)
     return zone;
 }
 
-static void bga_recieve_notification(uint32_t msg, uint32_t param)
+static void bga_recieve_notification(uintptr_t msg, uintptr_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         path_t vfspth;
