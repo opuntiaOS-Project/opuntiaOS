@@ -39,6 +39,7 @@ static void _kmalloc_init_bitmap()
 {
     _kmalloc_bitmap = (uint8_t*)_kmalloc_zone.start;
     _kmalloc_bitmap_len = (KMALLOC_SPACE_SIZE / KMALLOC_BLOCK_SIZE / 8);
+    vmm_ensure_writing_to_active_address_space((uintptr_t)_kmalloc_bitmap, _kmalloc_bitmap_len);
 
     bitmap = bitmap_wrap(_kmalloc_bitmap, _kmalloc_bitmap_len);
     memset(_kmalloc_bitmap, 0, _kmalloc_bitmap_len);

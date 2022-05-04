@@ -38,7 +38,7 @@ static int _mouse_read(file_t* file, void __user* buf, size_t start, size_t len)
     return leno;
 }
 
-static void _mouse_recieve_notification(uint32_t msg, uint32_t param)
+static void _mouse_recieve_notification(uintptr_t msg, uintptr_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         path_t vfspth;

@@ -47,7 +47,7 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/platform/aarch64/interrupts/handlers.c")
     print("//kernel/kernel/drivers/aarch64/timer.c")
     print("//kernel/kernel/drivers/aarch64/gicv2.c")
-    
+
     print("//kernel/kernel/platform/aarch64/prekernel/qemuboot.c")
     print("//kernel/kernel/platform/aarch64/prekernel/prekernel.S")
     print("//kernel/kernel/platform/aarch64/prekernel/prekernel_vm.c")
@@ -57,6 +57,12 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/mem/kmemzone.c")
     print("//kernel/kernel/platform/aarch64/vmm/mmu.c")
     print("//kernel/kernel/tasking/cpu.c")
+
+    print("//kernel/kernel/platform/aarch64/system_helper.S")
+    print("//kernel/kernel/mem/kmalloc.c")
+    print("//kernel/kernel/drivers/devtree.c")
+    print("//kernel/kernel/drivers/driver_manager.c")
+    print("//kernel/kernel/algo/dynamic_array.c")
 else:
     for path, subdirs, files in os.walk("../kernel/kernel"):
         for name in files:

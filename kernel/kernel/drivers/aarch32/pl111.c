@@ -115,7 +115,7 @@ static memzone_t* _pl111_mmap(file_t* file, mmap_params_t* params)
     return zone;
 }
 
-static void pl111_recieve_notification(uint32_t msg, uint32_t param)
+static void pl111_recieve_notification(uintptr_t msg, uintptr_t param)
 {
 #ifdef DEBUG_PL111
     log("PL111: Notific start");

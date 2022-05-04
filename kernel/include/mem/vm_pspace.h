@@ -11,13 +11,14 @@
 
 #include <libkern/libkern.h>
 #include <mem/bits/vm.h>
+#include <mem/boot.h>
 
 struct vm_address_space;
 
 ptable_t* vm_pspace_get_nth_active_ptable(size_t n, ptable_lv_t lv);
 ptable_t* vm_pspace_get_vaddr_of_active_ptable(uintptr_t vaddr, ptable_lv_t lv);
 
-void vm_pspace_init();
+void vm_pspace_init(boot_args_t* args);
 void vm_pspace_gen(ptable_t* pdir);
 void vm_pspace_free(ptable_t* pdir);
 int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t lv);

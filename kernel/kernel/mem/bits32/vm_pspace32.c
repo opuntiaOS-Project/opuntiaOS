@@ -50,7 +50,7 @@ ptable_t* vm_pspace_get_vaddr_of_active_ptable(uintptr_t vaddr, ptable_lv_t lv)
  *
  * @note Called only during the first stage of VM init.
  */
-void vm_pspace_init()
+void vm_pspace_init(boot_args_t* args)
 {
     pspace_zone = kmemzone_new(4 * MB);
 

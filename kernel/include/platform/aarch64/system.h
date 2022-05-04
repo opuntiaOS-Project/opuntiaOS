@@ -52,20 +52,27 @@ inline static void system_enable_interrupts_no_counter()
  * PAGING
  */
 
-inline static void system_set_pdir(uintptr_t pdir)
-{
-}
+extern void system_set_pdir(uintptr_t pdir0, uintptr_t pdir1);
 
 inline static void system_flush_local_tlb_entry(uintptr_t vaddr)
 {
+    asm volatile("isb");
+    asm volatile("tlbi vmalle1\n");
+    asm volatile("dsb sy");
 }
 
 inline static void system_flush_all_cpus_tlb_entry(uintptr_t vaddr)
 {
+    asm volatile("isb");
+    asm volatile("tlbi vmalle1\n");
+    asm volatile("dsb sy");
 }
 
 inline static void system_flush_whole_tlb()
 {
+    asm volatile("isb");
+    asm volatile("tlbi vmalle1\n");
+    asm volatile("dsb sy");
 }
 
 inline static void system_enable_write_protect()

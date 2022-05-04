@@ -9,8 +9,6 @@
 #include <libkern/log.h>
 #include <libkern/types.h>
 #include <mem/vmm.h>
-#include <platform/aarch64/vmm/pde.h>
-#include <platform/aarch64/vmm/pte.h>
 
 #define SET_FLAGS(mmu_flags, mf, arch_flags, af) \
     if (TEST_FLAG(mmu_flags, mf)) {              \
@@ -22,89 +20,83 @@
         op;                         \
     }
 
+#define SET_OP_NEG(mmu_flags, mf, op) \
+    if (!TEST_FLAG(mmu_flags, mf)) {  \
+        op;                           \
+    }
+
 static inline void clear_arch_flags(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // switch (lv) {
-    // case PTABLE_LV0:
-    //     *entity &= ~((1 << (PAGE_DESC_FRAME_OFFSET)) - 1);
-    //     return;
+    // TODO(aarch64): This is set for 4kb pages.
+    const int frame_offset = 12;
 
-    // case PTABLE_LV1:
-    //     *entity &= ~((1 << (TABLE_DESC_FRAME_OFFSET)) - 1);
-    //     return;
-
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+    switch (lv) {
+    case PTABLE_LV0:
+    case PTABLE_LV1:
+    case PTABLE_LV2:
+    case PTABLE_LV3:
+        *entity &= ~((1ull << (frame_offset)) - 1);
+        *entity &= ((1ull << (48)) - 1);
+        return;
+    }
 }
 
 ptable_entity_t vm_mmu_to_arch_flags(mmu_flags_t mmu_flags, ptable_lv_t lv)
 {
     ptable_entity_t arch_flags = 0;
-    // page_desc_t* arch_page_flags = (page_desc_t*)&arch_flags;
-    // table_desc_t* arch_table_flags = (table_desc_t*)&arch_flags;
-    // vm_ptable_entity_set_default_flags(&arch_flags, lv);
+    vm_ptable_entity_set_default_flags(&arch_flags, lv);
 
-    // switch (lv) {
-    // case PTABLE_LV0:
-    //     SET_OP(mmu_flags, MMU_FLAG_PERM_READ, arch_page_flags->one = 1);
-    //     // Note: access-order to ap1 is important to set MMU flags correctly.
-    //     SET_OP(mmu_flags, MMU_FLAG_NONPRIV, arch_page_flags->ap1 = 0b10);
-    //     SET_OP(mmu_flags, MMU_FLAG_PERM_WRITE, arch_page_flags->ap1 |= 0b01);
-    //     SET_OP(mmu_flags, MMU_FLAG_UNCACHED, arch_page_flags->c = 0);
-    //     return arch_flags;
+    switch (lv) {
+    case PTABLE_LV0:
+        SET_OP(mmu_flags, MMU_FLAG_PERM_READ, arch_flags |= 0b11);
 
-    // case PTABLE_LV1:
-    //     SET_OP(mmu_flags, MMU_FLAG_PERM_READ, arch_table_flags->valid = 1);
-    //     SET_OP(mmu_flags, MMU_FLAG_COW, arch_table_flags->imp = 1);
-    //     return arch_flags;
+        // MAIR has the following settings: 0x04ff, so if uncached setting index 1.
+        SET_OP(mmu_flags, MMU_FLAG_UNCACHED, arch_flags |= (0b001 << 2));
 
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+        SET_OP(mmu_flags, MMU_FLAG_NONPRIV, arch_flags |= (0b01 << 6));
+        SET_OP_NEG(mmu_flags, MMU_FLAG_PERM_WRITE, arch_flags |= (0b10 << 6));
+        return arch_flags;
+
+    case PTABLE_LV1:
+    case PTABLE_LV2:
+    case PTABLE_LV3:
+        SET_OP(mmu_flags, MMU_FLAG_PERM_READ, arch_flags |= 0x3);
+    }
 
     return arch_flags;
 }
 
 mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // page_desc_t* arch_page_flags = (page_desc_t*)entity;
-    // table_desc_t* arch_table_flags = (table_desc_t*)entity;
-
+    ptable_entity_t arch_flags = *entity;
     mmu_flags_t mmu_flags = 0;
-    // switch (lv) {
-    // case PTABLE_LV0:
-    //     if (arch_page_flags->one != 0) {
-    //         mmu_flags |= MMU_FLAG_PERM_READ;
-    //     }
 
-    //     if (arch_page_flags->c == 0) {
-    //         mmu_flags |= MMU_FLAG_UNCACHED;
-    //     }
+    switch (lv) {
+    case PTABLE_LV0:
+        if ((arch_flags & 0b11) == 0b11) {
+            mmu_flags |= MMU_FLAG_PERM_READ;
+        }
 
-    //     if (arch_page_flags->ap1 == 0b11) {
-    //         mmu_flags |= MMU_FLAG_NONPRIV | MMU_FLAG_PERM_WRITE;
-    //     } else if (arch_page_flags->ap1 == 0b10) {
-    //         mmu_flags |= MMU_FLAG_NONPRIV;
-    //     } else {
-    //         mmu_flags |= MMU_FLAG_PERM_WRITE;
-    //     }
+        if (((arch_flags >> 2) & 0b111) == 0b001) {
+            mmu_flags |= MMU_FLAG_UNCACHED;
+        }
 
-    //     return mmu_flags;
+        if (((arch_flags >> 6) & 0b11) == 0b00) {
+            mmu_flags |= MMU_FLAG_PERM_WRITE;
+        } else if (((arch_flags >> 6) & 0b11) == 0b01) {
+            mmu_flags |= MMU_FLAG_NONPRIV | MMU_FLAG_PERM_WRITE;
+        } else if (((arch_flags >> 6) & 0b11) == 0b11) {
+            mmu_flags |= MMU_FLAG_NONPRIV;
+        }
 
-    // case PTABLE_LV1:
-    //     mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
-    //     if (arch_table_flags->imp) {
-    //         mmu_flags |= MMU_FLAG_COW;
-    //     }
-    //     return mmu_flags;
+        return mmu_flags;
 
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+    case PTABLE_LV1:
+    case PTABLE_LV2:
+    case PTABLE_LV3:
+        mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
+        return mmu_flags;
+    }
 
     return mmu_flags;
 }
@@ -131,89 +123,41 @@ mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info)
 
 ptable_state_t vm_ptable_entity_state(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // ptable_entity_t arch_flags = *entity;
-    // page_desc_t* arch_page_flags = (page_desc_t*)entity;
-    // table_desc_t* arch_table_flags = (table_desc_t*)entity;
+    ptable_entity_t arch_flags = *entity;
 
-    // switch (lv) {
-    // case PTABLE_LV0:
-    //     if (arch_page_flags->one != 0) {
-    //         return PTABLE_ENTITY_PRESENT;
-    //     } else {
-    //         return PTABLE_ENTITY_INVALID;
-    //     }
-
-    // case PTABLE_LV1:
-    //     if ((arch_table_flags->data & 0b0111111111) == (0b0001111000)) {
-    //         return PTABLE_ENTITY_ALLOC;
-    //     } else if (arch_table_flags->valid) {
-    //         return PTABLE_ENTITY_PRESENT;
-    //     } else {
-    //         return PTABLE_ENTITY_INVALID;
-    //     }
-
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+    switch (lv) {
+    case PTABLE_LV0:
+    case PTABLE_LV1:
+    case PTABLE_LV2:
+    case PTABLE_LV3:
+        if ((arch_flags & 0b11) == 0b11) {
+            return PTABLE_ENTITY_PRESENT;
+        } else {
+            return PTABLE_ENTITY_INVALID;
+        }
+    }
 
     return PTABLE_ENTITY_INVALID;
 }
 
 void vm_ptable_entity_set_default_flags(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // page_desc_t* arch_page_flags = (page_desc_t*)entity;
-    // table_desc_t* arch_table_flags = (table_desc_t*)entity;
+    switch (lv) {
+    case PTABLE_LV0:
+        *entity = 0x700;
+        return;
 
-    // switch (lv) {
-    // case PTABLE_LV0:
-    //     arch_page_flags->data = 0;
-    //     arch_page_flags->one = 1;
-    //     arch_page_flags->ap1 = 0b01; // Kernel -- R/W and User -- No access
-    //     arch_page_flags->ap2 = 0;
-    //     arch_page_flags->c = 1;
-    //     arch_page_flags->s = 1;
-    //     arch_page_flags->b = 1;
-    //     arch_page_flags->tex = 0b001;
-    //     return;
-
-    // case PTABLE_LV1:
-    //     arch_table_flags->data = 0;
-    //     arch_table_flags->valid = 0;
-    //     arch_table_flags->zero1 = 0;
-    //     arch_table_flags->zero2 = 0;
-    //     arch_table_flags->zero3 = 0;
-    //     arch_table_flags->imp = 0;
-    //     arch_table_flags->domain = 0b0011;
-    //     return;
-
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+    case PTABLE_LV1:
+    case PTABLE_LV2:
+    case PTABLE_LV3:
+        *entity = 0x0;
+        return;
+    }
 }
 
 void vm_ptable_entity_allocated(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // table_desc_t* arch_table_flags = (table_desc_t*)entity;
-
-    // switch (lv) {
-    // case PTABLE_LV1:
-    //     arch_table_flags->data = 0;
-    //     arch_table_flags->valid = 0;
-    //     arch_table_flags->zero1 = 0;
-    //     arch_table_flags->zero2 = 0;
-    //     arch_table_flags->zero3 = 1;
-    //     arch_table_flags->ns = 1;
-    //     arch_table_flags->imp = 0;
-    //     arch_table_flags->domain = 0b0011;
-    //     return;
-
-    // case PTABLE_LV0:
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+    return;
 }
 
 void vm_ptable_entity_invalidate(ptable_entity_t* entity, ptable_lv_t lv)
@@ -223,56 +167,56 @@ void vm_ptable_entity_invalidate(ptable_entity_t* entity, ptable_lv_t lv)
 
 void vm_ptable_entity_set_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu_flags_t mmu_flags)
 {
-    // mmu_flags_t old_mmu_flags = vm_arch_to_mmu_flags(entity, lv);
-    // old_mmu_flags |= mmu_flags;
-    // ptable_entity_t arch_flags = vm_mmu_to_arch_flags(old_mmu_flags, lv);
-    // clear_arch_flags(entity, lv);
-    // *entity |= arch_flags;
+    mmu_flags_t old_mmu_flags = vm_arch_to_mmu_flags(entity, lv);
+    old_mmu_flags |= mmu_flags;
+    ptable_entity_t arch_flags = vm_mmu_to_arch_flags(old_mmu_flags, lv);
+    clear_arch_flags(entity, lv);
+    *entity |= arch_flags;
 }
 
 void vm_ptable_entity_rm_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu_flags_t mmu_flags)
 {
-    // mmu_flags_t old_mmu_flags = vm_arch_to_mmu_flags(entity, lv);
-    // old_mmu_flags &= ~mmu_flags;
-    // ptable_entity_t arch_flags = vm_mmu_to_arch_flags(old_mmu_flags, lv);
-    // clear_arch_flags(entity, lv);
-    // *entity |= arch_flags;
+    mmu_flags_t old_mmu_flags = vm_arch_to_mmu_flags(entity, lv);
+    old_mmu_flags &= ~mmu_flags;
+    ptable_entity_t arch_flags = vm_mmu_to_arch_flags(old_mmu_flags, lv);
+    clear_arch_flags(entity, lv);
+    *entity |= arch_flags;
 }
 
 void vm_ptable_entity_set_frame(ptable_entity_t* entity, ptable_lv_t lv, uintptr_t frame)
 {
-    // switch (lv) {
-    // case PTABLE_LV0:
-    //     *entity &= ((1 << (PAGE_DESC_FRAME_OFFSET)) - 1);
-    //     frame >>= PAGE_DESC_FRAME_OFFSET;
-    //     *entity |= (frame << PAGE_DESC_FRAME_OFFSET);
-    //     return;
+    // TODO(aarch64): This is set for 4kb pages.
+    const int frame_offset = 12;
 
-    // case PTABLE_LV1:
-    //     *entity &= ((1 << (TABLE_DESC_FRAME_OFFSET)) - 1);
-    //     frame >>= TABLE_DESC_FRAME_OFFSET;
-    //     *entity |= (frame << TABLE_DESC_FRAME_OFFSET);
-    //     return;
+    switch (lv) {
+    case PTABLE_LV0:
+        *entity &= ((1 << (frame_offset)) - 1);
+        frame >>= frame_offset;
+        *entity |= (frame << frame_offset);
+        return;
 
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+    case PTABLE_LV1:
+    case PTABLE_LV2:
+    case PTABLE_LV3:
+        *entity &= ((1 << (frame_offset)) - 1);
+        frame >>= frame_offset;
+        *entity |= (frame << frame_offset);
+        return;
+    }
 }
 
 uintptr_t vm_ptable_entity_get_frame(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // switch (lv) {
-    // case PTABLE_LV0:
-    //     return ((*entity >> PAGE_DESC_FRAME_OFFSET) << PAGE_DESC_FRAME_OFFSET);
+    // TODO(aarch64): This is set for 4kb pages.
+    const int frame_offset = 12;
 
-    // case PTABLE_LV1:
-    //     return ((*entity >> TABLE_DESC_FRAME_OFFSET) << TABLE_DESC_FRAME_OFFSET);
-
-    // case PTABLE_LV2:
-    // case PTABLE_LV3:
-    //     ASSERT(false);
-    // }
+    switch (lv) {
+    case PTABLE_LV0:
+    case PTABLE_LV1:
+    case PTABLE_LV2:
+    case PTABLE_LV3:
+        return ((*entity >> frame_offset) << frame_offset);
+    }
 
     return 0;
 }

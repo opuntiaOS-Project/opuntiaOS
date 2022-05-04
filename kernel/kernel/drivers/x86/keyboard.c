@@ -15,7 +15,7 @@
 static driver_desc_t _keyboard_driver_info();
 static key_t _kbdriver_apply_modifiers(key_t key);
 
-static void _kbdriver_notification(uint32_t msg, uint32_t param)
+static void _kbdriver_notification(uintptr_t msg, uintptr_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         if (generic_keyboard_create_devfs() < 0) {

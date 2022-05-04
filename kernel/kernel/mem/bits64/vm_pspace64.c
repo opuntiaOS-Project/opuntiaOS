@@ -29,21 +29,16 @@
  */
 
 static kmemzone_t pspace_zone;
-
-const ptable_lv_t PSPACE_TABLE_LV = PTABLE_LV0;
-
-#ifdef TARGET_QEMU_VIRT
-uintptr_t paddr_mapped_at = 0x40000000;
-#elif TARGET_APL
-uintptr_t paddr_mapped_at = 0x80000000;
-#else
-uintptr_t paddr_mapped_at = 0x0;
-#error not supported target at pspace64
-#endif
+static uintptr_t paddr_mapped_at = 0x0;
 
 void* paddr_to_vaddr(uintptr_t paddr)
 {
     return (void*)(paddr_mapped_at + (uintptr_t)paddr);
+}
+
+void vm_pspace_init(boot_args_t* args)
+{
+    paddr_mapped_at = args->paddr;
 }
 
 /**
@@ -74,7 +69,10 @@ ptable_t* vm_get_table(uintptr_t vaddr, ptable_lv_t lv)
         return NULL;
     }
 
-    ptable_t* active_pdir = THIS_CPU->active_address_space->pdir;
+    ptable_t* active_pdir = THIS_CPU->active_address_space->pdir0;
+    if (IS_KERNEL_VADDR(vaddr)) {
+        active_pdir = THIS_CPU->active_address_space->pdir1;
+    }
     ASSERT(active_pdir);
 
     return vm_get_table_impl(active_pdir, vaddr, PTABLE_LV_TOP, lv);

@@ -13,12 +13,14 @@
 #include <mem/bits/mmu.h>
 #include <mem/bits/swap.h>
 #include <mem/bits/vm.h>
+#include <mem/boot.h>
 #include <mem/pmm.h>
 #include <mem/vm_address_space.h>
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/mmu.h>
 
-#define KERNEL_BASE 0x800000000000
+// TODO(aarch64): remove KERNEL_BASE
+#define KERNEL_BASE 0xffffff8000000000
 
 #define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
 
@@ -52,7 +54,6 @@ int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags);
 int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, mmu_flags_t mmu_flags);
 int vmm_unmap_page(uintptr_t vaddr);
 int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages);
-int vmm_copy_page(uintptr_t to_vaddr, uintptr_t src_vaddr, ptable_t* src_ptable);
 int vmm_swap_page(ptable_entity_t* page_desc, struct memzone* zone, uintptr_t vaddr);
 
 int vmm_map_page_locked(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags);

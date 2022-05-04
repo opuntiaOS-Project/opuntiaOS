@@ -36,7 +36,7 @@ boot_args_t* prekernel_move_args(boot_args_t* args) __attribute__((section(".pre
 #define VMM_LV2_ENTITY_COUNT (512)
 #define VMM_LV3_ENTITY_COUNT (512)
 
-#define PTABLE_LV_TOP (3)
+#define PTABLE_LV_TOP (2)
 #define PTABLE_LV0_VADDR_OFFSET (12)
 #define PTABLE_LV1_VADDR_OFFSET (21)
 #define PTABLE_LV2_VADDR_OFFSET (30)
@@ -70,7 +70,7 @@ static void map4kb_1gb(boot_args_t* args, size_t phyz, size_t virt)
         virt -= kernel_base;
     }
 
-    uint64_t pdesc = 0x00000000000705;
+    uint64_t pdesc = 0x00000000000701;
     pdesc |= (uintptr_t)phyz;
     page_table[VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV2_VADDR_OFFSET, VMM_LV2_ENTITY_COUNT)] = pdesc;
 }
@@ -101,7 +101,7 @@ static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt)
     }
 
     page_table = (uint64_t*)(((ptable_desc >> 12) << 12) & 0xffffffffffff);
-    uint64_t pdesc = 0x00000000000705;
+    uint64_t pdesc = 0x00000000000701;
     pdesc |= (uintptr_t)phyz;
     page_table[VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV1_VADDR_OFFSET, VMM_LV1_ENTITY_COUNT)] = pdesc;
 }
@@ -130,6 +130,8 @@ void prekernel_vm_setup(boot_args_t* args)
     map4kb_2mb(args, args->paddr, kernel_base);
     map4kb_2mb(args, args->paddr + (2 << 20), kernel_base + (2 << 20));
     map4kb_2mb(args, args->paddr, args->vaddr);
+    map4kb_2mb(args, args->paddr, args->paddr);
+    map4kb_2mb(args, args->paddr + (2 << 20), args->paddr + (2 << 20));
 
     if (args->fb_boot_desc.vaddr == 0) {
         map4kb_1gb(args, 0x0, 0x0);
@@ -143,7 +145,7 @@ void prekernel_vm_setup(boot_args_t* args)
     }
 
     extern void enable_mmu_el1(uint64_t ttbr0, uint64_t tcr, uint64_t mair, uint64_t ttbr1);
-    enable_mmu_el1((uint64_t)global_page_table_0, 0x135003500 | (tg0 << 14) | (tg1 << 30) | (t1sz << 16) | t0sz, 0x04ff00, (uint64_t)global_page_table_1);
+    enable_mmu_el1((uint64_t)global_page_table_0, 0x135003500 | (tg0 << 14) | (tg1 << 30) | (t1sz << 16) | t0sz, 0x04ff, (uint64_t)global_page_table_1);
 }
 
 static void* prekernel_translate_addr(boot_args_t* args, void* addr)

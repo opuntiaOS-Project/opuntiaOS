@@ -27,10 +27,10 @@ static inline int get_page_mask()
 #define VMM_LV3_ENTITY_COUNT (512)
 #define VMM_PAGE_SIZE (get_page_size())
 
-#define PAGE_START(vaddr) ((vaddr & ~(uintptr_t)get_page_mask())
+#define PAGE_START(vaddr) ((vaddr & (~(uintptr_t)get_page_mask()))
 #define FRAME(addr) (addr / VMM_PAGE_SIZE)
 
-#define PTABLE_LV_TOP (3)
+#define PTABLE_LV_TOP (2)
 #define PTABLE_LV0_VADDR_OFFSET (12)
 #define PTABLE_LV1_VADDR_OFFSET (21)
 #define PTABLE_LV2_VADDR_OFFSET (30)

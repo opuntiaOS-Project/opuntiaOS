@@ -73,7 +73,9 @@ static void _pmm_init_ram()
             uint64_t size = ((uint64_t)memory_map[i].sizeHi << 32) + memory_map[i].sizeLo;
             pmm_state.ram_offset = min(pmm_state.ram_offset, start);
 
+#ifdef DEBUG_PMM
             log("Pmm desc: %zx %zx", start, size);
+#endif
 
             // This is a hack, since memory map differs a lot for x86 and arm.
             // Might need to unify this somehow (maybe pass info from bootloader?).

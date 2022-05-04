@@ -14,6 +14,8 @@
 static devtree_header_t* devtree_header = NULL;
 static devtree_entry_t* devtree_body = NULL;
 static char* devtree_name_section = NULL;
+static const char* devtree_virt_name_sections[16];
+static uint32_t devtree_next_virt_name_section = 0x0;
 
 // DEVICE_UNKNOWN aren't passed to devman_register_device.
 static int devtree_type_to_devman_type[] = {
@@ -75,7 +77,7 @@ const char* devtree_name_of_entry(devtree_entry_t* en)
     if (&devtree_body[0] <= en && en <= &devtree_body[devtree_header->entries_count]) {
         return &devtree_name_section[en->rel_name_offset];
     }
-    return (const char*)en->rel_name_offset;
+    return devtree_virt_name_sections[en->rel_name_offset];
 }
 
 devtree_entry_t* devtree_find_device(const char* name)
@@ -91,6 +93,13 @@ devtree_entry_t* devtree_find_device(const char* name)
         }
     }
     return NULL;
+}
+
+uint32_t devtree_new_entry_name(const char* ptr)
+{
+    uint32_t nxt = devtree_next_virt_name_section++;
+    devtree_virt_name_sections[nxt] = ptr;
+    return nxt;
 }
 
 devtree_entry_t* devtree_new_entry(const devtree_entry_t* from)
