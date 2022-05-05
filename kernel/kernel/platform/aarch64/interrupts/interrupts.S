@@ -10,7 +10,7 @@ set_up_vector_table:
 .align 12
 .global vector_table
 vector_table:
-    // Current EL with SP0, handle within SP0
+    // Current EL with SP0
     msr spsel, #1
     sub sp, sp, #0x120
     stp x0,x1,[sp]
@@ -41,7 +41,9 @@ vector_table:
     msr spsel, #1
     sub sp, sp, #0x120
     stp x0,x1,[sp]
-    add x1, sp, #0x120
+    msr spsel, #0
+    mov x1, sp
+    msr spsel, #1
     adr x0, serror_exc_jmp
     b exc_handler // SError/vSError
 
@@ -80,28 +82,36 @@ vector_table:
     msr spsel, #1
     sub sp, sp, #0x120
     stp x0,x1,[sp]
-    add x1, sp, #0x120
+    msr spsel, #0
+    mov x1, sp
+    msr spsel, #1
     adr x0, sync_exc_jmp
     b exc_handler // Synchronous
 .balign 128
     msr spsel, #1
     sub sp, sp, #0x120
     stp x0,x1,[sp]
-    add x1, sp, #0x120
+    msr spsel, #0
+    mov x1, sp
+    msr spsel, #1
     adr x0, irq_exc_jmp
     b exc_handler // IRQ/vIRQ
 .balign 128
     msr spsel, #1
     sub sp, sp, #0x120
     stp x0,x1,[sp]
-    add x1, sp, #0x120
+    msr spsel, #0
+    mov x1, sp
+    msr spsel, #1
     adr x0, fiq_exc_jmp
     b exc_handler // FIQ/vFIQ
 .balign 128
     msr spsel, #1
     sub sp, sp, #0x120
     stp x0,x1,[sp]
-    add x1, sp, #0x120
+    msr spsel, #0
+    mov x1, sp
+    msr spsel, #1
     adr x0, serror_exc_jmp
     b exc_handler // SError/vSError
     
@@ -167,7 +177,8 @@ exc_handler:
     mov x0, sp
     blr x16
 
-exc_done:
+.global trap_return
+trap_return:
     ldp x0,x1,[sp,#0x100]
     msr elr_el1, x0
     msr far_el1, x1

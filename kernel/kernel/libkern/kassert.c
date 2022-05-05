@@ -19,12 +19,14 @@ void assert_handler(const char* cond, const char* func, const char* file, int li
 
 void kpanic(const char* err_msg)
 {
+    log("kpanic");
     // dump_kernel(err_msg);
     system_stop();
 }
 
 void kpanic_tf(const char* err_msg, trapframe_t* tf)
 {
-    // lock.h:49dump_kernel_from_tf(err_msg, tf);
+    log("kpanic");
+    // dump_kernel_from_tf(err_msg, tf);
     system_stop();
 }

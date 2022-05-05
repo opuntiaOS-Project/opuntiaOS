@@ -10,7 +10,7 @@
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/platform.h>
-// #include <mem/kmalloc.h>
+#include <mem/kmalloc.h>
 
 #define BITMAP_BLOCKS_PER_BYTE (8)
 
@@ -27,13 +27,12 @@ bitmap_t bitmap_wrap(uint8_t* data, size_t len)
 /* FIXME: Let user know if alloction was unsucessful */
 bitmap_t bitmap_allocate(size_t len)
 {
-    ASSERT(false);
-    // size_t alloc_len = len / BITMAP_BLOCKS_PER_BYTE;
-    // if (len % BITMAP_BLOCKS_PER_BYTE) {
-    //     alloc_len++;
-    // }
-    // uint8_t* data = kmalloc(alloc_len);
-    // return bitmap_wrap(data, len);
+    size_t alloc_len = len / BITMAP_BLOCKS_PER_BYTE;
+    if (len % BITMAP_BLOCKS_PER_BYTE) {
+        alloc_len++;
+    }
+    uint8_t* data = kmalloc(alloc_len);
+    return bitmap_wrap(data, len);
 }
 
 int bitmap_next_range_of_unset_bits(bitmap_t bitmap, int from, size_t min_len, int* start_of_free_chunks)

@@ -103,7 +103,7 @@ int pty_master_read(file_t* file, void __user* buf, size_t start, size_t len)
     pty_master_entry_t* ptm = _ptm_get(dentry);
     ASSERT(ptm);
 
-    uint32_t leno = sync_ringbuffer_space_to_read(&ptm->buffer);
+    size_t leno = sync_ringbuffer_space_to_read(&ptm->buffer);
     if (leno > len) {
         leno = len;
     }

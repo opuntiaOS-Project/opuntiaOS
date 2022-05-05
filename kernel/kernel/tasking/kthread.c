@@ -27,6 +27,10 @@
 #define KSTACK_ZONE_SIZE (2 * VMM_PAGE_SIZE)
 #define KSTACK_TOP VMM_PAGE_SIZE
 #define USTACK_TOP (2 * VMM_PAGE_SIZE)
+#elif __aarch64__
+#define KSTACK_ZONE_SIZE (2 * VMM_PAGE_SIZE)
+#define KSTACK_TOP VMM_PAGE_SIZE
+#define USTACK_TOP (2 * VMM_PAGE_SIZE)
 #endif
 
 extern void trap_return();
@@ -54,6 +58,7 @@ int kthread_setup(proc_t* p)
     if (!p->main_thread->kstack.start) {
         return -ENOMEM;
     }
+    vmm_ensure_writing_to_active_address_space(p->main_thread->kstack.start, KSTACK_ZONE_SIZE);
     _thread_setup_kstack(p->main_thread, p->main_thread->kstack.start + KSTACK_TOP);
 
 #ifdef FPU_ENABLED

@@ -12,7 +12,7 @@
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
 
-// #define DEBUG_PL181
+#define DEBUG_PL181
 
 static sd_card_t sd_cards[MAX_DEVICES_COUNT];
 static kmemzone_t mapped_zone;

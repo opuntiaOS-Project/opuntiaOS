@@ -24,8 +24,8 @@
 extern const file_ops_t procfs_pid_ops;
 extern const file_ops_t procfs_sys_ops;
 
-static uint32_t procfs_root_sfiles_get_inode_index(int fileid);
-static uint32_t procfs_root_self_get_inode_index(int fileid);
+static ino_t procfs_root_sfiles_get_inode_index(int fileid);
+static ino_t procfs_root_self_get_inode_index(int fileid);
 
 /* PID */
 int procfs_root_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t len);
@@ -128,7 +128,7 @@ int procfs_root_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t 
     for (; pidi < MAX_PROCESS_COUNT; pidi++) {
         if (proc[pidi].status == PROC_ALIVE) {
             snprintf(name, 8, "%d", proc[pidi].pid);
-            uint32_t inode_index = procfs_root_pid_get_inode_index(proc[pidi].pid);
+            ino_t inode_index = procfs_root_pid_get_inode_index(proc[pidi].pid);
             ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, inode_index, name);
             if (read <= 0) {
                 if (!already_read) {
@@ -166,7 +166,7 @@ int procfs_root_lookup(const path_t* path, const char* name, size_t len, path_t*
     }
 
     for (int i = 0; i < PROCFS_STATIC_FILES_COUNT_AT_LEVEL; i++) {
-        uint32_t child_name_len = strlen(static_procfs_files[i].name);
+        size_t child_name_len = strlen(static_procfs_files[i].name);
         if (len == child_name_len) {
             if (strncmp(name, static_procfs_files[i].name, len) == 0) {
                 int newly_allocated;
@@ -185,7 +185,7 @@ int procfs_root_lookup(const path_t* path, const char* name, size_t len, path_t*
     for (int pidi = 0; pidi < MAX_PROCESS_COUNT; pidi++) {
         if (proc[pidi].status == PROC_ALIVE) {
             snprintf(pid_name, 8, "%d", proc[pidi].pid);
-            uint32_t child_name_len = strlen(pid_name);
+            size_t child_name_len = strlen(pid_name);
             if (len == child_name_len) {
                 if (strncmp(name, pid_name, len) == 0) {
                     int newly_allocated;

@@ -7,6 +7,8 @@
 from Parser.Parser import Parser
 from Generator.IRManager import IRManager
 from Generator.BinWriter import BinWriter
+from Generator.CWriter import CWriter
+from Generator.Compiler import Compiler
 import argparse
 
 class DevTreeCompiler():
@@ -15,5 +17,14 @@ class DevTreeCompiler():
     def compile(input_f, output_f):
         parser = Parser(input_f)
         irmng = IRManager(parser)
-        binw = BinWriter(irmng, output_f)
-        binw.process()
+        compiler = Compiler(irmng)
+        binw = BinWriter(output_f)
+        binw.write(compiler.compile())
+
+    @staticmethod
+    def to_c_arr(input_f):
+        parser = Parser(input_f)
+        irmng = IRManager(parser)
+        compiler = Compiler(irmng)
+        binw = CWriter()
+        binw.write(compiler.compile())

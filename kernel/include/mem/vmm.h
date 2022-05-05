@@ -21,6 +21,7 @@
 
 // TODO(aarch64): remove KERNEL_BASE
 #define KERNEL_BASE 0xffffff8000000000
+#define KERNEL_PADDR_BASE 0xffffffff00000000 // up to 4gbs are supported.
 
 #define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
 

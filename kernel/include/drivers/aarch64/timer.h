@@ -11,6 +11,8 @@
 
 #include <libkern/types.h>
 
+#define TIMER_TICKS_PER_SECOND 125
+
 void aarch64_timer_enable();
 void aarch64_timer_disable();
 void aarch64_timer_rearm();

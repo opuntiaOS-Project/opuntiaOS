@@ -79,7 +79,7 @@ static int _ext2_decriment_links_count(dentry_t* dentry);
 
 /* DIR FUNCTIONS */
 static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index);
-static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint32_t* offset, dirent_t* dirent);
+static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, off_t* offset, dirent_t* dirent);
 static int _ext2_get_dir_entries_count_in_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index);
 static bool _ext2_is_dir_empty(dentry_t* dir);
 static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len);
@@ -101,11 +101,11 @@ fsdata_t get_fsdata(dentry_t* dentry);
 
 int ext2_read(file_t* file, void __user* buf, size_t start, size_t len);
 int ext2_write(file_t* file, void __user* buf, size_t start, size_t len);
-int ext2_truncate(file_t* file, uint32_t len);
-int ext2_lookup(const path_t* path, const char* name, uint32_t len, path_t* result);
-int ext2_mkdir(const path_t* path, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid);
-int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res);
-int ext2_create(const path_t* path, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid);
+int ext2_truncate(file_t* file, size_t len);
+int ext2_lookup(const path_t* path, const char* name, size_t len, path_t* result);
+int ext2_mkdir(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
+int ext2_getdirent(dentry_t* dir, off_t* offset, dirent_t* res);
+int ext2_create(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid);
 int ext2_rm(const path_t* path);
 
 /**
@@ -566,15 +566,15 @@ static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block
             }
         }
 
-        start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
-        if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
+        start_of_entry = (dir_entry_t*)((uintptr_t)start_of_entry + start_of_entry->rec_len);
+        if ((uintptr_t)start_of_entry >= (uintptr_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
             return -EFAULT;
         }
     }
     return -EFAULT;
 }
 
-static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, uint32_t* offset, dirent_t* dirent)
+static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, off_t* offset, dirent_t* dirent)
 {
     if (block_index == 0) {
         return -EINVAL;
@@ -585,7 +585,7 @@ static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t bl
     uint8_t tmp_buf[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
     for (;;) {
-        dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + internal_offset);
+        dir_entry_t* start_of_entry = (dir_entry_t*)((uintptr_t)tmp_buf + internal_offset);
         internal_offset += start_of_entry->rec_len;
         *offset += start_of_entry->rec_len;
 
@@ -618,7 +618,7 @@ static int _ext2_get_dir_entries_count_in_block(vfs_device_t* dev, fsdata_t fsda
     uint8_t tmp_buf[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
     for (;;) {
-        dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + internal_offset);
+        dir_entry_t* start_of_entry = (dir_entry_t*)((uintptr_t)tmp_buf + internal_offset);
         internal_offset += start_of_entry->rec_len;
 
         if (start_of_entry->inode != 0) {
@@ -671,7 +671,7 @@ static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t blo
     uint8_t tmp_buf[MAX_BLOCK_LEN];
     _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
     for (;;) {
-        dir_entry_t* start_of_entry = (dir_entry_t*)((uint32_t)tmp_buf + inner_offset);
+        dir_entry_t* start_of_entry = (dir_entry_t*)((uintptr_t)tmp_buf + inner_offset);
         uint32_t record_name_len = NORM_FILENAME(start_of_entry->name_len);
         uint32_t real_rec_len = 8 + record_name_len + 1;
 
@@ -723,8 +723,8 @@ static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata
     new_entry.rec_len = BLOCK_LEN(fsdata.sb);
     new_entry.name_len = len;
     memcpy((void*)start_of_entry, (void*)&new_entry, 8);
-    memcpy((void*)((uint32_t)start_of_entry + 8), (void*)filename, len);
-    memset((void*)((uint32_t)start_of_entry + 8 + len), 0, record_name_len - len);
+    memcpy((void*)((uintptr_t)start_of_entry + 8), (void*)filename, len);
+    memset((void*)((uintptr_t)start_of_entry + 8 + len), 0, record_name_len - len);
     _ext2_write_to_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), DIR_ENTRY_LEN);
     return 0;
 }
@@ -757,21 +757,21 @@ static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
             new_entry.inode = child_dentry->inode_indx;
             new_entry.rec_len = start_of_entry->rec_len - cur_rec_len;
             new_entry.name_len = len;
-            start_of_new_entry = (dir_entry_t*)((uint32_t)start_of_entry + cur_rec_len);
+            start_of_new_entry = (dir_entry_t*)((uintptr_t)start_of_entry + cur_rec_len);
             start_of_entry->rec_len = cur_rec_len;
             goto update_res;
         }
 
-        start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
-        if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
+        start_of_entry = (dir_entry_t*)((uintptr_t)start_of_entry + start_of_entry->rec_len);
+        if ((uintptr_t)start_of_entry >= (uintptr_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
             return -EFAULT;
         }
     }
 
 update_res:
     memcpy((void*)start_of_new_entry, (void*)&new_entry, 8);
-    memcpy((void*)((uint32_t)start_of_new_entry + 8), (void*)filename, len);
-    memset((void*)((uint32_t)start_of_new_entry + 8 + len), 0, record_name_len - len);
+    memcpy((void*)((uintptr_t)start_of_new_entry + 8), (void*)filename, len);
+    memset((void*)((uintptr_t)start_of_new_entry + 8 + len), 0, record_name_len - len);
     _ext2_write_to_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), BLOCK_LEN(fsdata.sb));
     return 0;
 }
@@ -805,8 +805,8 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
         }
 
         prev_entry = start_of_entry;
-        start_of_entry = (dir_entry_t*)((uint32_t)start_of_entry + start_of_entry->rec_len);
-        if ((uint32_t)start_of_entry >= (uint32_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
+        start_of_entry = (dir_entry_t*)((uintptr_t)start_of_entry + start_of_entry->rec_len);
+        if ((uintptr_t)start_of_entry >= (uintptr_t)tmp_buf + BLOCK_LEN(fsdata.sb)) {
             return -EFAULT;
         }
     }
@@ -979,7 +979,7 @@ int ext2_write(file_t* file, void __user* buf, size_t start, size_t len)
     return already_written;
 }
 
-int ext2_truncate(file_t* file, uint32_t len)
+int ext2_truncate(file_t* file, size_t len)
 {
     dentry_t* dentry = file_dentry_assert(file);
 
@@ -1007,7 +1007,7 @@ int ext2_truncate(file_t* file, uint32_t len)
     return 0;
 }
 
-int ext2_lookup(const path_t* path, const char* name, uint32_t len, path_t* result)
+int ext2_lookup(const path_t* path, const char* name, size_t len, path_t* result)
 {
     dentry_t* dir = path->dentry;
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
@@ -1025,7 +1025,7 @@ int ext2_lookup(const path_t* path, const char* name, uint32_t len, path_t* resu
     return -ENOENT;
 }
 
-int ext2_mkdir(const path_t* path, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid)
+int ext2_mkdir(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
     dentry_t* dir = path->dentry;
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
@@ -1079,7 +1079,7 @@ int ext2_rmdir(const path_t* path)
     return -ENOTEMPTY;
 }
 
-int ext2_getdirent(dentry_t* dir, uint32_t* offset, dirent_t* res)
+int ext2_getdirent(dentry_t* dir, off_t* offset, dirent_t* res)
 {
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     const uint32_t block_len = BLOCK_LEN(dir->fsdata.sb);
@@ -1130,7 +1130,7 @@ int ext2_getdents(dentry_t* dentry, void __user* buf, uint32_t* offset, uint32_t
     return already_read;
 }
 
-int ext2_create(const path_t* path, const char* name, uint32_t len, mode_t mode, uid_t uid, gid_t gid)
+int ext2_create(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
     dentry_t* dir = path->dentry;
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));

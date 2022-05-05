@@ -74,7 +74,7 @@ pid_t procfs_pid_get_pid_from_inode_index(ino_t inode_index)
 
 static ino_t procfs_pid_sfiles_get_inode_index(dentry_t* dir, int fileid)
 {
-    uint32_t owner_pid = procfs_root_get_pid_from_inode_index(dir->inode_indx);
+    pid_t owner_pid = procfs_root_get_pid_from_inode_index(dir->inode_indx);
     uint32_t body = (owner_pid << 18) | (fileid & 0x3ffff);
     return procfs_inode_get_index(PROCFS_PID_LEVEL, body);
 }
@@ -90,7 +90,7 @@ int procfs_pid_getdents(dentry_t* dir, void __user* buf, off_t* offset, size_t l
 
     for (int i = 0; i < PROCFS_STATIC_FILES_COUNT_AT_LEVEL; i++) {
         if (*offset <= i) {
-            uint32_t inode_index = procfs_pid_sfiles_get_inode_index(dir, i);
+            ino_t inode_index = procfs_pid_sfiles_get_inode_index(dir, i);
             ssize_t read = vfs_helper_write_dirent((dirent_t __user*)(buf + already_read), len, inode_index, static_procfs_files[i].name);
             if (read <= 0) {
                 if (!already_read) {
@@ -127,7 +127,7 @@ int procfs_pid_lookup(const path_t* path, const char* name, size_t len, path_t* 
     }
 
     for (int i = 0; i < PROCFS_STATIC_FILES_COUNT_AT_LEVEL; i++) {
-        uint32_t child_name_len = strlen(static_procfs_files[i].name);
+        size_t child_name_len = strlen(static_procfs_files[i].name);
         if (len == child_name_len) {
             if (strncmp(name, static_procfs_files[i].name, len) == 0) {
                 int newly_allocated;

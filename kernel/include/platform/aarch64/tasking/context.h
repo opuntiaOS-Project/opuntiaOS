@@ -13,9 +13,8 @@
 #include <libkern/types.h>
 
 typedef struct {
-    // TODO(aarch64): fix
-    uint32_t r[30];
-    uint32_t lr;
+    uint64_t x[22];
+    uint64_t lr;
 } PACKED context_t;
 
 static inline uintptr_t context_get_instruction_pointer(context_t* ctx)

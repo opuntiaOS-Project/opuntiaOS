@@ -72,7 +72,7 @@ int tty_write(tty_entry_t* tty, file_t* file, void __user* buf, size_t start, si
     return len;
 }
 
-int tty_ioctl(tty_entry_t* tty, file_t* file, uint32_t cmd, uint32_t arg)
+int tty_ioctl(tty_entry_t* tty, file_t* file, uintptr_t cmd, uintptr_t arg)
 {
     switch (cmd) {
     case TIOCGPGRP:

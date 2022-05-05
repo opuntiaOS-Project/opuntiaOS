@@ -65,6 +65,7 @@ static void _shared_buffer_init_bitmap()
 {
     _shared_buffer_bitmap = _shared_buffer_zone.ptr;
     _shared_buffer_bitmap_len = (SHBUF_SPACE_SIZE / SHBUF_BLOCK_SIZE / 8);
+    vmm_ensure_writing_to_active_address_space((uintptr_t)_shared_buffer_bitmap, _shared_buffer_bitmap_len);
 
     bitmap = bitmap_wrap(_shared_buffer_bitmap, _shared_buffer_bitmap_len);
     memset(_shared_buffer_bitmap, 0, _shared_buffer_bitmap_len);

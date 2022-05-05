@@ -22,7 +22,10 @@ typedef struct {
 
 void fpu_handler();
 void fpu_init();
-void fpu_init_state(fpu_state_t* new_fpu_state);
+static inline void fpu_init_state(fpu_state_t* new_fpu_state)
+{
+    ASSERT(false);
+}
 
 static inline void fpu_save(fpu_state_t* fpu_state)
 {

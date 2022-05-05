@@ -14,6 +14,7 @@
 #include <platform/aarch64/registers.h>
 #include <platform/aarch64/system.h>
 #include <platform/aarch64/tasking/trapframe.h>
+#include <tasking/sched.h>
 
 #define ERR_BUF_SIZE 64
 static char err_buf[ERR_BUF_SIZE];
@@ -45,28 +46,35 @@ void interrupts_setup()
 void serror_handler(trapframe_t* tf)
 {
     log("serror_handler");
-    while (1) {}
+    while (1) { }
 }
 
 void sync_handler(trapframe_t* tf)
 {
     log("sync_handler");
-    while (1) {}
+    while (1) { }
 }
 
 void irq_handler(trapframe_t* tf)
 {
+    system_disable_interrupts();
     // Qemu_virt_here target got it here
-    log("irq_handler");
+    // log("irq_handler");
+    dump_tf(tf);
     aarch64_timer_rearm();
     gic_descriptor.end_interrupt(30);
+    resched();
+    system_enable_interrupts_only_counter();
 }
 
-void fast_irq_handler()
+void fast_irq_handler(trapframe_t* tf)
 {
     // Apl target got it here
-    log("fast_irq_handler");
+    system_disable_interrupts();
+    // dump_tf(tf);
     aarch64_timer_rearm();
+    resched();
+    system_enable_interrupts_only_counter();
 }
 
 void gic_setup()

@@ -41,6 +41,19 @@ static inline void clear_arch_flags(ptable_entity_t* entity, ptable_lv_t lv)
     }
 }
 
+static ptable_entity_t terminating_page_common_mmu_to_arch_flags(mmu_flags_t mmu_flags)
+{
+    ptable_entity_t arch_flags = 0;
+    // MAIR has the following settings: 0x04ff, so if uncached setting index 1.
+    SET_OP(mmu_flags, MMU_FLAG_UNCACHED, arch_flags |= (0b001 << 2));
+
+    SET_OP(mmu_flags, MMU_FLAG_NONPRIV, arch_flags |= (0b01 << 6));
+    SET_OP_NEG(mmu_flags, MMU_FLAG_PERM_WRITE, arch_flags |= (0b10 << 6));
+
+    // 0x700 are default flags.
+    return arch_flags | 0x700;
+}
+
 ptable_entity_t vm_mmu_to_arch_flags(mmu_flags_t mmu_flags, ptable_lv_t lv)
 {
     ptable_entity_t arch_flags = 0;
@@ -49,21 +62,39 @@ ptable_entity_t vm_mmu_to_arch_flags(mmu_flags_t mmu_flags, ptable_lv_t lv)
     switch (lv) {
     case PTABLE_LV0:
         SET_OP(mmu_flags, MMU_FLAG_PERM_READ, arch_flags |= 0b11);
-
-        // MAIR has the following settings: 0x04ff, so if uncached setting index 1.
-        SET_OP(mmu_flags, MMU_FLAG_UNCACHED, arch_flags |= (0b001 << 2));
-
-        SET_OP(mmu_flags, MMU_FLAG_NONPRIV, arch_flags |= (0b01 << 6));
-        SET_OP_NEG(mmu_flags, MMU_FLAG_PERM_WRITE, arch_flags |= (0b10 << 6));
-        return arch_flags;
+        return arch_flags | terminating_page_common_mmu_to_arch_flags(mmu_flags);
 
     case PTABLE_LV1:
     case PTABLE_LV2:
+        if (TEST_FLAG(mmu_flags, MMU_FLAG_HUGE_PAGE)) {
+            SET_OP(mmu_flags, MMU_FLAG_PERM_READ, arch_flags |= 0b01);
+            return arch_flags | terminating_page_common_mmu_to_arch_flags(mmu_flags);
+        }
+        // fallthrough
     case PTABLE_LV3:
         SET_OP(mmu_flags, MMU_FLAG_PERM_READ, arch_flags |= 0x3);
     }
 
     return arch_flags;
+}
+
+static mmu_flags_t terminating_page_common_arch_to_mmu_flags(ptable_entity_t* entity)
+{
+    ptable_entity_t arch_flags = *entity;
+    mmu_flags_t mmu_flags = 0;
+    if (((arch_flags >> 2) & 0b111) == 0b001) {
+        mmu_flags |= MMU_FLAG_UNCACHED;
+    }
+
+    if (((arch_flags >> 6) & 0b11) == 0b00) {
+        mmu_flags |= MMU_FLAG_PERM_WRITE;
+    } else if (((arch_flags >> 6) & 0b11) == 0b01) {
+        mmu_flags |= MMU_FLAG_NONPRIV | MMU_FLAG_PERM_WRITE;
+    } else if (((arch_flags >> 6) & 0b11) == 0b11) {
+        mmu_flags |= MMU_FLAG_NONPRIV;
+    }
+
+    return mmu_flags;
 }
 
 mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
@@ -76,24 +107,19 @@ mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
         if ((arch_flags & 0b11) == 0b11) {
             mmu_flags |= MMU_FLAG_PERM_READ;
         }
-
-        if (((arch_flags >> 2) & 0b111) == 0b001) {
-            mmu_flags |= MMU_FLAG_UNCACHED;
-        }
-
-        if (((arch_flags >> 6) & 0b11) == 0b00) {
-            mmu_flags |= MMU_FLAG_PERM_WRITE;
-        } else if (((arch_flags >> 6) & 0b11) == 0b01) {
-            mmu_flags |= MMU_FLAG_NONPRIV | MMU_FLAG_PERM_WRITE;
-        } else if (((arch_flags >> 6) & 0b11) == 0b11) {
-            mmu_flags |= MMU_FLAG_NONPRIV;
-        }
-
-        return mmu_flags;
+        return mmu_flags | terminating_page_common_arch_to_mmu_flags(entity);
 
     case PTABLE_LV1:
     case PTABLE_LV2:
+        if ((arch_flags & 0b11) == 0b01) {
+            mmu_flags |= MMU_FLAG_HUGE_PAGE;
+            return mmu_flags | terminating_page_common_arch_to_mmu_flags(entity);
+        }
+        // fallthrough
     case PTABLE_LV3:
+        if ((arch_flags & 0b11) == 0b11) {
+            mmu_flags |= MMU_FLAG_PERM_READ;
+        }
         mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
         return mmu_flags;
     }
@@ -186,6 +212,8 @@ void vm_ptable_entity_rm_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu_
 void vm_ptable_entity_set_frame(ptable_entity_t* entity, ptable_lv_t lv, uintptr_t frame)
 {
     // TODO(aarch64): This is set for 4kb pages.
+    // TODO(aarch64): For huge pages we do not check frame, e.g it
+    // should be aligned at 1gb mark for LV2 huge pages.
     const int frame_offset = 12;
 
     switch (lv) {
@@ -198,7 +226,7 @@ void vm_ptable_entity_set_frame(ptable_entity_t* entity, ptable_lv_t lv, uintptr
     case PTABLE_LV1:
     case PTABLE_LV2:
     case PTABLE_LV3:
-        *entity &= ((1 << (frame_offset)) - 1);
+        *entity &= ((1ull << (frame_offset)) - 1);
         frame >>= frame_offset;
         *entity |= (frame << frame_offset);
         return;
@@ -215,7 +243,7 @@ uintptr_t vm_ptable_entity_get_frame(ptable_entity_t* entity, ptable_lv_t lv)
     case PTABLE_LV1:
     case PTABLE_LV2:
     case PTABLE_LV3:
-        return ((*entity >> frame_offset) << frame_offset);
+        return ((*entity >> frame_offset) << frame_offset) & ((1ull << (48)) - 1);
     }
 
     return 0;

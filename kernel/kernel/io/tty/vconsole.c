@@ -128,7 +128,7 @@ int vconsole_write(file_t* file, void __user* buf, size_t start, size_t len)
     return len;
 }
 
-int vconsole_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
+int vconsole_ioctl(file_t* file, uintptr_t cmd, uintptr_t arg)
 {
     dentry_t* dentry = file_dentry_assert(file);
     vconsole_entry_t* vconsole = _vconsole_get(dentry);

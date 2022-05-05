@@ -16,12 +16,12 @@
 #define TEST_FLAG(val, flag) (((val) & (flag)) == (flag))
 
 int stoi(void* str, int len);
-void htos(uint32_t hex, char str[]);
-void dtos(uint32_t dec, char str[]);
+void htos(uintptr_t hex, char str[]);
+void dtos(uintptr_t dec, char str[]);
 void reverse(char s[]);
 size_t strlen(const char* s);
 int strcmp(const char* a, const char* b);
-int strncmp(const char* a, const char* b, uint32_t num);
+int strncmp(const char* a, const char* b, size_t num);
 size_t ptrarray_len(const void** s);
 
 #ifndef max

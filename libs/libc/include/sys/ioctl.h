@@ -8,7 +8,7 @@
 
 __BEGIN_DECLS
 
-int ioctl(int fd, uint32_t cmd, uint32_t arg);
+int ioctl(int fd, uintptr_t cmd, uintptr_t arg);
 
 __END_DECLS
 

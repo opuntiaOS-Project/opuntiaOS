@@ -18,7 +18,7 @@ struct procfs_files {
     void* data;
     mode_t mode;
     const file_ops_t* ops;
-    uint32_t (*inode_index)(int);
+    ino_t (*inode_index)(int);
     void* extra1;
     void* extra2;
 };

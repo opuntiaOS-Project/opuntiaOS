@@ -78,7 +78,7 @@ static void dentry_cache_alloc()
     memset((uint8_t*)list_block, 0, DENTRY_ALLOC_SIZE);
     spinlock_init(&list_block->lock);
     list_block->data = (dentry_t*)&list_block[1];
-    list_block->len = DENTRY_ALLOC_SIZE - ((uint32_t)&list_block[1] - (uint32_t)&list_block[0]);
+    list_block->len = DENTRY_ALLOC_SIZE - ((uintptr_t)&list_block[1] - (uintptr_t)&list_block[0]);
 
     if (dentry_cache == 0) {
         dentry_cache = list_block;
@@ -187,7 +187,7 @@ static void dentry_prefree_locked(dentry_t* dentry)
     stat_cached_dentries--;
 }
 
-static dentry_t* dentry_alloc_new(uint32_t dev_indx, uint32_t inode_indx, int need_to_read_inode)
+static dentry_t* dentry_alloc_new(dev_t dev_indx, ino_t inode_indx, int need_to_read_inode)
 {
     if (inode_indx == 0) {
         return NULL;
@@ -280,24 +280,24 @@ void kdentryflusherd()
 #ifdef DENTRY_DEBUG
         log("WORK dentry_flusher");
 #endif
-        dentry_cache_list_t* dentry_cache_block = dentry_cache;
-        while (dentry_cache_block) {
-            spinlock_acquire(&dentry_cache_block->lock);
-            int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);
-            for (int i = 0; i < dentries_in_block; i++) {
-                if (dentry_cache_block->data[i].inode_indx != 0) {
-                    // Keep only locks here might not be as effective as with disabled interrupts.
-                    spinlock_acquire(&dentry_cache_block->data[i].lock);
-                    system_disable_interrupts();
-                    dentry_flush_locked(&dentry_cache_block->data[i]);
-                    system_enable_interrupts();
-                    spinlock_release(&dentry_cache_block->data[i].lock);
-                }
-            }
-            spinlock_release(&dentry_cache_block->lock);
-            dentry_cache_block = dentry_cache_block->next;
-        }
-        ksys1(SYS_NANOSLEEP, 2);
+        // dentry_cache_list_t* dentry_cache_block = dentry_cache;
+        // while (dentry_cache_block) {
+        //     spinlock_acquire(&dentry_cache_block->lock);
+        //     int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);
+        //     for (int i = 0; i < dentries_in_block; i++) {
+        //         if (dentry_cache_block->data[i].inode_indx != 0) {
+        //             // Keep only locks here might not be as effective as with disabled interrupts.
+        //             spinlock_acquire(&dentry_cache_block->data[i].lock);
+        //             system_disable_interrupts();
+        //             dentry_flush_locked(&dentry_cache_block->data[i]);
+        //             system_enable_interrupts();
+        //             spinlock_release(&dentry_cache_block->data[i].lock);
+        //         }
+        //     }
+        //     spinlock_release(&dentry_cache_block->lock);
+        //     dentry_cache_block = dentry_cache_block->next;
+        // }
+        // ksys1(SYS_NANOSLEEP, 2);
     }
 }
 
@@ -307,7 +307,7 @@ void kdentryflusherd()
  * 2) We have a valid dentry which isn'y held by someone and ready to swapped out.
  * 3) We have an unsed entry in the cache array.
  */
-dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx)
+dentry_t* dentry_get(dev_t dev_indx, ino_t inode_indx)
 {
     /* We try to find the dentry in the cache */
     dentry_cache_list_t* dentry_cache_block = dentry_cache;
@@ -330,7 +330,7 @@ dentry_t* dentry_get(uint32_t dev_indx, uint32_t inode_indx)
     return dentry_alloc_new(dev_indx, inode_indx, READ_INODE);
 }
 
-dentry_t* dentry_get_no_inode(uint32_t dev_indx, uint32_t inode_indx, int* newly_allocated)
+dentry_t* dentry_get_no_inode(dev_t dev_indx, ino_t inode_indx, int* newly_allocated)
 {
     /* We try to find the dentry in the cache */
     dentry_cache_list_t* dentry_cache_block = dentry_cache;
@@ -422,7 +422,7 @@ void dentry_put(dentry_t* dentry)
     spinlock_release(&dentry->lock);
 }
 
-void dentry_put_all_dentries_of_dev(uint32_t dev_indx)
+void dentry_put_all_dentries_of_dev(dev_t dev_indx)
 {
     dentry_cache_list_t* dentry_cache_block = dentry_cache;
     while (dentry_cache_block) {
@@ -509,7 +509,7 @@ inline void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode)
     spinlock_release(&dentry->lock);
 }
 
-uint32_t dentry_stat_cached_count()
+size_t dentry_stat_cached_count()
 {
     return stat_cached_dentries;
 }

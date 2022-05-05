@@ -45,6 +45,29 @@ static int _vmm_init_switch_to_kernel_pdir()
     return 0;
 }
 
+static void vmm_setup_paddr_mapped_location(boot_args_t* args)
+{
+    // Align it to 1gb, as it mapped with 1gb huge page it.
+    uintptr_t vaddr = ROUND_FLOOR(KERNEL_PADDR_BASE, 1 << 30);
+    uintptr_t paddr = ROUND_FLOOR(args->paddr, 1 << 30);
+
+    extern uintptr_t vm_pspace_paddr_zone_offset;
+    vm_pspace_paddr_zone_offset = vaddr - paddr;
+}
+
+static void vm_map_kernel_huge_page_1gb(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
+{
+    // TODO(aarch64): Look like aarch64 and 4kb pages specific, need to unify this.
+    ASSERT(PTABLE_LV_TOP == PTABLE_LV2);
+    vaddr = ROUND_FLOOR(vaddr, 1 << 30);
+    paddr = ROUND_FLOOR(paddr, 1 << 30);
+
+    ptable_entity_t* ptable_desc = vm_get_entity(vaddr, PTABLE_LV2);
+    vm_ptable_entity_set_default_flags(ptable_desc, PTABLE_LV2);
+    vm_ptable_entity_set_mmu_flags(ptable_desc, PTABLE_LV2, MMU_FLAG_HUGE_PAGE | mmu_flags);
+    vm_ptable_entity_set_frame(ptable_desc, PTABLE_LV2, paddr);
+}
+
 static void vm_alloc_kernel_pdir()
 {
     _vmm_kernel_pdir0_paddr = (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE(PTABLE_LV_TOP), PTABLE_SIZE(PTABLE_LV_TOP));
@@ -70,12 +93,14 @@ static void vmm_create_kernel_ptables(boot_args_t* args)
     // TODO(aarch64): Replace constant(1024).
     vmm_map_pages_locked(KERNEL_BASE, args->paddr, 1024, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
     vmm_map_pages_locked(args->paddr, args->paddr, 1024, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+    vm_map_kernel_huge_page_1gb(KERNEL_PADDR_BASE, args->paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
 
     // Debug mapping, should be removed.
     if (!args->fb_boot_desc.vaddr) {
         vmm_map_page_locked(0x09000000, 0x09000000, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
     } else {
-        vmm_map_pages_locked((uintptr_t)args->fb_boot_desc.vaddr, (uintptr_t)args->fb_boot_desc.paddr, 1024, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+        // Mapping 16mb.
+        vmm_map_pages_locked((uintptr_t)args->fb_boot_desc.vaddr, (uintptr_t)args->fb_boot_desc.paddr, 256 * 16, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
     }
 }
 
@@ -87,8 +112,9 @@ int vmm_setup(boot_args_t* args)
     kmemzone_init();
     vm_alloc_kernel_pdir();
     vmm_create_kernel_ptables(args);
-    // vm_pspace_init(args);
+    vm_pspace_init(args);
     _vmm_init_switch_to_kernel_pdir();
+    vmm_setup_paddr_mapped_location(args);
     kmemzone_init_stage2();
     kmalloc_init();
 

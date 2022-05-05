@@ -36,6 +36,7 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/drivers/generic/screen.c")
     print("//kernel/kernel/libkern/log.c")
     print("//kernel/kernel/libkern/printf.c")
+    print("//kernel/kernel/libkern/scanf.c")
     print("//kernel/kernel/libkern/kassert.c")
     print("//kernel/kernel/libkern/utils.c")
     print("//kernel/kernel/libkern/mem.c")
@@ -47,6 +48,8 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/platform/aarch64/interrupts/handlers.c")
     print("//kernel/kernel/drivers/aarch64/timer.c")
     print("//kernel/kernel/drivers/aarch64/gicv2.c")
+    print("//kernel/kernel/drivers/arm/pl111.c")
+    print("//kernel/kernel/drivers/arm/pl181.c")
 
     print("//kernel/kernel/platform/aarch64/prekernel/qemuboot.c")
     print("//kernel/kernel/platform/aarch64/prekernel/prekernel.S")
@@ -63,6 +66,43 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/drivers/devtree.c")
     print("//kernel/kernel/drivers/driver_manager.c")
     print("//kernel/kernel/algo/dynamic_array.c")
+
+    print("//kernel/kernel/tasking/tasking.c")
+    print("//kernel/kernel/tasking/proc.c")
+    print("//kernel/kernel/tasking/thread.c")
+    print("//kernel/kernel/tasking/kthread.c")
+    print("//kernel/kernel/tasking/sched.c")
+    print("//kernel/kernel/tasking/elf.c")
+
+    print("//kernel/kernel/fs/dentry.c")
+    print("//kernel/kernel/fs/file.c")
+    print("//kernel/kernel/fs/helper.c")
+    print("//kernel/kernel/fs/vfs.c")
+    print("//kernel/kernel/fs/devfs/devfs.c")
+    print("//kernel/kernel/fs/ext2/ext2.c")
+    print("//kernel/kernel/fs/procfs/pid.c")
+    print("//kernel/kernel/fs/procfs/procfs.c")
+    print("//kernel/kernel/fs/procfs/root.c")
+    print("//kernel/kernel/fs/procfs/sysctl.c")
+
+    print("//kernel/kernel/mem/memzone.c")
+    print("//kernel/kernel/mem/vm_address_space.c")
+    print("//kernel/kernel/libkern/umem.c")
+    print("//kernel/kernel/algo/ringbuffer.c")
+
+    print("//kernel/kernel/platform/aarch64/tasking/switch_contexts.S")
+    print("//kernel/kernel/platform/aarch64/tasking/tasking_jumper.S")
+    print("//kernel/kernel/platform/aarch64/tasking/switchvm.c")
+
+    print("//kernel/kernel/time/time_manager.c")
+    print("//kernel/kernel/io/shared_buffer/shared_buffer.c")
+    print("//kernel/kernel/io/sockets/socket.c")
+    print("//kernel/kernel/io/sockets/local_socket.c")
+    print("//kernel/kernel/io/tty/ptmx.c")
+    print("//kernel/kernel/io/tty/pty_master.c")
+    print("//kernel/kernel/io/tty/pty_slave.c")
+    print("//kernel/kernel/io/tty/tty.c")
+    print("//kernel/kernel/io/tty/vconsole.c")
 else:
     for path, subdirs, files in os.walk("../kernel/kernel"):
         for name in files:
