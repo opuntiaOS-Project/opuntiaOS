@@ -8,6 +8,8 @@
 
 #include <drivers/aarch64/gicv2.h>
 #include <drivers/aarch64/timer.h>
+#include <drivers/aarch64/pl111.h>
+#include <drivers/aarch64/pl181.h>
 #include <platform/aarch64/init.h>
 #include <platform/aarch64/interrupts.h>
 

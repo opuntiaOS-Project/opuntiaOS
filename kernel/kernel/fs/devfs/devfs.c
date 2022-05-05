@@ -33,7 +33,7 @@ static size_t free_space_in_last_ops_zone;
 
 static devfs_inode_t* devfs_root;
 
-static uint32_t next_inode_index = 2;
+static ino_t next_inode_index = 2;
 
 static spinlock_t _devfs_lock;
 
@@ -80,17 +80,17 @@ static int _devfs_alloc_ops_zone()
     return 0;
 }
 
-static devfs_inode_t* _devfs_get_entry(uint32_t indx)
+static devfs_inode_t* _devfs_get_entry(ino_t indx)
 {
-    uint32_t entries_per_zone = DEVFS_ZONE_SIZE / DEVFS_INODE_LEN;
-    uint32_t zones_count = entry_zones.size;
+    size_t entries_per_zone = DEVFS_ZONE_SIZE / DEVFS_INODE_LEN;
+    size_t zones_count = entry_zones.size;
     if (indx >= zones_count * entries_per_zone) {
         return 0;
     }
 
-    uint32_t requested_zone = indx / entries_per_zone;
-    uint32_t index_within_zone = indx % entries_per_zone;
-    uint32_t* tmp_ptr = dynarr_get(&entry_zones, requested_zone);
+    size_t requested_zone = indx / entries_per_zone;
+    size_t index_within_zone = indx % entries_per_zone;
+    uintptr_t* tmp_ptr = dynarr_get(&entry_zones, requested_zone);
     devfs_inode_t* res = (devfs_inode_t*)*tmp_ptr;
     if (!res) {
         return 0;
@@ -116,9 +116,9 @@ static devfs_inode_t* _devfs_new_entry()
     return res;
 }
 
-static char* _devfs_new_name(int len)
+static char* _devfs_new_name(size_t len)
 {
-    len = (len + 1 + 0x3) & (uint32_t)(~0b11);
+    len = (len + 1 + 0x3) & (size_t)(~0b11);
     if (free_space_in_last_name_zone < len) {
         _devfs_alloc_name_zone();
     }
@@ -142,7 +142,7 @@ static file_ops_t* _devfs_new_ops()
     return res;
 }
 
-static inline devfs_inode_t* _devfs_get_devfs_inode(uint32_t inode_indx)
+static inline devfs_inode_t* _devfs_get_devfs_inode(ino_t inode_indx)
 {
     /*  Since in vfs, we use a rule that 2nd inode is a root inode, so, let's
         follow this rule here. But in our storage elements are indexed from 0,
@@ -192,7 +192,7 @@ static devfs_inode_t* _devfs_alloc_entry(devfs_inode_t* parent)
     return new_entry;
 }
 
-static int _devfs_set_name(devfs_inode_t* entry, const char* name, uint32_t len)
+static int _devfs_set_name(devfs_inode_t* entry, const char* name, size_t len)
 {
     if (!entry || !name) {
         return -EINVAL;
@@ -297,7 +297,7 @@ int devfs_free_inode(dentry_t* dentry)
     return 0;
 }
 
-int devfs_getdents(const path_t* path, void __user* buf, uint32_t* offset, uint32_t len)
+int devfs_getdents(const path_t* path, void __user* buf, off_t* offset, size_t len)
 {
     dentry_t* dir = path->dentry;
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
@@ -327,7 +327,7 @@ int devfs_getdents(const path_t* path, void __user* buf, uint32_t* offset, uint3
 
     /* Return .. */
     if (*offset == 1) {
-        uint32_t inode_index = devfs_inode->index;
+        ino_t inode_index = devfs_inode->index;
         if (devfs_inode->parent) {
             inode_index = devfs_inode->parent->index;
         }
@@ -351,7 +351,7 @@ int devfs_getdents(const path_t* path, void __user* buf, uint32_t* offset, uint3
             spinlock_release(&_devfs_lock);
             return 0;
         }
-        *offset = (uint32_t)devfs_inode->first;
+        *offset = (uintptr_t)devfs_inode->first;
     }
 
     while (*offset != 0xffffffff) {
@@ -367,7 +367,7 @@ int devfs_getdents(const path_t* path, void __user* buf, uint32_t* offset, uint3
         already_read += read;
         len -= read;
         if (child_devfs_inode->next) {
-            *offset = (uint32_t)child_devfs_inode->next;
+            *offset = (uintptr_t)child_devfs_inode->next;
         } else {
             *offset = 0xffffffff;
         }
@@ -377,7 +377,7 @@ int devfs_getdents(const path_t* path, void __user* buf, uint32_t* offset, uint3
     return already_read;
 }
 
-int devfs_lookup(const path_t* path, const char* name, uint32_t len, path_t* result)
+int devfs_lookup(const path_t* path, const char* name, size_t len, path_t* result)
 {
     dentry_t* dir = path->dentry;
     devfs_inode_t* devfs_inode = (devfs_inode_t*)dir->inode;
@@ -398,7 +398,7 @@ int devfs_lookup(const path_t* path, const char* name, uint32_t len, path_t* res
 
     devfs_inode_t* child = devfs_inode->first;
     while (child) {
-        uint32_t child_name_len = strlen(child->name);
+        size_t child_name_len = strlen(child->name);
         if (len == child_name_len) {
             if (strncmp(name, child->name, len) == 0) {
                 result->dentry = dentry_get(dir->dev_indx, child->index);
@@ -411,7 +411,7 @@ int devfs_lookup(const path_t* path, const char* name, uint32_t len, path_t* res
     return -ENOENT;
 }
 
-int devfs_mkdir_dummy(const path_t* path, const char* name, uint32_t len, mode_t mode, uid_t uid)
+int devfs_mkdir_dummy(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid)
 {
     return -1;
 }
@@ -505,7 +505,7 @@ int devfs_fchmod(file_t* file, mode_t mode)
     return -EROFS;
 }
 
-int devfs_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
+int devfs_ioctl(file_t* file, uintptr_t cmd, uintptr_t arg)
 {
     devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
     if (devfs_inode->handlers->ioctl) {
@@ -571,7 +571,7 @@ devman_register_driver_installation(devfs_install);
  * Register a device.
  */
 
-devfs_inode_t* devfs_mkdir(const path_t* vfspath, const char* name, uint32_t len)
+devfs_inode_t* devfs_mkdir(const path_t* vfspath, const char* name, size_t len)
 {
     spinlock_acquire(&_devfs_lock);
     devfs_inode_t* devfs_inode = (devfs_inode_t*)vfspath->dentry->inode;
@@ -590,7 +590,7 @@ devfs_inode_t* devfs_mkdir(const path_t* vfspath, const char* name, uint32_t len
     return new_entry;
 }
 
-devfs_inode_t* devfs_register(const path_t* vfspath, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers)
+devfs_inode_t* devfs_register(const path_t* vfspath, dev_t devid, const char* name, size_t len, mode_t mode, const file_ops_t* handlers)
 {
     spinlock_acquire(&_devfs_lock);
     devfs_inode_t* devfs_inode = (devfs_inode_t*)vfspath->dentry->inode;

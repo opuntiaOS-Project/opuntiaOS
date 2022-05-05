@@ -12,11 +12,11 @@
 #include <libkern/types.h>
 
 struct mapping_entry {
-    uint32_t paddr;
-    uint32_t vaddr;
+    uintptr_t paddr;
+    uintptr_t vaddr;
+    size_t pages;
     uint32_t flags;
-    uint16_t pages;
-    uint16_t last; // 1 if an element is the last.
+    uint32_t last; // 1 if an element is the last.
 };
 typedef struct mapping_entry mapping_entry_t;
 

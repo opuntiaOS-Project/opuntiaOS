@@ -45,7 +45,7 @@ int stoi(void* strv, int len)
     return res;
 }
 
-void htos(uint32_t hex, char str[])
+void htos(uintptr_t hex, char str[])
 {
     int i = 0;
     if (hex == 0) {
@@ -65,7 +65,7 @@ void htos(uint32_t hex, char str[])
     reverse(str);
 }
 
-void dtos(uint32_t dec, char str[])
+void dtos(uintptr_t dec, char str[])
 {
     int i = 0;
     if (dec == 0) {
@@ -115,7 +115,7 @@ int strcmp(const char* a, const char* b)
     return 0;
 }
 
-int strncmp(const char* a, const char* b, uint32_t num)
+int strncmp(const char* a, const char* b, size_t num)
 {
     while (*a == *b && *a != 0 && *b != 0 && num) {
         a++;

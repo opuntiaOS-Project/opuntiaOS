@@ -26,8 +26,8 @@ if arch == "aarch32":
         base, out, QEMU_PATH_VAR, QEMU_SMP_VAR)
 if arch == "aarch64":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_ARM"
-    QEMU_STD_PATH = "qemu-system-aarch64"
-    qemu_run_cmd = "${2} -machine virt,secure=off,virtualization=off,gic-version=2 -cpu cortex-a53 -m 256M -kernel {1}/base/boot/kernel.bin -smp ${3} -serial mon:stdio -nographic".format(
+    QEMU_STD_PATH = "/Users/nikitamelehin/Develop/qemu-5.1.0/aarch64-softmmu/qemu-system-aarch64"
+    qemu_run_cmd = "${2} -machine virt,secure=off,virtualization=off,gic-version=2 -cpu cortex-a53 -m 256M -kernel {1}/base/boot/kernel.bin -smp ${3} -serial mon:stdio -vga std -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
         base, out, QEMU_PATH_VAR, QEMU_SMP_VAR)
 
 if base[-1] == '/':

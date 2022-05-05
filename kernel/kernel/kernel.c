@@ -13,29 +13,30 @@
 #include <libkern/types.h>
 
 #include <drivers/devtree.h>
-// #include <drivers/driver_manager.h>
+#include <drivers/driver_manager.h>
 
-// #include <mem/kmalloc.h>
-// #include <mem/kswapd.h>
+#include <mem/kmalloc.h>
+#include <mem/kswapd.h>
 #include <mem/pmm.h>
 #include <mem/vmm.h>
 
-// #include <fs/devfs/devfs.h>
-// #include <fs/ext2/ext2.h>
-// #include <fs/procfs/procfs.h>
-// #include <fs/vfs.h>
+#include <fs/devfs/devfs.h>
+#include <fs/ext2/ext2.h>
+#include <fs/procfs/procfs.h>
+#include <fs/vfs.h>
 
-// #include <io/shared_buffer/shared_buffer.h>
-// #include <io/tty/ptmx.h>
-// #include <io/tty/tty.h>
+#include <io/shared_buffer/shared_buffer.h>
+#include <io/tty/ptmx.h>
+#include <io/tty/tty.h>
 
-// #include <time/time_manager.h>
+#include <time/time_manager.h>
 
-// #include <tasking/sched.h>
+#include <tasking/sched.h>
+#include <tasking/tasking.h>
 
 #include <libkern/log.h>
 
-// #include <syscalls/handlers.h>
+#include <syscalls/handlers.h>
 
 static int __boot_cpu_launched = 0;
 static int __boot_cpu_setup_devices = 0;
@@ -53,20 +54,20 @@ static inline void wait_for_boot_cpu_to_finish(int* wt)
     }
 }
 
-// static inline void kernel_preempt_setup()
-// {
-// #ifdef PREEMPT_KERNEL
-//     system_enable_interrupts();
-// #endif
-// }
+static inline void kernel_preempt_setup()
+{
+#ifdef PREEMPT_KERNEL
+    system_enable_interrupts();
+#endif
+}
 
-// void launching()
-// {
-//     tasking_run_kernel_thread(kdentryflusherd, NULL);
-//     tasking_run_kernel_thread(kswapd, NULL);
-//     tasking_start_init_proc();
-//     ksys1(SYS_EXIT, 0);
-// }
+void launching()
+{
+    tasking_run_kernel_thread(kdentryflusherd, NULL);
+    // tasking_run_kernel_thread(kswapd, NULL);
+    while (1) { }
+    // tasking_start_init_proc();
+}
 
 void stage3(boot_args_t* boot_args)
 {
@@ -85,31 +86,36 @@ void stage3(boot_args_t* boot_args)
     platform_setup_boot_cpu();
     boot_cpu_finish(&__boot_cpu_setup_devices);
 
-    // // installing drivers
-    // devman_init();
-    // devman_install_drivers();
-    // devman_run();
-    // timeman_setup();
-    // boot_cpu_finish(&__boot_cpu_setup_drivers);
+    // installing drivers
+    devman_init();
+    devman_install_drivers();
+    devman_run();
+    timeman_setup();
+    boot_cpu_finish(&__boot_cpu_setup_drivers);
 
-    // // mounting filesystems
+    // log("mount procfs");
+
+    // mounting filesystems
     // procfs_mount();
     // devfs_mount();
 
-    // // ipc
-    // shared_buffer_init();
+    // ipc
+    shared_buffer_init();
 
-    // // pty
+    // pty
     // ptmx_install();
 
-    // // init scheduling
-    // tasking_init();
-    // scheduler_init();
-    // schedule_activate_cpu();
-    // tasking_run_kernel_thread(launching, NULL);
-    // boot_cpu_finish(&__boot_cpu_setup_tasking);
-    // kernel_preempt_setup();
-    // resched(); /* Starting a scheduler */
+    // init scheduling
+    log("here");
+    tasking_init();
+
+    scheduler_init();
+    schedule_activate_cpu();
+    tasking_run_kernel_thread(launching, NULL);
+    boot_cpu_finish(&__boot_cpu_setup_tasking);
+    kernel_preempt_setup();
+    log("presched");
+    resched(); /* Starting a scheduler */
 
     system_stop();
 }

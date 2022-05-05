@@ -11,12 +11,12 @@
 
 #include <libkern/types.h>
 
-static inline int get_page_size()
+static inline int vm_page_size()
 {
     return 0x1000;
 }
 
-static inline int get_page_mask()
+static inline int vm_page_mask()
 {
     return 0xfff;
 }
@@ -25,9 +25,9 @@ static inline int get_page_mask()
 #define VMM_LV1_ENTITY_COUNT (512)
 #define VMM_LV2_ENTITY_COUNT (512)
 #define VMM_LV3_ENTITY_COUNT (512)
-#define VMM_PAGE_SIZE (get_page_size())
+#define VMM_PAGE_SIZE (vm_page_size())
 
-#define PAGE_START(vaddr) ((vaddr & (~(uintptr_t)get_page_mask()))
+#define PAGE_START(vaddr) ((vaddr & (~(uintptr_t)vm_page_mask())))
 #define FRAME(addr) (addr / VMM_PAGE_SIZE)
 
 #define PTABLE_LV_TOP (2)

@@ -29,16 +29,15 @@
  */
 
 static kmemzone_t pspace_zone;
-static uintptr_t paddr_mapped_at = 0x0;
+uintptr_t vm_pspace_paddr_zone_offset = 0x0;
 
 void* paddr_to_vaddr(uintptr_t paddr)
 {
-    return (void*)(paddr_mapped_at + (uintptr_t)paddr);
+    return (void*)(vm_pspace_paddr_zone_offset + (uintptr_t)paddr);
 }
 
 void vm_pspace_init(boot_args_t* args)
 {
-    paddr_mapped_at = args->paddr;
 }
 
 /**

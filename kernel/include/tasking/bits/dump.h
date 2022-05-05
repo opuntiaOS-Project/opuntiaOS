@@ -17,7 +17,7 @@ typedef ssize_t (*sym_resolver_t)(void* symtab, size_t syms_n, uint32_t tp);
 
 struct dump_data {
     proc_t* p;
-    uint32_t entry_point;
+    uintptr_t entry_point;
     void* syms;
     size_t symsn;
     char* strs;

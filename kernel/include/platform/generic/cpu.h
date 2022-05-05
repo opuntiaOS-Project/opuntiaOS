@@ -18,7 +18,7 @@
 
 #define MAX_CPU_CNT 4
 #define THIS_CPU (&cpus[system_cpu_id()])
-#define FPU_ENABLED
+// #define FPU_ENABLED
 
 struct thread;
 typedef int cpu_state_t;

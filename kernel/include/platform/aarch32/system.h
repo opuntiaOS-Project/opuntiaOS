@@ -41,7 +41,7 @@ inline static void system_data_memory_barrier()
     asm volatile("dmb ISH");
 }
 
-inline static void system_flush_local_tlb_entry(uint32_t vaddr)
+inline static void system_flush_local_tlb_entry(uintptr_t vaddr)
 {
     system_data_synchronise_barrier();
     asm volatile("mcr p15, 0, %0, c8, c7, 3"
@@ -72,7 +72,7 @@ inline static void system_flush_whole_tlb()
     system_data_synchronise_barrier();
 }
 
-inline static void system_set_pdir(uint32_t pdir)
+inline static void system_set_pdir(uintptr_t pdir)
 {
     system_data_synchronise_barrier();
     asm volatile("mcr p15, 0, %0, c2, c0, 0"

@@ -20,7 +20,7 @@ struct __sync_ringbuffer {
 };
 typedef struct __sync_ringbuffer sync_ringbuffer_t;
 
-static ALWAYS_INLINE sync_ringbuffer_t sync_ringbuffer_create(uint32_t size)
+static ALWAYS_INLINE sync_ringbuffer_t sync_ringbuffer_create(size_t size)
 {
     sync_ringbuffer_t res;
     res.ringbuffer = ringbuffer_create(size);
@@ -44,7 +44,7 @@ static ALWAYS_INLINE ssize_t sync_ringbuffer_space_to_read(sync_ringbuffer_t* bu
     return res;
 }
 
-static ALWAYS_INLINE ssize_t sync_ringbuffer_space_to_read_from(sync_ringbuffer_t* buf, uint32_t start)
+static ALWAYS_INLINE ssize_t sync_ringbuffer_space_to_read_from(sync_ringbuffer_t* buf, size_t start)
 {
     spinlock_acquire(&buf->lock);
     ssize_t res = ringbuffer_space_to_read_from(&buf->ringbuffer, start);
@@ -58,56 +58,56 @@ static ALWAYS_INLINE ssize_t sync_ringbuffer_space_to_write(sync_ringbuffer_t* b
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_read_from(sync_ringbuffer_t* buf, uint32_t start, uint8_t* holder, uint32_t siz)
+static ALWAYS_INLINE size_t sync_ringbuffer_read_from(sync_ringbuffer_t* buf, size_t start, uint8_t* holder, size_t siz)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_read_from(&buf->ringbuffer, start, holder, siz);
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_read_user_from(sync_ringbuffer_t* buf, uint32_t start, uint8_t __user* holder, uint32_t siz)
+static ALWAYS_INLINE size_t sync_ringbuffer_read_user_from(sync_ringbuffer_t* buf, size_t start, uint8_t __user* holder, size_t siz)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_read_user_from(&buf->ringbuffer, start, holder, siz);
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_read(sync_ringbuffer_t* buf, uint8_t* v, uint32_t a)
+static ALWAYS_INLINE size_t sync_ringbuffer_read(sync_ringbuffer_t* buf, uint8_t* v, size_t a)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_read(&buf->ringbuffer, v, a);
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_read_user(sync_ringbuffer_t* buf, uint8_t __user* v, uint32_t a)
+static ALWAYS_INLINE size_t sync_ringbuffer_read_user(sync_ringbuffer_t* buf, uint8_t __user* v, size_t a)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_read_user(&buf->ringbuffer, v, a);
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_write(sync_ringbuffer_t* buf, const uint8_t* v, uint32_t a)
+static ALWAYS_INLINE size_t sync_ringbuffer_write(sync_ringbuffer_t* buf, const uint8_t* v, size_t a)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_write(&buf->ringbuffer, v, a);
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_write_user(sync_ringbuffer_t* buf, const uint8_t __user* v, uint32_t a)
+static ALWAYS_INLINE size_t sync_ringbuffer_write_user(sync_ringbuffer_t* buf, const uint8_t __user* v, size_t a)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_write_user(&buf->ringbuffer, v, a);
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_write_ignore_bounds(sync_ringbuffer_t* buf, const uint8_t* holder, uint32_t siz)
+static ALWAYS_INLINE size_t sync_ringbuffer_write_ignore_bounds(sync_ringbuffer_t* buf, const uint8_t* holder, size_t siz)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_write_ignore_bounds(&buf->ringbuffer, holder, siz);
     spinlock_release(&buf->lock);
     return res;
 }
-static ALWAYS_INLINE size_t sync_ringbuffer_write_user_ignore_bounds(sync_ringbuffer_t* buf, const uint8_t __user* holder, uint32_t siz)
+static ALWAYS_INLINE size_t sync_ringbuffer_write_user_ignore_bounds(sync_ringbuffer_t* buf, const uint8_t __user* holder, size_t siz)
 {
     spinlock_acquire(&buf->lock);
     size_t res = ringbuffer_write_user_ignore_bounds(&buf->ringbuffer, holder, siz);

@@ -18,7 +18,7 @@ static bool _gkeyboard_shift_enabled = false;
 static bool _gkeyboard_ctrl_enabled = false;
 static bool _gkeyboard_alt_enabled = false;
 static bool _gkeyboard_caps_enabled = false;
-static uint32_t _gkeyboard_last_scancode = KEY_UNKNOWN;
+static key_t _gkeyboard_last_scancode = KEY_UNKNOWN;
 
 static key_t _generic_keyboard_apply_modifiers(key_t key);
 
@@ -35,7 +35,7 @@ static bool _generic_keyboard_can_read(file_t* file, size_t start)
 
 static int _generic_keyboard_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
-    uint32_t read_len;
+    size_t read_len;
 
     read_len = ringbuffer_space_to_read(&gkeyboard_buffer);
     if (read_len > len)

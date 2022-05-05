@@ -4,11 +4,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-class BinWriter():
-    def __init__(self, output_file):
-        self.output_file = output_file
+
+class CWriter():
+    def __init__(self):
+        pass
 
     def write(self, data):
-        binfile = open(self.output_file, "wb")
-        binfile.write(bytes(data))
-        binfile.close()
+        print("static uint8_t _devtree_raw[] = {")
+        for byte in bytearray(data):
+            print(hex(byte), end = ",")
+        print("0x0};")

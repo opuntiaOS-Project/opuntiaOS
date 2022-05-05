@@ -30,7 +30,7 @@ static bool _mouse_can_read(file_t* file, size_t start)
 
 static int _mouse_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
-    uint32_t leno = ringbuffer_space_to_read(&mouse_buffer);
+    size_t leno = ringbuffer_space_to_read(&mouse_buffer);
     if (leno > len) {
         leno = len;
     }

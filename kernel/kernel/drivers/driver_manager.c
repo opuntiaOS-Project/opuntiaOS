@@ -202,7 +202,7 @@ void devman_run()
     }
 }
 
-void devman_send_notification(uint32_t msg, uint32_t param)
+void devman_send_notification(uintptr_t msg, uintptr_t param)
 {
     for (int i = 0; i < drivers_count(); i++) {
         if (drivers[i].desc.system_funcs.recieve_notification) {

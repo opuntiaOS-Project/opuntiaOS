@@ -13,32 +13,23 @@
 #include <libkern/log.h>
 #include <libkern/types.h>
 
-#define CPSR_M_USR 0x10U
-#define CPSR_M_FIQ 0x11U
-#define CPSR_M_IRQ 0x12U
-#define CPSR_M_SVC 0x13U
-#define CPSR_M_MON 0x16U
-#define CPSR_M_ABT 0x17U
-#define CPSR_M_HYP 0x1AU
-#define CPSR_M_UND 0x1BU
-#define CPSR_M_SYS 0x1FU
-
 typedef struct {
-    uint64_t user_flags;
-    uint64_t user_sp;
-    uint64_t user_lr;
-    uint64_t r[30];
-    uint64_t user_ip;
+    uint64_t x[31];
+    uint64_t esr;
+    uint64_t elr;
+    uint64_t far;
+    uint64_t spsr;
+    uint64_t sp;
 } PACKED trapframe_t;
 
 static inline uintptr_t get_stack_pointer(trapframe_t* tf)
 {
-    return tf->user_sp;
+    return tf->sp;
 }
 
 static inline void set_stack_pointer(trapframe_t* tf, uintptr_t sp)
 {
-    tf->user_sp = sp;
+    tf->sp = sp;
 }
 
 static inline uintptr_t get_base_pointer(trapframe_t* tf)
@@ -52,22 +43,22 @@ static inline void set_base_pointer(trapframe_t* tf, uintptr_t bp)
 
 static inline uintptr_t get_instruction_pointer(trapframe_t* tf)
 {
-    return tf->user_ip;
+    return tf->elr;
 }
 
 static inline void set_instruction_pointer(trapframe_t* tf, uintptr_t ip)
 {
-    tf->user_ip = ip;
+    tf->elr = ip;
 }
 
 static inline uintptr_t get_syscall_result(trapframe_t* tf)
 {
-    return tf->r[0];
+    return tf->x[0];
 }
 
 static inline void set_syscall_result(trapframe_t* tf, uintptr_t val)
 {
-    tf->r[0] = val;
+    tf->x[0] = val;
 }
 
 /**
@@ -76,40 +67,44 @@ static inline void set_syscall_result(trapframe_t* tf, uintptr_t val)
 
 static inline void tf_push_to_stack(trapframe_t* tf, uintptr_t val)
 {
-    tf->user_sp -= sizeof(uintptr_t);
-    *((uintptr_t*)tf->user_sp) = val;
+    tf->sp -= sizeof(uintptr_t);
+    *((uintptr_t*)tf->sp) = val;
 }
 
 static inline uintptr_t tf_pop_to_stack(trapframe_t* tf)
 {
-    uintptr_t val = *((uintptr_t*)tf->user_sp);
-    tf->user_sp += sizeof(uintptr_t);
+    uintptr_t val = *((uintptr_t*)tf->sp);
+    tf->sp += sizeof(uintptr_t);
     return val;
 }
 
 static inline void tf_move_stack_pointer(trapframe_t* tf, int32_t val)
 {
-    tf->user_sp += val;
+    tf->sp += val;
 }
 
 static inline void tf_setup_as_user_thread(trapframe_t* tf)
 {
-    tf->user_flags = 0x60000100 | CPSR_M_USR;
+    tf->spsr = 0x0;
 }
 
 static inline void tf_setup_as_kernel_thread(trapframe_t* tf)
 {
-    tf->user_flags = 0x60000100 | CPSR_M_SYS;
+    tf->spsr = 0x4;
 }
 
 static void dump_tf(trapframe_t* tf)
 {
-    for (int i = 0; i < 13; i++) {
-        log("r[%d]: %x", i, tf->r[i]);
+    for (int i = 0; i < 31; i++) {
+        log("x[%d]: %zx", i, tf->x[i]);
     }
-    log("sp: %x", tf->user_sp);
-    log("ip: %x", tf->user_ip);
-    log("fl: %x", tf->user_flags);
+
+    log("tf: %p", tf);
+    log("sp: %zx", tf->sp);
+    log("ip: %zx", tf->elr);
+    log("fl: %zx", tf->spsr);
+    log("far: %zx", tf->far);
+    log("esr: %zx", tf->esr);
 }
 
 #endif // _KERNEL_PLATFORM_AARCH64_TASKING_TRAPFRAME_H

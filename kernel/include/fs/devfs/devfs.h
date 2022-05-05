@@ -52,7 +52,7 @@ typedef struct devfs_inode devfs_inode_t;
 void devfs_install();
 int devfs_mount();
 
-devfs_inode_t* devfs_mkdir(const path_t* vfspath, const char* name, uint32_t len);
-devfs_inode_t* devfs_register(const path_t* vfspath, uint32_t devid, const char* name, uint32_t len, mode_t mode, const file_ops_t* handlers);
+devfs_inode_t* devfs_mkdir(const path_t* vfspath, const char* name, size_t len);
+devfs_inode_t* devfs_register(const path_t* vfspath, dev_t devid, const char* name, size_t len, mode_t mode, const file_ops_t* handlers);
 
 #endif /* _KERNEL_FS_DEVFS_DEVFS_H */

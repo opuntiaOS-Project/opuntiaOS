@@ -61,7 +61,7 @@ typedef struct dirent dirent_t;
 typedef uint32_t dentry_flag_t;
 
 struct dentry {
-    uint32_t d_count;
+    size_t d_count;
     dentry_flag_t flags;
     ino_t inode_indx;
     inode_t* inode;
@@ -164,7 +164,7 @@ struct file_descriptor {
 typedef struct file_descriptor file_descriptor_t;
 
 struct socket {
-    uint32_t d_count;
+    size_t d_count;
     int domain;
     int type;
     int protocol;
@@ -205,7 +205,7 @@ bool dentry_test_flag_locked(dentry_t* dentry, dentry_flag_t flag);
 void dentry_rem_flag_locked(dentry_t* dentry, dentry_flag_t flag);
 bool dentry_test_mode_locked(dentry_t* dentry, mode_t mode);
 
-uint32_t dentry_stat_cached_count();
+size_t dentry_stat_cached_count();
 
 /**
  * VFS HELPERS

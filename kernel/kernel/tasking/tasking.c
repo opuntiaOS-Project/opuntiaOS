@@ -94,18 +94,6 @@ proc_t* tasking_get_proc(pid_t pid)
     return NULL;
 }
 
-proc_t* tasking_get_proc_by_pdir(ptable_t* pdir)
-{
-    proc_t* p;
-    for (int i = 0; i < _tasking_get_proc_count(); i++) {
-        p = &proc[i];
-        if (p->status == PROC_ALIVE && p->address_space->pdir == pdir) {
-            return p;
-        }
-    }
-    return NULL;
-}
-
 static inline proc_t* _tasking_alloc_proc()
 {
     proc_t* p = &proc[_tasking_next_proc_id()];
@@ -147,20 +135,21 @@ static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
  * Start init proccess
  * All others processes will fork
  */
-void tasking_start_init_proc()
-{
-    system_disable_interrupts();
-    proc_t* p = _tasking_setup_proc_with_uid(0, 0);
-    proc_setup_vconsole(p, vconsole_new());
+// TODO(aarch64)
+// void tasking_start_init_proc()
+// {
+//     system_disable_interrupts();
+//     proc_t* p = _tasking_setup_proc_with_uid(0, 0);
+//     proc_setup_vconsole(p, vconsole_new());
 
-    int err = _tasking_do_exec(p, p->main_thread, boot_args()->init_process, 0, NULL, 0, NULL);
-    if (err) {
-        kpanic("Failed to load init proc");
-    }
+//     int err = _tasking_do_exec(p, p->main_thread, boot_args()->init_process, 0, NULL, 0, NULL);
+//     if (err) {
+//         kpanic("Failed to load init proc");
+//     }
 
-    sched_enqueue(p->main_thread);
-    system_enable_interrupts();
-}
+//     sched_enqueue(p->main_thread);
+//     system_enable_interrupts();
+// }
 
 proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
 {
@@ -185,9 +174,9 @@ proc_t* tasking_run_kernel_thread(void* entry_point, void* data)
 void tasking_init()
 {
     proc_init_storage();
-    swapfile_init();
-    signal_init();
-    dump_prepare_kernel_data();
+    // swapfile_init();
+    // signal_init();
+    // dump_prepare_kernel_data();
 }
 
 bool tasking_should_become_zombie(proc_t* p)
@@ -202,7 +191,7 @@ bool tasking_should_become_zombie(proc_t* p)
     }
 
     if (pproc->main_thread->signal_handlers[SIGCHLD]) {
-        signal_send(pproc->main_thread, SIGCHLD);
+        // signal_send(pproc->main_thread, SIGCHLD);
         return false;
     }
     return true;
@@ -385,7 +374,7 @@ int tasking_waitpid(int pid, int* status, int options)
     }
 
     if (!TEST_FLAG(options, WNOHANG)) {
-        init_join_blocker(thread, pid);
+        // init_join_blocker(thread, pid);
     }
 
     if (status) {
@@ -408,13 +397,13 @@ int tasking_signal(thread_t* thread, int signo)
     if (thread->status == THREAD_STATUS_INVALID || thread->status == THREAD_STATUS_DYING) {
         return -EINVAL;
     }
-    signal_send(thread, signo);
+    // signal_send(thread, signo);
 
     // If the target thread is a one that issued kill to self,
     // dispatch the signal right now. Overwise scheduler will
     // dispatch when it switches to the task.
     if (RUNNING_THREAD == thread) {
-        signal_dispatch_pending(thread);
+        // signal_dispatch_pending(thread);
     }
     return 0;
 }

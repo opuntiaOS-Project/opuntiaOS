@@ -91,6 +91,6 @@ bool tty_can_read(tty_entry_t* tty, file_t* file, size_t start);
 int tty_read(tty_entry_t* tty, file_t* file, void __user* buf, size_t start, size_t len);
 bool tty_can_write(tty_entry_t* tty, file_t* file, size_t start);
 int tty_write(tty_entry_t* tty, file_t* file, void __user* buf, size_t start, size_t len);
-int tty_ioctl(tty_entry_t* tty, file_t* file, uint32_t cmd, uint32_t arg);
+int tty_ioctl(tty_entry_t* tty, file_t* file, uintptr_t cmd, uintptr_t arg);
 
 #endif // _KERNEL_IO_TTY_TTY_H

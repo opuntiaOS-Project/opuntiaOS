@@ -13,6 +13,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('i', type=str, help='Input file')
     parser.add_argument('o', type=str, help='Output file')
+    parser.add_argument('--dumpc', action='store_true',
+                        help='Dumping C array')
 
     args = parser.parse_args()
-    DevTreeCompiler.compile(args.i, args.o)
+
+    if args.dumpc:
+        DevTreeCompiler.to_c_arr(args.i)
+    else:
+        DevTreeCompiler.compile(args.i, args.o)

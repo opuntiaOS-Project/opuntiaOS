@@ -50,7 +50,7 @@ int devman_register_driver(driver_desc_t driver_info, const char* name);
 int devman_register_device(device_desc_t device_info, int type);
 device_t* new_virtual_device(int type);
 int devman_get_driver_id_by_name();
-void devman_send_notification(uint32_t msg, uint32_t param);
+void devman_send_notification(uintptr_t msg, uintptr_t param);
 
 static inline void* devman_driver_function(int driver_id, int function_id)
 {

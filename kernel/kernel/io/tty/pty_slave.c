@@ -61,7 +61,7 @@ int pty_slave_write(file_t* file, void __user* buf, size_t start, size_t len)
     return len;
 }
 
-int pty_slave_ioctl(file_t* file, uint32_t cmd, uint32_t arg)
+int pty_slave_ioctl(file_t* file, uintptr_t cmd, uintptr_t arg)
 {
     dentry_t* dentry = file_dentry_assert(file);
     pty_slave_entry_t* pts = _pts_get(dentry);

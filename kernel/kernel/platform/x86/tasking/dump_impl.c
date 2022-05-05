@@ -27,7 +27,7 @@ void dump_regs(dump_data_t* dump_data)
 
 void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_kernel)
 {
-    uint32_t id = 1;
+    size_t id = 1;
     char buf[64];
 
     do {
@@ -57,7 +57,7 @@ int dump_impl(dump_data_t* dump_data)
 {
     trapframe_t* tf = dump_data->p->main_thread->tf;
     dump_regs(dump_data);
-    dump_backtrace(dump_data, get_instruction_pointer(tf), (uint32_t*)get_base_pointer(tf), 0);
+    dump_backtrace(dump_data, get_instruction_pointer(tf), (uintptr_t*)get_base_pointer(tf), 0);
     return 0;
 }
 
@@ -66,7 +66,7 @@ int dump_kernel_impl(dump_data_t* dump_data, const char* err_desc)
     if (err_desc) {
         dump_data->writer(err_desc);
     }
-    dump_backtrace(dump_data, read_ip(), (uint32_t*)read_bp(), 1);
+    dump_backtrace(dump_data, read_ip(), (uintptr_t*)read_bp(), 1);
     return 0;
 }
 
@@ -75,6 +75,6 @@ int dump_kernel_impl_from_tf(dump_data_t* dump_data, const char* err_desc, trapf
     if (err_desc) {
         dump_data->writer(err_desc);
     }
-    dump_backtrace(dump_data, tf->eip, (uint32_t*)tf->ebp, 1);
+    dump_backtrace(dump_data, tf->eip, (uintptr_t*)tf->ebp, 1);
     return 0;
 }

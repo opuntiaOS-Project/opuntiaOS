@@ -112,6 +112,7 @@ int thread_copy_of(thread_t* thread, thread_t* from_thread)
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count, char** envp)
 {
+    ASSERT(false);
     const int alignment = sizeof(uintptr_t);
 
     size_t argv_data_size = 0;
@@ -138,6 +139,8 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
 #ifdef __i386__
     const size_t pointers_size = sizeof(argc) + sizeof(char*) + sizeof(char*); // argc + pointer to argv array + pointer to envp array.
 #elif __arm__
+    const size_t pointers_size = 0;
+#elif __aarch64__
     const size_t pointers_size = 0;
 #endif
     const size_t arrays_size = argv_array_size + envp_array_size;
@@ -170,6 +173,12 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     uintptr_t end_sp = argc_sp;
     uintptr_t copy_to_sp = end_sp;
 #elif __arm__
+    uintptr_t end_sp = argv_array_sp;
+    uintptr_t copy_to_sp = end_sp;
+
+    // The alignment of sp must be 2x of the pointer size.
+    end_sp = end_sp & ~(uintptr_t)(alignment * 2 - 1);
+#elif __aarch64__
     uintptr_t end_sp = argv_array_sp;
     uintptr_t copy_to_sp = end_sp;
 
@@ -213,6 +222,10 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     thread->tf->r[0] = argc;
     thread->tf->r[1] = argv_array_sp;
     thread->tf->r[2] = envp_array_sp;
+#elif __aarch64__
+    thread->tf->x[0] = argc;
+    thread->tf->x[1] = argv_array_sp;
+    thread->tf->x[2] = envp_array_sp;
 #endif
     set_stack_pointer(thread->tf, end_sp);
     vmm_copy_to_address_space(thread->process->address_space, (uint8_t*)tmp_buf, copy_to_sp, total_size_on_stack);

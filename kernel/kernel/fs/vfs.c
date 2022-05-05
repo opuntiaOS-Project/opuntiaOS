@@ -25,7 +25,7 @@ vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
 dynamic_array_t _vfs_fses;
 int32_t root_fs_dev_id = -1;
 
-static void vfs_recieve_notification(uint32_t msg, uint32_t param);
+static void vfs_recieve_notification(uintptr_t msg, uintptr_t param);
 static int _vfs_loadpage_from_mmap_file(struct memzone* zone, uintptr_t vaddr);
 
 static vm_ops_t mmap_file_vm_ops = {

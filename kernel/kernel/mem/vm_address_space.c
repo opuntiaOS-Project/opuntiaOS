@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include <libkern/bits/errno.h>
 #include <mem/kmalloc.h>
 #include <mem/vm_address_space.h>
 #include <tasking/proc.h>
@@ -30,12 +31,18 @@ vm_address_space_t* vm_address_space_alloc()
 
 int vm_address_space_free(vm_address_space_t* old)
 {
+    if (!old) {
+        return -EINVAL;
+    }
+
+    if (old == vmm_get_kernel_address_space()) {
+        return -EPERM;
+    }
+
     old->count--;
     if (old->count == 0) {
-        if (old->pdir && old->pdir != vmm_get_kernel_pdir()) {
-            vmm_free_address_space(old);
-            dynarr_clear(&old->zones);
-        }
+        vmm_free_address_space(old);
+        dynarr_clear(&old->zones);
         kfree(old);
     }
 

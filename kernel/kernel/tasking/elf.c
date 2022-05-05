@@ -21,6 +21,9 @@
 #define MACHINE_ARCH EM_386
 #elif __arm__
 #define MACHINE_ARCH EM_ARM
+#elif __aarch64__
+// TODO(aarch64): fix this.
+#define MACHINE_ARCH EM_ARM
 #endif
 
 #define USER_STACK_SIZE VMM_PAGE_SIZE
