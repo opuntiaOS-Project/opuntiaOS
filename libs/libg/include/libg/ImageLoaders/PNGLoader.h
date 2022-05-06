@@ -18,7 +18,7 @@ namespace LG {
 namespace PNG {
 
     struct ChunkHeader {
-        size_t len;
+        uint32_t len;
         uint8_t type[4];
     };
 

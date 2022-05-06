@@ -6,15 +6,18 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/generic/screen.h>
+#include <drivers/driver_manager.h>
 #include <libkern/types.h>
 #include <mem/boot.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 
+static kmemzone_t mapped_zone;
 volatile uint8_t* uart = NULL;
 
 void uart_setup(boot_args_t* boot_args)
 {
-    // This is a huuuge stub.
+    // TODO(aarch64): This is a huuuge stub.
     // We have 2 platforms for aarch64: apl uses screen.h and
     // qemu-virt uses uart, so setting it up for it only.
     if (boot_args && boot_args->paddr == 0x40000000) {
@@ -31,17 +34,22 @@ int uart_write(int port, uint8_t data)
     return 0;
 }
 
-int opuntiaos_greeting()
+static inline int _uart_map_itself()
 {
-    // volatile uint32_t* fb = (uint32_t*)0xfb0000000ULL;
+    // TODO(aarch64): Currently paddr is taken from uart
+    uintptr_t mmio_paddr = (uintptr_t)uart;
 
-    // uint32_t color = 0x0;
-    // for (;;) {
-    //     for (int i = 0; i < 3000000; i++) {
-    //         fb[i] = color;
-    //     }
-    //     color += 0xff;
-    // }
-
+    mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
+    vmm_map_page(mapped_zone.start, mmio_paddr, MMU_FLAG_DEVICE);
+    uart = (uint8_t*)mapped_zone.ptr;
     return 0;
 }
+
+void uart_remap()
+{
+    if (!uart) {
+        return;
+    }
+    _uart_map_itself();
+}
+devman_register_driver_installation_order(uart_remap, 10);

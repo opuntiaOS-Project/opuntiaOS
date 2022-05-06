@@ -15,12 +15,12 @@ if (target_cpu == "aarch32") {
   gnu_target = "arm-none-eabi"
 }
 if (target_cpu == "aarch64") {
-  gnu_ar = "arm-none-eabi-ar"
-  gnu_cc = "arm-none-eabi-gcc"
-  gnu_cxx = "arm-none-eabi-g++"
-  gnu_ld = "arm-none-eabi-gcc"
-  gnu_asm = "arm-none-eabi-as"
-  gnu_target = "arm-none-eabi"
+  gnu_ar = "aarch64-elf-ar"
+  gnu_cc = "aarch64-elf-gcc"
+  gnu_cxx = "aarch64-elf-g++"
+  gnu_ld = "aarch64-elf-gcc"
+  gnu_asm = "aarch64-elf-gcc -c"
+  gnu_target = "aarch64-elf"
 }
 
 if (target_cpu == "x86") {

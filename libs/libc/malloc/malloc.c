@@ -19,7 +19,7 @@ static int _alloc_new_block(size_t sz)
     // this will reduce system calls for the small memory allocations
     size_t allocated_sz = sz > MALLOC_DEFAULT_BLOCK_SIZE ? sz : MALLOC_DEFAULT_BLOCK_SIZE;
 
-    int ret = (int)mmap(NULL, allocated_sz, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+    intptr_t ret = (intptr_t)mmap(NULL, allocated_sz, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
     if (ret < 0) {
         return -1;
     }

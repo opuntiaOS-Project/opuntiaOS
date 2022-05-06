@@ -32,7 +32,7 @@ def is_file_blocked(name):
 
 if sys.argv[2] == "aarch64":
     print("//kernel/kernel/platform/aarch64/interrupts/interrupts.S")
-    print("//kernel/kernel/drivers/aarch64/apl/uart.c")
+    print("//kernel/kernel/drivers/aarch64/uart.c")
     print("//kernel/kernel/drivers/generic/screen.c")
     print("//kernel/kernel/libkern/log.c")
     print("//kernel/kernel/libkern/printf.c")
@@ -103,6 +103,21 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/io/tty/pty_slave.c")
     print("//kernel/kernel/io/tty/tty.c")
     print("//kernel/kernel/io/tty/vconsole.c")
+
+    print("//kernel/kernel/drivers/generic/ramdisk.c")
+
+    print("//kernel/kernel/syscalls/fs.c")
+    print("//kernel/kernel/syscalls/handler.c")
+    print("//kernel/kernel/syscalls/identity.c")
+    print("//kernel/kernel/syscalls/io.c")
+    print("//kernel/kernel/syscalls/ptrace.c")
+    print("//kernel/kernel/syscalls/system.c")
+    print("//kernel/kernel/syscalls/tasking.c")
+    print("//kernel/kernel/syscalls/time.c")
+    print("//kernel/kernel/tasking/blocker.c")
+
+    print("//kernel/kernel/drivers/aarch64/fpu.c")
+    print("//kernel/kernel/drivers/aarch64/fpu_helper.S")
 else:
     for path, subdirs, files in os.walk("../kernel/kernel"):
         for name in files:

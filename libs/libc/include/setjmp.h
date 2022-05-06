@@ -24,6 +24,12 @@ __BEGIN_DECLS
  *   - d8-d15
  */
 #define _jblen (11 * 4 + 8 * 8)
+#elif defined(__aarch64__)
+/**
+ * ARMv8 (24 * 8):
+ *   - x8 - x10
+ */
+#define _jblen (24 * 8)
 #endif
 
 struct __jmp_buf {

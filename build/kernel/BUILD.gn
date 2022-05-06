@@ -103,6 +103,15 @@ if (target_cpu == "aarch64") {
   ]
   kernel_ld_flags += [ "-nostdlib" ]
 
+  if (host == "gnu") {
+    kernel_ld_flags += [
+      "-nostdinc",
+      "-nodefaultlibs",
+      "-nostartfiles",
+      "-lgcc",
+    ]
+  }
+
   if (host == "llvm") {
     kernel_ld_flags += [
       "--oformat",

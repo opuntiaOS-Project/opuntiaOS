@@ -5,7 +5,6 @@
 
 #include <__config>
 #include <cstdio>
-#include <setjmp.h>
 #include <streambuf>
 #include <string>
 

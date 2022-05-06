@@ -3,6 +3,7 @@
 
 #include <bits/sys/ioctls.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 

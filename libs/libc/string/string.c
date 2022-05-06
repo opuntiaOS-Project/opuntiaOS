@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#ifdef __i386__
+#ifndef __arm__
 void* memset(void* dest, int fill, size_t nbytes)
 {
     for (int i = 0; i < nbytes; ++i)
@@ -17,7 +17,7 @@ void* memset(void* dest, int fill, size_t nbytes)
 
     return dest;
 }
-#endif //__i386__
+#endif //__arm__
 
 void* memmove(void* dest, const void* src, size_t nbytes)
 {

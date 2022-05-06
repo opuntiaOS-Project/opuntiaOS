@@ -65,8 +65,8 @@ void launching()
 {
     tasking_run_kernel_thread(kdentryflusherd, NULL);
     // tasking_run_kernel_thread(kswapd, NULL);
-    while (1) { }
-    // tasking_start_init_proc();
+    tasking_start_init_proc();
+    while (1) {}
 }
 
 void stage3(boot_args_t* boot_args)
@@ -93,17 +93,19 @@ void stage3(boot_args_t* boot_args)
     timeman_setup();
     boot_cpu_finish(&__boot_cpu_setup_drivers);
 
-    // log("mount procfs");
+    log("mount procfs");
 
     // mounting filesystems
-    // procfs_mount();
-    // devfs_mount();
+    procfs_mount();
+    devfs_mount();
+
+    log("passed procfs");
 
     // ipc
     shared_buffer_init();
 
     // pty
-    // ptmx_install();
+    ptmx_install();
 
     // init scheduling
     log("here");

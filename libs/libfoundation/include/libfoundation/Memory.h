@@ -25,6 +25,10 @@ namespace LFoundation {
         asm("pld [%0, #128]" ::"r"(src));
         *dest++ = *src++;
     }
+#elif __aarch64__
+    while (count--) {
+        *dest++ = *src++;
+    }
 #endif
 }
 
@@ -76,6 +80,10 @@ namespace LFoundation {
         "[ptr]"(dest),
         "[count]"(count)
         : "r4", "r5", "r6", "r7", "memory", "cc");
+#elif __aarch64__
+    while (count--) {
+        *dest++ = val;
+    }
 #endif
 }
 } // namespace LFoundation

@@ -11,7 +11,7 @@ void prepare_free_blocks(size_t size)
 {
     int block_id = size >> 4;
     const size_t alloc_size = MALLOC_DEFAULT_BLOCK_SIZE;
-    int ret = (int)mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+    intptr_t ret = (intptr_t)mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
     if (ret < 0) {
         free_blocks[block_id] = NULL;
         return;

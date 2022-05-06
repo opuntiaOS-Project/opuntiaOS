@@ -36,8 +36,8 @@ typedef struct devtree_header devtree_header_t;
 struct PACKED devtree_entry {
     uint32_t type;
     uint32_t flags;
-    uint32_t region_base;
-    uint32_t region_size;
+    uint64_t region_base;
+    uint64_t region_size;
     uint32_t irq_lane;
     uint32_t irq_flags;
     uint32_t irq_priority;

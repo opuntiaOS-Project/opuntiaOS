@@ -45,8 +45,9 @@ typedef uint64_t uint_fast64_t;
 
 #ifndef __stdptrints_defined
 #define __stdptrints_defined
-typedef int32_t intptr_t;
-typedef uint32_t uintptr_t;
+// TODO(aarch64): Make it work back for bits32.
+typedef int64_t intptr_t;
+typedef uint64_t uintptr_t;
 #endif // __stdptrints_defined
 
 #ifndef __stdmaxints_defined

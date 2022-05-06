@@ -35,6 +35,18 @@ elif (arch == "x86"):
         AR_TOOL = "{0}llvm-ar".format(path_to_bins)
     srcs_lib.append(
         "../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-i386.a")
+elif (arch == "aarch64"):
+    if host == "gnu":
+        AR_TOOL = "{0}aarch64-elf-ar".format(path_to_bins)
+        srcs_lib.append(
+            "../toolchains/gcc_runtime/10.2.1/aarch64-libgcc.a")
+    elif host == "llvm":
+        AR_TOOL = "{0}llvm-ar".format(path_to_bins)
+    else:
+        print("Unsupported host for arch {0}".format(host, arch))
+        exit(1)
+    # srcs_lib.append(
+    #     "../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-i386.a")
 else:
     print("Unsupported arch {0}".format(arch))
     exit(1)

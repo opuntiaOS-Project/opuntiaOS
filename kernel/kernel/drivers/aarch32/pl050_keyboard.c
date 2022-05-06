@@ -22,7 +22,7 @@
 #endif
 
 static kmemzone_t mapped_zone;
-static volatile pl050_registers_t* registers;
+static volatile pl050_registers_t* registers = 0x0;
 
 static inline uintptr_t _pl050_mmio_paddr(devtree_entry_t* device)
 {
@@ -45,6 +45,11 @@ static inline int _pl050_map_itself(device_t* dev)
 
 static void pl050_keyboard_recieve_notification(uintptr_t msg, uintptr_t param)
 {
+    // Checking if device is inited
+    if (!registers) {
+        return;
+    }
+
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
             if (generic_keyboard_create_devfs() < 0) {

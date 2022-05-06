@@ -20,6 +20,10 @@ typedef long ptrdiff_t;
 typedef unsigned int size_t;
 typedef int ssize_t;
 typedef int ptrdiff_t;
+#elif __aarch64__
+typedef unsigned long size_t;
+typedef long long ssize_t;
+typedef long long ptrdiff_t;
 #endif
 
 #define NULL ((void*)0)

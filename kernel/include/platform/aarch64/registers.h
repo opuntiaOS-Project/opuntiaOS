@@ -30,4 +30,22 @@ static inline uint64_t current_sp()
     return el;
 }
 
+static inline uint64_t read_cpacr()
+{
+    uint64_t cpacr;
+    asm volatile("mrs %x0, CPACR_EL1"
+                 : "=r"(cpacr)
+                 :);
+    return cpacr;
+}
+
+static inline void write_cpacr(uint64_t val)
+{
+    asm volatile("msr CPACR_EL1, %x0"
+                 :
+                 : "r"(val)
+                 : "memory");
+    asm volatile("isb");
+}
+
 #endif /* _KERNEL_PLATFORM_AARCH64_REGISTERS_H */

@@ -17,7 +17,7 @@ vector_table:
     msr spsel, #0
     mov x1, sp
     msr spsel, #1
-    adr x0, sync_exc_jmp
+    adr x0, sync_exc_el0_jmp
     b exc_handler // Synchronous
 .balign 128
     msr spsel, #1
@@ -85,7 +85,7 @@ vector_table:
     msr spsel, #0
     mov x1, sp
     msr spsel, #1
-    adr x0, sync_exc_jmp
+    adr x0, sync_exc_el0_jmp
     b exc_handler // Synchronous
 .balign 128
     msr spsel, #1
@@ -128,11 +128,15 @@ vector_table:
 
 
 .extern sync_handler
+.extern sync_handler_from_el0
 .extern irq_handler
 .extern fast_irq_handler
 .extern serror_handler
 sync_exc_jmp:
     ldr x1, =sync_handler
+    br x1
+sync_exc_el0_jmp:
+    ldr x1, =sync_handler_from_el0
     br x1
 irq_exc_jmp:
     ldr x1, =irq_handler

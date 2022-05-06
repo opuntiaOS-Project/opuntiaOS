@@ -20,6 +20,7 @@
 #include <platform/generic/vmm/mmu.h>
 
 // TODO(aarch64): remove KERNEL_BASE
+#define USER_HIGH 0x1fffffffff
 #define KERNEL_BASE 0xffffff8000000000
 #define KERNEL_PADDR_BASE 0xffffffff00000000 // up to 4gbs are supported.
 
