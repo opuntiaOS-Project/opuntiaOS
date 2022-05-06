@@ -78,7 +78,7 @@ static void _bga_set_resolution(uint16_t width, uint16_t height)
     bga_screen_line_size = (uint32_t)width * 4;
 }
 
-static int _bga_ioctl(file_t* file, uintptr_t cmd, uint32_t arg)
+static int _bga_ioctl(file_t* file, uintptr_t cmd, uintptr_t arg)
 {
     uint32_t y_offset = 0;
     switch (cmd) {

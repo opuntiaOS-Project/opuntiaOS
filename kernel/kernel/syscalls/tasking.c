@@ -17,7 +17,9 @@
 
 void sys_exit(trapframe_t* tf)
 {
-    tasking_exit((int)SYSCALL_VAR1(tf));
+    log("AT sys exit");
+    return_with_val(0);
+    // tasking_exit((int)SYSCALL_VAR1(tf));
 }
 
 void sys_fork(trapframe_t* tf)
@@ -44,13 +46,13 @@ void sys_exec(trapframe_t* tf)
 
 void sys_sigaction(trapframe_t* tf)
 {
-    int res = signal_set_handler(RUNNING_THREAD, (int)SYSCALL_VAR1(tf), (uintptr_t)SYSCALL_VAR2(tf));
-    return_with_val(res);
+    // int res = signal_set_handler(RUNNING_THREAD, (int)SYSCALL_VAR1(tf), (uintptr_t)SYSCALL_VAR2(tf));
+    return_with_val(-1);
 }
 
 void sys_sigreturn(trapframe_t* tf)
 {
-    signal_restore_thread_after_handling_signal(RUNNING_THREAD);
+    // signal_restore_thread_after_handling_signal(RUNNING_THREAD);
 }
 
 void sys_kill(trapframe_t* tf)

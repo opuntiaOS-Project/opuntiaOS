@@ -6,10 +6,9 @@
  * found in the LICENSE file.
  */
 
+#include <drivers/aarch64/fpu.h>
 #include <drivers/aarch64/gicv2.h>
 #include <drivers/aarch64/timer.h>
-#include <drivers/aarch64/pl111.h>
-#include <drivers/aarch64/pl181.h>
 #include <platform/aarch64/init.h>
 #include <platform/aarch64/interrupts.h>
 
@@ -32,6 +31,7 @@ void platform_setup_boot_cpu()
 #ifdef TARGET_QEMU_VIRT
     gic_setup();
 #endif
+    fpu_install();
     aarch64_timer_init();
 }
 

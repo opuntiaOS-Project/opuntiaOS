@@ -66,6 +66,17 @@ if (target_cpu == "aarch32") {
   ]
 }
 
+if (target_cpu == "aarch64") {
+  lib_c_flags += [
+    "-fno-builtin",
+    "-mcpu=cortex-a53+nosimd+nocrypto+nocrc",
+    "-fno-pie",
+  ]
+  lib_asm_flags += [
+    "-mcpu=cortex-a53+nosimd+nocrypto+nocrc",
+  ]
+}
+
 config("lib_flags") {
   cflags = lib_c_flags
   asmflags = lib_asm_flags
@@ -93,7 +104,7 @@ group("libs") {
     "//libs/libui:libui",
   ]
 
-  if (objc_support) {
-    deps += [ "//libs/libobjc:libobjc" ]
-  }
+  # if (objc_support) {
+  #   deps += [ "//libs/libobjc:libobjc" ]
+  # }
 }

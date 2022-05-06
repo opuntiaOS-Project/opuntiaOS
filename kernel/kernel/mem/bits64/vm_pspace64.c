@@ -68,9 +68,10 @@ ptable_t* vm_get_table(uintptr_t vaddr, ptable_lv_t lv)
         return NULL;
     }
 
-    ptable_t* active_pdir = THIS_CPU->active_address_space->pdir0;
+    ptable_t* active_pdir = THIS_CPU->active_address_space->pdir;
     if (IS_KERNEL_VADDR(vaddr)) {
-        active_pdir = THIS_CPU->active_address_space->pdir1;
+        extern ptable_t* _vmm_kernel_pdir1;
+        active_pdir = _vmm_kernel_pdir1;
     }
     ASSERT(active_pdir);
 

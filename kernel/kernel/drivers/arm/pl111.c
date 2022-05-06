@@ -20,7 +20,7 @@
 #define DEBUG_PL111
 
 static kmemzone_t mapped_zone;
-static volatile pl111_registers_t* registers;
+static volatile pl111_registers_t* registers = 0x0;
 static char* pl111_bufs_paddr[2];
 static uint32_t pl111_screen_width;
 static uint32_t pl111_screen_height;
@@ -117,6 +117,11 @@ static memzone_t* _pl111_mmap(file_t* file, mmap_params_t* params)
 
 static void pl111_recieve_notification(uintptr_t msg, uintptr_t param)
 {
+    // Checking if device is inited
+    if (!registers) {
+        return;
+    }
+
 #ifdef DEBUG_PL111
     log("PL111: Notific start");
 #endif

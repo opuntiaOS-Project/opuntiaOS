@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2020-2022 The opuntiaOS Project Authors.
  *  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
@@ -27,7 +28,7 @@
 
 static ringbuffer_t mouse_buffer;
 static kmemzone_t mapped_zone;
-static volatile pl050_registers_t* registers;
+static volatile pl050_registers_t* registers = 0x0;
 
 static inline uintptr_t _pl050_mmio_paddr(devtree_entry_t* device)
 {
@@ -65,6 +66,11 @@ static int _mouse_read(file_t* file, void __user* buf, size_t start, size_t len)
 
 static void pl050_mouse_recieve_notification(uintptr_t msg, uintptr_t param)
 {
+    // Checking if device is inited
+    if (!registers) {
+        return;
+    }
+
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
         path_t vfspth;
         if (vfs_resolve_path("/dev", &vfspth) < 0) {

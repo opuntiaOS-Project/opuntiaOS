@@ -6,10 +6,13 @@
  * found in the LICENSE file.
  */
 
+#include <drivers/driver_manager.h>
 #include <drivers/generic/screen.h>
 #include <libkern/font/font.h>
 #include <libkern/types.h>
 #include <mem/boot.h>
+#include <mem/kmemzone.h>
+#include <mem/vmm.h>
 #include <platform/generic/system.h>
 
 static int _cursor_x = 0;
@@ -21,6 +24,7 @@ static int _fbscale = 1;
 static uint32_t _basecolor = 0x0;
 static uintptr_t _fb_paddr = 0;
 static volatile uint32_t* _fb = NULL;
+static kmemzone_t mapped_zone;
 
 static void update_cursor_position(char c)
 {
@@ -83,3 +87,24 @@ int screen_put_char(char c)
     draw_char_on_screen(c);
     return 0;
 }
+
+static inline int _screen_map_itself()
+{
+    size_t len = 16 << 20;
+    uintptr_t paddr_offset = _fb_paddr & (VMM_PAGE_SIZE - 1);
+    uintptr_t mmio_paddr = ROUND_FLOOR(_fb_paddr, VMM_PAGE_SIZE);
+
+    mapped_zone = kmemzone_new(len);
+    vmm_map_pages(mapped_zone.start, mmio_paddr, 256 * 16, MMU_FLAG_DEVICE);
+    _fb = (uint32_t*)(mapped_zone.start + paddr_offset);
+    return 0;
+}
+
+void screen_remap()
+{
+    if (!_fb) {
+        return;
+    }
+    _screen_map_itself();
+}
+devman_register_driver_installation_order(screen_remap, 10);

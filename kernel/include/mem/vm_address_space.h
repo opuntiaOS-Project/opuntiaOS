@@ -15,8 +15,7 @@
 #include <mem/bits/vm.h>
 
 struct vm_address_space {
-    ptable_t* pdir0;
-    ptable_t* pdir1;
+    ptable_t* pdir;
     dynamic_array_t zones;
     int count;
     spinlock_t lock;

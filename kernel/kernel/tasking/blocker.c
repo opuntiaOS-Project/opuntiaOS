@@ -131,7 +131,7 @@ bool should_unblock_select_block(thread_t* thread)
     for (int i = 0; i < thread->blocker_data.select.nfds; i++) {
         if (FD_ISSET(i, &thread->blocker_data.select.readfds)) {
             fd = proc_get_fd(thread->process, i);
-            if (fd->file->ops->can_read(fd->file, fd->offset)) {
+            if (fd && fd->file->ops->can_read(fd->file, fd->offset)) {
                 return true;
             }
         }
@@ -140,7 +140,7 @@ bool should_unblock_select_block(thread_t* thread)
     for (int i = 0; i < thread->blocker_data.select.nfds; i++) {
         if (FD_ISSET(i, &thread->blocker_data.select.writefds)) {
             fd = proc_get_fd(thread->process, i);
-            if (fd->file->ops->can_write(fd->file, fd->offset)) {
+            if (fd && fd->file->ops->can_write(fd->file, fd->offset)) {
                 return true;
             }
         }

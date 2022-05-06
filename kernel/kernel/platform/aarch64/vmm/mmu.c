@@ -47,6 +47,7 @@ static ptable_entity_t terminating_page_common_mmu_to_arch_flags(mmu_flags_t mmu
     // MAIR has the following settings: 0x04ff, so if uncached setting index 1.
     SET_OP(mmu_flags, MMU_FLAG_UNCACHED, arch_flags |= (0b001 << 2));
 
+    // arch_flags |= (0b01 << 6);
     SET_OP(mmu_flags, MMU_FLAG_NONPRIV, arch_flags |= (0b01 << 6));
     SET_OP_NEG(mmu_flags, MMU_FLAG_PERM_WRITE, arch_flags |= (0b10 << 6));
 
@@ -129,21 +130,23 @@ mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
 
 mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info)
 {
+    uint64_t esr_ec = (info & 0xFC000000) >> 26;
+    uint64_t esr_iss = (info & ((1 << 24) - 1));
     mmu_pf_info_flags_t res = 0;
 
-    // // pl0 bit is set at aarch32/interrupt_handlers.c
-    // if (((info >> 31) & 0x1) == 0) {
-    //     res |= MMU_PF_INFO_ON_NONPRIV_ACCESS;
-    // }
-    // if (((info >> 11) & 0x1) == 0x1) {
-    //     res |= MMU_PF_INFO_ON_WRITE;
-    // }
-    // if ((info & 0b1101) == 0b0101) {
-    //     res |= MMU_PF_INFO_ON_NOT_PRESENT;
-    // }
-    // if ((info & 0b1111) == 0b1111) {
-    //     res |= MMU_PF_INFO_SECURITY_VIOLATION;
-    // }
+    if ((esr_ec & 1) == 0) {
+        res |= MMU_PF_INFO_ON_NONPRIV_ACCESS;
+    }
+
+    if (((esr_iss >> 6) & 0x1) == 0x1) {
+        res |= MMU_PF_INFO_ON_WRITE;
+    }
+    if ((info & 0b111100) == 0b000100) {
+        res |= MMU_PF_INFO_ON_NOT_PRESENT;
+    }
+    if ((info & 0b111000) == 0b001000) {
+        res |= MMU_PF_INFO_SECURITY_VIOLATION;
+    }
     return res;
 }
 

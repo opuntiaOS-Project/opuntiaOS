@@ -14,6 +14,7 @@
 #include <platform/aarch64/registers.h>
 #include <platform/aarch64/system.h>
 #include <platform/aarch64/tasking/trapframe.h>
+#include <syscalls/handlers.h>
 #include <tasking/sched.h>
 
 #define ERR_BUF_SIZE 64
@@ -51,8 +52,74 @@ void serror_handler(trapframe_t* tf)
 
 void sync_handler(trapframe_t* tf)
 {
-    log("sync_handler");
-    while (1) { }
+    system_disable_interrupts();
+
+    int trap_state = THIS_CPU->current_state;
+
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
+    uint64_t fault_addr = tf->far;
+    uint64_t esr = tf->esr;
+    uint64_t esr_ec = (esr & 0xFC000000) >> 26;
+
+    // Instruction or data faults
+    if (esr_ec == 0b100101 || esr_ec == 0b100100 || esr_ec == 0b100000 || esr_ec == 0b100001) {
+        log("fp ip: %zx = %zx : %zx", tf->elr, fault_addr, esr_ec);
+        int err = vmm_page_fault_handler(esr, fault_addr);
+        if (err) {
+            if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
+                snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %x, prefetch_abort_handler", tf->elr);
+                kpanic_tf(err_buf, tf);
+            } else {
+                log_warn("Crash: sync abort %d at %x: %d pid, %x eip\n", esr, fault_addr, RUNNING_THREAD->tid, tf);
+                // dump_and_kill(RUNNING_THREAD->process);
+            }
+        }
+    } else if (esr_ec == 0b000111) {
+#ifdef FPU_ENABLED
+        if (!RUNNING_THREAD) {
+            goto undefined_h;
+        }
+
+        if (fpu_is_avail()) {
+            goto undefined_h;
+        }
+
+        fpu_make_avail();
+
+        if (RUNNING_THREAD->tid == THIS_CPU->fpu_for_pid) {
+            return;
+        }
+
+        if (THIS_CPU->fpu_for_thread && thread_is_alive(THIS_CPU->fpu_for_thread) && THIS_CPU->fpu_for_thread->tid == THIS_CPU->fpu_for_pid) {
+            fpu_save(THIS_CPU->fpu_for_thread->fpu_state);
+        }
+
+        fpu_restore(RUNNING_THREAD->fpu_state);
+        THIS_CPU->fpu_for_thread = RUNNING_THREAD;
+        THIS_CPU->fpu_for_pid = RUNNING_THREAD->tid;
+        system_enable_interrupts_only_counter();
+        return;
+#endif // FPU_ENABLED
+    undefined_h:
+        ASSERT(false);
+    } else {
+        log("sync_handler ip: %zx = %zx : %zx", tf->elr, fault_addr, esr_ec);
+        while (1) { }
+    }
+
+    cpu_set_state(prev_cpu_state);
+    system_enable_interrupts_only_counter();
+}
+
+void sync_handler_from_el0(trapframe_t* tf)
+{
+    uint64_t esr_ec = (tf->esr & 0xFC000000) >> 26;
+    if (esr_ec == 0b010101) {
+        sys_handler(tf);
+        return;
+    }
+
+    sync_handler(tf);
 }
 
 void irq_handler(trapframe_t* tf)

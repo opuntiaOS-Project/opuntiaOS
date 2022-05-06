@@ -40,6 +40,7 @@ enum E_MACHINE_FIELDS {
     EM_386 = 0x03,
     EM_ARM = 0x28,
     EM_AMD64 = 0x32,
+    EM_AARCH64 = 0xB7,
 };
 
 typedef struct {
@@ -58,6 +59,23 @@ typedef struct {
     uint16_t e_shnum;
     uint16_t e_shstrndx;
 } elf_header_32_t;
+
+typedef struct {
+    uint8_t e_ident[16];
+    uint16_t e_type;
+    uint16_t e_machine;
+    uint32_t e_version;
+    uint64_t e_entry;
+    uint64_t e_phoff;
+    uint64_t e_shoff;
+    uint32_t e_flags;
+    uint16_t e_ehsize;
+    uint16_t e_phentsize;
+    uint16_t e_phnum;
+    uint16_t e_shentsize;
+    uint16_t e_shnum;
+    uint16_t e_shstrndx;
+} elf_header_64_t;
 
 enum P_TYPE_FIELDS {
     PT_NULL,
@@ -91,6 +109,17 @@ typedef struct {
     uint32_t p_flags;
     uint32_t p_align;
 } elf_program_header_32_t;
+
+typedef struct {
+    uint32_t p_type;
+    uint32_t p_flags;
+    uint64_t p_offset;
+    uint64_t p_vaddr;
+    uint64_t p_paddr;
+    uint64_t p_filesz;
+    uint64_t p_memsz;
+    uint64_t p_align;
+} elf_program_header_64_t;
 
 enum SH_TYPE_FIELDS {
     SHT_NULL,
@@ -150,6 +179,19 @@ typedef struct {
 } elf_section_header_32_t;
 
 typedef struct {
+    uint32_t sh_name;
+    uint32_t sh_type;
+    uint64_t sh_flags;
+    uint64_t sh_addr;
+    uint64_t sh_offset;
+    uint64_t sh_size;
+    uint32_t sh_link;
+    uint32_t sh_info;
+    uint64_t sh_addralign;
+    uint64_t sh_entsize;
+} elf_section_header_64_t;
+
+typedef struct {
     uint32_t st_name; /* name - index into string table */
     uint32_t st_value; /* symbol value */
     uint32_t st_size; /* symbol size */
@@ -181,7 +223,25 @@ enum ST_TYPE_FIELDS {
 struct proc;
 struct file_descriptor;
 
-int elf_check_header(elf_header_32_t* header);
+#ifdef __i386__
+#define MACHINE_ARCH EM_386
+typedef elf_header_32_t elf_header_t;
+typedef elf_section_header_32_t elf_section_header_t;
+typedef elf_program_header_32_t elf_program_header_t;
+#elif __arm__
+#define MACHINE_ARCH EM_ARM
+typedef elf_header_32_t elf_header_t;
+typedef elf_section_header_32_t elf_section_header_t;
+typedef elf_program_header_32_t elf_program_header_t;
+#elif __aarch64__
+// TODO(aarch64): fix this.
+#define MACHINE_ARCH EM_AARCH64
+typedef elf_header_64_t elf_header_t;
+typedef elf_section_header_64_t elf_section_header_t;
+typedef elf_program_header_64_t elf_program_header_t;
+#endif
+
+int elf_check_header(elf_header_t* header);
 int elf_load(struct proc* p, struct file_descriptor* fd);
 int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_entries, char** strtab);
 ssize_t elf_find_function_in_symtab(void* symtab, size_t syms_n, uintptr_t ip);

@@ -81,3 +81,30 @@ if (target_cpu == "aarch32") {
     ]
   }
 }
+
+if (target_cpu == "aarch64") {
+  uland_c_flags += [
+    "-fno-builtin",
+    "-mcpu=cortex-a53+nosimd+nocrypto+nocrc",
+    "-fno-pie",
+  ]
+  uland_asm_flags += [ "-mcpu=cortex-a53+nosimd+nocrypto+nocrc" ]
+  uland_ld_flags += [ "-nostdlib" ]
+
+  if (host == "gnu") {
+    uland_ld_flags += [
+      "-nostdinc",
+      "-nodefaultlibs",
+      "-nostartfiles",
+      "-lgcc",
+    ]
+  }
+
+  if (host == "llvm") {
+    uland_ld_flags += [
+      
+      "--oformat",
+      "elf64-littlearm",
+    ]
+  }
+}

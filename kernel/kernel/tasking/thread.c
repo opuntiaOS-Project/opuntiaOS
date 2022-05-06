@@ -49,6 +49,7 @@ int thread_setup_main(proc_t* p, thread_t* thread)
     if (!thread->kstack.start) {
         return -ENOMEM;
     }
+    vmm_ensure_writing_to_active_address_space(thread->kstack.start, VMM_PAGE_SIZE);
 
     thread->process = p;
     thread->tid = p->pid;
@@ -112,7 +113,6 @@ int thread_copy_of(thread_t* thread, thread_t* from_thread)
 
 int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count, char** envp)
 {
-    ASSERT(false);
     const int alignment = sizeof(uintptr_t);
 
     size_t argv_data_size = 0;

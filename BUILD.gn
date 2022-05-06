@@ -5,6 +5,8 @@
 group("build") {
   deps = [
     "//build/kernel:kernel",
+    "//build/libs:libs",
+    "//build/userland:userland",
   ]
 }
 

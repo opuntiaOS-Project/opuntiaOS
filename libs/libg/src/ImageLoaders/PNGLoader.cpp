@@ -100,6 +100,7 @@ namespace PNG {
         m_scanline_keeper.init(unzipped_data);
 
         if (m_ihdr_chunk.color_type == 2) {
+            Logger::debug << "color_type 2: " << std::endl;
             m_scanline_keeper.set_color_length(3);
             if (m_ihdr_chunk.depth == 8) {
                 for (int i = 0; i < m_ihdr_chunk.height; i++) {
@@ -116,7 +117,9 @@ namespace PNG {
                     local_streamer.skip(len_of_scanline);
                 }
             }
+            Logger::debug << "color_type: " << std::endl;
         } else if (m_ihdr_chunk.color_type == 6) {
+            Logger::debug << "color_type 3: " << std::endl;
             m_scanline_keeper.set_color_length(4);
             if (m_ihdr_chunk.depth == 8) {
                 for (int i = 0; i < m_ihdr_chunk.height; i++) {

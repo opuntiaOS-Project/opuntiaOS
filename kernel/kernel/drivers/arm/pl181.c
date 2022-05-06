@@ -183,7 +183,7 @@ static driver_desc_t _pl181_driver_info()
     pl181_desc.functions[DRIVER_STORAGE_ADD_DEVICE] = _pl181_add_new_device;
     pl181_desc.functions[DRIVER_STORAGE_READ] = _pl181_read_block;
     pl181_desc.functions[DRIVER_STORAGE_WRITE] = _pl181_write_block;
-    pl181_desc.functions[DRIVER_STORAGE_FLUSH] = 0;
+    pl181_desc.functions[DRIVER_STORAGE_FLUSH] = NULL;
     pl181_desc.functions[DRIVER_STORAGE_CAPACITY] = _pl181_get_capacity;
     return pl181_desc;
 }

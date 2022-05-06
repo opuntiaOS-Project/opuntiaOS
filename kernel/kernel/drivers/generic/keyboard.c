@@ -18,7 +18,7 @@ static bool _gkeyboard_shift_enabled = false;
 static bool _gkeyboard_ctrl_enabled = false;
 static bool _gkeyboard_alt_enabled = false;
 static bool _gkeyboard_caps_enabled = false;
-static key_t _gkeyboard_last_scancode = KEY_UNKNOWN;
+static uint32_t _gkeyboard_last_scancode = KEY_UNKNOWN;
 
 static key_t _generic_keyboard_apply_modifiers(key_t key);
 

@@ -28,7 +28,7 @@ static vm_address_space_t* _vmm_kernel_address_space_ptr = &_vmm_kernel_address_
 static uintptr_t _vmm_kernel_pdir0_paddr;
 static ptable_t* _vmm_kernel_pdir0;
 static uintptr_t _vmm_kernel_pdir1_paddr;
-static ptable_t* _vmm_kernel_pdir1;
+ptable_t* _vmm_kernel_pdir1;
 static spinlock_t _vmm_global_lock;
 static kmemzone_t pspace_zone;
 
@@ -77,12 +77,11 @@ static void vm_alloc_kernel_pdir()
     _vmm_kernel_pdir1 = (ptable_t*)(_vmm_kernel_pdir1_paddr - pmm_get_state()->boot_args->paddr + pmm_get_state()->boot_args->vaddr);
 
     _vmm_kernel_address_space.count = 1;
-    _vmm_kernel_address_space.pdir0 = _vmm_kernel_pdir0;
-    _vmm_kernel_address_space.pdir1 = _vmm_kernel_pdir1;
+    _vmm_kernel_address_space.pdir = _vmm_kernel_pdir0;
     spinlock_init(&_vmm_kernel_address_space.lock);
 
-    memset((void*)_vmm_kernel_address_space.pdir0, 0, PTABLE_SIZE(PTABLE_LV_TOP));
-    memset((void*)_vmm_kernel_address_space.pdir1, 0, PTABLE_SIZE(PTABLE_LV_TOP));
+    memset((void*)_vmm_kernel_pdir0, 0, PTABLE_SIZE(PTABLE_LV_TOP));
+    memset((void*)_vmm_kernel_pdir1, 0, PTABLE_SIZE(PTABLE_LV_TOP));
 
     // Set as an active one to set up kernel address space.
     THIS_CPU->active_address_space = _vmm_kernel_address_space_ptr;
@@ -357,12 +356,58 @@ int vmm_alloc_page(uintptr_t vaddr, mmu_flags_t mmu_flags)
     return 0;
 }
 
-int vmm_tune_page(uintptr_t vaddr, mmu_flags_t mmu_flags) { return -1; }
-int vmm_tune_pages(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags) { return -1; }
+static int vmm_tune_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags)
+{
+    if (!THIS_CPU->active_address_space) {
+        return -EACCES;
+    }
 
-vm_address_space_t* vmm_new_address_space() { return NULL; }
-vm_address_space_t* vmm_new_forked_address_space() { return NULL; }
-int vmm_free_address_space(vm_address_space_t* vm_aspace) { return -1; }
+    vaddr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+    if (vmm_is_copy_on_write(vaddr)) {
+        return -EBUSY;
+    }
+
+    ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
+    if (vm_ptable_entity_is_present(page_desc, PTABLE_LV0)) {
+        uintptr_t frame = vm_ptable_entity_get_frame(page_desc, PTABLE_LV0);
+        vm_ptable_entity_set_default_flags(page_desc, PTABLE_LV0);
+        vm_ptable_entity_set_mmu_flags(page_desc, PTABLE_LV0, mmu_flags);
+        vm_ptable_entity_set_frame(page_desc, PTABLE_LV0, frame);
+    } else {
+        vmm_alloc_page_locked(vaddr, mmu_flags);
+    }
+
+    system_flush_local_tlb_entry(vaddr);
+    return 0;
+}
+
+int vmm_tune_page(uintptr_t vaddr, mmu_flags_t mmu_flags)
+{
+    vm_address_space_t* active_address_space = vmm_get_active_address_space();
+    spinlock_acquire(&active_address_space->lock);
+    int res = vmm_tune_page_locked(vaddr, mmu_flags);
+    spinlock_release(&active_address_space->lock);
+    return res;
+}
+
+static int vmm_tune_pages_locked(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags)
+{
+    uintptr_t page_addr = PAGE_START(vaddr);
+    while (page_addr < vaddr + length) {
+        vmm_tune_page_locked(page_addr, mmu_flags);
+        page_addr += VMM_PAGE_SIZE;
+    }
+    return 0;
+}
+
+int vmm_tune_pages(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags)
+{
+    vm_address_space_t* active_address_space = vmm_get_active_address_space();
+    spinlock_acquire(&active_address_space->lock);
+    int res = vmm_tune_pages_locked(vaddr, length, mmu_flags);
+    spinlock_release(&active_address_space->lock);
+    return res;
+}
 
 bool vmm_is_copy_on_write(uintptr_t vaddr) { return false; }
 
@@ -416,7 +461,9 @@ static int vm_alloc_user_page_locked(memzone_t* zone, uintptr_t vaddr)
  */
 static int vm_alloc_page_with_perm(uintptr_t vaddr)
 {
-    if (IS_USER_VADDR(vaddr) && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
+    // TODO(aarch64): missing check here.
+    if (IS_USER_VADDR(vaddr)) {
+        // log("vm_alloc_page_with_perm: %zx", vaddr);
         return vm_alloc_user_page_locked(_vmm_memzone_for_active_address_space(vaddr), vaddr);
     }
     // Should keep lockless, since kernel interrupt could happen while setting VMM.
@@ -482,14 +529,254 @@ void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t len
     spinlock_release(&active_address_space->lock);
 }
 
-void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length) { }
+/**
+ * @brief Copies data to the kernel space if needed.
+ *
+ * @param data Pointer to the data.
+ * @param length The length of data to copy.
+ * @return Pointer to data in the kernel space.
+ */
+static void* _vmm_bring_to_kernel_space(void* data, size_t length)
+{
+    if ((uintptr_t)data >= KERNEL_BASE) {
+        return data;
+    }
+    void* kaddr = kmalloc(length);
+    _vmm_ensure_write_to_range((uintptr_t)kaddr, length);
+    memcpy(kaddr, data, length);
+    return (void*)kaddr;
+}
+
+/**
+ * @brief Copies data from the source address of the active address space to the
+ *        destination virtual address of the target address space.
+ *
+ * @param vm_aspace The addess space to copy into.
+ * @param src The data source.
+ * @param dest_vaddr The destination virtual address
+ * @param length The length of data to be copied.
+ */
+void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length)
+{
+    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
+
+    // Copy data to the kernel space, if needed.
+    void* ksrc = _vmm_bring_to_kernel_space(src, length);
+
+    spinlock_acquire(&vm_aspace->lock);
+    vmm_switch_address_space_locked(vm_aspace);
+    vmm_ensure_writing_to_active_address_space_locked(dest_vaddr, length);
+    spinlock_release(&vm_aspace->lock);
+
+    void* dest = (void*)dest_vaddr;
+    memcpy(dest, ksrc, length);
+
+    if ((uintptr_t)src < KERNEL_BASE) {
+        kfree(ksrc);
+    }
+
+    vmm_switch_address_space_locked(prev_aspace);
+}
+
+static vm_address_space_t* _vmm_alloc_new_address_space_locked()
+{
+    vm_address_space_t* new_address_space = vm_address_space_alloc();
+
+    // TODO(aarch64): Check for mem.
+    ptable_t* new_pdir = vm_alloc_ptable_lv_top();
+    new_address_space->pdir = new_pdir;
+    return new_address_space;
+}
+
+static int _vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
+{
+    memset(new_aspace->pdir, 0, PTABLE_SIZE(PTABLE_LV_TOP));
+    return 0;
+}
+
+static int _vmm_copy_of_aspace(ptable_t* old, ptable_t* new, ptable_lv_t lv)
+{
+    extern void* paddr_to_vaddr(uintptr_t paddr);
+    if (lv == PTABLE_LV0) {
+        for (int i = 0; i < PTABLE_ENTITY_COUNT(lv); i++) {
+            if (vm_ptable_entity_is_present(&old->entities[i], lv)) {
+                uintptr_t old_page_paddr = vm_ptable_entity_get_frame(&old->entities[i], lv);
+                uintptr_t new_child_page_paddr = vm_alloc_page_paddr();
+
+                memcpy(paddr_to_vaddr(new_child_page_paddr), paddr_to_vaddr(old_page_paddr), VMM_PAGE_SIZE);
+
+                new->entities[i] = old->entities[i];
+                vm_ptable_entity_set_frame(&new->entities[i], lv, new_child_page_paddr);
+
+                // log("Copy page %zx to %zx", old_page_paddr, new_child_page_paddr);
+            }
+        }
+    } else {
+        ptable_lv_t lowerlv = lower_level(lv);
+        for (int i = 0; i < PTABLE_ENTITY_COUNT(lv); i++) {
+            if (vm_ptable_entity_is_present(&old->entities[i], lv)) {
+                uintptr_t old_ptable_paddr = vm_ptable_entity_get_frame(&old->entities[i], lv);
+                uintptr_t new_child_ptable_paddr = vm_alloc_ptable_paddr(lowerlv);
+
+                new->entities[i] = old->entities[i];
+                vm_ptable_entity_set_frame(&new->entities[i], lv, new_child_ptable_paddr);
+
+                // log("Copy table [%d] %zx to %zx", lv, old_ptable_paddr, new_child_ptable_paddr);
+                _vmm_copy_of_aspace(paddr_to_vaddr(old_ptable_paddr), paddr_to_vaddr(new_child_ptable_paddr), lowerlv);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int _vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
+{
+    vm_address_space_t* active_address_space = THIS_CPU->active_address_space;
+    spinlock_acquire(&active_address_space->lock);
+
+    // TODO(aarch64): Implement CoW.
+    // log("going to do deep copy");
+    _vmm_copy_of_aspace(active_address_space->pdir, new_aspace->pdir, PTABLE_LV_TOP);
+    system_flush_whole_tlb();
+    spinlock_release(&active_address_space->lock);
+    return 0;
+}
+
+vm_address_space_t* vmm_new_address_space()
+{
+    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_locked();
+    _vmm_fill_up_new_address_space(new_aspace);
+    return new_aspace;
+}
+
+vm_address_space_t* vmm_new_forked_address_space()
+{
+    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_locked();
+    _vmm_fill_up_forked_address_space(new_aspace);
+    memzone_copy(new_aspace, THIS_CPU->active_address_space);
+    return new_aspace;
+}
+
+int vmm_free_address_space(vm_address_space_t* vm_aspace) { return -1; }
 
 vm_address_space_t* vmm_get_active_address_space() { return THIS_CPU->active_address_space; }
 ptable_t* vmm_get_active_pdir() { return NULL; }
 vm_address_space_t* vmm_get_kernel_address_space() { return _vmm_kernel_address_space_ptr; }
 ptable_t* vmm_get_kernel_pdir() { return NULL; }
 
-int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace) { return -1; }
-int vmm_switch_address_space(vm_address_space_t* vm_aspace) { return -1; }
+static uintptr_t _vmm_convert_vaddr2paddr(uintptr_t vaddr)
+{
+    ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
+    return ((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & 0xfff));
+}
 
-int vmm_page_fault_handler(arch_pf_info_t info, uintptr_t vaddr) { return -1; }
+/**
+ * @brief Switches to vm_aspace address space.
+ *
+ * @param vm_aspace The addess space to switch to.
+ * @return Status of the operation.
+ */
+int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace)
+{
+    if (!vm_aspace) {
+        return -EINVAL;
+    }
+
+    if (((uintptr_t)vm_aspace->pdir & (PTABLE_SIZE(PTABLE_LV_TOP) - 1)) != 0) {
+        kpanic("vmm_switch_address_space_locked: not aligned pdir");
+    }
+
+    system_disable_interrupts();
+    if (THIS_CPU->active_address_space == vm_aspace) {
+        system_enable_interrupts();
+        return 0;
+    }
+    THIS_CPU->active_address_space = vm_aspace;
+    system_set_pdir(_vmm_convert_vaddr2paddr((uintptr_t)vm_aspace->pdir), _vmm_kernel_pdir1_paddr);
+    system_flush_whole_tlb();
+    system_enable_interrupts();
+    return 0;
+}
+
+/**
+ * @brief Switches to vm_aspace address space.
+ *
+ * @param vm_aspace The addess space to switch to.
+ * @return Status of the operation.
+ */
+int vmm_switch_address_space(vm_address_space_t* vm_aspace)
+{
+    int res = vmm_switch_address_space_locked(vm_aspace);
+    return res;
+}
+
+static int _vmm_on_page_not_present_locked(uintptr_t vaddr)
+{
+    if (_vmm_is_page_present(vaddr)) {
+        return 0;
+    }
+
+    if (IS_KERNEL_VADDR(vaddr)) {
+        return vm_alloc_kernel_page_locked(vaddr);
+    }
+
+    memzone_t* zone = _vmm_memzone_for_active_address_space(vaddr);
+    if (!zone) {
+        return -EFAULT;
+    }
+
+    // if (vmm_is_copy_on_write(vaddr)) {
+    //     int err = _vmm_ensure_cow_for_page(vaddr);
+    //     if (err) {
+    //         return err;
+    //     }
+    // }
+
+    // if (_vmm_is_page_swapped(vaddr)) {
+    //     return _vmm_restore_swapped_page_locked(vaddr);
+    // }
+
+    int err = vm_alloc_user_page_no_fill_locked(zone, vaddr);
+    if (err) {
+        return err;
+    }
+
+    if (zone->ops && zone->ops->load_page_content) {
+        log("   page loaded %zx", vaddr);
+        return zone->ops->load_page_content(zone, vaddr);
+    } else {
+        void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+        memset(dest, 0, VMM_PAGE_SIZE);
+    }
+    return 0;
+}
+
+static int _vmm_pf_on_writing_locked(uintptr_t vaddr)
+{
+    ASSERT(false);
+    return 0;
+}
+
+int vmm_page_fault_handler(arch_pf_info_t info, uintptr_t vaddr)
+{
+    vm_address_space_t* active_address_space = vmm_get_active_address_space();
+    mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);
+
+    log("PF %zx %zx", vaddr, pf_info_flags);
+
+    if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_NOT_PRESENT)) {
+        spinlock_acquire(&active_address_space->lock);
+        int res = _vmm_on_page_not_present_locked(vaddr);
+        spinlock_release(&active_address_space->lock);
+        return res;
+    }
+
+    if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_WRITE)) {
+        spinlock_acquire(&active_address_space->lock);
+        int res = _vmm_pf_on_writing_locked(vaddr);
+        spinlock_release(&active_address_space->lock);
+    }
+
+    return 0;
+}

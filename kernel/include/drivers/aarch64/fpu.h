@@ -16,40 +16,37 @@
 #define FPU_STATE_ALIGNMENT (32)
 
 typedef struct {
-    // TODO(aarch64): fix
     uint64_t d[32];
 } __attribute__((aligned(FPU_STATE_ALIGNMENT))) fpu_state_t;
 
-void fpu_handler();
-void fpu_init();
-static inline void fpu_init_state(fpu_state_t* new_fpu_state)
+void fpu_install();
+void fpu_init_state(fpu_state_t* new_fpu_state);
+extern void fpu_save(void*);
+extern void fpu_restore(void*);
+
+static inline void fpu_enable()
 {
-    ASSERT(false);
 }
 
-static inline void fpu_save(fpu_state_t* fpu_state)
+static inline void fpu_disable()
 {
-    ASSERT(false);
-}
-
-static inline void fpu_restore(fpu_state_t* fpu_state)
-{
-    ASSERT(false);
 }
 
 static inline int fpu_is_avail()
 {
-    return false;
+    return (((read_cpacr() >> 20) & 0b11) == 0b11);
 }
 
 static inline void fpu_make_avail()
 {
-    ASSERT(false);
+    write_cpacr(read_cpacr() | ((0b11) << 20));
 }
 
 static inline void fpu_make_unavail()
 {
-    ASSERT(false);
+    // Simply turn it off to make it unavailble.
+    uint64_t val = read_cpacr() & (~((3ull) << 20));
+    write_cpacr(val | ((0b01) << 20));
 }
 
 #endif //_KERNEL_DRIVERS_AARCH64_FPU_H

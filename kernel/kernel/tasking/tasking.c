@@ -125,9 +125,13 @@ static proc_t* _tasking_fork_proc_from_current()
 
 static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
 {
+    log("ta");
     proc_t* p = _tasking_alloc_proc();
+    log("ta");
     kthread_setup(p);
+    log("ta");
     kthread_setup_regs(p, entry_point);
+    log("ta");
     return p;
 }
 
@@ -135,21 +139,20 @@ static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
  * Start init proccess
  * All others processes will fork
  */
-// TODO(aarch64)
-// void tasking_start_init_proc()
-// {
-//     system_disable_interrupts();
-//     proc_t* p = _tasking_setup_proc_with_uid(0, 0);
-//     proc_setup_vconsole(p, vconsole_new());
+void tasking_start_init_proc()
+{
+    system_disable_interrupts();
+    proc_t* p = _tasking_setup_proc_with_uid(0, 0);
+    proc_setup_vconsole(p, vconsole_new());
 
-//     int err = _tasking_do_exec(p, p->main_thread, boot_args()->init_process, 0, NULL, 0, NULL);
-//     if (err) {
-//         kpanic("Failed to load init proc");
-//     }
+    int err = _tasking_do_exec(p, p->main_thread, "/System/launch_server", 0, NULL, 0, NULL);
+    if (err) {
+        kpanic("Failed to load init proc");
+    }
 
-//     sched_enqueue(p->main_thread);
-//     system_enable_interrupts();
-// }
+    sched_enqueue(p->main_thread);
+    system_enable_interrupts();
+}
 
 proc_t* tasking_create_kernel_thread(void* entry_point, void* data)
 {
@@ -303,6 +306,7 @@ static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, 
     if (err) {
         return err;
     }
+    log("thread_fill_up_stack");
     return thread_fill_up_stack(p->main_thread, argc, argv, envc, envp);
 }
 

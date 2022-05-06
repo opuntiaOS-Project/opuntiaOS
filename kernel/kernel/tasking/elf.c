@@ -17,15 +17,6 @@
 
 // #define ELF_DEBUG
 
-#ifdef __i386__
-#define MACHINE_ARCH EM_386
-#elif __arm__
-#define MACHINE_ARCH EM_ARM
-#elif __aarch64__
-// TODO(aarch64): fix this.
-#define MACHINE_ARCH EM_ARM
-#endif
-
 #define USER_STACK_SIZE VMM_PAGE_SIZE
 
 static int _elf_load_page_content(memzone_t* zone, uintptr_t vaddr);
@@ -71,7 +62,7 @@ static int _elf_swap_page_mode(memzone_t* zone, uintptr_t vaddr)
 static int _elf_load_interpret_program_header_entry(proc_t* p, file_descriptor_t* fd)
 {
     memzone_t* zone = NULL;
-    elf_program_header_32_t ph;
+    elf_program_header_t ph;
     int err = vfs_read(fd, &ph, sizeof(ph));
     if (err != sizeof(ph)) {
         return err;
@@ -116,7 +107,7 @@ static int _elf_load_interpret_program_header_entry(proc_t* p, file_descriptor_t
 
 static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t* fd)
 {
-    elf_section_header_32_t sh;
+    elf_section_header_t sh;
     int err = vfs_read(fd, &sh, sizeof(sh));
     if (err != sizeof(sh)) {
         return err;
@@ -162,7 +153,7 @@ static int _elf_load_alloc_stack(proc_t* p)
     return 0;
 }
 
-static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_32_t* header)
+static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_t* header)
 {
     fd->offset = header->e_phoff;
     int ph_num = header->e_phnum;
@@ -184,16 +175,12 @@ static inline int _elf_do_load(proc_t* p, file_descriptor_t* fd, elf_header_32_t
     return 0;
 }
 
-int elf_check_header(elf_header_32_t* header)
+int elf_check_header(elf_header_t* header)
 {
     static const char elf_signature[] = { 0x7F, 0x45, 0x4c, 0x46 };
     if (memcmp(header->e_ident, elf_signature, sizeof(elf_signature)) != 0) {
+        log("exit");
         return -ENOEXEC;
-    }
-
-    // Currently we support only 32bit execs
-    if (header->e_ident[EI_CLASS] != ELF_CLASS_32) {
-        return -EBADARCH;
     }
 
     if (header->e_type != ET_EXEC) {
@@ -212,7 +199,7 @@ int elf_load(proc_t* p, file_descriptor_t* fd)
     data_access_type_t prev_access_type = THIS_CPU->data_access_type;
     THIS_CPU->data_access_type = DATA_ACCESS_KERNEL;
 
-    elf_header_32_t header;
+    elf_header_t header;
 
     int err = vfs_read(fd, &header, sizeof(header));
     if (err != sizeof(header)) {
@@ -236,10 +223,10 @@ int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_e
     *symtab = NULL;
     *symtab_entries = 0;
     *strtab = NULL;
-    elf_header_32_t* header = (elf_header_32_t*)mapped_data;
+    elf_header_t* header = (elf_header_t*)mapped_data;
 
     int sh_num = header->e_shnum;
-    elf_section_header_32_t* headers_array = (elf_section_header_32_t*)(mapped_data + header->e_shoff);
+    elf_section_header_t* headers_array = (elf_section_header_t*)(mapped_data + header->e_shoff);
     for (int i = 0; i < sh_num; i++) {
         if (headers_array[i].sh_type == SHT_SYMTAB) {
             *symtab = (void*)(mapped_data + headers_array[i].sh_offset);

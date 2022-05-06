@@ -119,17 +119,17 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
 {
     int ret;
     asm volatile(
-        "mov x7, %1;\
-        mov x0, %2;\
-        mov x1, %3;\
-        mov x2, %4;\
-        mov x3, %5;\
-        mov x4, %6;\
+        "mov x8, %x1;\
+        mov x0, %x2;\
+        mov x1, %x3;\
+        mov x2, %x4;\
+        mov x3, %x5;\
+        mov x4, %x6;\
         svc 1;\
-        mov %0, r0;"
+        mov %x0, x0;"
         : "=r"(ret)
         : "r"(id), "r"((int)(a)), "r"((int)(b)), "r"((int)(c)), "r"((int)(d)), "r"((int)(0))
-        : "memory", "r0", "r1", "r2", "r3", "r4", "r7");
+        : "memory", "x0", "x1", "x2", "x3", "x4", "x8");
     return ret;
 }
 #endif

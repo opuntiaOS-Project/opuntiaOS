@@ -175,7 +175,7 @@ memzone_t* memzone_new_random_backward(vm_address_space_t* vm_aspace, size_t len
     size_t zones_count = vm_aspace->zones.size;
 
     /* Check if we can put it at the end */
-    memzone_t* ret = memzone_new(vm_aspace, KERNEL_BASE - len, len);
+    memzone_t* ret = memzone_new(vm_aspace, USER_HIGH - len, len);
     if (ret) {
         return ret;
     }

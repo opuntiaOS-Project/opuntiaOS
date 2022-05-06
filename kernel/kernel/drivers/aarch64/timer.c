@@ -46,7 +46,7 @@ void aarch64_timer_rearm()
                  : "=r"(el)
                  :);
 
-    aarch64_timer_write_ctrl(el);
+    aarch64_timer_write_ctrl(el / 125);
 }
 
 void tick()

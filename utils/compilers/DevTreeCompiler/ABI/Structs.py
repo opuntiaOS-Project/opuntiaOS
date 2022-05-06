@@ -31,8 +31,8 @@ DEVTREE_IRQ_FLAGS_EDGE_TRIGGER = (1 << 0)
 DEVTREE_ENTRY = Struct(
     "type" / Int32ul,
     "flags" / Int32ul,
-    "region_base" / Int32ul,
-    "region_size" / Int32ul,
+    "region_base" / Int64ul,
+    "region_size" / Int64ul,
     "irq_lane" / Int32ul,
     "irq_flags" / Int32ul,
     "irq_priority" / Int32ul,

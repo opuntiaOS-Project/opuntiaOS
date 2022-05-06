@@ -98,13 +98,13 @@
 struct state {
     /* output state */
     unsigned char* out; /* output buffer */
-    size_t outlen; /* available space at out */
-    size_t outcnt; /* bytes written to out so far */
+    unsigned long outlen; /* available space at out */
+    unsigned long outcnt; /* bytes written to out so far */
 
     /* input state */
     const unsigned char* in; /* input buffer */
-    size_t inlen; /* available input at in */
-    size_t incnt; /* bytes read so far */
+    unsigned long inlen; /* available input at in */
+    unsigned long incnt; /* bytes read so far */
     int bitbuf; /* bit buffer */
     int bitcnt; /* number of bits in bit buffer */
 
@@ -789,9 +789,9 @@ local int dynamic(struct state* s)
  *   expected values to check.
  */
 int puff(unsigned char* dest, /* pointer to destination pointer */
-    size_t* destlen, /* amount of output space */
+    unsigned long* destlen, /* amount of output space */
     const unsigned char* source, /* pointer to source data pointer */
-    size_t* sourcelen) /* amount of input available */
+    unsigned long* sourcelen) /* amount of input available */
 {
     struct state s; /* input/output state */
     int last, type; /* block information */
