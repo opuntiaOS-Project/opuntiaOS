@@ -20,7 +20,7 @@
 #include <tasking/tasking.h>
 #include <time/time_manager.h>
 
-#define SCHED_DEBUG
+// #define SCHED_DEBUG
 // #define SCHED_SHOW_STAT
 
 static time_t _sched_timeslices[];
@@ -103,11 +103,8 @@ static void _init_cpu(cpu_t* cpu)
     cpu->fpu_for_thread = NULL;
     cpu->fpu_for_pid = 0;
 #endif // FPU_ENABLED
-    log("gg");
     _create_idle_thread(cpu);
-    log("gg");
     _add_cpu_count();
-    log("gg");
 }
 
 static inline void _sched_swap_buffers(sched_data_t* sched)
@@ -298,7 +295,6 @@ static void switch_to_thread(thread_t* thread)
 
 void sched()
 {
-    log("Entering sched");
     for (;;) {
 #ifdef PREEMPT_KERNEL
         // With kernel preemption on, we should check that we reshed only when

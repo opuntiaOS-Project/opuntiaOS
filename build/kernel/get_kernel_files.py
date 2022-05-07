@@ -118,6 +118,8 @@ if sys.argv[2] == "aarch64":
 
     print("//kernel/kernel/drivers/aarch64/fpu.c")
     print("//kernel/kernel/drivers/aarch64/fpu_helper.S")
+
+    print("//kernel/kernel/drivers/arm/aplfb.c")
 else:
     for path, subdirs, files in os.walk("../kernel/kernel"):
         for name in files:

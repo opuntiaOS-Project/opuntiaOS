@@ -56,14 +56,6 @@ static inline int _pl111_map_itself(device_t* dev)
     return 0;
 }
 
-static inline uint32_t roundup_to_page_size(uint32_t size)
-{
-    if (size % VMM_PAGE_SIZE) {
-        size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
-    }
-    return size;
-}
-
 static int _pl111_init_buffer(uint32_t width, uint32_t height)
 {
     uint32_t one_screen_len = width * 4 * height;

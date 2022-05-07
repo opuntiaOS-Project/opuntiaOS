@@ -53,7 +53,10 @@ void EventLoop::check_fds()
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
 
-    int res = select(nfds + 1, &readfds, &writefds, nullptr, &timeout);
+    int err = select(nfds + 1, &readfds, &writefds, nullptr, &timeout);
+    if (err) {
+        return;
+    }
 
     for (int i = 0; i < m_waiting_fds.size(); i++) {
         if (m_waiting_fds[i].m_on_read) {

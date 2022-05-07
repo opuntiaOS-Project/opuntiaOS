@@ -145,11 +145,11 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
 
 static int _elf_load_alloc_stack(proc_t* p)
 {
-    memzone_t* stack_zone = memzone_new_random_backward(p->address_space, USER_STACK_SIZE);
+    memzone_t* stack_zone = memzone_new_random_backward(p->address_space, 4 * USER_STACK_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->mmu_flags = MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
-    set_base_pointer(p->main_thread->tf, stack_zone->vaddr + USER_STACK_SIZE);
-    set_stack_pointer(p->main_thread->tf, stack_zone->vaddr + USER_STACK_SIZE);
+    set_base_pointer(p->main_thread->tf, stack_zone->vaddr + 4 * USER_STACK_SIZE);
+    set_stack_pointer(p->main_thread->tf, stack_zone->vaddr + 4 * USER_STACK_SIZE);
     return 0;
 }
 

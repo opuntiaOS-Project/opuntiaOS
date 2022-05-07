@@ -49,8 +49,8 @@ bool local_socket_can_read(file_t* file, size_t start)
 int local_socket_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
     socket_t* sock_entry = file_socket_assert(file);
-    int read = sync_ringbuffer_read_user_from(&sock_entry->buffer, start, buf, len);
-    return read;
+    size_t read = sync_ringbuffer_read_user_from(&sock_entry->buffer, start, buf, len);
+    return (int)read;
 }
 
 bool local_socket_can_write(file_t* file, size_t start)

@@ -1,0 +1,27 @@
+{
+    "name": "apl_a7",
+    "devices": [{
+            "name": "aa64timer",
+            "type": "TIMER",
+            "flags": "MMIO"
+        },
+        {
+            "name": "ramdisk",
+            "type": "STORAGE",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x0",
+                "size": "0x0"
+            }
+        },
+        {
+            "name": "aplfb",
+            "type": "FB",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x0",
+                "size": "0x0"
+            }
+        }
+    ]
+}
