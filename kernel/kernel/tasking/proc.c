@@ -272,24 +272,18 @@ static int proc_load_locked(proc_t* p, thread_t* main_thread, const char* path)
     vm_address_space_t* old_aspace = p->address_space;
 
     // Reallocating proc.
-    log("done exec");
     vm_address_space_t* new_aspace = vmm_new_address_space();
     p->address_space = new_aspace;
-    log("done exec");
     vmm_switch_address_space(p->address_space);
-    log("done exec");
 
     p->main_thread = main_thread;
-    log("done exec");
     int err = elf_load(p, &fd);
-    log("done exec");
     if (err) {
         goto restore;
     }
 
 success:
     // Clearing proc
-    log("exit");
     proc_kill_all_threads_except_locked(p, p->main_thread);
     p->pid = p->main_thread->tid;
     if (p->proc_file) {
@@ -298,13 +292,10 @@ success:
 #ifdef FPU_ENABLED
     fpu_init_state(p->main_thread->fpu_state);
 #endif
-    log("exit");
 
     if (old_aspace) {
         vm_address_space_free(old_aspace);
     }
-
-    log("exit");
 
     // Setting up proc
     p->proc_file = file_init_path(&bin_path);
@@ -324,7 +315,6 @@ success:
 
     path_put(&bin_path);
     vfs_close(&fd);
-    log("exit");
     return 0;
 
 restore:
@@ -372,7 +362,7 @@ int proc_free_locked(proc_t* p)
         path_put(&p->cwd);
     }
 
-    /* Key parts deletion. After that line you can't work with this process. */
+    // Key parts deletion. After that line you can't work with this process.
     proc_kill_all_threads_locked(p);
 
     if (!p->is_kthread) {

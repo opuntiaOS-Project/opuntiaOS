@@ -125,13 +125,9 @@ static proc_t* _tasking_fork_proc_from_current()
 
 static proc_t* _tasking_alloc_kernel_thread(void* entry_point)
 {
-    log("ta");
     proc_t* p = _tasking_alloc_proc();
-    log("ta");
     kthread_setup(p);
-    log("ta");
     kthread_setup_regs(p, entry_point);
-    log("ta");
     return p;
 }
 
@@ -306,7 +302,6 @@ static int _tasking_do_exec(proc_t* p, thread_t* main_thread, const char* path, 
     if (err) {
         return err;
     }
-    log("thread_fill_up_stack");
     return thread_fill_up_stack(p->main_thread, argc, argv, envc, envp);
 }
 

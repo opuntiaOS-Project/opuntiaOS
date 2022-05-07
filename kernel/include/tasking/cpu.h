@@ -13,6 +13,7 @@
 #include <platform/generic/cpu.h>
 #include <tasking/bits/sched.h>
 #include <tasking/proc.h>
+#include <tasking/thread.h>
 
 #define RUNNING_THREAD (THIS_CPU->running_thread)
 
@@ -40,14 +41,13 @@ static inline void cpu_enter_user_space()
 
 static inline void cpu_tick()
 {
-    // if (!THIS_CPU->running_thread) {
-    //     THIS_CPU->stat_system_and_idle_ticks++;
-    // } else if (THIS_CPU->running_thread->process->is_kthread) {
-    //     THIS_CPU->stat_system_and_idle_ticks++;
-    // } else {
-    //     THIS_CPU->stat_user_ticks++;
-    // }
-    ASSERT(false);
+    if (!THIS_CPU->running_thread) {
+        THIS_CPU->stat_system_and_idle_ticks++;
+    } else if (THIS_CPU->running_thread->process->is_kthread) {
+        THIS_CPU->stat_system_and_idle_ticks++;
+    } else {
+        THIS_CPU->stat_user_ticks++;
+    }
 }
 
 #endif // _KERNEL_TASKING_CPU_H

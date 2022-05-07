@@ -17,9 +17,7 @@
 
 void sys_exit(trapframe_t* tf)
 {
-    log("AT sys exit");
-    return_with_val(0);
-    // tasking_exit((int)SYSCALL_VAR1(tf));
+    tasking_exit((int)SYSCALL_VAR1(tf));
 }
 
 void sys_fork(trapframe_t* tf)

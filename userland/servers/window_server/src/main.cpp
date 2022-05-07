@@ -30,7 +30,7 @@ int main()
 #ifdef TARGET_MOBILE
     WinServer::InitManager::load_core_component<WinServer::ControlBar>();
 #endif
-Logger::debug << "here3" << std::endl;
+    Logger::debug << "here3" << std::endl;
     WinServer::InitManager::load_core_component<WinServer::Compositor>();
     Logger::debug << "here4" << std::endl;
     WinServer::InitManager::load_core_component<WinServer::WindowManager>();

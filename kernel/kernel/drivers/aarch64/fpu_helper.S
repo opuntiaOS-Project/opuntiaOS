@@ -1,5 +1,6 @@
 .global fpu_save
 fpu_save:
+    sub x0, x0, #0x200
     stp d0, d1, [x0]
     stp d2, d3, [x0,#0x20]
     stp d4, d5, [x0,#0x40]
@@ -21,6 +22,7 @@ fpu_save:
 
 .global fpu_restore
 fpu_restore:
+    sub x0, x0, #0x200
     ldp d0, d1, [x0]
     ldp d2, d3, [x0,#0x20]
     ldp d4, d5, [x0,#0x40]

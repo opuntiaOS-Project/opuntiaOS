@@ -23,7 +23,7 @@ static int _fbpixels_per_row = 0;
 static int _fbscale = 1;
 static uint32_t _basecolor = 0x0;
 static uintptr_t _fb_paddr = 0;
-static volatile uint32_t* _fb = NULL;
+volatile uint32_t* _fb = NULL;
 static kmemzone_t mapped_zone;
 
 static void update_cursor_position(char c)

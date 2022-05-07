@@ -160,6 +160,8 @@ static int _vmm_map_page_locked_impl(ptable_t* ptable, uintptr_t vaddr, uintptr_
 #ifdef VMM_DEBUG
         log("Table mapped[%d] %zx at %zx :: (%p) => %llx", lv, vaddr, ptable_paddr, ptable_desc, *ptable_desc);
 #endif
+        ptable_t* this_table = vm_get_table(vaddr, lv);
+        memset(this_table, 0, PTABLE_SIZE(lv));
     }
 
     if (lv == PTABLE_LV0) {
@@ -319,7 +321,7 @@ int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages)
 static int vmm_alloc_page_no_fill_locked(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
     uintptr_t paddr = vm_alloc_page_paddr();
-    // TODO: Add sleep here.
+    // TODO(aarch64): Add sleep here.
     int res = vmm_map_page_locked(vaddr, paddr, mmu_flags);
     return res;
 }
@@ -743,7 +745,6 @@ static int _vmm_on_page_not_present_locked(uintptr_t vaddr)
     }
 
     if (zone->ops && zone->ops->load_page_content) {
-        log("   page loaded %zx", vaddr);
         return zone->ops->load_page_content(zone, vaddr);
     } else {
         void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
@@ -762,8 +763,6 @@ int vmm_page_fault_handler(arch_pf_info_t info, uintptr_t vaddr)
 {
     vm_address_space_t* active_address_space = vmm_get_active_address_space();
     mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);
-
-    log("PF %zx %zx", vaddr, pf_info_flags);
 
     if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_NOT_PRESENT)) {
         spinlock_acquire(&active_address_space->lock);

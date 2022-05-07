@@ -1,0 +1,57 @@
+{
+    "name": "oemu-virt",
+    "devices": [{
+            "name": "ram",
+            "type": "RAM",
+            "mem": {
+                "base": "0x40000000",
+                "size": "0x10000000"
+            }
+        },
+        {
+            "name": "gicv2",
+            "type": "IC"
+        },
+        {
+            "name": "pl031",
+            "type": "IO",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x09010000"
+            }
+        },
+        {
+            "name": "pl111",
+            "type": "FB",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x0b010000"
+            }
+        },
+        {
+            "name": "pl181",
+            "type": "BUS_CONTROLLER",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x0b020000"
+            }
+        },
+        {
+            "name": "uart",
+            "type": "UART",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x09000000"
+            }
+        },
+        {
+            "name": "aa64timer",
+            "type": "TIMER",
+            "flags": "MMIO",
+            "irq": {
+                "lane": "30",
+                "flags": "EDGE_TRIGGER"
+            }
+        }
+    ]
+}

@@ -47,7 +47,6 @@ static ptable_entity_t terminating_page_common_mmu_to_arch_flags(mmu_flags_t mmu
     // MAIR has the following settings: 0x04ff, so if uncached setting index 1.
     SET_OP(mmu_flags, MMU_FLAG_UNCACHED, arch_flags |= (0b001 << 2));
 
-    // arch_flags |= (0b01 << 6);
     SET_OP(mmu_flags, MMU_FLAG_NONPRIV, arch_flags |= (0b01 << 6));
     SET_OP_NEG(mmu_flags, MMU_FLAG_PERM_WRITE, arch_flags |= (0b10 << 6));
 

@@ -70,14 +70,12 @@ int ramdisk_init_with_dev(device_t* dev)
 
 void ramdisk_read(device_t* device, uint32_t lba_like, void* read_data)
 {
-    log("RamDisk: asked to read %zx", lba_like);
     size_t offset = lba_like * RAMDISK_SECTOR_SIZE;
     memcpy(read_data, disk_base + offset, RAMDISK_SECTOR_SIZE);
 }
 
 void ramdisk_write(device_t* device, uint32_t lba_like, void* write_data)
 {
-    log("RamDisk: asked to write %zx", lba_like);
     size_t offset = lba_like * RAMDISK_SECTOR_SIZE;
     memcpy(disk_base + offset, write_data, RAMDISK_SECTOR_SIZE);
 }

@@ -44,9 +44,7 @@ public:
     template <class T, int Cost = 1, class... Args>
     static constexpr inline void load_core_component(Args&&... args)
     {
-        Logger::debug << "allocing " << std::endl;
         new T(std::forward<Args>(args)...);
-        Logger::debug << "going new" << std::endl;
         WinServer::LoadingScreen::the().move_progress<T, Cost>();
     }
 

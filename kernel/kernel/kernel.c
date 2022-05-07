@@ -63,10 +63,11 @@ static inline void kernel_preempt_setup()
 
 void launching()
 {
-    tasking_run_kernel_thread(kdentryflusherd, NULL);
+    // tasking_run_kernel_thread(kdentryflusherd, NULL);
     // tasking_run_kernel_thread(kswapd, NULL);
     tasking_start_init_proc();
-    while (1) {}
+    // while (1) { }
+    ksys1(SYS_EXIT, 0);
 }
 
 void stage3(boot_args_t* boot_args)
@@ -93,13 +94,9 @@ void stage3(boot_args_t* boot_args)
     timeman_setup();
     boot_cpu_finish(&__boot_cpu_setup_drivers);
 
-    log("mount procfs");
-
     // mounting filesystems
     procfs_mount();
     devfs_mount();
-
-    log("passed procfs");
 
     // ipc
     shared_buffer_init();
@@ -108,7 +105,6 @@ void stage3(boot_args_t* boot_args)
     ptmx_install();
 
     // init scheduling
-    log("here");
     tasking_init();
 
     scheduler_init();
@@ -116,7 +112,6 @@ void stage3(boot_args_t* boot_args)
     tasking_run_kernel_thread(launching, NULL);
     boot_cpu_finish(&__boot_cpu_setup_tasking);
     kernel_preempt_setup();
-    log("presched");
     resched(); /* Starting a scheduler */
 
     system_stop();
