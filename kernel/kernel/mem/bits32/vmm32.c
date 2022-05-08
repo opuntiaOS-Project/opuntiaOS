@@ -46,14 +46,8 @@ static void _vmm_map_init_kernel_pages(uintptr_t paddr, uintptr_t vaddr);
 static bool _vmm_create_kernel_ptables();
 static bool _vmm_map_kernel();
 
-static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv);
-static int _vmm_ensure_cow_for_page(uintptr_t vaddr);
-static int _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length);
+int vmm_resolve_copy_on_write(uintptr_t vaddr);
 static int _vmm_copy_page_to_resolve_cow(uintptr_t vaddr, ptable_entity_t* old_page_desc);
-
-static memzone_t* _vmm_memzone_for_active_address_space(uintptr_t vaddr);
-
-static void* _vmm_bring_to_kernel_space(void* src, size_t length);
 
 static bool _vmm_is_page_swapped_entity(ptable_entity_t* page_desc);
 static bool _vmm_is_page_swapped(uintptr_t vaddr);
@@ -73,12 +67,7 @@ static int _vmm_free_address_space_locked(vm_address_space_t* vm_aspace);
 static vm_address_space_t* vmm_new_address_space_locked();
 static vm_address_space_t* vmm_new_forked_address_space_locked();
 static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_locked(uintptr_t dest_vaddr, size_t length);
-static ALWAYS_INLINE void vmm_copy_to_address_space_locked(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length);
 
-static ALWAYS_INLINE int vmm_alloc_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags);
-static ALWAYS_INLINE int vmm_alloc_page_no_fill_locked(uintptr_t vaddr, mmu_flags_t mmu_flags);
-static int vmm_tune_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags);
-static int vmm_tune_pages_locked(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags);
 
 /**
  * VM INITIALIZATION FUNCTIONS
@@ -367,7 +356,7 @@ static int _vmm_force_allocate_ptable_locked(uintptr_t vaddr, ptable_lv_t lv)
  * @param ptable_lv New ptable level.
  * @return Status of operation.
  */
-int vmm_force_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
+static int vmm_force_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
 {
     vm_address_space_t* active_address_space = vmm_get_active_address_space();
     spinlock_acquire(&active_address_space->lock);
@@ -382,7 +371,7 @@ int vmm_force_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv)
  * @param vaddr The virtual address to examine.
  * @return True if page is present.
  */
-static bool _vmm_is_page_present(uintptr_t vaddr)
+bool vmm_is_page_present_impl(uintptr_t vaddr)
 {
     ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
     if (!page_desc) {
@@ -399,7 +388,7 @@ static bool _vmm_is_page_present(uintptr_t vaddr)
  * @param mmu_flags Permission flags to map with.
  * @return Status of the operation.
  */
-int vmm_map_page_locked(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
+int vmm_map_page_locked_impl(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
 {
     if (!THIS_CPU->active_address_space) {
         return -EACCES;
@@ -431,22 +420,6 @@ int vmm_map_page_locked(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
     return 0;
 }
 
-/**
- * @brief Maps a page specified with addresses.
- *
- * @param vaddr The virtual address to map.
- * @param paddr The physical address to map to.
- * @param mmu_flags Permission flags to map with.
- * @return Status of the operation.
- */
-int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    int res = vmm_map_page_locked(vaddr, paddr, mmu_flags);
-    spinlock_release(&active_address_space->lock);
-    return res;
-}
 
 /**
  * @brief Unmaps a page specified with addresses.
@@ -454,7 +427,7 @@ int vmm_map_page(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
  * @param vaddr The virtual address to unmap.
  * @return Status of the operation.
  */
-int vmm_unmap_page_locked(uintptr_t vaddr)
+int vmm_unmap_page_locked_impl(uintptr_t vaddr)
 {
     if (!THIS_CPU->active_address_space) {
         return -EACCES;
@@ -475,102 +448,10 @@ int vmm_unmap_page_locked(uintptr_t vaddr)
 }
 
 /**
- * @brief Unmaps a page specified with addresses.
- *
- * @param vaddr The virtual address to unmap.
- * @return Status of the operation.
+ * CoW FUNCTIONS
  */
-int vmm_unmap_page(uintptr_t vaddr)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    int res = vmm_unmap_page_locked(vaddr);
-    spinlock_release(&active_address_space->lock);
-    return res;
-}
 
-/**
- * @brief Maps several pages specified with addresses and count.
- *
- * @param vaddr The virtual address to map.
- * @param paddr The physical address to map to.
- * @param n_pages Count of sequential pages to map.
- * @param mmu_flags Permission flags to map with.
- * @return Status of the operation.
- */
-int vmm_map_pages_locked(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, mmu_flags_t mmu_flags)
-{
-    vaddr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-    paddr = ROUND_FLOOR(paddr, VMM_PAGE_SIZE);
-
-    int status = 0;
-    for (; n_pages; paddr += VMM_PAGE_SIZE, vaddr += VMM_PAGE_SIZE, n_pages--) {
-        if ((status = vmm_map_page_locked(vaddr, paddr, mmu_flags) != 0)) {
-            return status;
-        }
-    }
-
-    return 0;
-}
-
-/**
- * @brief Maps several pages specified with addresses and count.
- *
- * @param vaddr The virtual address to map.
- * @param paddr The physical address to map to.
- * @param n_pages Count of sequential pages to map.
- * @param mmu_flags Permission flags to map with.
- * @return Status of the operation.
- */
-int vmm_map_pages(uintptr_t vaddr, uintptr_t paddr, size_t n_pages, mmu_flags_t mmu_flags)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    int res = vmm_map_pages_locked(vaddr, paddr, n_pages, mmu_flags);
-    spinlock_release(&active_address_space->lock);
-    return res;
-}
-
-/**
- * @brief Unmaps several pages specified with addresses and count.
- *
- * @param vaddr The virtual address to unmap.
- * @param n_pages Count of sequential pages to unmap.
- * @return Status of the operation.
- */
-int vmm_unmap_pages_locked(uintptr_t vaddr, size_t n_pages)
-{
-    vaddr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-
-    int status = 0;
-    for (; n_pages; vaddr += VMM_PAGE_SIZE, n_pages--) {
-        if ((status = vmm_unmap_page_locked(vaddr) < 0)) {
-            return status;
-        }
-    }
-
-    return 0;
-}
-
-/**
- * @brief Unmaps several pages specified with addresses and count.
- *
- * @param vaddr The virtual address to unmap.
- * @param n_pages Count of sequential pages to unmap.
- * @return Status of the operation.
- */
-int vmm_unmap_pages(uintptr_t vaddr, size_t n_pages)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    int res = vmm_unmap_pages_locked(vaddr, n_pages);
-    spinlock_release(&active_address_space->lock);
-    return res;
-}
-
-/**
- * COPY ON WRITE FUNCTIONS
- */
+extern int vmm_alloc_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags);
 
 /**
  * @brief Marks both page tables as COW.
@@ -666,8 +547,9 @@ bool vmm_is_copy_on_write(uintptr_t vaddr)
 /**
  * @brief Resolves CoW for an active address space.
  */
-static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
+int vmm_resolve_copy_on_write(uintptr_t vaddr)
 {
+    ptable_lv_t lv = PTABLE_LV_TOP;
     ptable_lv_t entity_lv = lv;
     const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(lower_level(lv));
     ptable_entity_t orig_table_desc[ptables_per_page];
@@ -743,115 +625,11 @@ static int _vmm_resolve_copy_on_write(uintptr_t vaddr, ptable_lv_t lv)
 }
 
 /**
- * @brief Resolves CoW for an active address space if needed.
- */
-static int _vmm_ensure_cow_for_page(uintptr_t vaddr)
-{
-    if (vmm_is_copy_on_write(vaddr)) {
-        int err = _vmm_resolve_copy_on_write(vaddr, PTABLE_LV_TOP);
-        if (err) {
-            return err;
-        }
-    }
-    return 0;
-}
-
-/**
- * @brief Resolves CoW for an active address space if needed.
- */
-static int _vmm_ensure_cow_for_range(uintptr_t vaddr, size_t length)
-{
-    uintptr_t page_addr = PAGE_START(vaddr);
-    while (page_addr < vaddr + length) {
-        int err = _vmm_ensure_cow_for_page(page_addr);
-        if (err) {
-            return err;
-        }
-        page_addr += VMM_PAGE_SIZE;
-    }
-    return 0;
-}
-
-static memzone_t* _vmm_memzone_for_active_address_space(uintptr_t vaddr)
-{
-    return memzone_find(vmm_get_active_address_space(), vaddr);
-}
-
-static int vm_alloc_kernel_page_locked(uintptr_t vaddr)
-{
-    // A zone with standard mmu flags is allocated for kernel, while
-    // we could use a approach similar to user pages, where mmu flags
-    // are dependent on the zone.
-    return vmm_alloc_page_locked(vaddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
-}
-
-static int vm_alloc_user_page_no_fill_locked(memzone_t* zone, uintptr_t vaddr)
-{
-    if (!zone) {
-        return -ESRCH;
-    }
-    return vmm_alloc_page_no_fill_locked(vaddr, zone->mmu_flags);
-}
-
-static int vm_alloc_user_page_locked(memzone_t* zone, uintptr_t vaddr)
-{
-    if (!zone) {
-        return -EFAULT;
-    }
-    return vmm_alloc_page_locked(vaddr, zone->mmu_flags);
-}
-
-/**
- * @brief Allocate a new page for vaddr. Flags are dependent on memzone
- * associated with the virtual address.
- */
-static int vm_alloc_page_with_perm(uintptr_t vaddr)
-{
-    if (IS_USER_VADDR(vaddr) && vmm_get_active_pdir() != vmm_get_kernel_pdir()) {
-        return vm_alloc_user_page_locked(_vmm_memzone_for_active_address_space(vaddr), vaddr);
-    }
-    // Should keep lockless, since kernel interrupt could happen while setting VMM.
-    return vm_alloc_kernel_page_locked(vaddr);
-}
-
-/**
- * @brief Prepare the page for writing. Might allocate a page if needed.
- */
-static int _vmm_ensure_write_to_page(uintptr_t vaddr)
-{
-    if (!IS_KERNEL_VADDR(vaddr)) {
-        _vmm_ensure_cow_for_page(vaddr);
-    }
-
-    if (!_vmm_is_page_present(vaddr)) {
-        int err = vm_alloc_page_with_perm(vaddr);
-        if (err) {
-            return err;
-        }
-    }
-
-    return 0;
-}
-
-/**
- * @brief Prepare the page for writing. Might allocate a page if needed.
- */
-static int _vmm_ensure_write_to_range(uintptr_t vaddr, size_t length)
-{
-    uintptr_t page_addr = PAGE_START(vaddr);
-    while (page_addr < vaddr + length) {
-        int err = _vmm_ensure_write_to_page(page_addr);
-        if (err) {
-            return err;
-        }
-        page_addr += VMM_PAGE_SIZE;
-    }
-    return 0;
-}
-
-/**
  * SWAP FUNCTIONS
  */
+
+extern int vm_alloc_user_page_no_fill_locked(memzone_t* zone, uintptr_t vaddr);
+extern memzone_t* vmm_memzone_for_active_address_space(uintptr_t vaddr);
 
 static bool _vmm_is_page_swapped_entity(ptable_entity_t* page_desc)
 {
@@ -870,15 +648,15 @@ static bool _vmm_is_page_swapped_entity(ptable_entity_t* page_desc)
     return true;
 }
 
-static bool _vmm_is_page_swapped(uintptr_t vaddr)
+bool vmm_is_page_swapped_impl(uintptr_t vaddr)
 {
     ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
     return _vmm_is_page_swapped_entity(page_desc);
 }
 
-static int _vmm_restore_swapped_page_locked(uintptr_t vaddr)
+int vmm_restore_swapped_page_locked_impl(uintptr_t vaddr)
 {
-    memzone_t* zone = _vmm_memzone_for_active_address_space(vaddr);
+    memzone_t* zone = vmm_memzone_for_active_address_space(vaddr);
     if (!zone) {
         return -1;
     }
@@ -911,7 +689,7 @@ static int _vmm_restore_swapped_page_locked(uintptr_t vaddr)
     return 0;
 }
 
-int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
+int vmm_swap_page_impl(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
 {
     vm_address_space_t* active_address_space = vmm_get_active_address_space();
     spinlock_acquire(&active_address_space->lock);
@@ -975,7 +753,7 @@ int vmm_swap_page(ptable_entity_t* page_desc, memzone_t* zone, uintptr_t vaddr)
  * ADDRESS SPACE FUNCTIONS
  */
 
-static vm_address_space_t* _vmm_alloc_new_address_space_locked()
+vm_address_space_t* vmm_alloc_new_address_space_locked()
 {
     vm_address_space_t* new_address_space = vm_address_space_alloc();
     ptable_t* new_pdir;
@@ -990,11 +768,11 @@ static vm_address_space_t* _vmm_alloc_new_address_space_locked()
     return new_address_space;
 }
 
-static int _vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
+int vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
 {
     for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
         vm_ptable_entity_invalidate(&new_aspace->pdir->entities[i], PTABLE_LV_TOP);
-}
+    }
 
     for (int i = VMM_KERNEL_TABLES_START; i < PTABLE_ENTITY_COUNT(PTABLE_LV_TOP); i++) {
         if (!IS_INDIVIDUAL_PER_DIR(i)) {
@@ -1006,7 +784,7 @@ static int _vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
     return 0;
 }
 
-static int _vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
+int vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
 {
     vm_address_space_t* active_address_space = THIS_CPU->active_address_space;
     spinlock_acquire(&active_address_space->lock);
@@ -1030,27 +808,6 @@ static int _vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
     return 0;
 }
 
-vm_address_space_t* vmm_new_address_space()
-{
-    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_locked();
-    _vmm_fill_up_new_address_space(new_aspace);
-    return new_aspace;
-}
-
-/**
- * @brief Creates a new user's pdir based on the active pdir. This fork will
- *        share some mappings which are marked as CoW.
- *
- * @return The new address space.
- */
-vm_address_space_t* vmm_new_forked_address_space()
-{
-    vm_address_space_t* new_aspace = _vmm_alloc_new_address_space_locked();
-    _vmm_fill_up_forked_address_space(new_aspace);
-    memzone_copy(new_aspace, THIS_CPU->active_address_space);
-    return new_aspace;
-}
-
 /**
  * @brief Frees address space. If target vm_aspace is an active address space,
  *        after deletion kernel will be moved to kernel address space.
@@ -1058,35 +815,9 @@ vm_address_space_t* vmm_new_forked_address_space()
  * @param vm_aspace The address space for deletion.
  * @return Status of the operation.
  */
-static int _vmm_free_address_space_locked(vm_address_space_t* vm_aspace)
+int vmm_free_address_space_locked_impl(vm_address_space_t* vm_aspace)
 {
-    ASSERT(vm_aspace->count == 0);
-
-    if (!vm_aspace) {
-        return -EINVAL;
-    }
-
-    if (vm_aspace == _vmm_kernel_address_space_ptr) {
-        return -EACCES;
-    }
-
     return vm_pspace_free_address_space_locked(vm_aspace);
-}
-
-/**
- * @brief Frees address space. If target vm_aspace is an active address space,
- *        after deletion kernel will be moved to kernel address space.
- *
- * @param vm_aspace The address space for deletion.
- * @return Status of the operation.
- */
-int vmm_free_address_space(vm_address_space_t* vm_aspace)
-{
-    // Taking the lock before deleting to be sure that address space could be
-    // cleaned.
-    spinlock_acquire(&vm_aspace->lock);
-    int res = _vmm_free_address_space_locked(vm_aspace);
-    return res;
 }
 
 vm_address_space_t* vmm_get_active_address_space()
@@ -1095,6 +826,7 @@ vm_address_space_t* vmm_get_active_address_space()
     return THIS_CPU->active_address_space;
 }
 
+// TODO: Depracte this
 ptable_t* vmm_get_active_pdir()
 {
     return vmm_get_active_address_space()->pdir;
@@ -1105,125 +837,18 @@ vm_address_space_t* vmm_get_kernel_address_space()
     return _vmm_kernel_address_space_ptr;
 }
 
+// TODO: Depracte this
 ptable_t* vmm_get_kernel_pdir()
 {
     return _vmm_kernel_pdir;
 }
 
-/**
- * COPY FUNCTIONS
- */
-
-/**
- * @brief Copies data to the kernel space if needed.
- *
- * @param data Pointer to the data.
- * @param length The length of data to copy.
- * @return Pointer to data in the kernel space.
- */
-static void* _vmm_bring_to_kernel_space(void* data, size_t length)
-{
-    if ((uintptr_t)data >= KERNEL_BASE) {
-        return data;
-    }
-    void* kaddr = kmalloc(length);
-    _vmm_ensure_write_to_range((uintptr_t)kaddr, length);
-    memcpy(kaddr, data, length);
-    return (void*)kaddr;
-}
-
-/**
- * @brief Ensures that writing to the address is safe and does NOT cause any faults.
- *        It might start resolving CoW if this is needed for writing.
- *
- * @param vaddr The virtual address to examine.
- * @param length The length of data which is written to the address.
- */
-static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_locked(uintptr_t dest_vaddr, size_t length)
-{
-    _vmm_ensure_write_to_range(dest_vaddr, length);
-}
-
-/**
- * @brief Ensures that writing to the address is safe and does NOT cause any faults.
- *        It might start resolving CoW if this is needed for writing.
- *
- * @param vaddr The virtual address to examine.
- * @param length The length of data which is written to the address.
- */
-void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t length)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    vmm_ensure_writing_to_active_address_space_locked(dest_vaddr, length);
-    spinlock_release(&active_address_space->lock);
-}
-
-/**
- * @brief Copies data from the source address of the active address space to the
- *        destination virtual address of the target address space.
- *
- * @param vm_aspace The addess space to copy into.
- * @param src The data source.
- * @param dest_vaddr The destination virtual address
- * @param length The length of data to be copied.
- */
-static ALWAYS_INLINE void vmm_copy_to_address_space_locked(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length)
-{
-    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
-
-    // Copy data to the kernel space, if needed.
-    void* ksrc = _vmm_bring_to_kernel_space(src, length);
-
-    vmm_switch_address_space_locked(vm_aspace);
-
-    vmm_ensure_writing_to_active_address_space_locked(dest_vaddr, length);
-    void* dest = (void*)dest_vaddr;
-    memcpy(dest, ksrc, length);
-
-    if ((uintptr_t)src < KERNEL_BASE) {
-        kfree(ksrc);
-    }
-
-    vmm_switch_address_space_locked(prev_aspace);
-}
-
-/**
- * @brief Copies data from the source address of the active address space to the
- *        destination virtual address of the target address space.
- *
- * @param vm_aspace The addess space to copy into.
- * @param src The data source.
- * @param dest_vaddr The destination virtual address
- * @param length The length of data to be copied.
- */
-void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length)
-{
-    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
-
-    // Copy data to the kernel space, if needed.
-    void* ksrc = _vmm_bring_to_kernel_space(src, length);
-
-    spinlock_acquire(&vm_aspace->lock);
-    vmm_switch_address_space_locked(vm_aspace);
-    vmm_ensure_writing_to_active_address_space_locked(dest_vaddr, length);
-    spinlock_release(&vm_aspace->lock);
-
-    void* dest = (void*)dest_vaddr;
-    memcpy(dest, ksrc, length);
-
-    if ((uintptr_t)src < KERNEL_BASE) {
-        kfree(ksrc);
-    }
-
-    vmm_switch_address_space_locked(prev_aspace);
-}
 
 /**
  * PF HANDLER FUNCTIONS
  */
 
-static int vmm_tune_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags)
+int vmm_tune_page_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
     if (!THIS_CPU->active_address_space) {
         return -EACCES;
@@ -1248,35 +873,7 @@ static int vmm_tune_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags)
     return 0;
 }
 
-int vmm_tune_page(uintptr_t vaddr, mmu_flags_t mmu_flags)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    int res = vmm_tune_page_locked(vaddr, mmu_flags);
-    spinlock_release(&active_address_space->lock);
-    return res;
-}
-
-static int vmm_tune_pages_locked(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags)
-{
-    uintptr_t page_addr = PAGE_START(vaddr);
-    while (page_addr < vaddr + length) {
-        vmm_tune_page_locked(page_addr, mmu_flags);
-        page_addr += VMM_PAGE_SIZE;
-    }
-    return 0;
-}
-
-int vmm_tune_pages(uintptr_t vaddr, size_t length, mmu_flags_t mmu_flags)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    int res = vmm_tune_pages_locked(vaddr, length, mmu_flags);
-    spinlock_release(&active_address_space->lock);
-    return res;
-}
-
-static ALWAYS_INLINE int vmm_alloc_page_no_fill_locked(uintptr_t vaddr, mmu_flags_t mmu_flags)
+int vmm_alloc_page_no_fill_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
     uintptr_t paddr = 0;
     do {
@@ -1290,129 +887,11 @@ static ALWAYS_INLINE int vmm_alloc_page_no_fill_locked(uintptr_t vaddr, mmu_flag
     return res;
 }
 
-static ALWAYS_INLINE int vmm_alloc_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags)
-{
-    int err = vmm_alloc_page_no_fill_locked(vaddr, mmu_flags);
-    if (err) {
-        return err;
-    }
-
-    void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-    memset(dest, 0, VMM_PAGE_SIZE);
-    return 0;
-}
-
-int vmm_alloc_page(uintptr_t vaddr, mmu_flags_t mmu_flags)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    spinlock_acquire(&active_address_space->lock);
-    if (_vmm_is_page_present(vaddr)) {
-        spinlock_release(&active_address_space->lock);
-        return -EALREADY;
-    }
-
-    int err = vmm_alloc_page_no_fill_locked(vaddr, mmu_flags);
-    spinlock_release(&active_address_space->lock);
-    if (err) {
-        return err;
-    }
-
-    void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-    memset(dest, 0, VMM_PAGE_SIZE);
-    return 0;
-}
-
-static int _vmm_on_page_not_present_locked(uintptr_t vaddr)
-{
-    if (_vmm_is_page_present(vaddr)) {
-        return 0;
-    }
-
-    if (IS_KERNEL_VADDR(vaddr)) {
-        return vm_alloc_kernel_page_locked(vaddr);
-    }
-
-    memzone_t* zone = _vmm_memzone_for_active_address_space(vaddr);
-    if (!zone) {
-        return -EFAULT;
-    }
-
-    if (vmm_is_copy_on_write(vaddr)) {
-        int err = _vmm_ensure_cow_for_page(vaddr);
-        if (err) {
-            return err;
-        }
-    }
-
-    if (_vmm_is_page_swapped(vaddr)) {
-        return _vmm_restore_swapped_page_locked(vaddr);
-    }
-
-    int err = vm_alloc_user_page_no_fill_locked(zone, vaddr);
-    if (err) {
-        return err;
-    }
-
-    if (zone->ops && zone->ops->load_page_content) {
-        return zone->ops->load_page_content(zone, vaddr);
-    } else {
-        void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-        memset(dest, 0, VMM_PAGE_SIZE);
-    }
-    return 0;
-}
-
-static int _vmm_pf_on_writing_locked(uintptr_t vaddr)
-{
-    int visited = 0;
-
-    if (vmm_is_copy_on_write(vaddr)) {
-        int err = _vmm_ensure_cow_for_page(vaddr);
-        if (err) {
-            return err;
-        }
-        visited++;
-    }
-
-    if (!visited) {
-        return -EFAULT;
-    }
-
-    return 0;
-}
-
-int vmm_page_fault_handler(uint32_t info, uintptr_t vaddr)
-{
-    vm_address_space_t* active_address_space = vmm_get_active_address_space();
-    mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);
-
-    if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_NOT_PRESENT)) {
-        spinlock_acquire(&active_address_space->lock);
-        int res = _vmm_on_page_not_present_locked(vaddr);
-        spinlock_release(&active_address_space->lock);
-        return res;
-    }
-
-    if (TEST_FLAG(pf_info_flags, MMU_PF_INFO_ON_WRITE)) {
-        spinlock_acquire(&active_address_space->lock);
-        int res = _vmm_pf_on_writing_locked(vaddr);
-        spinlock_release(&active_address_space->lock);
-    }
-
-    return 0;
-}
-
 /**
  * CPU BASED FUNCTIONS
  */
 
-/**
- * @brief Switches to vm_aspace address space.
- *
- * @param vm_aspace The addess space to switch to.
- * @return Status of the operation.
- */
-int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace)
+int vmm_switch_address_space_locked_impl(vm_address_space_t* vm_aspace)
 {
     if (!vm_aspace) {
         return -EINVAL;
@@ -1431,16 +910,4 @@ int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace)
     system_set_pdir((uintptr_t)_vmm_convert_vaddr2paddr((uintptr_t)vm_aspace->pdir));
     system_enable_interrupts();
     return 0;
-}
-
-/**
- * @brief Switches to vm_aspace address space.
- *
- * @param vm_aspace The addess space to switch to.
- * @return Status of the operation.
- */
-int vmm_switch_address_space(vm_address_space_t* vm_aspace)
-{
-    int res = vmm_switch_address_space_locked(vm_aspace);
-    return res;
 }

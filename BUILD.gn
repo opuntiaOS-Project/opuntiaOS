@@ -8,6 +8,10 @@ group("build") {
     "//build/libs:libs",
     "//build/userland:userland",
   ]
+
+  if (compile_tests) {
+    deps += [ "//build/test:test" ]
+  }
 }
 
 group("env") {

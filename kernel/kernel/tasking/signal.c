@@ -26,6 +26,8 @@
 #define return_tf (thread->tf->ebx)
 #elif __arm__
 #define return_tf (thread->tf->r[1])
+#elif __aarch64__
+#define return_tf (thread->tf->x[1])
 #endif
 
 static kmemzone_t _signal_jumper_zone;
@@ -113,7 +115,7 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     system_disable_interrupts();
     vm_address_space_t* prev_aspace = vmm_get_active_address_space();
     vmm_switch_address_space(thread->process->address_space);
-    vmm_ensure_writing_to_active_address_space((uintptr_t)thread->tf, 1);
+    vmm_ensure_writing_to_active_address_space((uintptr_t)thread->tf, sizeof(*thread->tf));
 
     uintptr_t old_sp = get_stack_pointer(thread->tf);
     uintptr_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */

@@ -45,9 +45,15 @@ typedef uint64_t uint_fast64_t;
 
 #ifndef __stdptrints_defined
 #define __stdptrints_defined
-// TODO(aarch64): Make it work back for bits32.
+#ifdef BITS64
 typedef int64_t intptr_t;
 typedef uint64_t uintptr_t;
+#elif defined(BITS32)
+typedef int32_t intptr_t;
+typedef uint32_t uintptr_t;
+#else
+#error Unknown BITSx?
+#endif
 #endif // __stdptrints_defined
 
 #ifndef __stdmaxints_defined

@@ -98,9 +98,7 @@ if (target_cpu == "aarch64") {
     "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
     "-fno-pie",
   ]
-  kernel_asm_flags += [
-    "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
-  ]
+  kernel_asm_flags += [ "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc" ]
   kernel_ld_flags += [ "-nostdlib" ]
 
   if (host == "gnu") {
@@ -175,5 +173,8 @@ executable("kernel_build") {
 }
 
 group("kernel") {
-  deps = [ ":kernel_build" ]
+  deps = [
+    ":kernel_build",
+    "//build/boot:boot",
+  ]
 }

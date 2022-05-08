@@ -174,7 +174,7 @@ void tasking_init()
 {
     proc_init_storage();
     swapfile_init();
-    // signal_init();
+    signal_init();
     dump_prepare_kernel_data();
 }
 
@@ -190,7 +190,7 @@ bool tasking_should_become_zombie(proc_t* p)
     }
 
     if (pproc->main_thread->signal_handlers[SIGCHLD]) {
-        // signal_send(pproc->main_thread, SIGCHLD);
+        signal_send(pproc->main_thread, SIGCHLD);
         return false;
     }
     return true;
@@ -373,7 +373,7 @@ int tasking_waitpid(int pid, int* status, int options)
     }
 
     if (!TEST_FLAG(options, WNOHANG)) {
-        // init_join_blocker(thread, pid);
+        init_join_blocker(thread, pid);
     }
 
     if (status) {
@@ -396,13 +396,13 @@ int tasking_signal(thread_t* thread, int signo)
     if (thread->status == THREAD_STATUS_INVALID || thread->status == THREAD_STATUS_DYING) {
         return -EINVAL;
     }
-    // signal_send(thread, signo);
+    signal_send(thread, signo);
 
     // If the target thread is a one that issued kill to self,
     // dispatch the signal right now. Overwise scheduler will
     // dispatch when it switches to the task.
     if (RUNNING_THREAD == thread) {
-        // signal_dispatch_pending(thread);
+        signal_dispatch_pending(thread);
     }
     return 0;
 }

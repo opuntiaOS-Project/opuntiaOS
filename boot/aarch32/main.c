@@ -45,7 +45,7 @@ static int alloc_init()
 
     extern int bootloader_start[];
     size_t alloc_space = (size_t)bootloader_start - dev->region_base;
-    malloc_init((void*)dev->region_base, alloc_space);
+    malloc_init((void*)(uint32_t)dev->region_base, alloc_space);
     return 0;
 }
 
@@ -65,16 +65,16 @@ static int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 
 static int validate_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 {
-    log("Validating Kernel...");
-    if (!validate_elf(KERNEL_PATH, drive_desc, fs_desc)) {
-        log("Can't validate kernel");
-        while (1) { }
-    }
+    // log("Validating Kernel...");
+    // if (!validate_elf(KERNEL_PATH, drive_desc, fs_desc)) {
+    //     log("Can't validate kernel");
+    //     while (1) { }
+    // }
 
-    if (!validate_elf(LAUNCH_SERVER_PATH, drive_desc, fs_desc)) {
-        log("Can't validate launch_server");
-        while (1) { }
-    }
+    // if (!validate_elf(LAUNCH_SERVER_PATH, drive_desc, fs_desc)) {
+    //     log("Can't validate launch_server");
+    //     while (1) { }
+    // }
 
     return 0;
 }

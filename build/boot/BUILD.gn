@@ -5,7 +5,9 @@
 group("boot") {
   if (target_cpu == "x86") {
     deps = [ "x86:bootx86" ]
-  } else {
+  } else if (target_cpu == "aarch32") {
     deps = [ "aarch32:bootarm" ]
+  } else if (target_cpu == "aarch64") {
+    deps = [ "aarch64:bootaarch64" ]
   }
 }

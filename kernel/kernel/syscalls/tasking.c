@@ -44,13 +44,13 @@ void sys_exec(trapframe_t* tf)
 
 void sys_sigaction(trapframe_t* tf)
 {
-    // int res = signal_set_handler(RUNNING_THREAD, (int)SYSCALL_VAR1(tf), (uintptr_t)SYSCALL_VAR2(tf));
+    int res = signal_set_handler(RUNNING_THREAD, (int)SYSCALL_VAR1(tf), (uintptr_t)SYSCALL_VAR2(tf));
     return_with_val(-1);
 }
 
 void sys_sigreturn(trapframe_t* tf)
 {
-    // signal_restore_thread_after_handling_signal(RUNNING_THREAD);
+    signal_restore_thread_after_handling_signal(RUNNING_THREAD);
 }
 
 void sys_kill(trapframe_t* tf)

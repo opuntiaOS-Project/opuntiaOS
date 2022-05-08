@@ -789,9 +789,9 @@ local int dynamic(struct state* s)
  *   expected values to check.
  */
 int puff(unsigned char* dest, /* pointer to destination pointer */
-    unsigned long* destlen, /* amount of output space */
+    size_t* destlen, /* amount of output space */
     const unsigned char* source, /* pointer to source data pointer */
-    unsigned long* sourcelen) /* amount of input available */
+    size_t* sourcelen) /* amount of input available */
 {
     struct state s; /* input/output state */
     int last, type; /* block information */

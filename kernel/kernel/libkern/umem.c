@@ -137,6 +137,7 @@ void umem_copy_to_user(void __user* dest, const void* src, size_t length)
 #endif // DEBUG_UMEM_ACCESSES
         return;
     }
+    vmm_ensure_writing_to_active_address_space((uintptr_t)dest, length);
     memcpy((void*)dest, src, length);
 }
 

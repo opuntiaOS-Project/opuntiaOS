@@ -123,6 +123,10 @@ NORETURN inline static void system_stop()
  * CPU
  */
 
+void system_cache_clean_and_invalidate(void* addr, size_t size);
+void system_cache_invalidate(void* addr, size_t size);
+void system_cache_clean(void* addr, size_t size);
+
 inline static int system_cpu_id()
 {
     // inlined read_cpu_id_register();

@@ -7,6 +7,7 @@
  */
 
 #include <drivers/x86/uart.h>
+#include <mem/boot.h>
 #include <platform/x86/port.h>
 
 static int _uart_setup_impl(int port)
@@ -21,7 +22,7 @@ static int _uart_setup_impl(int port)
     return 0;
 }
 
-void uart_setup()
+void uart_setup(boot_args_t* bootargs)
 {
     _uart_setup_impl(COM1);
 }
