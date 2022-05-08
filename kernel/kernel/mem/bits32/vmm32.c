@@ -68,7 +68,6 @@ static vm_address_space_t* vmm_new_address_space_locked();
 static vm_address_space_t* vmm_new_forked_address_space_locked();
 static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_locked(uintptr_t dest_vaddr, size_t length);
 
-
 /**
  * VM INITIALIZATION FUNCTIONS
  */
@@ -419,7 +418,6 @@ int vmm_map_page_locked_impl(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_f
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
-
 
 /**
  * @brief Unmaps a page specified with addresses.
@@ -842,7 +840,6 @@ ptable_t* vmm_get_kernel_pdir()
 {
     return _vmm_kernel_pdir;
 }
-
 
 /**
  * PF HANDLER FUNCTIONS

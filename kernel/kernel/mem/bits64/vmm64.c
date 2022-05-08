@@ -283,7 +283,6 @@ int vmm_alloc_page_no_fill_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
 
 bool vmm_is_copy_on_write(uintptr_t vaddr) { return false; }
 
-
 /**
  * @brief Resolves CoW for an active address space if needed.
  */
