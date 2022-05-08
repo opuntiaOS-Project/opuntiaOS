@@ -192,13 +192,22 @@ typedef struct {
 } elf_section_header_64_t;
 
 typedef struct {
-    uint32_t st_name; /* name - index into string table */
-    uint32_t st_value; /* symbol value */
-    uint32_t st_size; /* symbol size */
-    unsigned char st_info; /* type and binding */
-    unsigned char st_other; /* 0 - no defined meaning */
-    uint16_t st_shndx; /* section header index */
+    uint32_t st_name; // name - index into string table
+    uint32_t st_value; // symbol value
+    uint32_t st_size; // symbol size
+    uint8_t st_info; // type and binding
+    uint8_t st_other; // 0 - no defined meaning
+    uint16_t st_shndx; // section header index
 } elf_sym_32_t;
+
+typedef struct {
+    uint32_t st_name;
+    uint8_t st_info;
+    uint8_t st_other;
+    uint16_t st_shndx;
+    uint64_t st_value;
+    uint64_t st_size;
+} elf_sym_64_t;
 
 enum ST_BINDING_FIELDS {
     STB_LOCAL = 0,
@@ -228,17 +237,22 @@ struct file_descriptor;
 typedef elf_header_32_t elf_header_t;
 typedef elf_section_header_32_t elf_section_header_t;
 typedef elf_program_header_32_t elf_program_header_t;
+typedef elf_sym_32_t elf_sym_t;
+#define USER_STACK_SIZE (16 << 10) // 16KB
 #elif __arm__
 #define MACHINE_ARCH EM_ARM
 typedef elf_header_32_t elf_header_t;
 typedef elf_section_header_32_t elf_section_header_t;
 typedef elf_program_header_32_t elf_program_header_t;
+typedef elf_sym_32_t elf_sym_t;
+#define USER_STACK_SIZE (16 << 10) // 16KB
 #elif __aarch64__
-// TODO(aarch64): fix this.
 #define MACHINE_ARCH EM_AARCH64
 typedef elf_header_64_t elf_header_t;
 typedef elf_section_header_64_t elf_section_header_t;
 typedef elf_program_header_64_t elf_program_header_t;
+typedef elf_sym_64_t elf_sym_t;
+#define USER_STACK_SIZE (4 << 20) // 4MB
 #endif
 
 int elf_check_header(elf_header_t* header);

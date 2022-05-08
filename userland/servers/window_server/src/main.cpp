@@ -22,19 +22,13 @@ int main()
     WinServer::InitManager::load_core_component<WinServer::Connection>();
     WinServer::InitManager::load_core_component<WinServer::CursorManager>();
     WinServer::InitManager::load_core_component<WinServer::ResourceManager, 4>();
-    Logger::debug << "here1" << std::endl;
-    Logger::debug << "s_WinServer_Popup_the" << std::endl;
     WinServer::InitManager::load_core_component<WinServer::Popup>();
-    Logger::debug << "here2" << std::endl;
     WinServer::InitManager::load_core_component<WinServer::MenuBar>();
 #ifdef TARGET_MOBILE
     WinServer::InitManager::load_core_component<WinServer::ControlBar>();
 #endif
-    Logger::debug << "here3" << std::endl;
     WinServer::InitManager::load_core_component<WinServer::Compositor>();
-    Logger::debug << "here4" << std::endl;
     WinServer::InitManager::load_core_component<WinServer::WindowManager>();
-    Logger::debug << "here5" << std::endl;
     WinServer::InitManager::load_core_component<WinServer::Devices>();
 
     WinServer::InitManager::add_widget<WinServer::Clock>();

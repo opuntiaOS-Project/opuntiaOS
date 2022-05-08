@@ -64,9 +64,8 @@ static inline void kernel_preempt_setup()
 void launching()
 {
     // tasking_run_kernel_thread(kdentryflusherd, NULL);
-    // tasking_run_kernel_thread(kswapd, NULL);
+    tasking_run_kernel_thread(kswapd, NULL);
     tasking_start_init_proc();
-    // while (1) { }
     ksys1(SYS_EXIT, 0);
 }
 
@@ -112,7 +111,7 @@ void stage3(boot_args_t* boot_args)
     tasking_run_kernel_thread(launching, NULL);
     boot_cpu_finish(&__boot_cpu_setup_tasking);
     kernel_preempt_setup();
-    resched(); /* Starting a scheduler */
+    resched();
 
     system_stop();
 }

@@ -24,6 +24,7 @@ static kmemzone_t _mapzone;
 static uintptr_t _mmaped_ptable;
 static int moved_out_pages_per_run = 0;
 static int moved_out_pages_per_pid = 0;
+static int faild_pages = 0;
 static int last_pid = 0, last_pti = 0;
 extern proc_t proc[MAX_PROCESS_COUNT];
 
@@ -47,6 +48,7 @@ inline static void after_page_swap()
 {
     moved_out_pages_per_run++;
     moved_out_pages_per_pid++;
+    faild_pages = 0;
 }
 
 static void do_sleep()
@@ -85,8 +87,17 @@ static int find_victim(proc_t* p, ptable_t* pdir)
                 // Context switch could freeze cpu, since it would be not be possible to switch
                 // address space. _vmm_lock might need to be replaced with per address space lock.
                 system_disable_interrupts();
-                vmm_swap_page(ppage_desc, zone, victim_vaddr);
+                int err = vmm_swap_page(ppage_desc, zone, victim_vaddr);
                 system_enable_interrupts();
+                if (err) {
+                    faild_pages++;
+                    if (faild_pages > 6) {
+                        spinlock_release(&p->vm_lock);
+                        faild_pages = 0;
+                        return 0;
+                    }
+                    continue;
+                }
                 after_page_swap();
                 if (moved_out_pages_per_pid >= KSWAPD_SWAP_PER_PID_THRESHOLD) {
                     spinlock_release(&p->vm_lock);

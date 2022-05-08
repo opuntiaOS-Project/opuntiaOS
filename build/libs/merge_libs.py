@@ -45,8 +45,6 @@ elif (arch == "aarch64"):
     else:
         print("Unsupported host for arch {0}".format(host, arch))
         exit(1)
-    # srcs_lib.append(
-    #     "../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-i386.a")
 else:
     print("Unsupported arch {0}".format(arch))
     exit(1)

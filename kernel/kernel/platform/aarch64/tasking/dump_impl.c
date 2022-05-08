@@ -8,7 +8,7 @@
 
 #include <libkern/log.h>
 #include <mem/vmm.h>
-#include <platform/aarch32/tasking/dump_impl.h>
+#include <platform/aarch64/tasking/dump_impl.h>
 #include <platform/generic/system.h>
 
 void dump_regs(dump_data_t* dump_data)
@@ -23,7 +23,7 @@ int dump_impl(dump_data_t* dump_data)
 {
     char buf[64];
     trapframe_t* tf = dump_data->p->main_thread->tf;
-    snprintf(buf, 64, "Dump not supported for arm target yet!\n");
+    snprintf(buf, 64, "Dump not supported for aarch64 target yet!\n");
     dump_data->writer(buf);
     return 0;
 }

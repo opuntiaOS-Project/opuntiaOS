@@ -173,9 +173,9 @@ proc_t* tasking_run_kernel_thread(void* entry_point, void* data)
 void tasking_init()
 {
     proc_init_storage();
-    // swapfile_init();
+    swapfile_init();
     // signal_init();
-    // dump_prepare_kernel_data();
+    dump_prepare_kernel_data();
 }
 
 bool tasking_should_become_zombie(proc_t* p)

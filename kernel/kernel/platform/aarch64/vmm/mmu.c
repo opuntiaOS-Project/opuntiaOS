@@ -261,7 +261,6 @@ bool vm_ptable_entity_is_present(ptable_entity_t* entity, ptable_lv_t lv)
 
 bool vm_ptable_entity_is_only_allocated(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // TODO(aarch64): Mark this somehow.
     // This is for 32bit systems only.
     return false;
 }

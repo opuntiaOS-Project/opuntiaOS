@@ -57,7 +57,8 @@ static void vmm_setup_paddr_mapped_location(boot_args_t* args)
 
 static void vm_map_kernel_huge_page_1gb(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
 {
-    // TODO(aarch64): Look like aarch64 and 4kb pages specific, need to unify this.
+    // TODO(aarch64): Look like aarch64 and 4kb pages specific, need to
+    //                unify this for other page sizes as well.
     ASSERT(PTABLE_LV_TOP == PTABLE_LV2);
     vaddr = ROUND_FLOOR(vaddr, 1 << 30);
     paddr = ROUND_FLOOR(paddr, 1 << 30);
@@ -465,7 +466,6 @@ static int vm_alloc_page_with_perm(uintptr_t vaddr)
 {
     // TODO(aarch64): missing check here.
     if (IS_USER_VADDR(vaddr)) {
-        // log("vm_alloc_page_with_perm: %zx", vaddr);
         return vm_alloc_user_page_locked(_vmm_memzone_for_active_address_space(vaddr), vaddr);
     }
     // Should keep lockless, since kernel interrupt could happen while setting VMM.
@@ -610,7 +610,9 @@ static int _vmm_copy_of_aspace(ptable_t* old, ptable_t* new, ptable_lv_t lv)
                 new->entities[i] = old->entities[i];
                 vm_ptable_entity_set_frame(&new->entities[i], lv, new_child_page_paddr);
 
-                // log("Copy page %zx to %zx", old_page_paddr, new_child_page_paddr);
+#ifdef VMM_DEBUG
+                log("Copy page %zx to %zx", old_page_paddr, new_child_page_paddr);
+#endif
             }
         }
     } else {
@@ -623,7 +625,9 @@ static int _vmm_copy_of_aspace(ptable_t* old, ptable_t* new, ptable_lv_t lv)
                 new->entities[i] = old->entities[i];
                 vm_ptable_entity_set_frame(&new->entities[i], lv, new_child_ptable_paddr);
 
-                // log("Copy table [%d] %zx to %zx", lv, old_ptable_paddr, new_child_ptable_paddr);
+#ifdef VMM_DEBUG
+                log("Copy table [%d] %zx to %zx", lv, old_ptable_paddr, new_child_ptable_paddr);
+#endif
                 _vmm_copy_of_aspace(paddr_to_vaddr(old_ptable_paddr), paddr_to_vaddr(new_child_ptable_paddr), lowerlv);
             }
         }
@@ -638,7 +642,6 @@ static int _vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
     spinlock_acquire(&active_address_space->lock);
 
     // TODO(aarch64): Implement CoW.
-    // log("going to do deep copy");
     _vmm_copy_of_aspace(active_address_space->pdir, new_aspace->pdir, PTABLE_LV_TOP);
     system_flush_whole_tlb();
     spinlock_release(&active_address_space->lock);

@@ -2,4 +2,6 @@
 #include <platform/x86/tasking/dump_impl.h>
 #elif __arm__
 #include <platform/aarch32/tasking/dump_impl.h>
+#elif __aarch64__
+#include <platform/aarch64/tasking/dump_impl.h>
 #endif
