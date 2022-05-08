@@ -660,7 +660,7 @@ static bool _ext2_is_dir_empty(dentry_t* dir)
  * @scanned_bytes: keeps the result value how many bytes were scanned in this block.
  * return: returns an error (if return < 0) or count of bytes written to @buf.
  */
-static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, void __user* buf, uint32_t len, uint32_t inner_offset, uint32_t* scanned_bytes)
+static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, void __user* buf, uint32_t len, uint32_t inner_offset, off_t* scanned_bytes)
 {
     if (block_index == 0) {
         return -EINVAL;
@@ -1101,7 +1101,7 @@ int ext2_getdirent(dentry_t* dir, off_t* offset, dirent_t* res)
     return 0;
 }
 
-int ext2_getdents(dentry_t* dentry, void __user* buf, uint32_t* offset, uint32_t len)
+int ext2_getdents(dentry_t* dentry, void __user* buf, off_t* offset, size_t len)
 {
     spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);

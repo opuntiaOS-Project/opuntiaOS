@@ -140,10 +140,11 @@ mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info)
     if (((esr_iss >> 6) & 0x1) == 0x1) {
         res |= MMU_PF_INFO_ON_WRITE;
     }
-    if ((info & 0b111100) == 0b000100) {
+    if ((esr_iss & 0b111100) == 0b000100) {
         res |= MMU_PF_INFO_ON_NOT_PRESENT;
     }
-    if ((info & 0b111000) == 0b001000) {
+    // 0x92000042
+    if ((esr_iss & 0b111000) == 0b001000) {
         res |= MMU_PF_INFO_SECURITY_VIOLATION;
     }
     return res;

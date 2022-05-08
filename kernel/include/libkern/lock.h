@@ -36,9 +36,8 @@ static ALWAYS_INLINE void spinlock_acquire(spinlock_t* lock)
         extern bool system_can_preempt_kernel();
         if (system_can_preempt_kernel()) {
             if (!(--counter)) {
-                // TODO: enable
-                // extern void resched();
-                // resched();
+                extern void resched();
+                resched();
             }
         }
     }

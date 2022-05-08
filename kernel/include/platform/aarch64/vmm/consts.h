@@ -39,6 +39,10 @@ static inline int vm_page_mask()
 #define VMM_USER_TABLES_START 0
 #define VMM_KERNEL_TABLES_START VMM_LV0_ENTITY_COUNT
 
+#define USER_HIGH 0x1fffffffff
+#define KERNEL_BASE 0xffffff8000000000
+#define KERNEL_PADDR_BASE 0xffffffff00000000 // up to 4gbs are supported.
+
 // For Apl
 // static inline int get_page_size()
 // {

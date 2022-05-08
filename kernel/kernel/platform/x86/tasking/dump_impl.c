@@ -31,7 +31,7 @@ void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_
     char buf[64];
 
     do {
-        if (vmm_is_kernel_address(ip) && !is_kernel) {
+        if (IS_KERNEL_VADDR(ip) && !is_kernel) {
             return;
         }
 
@@ -41,7 +41,7 @@ void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_
         dump_data->writer(&dump_data->strs[index]);
         dump_data->writer("\n");
 
-        if (vmm_is_kernel_address((uintptr_t)bp) != is_kernel) {
+        if (IS_KERNEL_VADDR((uintptr_t)bp) != is_kernel) {
             return;
         }
 

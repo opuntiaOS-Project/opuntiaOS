@@ -44,6 +44,13 @@ elif (arch == "x86"):
     elif host == "llvm":
         OBJCOPY_TOOL = "{0}llvm-objcopy".format(path_to_bins)
         OBJCOPY_TARGET = "elf32-i386"
+elif (arch == "aarch64"):
+    if host == "gnu":
+        OBJCOPY_TOOL = "{0}aarch64-elf-objcopy".format(path_to_bins)
+        OBJCOPY_TARGET = "elf64-littleaarch64"
+    elif host == "llvm":
+        OBJCOPY_TOOL = "{0}llvm-objcopy".format(path_to_bins)
+        OBJCOPY_TARGET = "elf64-littleaarch64"
 else:
     print("Unsupported arch {0}".format(arch))
     exit(1)

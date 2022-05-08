@@ -40,16 +40,17 @@ int prepare_fs(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 
 static int validate_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 {
-    log("Validating Kernel...");
-    if (!validate_elf(KERNEL_PATH, drive_desc, fs_desc)) {
-        log("Can't validate kernel");
-        while (1) { }
-    }
+    // TODO(aarch64): Turn on validation back.
+    // log("Validating Kernel...");
+    // if (!validate_elf(KERNEL_PATH, drive_desc, fs_desc)) {
+    //     log("Can't validate kernel");
+    //     while (1) { }
+    // }
 
-    if (!validate_elf(LAUNCH_SERVER_PATH, drive_desc, fs_desc)) {
-        log("Can't validate launch_server");
-        while (1) { }
-    }
+    // if (!validate_elf(LAUNCH_SERVER_PATH, drive_desc, fs_desc)) {
+    //     log("Can't validate launch_server");
+    //     while (1) { }
+    // }
 
     return 0;
 }

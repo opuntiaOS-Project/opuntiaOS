@@ -66,14 +66,14 @@ group("userland") {
     deps += [ "//userland/servers/launch_server:launch_server" ]
   }
 
-  # if (compile_tests) {
-  #   deps += [
-  #     "//userland/tests/testlibcxx:testlibcxx",
-  #     "//userland/tests/utester:utester",
-  #   ]
+  if (compile_tests) {
+    deps += [
+      "//userland/tests/testlibcxx:testlibcxx",
+      "//userland/tests/utester:utester",
+    ]
 
-  #   if (objc_support) {
-  #     deps += [ "//userland/tests/testobjc:testobjc" ]
-  #   }
-  # }
+    # if (objc_support) {
+    #   deps += [ "//userland/tests/testobjc:testobjc" ]
+    # }
+  }
 }

@@ -75,7 +75,7 @@ void stage3(boot_args_t* boot_args)
     system_disable_interrupts();
     devtree_init(boot_args);
     logger_setup(boot_args);
-    log("Starting opuntiaOS, el %d, sp %zx", current_el(), current_sp());
+    // log("Starting opuntiaOS, el %d, sp %zx", current_el(), current_sp());
 
     platform_init_boot_cpu();
 
@@ -116,17 +116,17 @@ void stage3(boot_args_t* boot_args)
     system_stop();
 }
 
-// void boot_secondary_cpu()
-// {
-//     system_disable_interrupts();
+void boot_secondary_cpu()
+{
+    system_disable_interrupts();
 
-//     wait_for_boot_cpu_to_finish(&__boot_cpu_setup_devices);
-//     vmm_setup_secondary_cpu();
-//     platform_setup_secondary_cpu();
+    wait_for_boot_cpu_to_finish(&__boot_cpu_setup_devices);
+    vmm_setup_secondary_cpu();
+    platform_setup_secondary_cpu();
 
-//     wait_for_boot_cpu_to_finish(&__boot_cpu_setup_tasking);
-//     schedule_activate_cpu();
-//     resched();
+    wait_for_boot_cpu_to_finish(&__boot_cpu_setup_tasking);
+    schedule_activate_cpu();
+    resched();
 
-//     system_stop();
-// }
+    system_stop();
+}

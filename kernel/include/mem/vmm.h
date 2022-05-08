@@ -19,15 +19,8 @@
 #include <platform/generic/vmm/consts.h>
 #include <platform/generic/vmm/mmu.h>
 
-// TODO(aarch64): remove KERNEL_BASE
-#define USER_HIGH 0x1fffffffff
-#define KERNEL_BASE 0xffffff8000000000
-#define KERNEL_PADDR_BASE 0xffffffff00000000 // up to 4gbs are supported.
-
-#define vmm_is_kernel_address(add) (add >= KERNEL_BASE)
-
 #define IS_KERNEL_VADDR(vaddr) (vaddr >= KERNEL_BASE)
-#define IS_USER_VADDR(vaddr) (vaddr < KERNEL_BASE)
+#define IS_USER_VADDR(vaddr) (vaddr <= USER_HIGH)
 
 struct memzone;
 struct vm_ops {

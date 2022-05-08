@@ -17,7 +17,7 @@ static volatile pl181_registers_t* registers;
 
 static inline int _pl181_map_itself(devtree_entry_t* dev)
 {
-    registers = (pl181_registers_t*)dev->region_base;
+    registers = (pl181_registers_t*)(uint32_t)dev->region_base;
     return 0;
 }
 

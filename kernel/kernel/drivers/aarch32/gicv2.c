@@ -13,6 +13,9 @@
 #include <platform/aarch32/interrupts.h>
 #include <platform/aarch32/registers.h>
 
+// TODO(aarch32): Remove this and parse devtree.
+#include <platform/aarch32/target/cortex-a15/device_settings.h>
+
 // #define DEBUG_GICv2
 #define IS_SGI(id) ((id) < 16)
 #define IS_PPI(id) ((id) < 32 && (id) >= 16)

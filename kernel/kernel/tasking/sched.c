@@ -279,7 +279,7 @@ void sched_dequeue(thread_t* thread)
 static void switch_to_thread(thread_t* thread)
 {
     if (thread->pending_signals_mask) {
-        // signal_dispatch_pending(thread);
+        signal_dispatch_pending(thread);
         if (thread->status != THREAD_STATUS_RUNNING) {
             // Signals could terminate/block/stop the thread, so check if it's still runnable.
             return;

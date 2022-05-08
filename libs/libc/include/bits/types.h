@@ -23,8 +23,10 @@ typedef __uint32_t __fsid_t; /* Type of file system IDs.  */
 typedef __uint32_t __time_t; /* Seconds since the Epoch.  */
 
 #if defined(__x86_64__) || defined(__aarch64__)
+#define BITS64
 typedef __int64_t __off_t; /* Type of file sizes and offsets.  */
 #else
+#define BITS32
 typedef __int32_t __off_t; /* Type of file sizes and offsets.  */
 #endif
 

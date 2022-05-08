@@ -17,7 +17,7 @@ void uart_init()
     if (!dev) {
         while (1) { };
     }
-    output = (uint32_t*)dev->region_base;
+    output = (uint32_t*)(uint32_t)dev->region_base;
 }
 
 int uart_write(uint8_t data)

@@ -98,7 +98,7 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
     if (!thread->process->is_kthread) {
         return -EPERM;
     }
-    if (!vmm_is_kernel_address((uintptr_t)data) && data) {
+    if (!IS_KERNEL_VADDR((uintptr_t)data) && data) {
         return -EFAULT;
     }
 
