@@ -16,7 +16,7 @@
 #define FPU_STATE_ALIGNMENT (32)
 
 typedef struct {
-    uint64_t d[32];
+    uint64_t halfv[64];
 } __attribute__((aligned(FPU_STATE_ALIGNMENT))) fpu_state_t;
 
 void fpu_install();

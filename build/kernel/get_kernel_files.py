@@ -120,6 +120,10 @@ if sys.argv[2] == "aarch64":
     print("//kernel/kernel/drivers/aarch64/fpu_helper.S")
 
     print("//kernel/kernel/drivers/arm/aplfb.c")
+    print("//kernel/kernel/mem/kswapd.c")
+    print("//kernel/kernel/tasking/dump.c")
+    print("//kernel/kernel/platform/aarch64/tasking/dump_impl.c")
+    print("//kernel/kernel/mem/swapfile.c")
 else:
     for path, subdirs, files in os.walk("../kernel/kernel"):
         for name in files:

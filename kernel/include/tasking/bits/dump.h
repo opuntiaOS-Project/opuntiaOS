@@ -13,7 +13,7 @@
 #include <tasking/proc.h>
 
 typedef int (*dump_saver_t)(const char*);
-typedef ssize_t (*sym_resolver_t)(void* symtab, size_t syms_n, uint32_t tp);
+typedef ssize_t (*sym_resolver_t)(void* symtab, size_t syms_n, uintptr_t tp);
 
 struct dump_data {
     proc_t* p;

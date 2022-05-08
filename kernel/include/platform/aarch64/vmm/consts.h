@@ -36,6 +36,9 @@ static inline int vm_page_mask()
 #define PTABLE_LV2_VADDR_OFFSET (30)
 #define PTABLE_LV3_VADDR_OFFSET (39)
 
+#define VMM_USER_TABLES_START 0
+#define VMM_KERNEL_TABLES_START VMM_LV0_ENTITY_COUNT
+
 // For Apl
 // static inline int get_page_size()
 // {

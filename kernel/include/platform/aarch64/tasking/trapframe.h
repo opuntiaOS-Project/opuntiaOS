@@ -95,16 +95,16 @@ static inline void tf_setup_as_kernel_thread(trapframe_t* tf)
 
 static void dump_tf(trapframe_t* tf)
 {
-    // for (int i = 0; i < 31; i++) {
-    //     log("x[%d]: %zx", i, tf->x[i]);
-    // }
+    for (int i = 0; i < 31; i++) {
+        log("x[%d]: %zx", i, tf->x[i]);
+    }
 
-    // log("tf: %p", tf);
-    // log("sp: %zx", tf->sp);
-    // log("ip: %zx", tf->elr);
-    // log("fl: %zx", tf->spsr);
-    // log("far: %zx", tf->far);
-    // log("esr: %zx", tf->esr);
+    log("tf: %p", tf);
+    log("sp: %zx", tf->sp);
+    log("ip: %zx", tf->elr);
+    log("fl: %zx", tf->spsr);
+    log("far: %zx", tf->far);
+    log("esr: %zx", tf->esr);
 }
 
 #endif // _KERNEL_PLATFORM_AARCH64_TASKING_TRAPFRAME_H

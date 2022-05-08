@@ -226,10 +226,8 @@ void vm_ptable_entity_set_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu
     mmu_flags_t old_mmu_flags = vm_arch_to_mmu_flags(entity, lv);
     old_mmu_flags |= mmu_flags;
     ptable_entity_t arch_flags = vm_mmu_to_arch_flags(old_mmu_flags, lv);
-    // log("prev arch entity is %x", *entity);
     clear_arch_flags(entity, lv);
     *entity |= arch_flags;
-    // log("   new arch entity is %x", *entity);
 }
 
 void vm_ptable_entity_rm_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu_flags_t mmu_flags)

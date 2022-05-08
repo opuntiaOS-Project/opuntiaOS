@@ -17,8 +17,6 @@
 
 // #define ELF_DEBUG
 
-#define USER_STACK_SIZE VMM_PAGE_SIZE
-
 static int _elf_load_page_content(memzone_t* zone, uintptr_t vaddr);
 static int _elf_swap_page_mode(memzone_t* zone, uintptr_t vaddr);
 
@@ -145,11 +143,11 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
 
 static int _elf_load_alloc_stack(proc_t* p)
 {
-    memzone_t* stack_zone = memzone_new_random_backward(p->address_space, 4 * USER_STACK_SIZE);
+    memzone_t* stack_zone = memzone_new_random_backward(p->address_space, USER_STACK_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->mmu_flags = MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
-    set_base_pointer(p->main_thread->tf, stack_zone->vaddr + 4 * USER_STACK_SIZE);
-    set_stack_pointer(p->main_thread->tf, stack_zone->vaddr + 4 * USER_STACK_SIZE);
+    set_base_pointer(p->main_thread->tf, stack_zone->vaddr + USER_STACK_SIZE);
+    set_stack_pointer(p->main_thread->tf, stack_zone->vaddr + USER_STACK_SIZE);
     return 0;
 }
 
@@ -179,7 +177,6 @@ int elf_check_header(elf_header_t* header)
 {
     static const char elf_signature[] = { 0x7F, 0x45, 0x4c, 0x46 };
     if (memcmp(header->e_ident, elf_signature, sizeof(elf_signature)) != 0) {
-        log("exit");
         return -ENOEXEC;
     }
 
@@ -230,7 +227,7 @@ int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_e
     for (int i = 0; i < sh_num; i++) {
         if (headers_array[i].sh_type == SHT_SYMTAB) {
             *symtab = (void*)(mapped_data + headers_array[i].sh_offset);
-            *symtab_entries = headers_array[i].sh_size / sizeof(elf_sym_32_t);
+            *symtab_entries = headers_array[i].sh_size / sizeof(elf_sym_t);
         }
 
         if (headers_array[i].sh_type == SHT_STRTAB && header->e_shstrndx != i) {
@@ -243,7 +240,7 @@ int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_e
 
 ssize_t elf_find_function_in_symtab(void* symtab_p, size_t syms_n, uintptr_t ip)
 {
-    elf_sym_32_t* symtab = (elf_sym_32_t*)(symtab_p);
+    elf_sym_t* symtab = (elf_sym_t*)(symtab_p);
     uint32_t prev = 0;
     ssize_t ans = -1;
 

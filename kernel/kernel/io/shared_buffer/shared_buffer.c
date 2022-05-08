@@ -16,7 +16,7 @@
 #include <mem/vmm.h>
 #include <tasking/tasking.h>
 
-#define SHARED_BUFFER_DEBUG
+// #define SHARED_BUFFER_DEBUG
 
 #define SHBUF_SPACE_SIZE (128 * MB)
 #define SHBUF_BLOCK_SIZE (4 * KB)

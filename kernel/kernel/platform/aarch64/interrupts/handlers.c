@@ -15,6 +15,7 @@
 #include <platform/aarch64/system.h>
 #include <platform/aarch64/tasking/trapframe.h>
 #include <syscalls/handlers.h>
+#include <tasking/dump.h>
 #include <tasking/sched.h>
 
 #define ERR_BUF_SIZE 64
@@ -47,7 +48,7 @@ void interrupts_setup()
 void serror_handler(trapframe_t* tf)
 {
     log("serror_handler");
-    while (1) { }
+    system_stop();
 }
 
 void sync_handler(trapframe_t* tf)
@@ -63,7 +64,6 @@ void sync_handler(trapframe_t* tf)
 
     // Instruction or data faults
     if (esr_ec == 0b100101 || esr_ec == 0b100100 || esr_ec == 0b100000 || esr_ec == 0b100001) {
-        // log("fp ip: %zx = %zx : %zx", tf->elr, fault_addr, esr_ec);
         int err = vmm_page_fault_handler(esr, fault_addr);
         if (err) {
             if (trap_state == CPU_IN_KERNEL || !RUNNING_THREAD) {
@@ -71,7 +71,7 @@ void sync_handler(trapframe_t* tf)
                 kpanic_tf(err_buf, tf);
             } else {
                 log_warn("Crash: sync abort %zd at %zx: %d pid, %zx eip\n", esr, fault_addr, RUNNING_THREAD->tid, tf);
-                // dump_and_kill(RUNNING_THREAD->process);
+                dump_and_kill(RUNNING_THREAD->process);
             }
         }
     } else if (esr_ec == 0b000111) {
