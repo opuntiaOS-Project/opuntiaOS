@@ -17,3 +17,4 @@ third_party/*/bin_aarch32/
 third_party/*/patches/.applied_*
 __pycache__/
 libs/libfreetype/include/
+utils/.cached/*
