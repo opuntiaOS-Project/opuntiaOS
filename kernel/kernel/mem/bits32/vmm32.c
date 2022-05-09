@@ -157,7 +157,7 @@ static bool _vmm_create_kernel_ptables()
     kernel_ptables_start_paddr = ptables_paddr;
 
     uintptr_t ptable_paddr = ptables_paddr;
-    for (int i = VMM_KERNEL_TABLES_START; i < PTABLE_ENTITY_COUNT(ptable_entity_lv); i += ptables_per_page) {
+    for (int i = VMM_KERNEL_TABLES_START; i < PTABLE_ENTITY_COUNT(ptable_entity_lv); i++) {
         ptable_entity_t* ptable_entity = vm_get_entity(kernel_ptables_vaddr, ptable_entity_lv);
         vm_ptable_entity_set_default_flags(ptable_entity, ptable_entity_lv);
         vm_ptable_entity_set_mmu_flags(ptable_entity, ptable_entity_lv, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);

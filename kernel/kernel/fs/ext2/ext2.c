@@ -416,7 +416,8 @@ static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
 {
     block_index--;
     uint32_t block_len = BLOCK_LEN(fsdata.sb);
-    uint32_t group_index = block_index / block_len;
+    uint32_t blockes_per_group = fsdata.sb->blocks_per_group;
+    uint32_t group_index = block_index / blockes_per_group;
     uint32_t off = block_index % block_len;
 
     uint8_t block_bitmap[MAX_BLOCK_LEN];

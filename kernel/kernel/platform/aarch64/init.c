@@ -28,11 +28,8 @@ void platform_init_boot_cpu()
 
 void platform_setup_boot_cpu()
 {
-#ifdef TARGET_QEMU_VIRT
     gic_setup();
-#endif
     fpu_install();
-    aarch64_timer_init();
 }
 
 void platform_setup_secondary_cpu()

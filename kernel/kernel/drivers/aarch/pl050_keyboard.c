@@ -14,7 +14,7 @@
 #include <libkern/log.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
-#include <platform/aarch32/interrupts.h>
+#include <platform/generic/interrupts.h>
 
 // #define KEYBOARD_DRIVER_DEBUG
 #ifdef KEYBOARD_DRIVER_DEBUG

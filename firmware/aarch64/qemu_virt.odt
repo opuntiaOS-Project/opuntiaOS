@@ -52,6 +52,28 @@
                 "lane": "30",
                 "flags": "EDGE_TRIGGER"
             }
+        },
+        {
+            "name": "pl050k",
+            "type": "IO",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x0b030000"
+            },
+            "irq": {
+                "lane": "42"
+            }
+        },
+        {
+            "name": "pl050m",
+            "type": "IO",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x0b040000"
+            },
+            "irq": {
+                "lane": "43"
+            }
         }
     ]
 }

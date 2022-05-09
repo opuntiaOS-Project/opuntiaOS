@@ -36,6 +36,11 @@ static void init_irq_handlers()
     }
 }
 
+static inline void _irq_redirect(irq_line_t line)
+{
+    _irq_handlers[line]();
+}
+
 void interrupts_setup()
 {
     system_disable_interrupts();
@@ -126,18 +131,19 @@ void irq_handler(trapframe_t* tf)
 {
     system_disable_interrupts();
     cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
-    aarch64_timer_rearm();
-    gic_descriptor.end_interrupt(30);
-    cpu_tick();
-    timeman_timer_tick();
-    sched_tick();
+    uint32_t int_disc = gic_descriptor.interrupt_descriptor();
+    // We end the interrupt before handling it since we can
+    // call sched() and not return here.
+    gic_descriptor.end_interrupt(int_disc);
+    _irq_redirect(int_disc & 0x1ff);
     cpu_set_state(prev_cpu_state);
     system_enable_interrupts_only_counter();
 }
 
 void fast_irq_handler(trapframe_t* tf)
 {
-    // Apl target got it here
+    // Apl target is setup to recieve timers as FIQ.
+    // Reimplement this when a proper AIC driver is avail.
     system_disable_interrupts();
     cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
     aarch64_timer_rearm();
@@ -150,7 +156,10 @@ void fast_irq_handler(trapframe_t* tf)
 
 void gic_setup()
 {
+#ifdef TARGET_QEMU_VIRT
     gicv2_install();
+#endif
+    // TODO(Apl): add AIC driver.
 }
 
 void gic_setup_secondary_cpu()

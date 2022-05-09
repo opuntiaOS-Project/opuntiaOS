@@ -72,8 +72,8 @@ group("userland") {
       "//userland/tests/utester:utester",
     ]
 
-    # if (objc_support) {
-    #   deps += [ "//userland/tests/testobjc:testobjc" ]
-    # }
+    if (objc_support) {
+      deps += [ "//userland/tests/testobjc:testobjc" ]
+    }
   }
 }

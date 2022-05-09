@@ -83,7 +83,6 @@ void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_flags_t flags, in
     }
 
     /* Enabling */
-    distributor_registers->icpendr[id_1bit_offset] |= (1 << id_1bit_bitpos);
     distributor_registers->isenabler[id_1bit_offset] |= (1 << id_1bit_bitpos);
 }
 
