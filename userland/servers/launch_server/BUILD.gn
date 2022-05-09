@@ -1,7 +1,7 @@
 import("//build/userland/TEMPLATE.gni")
 
 opuntiaOS_executable("launch_server") {
-  # signexec = true
+  signexec = true
   install_path = "System/"
   sources = [
     "LaunchWatchdog.cpp",

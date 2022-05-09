@@ -13,9 +13,9 @@ template("opuntiaOS_executable") {
   assert(defined(invoker.install_path), "Install path must be provided")
 
   signexec = false
-  # if (defined(invoker.signexec)) {
-  #   signexec = invoker.signexec
-  # }
+  if (defined(invoker.signexec)) {
+    signexec = invoker.signexec
+  }
 
   if (signexec) {
     opuntiaOS_signexec(app_name) {
@@ -73,7 +73,7 @@ template("opuntiaOS_application") {
 
   opuntiaOS_executable_template(app_name) {
     install_path = "$exec_file"
-    need_sign_section = false
+    need_sign_section = true
     forward_variables_from(invoker,
                            [
                              "sources",
@@ -93,7 +93,7 @@ template("opuntiaOS_application") {
     deps = [
       ":$app_name" + "_build",
       ":prepare_$app_name",
-      # ":sign_" + "$app_name",
+      ":sign_" + "$app_name",
     ]
   }
 }

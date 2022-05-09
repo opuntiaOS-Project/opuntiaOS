@@ -168,13 +168,19 @@ executable("kernel_build") {
   ldflags = [
     # See comment at EXEC_TEMPLATE.gni about elfsign_section.o.
     # It is required to sign a binary.
+    rebase_path("$root_out_dir/tmp/elfsign_section.o", ""),
     "-T$linker_script",
   ]
+}
+
+opuntiaOS_signexec("kernel") {
+  binpath = "boot/kernel.bin"
 }
 
 group("kernel") {
   deps = [
     ":kernel_build",
+    ":sign_kernel",
     "//build/boot:boot",
   ]
 }

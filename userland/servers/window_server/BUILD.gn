@@ -1,7 +1,7 @@
 import("//build/userland/TEMPLATE.gni")
 
 opuntiaOS_executable("window_server") {
-  # signexec = true
+  signexec = true
   install_path = "System/"
   sources = [
     "src/Components/Base/BaseWindow.cpp",
