@@ -13,6 +13,7 @@ action("build_scripts") {
 
   args = [
     target_cpu,
+    target_board,
     rebase_path("//", root_build_dir),
     rebase_path("$root_build_dir", root_build_dir),
   ]
