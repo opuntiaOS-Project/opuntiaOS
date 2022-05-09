@@ -33,6 +33,7 @@ static boot_args_t __attribute__((section(".prekernel_data"))) qemu_boot_args = 
     .memory_map = &qemu_virt_memmap,
     .memory_map_size = 1,
     .devtree = _devtree_raw,
+    .init_process = "/System/launch_server",
     .fb_boot_desc.vaddr = 0,
 };
 

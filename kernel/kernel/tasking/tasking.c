@@ -141,7 +141,7 @@ void tasking_start_init_proc()
     proc_t* p = _tasking_setup_proc_with_uid(0, 0);
     proc_setup_vconsole(p, vconsole_new());
 
-    int err = _tasking_do_exec(p, p->main_thread, "/System/launch_server", 0, NULL, 0, NULL);
+    int err = _tasking_do_exec(p, p->main_thread, boot_args()->init_process, 0, NULL, 0, NULL);
     if (err) {
         kpanic("Failed to load init proc");
     }

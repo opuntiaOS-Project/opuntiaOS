@@ -4,6 +4,7 @@
 
 group("build") {
   deps = [
+    ":env",
     "//build/kernel:kernel",
     "//build/libs:libs",
     "//build/userland:userland",
@@ -17,6 +18,7 @@ group("build") {
 group("env") {
   deps = [
     ":scripts",
+    "//build/tools:prepare_env",
   ]
 }
 
