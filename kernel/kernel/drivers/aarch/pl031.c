@@ -44,6 +44,11 @@ static inline int _pl031_map_itself()
 
 void pl031_install()
 {
+    devtree_entry_t* device = devtree_find_device("pl031");
+    if (!device) {
+        return;
+    }
+
     if (_pl031_map_itself()) {
 #ifdef DEBUG_PL031
         log_error("PL031: Can't map itself!");

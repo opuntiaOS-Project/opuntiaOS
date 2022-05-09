@@ -7,7 +7,7 @@ import glob
 import sys
 # sys.argv[2] Target to generate for
 
-platforms = ['x86', 'aarch32', 'aarch64']
+platforms = ['x86', 'aarch', 'aarch32', 'aarch64']
 bits = ['bits32', 'bits64']
 
 platform_to_bits = {
@@ -20,7 +20,7 @@ ignore_platforms = []
 ignore_bits = []
 
 for platform in platforms:
-    if sys.argv[2] != platform:
+    if sys.argv[2][:len(platform)] != platform:
         ignore_platforms.append(platform)
 
 for bit in bits:

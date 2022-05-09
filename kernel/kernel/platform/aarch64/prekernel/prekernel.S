@@ -1,8 +1,8 @@
 .extern stage3
-#ifdef TARGET_QEMU_VIRT
-.extern prekernel_qemu_virt_boot
 .extern prekernel_vm_setup
 .extern prekernel_move_args
+#ifdef TARGET_QEMU_VIRT
+.extern prekernel_qemu_virt_boot
 #endif
 
 .section ".prekernel_entry"

@@ -18,7 +18,7 @@
 #include <libkern/log.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
-#include <platform/aarch32/interrupts.h>
+#include <platform/generic/interrupts.h>
 #include <tasking/tasking.h>
 
 // #define MOUSE_DRIVER_DEBUG
@@ -108,7 +108,7 @@ static inline void _mouse_send_cmd(uint8_t cmd)
 #define KMIIR_RXINTR (1 << 0)
 #define RXFULL (1 << 4)
 
-static inline int16_t int8_to_int16_t_safe_convert(int8_t x)
+static inline int16_t int8_to_int16_t_safe_convert(uint8_t x)
 {
     return x < 128 ? x : x - 256;
 }
