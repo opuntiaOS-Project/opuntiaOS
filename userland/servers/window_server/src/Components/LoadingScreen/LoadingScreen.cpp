@@ -7,6 +7,7 @@
  */
 
 #include "LoadingScreen.h"
+#include <libfoundation/Memory.h>
 #include <libg/Context.h>
 #include <libg/ImageLoaders/PNGLoader.h>
 
@@ -30,11 +31,16 @@ LoadingScreen::LoadingScreen()
 
     LG::Context ctx(m_screen.display_bitmap());
     ctx.draw({ content_min_x, content_min_y }, m_logo);
+
+    size_t copy_size = m_screen.width() * m_screen.height();
+    LFoundation::fast_copy((uint32_t*)m_screen.write_bitmap().data(), (uint32_t*)m_screen.display_bitmap().data(), copy_size);
+
+    m_screen.swap_buffers();
 }
 
 void LoadingScreen::display_status_bar(int progress, int out_of)
 {
-    LG::Context ctx(m_screen.display_bitmap());
+    LG::Context ctx(m_screen.write_bitmap());
     int widthp = (progress * progress_line_width()) / out_of;
 
     ctx.set_fill_color(LG::Color(20, 20, 20));
@@ -42,6 +48,8 @@ void LoadingScreen::display_status_bar(int progress, int out_of)
 
     ctx.set_fill_color(LG::Color::White);
     ctx.fill_rounded(LG::Rect(m_progress_line_min_x, m_progress_line_min_y, widthp, progress_line_height()), LG::CornerMask(4));
+
+    m_screen.swap_buffers();
 }
 
 } // namespace WinServer
