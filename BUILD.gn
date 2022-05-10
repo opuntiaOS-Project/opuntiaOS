@@ -7,6 +7,7 @@ group("build") {
     ":env",
     "//build/kernel:kernel",
     "//build/libs:libs",
+    "//build/third_party:third_party",
     "//build/userland:userland",
   ]
 
