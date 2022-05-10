@@ -42,19 +42,20 @@ static inline int _pl031_map_itself()
     return 0;
 }
 
-void pl031_install()
+int pl031_init(device_t* dev)
 {
-    devtree_entry_t* device = devtree_find_device("pl031");
-    if (!device) {
-        return;
+    if (dev->device_desc.type != DEVICE_DESC_DEVTREE) {
+        return -1;
     }
 
     if (_pl031_map_itself()) {
 #ifdef DEBUG_PL031
         log_error("PL031: Can't map itself!");
 #endif
-        return;
+        return -1;
     }
+
+    return 0;
 }
 
 uint32_t pl031_read_rtc()
@@ -62,4 +63,17 @@ uint32_t pl031_read_rtc()
     return registers->data;
 }
 
+static driver_desc_t _pl031_driver_info()
+{
+    driver_desc_t pl031_desc = { 0 };
+    pl031_desc.type = DRIVER_RTC;
+    pl031_desc.system_funcs.init_with_dev = pl031_init;
+    pl031_desc.functions[DRIVER_RTC_GET_TIME] = pl031_read_rtc;
+    return pl031_desc;
+}
+
+void pl031_install()
+{
+    devman_register_driver(_pl031_driver_info(), "pl031");
+}
 devman_register_driver_installation(pl031_install);

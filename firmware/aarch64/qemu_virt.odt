@@ -14,7 +14,7 @@
         },
         {
             "name": "pl031",
-            "type": "IO",
+            "type": "RTC",
             "flags": "MMIO",
             "mem": {
                 "base": "0x09010000"

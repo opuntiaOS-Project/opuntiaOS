@@ -32,6 +32,7 @@ typedef struct devtree_header devtree_header_t;
 #define DEVTREE_ENTRY_TYPE_RAM (3)
 #define DEVTREE_ENTRY_TYPE_STORAGE (4)
 #define DEVTREE_ENTRY_TYPE_BUS_CONTROLLER (5)
+#define DEVTREE_ENTRY_TYPE_RTC (6)
 
 struct PACKED devtree_entry {
     uint32_t type;

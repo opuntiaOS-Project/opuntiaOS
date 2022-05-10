@@ -50,6 +50,23 @@ static size_t next_driver_id()
     return res;
 }
 
+static int notify_driver_about_devices(driver_t* new_driver)
+{
+    for (int i = 0; i < devices_count(); i++) {
+        device_t* dev = &devices[i];
+        if (dev->driver_id == DRIVER_ID_EMPTY) {
+            continue;
+        }
+
+        if (TEST_FLAG(new_driver->desc.listened_device_mask, dev->type)) {
+            if (new_driver->desc.system_funcs.recieve_notification) {
+                new_driver->desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DEVICE, (uintptr_t)dev);
+            }
+        }
+    }
+    return 0;
+}
+
 static int notify_drivers_about_device(device_t* new_device)
 {
     for (int i = 0; i < drivers_count(); i++) {
@@ -76,8 +93,8 @@ static int notify_drivers_about_driver(driver_t* new_driver)
 
         // Letting the new driver know about the already created ones.
         if (TEST_FLAG(new_driver->desc.listened_driver_mask, drivers[i].desc.type)) {
-            if (drivers[i].desc.system_funcs.recieve_notification) {
-                drivers[i].desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uintptr_t)&drivers[i]);
+            if (new_driver->desc.system_funcs.recieve_notification) {
+                new_driver->desc.system_funcs.recieve_notification(DEVMAN_NOTIFICATION_NEW_DRIVER, (uintptr_t)&drivers[i]);
             }
         }
     }
@@ -159,6 +176,7 @@ int devman_register_driver(driver_desc_t driver_info, const char* name)
 
     push_devices_to_driver(&drivers[driver_id]);
     notify_drivers_about_driver(&drivers[driver_id]);
+    notify_driver_about_devices(&drivers[driver_id]);
     return 0;
 }
 

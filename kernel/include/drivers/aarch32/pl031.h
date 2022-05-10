@@ -24,7 +24,6 @@ struct pl031_registers {
 };
 typedef struct pl031_registers pl031_registers_t;
 
-void pl031_install();
 uint32_t pl031_read_rtc();
 
 #endif // _KERNEL_DRIVERS_AARCH32_PL031_H

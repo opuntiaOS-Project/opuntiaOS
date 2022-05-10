@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/generic/rtc.h>
+#include <drivers/driver_manager.h>
 #include <drivers/generic/timer.h>
 #include <libkern/log.h>
 #include <time/time_manager.h>
@@ -17,6 +17,7 @@ time_t ticks_since_boot = 0;
 time_t ticks_since_second = 0;
 static time_t time_since_boot = 0;
 static time_t time_since_epoch = 0;
+static uint32_t (*get_rtc)() = NULL;
 
 static uint32_t pref_sum_of_days_in_mounts[] = {
     0,
@@ -74,13 +75,9 @@ int timeman_setup()
     uint8_t secs = 0, mins = 0, hrs = 0, day = 0, month = 0;
     uint32_t year = 1970;
 
-    // FIXME: Rewrite as a proper driver
-#ifdef __i386__
-    rtc_load_time(&secs, &mins, &hrs, &day, &month, &year);
-    time_since_epoch = timeman_to_seconds_since_epoch(secs, mins, hrs, day, month, year);
-#elif __arm__
-    time_since_epoch = pl031_read_rtc();
-#endif
+    if (get_rtc) {
+        time_since_epoch = get_rtc();
+    }
 
 #ifdef TIME_MANAGER_DEBUG
     log("Loaded date: %d", time_since_epoch);
@@ -118,3 +115,30 @@ time_t timeman_get_ticks_from_last_second()
 {
     return atomic_load(&ticks_since_second);
 }
+
+static void timeman_recieve_notification(uintptr_t msg, uintptr_t param)
+{
+    switch (msg) {
+    case DEVMAN_NOTIFICATION_NEW_DEVICE:
+        get_rtc = devman_function_handler((device_t*)param, DRIVER_RTC_GET_TIME);
+        return;
+    default:
+        break;
+    }
+}
+
+driver_desc_t _timeman_driver_info()
+{
+    driver_desc_t timeman_desc = { 0 };
+    timeman_desc.type = DRIVER_TIME_MANAGER;
+    timeman_desc.listened_device_mask = DEVICE_RTC;
+
+    timeman_desc.system_funcs.recieve_notification = timeman_recieve_notification;
+    return timeman_desc;
+}
+
+void timeman_install()
+{
+    devman_register_driver(_timeman_driver_info(), "timeman");
+}
+devman_register_driver_installation(timeman_install);
