@@ -4,7 +4,13 @@
 
 ## Prerequisites
 
-The project uses GN Build System, please ensure that you have `gn` binary. If your system doesn't have the build system, please visit [instructions how to get a binary](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_gn.md)
+The project uses GN Build System, please ensure that you have `gn` binary. If your system doesn't have the build system, please visit [instructions how to get a GN binary](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_gn.md)
+
+### Getting QEMU
+
+The project uses QEMU as a primary build and test target. Please follow [instructions how to get a QEMU binary](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_qemu.md).
+
+*Note:* even if you have a `qemu-system-aarch64` installed and you are going to build for *Aarch64*, please follow the link to compile a custom version QEMU as it is required for this target.
 
 ### Tools for MacOS
 
@@ -30,6 +36,7 @@ brew install coreutils qemu e2fsprogs nasm m4 autoconf libtool automake bash gcc
 apt install build-essential curl libmpfr-dev libmpc-dev libgmp-dev e2fsprogs qemu-system-i386 qemu-utils nasm fuseext2 ninja
 ```
 
+
 </br>
 
 ## Cross-compiler
@@ -51,6 +58,12 @@ brew install i686-elf-gcc
 ```bash
 brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
 brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
+```
+
+***Aarch64***
+
+```bash
+brew install aarch64-elf-gcc
 ```
 
 </br>
@@ -112,6 +125,7 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
   * Possible values:
     * x86 *(default)*
     * aarch32 / arm
+    * aarch64
 * --host *value*
   * Sets toolchain to build the OS
   * Possible values:
@@ -127,6 +141,8 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
     * none *(default)*
     * tests
     * bench
+* --target_board *value*
+  * See "Available targets" table below.
 * --help
   * Prints all options of ./gn_gen.sh
 
@@ -142,6 +158,8 @@ Another option how to configure the project is environment variables.
   * Provide path to *qemu-system-i386* executable
 * `ONEOS_QEMU_ARM`
   * Provide path to *qemu-system-arm* executable
+* `ONEOS_QEMU_AA64`
+  * Provide path to *qemu-system-aarch64* executable
 * `LLVM_BIN_PATH`  *(Only with --host llvm)*
   * ***Must be set before `./gn_gen.sh`***
   * Provide path to LLVM bins.
@@ -154,7 +172,7 @@ Move to `out/` directory where the OS will be built. There are several scripts:
 
 * `build.sh` - builds OS
 * `sync.sh` - synchronise files with the disk image
-* `run.sh` - launches QEMU
+* `run.sh` - launches QEMU or a real device
 
 The right sequence to run the OS is to build, sync, launch or use `all.sh` which combine these 3 scripts.
 
@@ -162,7 +180,23 @@ The right sequence to run the OS is to build, sync, launch or use `all.sh` which
 
 There are several scripts which might help you to debug the OS:
 
-* `debug.sh` - launches QEMU in debug mode. Debug analog of `run.sh`
+* `debug.sh` - launches QEMU in debug mode. Debug analog of `run.sh` (available only when run.sh uses QEMU)
 * `dll.sh` - Debug analog of `all.sh`.
 
 Also you can run `gdb` or `lldb` from the `out/` directory, which will automitically load kernel symobols and connect to QEMU in debug mode.
+
+### Available boards
+
+***x86***
+
+* `x86` - regular x86. (default)
+
+***Aarch32***
+
+* `vexpress-a15` - QEMU's vexpress-a15 target. (default)
+
+
+***Aarch64***
+
+* `qemu_opun` - QEMU's opuntia target, see [Getting QEMU page](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_qemu.md). (default)
+* `apl` - i-device, see [Target Apl page](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/target_apl.md).
