@@ -318,7 +318,7 @@ vm_address_space_t* vmm_alloc_new_address_space_locked()
 {
     vm_address_space_t* new_address_space = vm_address_space_alloc();
 
-    // TODO(aarch64): Check for mem.
+    // TODO(aarch64): Add sleep here.
     ptable_t* new_pdir = vm_alloc_ptable_lv_top();
     new_address_space->pdir = new_pdir;
     return new_address_space;

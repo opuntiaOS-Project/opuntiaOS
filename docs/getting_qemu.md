@@ -12,7 +12,6 @@ QEMU is an emulator used for running and debugging opuntiaOS. While *x86* and *a
 brew install qemu
 ```
 
-
 ### Tools for Linux (Ubuntu)
 
 ```bash

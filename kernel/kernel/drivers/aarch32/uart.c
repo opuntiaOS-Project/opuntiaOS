@@ -47,13 +47,13 @@ void uart_remap()
 }
 devman_register_driver_installation_order(uart_remap, 10);
 
-int uart_write(int port, uint8_t data)
+int uart_write(uint8_t data)
 {
     *output = data;
     return 0;
 }
 
-int uart_read(int port, uint8_t* data)
+int uart_read(uint8_t* data)
 {
     return 0;
 }

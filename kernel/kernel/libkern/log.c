@@ -24,7 +24,7 @@ static spinlock_t _log_lock;
 
 static int putch_callback_stream(char c, char* buf_base, size_t* written, void* callback_params)
 {
-    return (uart_write(COM1, c) && screen_put_char(c));
+    return (uart_write(c) && screen_put_char(c));
 }
 
 static int vlog_unfmt(const char* format, va_list arg)
