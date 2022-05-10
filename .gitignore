@@ -14,6 +14,7 @@ out/
 third_party/*/src
 third_party/*/bin_x86/
 third_party/*/bin_aarch32/
+third_party/*/bin_aarch64/
 third_party/*/patches/.applied_*
 __pycache__/
 libs/libfreetype/include/

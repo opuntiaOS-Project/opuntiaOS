@@ -69,11 +69,11 @@ if (target_cpu == "aarch32") {
 if (target_cpu == "aarch64") {
   lib_c_flags += [
     "-fno-builtin",
-    "-mcpu=cortex-a53+nosimd+nocrypto+nocrc",
+    "-mcpu=cortex-a53+nocrypto+nocrc",
     "-fno-pie",
   ]
   lib_asm_flags += [
-    "-mcpu=cortex-a53+nosimd+nocrypto+nocrc",
+    "-mcpu=cortex-a53+nocrypto+nocrc",
   ]
 }
 

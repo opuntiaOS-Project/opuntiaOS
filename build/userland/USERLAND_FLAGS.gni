@@ -85,10 +85,10 @@ if (target_cpu == "aarch32") {
 if (target_cpu == "aarch64") {
   uland_c_flags += [
     "-fno-builtin",
-    "-mcpu=cortex-a53+nosimd+nocrypto+nocrc",
+    "-mcpu=cortex-a53+nocrypto+nocrc",
     "-fno-pie",
   ]
-  uland_asm_flags += [ "-mcpu=cortex-a53+nosimd+nocrypto+nocrc" ]
+  uland_asm_flags += [ "-mcpu=cortex-a53+nocrypto+nocrc" ]
   uland_ld_flags += [ "-nostdlib" ]
 
   if (host == "gnu") {
@@ -102,7 +102,6 @@ if (target_cpu == "aarch64") {
 
   if (host == "llvm") {
     uland_ld_flags += [
-      
       "--oformat",
       "elf64-littlearm",
     ]
