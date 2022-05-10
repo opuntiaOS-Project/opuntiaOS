@@ -16,7 +16,7 @@
 struct boot_args;
 void uart_setup(struct boot_args* boot_args);
 void uart_remap();
-int uart_write(int port, uint8_t data);
-int uart_read(int port, uint8_t* data);
+int uart_write(uint8_t data);
+int uart_read(uint8_t* data);
 
 #endif /* _KERNEL_DRIVERS_AARCH32_UART_H */

@@ -37,16 +37,16 @@ static inline bool _uart_is_free_out(int port)
     return port_byte_in(port + 5) & 0x20;
 }
 
-int uart_write(int port, uint8_t data)
+int uart_write(uint8_t data)
 {
-    while (!_uart_is_free_out(port)) { }
-    port_byte_out(port, data);
+    while (!_uart_is_free_out(COM1)) { }
+    port_byte_out(COM1, data);
     return 0;
 }
 
-int uart_read(int port, uint8_t* data)
+int uart_read(uint8_t* data)
 {
-    while (!_uart_is_free_out(port)) { }
-    *data = port_byte_in(port);
+    while (!_uart_is_free_out(COM1)) { }
+    *data = port_byte_in(COM1);
     return 0;
 }

@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include <drivers/devtree.h>
 #include <drivers/driver_manager.h>
 #include <libkern/types.h>
 #include <mem/boot.h>
@@ -17,15 +18,13 @@ volatile uint8_t* uart = NULL;
 
 void uart_setup(boot_args_t* boot_args)
 {
-    // TODO(aarch64): This is a huuuge stub.
-    // We have 2 platforms for aarch64: apl uses screen.h and
-    // qemu-virt uses uart, so setting it up for it only.
-    if (boot_args && boot_args->paddr == 0x40000000) {
-        uart = (uint8_t*)0x09000000;
+    devtree_entry_t* device = devtree_find_device("uart");
+    if (device) {
+        uart = (uint8_t*)device->region_base;
     }
 }
 
-int uart_write(int port, uint8_t data)
+int uart_write(uint8_t data)
 {
     if (!uart) {
         return -1;
@@ -36,7 +35,7 @@ int uart_write(int port, uint8_t data)
 
 static inline int _uart_map_itself()
 {
-    // TODO(aarch64): Currently paddr is taken from uart
+    // Paddr is taken from uart which is set during setup.
     uintptr_t mmio_paddr = (uintptr_t)uart;
 
     mapped_zone = kmemzone_new(VMM_PAGE_SIZE);
