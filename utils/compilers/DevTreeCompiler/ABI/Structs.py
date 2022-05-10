@@ -23,6 +23,7 @@ DEVTREE_ENTRY_TYPE_UART = 2
 DEVTREE_ENTRY_TYPE_RAM = 3
 DEVTREE_ENTRY_TYPE_STORAGE = 4
 DEVTREE_ENTRY_TYPE_BUS_CONTROLLER = 5
+DEVTREE_ENTRY_TYPE_RTC = 6
 
 # Currently flags maps to irq_flags_t in the kernel.
 # Later we might need to enhance irq_flags_from_devtree() to use as translator.

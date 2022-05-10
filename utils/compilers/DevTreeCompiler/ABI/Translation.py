@@ -31,7 +31,8 @@ class Translator():
             "UART": DEVTREE_ENTRY_TYPE_UART,
             "RAM": DEVTREE_ENTRY_TYPE_RAM,
             "STORAGE": DEVTREE_ENTRY_TYPE_STORAGE,
-            "BUS_CONTROLLER": DEVTREE_ENTRY_TYPE_BUS_CONTROLLER
+            "BUS_CONTROLLER": DEVTREE_ENTRY_TYPE_BUS_CONTROLLER,
+            "RTC": DEVTREE_ENTRY_TYPE_RTC
         }
         return translation.get(s, DEVTREE_ENTRY_TYPE_IO)
 
