@@ -63,6 +63,8 @@ static int _aplfb_init_buffer()
 
     aplfb_stub_buf_vaddr[0] = (char*)(mapped_zone.start);
     aplfb_stub_buf_vaddr[1] = (char*)(mapped_zone.start + aplfb_one_buffer_size);
+
+    memset(mapped_zone.ptr, 0, aplfb_screen_buffer_size);
     return 0;
 }
 

@@ -124,4 +124,7 @@ private:
     uint8_t m_opacity { 0 };
 };
 
+// Should that color size is 4 bytes, as window_server requires this.
+static_assert(sizeof(Color) == 4);
+
 } // namespace LG
