@@ -105,7 +105,6 @@ static void vmm_create_kernel_ptables(boot_args_t* args)
 int vmm_init_setup_finished = 0;
 int vmm_setup(boot_args_t* args)
 {
-    log("setting up VMM");
     spinlock_init(&_vmm_global_lock);
     kmemzone_init();
     vm_alloc_kernel_pdir();
@@ -363,6 +362,8 @@ static int _vmm_copy_of_aspace(ptable_t* old, ptable_t* new, ptable_lv_t lv)
                 log("Copy table [%d] %zx to %zx", lv, old_ptable_paddr, new_child_ptable_paddr);
 #endif
                 _vmm_copy_of_aspace(paddr_to_vaddr(old_ptable_paddr), paddr_to_vaddr(new_child_ptable_paddr), lowerlv);
+            } else {
+                vm_ptable_entity_invalidate(&new->entities[i], lv);
             }
         }
     }
@@ -384,7 +385,7 @@ int vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
 
 int vmm_free_address_space_locked_impl(vm_address_space_t* vm_aspace)
 {
-    return -1;
+    return vm_pspace_free_address_space_locked(vm_aspace);
 }
 
 vm_address_space_t* vmm_get_active_address_space() { return THIS_CPU->active_address_space; }
