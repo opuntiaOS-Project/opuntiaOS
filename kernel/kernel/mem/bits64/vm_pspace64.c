@@ -18,17 +18,6 @@
 #include <platform/generic/cpu.h>
 #include <platform/generic/system.h>
 
-/**
- * VM system for 32bit machines is designed to support 2-level address
- * translation mechanism.
- * Pspace for 32bit arches is located right after the kernel and has
- * all ptables at the 2nd level mapped to this area. So, the size of
- * pspace is 4mb.
- *
- * TODO: Add detailed notes about the VM system design.
- */
-
-static kmemzone_t pspace_zone;
 uintptr_t vm_pspace_paddr_zone_offset = 0x0;
 
 void* paddr_to_vaddr(uintptr_t paddr)
@@ -95,7 +84,7 @@ ptable_entity_t* vm_get_entity(uintptr_t vaddr, ptable_lv_t lv)
     return vm_lookup(ptable, lv, vaddr);
 }
 
-static int vm_pspace_free_page_locked(uintptr_t vaddr, ptable_entity_t* page, dynamic_array_t* zones)
+static int vm_pspace_free_page_locked(uintptr_t vaddr, ptable_entity_t* page)
 {
     if (vmm_is_copy_on_write(vaddr)) {
         return -EBUSY;
@@ -105,24 +94,48 @@ static int vm_pspace_free_page_locked(uintptr_t vaddr, ptable_entity_t* page, dy
         return 0;
     }
 
-    ASSERT(false);
-    // uintptr_t frame = vm_ptable_entity_get_frame(page, PTABLE_LV0);
-    // vm_ptable_entity_invalidate(page, PTABLE_LV0);
+    uintptr_t frame = vm_ptable_entity_get_frame(page, PTABLE_LV0);
+    vm_ptable_entity_invalidate(page, PTABLE_LV0);
 
-    // memzone_t* zone = memzone_find_no_proc(zones, vaddr);
-    // if (zone) {
-    //     if (zone->type & ZONE_TYPE_DEVICE) {
-    //         return 0;
-    //     }
-    // }
+    memzone_t* zone = memzone_find_no_proc(&THIS_CPU->active_address_space->zones, vaddr);
+    if (zone) {
+        if (zone->type & ZONE_TYPE_DEVICE) {
+            return 0;
+        }
+    }
 
-    // vm_free_page_paddr(frame);
+    vm_free_page_paddr(frame);
     return 0;
 }
 
-static int vm_pspace_free_ptable_locked(uintptr_t vaddr)
+static int vm_pspace_free_ptable_locked(uintptr_t vaddr, ptable_t* ptable, ptable_lv_t lv)
 {
-    ASSERT(false);
+    uintptr_t vaddrstart = vaddr;
+    const size_t table_coverage = (1 << ptable_entity_vaddr_offset_at_level[lv]);
+
+    for (int i = 0; i < PTABLE_ENTITY_COUNT(lv); i++) {
+        ptable_entity_t* ptable_desc = &ptable->entities[i];
+
+        if (!vm_ptable_entity_is_present(ptable_desc, lv)) {
+            vaddrstart += table_coverage;
+            continue;
+        }
+
+        if (lv == PTABLE_LV0) {
+            vm_pspace_free_page_locked(vaddrstart, ptable_desc);
+        } else {
+            ptable_t* child_ptable = vm_get_table(vaddrstart, lower_level(lv));
+            vm_pspace_free_ptable_locked(vaddrstart, child_ptable, lower_level(lv));
+
+            uintptr_t frame = vm_ptable_entity_get_frame(ptable_desc, lv);
+            vm_ptable_entity_invalidate(ptable_desc, lv);
+            vm_free_page_paddr(frame);
+        }
+
+        vaddrstart += table_coverage;
+    }
+
+    return 0;
 }
 
 /**
@@ -133,21 +146,16 @@ static int vm_pspace_free_ptable_locked(uintptr_t vaddr)
  */
 int vm_pspace_free_address_space_locked(vm_address_space_t* vm_aspace)
 {
-    // vm_address_space_t* prev_aspace = vmm_get_active_address_space();
-    // vmm_switch_address_space_locked(vm_aspace);
+    vm_address_space_t* prev_aspace = vmm_get_active_address_space();
+    vmm_switch_address_space_locked(vm_aspace);
 
-    // size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(PTABLE_LV0);
-    // for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
-    //     vm_pspace_free_ptable_locked(table_coverage * i);
-    // }
+    int err = vm_pspace_free_ptable_locked(0, vm_aspace->pdir, PTABLE_LV_TOP);
 
-    // if (prev_aspace == vm_aspace) {
-    //     vmm_switch_address_space_locked(vmm_get_kernel_address_space());
-    // } else {
-    //     vmm_switch_address_space_locked(prev_aspace);
-    // }
-    // vm_pspace_free(vm_aspace->pdir);
-    // vm_free_ptable_lv_top(vm_aspace->pdir);
-    ASSERT(false);
+    if (prev_aspace == vm_aspace) {
+        vmm_switch_address_space_locked(vmm_get_kernel_address_space());
+    } else {
+        vmm_switch_address_space_locked(prev_aspace);
+    }
+    vm_free_ptable_lv_top(vm_aspace->pdir);
     return 0;
 }
