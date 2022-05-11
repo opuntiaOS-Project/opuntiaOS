@@ -81,7 +81,7 @@ static int find_victim(proc_t* p, ptable_t* pdir)
                 uintptr_t victim_vaddr = table_coverage * (pti + ptii) + VMM_PAGE_SIZE * pgi;
                 memzone_t* zone = memzone_find(p->address_space, victim_vaddr);
 #ifdef KSWAPD_DEBUG
-                log("[kswapd] (pid %d) Find victim at %x", p->pid, victim_vaddr);
+                log("[kswapd] (pid %d) Find victim at %zx", p->pid, victim_vaddr);
 #endif
                 // Should not allow preemption at vmm_swap_page(), since it holds _vmm_lock.
                 // Context switch could freeze cpu, since it would be not be possible to switch
