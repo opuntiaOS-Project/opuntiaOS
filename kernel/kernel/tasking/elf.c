@@ -67,7 +67,7 @@ static int _elf_load_interpret_program_header_entry(proc_t* p, file_descriptor_t
     }
 
 #ifdef ELF_DEBUG
-    log("Got header type %x %x - %x", ph.p_type, ph.p_vaddr, ph.p_memsz);
+    log("Got header type %zx %zx - %zx", ph.p_type, ph.p_vaddr, ph.p_memsz);
 #endif
     switch (ph.p_type) {
     case PT_LOAD:

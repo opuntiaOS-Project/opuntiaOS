@@ -136,7 +136,7 @@ int shared_buffer_get(int id, uintptr_t __user* res_buffer)
     }
 
 #ifdef SHARED_BUFFER_DEBUG
-    log("Buffer opened at %x %d", buffer_descs[id].data, id);
+    log("Buffer opened at %p %d", buffer_descs[id].data, id);
 #endif
     uintptr_t result_pointer = (uintptr_t)buffer_descs[id].data;
     umem_put_user(result_pointer, res_buffer);
