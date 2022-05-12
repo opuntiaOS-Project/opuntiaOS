@@ -30,7 +30,6 @@ typedef uint32_t uint_least32_t;
 typedef uint64_t uint_least64_t;
 #endif // __stdleastints_defined
 
-// TODO: Optimize for 64bit systems.
 #ifndef __stdfastints_defined
 #define __stdfastints_defined
 typedef int32_t int_fast8_t;
