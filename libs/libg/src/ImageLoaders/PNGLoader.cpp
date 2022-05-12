@@ -80,6 +80,11 @@ namespace PNG {
         streamer().skip(header.len);
     }
 
+    void PNGLoader::read_gAMA(ChunkHeader& header, PixelBitmap& bitmap)
+    {
+        streamer().skip(header.len);
+    }
+
     // TODO: Currently support only comprssion type 0
     void PNGLoader::read_IDAT(ChunkHeader& header, PixelBitmap& bitmap)
     {
@@ -260,6 +265,8 @@ namespace PNG {
             read_ORNT(header, bitmap);
         } else if (memcmp(header.type, (uint8_t*)"IDAT", 4) == 0) {
             read_IDAT(header, bitmap);
+        } else if (memcmp(header.type, (uint8_t*)"gAMA", 4) == 0) {
+            read_gAMA(header, bitmap);
         } else if (memcmp(header.type, (uint8_t*)"IEND", 4) == 0) {
             return false;
         } else {

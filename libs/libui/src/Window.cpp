@@ -10,52 +10,42 @@
 #include <libui/App.h>
 #include <libui/Connection.h>
 #include <libui/Context.h>
+#include <libui/Screen.h>
 #include <libui/Window.h>
 
 namespace UI {
 
 Window::Window(const std::string& title, const LG::Size& size, WindowType type)
-    : m_bounds(0, 0, size.width(), size.height())
-    , m_buffer(size_t(size.width() * size.height()))
-    , m_bitmap()
-    , m_title(title)
-    , m_type(type)
-    , m_status_bar_style()
 {
-    m_id = Connection::the().new_window(*this);
-    m_menubar.set_host_window_id(m_id);
-    m_popup.set_host_window_id(m_id);
-    m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
-    App::the().set_window(this);
+    init_window(title, size, "", StatusBarStyle(), type);
 }
 
 Window::Window(const std::string& title, const LG::Size& size, const std::string& icon_path)
-    : m_bounds(0, 0, size.width(), size.height())
-    , m_buffer(size_t(size.width() * size.height()))
-    , m_bitmap()
-    , m_title(title)
-    , m_icon_path(icon_path)
-    , m_status_bar_style()
 {
-    m_id = Connection::the().new_window(*this);
-    m_menubar.set_host_window_id(m_id);
-    m_popup.set_host_window_id(m_id);
-    m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
-    App::the().set_window(this);
+    init_window(title, size, icon_path, StatusBarStyle(), WindowType::Standard);
 }
 
 Window::Window(const std::string& title, const LG::Size& size, const std::string& icon_path, const StatusBarStyle& style)
-    : m_bounds(0, 0, size.width(), size.height())
-    , m_buffer(size_t(size.width() * size.height()))
-    , m_bitmap()
-    , m_title(title)
-    , m_icon_path(icon_path)
-    , m_status_bar_style(style)
 {
+    init_window(title, size, icon_path, style, WindowType::Standard);
+}
+
+void Window::init_window(const std::string& title, const LG::Size& size, const std::string& icon_path, const StatusBarStyle& style, WindowType type)
+{
+    m_scale = UI::Screen::main().scale();
+    m_bounds = LG::Rect(0, 0, size.width(), size.height());
+    m_native_bounds = LG::Rect(0, 0, size.width() * m_scale, size.height() * m_scale);
+
+    m_buffer = LFoundation::SharedBuffer<LG::Color>(size_t(native_bounds().width() * native_bounds().height()));
+    m_title = title;
+    m_icon_path = icon_path;
+    m_status_bar_style = style;
+    m_type = type;
+
     m_id = Connection::the().new_window(*this);
     m_menubar.set_host_window_id(m_id);
     m_popup.set_host_window_id(m_id);
-    m_bitmap = LG::PixelBitmap(m_buffer.data(), bounds().width(), bounds().height());
+    m_bitmap = LG::PixelBitmap(m_buffer.data(), native_bounds().width(), native_bounds().height());
     App::the().set_window(this);
 }
 

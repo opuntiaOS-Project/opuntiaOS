@@ -86,6 +86,8 @@ static int _bga_ioctl(file_t* file, uintptr_t cmd, uintptr_t arg)
         return bga_screen_height;
     case BGA_GET_WIDTH:
         return bga_screen_width;
+    case BGA_GET_SCALE:
+        return 1;
     case BGA_SWAP_BUFFERS:
         y_offset = bga_screen_height * (arg & 1);
         _bga_write_reg(VBE_DISPI_INDEX_Y_OFFSET, (uint16_t)y_offset);

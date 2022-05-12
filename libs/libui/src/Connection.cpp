@@ -101,7 +101,7 @@ void Connection::greeting()
 int Connection::new_window(const Window& window)
 {
     const std::string& bundle_id = LFoundation::ProcessInfo::the().bundle_id();
-    auto message = CreateWindowMessage(key(), window.type(), window.bounds().width(), window.bounds().height(),
+    auto message = CreateWindowMessage(key(), window.type(), window.native_bounds().width(), window.native_bounds().height(),
         window.buffer().id(), window.title(), window.icon_path(), bundle_id,
         window.status_bar_style().color().u32(), window.status_bar_style().flags());
     auto resp_message = send_sync_message<CreateWindowMessageReply>(message);

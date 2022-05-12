@@ -112,7 +112,7 @@ static int _elf_load_interpret_section_header_entry(proc_t* p, file_descriptor_t
     }
 
 #ifdef ELF_DEBUG
-    log("Section type %x %x - %x", sh.sh_type, sh.sh_addr, sh.sh_size);
+    log("Section type %zx %zx - %zx", sh.sh_type, sh.sh_addr, sh.sh_size);
 #endif
     if (!TEST_FLAG(sh.sh_flags, SHF_ALLOC)) {
         // Skip this section as it does not use memory.

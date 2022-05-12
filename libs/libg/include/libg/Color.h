@@ -98,9 +98,9 @@ public:
             return;
         }
 
-        int alpha_c = 255 * (alpha() + clr.alpha()) - alpha() * clr.alpha();
-        int alpha_of_me = alpha() * (255 - clr.alpha());
-        int alpha_of_it = 255 * clr.alpha();
+        size_t alpha_c = 255 * (alpha() + clr.alpha()) - alpha() * clr.alpha();
+        size_t alpha_of_me = alpha() * (255 - clr.alpha());
+        size_t alpha_of_it = 255 * clr.alpha();
 
         m_r = (red() * alpha_of_me + clr.red() * alpha_of_it) / alpha_c;
         m_g = (green() * alpha_of_me + clr.green() * alpha_of_it) / alpha_c;

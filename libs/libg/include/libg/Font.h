@@ -33,7 +33,7 @@ private:
 class Font {
 public:
     static const int SystemDefaultSize = 10;
-    static const int SystemTitleSize = 24;
+    static const int SystemTitleSize = 20;
     static const int SystemMaxSize = 36;
 
     ~Font() = default;

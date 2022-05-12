@@ -82,9 +82,12 @@ public:
     void receive_event(std::unique_ptr<LFoundation::Event> event) override;
 
 private:
+    void init_window(const std::string& title, const LG::Size& size, const std::string& icon_path, const StatusBarStyle& style, WindowType type);
     void resize(ResizeEvent&);
     void setup_superview();
     void fill_with_opaque(const LG::Rect&);
+
+    inline const LG::Rect& native_bounds() const { return m_native_bounds; }
 
     uint32_t m_id;
     BaseViewController* m_root_view_controller { nullptr };
@@ -92,6 +95,7 @@ private:
     View* m_focused_view { nullptr };
 
     LG::Rect m_bounds;
+    LG::Rect m_native_bounds;
     LG::PixelBitmap m_bitmap;
     LFoundation::SharedBuffer<LG::Color> m_buffer;
     std::string m_title { "" };
@@ -99,6 +103,7 @@ private:
     LG::Color m_color;
     StatusBarStyle m_status_bar_style;
     WindowType m_type { WindowType::Standard };
+    int m_scale { 1 };
 
     MenuBar m_menubar;
     PopupMenu m_popup;
