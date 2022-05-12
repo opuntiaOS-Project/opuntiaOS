@@ -25,9 +25,19 @@ typedef __uint32_t __time_t; /* Seconds since the Epoch.  */
 #if defined(__x86_64__) || defined(__aarch64__)
 #define BITS64
 typedef __int64_t __off_t; /* Type of file sizes and offsets.  */
+
+#ifndef LONG_TYPE_SIZE
+#define LONG_TYPE_SIZE (8)
+#endif
+
 #else
 #define BITS32
 typedef __int32_t __off_t; /* Type of file sizes and offsets.  */
+
+#ifndef LONG_TYPE_SIZE
+#define LONG_TYPE_SIZE (4)
+#endif
+
 #endif
 
 #endif // _LIBC_BITS_TYPES_H

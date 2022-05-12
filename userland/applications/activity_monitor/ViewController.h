@@ -41,27 +41,44 @@ public:
 
         view().set_background_color(LG::Color::LightSystemBackground);
 
-        auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 24));
-        label.set_text_color(LG::Color::DarkSystemText);
+        auto& header = view().add_subview<UI::View>(LG::Rect(0, 0, 0, 0));
+        header.set_background_color(LG::Color(222, 232, 227));
+
+        auto& label = header.add_subview<UI::Label>(LG::Rect(0, 0, 16, 22));
+        label.set_text_color(LG::Color(14, 72, 19));
         label.set_text("Monitor");
-        label.set_font(LG::Font::system_font(LG::Font::SystemTitleSize));
+        label.set_font(LG::Font::system_bold_font(LG::Font::SystemTitleSize));
         label.set_width(label.preferred_width());
+
+        auto& cpu_tab = view().add_subview<UI::Button>(LG::Rect(0, 0, 10, 10));
+        cpu_tab.set_content_edge_insets(UI::EdgeInsets(5, 10, 5, 10));
+        cpu_tab.set_background_color(LG::Color(248, 250, 231));
+        cpu_tab.set_title("CPU");
+        cpu_tab.set_title_color(LG::Color::DarkSystemText);
 
         auto& cpu_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 180, 16));
         auto& cpu_graphs_stackview = view().add_subview<UI::StackView>(LG::Rect(0, 0, 184, 100));
         cpu_graphs_stackview.set_distribution(UI::StackView::Distribution::FillEqually);
         cpu_graphs_stackview.set_spacing(10);
 
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, 0));
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, 0));
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, 0));
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, 60));
+
         view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
-        view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
+        view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::CenterY, UI::Constraint::Relation::Equal, header, UI::Constraint::Attribute::CenterY, 1, 0));
+
+        view().add_constraint(UI::Constraint(cpu_tab, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
+        view().add_constraint(UI::Constraint(cpu_tab, UI::Constraint::Attribute::CenterY, UI::Constraint::Relation::Equal, header, UI::Constraint::Attribute::Bottom, 1, 0));
 
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
-        view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Bottom, 1, UI::Padding::AfterTitle));
+        view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, UI::SafeArea::Bottom));
 
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, UI::SafeArea::Right));
-        view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, cpu_label, UI::Constraint::Attribute::Bottom, 1, 8));
-        view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, UI::SafeArea::Bottom));
+        view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, cpu_tab, UI::Constraint::Attribute::Bottom, 1, 8));
+        view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, cpu_label, UI::Constraint::Attribute::Top, 1, -8));
 
         for (int i = 0; i < cpu_count(); i++) {
             auto& graph = cpu_graphs_stackview.add_arranged_subview<GraphView>(200);

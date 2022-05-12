@@ -23,7 +23,7 @@ void GraphView::display(const LG::Rect& rect)
     ctx.set_fill_color(LG::Color(233, 233, 233));
     ctx.fill(bounds());
 
-    ctx.set_fill_color(LG::Color::LightSystemBlue);
+    ctx.set_fill_color(LG::Color(14, 72, 19));
 
     size_t left_padding = bounds().width();
     size_t height = bounds().height();

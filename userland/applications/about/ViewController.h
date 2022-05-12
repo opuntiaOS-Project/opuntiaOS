@@ -33,10 +33,13 @@ public:
         utsname_t uts;
         int rc = uname(&uts);
 
-        auto& label = view().add_subview<UI::Label>(LG::Rect(0, 0, 16, 34));
-        label.set_text_color(LG::Color::DarkSystemText);
+        auto& header = view().add_subview<UI::View>(LG::Rect(0, 0, 0, 0));
+        header.set_background_color(LG::Color(231, 240, 250));
+
+        auto& label = header.add_subview<UI::Label>(LG::Rect(0, 0, 16, 22));
         label.set_text("About");
-        label.set_font(LG::Font::system_font(LG::Font::SystemTitleSize));
+        label.set_text_color(LG::Color(35, 70, 106));
+        label.set_font(LG::Font::system_bold_font(LG::Font::SystemTitleSize));
         label.set_width(label.preferred_width());
 
         auto& name_label = view().add_subview<AboutLineView>(LG::Rect(0, 0, 16, 16), "Name:", uts.sysname);
@@ -59,11 +62,16 @@ public:
         });
 #endif
 
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, 0));
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, 0));
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, 0));
+        view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, 60));
+
         view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
-        view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, UI::SafeArea::Top));
+        view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::CenterY, UI::Constraint::Relation::Equal, header, UI::Constraint::Attribute::CenterY, 1, 0));
 
         view().add_constraint(UI::Constraint(name_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
-        view().add_constraint(UI::Constraint(name_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, label, UI::Constraint::Attribute::Bottom, 1, UI::Padding::AfterTitle));
+        view().add_constraint(UI::Constraint(name_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, header, UI::Constraint::Attribute::Bottom, 1, UI::Padding::AfterTitle));
 
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, name_label, UI::Constraint::Attribute::Bottom, 1, 4));
