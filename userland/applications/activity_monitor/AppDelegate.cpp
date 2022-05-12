@@ -6,12 +6,13 @@ public:
     AppDelegate() = default;
     virtual ~AppDelegate() = default;
 
-    LG::Size preferred_desktop_window_size() const override { return LG::Size(220, 180); }
+    LG::Size preferred_desktop_window_size() const override { return LG::Size(220, 210); }
     const char* icon_path() const override { return "/res/icons/apps/activity_monitor.icon"; }
 
     virtual bool application() override
     {
-        auto& window = std::opuntiaos::construct<UI::Window>("Monitor", window_size(), icon_path(), StatusBarStyle().set_hide_text());
+        auto style = StatusBarStyle(LG::Color(222, 232, 227)).set_hide_text();
+        auto& window = std::opuntiaos::construct<UI::Window>("Monitor", window_size(), icon_path(), style);
         auto& superview = window.create_superview<UI::View, ViewController>();
         return true;
     }

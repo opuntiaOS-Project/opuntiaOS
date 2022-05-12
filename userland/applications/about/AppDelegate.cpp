@@ -7,12 +7,13 @@ public:
     AppDelegate() = default;
     virtual ~AppDelegate() = default;
 
-    LG::Size preferred_desktop_window_size() const override { return LG::Size(200, 170); }
+    LG::Size preferred_desktop_window_size() const override { return LG::Size(200, 210); }
     const char* icon_path() const override { return "/res/icons/apps/about.icon"; }
 
     virtual bool application() override
     {
-        auto& window = std::opuntiaos::construct<UI::Window>("About", window_size(), icon_path(), StatusBarStyle().set_hide_text());
+        auto style = StatusBarStyle(LG::Color(231, 240, 250)).set_hide_text();
+        auto& window = std::opuntiaos::construct<UI::Window>("About", window_size(), icon_path(), style);
         auto& superview = window.create_superview<UI::View, ViewController>();
 
         auto demo_menu = UI::Menu("Demo");

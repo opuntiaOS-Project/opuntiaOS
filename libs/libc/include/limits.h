@@ -1,6 +1,7 @@
 #ifndef _LIBC_LIMITS_H
 #define _LIBC_LIMITS_H
 
+#include <bits/types.h>
 #include <stdint.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
@@ -43,10 +44,10 @@ __BEGIN_DECLS
 #define LONG_MAX 2147483647L
 #define LONG_MIN (-LONG_MAX - 1L)
 #define ULONG_MAX 4294967295UL
-#else
-#define LONG_MAX 9223372036854775807LL
+#elif LONG_TYPE_SIZE == 8
+#define LONG_MAX 9223372036854775807L
 #define LONG_MIN (-LONG_MAX - 1L)
-#define ULONG_MAX 18446744073709551615ULL
+#define ULONG_MAX 18446744073709551615UL
 #endif
 
 #define LONG_LONG_MAX 9223372036854775807LL
