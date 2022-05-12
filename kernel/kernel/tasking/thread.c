@@ -306,7 +306,7 @@ int thread_dump_frame(thread_t* thread)
     for (uintptr_t i = thread->tf->esp; i < thread->tf->ebp; i++) {
         uint8_t byte = *(uint8_t*)i;
         uintptr_t b32 = (uintptr_t)byte;
-        log("%x - %x\n", i, b32);
+        log("%zx - %zx\n", i, b32);
     }
 #endif
     return 0;

@@ -14,7 +14,7 @@
 #include <platform/aarch64/interrupts.h>
 #include <platform/aarch64/registers.h>
 
-#define DEBUG_GICv2
+// #define DEBUG_GICv2
 #define IS_SGI(id) ((id) < 16)
 #define IS_PPI(id) ((id) < 32 && (id) >= 16)
 #define IS_SGI_OR_PPI(id) ((id) < 32)

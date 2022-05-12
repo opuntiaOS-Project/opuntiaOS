@@ -17,7 +17,7 @@
 #include <mem/vmm.h>
 #include <tasking/tasking.h>
 
-#define DEBUG_PL111
+// #define DEBUG_PL111
 
 static kmemzone_t mapped_zone;
 static volatile pl111_registers_t* registers = 0x0;
@@ -74,6 +74,8 @@ static int _pl111_ioctl(file_t* file, uintptr_t cmd, uintptr_t arg)
         return pl111_screen_height;
     case BGA_GET_WIDTH:
         return pl111_screen_width;
+    case BGA_GET_SCALE:
+        return 1;
     case BGA_SWAP_BUFFERS:
         registers->lcd_upbase = (uint32_t)(((uintptr_t)pl111_bufs_paddr[(arg & 1)]) & 0xffffffff);
         return 0;

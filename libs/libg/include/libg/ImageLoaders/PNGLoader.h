@@ -145,6 +145,7 @@ namespace PNG {
         void read_TEXT(ChunkHeader& header, PixelBitmap& bitmap);
         void read_PHYS(ChunkHeader& header, PixelBitmap& bitmap);
         void read_ORNT(ChunkHeader& header, PixelBitmap& bitmap);
+        void read_gAMA(ChunkHeader& header, PixelBitmap& bitmap);
         void read_IDAT(ChunkHeader& header, PixelBitmap& bitmap);
 
         uint8_t paeth_predictor(int a, int b, int c);
