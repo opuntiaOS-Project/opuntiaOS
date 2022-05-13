@@ -12,7 +12,7 @@
 #include <drivers/driver_manager.h>
 #include <libkern/mask.h>
 #include <libkern/types.h>
-#include <platform/aarch32/interrupts.h>
+#include <platform/generic/interrupts.h>
 
 enum GICDControlMasks {
     MASKDEFINE(GICD_ENABLE, 0, 1),

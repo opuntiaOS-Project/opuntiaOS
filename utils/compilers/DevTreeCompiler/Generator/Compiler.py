@@ -43,6 +43,8 @@ class Compiler():
             "irq_flags": 0,
             "irq_priority": 0,
             "rel_name_offset": len(self.names_binarr),
+            "aux1": 0,
+            "aux2": 0,
         }
 
         if "type" in dev:
@@ -68,6 +70,11 @@ class Compiler():
                     devint["flags"], Translator.irq_flag_translator)
             if "priority" in devint:
                 result["irq_priority"] = Translator.number(devint["priority"])
+
+        if "aux1" in dev:
+            result["aux1"] = Translator.number(dev["aux1"])
+        if "aux2" in dev:
+            result["aux2"] = Translator.number(dev["aux2"])
 
         self.devs_binarr += DEVTREE_ENTRY.build(result)
         self.names_binarr += bytearray((map(ord,

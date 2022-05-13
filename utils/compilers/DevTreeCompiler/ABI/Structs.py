@@ -38,4 +38,6 @@ DEVTREE_ENTRY = Struct(
     "irq_flags" / Int32ul,
     "irq_priority" / Int32ul,
     "rel_name_offset" / Int32ul,
+    "aux1" / Int64ul,
+    "aux2" / Int64ul,
 )

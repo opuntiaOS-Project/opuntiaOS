@@ -7,14 +7,12 @@
  */
 
 #include <drivers/aarch32/gicv2.h>
+#include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
-#include <platform/aarch32/interrupts.h>
-#include <platform/aarch32/registers.h>
-
-// TODO(aarch32): Remove this and parse devtree.
-#include <platform/aarch32/target/cortex-a15/device_settings.h>
+#include <platform/generic/interrupts.h>
+#include <platform/generic/registers.h>
 
 // #define DEBUG_GICv2
 #define IS_SGI(id) ((id) < 16)
@@ -34,17 +32,27 @@ volatile gicv2_cpu_interface_registers_t* cpu_interface_registers;
 
 static inline uintptr_t _gicv2_distributor_offset()
 {
-    return (uintptr_t)GICv2_DISTRIBUTOR_OFFSET;
+    devtree_entry_t* device = devtree_find_device("gicv2");
+    if (!device) {
+        kpanic("GICv2: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->aux1;
 }
 
 static inline uintptr_t _gicv2_cpu_interface_offset()
 {
-    return (uintptr_t)GICv2_CPU_INTERFACE_OFFSET;
+    devtree_entry_t* device = devtree_find_device("gicv2");
+    if (!device) {
+        kpanic("GICv2: Can't find device in the tree.");
+    }
+
+    return (uintptr_t)device->aux2;
 }
 
 static inline int _gicv2_map_itself()
 {
-    uint32_t cbar = read_cbar();
+    uintptr_t cbar = read_cbar();
 
     distributor_zone = kmemzone_new(VMM_PAGE_SIZE);
     vmm_map_page(distributor_zone.start, cbar + _gicv2_distributor_offset(), MMU_FLAG_DEVICE);
@@ -65,8 +73,7 @@ void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_flags_t flags, in
     int id_8bit_offset = id / 4;
     int id_8bit_bitpos = (id % 4) * 8;
 
-    /* We don't turn on group 1 for SPI, but do for SGI and PPI */
-    if (IS_SGI_OR_PPI(id)) {
+    if (IS_SGI(id)) {
         distributor_registers->igroup[id_1bit_offset] |= (1 << id_1bit_bitpos);
     }
 
@@ -79,7 +86,7 @@ void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_flags_t flags, in
         distributor_registers->ipriorityr[id_8bit_offset] &= ~(uint32_t)(prior << id_8bit_bitpos);
     }
 
-    distributor_registers->icfgr[id_2bit_offset] |= (0b11 << id_2bit_bitpos);
+    distributor_registers->icfgr[id_2bit_offset] |= (0b10 << id_2bit_bitpos);
 
     if (IS_SPI(id)) {
         distributor_registers->itargetsr[id_8bit_offset] |= (cpu_mask << id_8bit_bitpos);
@@ -126,7 +133,7 @@ uint32_t gicv2_interrupt_descriptor()
     return cpu_interface_registers->iar;
 }
 
-void gicv2_end(uint32_t int_disc)
+void gicv2_end(uint32_t id)
 {
-    cpu_interface_registers->eoir = int_disc;
+    cpu_interface_registers->eoir = id;
 }
