@@ -10,7 +10,9 @@
         },
         {
             "name": "gicv2",
-            "type": "IC"
+            "type": "IC",
+            "aux1": "0x0",
+            "aux2": "0x10000"
         },
         {
             "name": "pl031",

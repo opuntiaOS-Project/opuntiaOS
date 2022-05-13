@@ -30,6 +30,15 @@ static inline uint64_t current_sp()
     return el;
 }
 
+static inline uint64_t read_cbar()
+{
+    uint32_t val;
+    asm volatile("mrs %x0, S3_1_C15_C3_0"
+                 : "=r"(val)
+                 :);
+    return val;
+}
+
 static inline uint64_t read_cpacr()
 {
     uint64_t cpacr;

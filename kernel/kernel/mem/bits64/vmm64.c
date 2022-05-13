@@ -346,6 +346,8 @@ static int _vmm_copy_of_aspace(ptable_t* old, ptable_t* new, ptable_lv_t lv)
 #ifdef VMM_DEBUG
                 log("Copy page %zx to %zx", old_page_paddr, new_child_page_paddr);
 #endif
+            } else {
+                vm_ptable_entity_invalidate(&new->entities[i], lv);
             }
         }
     } else {
