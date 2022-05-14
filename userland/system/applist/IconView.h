@@ -48,6 +48,9 @@ private:
     void launch()
     {
         if (fork() == 0) {
+            for (int i = 3; i < 32; i++) {
+                close(i);
+            }
             execlp(m_launch_entity.path_to_exec().c_str(), m_launch_entity.path_to_exec().c_str(), NULL);
             std::abort();
         }

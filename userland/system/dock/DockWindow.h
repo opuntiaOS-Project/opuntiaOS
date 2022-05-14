@@ -10,6 +10,9 @@ public:
         : UI::Window("Dock", LG::Size(UI::Screen::main().bounds().width(), 46), UI::WindowType::Homescreen)
     {
         if (fork() == 0) {
+            for (int i = 3; i < 32; i++) {
+                close(i);
+            }
             execlp("/System/applist", "/System/applist", NULL);
             std::abort();
         }
