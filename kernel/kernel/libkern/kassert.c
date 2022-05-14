@@ -7,26 +7,23 @@
  */
 
 #include <libkern/kassert.h>
-// #include <tasking/dump.h>
+#include <tasking/dump.h>
 
 void assert_handler(const char* cond, const char* func, const char* file, int line)
 {
     log("Kernel assertion failed: %s, function %s, file %s:%d\n", cond, func, file, line);
-    // TODO: enable
-    // dump_kernel(NULL);
+    dump_kernel(NULL);
     system_stop();
 }
 
 void kpanic(const char* err_msg)
 {
-    log("kpanic %s", err_msg);
-    // dump_kernel(err_msg);
+    dump_kernel(err_msg);
     system_stop();
 }
 
 void kpanic_tf(const char* err_msg, trapframe_t* tf)
 {
-    log("kpanic %s", err_msg);
-    // dump_kernel_from_tf(err_msg, tf);
+    dump_kernel_from_tf(err_msg, tf);
     system_stop();
 }
