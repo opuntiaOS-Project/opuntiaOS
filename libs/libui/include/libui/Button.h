@@ -33,7 +33,7 @@ public:
     void set_title_color(const LG::Color& color) { m_title_color = color; }
     const LG::Color& title_color() const { return m_title_color; }
 
-    void set_content_edge_insets(const EdgeInsets& ei) { m_content_edge_insets = ei; }
+    void set_content_edge_insets(const EdgeInsets& ei) { m_content_edge_insets = ei, recalc_bounds(); }
     const EdgeInsets& content_edge_insets() const { return m_content_edge_insets; }
 
     void set_font(const LG::Font& font) { m_font = font, recalc_bounds(); }

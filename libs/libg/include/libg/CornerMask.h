@@ -37,8 +37,8 @@ public:
 
 private:
     size_t m_radius { 0 };
-    bool m_top_rounded { Masked };
-    bool m_bottom_rounded { Masked };
+    bool m_top_rounded { NonMasked };
+    bool m_bottom_rounded { NonMasked };
 };
 
 } // namespace LG

@@ -32,7 +32,6 @@ int main()
     WinServer::InitManager::load_core_component<WinServer::Devices>();
 
     WinServer::InitManager::add_widget<WinServer::Clock>();
-    WinServer::InitManager::add_widget<WinServer::ControlPanelToggle>();
 
     WinServer::InitManager::launch_app(LAUNCH_PATH, 10);
 

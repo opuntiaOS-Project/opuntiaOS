@@ -50,11 +50,23 @@ public:
         label.set_font(LG::Font::system_bold_font(LG::Font::SystemTitleSize));
         label.set_width(label.preferred_width());
 
-        auto& cpu_tab = view().add_subview<UI::Button>(LG::Rect(0, 0, 10, 10));
-        cpu_tab.set_content_edge_insets(UI::EdgeInsets(5, 10, 5, 10));
+        auto& switch_tab = view().add_subview<UI::StackView>(LG::Rect(0, 0, 102, 18));
+        switch_tab.set_spacing(8);
+        switch_tab.layer().set_corner_mask(LG::CornerMask(4));
+        switch_tab.layer().set_shading(LG::Shading(LG::Shading::Box));
+        switch_tab.set_spacing(4);
+
+        auto& cpu_tab = switch_tab.add_arranged_subview<UI::Button>();
+        cpu_tab.set_content_edge_insets(UI::EdgeInsets(4, 10, 4, 10));
         cpu_tab.set_background_color(LG::Color(248, 250, 231));
         cpu_tab.set_title("CPU");
         cpu_tab.set_title_color(LG::Color::DarkSystemText);
+
+        auto& mem_tab = switch_tab.add_arranged_subview<UI::Button>();
+        mem_tab.set_content_edge_insets(UI::EdgeInsets(4, 10, 4, 10));
+        mem_tab.set_background_color(LG::Color::White);
+        mem_tab.set_title("Memory");
+        mem_tab.set_title_color(LG::Color::DarkSystemText);
 
         auto& cpu_label = view().add_subview<UI::Label>(LG::Rect(0, 0, 180, 16));
         auto& cpu_graphs_stackview = view().add_subview<UI::StackView>(LG::Rect(0, 0, 184, 100));
@@ -69,15 +81,15 @@ public:
         view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(label, UI::Constraint::Attribute::CenterY, UI::Constraint::Relation::Equal, header, UI::Constraint::Attribute::CenterY, 1, 0));
 
-        view().add_constraint(UI::Constraint(cpu_tab, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
-        view().add_constraint(UI::Constraint(cpu_tab, UI::Constraint::Attribute::CenterY, UI::Constraint::Relation::Equal, header, UI::Constraint::Attribute::Bottom, 1, 0));
+        view().add_constraint(UI::Constraint(switch_tab, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
+        view().add_constraint(UI::Constraint(switch_tab, UI::Constraint::Attribute::CenterY, UI::Constraint::Relation::Equal, header, UI::Constraint::Attribute::Bottom, 1, 0));
 
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(cpu_label, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, UI::SafeArea::Bottom));
 
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, UI::SafeArea::Right));
-        view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, cpu_tab, UI::Constraint::Attribute::Bottom, 1, 8));
+        view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, switch_tab, UI::Constraint::Attribute::Bottom, 1, 8));
         view().add_constraint(UI::Constraint(cpu_graphs_stackview, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, cpu_label, UI::Constraint::Attribute::Top, 1, -8));
 
         for (int i = 0; i < cpu_count(); i++) {

@@ -696,6 +696,9 @@ void Context::draw_box_shading(const Rect& rect, const Shading& shading, const C
     }
 
     int shading_spread = shading.spread();
+    if (shading_spread == 0) {
+        return;
+    }
 
     int rwidth = rect.width() - 2 * top_radius;
     int rheight = rect.height() - top_radius - bottom_radius;

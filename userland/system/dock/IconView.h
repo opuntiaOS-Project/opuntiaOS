@@ -18,7 +18,7 @@ public:
     void display(const LG::Rect& rect) override;
     void mouse_up() override { on_click(); }
 
-    static constexpr size_t underline_height() { return 3; }
+    static constexpr size_t underline_height() { return 2; }
 
     void set_title(const std::string& title)
     {
