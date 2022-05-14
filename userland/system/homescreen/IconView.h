@@ -32,6 +32,9 @@ private:
     void launch(const std::string& path_to_exec)
     {
         if (fork() == 0) {
+            for (int i = 3; i < 32; i++) {
+                close(i);
+            }
             execlp(path_to_exec.c_str(), path_to_exec.c_str(), NULL);
             std::abort();
         }
