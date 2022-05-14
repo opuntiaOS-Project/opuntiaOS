@@ -18,6 +18,8 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 
+// TODO: Add enum for colors.
+
 class ViewController : public UI::ViewController<UI::View> {
 public:
     ViewController(UI::View& view)
@@ -49,8 +51,8 @@ public:
         "=",
     };
 
-    constexpr size_t button_size() { return 40; }
-    constexpr size_t spacing_size() { return 16; }
+    constexpr size_t button_size() { return 48; }
+    constexpr size_t spacing_size() { return 8; }
 
     bool is_operation(char a) { return a == '*' || a == '/' || a == '+' || a == '-'; }
 
@@ -69,7 +71,7 @@ public:
             m_current_number.clear();
             m_operation = sender->title()[0];
             m_active_operation_button = sender;
-            sender->set_background_color(LG::Color(244, 205, 81));
+            sender->set_background_color(LG::Color(165, 201, 242));
             return;
         }
 
@@ -80,25 +82,25 @@ public:
                 var_number1 = var_number1 + var_number2;
                 m_current_number = std::to_string(var_number1);
                 m_answer_label_ptr->set_text(m_current_number);
-                m_active_operation_button->set_background_color(LG::Color(244, 217, 130));
+                m_active_operation_button->set_background_color(LG::Color(231, 240, 250));
                 break;
             case '-':
                 var_number1 = var_number1 - var_number2;
                 m_current_number = std::to_string(var_number1);
                 m_answer_label_ptr->set_text(m_current_number);
-                m_active_operation_button->set_background_color(LG::Color(244, 217, 130));
+                m_active_operation_button->set_background_color(LG::Color(231, 240, 250));
                 break;
             case '*':
                 var_number1 = var_number1 * var_number2;
                 m_current_number = std::to_string(var_number1);
                 m_answer_label_ptr->set_text(m_current_number);
-                m_active_operation_button->set_background_color(LG::Color(244, 217, 130));
+                m_active_operation_button->set_background_color(LG::Color(231, 240, 250));
                 break;
             case '/':
-                m_active_operation_button->set_background_color(LG::Color(244, 217, 130));
+                m_active_operation_button->set_background_color(LG::Color(231, 240, 250));
                 if (var_number2 == 0) {
                     m_current_number = "";
-                    m_answer_label_ptr->set_text("ERROR");
+                    m_answer_label_ptr->set_text("Error");
                     return;
                 }
                 var_number1 = var_number1 / var_number2;
@@ -107,16 +109,16 @@ public:
                 break;
             default:
                 m_current_number = "";
-                m_answer_label_ptr->set_text("ERROR");
+                m_answer_label_ptr->set_text("Error");
             }
             return;
         }
 
         if (sender->title().size() == 1 && sender->title()[0] == 'c') {
-            m_current_number = "0";
             m_operation = ' ';
             m_active_operation_button = nullptr;
-            m_answer_label_ptr->set_text(m_current_number);
+            m_answer_label_ptr->set_text("0");
+            m_current_number.clear();
             return;
         }
     }
@@ -131,7 +133,7 @@ public:
         main_stackview.set_spacing(spacing_size());
         view().add_constraint(UI::Constraint(main_stackview, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, UI::SafeArea::Left));
         view().add_constraint(UI::Constraint(main_stackview, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, UI::SafeArea::Right));
-        view().add_constraint(UI::Constraint(main_stackview, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, 24));
+        view().add_constraint(UI::Constraint(main_stackview, UI::Constraint::Attribute::Bottom, UI::Constraint::Relation::Equal, UI::SafeArea::Bottom));
 
         for (int i = 0; i < 5; i++) {
             auto& stackview = main_stackview.add_arranged_subview<UI::StackView>();
@@ -143,16 +145,21 @@ public:
 
             for (int j = 0; j < 4; j++) {
                 auto& view1 = stackview.add_arranged_subview<UI::Button>();
-                if (j == 3 || i == 0) {
-                    view1.set_background_color(LG::Color(244, 217, 130));
+                if (j == 3 && i == 4) {
+                    view1.set_background_color(LG::Color(198, 166, 242));
+                    view1.set_title_color(LG::Color::White);
+                } else if (j == 3 || i == 0) {
+                    view1.set_background_color(LG::Color(231, 240, 250));
+                    view1.set_title_color(LG::Color(35, 70, 106));
                 } else {
                     view1.set_background_color(LG::Color::LightSystemButton);
+                    view1.set_title_color(LG::Color::DarkSystemText);
                 }
-                view1.set_title_color(LG::Color::DarkSystemText);
-                view1.set_font(LG::Font::system_bold_font());
+                view1.set_font(LG::Font::system_bold_font(14));
                 view1.set_title(button_titles[i * 4 + j]);
                 view1.set_alignment(UI::Text::Alignment::Center);
                 view1.add_target([this](UI::View* sender) { this->on_button_click(static_cast<UI::Button*>(sender)); }, UI::Event::Type::MouseUpEvent);
+                view1.layer().set_corner_mask(LG::CornerMask(button_size() / 2));
                 stackview.add_constraint(UI::Constraint(view1, UI::Constraint::Attribute::Height, UI::Constraint::Relation::Equal, button_size()));
                 stackview.add_constraint(UI::Constraint(view1, UI::Constraint::Attribute::Width, UI::Constraint::Relation::Equal, button_size()));
             }

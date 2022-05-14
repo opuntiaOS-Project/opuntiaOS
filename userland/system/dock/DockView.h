@@ -16,8 +16,8 @@ public:
     DockView(UI::View* superview, const LG::Rect& frame);
     DockView(UI::View* superview, UI::Window* window, const LG::Rect& frame);
 
-    static constexpr size_t padding() { return 0; }
-    static constexpr size_t dock_view_height() { return 46; }
+    static constexpr size_t padding() { return 4; }
+    static constexpr size_t dock_view_height() { return 50; }
     static constexpr int icon_size() { return 32; }
     static constexpr int icon_view_size() { return (int)dock_view_height(); }
 

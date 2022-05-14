@@ -7,7 +7,7 @@
 class DockWindow : public UI::Window {
 public:
     DockWindow()
-        : UI::Window("Dock", LG::Size(UI::Screen::main().bounds().width(), 46), UI::WindowType::Homescreen)
+        : UI::Window("Dock", LG::Size(UI::Screen::main().bounds().width(), 50), UI::WindowType::Homescreen)
     {
         if (fork() == 0) {
             for (int i = 3; i < 32; i++) {
