@@ -29,13 +29,9 @@ void IconView::display(const LG::Rect& rect)
 
     ctx.draw({ offset_x, offset_y }, m_launch_entity.icon());
 
-    ctx.set_fill_color(LG::Color(120, 129, 133));
+    ctx.set_fill_color(LG::Color(163, 174, 190));
     const int underline_y = DockView::icon_view_size() - underline_height() - padding;
-    if (entity().windows().size() > 1) {
-        const int len = 8;
-        ctx.fill({ (DockView::icon_view_size() - len) / 2, underline_y, len - underline_height(), underline_height() });
-        ctx.fill({ (DockView::icon_view_size() - len) / 2 + len, underline_y, underline_height(), underline_height() });
-    } else if (entity().windows().size() > 0) {
+    if (entity().windows().size() > 0) {
         const int len = 8;
         ctx.fill({ (DockView::icon_view_size() - len) / 2, underline_y, len, underline_height() });
     }

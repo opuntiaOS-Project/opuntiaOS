@@ -15,6 +15,7 @@ namespace UI {
 Button::Button(View* superview, const LG::Rect& frame)
     : Control(superview, frame)
 {
+    layer().set_corner_mask(LG::CornerMask(4));
     set_background_color(LG::Color::LightSystemButton);
 }
 
@@ -26,10 +27,10 @@ void Button::display(const LG::Rect& rect)
     ctx.set_fill_color(background_color());
     if (m_button_type == Type::System) {
         if (is_hovered()) {
-            ctx.set_fill_color(background_color().darken(8));
+            ctx.set_fill_color(background_color().darken(5));
         }
     }
-    ctx.fill_rounded(bounds(), LG::CornerMask(4));
+    ctx.fill_rounded(bounds(), layer().corner_mask());
 
     size_t content_width = text_width();
     size_t content_height = text_height();

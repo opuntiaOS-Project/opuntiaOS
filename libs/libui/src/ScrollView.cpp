@@ -105,6 +105,7 @@ void ScrollView::receive_display_event(DisplayEvent& event)
         frame.offset_by(-m_content_offset);
         bounds.intersect(frame);
         if (!bounds.empty()) {
+            subview.layer().display(bounds, frame);
             graphics_push_context(Context(subview, frame, Context::RelativeToCurrentContext::Yes));
             bounds.origin().offset_by(-frame.origin());
             DisplayEvent own_event(bounds);

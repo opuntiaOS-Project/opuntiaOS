@@ -27,10 +27,18 @@ public:
     };
     static const int SystemSpread = 4;
 
-    Shading() = delete;
+    Shading() = default;
+    explicit Shading(Type type)
+        : m_type(type)
+        , m_final_alpha(0)
+        , m_spread(3)
+    {
+    }
+
     Shading(Type type, uint8_t final_alpha)
         : m_type(type)
         , m_final_alpha(final_alpha)
+        , m_spread(SystemSpread)
     {
     }
 
@@ -48,9 +56,9 @@ public:
     inline int spread() const { return m_spread; }
 
 private:
-    Type m_type { LeftToRight };
+    Type m_type { Box };
     uint8_t m_final_alpha { 0 };
-    int m_spread { SystemSpread };
+    int m_spread { 0 };
 };
 
 } // namespace LG

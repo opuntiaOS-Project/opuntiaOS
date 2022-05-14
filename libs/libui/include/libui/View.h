@@ -180,7 +180,7 @@ private:
     bool m_focusable { false };
 
     LG::Color m_background_color { LG::Color::White };
-    Layer m_layer;
+    Layer m_layer {};
 
     GestureManager m_gesture_manager;
 };

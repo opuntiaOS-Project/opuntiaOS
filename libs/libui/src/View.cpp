@@ -18,6 +18,7 @@ View::View(View* superview, const LG::Rect& frame)
     , m_superview(superview)
     , m_window(superview ? superview->window() : nullptr)
     , m_bounds(0, 0, frame.width(), frame.height())
+    , m_layer()
 {
 }
 
@@ -26,6 +27,7 @@ View::View(View* superview, Window* window, const LG::Rect& frame)
     , m_superview(superview)
     , m_window(window)
     , m_bounds(0, 0, frame.width(), frame.height())
+    , m_layer()
 {
 }
 
@@ -92,8 +94,9 @@ void View::set_needs_display(const LG::Rect& rect)
 void View::display(const LG::Rect& rect)
 {
     LG::Context ctx = graphics_current_context();
+    ctx.add_clip(rect);
     ctx.set_fill_color(background_color());
-    ctx.fill_rounded(rect, layer().corner_mask());
+    ctx.fill_rounded(bounds(), layer().corner_mask());
 }
 
 void View::did_display(const LG::Rect& rect)
@@ -224,6 +227,7 @@ void View::receive_display_event(DisplayEvent& event)
     foreach_subview([&](View& subview) -> bool {
         auto bounds = event.bounds();
         if (bounds.intersects(subview.frame())) {
+            subview.layer().display(bounds, subview.frame());
             graphics_push_context(Context(subview, Context::RelativeToCurrentContext::Yes));
             bounds.offset_by(-subview.frame().origin());
             DisplayEvent own_event(bounds);
