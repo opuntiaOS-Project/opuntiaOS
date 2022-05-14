@@ -63,7 +63,7 @@ static inline void kernel_preempt_setup()
 
 void launching()
 {
-    // tasking_run_kernel_thread(kdentryflusherd, NULL);
+    tasking_run_kernel_thread(kdentryflusherd, NULL);
     tasking_run_kernel_thread(kswapd, NULL);
     tasking_start_init_proc();
     ksys1(SYS_EXIT, 0);
