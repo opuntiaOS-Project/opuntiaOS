@@ -88,9 +88,22 @@ static void vm_alloc_kernel_pdir()
 
 static void vmm_create_kernel_ptables(boot_args_t* args)
 {
-    // TODO(aarch64): Replace constant(1024).
-    vmm_map_pages_locked(KERNEL_BASE, args->paddr, 1024, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
-    vmm_map_pages_locked(args->paddr, args->paddr, 1024, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+    const pmm_state_t* pmm_state = pmm_get_state();
+    uintptr_t paddr = pmm_state->boot_args->paddr;
+    uintptr_t vaddr = pmm_state->kernel_va_base;
+    uintptr_t end_vaddr = pmm_state->kernel_va_base + pmm_state->kernel_data_size;
+
+    // Mapping kernel and MAT.
+    while (vaddr < end_vaddr) {
+        vmm_map_page_locked(vaddr, paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+        vmm_map_page_locked(paddr, paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+        vaddr += VMM_PAGE_SIZE;
+        paddr += VMM_PAGE_SIZE;
+    }
+
+    // Mapping kernel ptable to access them.
+    vmm_map_page_locked((uintptr_t)_vmm_kernel_pdir0, _vmm_kernel_pdir0_paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
+    vmm_map_page_locked((uintptr_t)_vmm_kernel_pdir1, _vmm_kernel_pdir1_paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
     vm_map_kernel_huge_page_1gb(KERNEL_PADDR_BASE, args->paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
 
     // Debug mapping, should be removed.

@@ -77,22 +77,6 @@ SECTIONS
 		STACK_BASE = .;
 		. += 0x1000;
 		STACK_TOP =  .;
-
-		STACK_SVC_BASE = .;
-		. += 0x1000;
-		STACK_SVC_TOP =  .;
-
-		STACK_IRQ_BASE = .;
-		. += 0x1000;
-		STACK_IRQ_TOP =  .;
-
-		STACK_ABORT_BASE = .;
-		. += 0x1000;
-		STACK_ABORT_TOP =  .;
-
-		STACK_UNDEFINED_BASE = .;
-		. += 0x1000;
-		STACK_UNDEFINED_TOP =  .;
 	}
 	__stack_end = .;
 
