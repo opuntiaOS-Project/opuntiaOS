@@ -30,7 +30,7 @@ public:
     virtual std::optional<View*> subview_at(const LG::Point<int>& point) const override;
 
     virtual void display(const LG::Rect& rect) override;
-    virtual void mouse_wheel_event(int wheel_data) override;
+    virtual WheelEventResponse mouse_wheel_event(int wheel_data) override;
     virtual void receive_mouse_move_event(MouseEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
 
@@ -43,14 +43,23 @@ protected:
     // The location of a subview relativly to its superview could
     // differ from it's frame() (e.g when scrolling), to determine
     // the right location we ask the superview to return it.
-    virtual std::optional<LG::Point<int>> subview_location(const View& subview) const override;
+    virtual LG::Point<int> subview_location(const View& subview) const override;
 
 private:
-    void did_scroll(int x, int y);
+    void animate_step();
+    void rearm_scroll_animation();
+    void do_scroll(int n_x, int n_y);
+    void setup_scroll(int x, int y);
     void recalc_content_props();
 
     LG::Size m_content_size {};
     LG::Point<int> m_content_offset {};
+    LG::Point<int> m_mouse_location {};
+
+    bool m_has_timer { false };
+    size_t m_scroll_velocity { 0 };
+    int m_vel_div { 6 };
+    LG::Point<int> m_animation_target { 0, 0 };
 };
 
 } // namespace UI

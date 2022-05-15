@@ -49,7 +49,7 @@ View& View::hit_test(const LG::Point<int>& point)
 {
     auto subview = subview_at(point);
     if (subview.has_value()) {
-        return subview.value()->hit_test(point - subview.value()->frame().origin());
+        return subview.value()->hit_test(point - subview_location(*subview.value()));
     }
     return *this;
 }
@@ -73,7 +73,7 @@ void View::layout_subviews()
     }
 }
 
-std::optional<LG::Point<int>> View::subview_location(const View& subview) const
+LG::Point<int> View::subview_location(const View& subview) const
 {
     return subview.frame().origin();
 }
@@ -84,7 +84,7 @@ void View::set_needs_display(const LG::Rect& rect)
     display_rect.intersect(bounds());
     if (has_superview()) {
         auto location = superview()->subview_location(*this);
-        display_rect.offset_by(location.value());
+        display_rect.offset_by(location);
         superview()->set_needs_display(display_rect);
     } else {
         send_display_message_to_self(*window(), display_rect);
@@ -131,8 +131,9 @@ void View::mouse_up()
     m_gesture_manager.mouse_up();
 }
 
-void View::mouse_wheel_event(int wheel_data)
+View::WheelEventResponse View::mouse_wheel_event(int wheel_data)
 {
+    return View::WheelEventResponse::Skipped;
 }
 
 void View::receive_mouse_move_event(MouseEvent& event)
@@ -193,23 +194,27 @@ void View::receive_mouse_leave_event(MouseLeaveEvent& event)
     Responder::receive_mouse_leave_event(event);
 }
 
-void View::receive_mouse_wheel_event(MouseWheelEvent& event)
+bool View::receive_mouse_wheel_event(MouseWheelEvent& event)
 {
-    bool found = false;
+    bool found_target = false;
     foreach_subview([&](View& subview) -> bool {
         if (subview.is_hovered()) {
             LG::Point<int> point(event.x(), event.y());
             point.offset_by(-subview.frame().origin());
             MouseWheelEvent mwe(point.x(), point.y(), event.wheel_data());
-            subview.receive_mouse_wheel_event(mwe);
-            found = true;
+            found_target |= subview.receive_mouse_wheel_event(mwe);
         }
         return true;
     });
 
-    if (!found) {
-        mouse_wheel_event(event.wheel_data());
+    // If not child can process wheel/scroll event, we try to do this.
+    if (!found_target) {
+        WheelEventResponse resp = mouse_wheel_event(event.wheel_data());
+        if (resp == WheelEventResponse::Handled) {
+            found_target = true;
+        }
     }
+    return found_target;
 }
 
 void View::receive_keyup_event(KeyUpEvent&)

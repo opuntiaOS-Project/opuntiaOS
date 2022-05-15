@@ -11,6 +11,7 @@
 #include <libfoundation/Event.h>
 #include <libfoundation/EventReceiver.h>
 #include <libfoundation/Receivers.h>
+#include <list>
 #include <memory>
 #include <vector>
 
@@ -75,16 +76,18 @@ public:
     }
 
     inline void stop(int exit_code) { m_exit_code = exit_code, m_stop_flag = true; }
-    void check_fds();
-    void check_timers();
-    void pump();
     int run();
 
 private:
+    void pump();
+    void cleanup_timers();
+    void check_fds();
+    void check_timers();
+
     bool m_stop_flag { false };
     int m_exit_code { 0 };
     std::vector<FDWaiter> m_waiting_fds;
-    std::vector<Timer> m_timers;
+    std::list<Timer> m_timers;
     std::vector<QueuedEvent> m_event_queue;
 };
 } // namespace LFoundation
