@@ -108,6 +108,7 @@ public:
         , m_callback(callback)
         , m_time_interval(time_interval)
         , m_repeat(repeat)
+        , m_valid(true)
     {
         clock_gettime(CLOCK_MONOTONIC, &m_expire_time);
         reload(m_expire_time);
@@ -119,6 +120,7 @@ public:
         , m_time_interval(fdw.m_time_interval)
         , m_repeat(fdw.m_repeat)
         , m_expire_time(fdw.m_expire_time)
+        , m_valid(fdw.m_valid)
     {
     }
 
@@ -128,6 +130,7 @@ public:
         , m_time_interval(fdw.m_time_interval)
         , m_repeat(fdw.m_repeat)
         , m_expire_time(fdw.m_expire_time)
+        , m_valid(fdw.m_valid)
     {
     }
 
@@ -143,6 +146,7 @@ public:
         return *this;
     }
 
+    inline bool valid() const { return m_valid; }
     inline bool repeated() const { return m_repeat; }
     inline bool expired(const std::timespec& now) const
     {
@@ -162,9 +166,12 @@ public:
     }
 
 private:
+    inline void mark_invalid() { m_valid = false; }
+
     std::function<void(void)> m_callback;
     std::timespec m_expire_time;
     std::time_t m_time_interval;
+    bool m_valid { true };
     bool m_repeat { false };
 };
 

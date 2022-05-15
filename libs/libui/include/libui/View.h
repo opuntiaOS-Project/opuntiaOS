@@ -124,9 +124,15 @@ public:
     virtual void did_display(const LG::Rect& rect);
 
     virtual void mouse_moved(const LG::Point<int>& new_location);
-    virtual void mouse_wheel_event(int wheel_data);
     virtual void mouse_entered(const LG::Point<int>& location);
     virtual void mouse_exited();
+
+    // Return
+    enum WheelEventResponse {
+        Skipped,
+        Handled,
+    };
+    virtual WheelEventResponse mouse_wheel_event(int wheel_data);
 
     virtual void mouse_down(const LG::Point<int>& location);
     virtual void mouse_up();
@@ -134,7 +140,7 @@ public:
     virtual void receive_mouse_move_event(MouseEvent&) override;
     virtual void receive_mouse_action_event(MouseActionEvent&) override;
     virtual void receive_mouse_leave_event(MouseLeaveEvent&) override;
-    virtual void receive_mouse_wheel_event(MouseWheelEvent&) override;
+    virtual bool receive_mouse_wheel_event(MouseWheelEvent&) override;
     virtual void receive_keyup_event(KeyUpEvent&) override;
     virtual void receive_keydown_event(KeyDownEvent&) override;
     virtual void receive_display_event(DisplayEvent&) override;
@@ -151,7 +157,7 @@ protected:
     inline void set_hovered(bool value) { m_hovered = value; }
     inline void set_active(bool value) { m_active = value; }
 
-    virtual std::optional<LG::Point<int>> subview_location(const View& subview) const;
+    virtual LG::Point<int> subview_location(const View& subview) const;
 
     template <Constraint::Attribute attr>
     inline void add_interpreted_constraint_to_mask() { m_applied_constraints_mask |= (1 << (int)attr); }

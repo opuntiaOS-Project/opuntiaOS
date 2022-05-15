@@ -90,6 +90,20 @@ void EventLoop::check_timers()
 
         if (timer.repeated()) {
             timer.reload(tp);
+        } else {
+            timer.mark_invalid();
+        }
+    }
+}
+
+void EventLoop::cleanup_timers()
+{
+    for (auto it = m_timers.begin(); it != m_timers.end();) {
+        auto& timer = *it;
+        if (!timer.valid()) {
+            it = m_timers.erase(it);
+        } else {
+            it++;
         }
     }
 }
@@ -104,6 +118,7 @@ void EventLoop::check_timers()
         event.receiver.receive_event(std::move(event.event));
     }
 
+    cleanup_timers();
     if (!events_to_dispatch.size()) {
         sched_yield();
     }

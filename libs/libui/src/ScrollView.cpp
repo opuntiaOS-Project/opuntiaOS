@@ -31,7 +31,31 @@ void ScrollView::display(const LG::Rect& rect)
     display_scroll_indicators(ctx);
 }
 
-void ScrollView::did_scroll(int n_x, int n_y)
+void ScrollView::animate_step()
+{
+    int diff = m_animation_target.y() - m_content_offset.y();
+    if (diff > 0) {
+        m_scroll_velocity = std::min(diff / 4 + 1, 100);
+    } else {
+        m_scroll_velocity = std::max(diff / 4 - 1, -100);
+    }
+    do_scroll(0, m_scroll_velocity);
+}
+
+void ScrollView::rearm_scroll_animation()
+{
+    LFoundation::EventLoop::the().add(LFoundation::Timer([this] {
+        this->animate_step();
+        if (m_content_offset != m_animation_target) {
+            this->rearm_scroll_animation();
+        } else {
+            m_has_timer = false;
+        }
+    },
+        1000 / 60));
+}
+
+void ScrollView::do_scroll(int n_x, int n_y)
 {
     int x = content_offset().x();
     int y = content_offset().y();
@@ -39,15 +63,44 @@ void ScrollView::did_scroll(int n_x, int n_y)
     int max_y = std::max(0, (int)content_size().height() - (int)bounds().height());
     content_offset().set_x(std::max(0, std::min(x + n_x, max_x)));
     content_offset().set_y(std::max(0, std::min(y + n_y, max_y)));
+    auto me = MouseEvent(m_mouse_location.x(), m_mouse_location.y());
+    receive_mouse_move_event(me);
     set_needs_display();
 }
 
-void ScrollView::mouse_wheel_event(int wheel_data)
+void ScrollView::setup_scroll(int n_x, int n_y)
 {
-    did_scroll(0, wheel_data * 10);
+    int x = m_animation_target.x();
+    int y = m_animation_target.y();
+    int max_x = std::max(0, (int)content_size().width() - (int)bounds().width());
+    int max_y = std::max(0, (int)content_size().height() - (int)bounds().height());
+    m_animation_target.set_x(std::max(0, std::min(x + n_x, max_x)));
+    m_animation_target.set_y(std::max(0, std::min(y + n_y, max_y)));
+
+    if (!m_has_timer) {
+        m_has_timer = true;
+        rearm_scroll_animation();
+    }
 }
 
-std::optional<LG::Point<int>> ScrollView::subview_location(const View& subview) const
+View::WheelEventResponse ScrollView::mouse_wheel_event(int wheel_data)
+{
+
+    int dist = abs(m_animation_target.y() - m_content_offset.y());
+    int distquad = dist / 2;
+    int multiplier = std::max(4, std::min(distquad, 100));
+    if (distquad < 12) {
+        multiplier = std::max(8, std::min(distquad, 100));
+    } else if (distquad < 16) {
+        multiplier = std::max(4, std::min((distquad * distquad) / 2, 100));
+    } else if (distquad < 30) {
+        multiplier = std::max(4, std::min((distquad * distquad) / 4, 100));
+    }
+    setup_scroll(0, wheel_data * multiplier);
+    return View::WheelEventResponse::Handled;
+}
+
+LG::Point<int> ScrollView::subview_location(const View& subview) const
 {
     auto frame_origin = subview.frame().origin();
     frame_origin.offset_by(-m_content_offset);
@@ -68,9 +121,9 @@ std::optional<View*> ScrollView::subview_at(const LG::Point<int>& point) const
 
 void ScrollView::receive_mouse_move_event(MouseEvent& event)
 {
-    auto location = LG::Point<int>(event.x(), event.y());
+    m_mouse_location = LG::Point<int>(event.x(), event.y());
     if (!is_hovered()) {
-        mouse_entered(location);
+        mouse_entered(m_mouse_location);
     }
 
     foreach_subview([&](View& subview) -> bool {
@@ -91,7 +144,7 @@ void ScrollView::receive_mouse_move_event(MouseEvent& event)
         return true;
     });
 
-    mouse_moved(location);
+    mouse_moved(m_mouse_location);
     Responder::receive_mouse_move_event(event);
 }
 

@@ -5,6 +5,7 @@ opuntiaOS_static_library("libui") {
     "src/App.cpp",
     "src/Button.cpp",
     "src/ClientDecoder.cpp",
+    "src/CollectionView.cpp",
     "src/Connection.cpp",
     "src/ContextManager.cpp",
     "src/Label.cpp",
