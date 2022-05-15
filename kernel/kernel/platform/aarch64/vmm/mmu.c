@@ -27,8 +27,7 @@
 
 static inline void clear_arch_flags(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // TODO(aarch64): This is set for 4kb pages.
-    const int frame_offset = 12;
+    const int frame_offset = PTABLE_LV0_VADDR_OFFSET;
 
     switch (lv) {
     case PTABLE_LV0:
@@ -44,7 +43,7 @@ static inline void clear_arch_flags(ptable_entity_t* entity, ptable_lv_t lv)
 static ptable_entity_t terminating_page_common_mmu_to_arch_flags(mmu_flags_t mmu_flags)
 {
     ptable_entity_t arch_flags = 0;
-    // MAIR has the following settings: 0x04ff, so if uncached setting index 1.
+    // MAIR has the following settings: 0x04ff, so if uncached, set index 1.
     SET_OP(mmu_flags, MMU_FLAG_UNCACHED, arch_flags |= (0b001 << 2));
 
     SET_OP(mmu_flags, MMU_FLAG_NONPRIV, arch_flags |= (0b01 << 6));
@@ -214,10 +213,9 @@ void vm_ptable_entity_rm_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu_
 
 void vm_ptable_entity_set_frame(ptable_entity_t* entity, ptable_lv_t lv, uintptr_t frame)
 {
-    // TODO(aarch64): This is set for 4kb pages.
     // TODO(aarch64): For huge pages we do not check frame, e.g it
-    // should be aligned at 1gb mark for LV2 huge pages.
-    const int frame_offset = 12;
+    //                should be aligned at 1gb mark for LV2 huge pages.
+    const int frame_offset = PTABLE_LV0_VADDR_OFFSET;
 
     switch (lv) {
     case PTABLE_LV0:
@@ -238,8 +236,7 @@ void vm_ptable_entity_set_frame(ptable_entity_t* entity, ptable_lv_t lv, uintptr
 
 uintptr_t vm_ptable_entity_get_frame(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    // TODO(aarch64): This is set for 4kb pages.
-    const int frame_offset = 12;
+    const int frame_offset = PTABLE_LV0_VADDR_OFFSET;
 
     switch (lv) {
     case PTABLE_LV0:
