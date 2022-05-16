@@ -46,10 +46,10 @@ protected:
     virtual LG::Point<int> subview_location(const View& subview) const override;
 
 private:
-    void animate_step();
+    void setup_scroll_animation(int wheel_data);
+    void do_scroll_animation_step();
     void rearm_scroll_animation();
     void do_scroll(int n_x, int n_y);
-    void setup_scroll(int x, int y);
     void recalc_content_props();
 
     LG::Size m_content_size {};
@@ -58,7 +58,7 @@ private:
 
     bool m_has_timer { false };
     size_t m_scroll_velocity { 0 };
-    int m_vel_div { 6 };
+    size_t m_last_scroll_multiplier { 0 };
     LG::Point<int> m_animation_target { 0, 0 };
 };
 

@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include <libfoundation/Math.h>
 #include <libg/Color.h>
 #include <libui/Context.h>
 #include <libui/ScrollView.h>
@@ -31,13 +32,14 @@ void ScrollView::display(const LG::Rect& rect)
     display_scroll_indicators(ctx);
 }
 
-void ScrollView::animate_step()
+void ScrollView::do_scroll_animation_step()
 {
     int diff = m_animation_target.y() - m_content_offset.y();
-    if (diff > 0) {
-        m_scroll_velocity = std::min(diff / 4 + 1, 100);
-    } else {
-        m_scroll_velocity = std::max(diff / 4 - 1, -100);
+    int abs_diff = abs(diff);
+    m_scroll_velocity = LFoundation::fast_sqrt(abs_diff);
+    m_scroll_velocity *= (((abs_diff / 8)) + 1);
+    if (diff < 0) {
+        m_scroll_velocity = -m_scroll_velocity;
     }
     do_scroll(0, m_scroll_velocity);
 }
@@ -45,7 +47,7 @@ void ScrollView::animate_step()
 void ScrollView::rearm_scroll_animation()
 {
     LFoundation::EventLoop::the().add(LFoundation::Timer([this] {
-        this->animate_step();
+        this->do_scroll_animation_step();
         if (m_content_offset != m_animation_target) {
             this->rearm_scroll_animation();
         } else {
@@ -68,8 +70,33 @@ void ScrollView::do_scroll(int n_x, int n_y)
     set_needs_display();
 }
 
-void ScrollView::setup_scroll(int n_x, int n_y)
+void ScrollView::setup_scroll_animation(int wheel_data)
 {
+    auto get_sign = [](int x) -> int {
+        return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
+    };
+
+    int dist = abs(m_animation_target.y() - m_content_offset.y());
+    if (dist < 10 || get_sign(wheel_data) != get_sign(m_last_scroll_multiplier)) {
+        m_last_scroll_multiplier = 10;
+    } else if (dist > 30) {
+        m_last_scroll_multiplier = 20;
+    } else {
+        m_last_scroll_multiplier = abs(m_last_scroll_multiplier);
+        if (m_last_scroll_multiplier > dist) {
+            m_last_scroll_multiplier--;
+        } else {
+            m_last_scroll_multiplier++;
+        }
+    }
+
+    if (wheel_data < 0) {
+        m_last_scroll_multiplier = -m_last_scroll_multiplier;
+    }
+
+    int n_x = 0;
+    int n_y = m_last_scroll_multiplier;
+
     int x = m_animation_target.x();
     int y = m_animation_target.y();
     int max_x = std::max(0, (int)content_size().width() - (int)bounds().width());
@@ -85,18 +112,7 @@ void ScrollView::setup_scroll(int n_x, int n_y)
 
 View::WheelEventResponse ScrollView::mouse_wheel_event(int wheel_data)
 {
-
-    int dist = abs(m_animation_target.y() - m_content_offset.y());
-    int distquad = dist / 2;
-    int multiplier = std::max(4, std::min(distquad, 100));
-    if (distquad < 12) {
-        multiplier = std::max(8, std::min(distquad, 100));
-    } else if (distquad < 16) {
-        multiplier = std::max(4, std::min((distquad * distquad) / 2, 100));
-    } else if (distquad < 30) {
-        multiplier = std::max(4, std::min((distquad * distquad) / 4, 100));
-    }
-    setup_scroll(0, wheel_data * multiplier);
+    setup_scroll_animation(wheel_data);
     return View::WheelEventResponse::Handled;
 }
 
@@ -109,11 +125,12 @@ LG::Point<int> ScrollView::subview_location(const View& subview) const
 
 std::optional<View*> ScrollView::subview_at(const LG::Point<int>& point) const
 {
-    for (int i = subviews().size() - 1; i >= 0; --i) {
-        auto frame = subviews()[i]->frame();
+    for (auto it = subviews().rbegin(); it != subviews().rend(); it++) {
+        View* view = *it;
+        auto frame = view->frame();
         frame.offset_by(-m_content_offset);
         if (frame.contains(point)) {
-            return subviews()[i];
+            return view;
         }
     }
     return {};
@@ -197,8 +214,8 @@ void ScrollView::display_scroll_indicators(LG::Context& ctx)
     int line_height = bounds().height() * ratio;
     int start_y = content_offset().y() * ratio;
     int start_x = bounds().max_x() - 6;
-    ctx.set_fill_color(LG::Color(30, 30, 30, 100));
-    ctx.fill(LG::Rect(start_x, start_y, 4, line_height));
+    ctx.set_fill_color(LG::Color(0x6AAAF4));
+    ctx.fill_rounded(LG::Rect(start_x, start_y, 4, line_height), LG::CornerMask(2));
 }
 
 } // namespace UI

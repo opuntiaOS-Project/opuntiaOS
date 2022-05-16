@@ -31,15 +31,41 @@ View::View(View* superview, Window* window, const LG::Rect& frame)
 {
 }
 
+View::~View()
+{
+    for (auto* v : subviews()) {
+        delete v;
+    }
+}
+
+void View::remove_view(View* child)
+{
+    if (!child) {
+        return;
+    }
+
+    auto it = std::find(m_subviews.begin(), m_subviews.end(), child);
+    if (it == m_subviews.end()) {
+        return;
+    }
+
+    m_subviews.erase(it);
+}
+
 void View::remove_from_superview()
 {
+    if (!superview()) {
+        return;
+    }
+    superview()->remove_view(this);
 }
 
 std::optional<View*> View::subview_at(const LG::Point<int>& point) const
 {
-    for (int i = subviews().size() - 1; i >= 0; --i) {
-        if (subviews()[i]->frame().contains(point)) {
-            return subviews()[i];
+    for (auto it = subviews().rbegin(); it != subviews().rend(); it++) {
+        View* view = *it;
+        if (view->frame().contains(point)) {
+            return view;
         }
     }
     return {};
