@@ -17,6 +17,7 @@
 #include <libui/GestureManager.h>
 #include <libui/Layer.h>
 #include <libui/Responder.h>
+#include <list>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -47,7 +48,7 @@ class View : public Responder {
 public:
     friend class Window;
 
-    ~View() = default;
+    ~View();
 
     template <class T, class... Args>
     T& add_subview(Args&&... args)
@@ -64,8 +65,8 @@ public:
     template <typename Callback>
     void foreach_subview(Callback callback) const
     {
-        for (int i = 0; i < m_subviews.size(); i++) {
-            if (!callback(*m_subviews[i])) {
+        for (auto* viewptr : m_subviews) {
+            if (!callback(*viewptr)) {
                 return;
             }
         }
@@ -105,8 +106,8 @@ public:
     inline Window* window() { return m_window; }
     inline bool has_superview() { return m_superview; }
     inline View* superview() { return m_superview; }
-    inline std::vector<View*>& subviews() { return m_subviews; }
-    inline const std::vector<View*>& subviews() const { return m_subviews; }
+    inline std::list<View*>& subviews() { return m_subviews; }
+    inline const std::list<View*>& subviews() const { return m_subviews; }
 
     void set_needs_display(const LG::Rect&);
     inline void set_needs_display() { set_needs_display(bounds()); }
@@ -170,10 +171,11 @@ protected:
 private:
     void set_window(Window* window) { m_window = window; }
     void set_superview(View* superview) { m_superview = superview; }
+    void remove_view(View* view);
 
     View* m_superview { nullptr };
     Window* m_window { nullptr };
-    std::vector<View*> m_subviews;
+    std::list<View*> m_subviews;
     LG::Rect m_frame;
     LG::Rect m_bounds;
 

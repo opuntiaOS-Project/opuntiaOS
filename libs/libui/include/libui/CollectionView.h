@@ -27,12 +27,13 @@ class CollectionView : public ScrollView {
     UI_OBJECT();
 
 public:
-    static const size_t DefaultViewsPerRow = 4;
-
     ~CollectionView() = default;
 
     template <class T>
-    void set_data_source(T data_source) { m_data_source = data_source, prefetch_data_forward(); };
+    void set_data_source(T data_source) { m_data_source = data_source, prefetch_forward(); };
+
+    void reload_data() { prefetch_forward(); }
+    void invalidate_row(int id);
 
     virtual void display(const LG::Rect& rect) override;
     virtual void mouse_entered(const LG::Point<int>& location) override;
@@ -40,9 +41,9 @@ public:
     virtual WheelEventResponse mouse_wheel_event(int wheel_data) override
     {
         ScrollView::mouse_wheel_event(wheel_data);
-        prefetch_data_forward();
         if (wheel_data > 0) {
             after_scroll_forward();
+            prefetch_forward();
         } else {
             after_scroll_backward();
         }
@@ -60,20 +61,20 @@ private:
         EndOfStream,
     };
     PrefetchStatus prefetch_row_forward(int id);
-    void prefetch_data_forward();
+    void prefetch_forward();
     void after_scroll_forward();
     void after_scroll_backward();
-    void add_to_bounds_size();
 
-    size_t m_view_per_row { DefaultViewsPerRow };
-    LG::Point<int> m_cached_view_start { 0, 0 };
-    std::list<View*> m_prev_cached_views {};
-    std::list<View*> m_next_cached_views {};
+    // Cache of views which precede the first on-screen view.
+    std::list<View*> m_preceding_views {};
+
+    // Cache of views which follow the last on-screen view.
+    std::list<View*> m_following_views {};
     std::list<View*> m_views_on_screen {};
 
-    size_t m_first_onscreen_line { 0 };
-    size_t m_first_offscreen_line { 0 };
-    LG::Point<int> m_next_frame_origin { 0, 0 };
+    size_t m_first_onscreen_row_index { 0 };
+    size_t m_first_offscreen_row_index { 0 };
+    LG::Point<int> m_next_frame_origin { 0, 16 };
 
     CollectionViewRowStreamer m_data_source;
 };

@@ -41,9 +41,44 @@ void CollectionView::mouse_exited()
     set_hovered(false);
 }
 
+void CollectionView::invalidate_row(int rowid)
+{
+    if (!m_data_source) {
+        return;
+    }
+
+    auto remove_view_from_list = [this, rowid](std::list<View*>& lst, size_t view_offset) {
+        View* view = m_data_source((int)rowid);
+        if (!view) {
+            return;
+        }
+
+        auto it = lst.begin();
+        std::advance(it, view_offset);
+
+        View* prev_view = *it;
+        view->frame().set_y(prev_view->frame().min_y());
+        view->set_needs_layout();
+
+        lst.insert(it, view);
+        lst.erase(it);
+
+        prev_view->remove_from_superview();
+        delete prev_view;
+    };
+
+    if (m_first_onscreen_row_index <= rowid && rowid < m_first_onscreen_row_index + m_views_on_screen.size()) {
+        remove_view_from_list(m_views_on_screen, rowid - m_first_onscreen_row_index);
+    } else if (m_first_offscreen_row_index <= rowid && rowid < m_first_offscreen_row_index + m_following_views.size()) {
+        remove_view_from_list(m_following_views, rowid - m_first_offscreen_row_index);
+    } else if (m_first_onscreen_row_index - m_preceding_views.size() <= rowid && rowid < m_first_onscreen_row_index) {
+        remove_view_from_list(m_preceding_views, rowid - (m_first_onscreen_row_index - m_preceding_views.size()));
+    }
+}
+
 CollectionView::PrefetchStatus CollectionView::prefetch_row_forward(int id)
 {
-    size_t cached_lines = m_first_offscreen_line + m_next_cached_views.size();
+    size_t cached_lines = m_first_offscreen_row_index + m_following_views.size();
     if (id < cached_lines) {
         return PrefetchStatus::Success;
     }
@@ -54,8 +89,8 @@ CollectionView::PrefetchStatus CollectionView::prefetch_row_forward(int id)
         return PrefetchStatus::EndOfStream;
     }
 
-    m_next_cached_views.push_back(view);
-    view->frame().set_origin(m_next_frame_origin);
+    m_following_views.push_back(view);
+    view->frame().set_y(m_next_frame_origin.y());
     view->set_needs_layout();
 
     m_next_frame_origin.set_y(m_next_frame_origin.y() + view->bounds().height());
@@ -64,7 +99,7 @@ CollectionView::PrefetchStatus CollectionView::prefetch_row_forward(int id)
     return PrefetchStatus::Success;
 }
 
-void CollectionView::prefetch_data_forward()
+void CollectionView::prefetch_forward()
 {
     if (!m_data_source) {
         return;
@@ -72,17 +107,17 @@ void CollectionView::prefetch_data_forward()
 
     // Not initialized, so prefetching while data is on screen.
     if (content_size().height() < bounds().height()) {
-        for (;; m_first_offscreen_line++) {
-            PrefetchStatus full_line_prefetched = prefetch_row_forward(m_first_offscreen_line);
+        for (;; m_first_offscreen_row_index++) {
+            PrefetchStatus full_line_prefetched = prefetch_row_forward(m_first_offscreen_row_index);
             if (full_line_prefetched == PrefetchStatus::EndOfStream) {
                 break;
             }
 
-            m_views_on_screen.push_back(m_next_cached_views.front());
-            m_next_cached_views.pop_front();
+            m_views_on_screen.push_back(m_following_views.front());
+            m_following_views.pop_front();
 
             if (!bounds().contains(m_next_frame_origin)) {
-                m_first_offscreen_line++;
+                m_first_offscreen_row_index++;
                 // Exiting here since the next frame is out of screen.
                 return;
             }
@@ -91,7 +126,7 @@ void CollectionView::prefetch_data_forward()
 
     const int cache_depth = 4;
     for (int i = 0; i < cache_depth; i++) {
-        PrefetchStatus full_line_prefetched = prefetch_row_forward(m_first_offscreen_line + i);
+        PrefetchStatus full_line_prefetched = prefetch_row_forward(m_first_offscreen_row_index + i);
         if (full_line_prefetched == PrefetchStatus::EndOfStream) {
             break;
         }
@@ -101,14 +136,14 @@ void CollectionView::prefetch_data_forward()
 void CollectionView::after_scroll_backward()
 {
 
-    if (!m_prev_cached_views.empty()) {
-        View* back_view = m_prev_cached_views.back();
+    if (!m_preceding_views.empty()) {
+        View* back_view = m_preceding_views.back();
         auto back_view_frame = back_view->frame();
         back_view_frame.offset_by(-content_offset());
         if (bounds().intersects(back_view_frame)) {
-            m_views_on_screen.push_front(m_prev_cached_views.back());
-            m_prev_cached_views.pop_back();
-            m_first_onscreen_line--;
+            m_views_on_screen.push_front(m_preceding_views.back());
+            m_preceding_views.pop_back();
+            m_first_onscreen_row_index--;
         }
     }
 
@@ -117,9 +152,9 @@ void CollectionView::after_scroll_backward()
         auto back_view_frame = back_view->frame();
         back_view_frame.offset_by(-content_offset());
         if (!bounds().intersects(back_view_frame)) {
-            m_next_cached_views.push_front(m_views_on_screen.back());
+            m_following_views.push_front(m_views_on_screen.back());
             m_views_on_screen.pop_back();
-            m_first_offscreen_line--;
+            m_first_offscreen_row_index--;
         }
     }
 }
@@ -131,27 +166,22 @@ void CollectionView::after_scroll_forward()
         auto front_view_frame = front_view->frame();
         front_view_frame.offset_by(-content_offset());
         if (!bounds().intersects(front_view_frame)) {
-            m_prev_cached_views.push_back(m_views_on_screen.front());
+            m_preceding_views.push_back(m_views_on_screen.front());
             m_views_on_screen.pop_front();
-            m_first_onscreen_line++;
+            m_first_onscreen_row_index++;
         }
     }
 
-    if (!m_next_cached_views.empty()) {
-        View* front_view = m_next_cached_views.front();
+    if (!m_following_views.empty()) {
+        View* front_view = m_following_views.front();
         auto front_view_frame = front_view->frame();
         front_view_frame.offset_by(-content_offset());
         if (bounds().intersects(front_view_frame)) {
-            m_views_on_screen.push_back(m_next_cached_views.front());
-            m_next_cached_views.pop_front();
-            m_first_offscreen_line++;
+            m_views_on_screen.push_back(m_following_views.front());
+            m_following_views.pop_front();
+            m_first_offscreen_row_index++;
         }
     }
-}
-
-void CollectionView::add_to_bounds_size()
-{
-    // content_size() +=
 }
 
 } // namespace UI
