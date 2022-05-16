@@ -61,6 +61,7 @@ template("opuntiaOS_application") {
     outputs = [ "$root_out_dir/base/Applications/$app_name.app/Content" ]
     args = [
       app_name,
+      invoker.display_name,
       rebase_path("$root_out_dir/base/Applications/$app_name.app/Content",
                   root_build_dir),
       rebase_path("//userland/applications/$app_name", root_build_dir),

@@ -9,9 +9,10 @@ import os
 import json
 import subprocess
 
-app_name = sys.argv[1]
-outpath = sys.argv[2]
-src_dir = sys.argv[3]
+fs_app_name = sys.argv[1]
+app_name = sys.argv[2]
+outpath = sys.argv[3]
+src_dir = sys.argv[4]
 
 
 def print_json(config_file, rdict):
@@ -29,7 +30,9 @@ def write_config(config, outpath):
     config_file = open(outpath+"/info.json", "w")
 
     config['name'] = app_name
-    config['bundle_id'] = "com.opuntia.{0}".format(app_name)
+    config['exec_rel_path'] = fs_app_name
+    config['icon_path'] = "/res/icons/apps/" + fs_app_name + ".icon"
+    config['bundle_id'] = "com.opuntia.{0}".format(fs_app_name)
 
     print_json(config_file, config)
     config_file.close()
