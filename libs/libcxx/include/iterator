@@ -211,6 +211,20 @@ constexpr typename iterator_traits<Iter>::difference_type distance(Iter first, I
     return res;
 };
 
+template <class Iter, class Distance>
+constexpr void advance(Iter& it, Distance n)
+{
+    if (n > 0) {
+        while (n--) {
+            it++;
+        }
+    } else if (n < 0) {
+        while (n++) {
+            it--;
+        }
+    }
+}
+
 _LIBCXX_END_NAMESPACE_STD
 
 #endif // _LIBCXX_ITERATOR
