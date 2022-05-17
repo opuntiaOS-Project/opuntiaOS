@@ -432,6 +432,17 @@ void WindowManager::receive_mouse_event(std::unique_ptr<LFoundation::Event> even
         }
         send_event(new MouseActionMessage(window->connection_id(), window->id(), buttons_state.state(), point.x(), point.y()));
     }
+
+    if (active_window()) {
+        auto window = active_window();
+        if (m_cursor_manager.pressed<CursorManager::Params::LeftButton>()) {
+            if (m_cursor_manager.is_changed<CursorManager::Params::Coords>()) {
+                LG::Point<int> point(m_cursor_manager.x(), m_cursor_manager.y());
+                point.offset_by(-window->content_bounds().origin());
+                send_event(new MouseMoveMessage(window->connection_id(), window->id(), point.x(), point.y()));
+            }
+        }
+    }
 }
 #endif // TARGET_MOBILE
 
