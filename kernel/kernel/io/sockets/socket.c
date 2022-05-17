@@ -16,6 +16,7 @@ static int next_socket = 0;
 
 static socket_t* _socket_create(int domain, int type, int protocol)
 {
+    ASSERT(next_socket < MAX_SOCKET_COUNT);
     socket_list[next_socket].domain = domain;
     socket_list[next_socket].type = type;
     socket_list[next_socket].protocol = protocol;

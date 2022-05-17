@@ -13,7 +13,7 @@
 #include <libkern/syscall_structs.h>
 #include <libkern/types.h>
 
-#define MAX_SOCKET_COUNT 16
+#define MAX_SOCKET_COUNT 32
 
 int socket_create(int domain, int type, int protocol, file_descriptor_t* fd, file_ops_t* ops);
 socket_t* socket_duplicate(socket_t* sock);
