@@ -36,7 +36,7 @@ public:
     {
     }
 
-    ~Object() = default;
+    virtual ~Object() = default;
 
     Type type() const { return m_type; }
     bool invalid() const { return type() == Type::Invalid; }
