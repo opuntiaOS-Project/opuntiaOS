@@ -93,8 +93,9 @@ CollectionView::PrefetchStatus CollectionView::prefetch_row_forward(int id)
     view->frame().set_y(m_next_frame_origin.y());
     view->set_needs_layout();
 
-    m_next_frame_origin.set_y(m_next_frame_origin.y() + view->bounds().height());
-    content_size().set_height(content_size().height() + view->bounds().height());
+    int next_y = m_next_frame_origin.y() + view->bounds().height();
+    m_next_frame_origin.set_y(next_y);
+    content_size().set_height(next_y);
 
     return PrefetchStatus::Success;
 }

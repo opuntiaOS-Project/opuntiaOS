@@ -40,8 +40,6 @@ public:
     inline size_t preferred_width() const { return text_width() + m_content_edge_insets.left() + m_content_edge_insets.right(); }
 
     virtual void display(const LG::Rect& rect) override;
-    virtual void mouse_entered(const LG::Point<int>& location) override;
-    virtual void mouse_exited() override;
 
 protected:
     Label(View* superview, const LG::Rect&);

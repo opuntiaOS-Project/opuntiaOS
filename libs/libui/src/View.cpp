@@ -143,6 +143,7 @@ void View::mouse_exited()
 {
     set_hovered(false);
     set_active(false);
+    m_gesture_manager.mouse_up();
 }
 
 void View::mouse_down(const LG::Point<int>& location)
