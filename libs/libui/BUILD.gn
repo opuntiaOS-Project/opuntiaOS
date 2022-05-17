@@ -14,6 +14,7 @@ opuntiaOS_static_library("libui") {
     "src/Responder.cpp",
     "src/ScrollView.cpp",
     "src/StackView.cpp",
+    "src/TextField.cpp",
     "src/TextView.cpp",
     "src/View.cpp",
     "src/ViewController.cpp",
