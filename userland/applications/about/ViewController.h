@@ -56,12 +56,6 @@ public:
         footer.set_text("(c) 2020-2022");
         footer.set_width(footer.preferred_width());
 
-#if 0
-        view().add_gesture_recognizer<UI::SwipeGestureRecognizer>([](const UI::GestureRecognizer* recon) {
-            Logger::debug << recon->state() << std::endl;
-        });
-#endif
-
         view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Left, UI::Constraint::Relation::Equal, 0));
         view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Top, UI::Constraint::Relation::Equal, 0));
         view().add_constraint(UI::Constraint(header, UI::Constraint::Attribute::Right, UI::Constraint::Relation::Equal, 0));

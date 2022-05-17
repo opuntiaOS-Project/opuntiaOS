@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include <dirent.h>
 #include <string>
 #include <unistd.h>
 #include <vector>

@@ -20,9 +20,9 @@ public:
     void display(const LG::Rect& rect) override;
     void mouse_up() override { on_click(); }
 
-private:
     void on_click();
 
+private:
     int m_target_window_id { INVALID };
     LG::PixelBitmap m_icon;
 };

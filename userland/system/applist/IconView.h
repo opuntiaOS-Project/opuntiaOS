@@ -1,6 +1,5 @@
 #pragma once
-#include "DockEntity.h"
-#include "WindowEntity.h"
+#include "AppEntity.h"
 #include <libg/Font.h>
 #include <libui/Label.h>
 #include <libui/PopupMenu.h>
@@ -28,8 +27,8 @@ public:
         m_label->set_text(title);
     }
 
-    DockEntity& entity() { return m_launch_entity; }
-    const DockEntity& entity() const { return m_launch_entity; }
+    AppEntity& entity() { return m_launch_entity; }
+    const AppEntity& entity() const { return m_launch_entity; }
 
     virtual void mouse_entered(const LG::Point<int>& location) override
     {
@@ -57,5 +56,5 @@ private:
     }
 
     UI::Label* m_label;
-    DockEntity m_launch_entity;
+    AppEntity m_launch_entity;
 };
