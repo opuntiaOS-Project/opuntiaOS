@@ -93,7 +93,7 @@ static int _aplfb_ioctl(file_t* file, uintptr_t cmd, uintptr_t arg)
         return aplfb_screen_width;
     case BGA_GET_SCALE:
         // TODO: Determine based on screen size.
-        return 2;
+        return 1;
     case BGA_SWAP_BUFFERS:
         return swap_buffers(arg & 1);
     default:

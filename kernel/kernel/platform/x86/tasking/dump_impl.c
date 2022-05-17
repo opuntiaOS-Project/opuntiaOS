@@ -31,6 +31,9 @@ void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_
     char buf[64];
 
     do {
+        if (id > 64) {
+            return;
+        }
         if (IS_KERNEL_VADDR(ip) && !is_kernel) {
             return;
         }
