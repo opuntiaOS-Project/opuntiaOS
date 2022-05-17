@@ -261,6 +261,24 @@ public:
 
     inline operator std::basic_string_view<CharT, Traits>() const { return std::basic_string_view<CharT, Traits>(data(), size()); }
 
+    bool starts_with(value_type c) const
+    {
+        if (size() == 0) {
+            return false;
+        }
+        return Traits::eq(at(0), c) == 0;
+    }
+
+    bool starts_with(const value_type* s) const
+    {
+        size_t len = Traits::length(s);
+        if (size() < len) {
+            return false;
+        }
+
+        return Traits::compare(c_str(), s, len) == 0;
+    }
+
 private:
     inline void ensure_capacity(size_t new_size)
     {
