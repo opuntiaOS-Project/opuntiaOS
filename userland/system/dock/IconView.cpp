@@ -19,15 +19,15 @@ void IconView::display(const LG::Rect& rect)
     LG::Context ctx = UI::graphics_current_context();
     ctx.add_clip(rect);
 
+    auto icon_rect = LG::Rect(offset_x, offset_y, DockView::icon_size(), DockView::icon_size());
+    ctx.draw(icon_rect.origin(), m_launch_entity.icon());
     if (is_hovered()) {
-        auto rect = LG::Rect(padding, padding, DockView::icon_view_size() - 2 * padding, DockView::icon_view_size() - 2 * padding);
-        ctx.set_fill_color(LG::Color::White);
-        ctx.fill_rounded(rect, LG::CornerMask(6));
-        ctx.set_fill_color(LG::Color(120, 129, 133, 60));
-        ctx.draw_box_shading(rect, LG::Shading(LG::Shading::Type::Box, 0, 2), LG::CornerMask(6));
+        ctx.set_fill_color(LG::Color::LightSystemOpaque128);
+        ctx.fill(icon_rect);
     }
 
-    ctx.draw({ offset_x, offset_y }, m_launch_entity.icon());
+    ctx.set_fill_color(LG::Color(120, 129, 133, 40));
+    ctx.draw_box_shading(icon_rect, LG::Shading(LG::Shading::Type::Box, 0, 3), LG::CornerMask(6));
 
     ctx.set_fill_color(LG::Color(163, 174, 190));
     const int underline_y = DockView::icon_view_size() - underline_height() - padding;

@@ -39,6 +39,18 @@ HomeScreenView::HomeScreenView(UI::View* superview, UI::Window* window, const LG
         m_grid_stackviews.push_back(&hstack_view);
     }
 
+    int dock_offsety = bounds().height() - dock_height_with_padding();
+    auto& dock_subview = add_subview<UI::View>(LG::Rect(0, dock_offsety, bounds().width(), dock_height_with_padding()));
+    dock_subview.layer().set_corner_mask(LG::CornerMask(16, LG::CornerMask::Masked, LG::CornerMask::NonMasked));
+    dock_subview.set_background_color(LG::Color::LightSystemOpaque128);
+    dock_subview.add_gesture_recognizer<UI::SwipeGestureRecognizer>([this](const UI::GestureRecognizer* recon) {
+        if (recon->state() == UI::GestureRecognizer::State::Ended) {
+            if (m_applist_view) {
+                m_applist_view->on_click();
+            }
+        }
+    });
+
     LG::Rect applist_frame = homegrid_frame;
     applist_frame.set_x(grid_padding());
     applist_frame.set_width(bounds().width() - 2 * grid_padding());
@@ -67,10 +79,6 @@ void HomeScreenView::display(const LG::Rect& rect)
 
     ctx.set_fill_color(LG::Color(0, 0, 0, 0));
     ctx.fill(bounds());
-
-    ctx.set_fill_color(LG::Color(255, 255, 255, 135));
-    int offsety = bounds().height() - dock_height_with_padding();
-    ctx.fill_rounded(LG::Rect(0, offsety, bounds().width(), dock_height_with_padding()), LG::CornerMask(16, LG::CornerMask::Masked, LG::CornerMask::NonMasked));
 }
 
 void HomeScreenView::new_grid_entity(const std::string& title, const std::string& icon_path, std::string&& exec_path)

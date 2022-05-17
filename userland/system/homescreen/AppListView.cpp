@@ -9,20 +9,14 @@
 AppListView::AppListView(View* superview, const LG::Rect& frame)
     : View(superview, frame)
 {
-    LG::PNG::PNGLoader loader;
-    m_icon = loader.load_from_file("/res/system/app_list_32.png");
+    // TODO: Drag-like animation is needed here.
+    auto& label = add_subview<UI::Label>(bounds());
+    label.set_text("Swipe up to open AppList");
+    label.set_alignment(UI::Text::Alignment::Center);
 }
 
 void AppListView::display(const LG::Rect& rect)
 {
-    const int padding = 4;
-    const int offset_x = (bounds().width() - m_icon.width()) / 2;
-    ;
-    const int offset_y = 0;
-    LG::Context ctx = UI::graphics_current_context();
-    ctx.add_clip(rect);
-
-    ctx.draw({ offset_x, offset_y }, m_icon);
 }
 
 void AppListView::on_click()
