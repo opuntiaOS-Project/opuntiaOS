@@ -4,12 +4,12 @@
 </br>
 
 ## Features
-<img src="https://raw.githubusercontent.com/opuntiaOS-Project/opuntiaOS/master/assets/banner/features_opac.png" width="100% ">
+<img src="https://raw.githubusercontent.com/opuntiaOS-Project/opuntiaOS/master/assets/banner/features_opac.png" width="100%">
 
 ### Kernel
 
-* x86-32 and ARMv7 kernel with pre-emptive multi-threading
-* Ext2 filesystems
+* x86-32, ARMv7 and Aarch64 kernel with pre-emptive multi-threading
+* Ext2 filesystem
 * /dev and /proc filesystems
 * Local sockets
 * POSIX signals
@@ -31,7 +31,7 @@
 
 ### Boot
 
-* Custom bootloaders for x86-32 and ARMv7
+* Custom bootloaders for x86-32, ARMv7 and iDevices
 * Kernel validation during the boot proccess
 * Custom device tree
 * [learn more](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/boot.md)
