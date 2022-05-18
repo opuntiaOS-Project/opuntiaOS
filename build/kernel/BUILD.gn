@@ -11,6 +11,7 @@ kernel_c_flags = [
   "-ffreestanding",
   "-Werror",
   "-Wno-address-of-packed-member",
+  "-fpie",
 ]
 kernel_asm_flags = []
 kernel_ld_flags = []
@@ -63,7 +64,6 @@ if (target_cpu == "aarch32") {
     "-march=armv7-a",
     "-mfpu=neon-vfpv4",
     "-mfloat-abi=soft",
-    "-fno-pie",
   ]
   kernel_asm_flags += [
     "-march=armv7-a",
@@ -96,7 +96,6 @@ if (target_cpu == "aarch64") {
   kernel_c_flags += [
     "-fno-builtin",
     "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
-    "-fno-pie",
   ]
   kernel_asm_flags += [ "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc" ]
   kernel_ld_flags += [ "-nostdlib" ]
@@ -126,6 +125,10 @@ if (target_cpu == "aarch64") {
     kernel_c_flags += [ "-DTARGET_APL" ]
     kernel_asm_flags += [ "-DTARGET_APL" ]
   }
+}
+
+if (host == "llvm") {
+  kernel_c_flags += [ "-flto" ]
 }
 
 config("kernel_flags") {
