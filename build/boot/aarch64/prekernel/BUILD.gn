@@ -1,0 +1,60 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+prekernel_c_flags = [
+  "-ffreestanding",
+  "-Werror",
+  "-Wno-address-of-packed-member",
+  "-fno-builtin",
+  "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
+  "-fpie",
+]
+prekernel_asm_flags = [ "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc" ]
+prekernel_ld_flags = [ "-nostdlib" ]
+
+if (kernel_symbols) {
+  prekernel_c_flags += [ "-ggdb" ]
+}
+
+if (host == "gnu") {
+  prekernel_ld_flags += [
+    "-nostdinc",
+    "-nodefaultlibs",
+    "-nostartfiles",
+    "-lgcc",
+    "-Wl,--oformat=binary",
+  ]
+}
+
+if (host == "llvm") {
+  prekernel_ld_flags += [
+    "--oformat",
+    "binary",
+  ]
+}
+
+config("prekernel_flags") {
+  cflags = prekernel_c_flags
+  asmflags = prekernel_asm_flags
+  ldflags = prekernel_ld_flags
+  defines = [ "opuntiaOS_prekernel" ]
+}
+
+linker_script =
+    rebase_path("//build/boot/$target_cpu/prekernel/prekernel_link.ld", root_build_dir)
+
+executable("prekernelaarch64") {
+  output_name = "prekernelaarch64.bin"
+  sources = [
+    "//boot/aarch64/prekernel/entry.S",
+  ]
+
+  include_dirs = [ "//boot" ]
+
+  configs = [ ":prekernel_flags" ]
+
+  ldflags = [
+    "-T$linker_script",
+  ]
+}
