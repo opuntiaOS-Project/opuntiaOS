@@ -10,10 +10,11 @@ prekernel_entry:
     ldr x30, =PREKERNEL_STACK_TOP
     mov sp, x30
 #ifdef TARGET_QEMU_VIRT
+    mov x0, x29 
     ldr x3, =prekernel_qemu_virt_boot
     blr x3
 #endif
-    mov x19, x0
+    mov x19, x0 // saving FDT from x0.
     ldr x3, =prekernel_vm_setup
     blr x3
     msr spsel, #1

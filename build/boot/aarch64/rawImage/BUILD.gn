@@ -1,0 +1,24 @@
+# Copyright 2022 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+if (target_cpu == "aarch64") {
+  action("rawImage") {
+    script = "make_raw_image.py"
+    sources = [
+      "$root_build_dir/prekernelaarch64.bin",
+      "$root_build_dir/base/boot/kernel.bin",
+    ]
+    outputs = [ "$root_build_dir/rawImage.bin" ]
+    args = [
+      rebase_path("$root_build_dir/prekernelaarch64.bin", root_build_dir),
+      rebase_path("$root_build_dir/base/boot/kernel.bin", root_build_dir),
+      rebase_path("$root_build_dir/rawImage.bin", root_build_dir),
+    ]
+
+    deps = [
+      "//build/kernel:kernel_build",
+      "//build/boot/aarch64/prekernel:prekernelaarch64",
+    ]
+  }
+}

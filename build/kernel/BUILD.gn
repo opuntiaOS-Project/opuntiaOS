@@ -192,6 +192,5 @@ group("kernel") {
   deps = [
     ":kernel_build",
     ":sign_kernel",
-    "//build/boot:boot",
   ]
 }
