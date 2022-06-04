@@ -9,8 +9,11 @@
 #pragma once
 #include "../../Devices/Screen.h"
 #include <libg/Color.h>
+#include <libg/Context.h>
+#include <libg/Font.h>
 #include <libg/PixelBitmap.h>
 #include <memory>
+#include <string_view>
 
 namespace WinServer {
 
@@ -55,12 +58,20 @@ public:
 private:
     static constexpr int progress_line_height() { return 4; }
     static constexpr int progress_line_width() { return 128; }
+
     void display_status_bar(int current_progress, int max_progress);
+
+    void animation_frame(LG::Context& ctx, LG::Point<int> pt, int frame, int total_frames);
+    void run_intro_animation();
+
+    std::string_view m_logo_text { "opuntiaOS" };
 
     Screen& m_screen;
     int m_progress_line_min_x { 0 };
     int m_progress_line_min_y { 0 };
     LG::PixelBitmap m_logo;
+
+    LG::Font& m_font { LG::Font::system_bold_font(32) };
 };
 
 } // namespace WinServer

@@ -171,7 +171,7 @@ void Context::draw(const Point<int>& start, const Glyph& bitmap)
         for (int y = min_y; y <= max_y; y++, bitmap_y++) {
             int bitmap_x = min_x + offset_x;
             for (int x = min_x; x <= max_x; x++, bitmap_x++) {
-                color.set_alpha(bitmap.alpha_at(bitmap_x, bitmap_y));
+                color.set_alpha((fill_color().alpha() * bitmap.alpha_at(bitmap_x, bitmap_y)) / 255);
                 m_bitmap[y][x].mix_with(color);
             }
         }

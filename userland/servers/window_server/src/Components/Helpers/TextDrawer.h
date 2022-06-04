@@ -11,12 +11,12 @@
 #include <libg/Color.h>
 #include <libg/Context.h>
 #include <libg/Font.h>
-#include <string>
+#include <string_view>
 
 namespace WinServer {
 namespace Helpers {
 
-    [[gnu::always_inline]] inline static size_t text_width(const std::string& text, const LG::Font& f)
+    [[gnu::always_inline]] inline static size_t text_width(const std::string_view& text, const LG::Font& f)
     {
         size_t width = 0;
 
@@ -26,7 +26,7 @@ namespace Helpers {
         return width;
     }
 
-    [[gnu::always_inline]] inline static void draw_text(LG::Context& ctx, LG::Point<int> pt, const std::string& text, const LG::Font& f)
+    [[gnu::always_inline]] inline static void draw_text(LG::Context& ctx, LG::Point<int> pt, const std::string_view& text, const LG::Font& f)
     {
         for (int i = 0; i < text.size(); i++) {
             ctx.draw(pt, f.glyph(text[i]));
