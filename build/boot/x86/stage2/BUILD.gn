@@ -16,6 +16,7 @@ executable("stage2") {
     "//boot/libboot/elf/elf_lite.c",
     "//boot/libboot/fs/ext2_lite.c",
     "//boot/libboot/log/log.c",
+    "//boot/libboot/mem/alloc.c",
     "//boot/libboot/mem/mem.c",
     "//boot/x86/stage2/drivers/ata.c",
     "//boot/x86/stage2/drivers/port.c",

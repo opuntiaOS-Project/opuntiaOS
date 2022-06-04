@@ -6,9 +6,12 @@
  * found in the LICENSE file.
  */
 
-#ifndef _BOOT_TARGET_MEMMAP_H
-#define _BOOT_TARGET_MEMMAP_H
+#ifndef _BOOT_DRIVERS_UART_H
+#define _BOOT_DRIVERS_UART_H
 
-#include "cortex-a15/memmap.h"
+#include <libboot/types.h>
 
-#endif // _BOOT_TARGET_MEMMAP_H
+void uart_init();
+int uart_write(uint8_t data);
+
+#endif // _BOOT_DRIVERS_UART_H

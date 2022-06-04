@@ -6,7 +6,7 @@ ENTRY(_pa_base)
 SECTIONS
 {
 	. = _pa_base;
-	prekernel_start_offset = .;
+	PREKERNEL_START_OFFSET = .;
 
 	.text :
 	{
@@ -27,6 +27,12 @@ SECTIONS
 		*(.data.*)
 	}
 
+	.got :
+	{
+		*(.got)
+		*(.got.*)
+	}
+
 	.bss :
 	{
 		*(.bss)
@@ -39,7 +45,6 @@ SECTIONS
 		PREKERNEL_STACK_BASE_OFFSET = .;
 		. += 0x1000;
 		PREKERNEL_STACK_TOP_OFFSET = .;
+		PREKERNEL_END_OFFSET = .;
 	}
-
-	prekernel_end_offset = .;
 }

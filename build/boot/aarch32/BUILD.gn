@@ -92,7 +92,6 @@ executable("bootarm") {
     "//boot/aarch32/hw/ram.c",
     "//boot/aarch32/main.c",
     "//boot/aarch32/start_kernel.s",
-    "//boot/aarch32/target/cortex-a15/memmap.c",
     "//boot/aarch32/vmm/vmm.c",
     "//boot/libboot/crypto/sha256.c",
     "//boot/libboot/crypto/signature.c",
@@ -102,6 +101,7 @@ executable("bootarm") {
     "//boot/libboot/elf/elf_lite.c",
     "//boot/libboot/fs/ext2_lite.c",
     "//boot/libboot/log/log.c",
+    "//boot/libboot/mem/alloc.c",
     "//boot/libboot/mem/mem.c",
   ]
 

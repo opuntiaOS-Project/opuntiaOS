@@ -11,7 +11,6 @@ int vm_setup()
 
     for (uint32_t phyz = 0, virt = 0, i = 0; i < 1024; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
         pte_t new_page = 0;
-        // pte_set_attr(&new_page, PTE_PRESENT);
         new_page |= 3;
         new_page |= ((phyz / VMM_PAGE_SIZE) << 12);
         table_0mb->entities[i] = new_page;
@@ -19,7 +18,6 @@ int vm_setup()
 
     for (uint32_t phyz = 0x400000, virt = 0x400000, i = 0; i < 1024; phyz += VMM_PAGE_SIZE, virt += VMM_PAGE_SIZE, i++) {
         pte_t new_page = 0;
-        // pte_set_attr(&new_page, PTE_PRESENT);
         new_page |= 3;
         new_page |= ((phyz / VMM_PAGE_SIZE) << 12);
         table_0mbplus->entities[i] = new_page;

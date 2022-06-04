@@ -58,6 +58,23 @@ typedef struct {
     uint16_t e_shstrndx;
 } elf_header_32_t;
 
+typedef struct {
+    uint8_t e_ident[16];
+    uint16_t e_type;
+    uint16_t e_machine;
+    uint32_t e_version;
+    uint64_t e_entry;
+    uint64_t e_phoff;
+    uint64_t e_shoff;
+    uint32_t e_flags;
+    uint16_t e_ehsize;
+    uint16_t e_phentsize;
+    uint16_t e_phnum;
+    uint16_t e_shentsize;
+    uint16_t e_shnum;
+    uint16_t e_shstrndx;
+} elf_header_64_t;
+
 enum P_TYPE_FIELDS {
     PT_NULL,
     PT_LOAD,
@@ -83,6 +100,17 @@ typedef struct {
     uint16_t p_flags;
     uint16_t p_align;
 } elf_program_header_32_t;
+
+typedef struct {
+    uint32_t p_type;
+    uint32_t p_flags;
+    uint64_t p_offset;
+    uint64_t p_vaddr;
+    uint64_t p_paddr;
+    uint64_t p_filesz;
+    uint64_t p_memsz;
+    uint64_t p_align;
+} elf_program_header_64_t;
 
 enum SH_TYPE_FIELDS {
     SHT_NULL,
@@ -141,6 +169,19 @@ typedef struct {
     uint32_t sh_entsize;
 } elf_section_header_32_t;
 
+typedef struct {
+    uint32_t sh_name;
+    uint32_t sh_type;
+    uint64_t sh_flags;
+    uint64_t sh_addr;
+    uint64_t sh_offset;
+    uint64_t sh_size;
+    uint32_t sh_link;
+    uint32_t sh_info;
+    uint64_t sh_addralign;
+    uint64_t sh_entsize;
+} elf_section_header_64_t;
+
 struct elfctx {
     drive_desc_t* drive_desc;
     fs_desc_t* fs_desc;
@@ -153,6 +194,11 @@ int elf_init_ctx(drive_desc_t* drive_desc, fs_desc_t* fs_desc, const char* path,
 int elf_read_program_header(elfctx_t* elfctx, size_t id, elf_program_header_32_t* program_header);
 int elf_read_section_header(elfctx_t* elfctx, uint32_t id, elf_section_header_32_t* section_header);
 
-int elf_load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, const char* path, uint32_t* kernel_vaddr, uint32_t* kernel_paddr, uint32_t* kernel_size);
+#ifdef BITS32
+int elf_load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc, const char* path, size_t* kernel_vaddr, size_t* kernel_paddr, size_t* kernel_size);
+#else
+size_t elf_get_kernel_size(void* elffile);
+int elf_load_kernel(void* elffile, size_t size, uintptr_t* kernel_vaddr, uintptr_t* kernel_paddr);
+#endif
 
 #endif // _BOOT_LIBBOOT_ELF_ELF_LITE

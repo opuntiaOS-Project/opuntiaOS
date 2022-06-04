@@ -6,8 +6,12 @@
  * found in the LICENSE file.
  */
 
-#include <libkern/types.h>
-#include <mem/boot.h>
+#include "vm.h"
+#include <libboot/abi/kernel.h>
+#include <libboot/abi/rawimage.h>
+#include <libboot/log/log.h>
+#include <libboot/mem/alloc.h>
+#include <libboot/mem/mem.h>
 
 static uint64_t* global_page_table_0;
 static uint64_t* global_page_table_1;
@@ -19,37 +23,10 @@ static const int t0sz = 25;
 static const int t1sz = 25;
 static const uint64_t kernel_base = 0xffffffffffffffff - ((1ull << (64 - t1sz)) - 1);
 
-static uint64_t* new_ptable(boot_args_t* args);
-static void map4kb_1gb(boot_args_t* args, size_t phyz, size_t virt);
-static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt);
-void prekernel_vm_setup(boot_args_t* args);
-void* prekernel_memset(void* dest, uint8_t fll, size_t nbytes);
-
-static void* prekernel_translate_addr(boot_args_t* args, void* addr);
-boot_args_t* prekernel_move_args(boot_args_t* args);
-
-#define ROUND_CEIL(a, b) (((a) + ((b)-1)) & ~((b)-1))
-#define ROUND_FLOOR(a, b) ((a) & ~((b)-1))
-
-#define VMM_LV0_ENTITY_COUNT (512)
-#define VMM_LV1_ENTITY_COUNT (512)
-#define VMM_LV2_ENTITY_COUNT (512)
-#define VMM_LV3_ENTITY_COUNT (512)
-
-#define PTABLE_LV_TOP (2)
-#define PTABLE_LV0_VADDR_OFFSET (12)
-#define PTABLE_LV1_VADDR_OFFSET (21)
-#define PTABLE_LV2_VADDR_OFFSET (30)
-#define PTABLE_LV3_VADDR_OFFSET (39)
-
-#define VM_VADDR_OFFSET_AT_LEVEL(vaddr, off, ent) ((vaddr >> off) % ent)
-
-uintptr_t next_alloc_addr = 0x0;
 static uint64_t* new_ptable(boot_args_t* args)
 {
-    uint64_t* res = (uint64_t*)next_alloc_addr;
-    prekernel_memset(res, 0, 4 << 10);
-    next_alloc_addr += 4 << 10; // 4KB
+    uint64_t* res = (uint64_t*)palloc_aligned(page_size(), page_size());
+    memset(res, 0, page_size());
     return res;
 }
 
@@ -106,33 +83,66 @@ static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt)
     page_table[VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV1_VADDR_OFFSET, VMM_LV1_ENTITY_COUNT)] = pdesc;
 }
 
-void* prekernel_memset(void* dest, uint8_t fll, size_t nbytes)
+static void map_uart(boot_args_t* args)
 {
-    for (int i = 0; i < nbytes; ++i) {
-        *((uint8_t*)dest + i) = fll;
+    devtree_entry_t* dev = devtree_find_device("uart");
+    if (!dev) {
+        return;
     }
-    return dest;
+
+    uint64_t paddr = dev->region_base;
+    const size_t page_covers = (1ull << PTABLE_LV2_VADDR_OFFSET);
+    paddr &= ~(page_covers - 1);
+
+    map4kb_1gb(args, paddr, paddr);
 }
 
-void prekernel_vm_setup(boot_args_t* args)
+static void map_fb(boot_args_t* args)
+{
+    devtree_entry_t* dev = devtree_find_device("fb");
+    if (!dev) {
+        return;
+    }
+
+    uint64_t paddr = dev->region_base;
+    const size_t page_covers = (1ull << PTABLE_LV2_VADDR_OFFSET);
+    paddr &= ~(page_covers - 1);
+
+    map4kb_1gb(args, paddr, paddr);
+}
+
+void vm_setup(uintptr_t base, boot_args_t* args, rawimage_header_t* riheader)
 {
     // This implementation is a stub, supporting only 4kb pages for now.
     // We should support 16kb pages for sure on modern Apls.
-    global_page_table_0 = (uint64_t*)(ROUND_CEIL(args->paddr + args->kernel_size, 16 << 10));
-    prekernel_memset(global_page_table_0, 0, 4 << 10);
+    global_page_table_0 = (uint64_t*)palloc_aligned(page_size(), page_size());
+    memset(global_page_table_0, 0, page_size());
 
-    global_page_table_1 = (uint64_t*)((uintptr_t)global_page_table_0 + (16 << 10));
-    prekernel_memset(global_page_table_1, 0, 4 << 10);
+    global_page_table_1 = (uint64_t*)palloc_aligned(page_size(), page_size());
+    memset(global_page_table_1, 0, page_size());
 
-    next_alloc_addr = (uintptr_t)global_page_table_1 + (16 << 10);
-    args->kernel_size += 1 << 20;
+    const size_t map_range_2mb = (2 << 20);
+    const size_t map_range_1gb = (1 << 30);
 
-    map4kb_2mb(args, args->paddr, kernel_base);
-    map4kb_2mb(args, args->paddr + (2 << 20), kernel_base + (2 << 20));
-    map4kb_2mb(args, args->paddr, args->vaddr);
-    map4kb_2mb(args, args->paddr, args->paddr);
-    map4kb_2mb(args, args->paddr + (2 << 20), args->paddr + (2 << 20));
+    // Mapping kernel vaddr to paddr
+    size_t kernel_size_to_map = palloc_total_size() + shadow_area_size();
+    size_t kernel_range_count_to_map = (kernel_size_to_map + (map_range_2mb - 1)) / map_range_2mb;
+    for (size_t i = 0; i < kernel_range_count_to_map; i++) {
+        map4kb_2mb(args, args->paddr + i * map_range_2mb, args->vaddr + i * map_range_2mb);
+    }
 
+    // Mapping RAM
+    size_t ram_base = args->mem_boot_desc.ram_base;
+    size_t ram_size = args->mem_boot_desc.ram_size;
+    size_t ram_range_count_to_map = (ram_size + (map_range_1gb - 1)) / map_range_1gb;
+    for (size_t i = 0; i < ram_range_count_to_map; i++) {
+        map4kb_1gb(args, ram_base + i * map_range_1gb, ram_base + i * map_range_1gb);
+    }
+
+    // The initial boot requires framebuffer and uart to be mapped.
+    // Checking this and mapping devices.
+    map_uart();
+    map_fb();
     if (args->fb_boot_desc.vaddr == 0) {
         map4kb_1gb(args, 0x0, 0x0);
     } else {
@@ -146,21 +156,4 @@ void prekernel_vm_setup(boot_args_t* args)
 
     extern void enable_mmu_el1(uint64_t ttbr0, uint64_t tcr, uint64_t mair, uint64_t ttbr1);
     enable_mmu_el1((uint64_t)global_page_table_0, 0x135003500 | (tg0 << 14) | (tg1 << 30) | (t1sz << 16) | t0sz, 0x04ff, (uint64_t)global_page_table_1);
-}
-
-static void* prekernel_translate_addr(boot_args_t* args, void* addr)
-{
-    if (!addr) {
-        return NULL;
-    }
-    return (void*)((uintptr_t)addr - args->vaddr + kernel_base);
-}
-
-boot_args_t* prekernel_move_args(boot_args_t* args)
-{
-    boot_args_t* newargs = (boot_args_t*)((uintptr_t)args - args->vaddr + kernel_base);
-    newargs->memory_map = prekernel_translate_addr(newargs, newargs->memory_map);
-    newargs->devtree = prekernel_translate_addr(newargs, newargs->devtree);
-    newargs->vaddr = kernel_base;
-    return newargs;
 }
