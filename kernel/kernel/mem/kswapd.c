@@ -54,7 +54,9 @@ inline static void after_page_swap()
 static void do_sleep()
 {
     moved_out_pages_per_run = 0;
-    ksys1(SYS_NANOSLEEP, KSWAPD_SLEEPTIME);
+    timespec_t ts;
+    ts.tv_sec = KSWAPD_SLEEPTIME;
+    ksys2(SYS_NANOSLEEP, &ts, NULL);
 }
 
 static int find_victim(proc_t* p, ptable_t* pdir)

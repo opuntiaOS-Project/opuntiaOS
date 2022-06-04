@@ -58,7 +58,7 @@ struct blocker_rw {
 typedef struct blocker_rw blocker_rw_t;
 
 struct blocker_sleep {
-    time_t until;
+    timespec_t until;
 };
 typedef struct blocker_sleep blocker_sleep_t;
 
@@ -67,6 +67,9 @@ struct blocker_select {
     fd_set_t readfds;
     fd_set_t writefds;
     fd_set_t exceptfds;
+
+    bool is_until_time_set;
+    timespec_t until;
 };
 typedef struct blocker_select blocker_select_t;
 
@@ -155,7 +158,7 @@ int thread_init_blocker(thread_t* thread, const struct blocker* blocker);
 int init_join_blocker(thread_t* thread, int wait_for_pid);
 int init_read_blocker(thread_t* thread, file_descriptor_t* bfd);
 int init_write_blocker(thread_t* thread, file_descriptor_t* bfd);
-int init_sleep_blocker(thread_t* thread, time_t time);
+int init_sleep_blocker(thread_t* thread, timespec_t ts);
 int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t* writefds, fd_set_t* exceptfds, timeval_t* timeout);
 
 /**

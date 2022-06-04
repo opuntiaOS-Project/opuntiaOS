@@ -101,7 +101,7 @@ void timeman_timer_tick()
     }
 }
 
-time_t timeman_now()
+time_t timeman_seconds_since_epoch()
 {
     return atomic_load(&time_since_epoch);
 }
@@ -114,6 +114,38 @@ time_t timeman_seconds_since_boot()
 time_t timeman_get_ticks_from_last_second()
 {
     return atomic_load(&ticks_since_second);
+}
+
+timespec_t timeman_timespec_since_epoch()
+{
+    timespec_t kts = { 0 };
+    kts.tv_sec = timeman_seconds_since_epoch();
+    kts.tv_nsec = timeman_get_ticks_from_last_second() * (1000000000 / timeman_ticks_per_second());
+    return kts;
+}
+
+timespec_t timeman_timespec_since_boot()
+{
+    timespec_t kts = { 0 };
+    kts.tv_sec = timeman_seconds_since_boot();
+    kts.tv_nsec = timeman_get_ticks_from_last_second() * (1000000000 / timeman_ticks_per_second());
+    return kts;
+}
+
+timeval_t timeman_timeval_since_epoch()
+{
+    timeval_t ktv = { 0 };
+    ktv.tv_sec = timeman_seconds_since_epoch();
+    ktv.tv_usec = timeman_get_ticks_from_last_second() * (1000000 / timeman_ticks_per_second());
+    return ktv;
+}
+
+timeval_t timeman_timeval_since_boot()
+{
+    timeval_t ktv = { 0 };
+    ktv.tv_sec = timeman_seconds_since_boot();
+    ktv.tv_usec = timeman_get_ticks_from_last_second() * (1000000 / timeman_ticks_per_second());
+    return ktv;
 }
 
 static void timeman_recieve_notification(uintptr_t msg, uintptr_t param)

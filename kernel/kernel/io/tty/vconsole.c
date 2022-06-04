@@ -107,7 +107,7 @@ int vconsole_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
     uint8_t __user* u8buf = (uint8_t __user*)buf;
 #ifdef VCONSOLE_DEBUG
-    time_t cur_time = timeman_now();
+    time_t cur_time = timeman_seconds_since_epoch();
     int secs = cur_time % 60;
     cur_time /= 60;
     int mins = cur_time % 60;

@@ -14,11 +14,11 @@
 #include <platform/generic/tasking/trapframe.h>
 
 #define ksys0(sysid) ksyscall_impl(sysid, 0, 0, 0, 0);
-#define ksys1(sysid, a) ksyscall_impl(sysid, a, 0, 0, 0);
-#define ksys2(sysid, a, b) ksyscall_impl(sysid, a, b, 0, 0);
-#define ksys3(sysid, a, b, c) ksyscall_impl(sysid, a, b, c, 0);
-#define ksys4(sysid, a, b, c, d) ksyscall_impl(sysid, a, b, c, d);
-int ksyscall_impl(int sysid, int a, int b, int c, int d);
+#define ksys1(sysid, a) ksyscall_impl(sysid, (intptr_t)a, 0, 0, 0);
+#define ksys2(sysid, a, b) ksyscall_impl(sysid, (intptr_t)a, (intptr_t)b, 0, 0);
+#define ksys3(sysid, a, b, c) ksyscall_impl(sysid, (intptr_t)a, (intptr_t)b, (intptr_t)c, 0);
+#define ksys4(sysid, a, b, c, d) ksyscall_impl(sysid, (intptr_t)a, (intptr_t)b, (intptr_t)c, (intptr_t)d);
+int ksyscall_impl(intptr_t sysid, intptr_t a, intptr_t b, intptr_t c, intptr_t d);
 
 void sys_handler(trapframe_t* tf);
 void sys_restart_syscall(trapframe_t* tf);

@@ -9,6 +9,7 @@
 #include <libkern/bits/errno.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
+#include <libkern/time.h>
 #include <platform/generic/syscalls/params.h>
 #include <syscalls/handlers.h>
 #include <syscalls/wrapper.h>
@@ -106,16 +107,6 @@ void sys_create_thread(trapframe_t* tf)
     set_base_pointer(thread->tf, esp);
 
     return_with_val(thread->tid);
-}
-
-void sys_sleep(trapframe_t* tf)
-{
-    thread_t* p = RUNNING_THREAD;
-    time_t time = SYSCALL_VAR1(tf);
-
-    init_sleep_blocker(p, time);
-
-    return_with_val(0);
 }
 
 void sys_sched_yield(trapframe_t* tf)

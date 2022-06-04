@@ -74,7 +74,7 @@ static const void* syscalls[] = {
 };
 
 #ifdef __i386__
-int ksyscall_impl(int id, int a, int b, int c, int d)
+int ksyscall_impl(intptr_t id, intptr_t a, intptr_t b, intptr_t c, intptr_t d)
 {
 #ifndef PREEMPT_KERNEL
     system_disable_interrupts();
@@ -97,7 +97,7 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
     return SYSCALL_VAR1(tf);
 }
 #elif __arm__
-int ksyscall_impl(int id, int a, int b, int c, int d)
+int ksyscall_impl(intptr_t id, intptr_t a, intptr_t b, intptr_t c, intptr_t d)
 {
     int ret;
     asm volatile(
@@ -110,12 +110,12 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
         swi 1;\
         mov %0, r0;"
         : "=r"(ret)
-        : "r"(id), "r"((int)(a)), "r"((int)(b)), "r"((int)(c)), "r"((int)(d)), "r"((int)(0))
+        : "r"(id), "r"((intptr_t)(a)), "r"((intptr_t)(b)), "r"((intptr_t)(c)), "r"((intptr_t)(d)), "r"((intptr_t)(0))
         : "memory", "r0", "r1", "r2", "r3", "r4", "r7");
     return ret;
 }
 #elif __aarch64__
-int ksyscall_impl(int id, int a, int b, int c, int d)
+int ksyscall_impl(intptr_t id, intptr_t a, intptr_t b, intptr_t c, intptr_t d)
 {
     int ret;
     asm volatile(
@@ -128,7 +128,7 @@ int ksyscall_impl(int id, int a, int b, int c, int d)
         svc 1;\
         mov %x0, x0;"
         : "=r"(ret)
-        : "r"(id), "r"((int)(a)), "r"((int)(b)), "r"((int)(c)), "r"((int)(d)), "r"((int)(0))
+        : "r"(id), "r"((intptr_t)(a)), "r"((intptr_t)(b)), "r"((intptr_t)(c)), "r"((intptr_t)(d)), "r"((intptr_t)(0))
         : "memory", "x0", "x1", "x2", "x3", "x4", "x8");
     return ret;
 }

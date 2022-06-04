@@ -29,6 +29,8 @@ int clock_getres(clockid_t clk_id, timespec_t* res);
 int clock_gettime(clockid_t clk_id, timespec_t* tp);
 int clock_settime(clockid_t clk_id, const timespec_t* tp);
 
+int nanosleep(const timespec_t* req, timespec_t* rem);
+
 __END_DECLS
 
 #endif // _LIBC_TIME_H

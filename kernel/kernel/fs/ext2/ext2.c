@@ -973,7 +973,7 @@ int ext2_write(file_t* file, void __user* buf, size_t start, size_t len)
     if (dentry->inode->size < start + len) {
         dentry->inode->size = start + len;
     }
-    dentry->inode->mtime = (uint32_t)timeman_now();
+    dentry->inode->mtime = (uint32_t)timeman_seconds_since_epoch();
     dentry_set_flag(dentry, DENTRY_DIRTY);
 
     spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
@@ -1002,7 +1002,7 @@ int ext2_truncate(file_t* file, size_t len)
     }
 
     dentry->inode->size = len;
-    dentry->inode->mtime = (uint32_t)timeman_now();
+    dentry->inode->mtime = (uint32_t)timeman_seconds_since_epoch();
     dentry_set_flag(dentry, DENTRY_DIRTY);
     spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
     return 0;

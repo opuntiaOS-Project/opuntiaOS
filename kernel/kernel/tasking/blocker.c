@@ -10,6 +10,7 @@
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <libkern/syscall_structs.h>
+#include <libkern/time.h>
 #include <tasking/sched.h>
 #include <tasking/thread.h>
 #include <time/time_manager.h>
@@ -101,12 +102,13 @@ int init_write_blocker(thread_t* thread, file_descriptor_t* bfd)
 
 bool should_unblock_sleep_block(thread_t* thread)
 {
-    return thread->blocker_data.sleep.until <= timeman_now();
+    timespec_t ts = timeman_timespec_since_epoch();
+    return timespec_cmp(&thread->blocker_data.sleep.until, &ts) <= 0;
 }
 
-int init_sleep_blocker(thread_t* thread, time_t time)
+int init_sleep_blocker(thread_t* thread, timespec_t ts)
 {
-    thread->blocker_data.sleep.until = timeman_now() + time;
+    thread->blocker_data.sleep.until = ts;
 
     if (should_unblock_sleep_block(thread)) {
         return 0;
@@ -123,7 +125,8 @@ int init_sleep_blocker(thread_t* thread, time_t time)
 
 bool should_unblock_select_block(thread_t* thread)
 {
-    if (thread->blocker_data.sleep.until != 0 && thread->blocker_data.sleep.until <= timeman_now()) {
+    timespec_t ts = timeman_timespec_since_epoch();
+    if (thread->blocker_data.select.is_until_time_set && timespec_cmp(&thread->blocker_data.sleep.until, &ts) <= 0) {
         return true;
     }
 
@@ -153,7 +156,7 @@ int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t*
     FD_ZERO(&(thread->blocker_data.select.readfds));
     FD_ZERO(&(thread->blocker_data.select.writefds));
     FD_ZERO(&(thread->blocker_data.select.exceptfds));
-    thread->blocker_data.sleep.until = 0;
+    thread->blocker_data.select.is_until_time_set = false;
 
     if (readfds) {
         thread->blocker_data.select.readfds = *readfds;
@@ -165,7 +168,9 @@ int init_select_blocker(thread_t* thread, int nfds, fd_set_t* readfds, fd_set_t*
         thread->blocker_data.select.exceptfds = *exceptfds;
     }
     if (timeout) {
-        thread->blocker_data.sleep.until = timeman_now() + timeout->tv_sec;
+        thread->blocker_data.select.until = timeman_timespec_since_epoch();
+        timespec_add_timeval(&thread->blocker_data.select.until, timeout);
+        thread->blocker_data.select.is_until_time_set = true;
     }
     thread->blocker_data.select.nfds = nfds;
 

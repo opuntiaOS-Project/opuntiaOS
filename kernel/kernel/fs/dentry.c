@@ -297,7 +297,10 @@ void kdentryflusherd()
             spinlock_release(&dentry_cache_block->lock);
             dentry_cache_block = dentry_cache_block->next;
         }
-        ksys1(SYS_NANOSLEEP, 2);
+
+        timespec_t ts;
+        ts.tv_sec = 2;
+        ksys2(SYS_NANOSLEEP, &ts, NULL);
     }
 }
 

@@ -26,9 +26,13 @@ time_t timeman_to_seconds_since_epoch(uint8_t secs, uint8_t mins, uint8_t hrs, u
 int timeman_setup();
 void timeman_timer_tick();
 
-time_t timeman_now();
+time_t timeman_seconds_since_epoch();
 time_t timeman_seconds_since_boot();
 time_t timeman_get_ticks_from_last_second();
+timespec_t timeman_timespec_since_epoch();
+timespec_t timeman_timespec_since_boot();
+timeval_t timeman_timeval_since_epoch();
+timeval_t timeman_timeval_since_boot();
 static inline time_t timeman_ticks_per_second() { return TIMER_TICKS_PER_SECOND; };
 static inline time_t timeman_ticks_since_boot() { return THIS_CPU->stat_ticks_since_boot; };
 

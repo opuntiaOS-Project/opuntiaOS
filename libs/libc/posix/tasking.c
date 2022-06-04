@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sysdep.h>
+#include <time.h>
 #include <unistd.h>
 
 int fork()
@@ -108,8 +109,25 @@ pid_t getpgid(pid_t pid)
     RETURN_WITH_ERRNO(res, (pid_t)res, -1);
 }
 
+uint32_t usleep(uint32_t usec)
+{
+    timespec_t ts = { 0 };
+    ts.tv_sec = usec / 1000000;
+    ts.tv_nsec = (usec % 1000000) * 1000;
+    int err = nanosleep(&ts, NULL);
+    if (err) {
+        return 0;
+    }
+    return usec;
+}
+
 uint32_t sleep(uint32_t seconds)
 {
-    uint32_t res = DO_SYSCALL_1(SYS_NANOSLEEP, seconds);
-    RETURN_WITH_ERRNO(res, seconds, 0);
+    timespec_t ts = { 0 };
+    ts.tv_sec = seconds;
+    int err = nanosleep(&ts, NULL);
+    if (err) {
+        return 0;
+    }
+    return seconds;
 }

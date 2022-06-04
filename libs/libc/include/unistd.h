@@ -22,6 +22,7 @@ pid_t getpid();
 int setpgid(pid_t cmd, pid_t arg);
 pid_t getpgid(pid_t arg);
 uint32_t sleep(uint32_t seconds);
+uint32_t usleep(uint32_t usec);
 
 /* fs */
 int close(int fd);
