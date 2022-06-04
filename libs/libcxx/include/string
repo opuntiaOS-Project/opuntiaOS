@@ -250,14 +250,14 @@ public:
     inline iterator begin() { return iterator(&m_str[0]); }
     inline iterator end() { return iterator(&m_str[m_size]); }
 
-    inline const_iterator cbegin() { return const_iterator(&m_str[0]); }
-    inline const_iterator cend() { return const_iterator(&m_str[m_size]); }
+    inline const_iterator cbegin() const { return const_iterator(&m_str[0]); }
+    inline const_iterator cend() const { return const_iterator(&m_str[m_size]); }
 
     inline reverse_iterator rbegin() { return reverse_iterator(&m_str[m_size - 1]); }
     inline reverse_iterator rend() { return reverse_iterator(&m_str[-1]); }
 
-    inline const_reverse_iterator crbegin() { return const_reverse_iterator(&m_str[m_size - 1]); }
-    inline const_reverse_iterator crend() { return const_reverse_iterator(&m_str[-1]); }
+    inline const_reverse_iterator crbegin() const { return const_reverse_iterator(&m_str[m_size - 1]); }
+    inline const_reverse_iterator crend() const { return const_reverse_iterator(&m_str[-1]); }
 
     inline operator std::basic_string_view<CharT, Traits>() const { return std::basic_string_view<CharT, Traits>(data(), size()); }
 
