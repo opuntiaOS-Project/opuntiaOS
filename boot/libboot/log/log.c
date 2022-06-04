@@ -12,8 +12,16 @@
 typedef int (*_putch_callback)(char ch, char* buf_base, size_t* written, void* callback_params);
 
 static uart_put_char_t uart_handler = NULL;
-static const char* HEX_alphabet = "0123456789ABCDEF";
-static const char* hex_alphabet = "0123456789abcdef";
+static const char HEX_alphabet[] = "0123456789ABCDEF";
+static const char hex_alphabet[] = "0123456789abcdef";
+
+static int putch_callback_stream(char c, char* buf_base, size_t* written, void* callback_params)
+{
+    if (uart_handler) {
+        return uart_handler(c);
+    }
+    return 0;
+}
 
 static int _printf_hex32_impl(unsigned int value, const char* alph, char* base_buf, size_t* written, _putch_callback callback, void* callback_params)
 {
@@ -316,14 +324,6 @@ int sprintf(char* s, const char* format, ...)
     int res = vsprintf(s, format, arg);
     va_end(arg);
     return res;
-}
-
-static int putch_callback_stream(char c, char* buf_base, size_t* written, void* callback_params)
-{
-    if (uart_handler) {
-        return uart_handler(c);
-    }
-    return 0;
 }
 
 static int vlog_unfmt(const char* format, va_list arg)

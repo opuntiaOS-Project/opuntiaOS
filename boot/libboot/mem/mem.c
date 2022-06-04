@@ -8,9 +8,6 @@
 
 #include <libboot/mem/mem.h>
 
-void* _malloc_next_addr = NULL;
-void* _malloc_end_addr = NULL;
-
 int strcmp(const char* a, const char* b)
 {
     while (*a == *b && *a != 0 && *b != 0) {
