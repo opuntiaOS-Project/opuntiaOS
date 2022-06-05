@@ -56,7 +56,7 @@ void LoadingScreen::animation_frame(LG::Context& ctx, LG::Point<int> pt, int cur
         int alpha = (255 * (animation_progress)) / animation_frames_per_char;
 
         // Offset is calculated based on alpha, maybe we could move out this consts.
-        pt.offset_by((alpha / 60) - 4, 0);
+        pt.offset_by((alpha / 30) - 8, 0);
 
         ctx.set_fill_color(LG::Color(255, 255, 255, alpha));
         ctx.draw(pt, m_font.glyph(m_logo_text[i]));
