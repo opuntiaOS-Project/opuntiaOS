@@ -26,8 +26,8 @@ jobs:
 
       - name: Pouring QEMU
         run: |
-          wget https://github.com/opuntiaOS-Project/qemu/releases/download/v7.0.0/qemu-system-aarch64-linux
-          export ONEOS_QEMU_AA64=`pwd`/qemu-system-aarch64-linux
+          wget https://github.com/opuntiaOS-Project/qemu/releases/download/v7.0.0/qemu-system-aarch64-linux-amd64
+          export ONEOS_QEMU_AA64=`pwd`/qemu-system-aarch64-linux-amd64
 
       - name: Pouring GN
         run: |

@@ -1,0 +1,66 @@
+name: Building Aarch64
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Pouring Deps
+        run: |
+          brew install llvm@13 ninja nasm
+          brew install aarch64-elf-gcc
+          pip3 install -r utils/python_requirements.txt
+
+      - name: Pouring QEMU
+        run: |
+          wget https://github.com/opuntiaOS-Project/qemu/releases/download/v7.0.0/qemu-system-aarch64-macos-amd64
+          export ONEOS_QEMU_AA64=`pwd`/qemu-system-aarch64-macos-amd64
+      
+      - name: Pouring GN
+        run: |
+          wget https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-amd64/+/latest
+          unzip latest
+          mv gn /usr/local/bin
+
+      - name: Create GNU Build Environment
+        run: gn gen out --args='target_cpu="aarch64" host="gnu"'
+
+      - name: Build GNU
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
+
+      - name: Cleaning GNU Build Environment
+        run: rm -rf out
+
+      - name: Create LLVM Build Environment
+        run: |
+          export LLVM_VERSION=`ls -l /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
+          export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
+          gn gen out --args='target_cpu="aarch64" host="llvm"'
+
+      - name: Build LLVM
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
+
+      - name: Cleaning Desktop LLVM Build Environment
+        run: rm -rf out
+
+      - name: Create Mobile LLVM Build Environment
+        run: |
+          export LLVM_VERSION=`ls -l /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
+          export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
+          gn gen out --args='target_cpu="aarch64" host="llvm" device_type="m"'
+
+      - name: Build Mobile with LLVM
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
