@@ -1,0 +1,51 @@
+name: Testing Aarch64
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+          architecture: "x64"
+
+      - name: Pouring Deps
+        run: |
+          sudo apt-get update
+          sudo apt install -y llvm e2fsprogs qemu-system-arm qemu-utils fuseext2 ninja-build nasm
+          pip3 install -r utils/python_requirements.txt
+          pip3 install tabulate termcolor
+
+      - name: Pouring QEMU
+        run: |
+          wget https://github.com/opuntiaOS-Project/qemu/releases/download/v7.0.0/qemu-system-aarch64-linux
+          export ONEOS_QEMU_AA64=`pwd`/qemu-system-aarch64-linux
+
+      - name: Pouring GN
+        run: |
+          wget https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-amd64/+/latest
+          unzip latest
+          sudo mv gn /usr/local/bin
+
+      - name: Create LLVM Build Environment
+        run: |
+          export LLVM_BIN_PATH="/usr/lib/llvm-12/bin"
+          ./gn_gen.sh --target_cpu aarch64 --target_board qemu_virt --host llvm --test_method tests
+
+      - name: Building
+        run: |
+          cd out
+          ./build.sh
+
+      - name: Testing
+        run: |
+          cd out
+          python3 ../utils/test/test.py
