@@ -77,7 +77,11 @@ void sys_sleep(trapframe_t* tf)
     umem_get_user(&kreq, ureq);
 
     timespec_t ts = timeman_timespec_since_epoch();
-    timespec_add_timespec(&ts, &kreq);
+
+    // Inlined timespec_add_timespec(&ts, &kreq); since GCC inlines this
+    // functions badly producing incorrect asm as of now.
+    timespec_add_nsec(&ts, kreq.tv_nsec);
+    ts.tv_sec += kreq.tv_sec;
 
     init_sleep_blocker(p, ts);
 
