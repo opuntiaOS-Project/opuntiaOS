@@ -110,8 +110,14 @@ static void file_put_locked(file_t* file)
 void file_put(file_t* file)
 {
     spinlock_acquire(&file->lock);
-    file_put_locked(file);
-    spinlock_release(&file->lock);
+    ASSERT(file->count > 0);
+    file->count--;
+
+    if (file->count == 0) {
+        file_put_impl_locked(file);
+    } else {
+        spinlock_release(&file->lock);
+    }
 }
 
 path_t path_duplicate(const path_t* path)
