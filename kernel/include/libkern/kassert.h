@@ -31,6 +31,12 @@ void assert_handler(const char* cond, const char* func, const char* file, int li
 #define DEBUG_ASSERT(x)
 #endif
 
+#define __IMPL_SASSERT_PASTE(a, b) a##b
+#define __IMPL_SASSERT_LINE(predicate, line, file) \
+    typedef char __IMPL_SASSERT_PASTE(assertion_failed_##file##_, line)[2 * !!(predicate)-1]
+
+#define STATIC_ASSERT(predicate, file) __IMPL_SASSERT_LINE(predicate, __LINE__, file)
+
 void kpanic(const char* msg) NORETURN;
 void kpanic_tf(const char* err_msg, trapframe_t* tf) NORETURN;
 

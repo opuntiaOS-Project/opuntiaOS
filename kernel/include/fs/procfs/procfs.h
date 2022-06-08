@@ -42,7 +42,11 @@ struct PACKED procfs_inode {
     /* NOTE: Instead of blocks here, we store procfs required data */
     uint32_t index;
     const struct file_ops* ops;
+#ifdef BITS32
     uint8_t padding[52];
+#else // BITS64
+    uint8_t padding[48];
+#endif
     /* Block hack ends here */
 
     uint32_t generation;
@@ -52,6 +56,7 @@ struct PACKED procfs_inode {
     uint32_t osd2[3];
 };
 typedef struct procfs_inode procfs_inode_t;
+STATIC_ASSERT(PROCFS_INODE_LEN == INODE_LEN, procfs_inode);
 
 void procfs_install();
 int procfs_mount();

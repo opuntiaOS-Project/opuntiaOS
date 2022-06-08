@@ -87,18 +87,21 @@ typedef int ssize_t;
 typedef unsigned long size_t;
 typedef long ssize_t;
 #endif
+#define BITS32
 #elif __arm__
 typedef unsigned int size_t;
 typedef int ssize_t;
 typedef int32_t intptr_t;
 typedef uint32_t uintptr_t;
 typedef off_t off_t;
+#define BITS32
 #elif __aarch64__
 typedef uint64_t size_t;
 typedef int64_t ssize_t;
 typedef int64_t intptr_t;
 typedef uint64_t uintptr_t;
 typedef off64_t off_t;
+#define BITS64
 #endif
 
 #define __user
