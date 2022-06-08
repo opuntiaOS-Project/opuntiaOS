@@ -7,6 +7,7 @@
  */
 
 #include <libkern/bits/errno.h>
+#include <libkern/kasan.h>
 #include <libkern/libkern.h>
 #include <libkern/lock.h>
 #include <libkern/log.h>
@@ -51,6 +52,17 @@ static void vmm_setup_paddr_mapped_location(boot_args_t* args)
 
     extern uintptr_t vm_pspace_paddr_zone_offset;
     vm_pspace_paddr_zone_offset = vaddr - paddr;
+}
+
+static void vmm_setup_kasan()
+{
+#ifdef KASAN_ENABLED
+    const size_t kasan_size = KERNEL_KASAN_SIZE;
+    uintptr_t kasan_paddr = (uintptr_t)pmm_alloc(kasan_size);
+    vmm_map_pages(KERNEL_KASAN_BASE, kasan_paddr, kasan_size / VMM_PAGE_SIZE, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
+
+    kasan_init(KERNEL_KASAN_BASE, KERNEL_KASAN_SIZE);
+#endif
 }
 
 static void vm_map_kernel_huge_page_1gb(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
@@ -125,6 +137,7 @@ int vmm_setup(boot_args_t* args)
     vm_pspace_init(args);
     _vmm_init_switch_to_kernel_pdir();
     vmm_setup_paddr_mapped_location(args);
+    vmm_setup_kasan();
     kmemzone_init_stage2();
     kmalloc_init();
 

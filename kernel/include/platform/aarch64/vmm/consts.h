@@ -42,6 +42,8 @@ static inline int vm_page_mask()
 #define USER_HIGH 0x1fffffffff
 #define KERNEL_BASE 0xffffff8000000000
 #define KERNEL_PADDR_BASE 0xffffffff00000000 // up to 4gbs are supported.
+#define KERNEL_KASAN_BASE 0xfffffff000000000
+#define KERNEL_KASAN_SIZE (128 << 20) // 128MB for kasan covers 1GB of kernel space. For current need this is more than enough.
 
 // For Apl
 // static inline int get_page_size()

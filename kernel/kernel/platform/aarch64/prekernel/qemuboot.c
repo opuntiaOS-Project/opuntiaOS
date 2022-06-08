@@ -22,7 +22,7 @@ static memory_map_t __attribute__((section(".prekernel_data"))) qemu_virt_memmap
     {
         .startLo = 0x40000000, // 2GB
         .startHi = 0x0,
-        .sizeLo = 256 << 20, // 256MB
+        .sizeLo = 1 << 30, // 1GB
         .sizeHi = 0x0,
         .type = 0x1, // Free
         .acpi_3_0 = 0x0,

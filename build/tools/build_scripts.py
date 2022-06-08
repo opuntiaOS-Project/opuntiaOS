@@ -28,7 +28,7 @@ if arch == "aarch32":
 if arch == "aarch64":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_AA64"
     QEMU_STD_PATH = "echo Please provide path to custom QEMU with $ONEOS_QEMU_AA64, see https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_qemu.md"
-    qemu_run_cmd = "${2} -machine virt,secure=off,virtualization=off,gic-version=2 -cpu cortex-a53 -m 256M -kernel {1}/base/boot/kernel.bin -smp ${3} -serial mon:stdio -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
+    qemu_run_cmd = "${2} -machine virt,secure=off,virtualization=off,gic-version=2 -cpu cortex-a53 -m 1G -kernel {1}/base/boot/kernel.bin -smp ${3} -serial mon:stdio -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
         base, out, QEMU_PATH_VAR, QEMU_SMP_VAR)
     if target_board == "apl":
         qemu_run_cmd = "python3 {0}/utils/codeassistant/pongo_startup.py".format(base)

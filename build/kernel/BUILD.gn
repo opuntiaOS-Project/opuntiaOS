@@ -26,6 +26,9 @@ if (kernel_symbols) {
 
 if (optimize) {
   kernel_c_flags += [ "-Os" ]
+  if (host == "llvm") {
+    kernel_c_flags += [ "-flto" ]
+  }
 }
 
 if (target_cpu == "x86" && kernel_preempt) {
@@ -125,10 +128,15 @@ if (target_cpu == "aarch64") {
     kernel_c_flags += [ "-DTARGET_APL" ]
     kernel_asm_flags += [ "-DTARGET_APL" ]
   }
-}
 
-if (host == "llvm") {
-  kernel_c_flags += [ "-flto" ]
+  # Enabling KASAN only for GCC builds as LLVM has fixed KASAN shadow bases
+  # which are incompatible with opuntiaOS layout.
+  if (debug_build && host == "gnu") {
+    kernel_c_flags += [
+      "-fsanitize=kernel-address",
+      "-DKASAN_ENABLED",
+    ]
+  }
 }
 
 config("kernel_flags") {

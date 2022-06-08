@@ -7,6 +7,7 @@
  */
 
 #include <algo/bitmap.h>
+#include <libkern/kasan.h>
 #include <libkern/libkern.h>
 #include <libkern/lock.h>
 #include <libkern/log.h>
@@ -59,7 +60,13 @@ void kmalloc_init()
 void* kmalloc(size_t size)
 {
     spinlock_acquire(&_kmalloc_lock);
-    int act_size = size + sizeof(kmalloc_header_t);
+    size_t alloc_size = size;
+#ifdef KASAN_ENABLED
+    // If KASAN is enabled, add additional 16 bytes at the end to mark them as REDZONE.
+    alloc_size += 16;
+#endif
+
+    int act_size = alloc_size + sizeof(kmalloc_header_t);
 
     int blocks_needed = (act_size + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
 
@@ -74,7 +81,19 @@ void* kmalloc(size_t size)
     spinlock_release(&_kmalloc_lock);
 
     vmm_ensure_writing_to_active_address_space((uintptr_t)space, act_size);
+
+#ifdef KASAN_ENABLED
+    kasan_poison((uintptr_t)space, sizeof(kmalloc_header_t), 0x0);
+#endif
     space->len = act_size;
+#ifdef KASAN_ENABLED
+    kasan_poison((uintptr_t)space, sizeof(kmalloc_header_t), KASAN_KMALLOC_REDZONE);
+    kasan_poison_kmalloc((uintptr_t)&space[1], size);
+
+    // Marking the end as a REDZONE.
+    uintptr_t back_redzone = ROUND_FLOOR((uintptr_t)&space[1] + size + 7, 8);
+    kasan_poison(back_redzone, 8, KASAN_KMALLOC_REDZONE);
+#endif
     return (void*)&space[1];
 }
 
@@ -100,7 +119,19 @@ void kfree(void* ptr)
     }
 
     kmalloc_header_t* sptr = (kmalloc_header_t*)ptr;
+
+#ifdef KASAN_ENABLED
+    kasan_poison((uintptr_t)&sptr[-1], sizeof(kmalloc_header_t), 0x0);
+#endif
     int blocks_to_delete = (sptr[-1].len + KMALLOC_BLOCK_SIZE - 1) / KMALLOC_BLOCK_SIZE;
+#ifdef KASAN_ENABLED
+    uintptr_t start = (uintptr_t)&sptr[-1];
+
+    // The tail is aligned to 8bytes
+    size_t len = ROUND_FLOOR(sptr[-1].len, 8);
+    kasan_unpoison(start, len, KASAN_FREED_OBJECT);
+#endif
+
     spinlock_acquire(&_kmalloc_lock);
     bitmap_unset_range(bitmap, kmalloc_to_index((size_t)&sptr[-1]), blocks_to_delete);
     spinlock_release(&_kmalloc_lock);

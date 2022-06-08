@@ -79,7 +79,7 @@ void sys_sleep(trapframe_t* tf)
     timespec_t ts = timeman_timespec_since_epoch();
 
     // Inlined timespec_add_timespec(&ts, &kreq); since GCC inlines this
-    // functions badly producing incorrect asm as of now.
+    // functions badly producing incorrect asm as of version 13.
     timespec_add_nsec(&ts, kreq.tv_nsec);
     ts.tv_sec += kreq.tv_sec;
 

@@ -57,6 +57,9 @@ typedef struct {
     struct thread* fpu_for_thread;
     pid_t fpu_for_pid;
 #endif // FPU_ENABLED
+#ifdef KASAN_ENABLED
+    int kasan_depth_counter;
+#endif
 } cpu_t;
 
 extern cpu_t cpus[MAX_CPU_CNT];
