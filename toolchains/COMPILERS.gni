@@ -49,7 +49,7 @@ if (target_cpu == "aarch64") {
   llvm_cxx = "$llvm_bin_path/clang++"
   llvm_ld = "$llvm_bin_path/ld.lld"
   llvm_asm = "$llvm_bin_path/clang"
-  llvm_target = "aarch64-pc-none-elf"
+  llvm_target = "aarch64--linux"
   llvm_ccpp_target_flag = "-target $llvm_target"
   llvm_asm_target_flag = "-target $llvm_target -c"
 }
