@@ -9,8 +9,11 @@
 #include <libkern/types.h>
 #include <mem/boot.h>
 
-static uint64_t* __attribute__((section(".prekernel_data"))) global_page_table_0;
-static uint64_t* __attribute__((section(".prekernel_data"))) global_page_table_1;
+#define __PREKERNCODE__ __attribute__((section(".prekernel_code"))) __attribute__((no_sanitize("address")))
+#define __PREKERNDATA__ __attribute__((section(".prekernel_data")))
+
+static uint64_t* __PREKERNDATA__ global_page_table_0;
+static uint64_t* __PREKERNDATA__ global_page_table_1;
 
 // This is setup for 4KB pages
 static const int __attribute__((section(".prekernel_rodata"))) tg0 = 0b00;
@@ -19,14 +22,14 @@ static const int __attribute__((section(".prekernel_rodata"))) t0sz = 25;
 static const int __attribute__((section(".prekernel_rodata"))) t1sz = 25;
 static const uint64_t __attribute__((section(".prekernel_rodata"))) kernel_base = 0xffffffffffffffff - ((1ull << (64 - t1sz)) - 1);
 
-static uint64_t* new_ptable(boot_args_t* args) __attribute__((section(".prekernel_code")));
-static void map4kb_1gb(boot_args_t* args, size_t phyz, size_t virt) __attribute__((section(".prekernel_code")));
-static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt) __attribute__((section(".prekernel_code")));
-void prekernel_vm_setup(boot_args_t* args) __attribute__((section(".prekernel_code")));
-void* prekernel_memset(void* dest, uint8_t fll, size_t nbytes) __attribute__((section(".prekernel_code")));
+static uint64_t* new_ptable(boot_args_t* args) __PREKERNCODE__;
+static void map4kb_1gb(boot_args_t* args, size_t phyz, size_t virt) __PREKERNCODE__;
+static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt) __PREKERNCODE__;
+void prekernel_vm_setup(boot_args_t* args) __PREKERNCODE__;
+void* prekernel_memset(void* dest, uint8_t fll, size_t nbytes) __PREKERNCODE__;
 
-static void* prekernel_translate_addr(boot_args_t* args, void* addr) __attribute__((section(".prekernel_code")));
-boot_args_t* prekernel_move_args(boot_args_t* args) __attribute__((section(".prekernel_code")));
+static void* prekernel_translate_addr(boot_args_t* args, void* addr) __PREKERNCODE__;
+boot_args_t* prekernel_move_args(boot_args_t* args) __PREKERNCODE__;
 
 #define ROUND_CEIL(a, b) (((a) + ((b)-1)) & ~((b)-1))
 #define ROUND_FLOOR(a, b) ((a) & ~((b)-1))
@@ -44,7 +47,7 @@ boot_args_t* prekernel_move_args(boot_args_t* args) __attribute__((section(".pre
 
 #define VM_VADDR_OFFSET_AT_LEVEL(vaddr, off, ent) ((vaddr >> off) % ent)
 
-uintptr_t __attribute__((section(".prekernel_data"))) next_alloc_addr = 0x0;
+uintptr_t __PREKERNDATA__ next_alloc_addr = 0x0;
 static uint64_t* new_ptable(boot_args_t* args)
 {
     uint64_t* res = (uint64_t*)next_alloc_addr;
