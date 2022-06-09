@@ -9,10 +9,38 @@
 #include <libkern/libkern.h>
 
 #ifndef __arm__
+// TODO: Implement tuned memset for each arch.
 void* memset(void* dest, uint8_t fll, size_t nbytes)
 {
-    for (int i = 0; i < nbytes; ++i) {
+    if (nbytes < 16) {
+        for (int i = 0; i < nbytes; i++) {
+            *((uint8_t*)dest + i) = fll;
+        }
+        return dest;
+    }
+
+    uintptr_t destaddr = (uintptr_t)dest;
+    size_t aligment = destaddr % 8;
+    for (int i = 0; i < aligment; i++) {
         *((uint8_t*)dest + i) = fll;
+    }
+
+    nbytes -= aligment;
+    uintptr_t destaddr_aligned = destaddr + aligment;
+    size_t words = nbytes / 8;
+
+    uint64_t fll16 = (fll << 8) | fll;
+    uint64_t fll32 = (fll16 << 16) | fll16;
+    uint64_t fll64 = (fll32 << 32) | fll32;
+    uint64_t* destu64 = (uint64_t*)destaddr_aligned;
+    for (size_t i = 0; i < words; i++) {
+        destu64[i] = fll64;
+    }
+
+    uintptr_t destaddr_tail = (uintptr_t)&destu64[words];
+    size_t rembytes = nbytes - words * 8;
+    for (size_t i = 0; i < rembytes; i++) {
+        *((uint8_t*)destaddr_tail + i) = fll;
     }
     return dest;
 }
