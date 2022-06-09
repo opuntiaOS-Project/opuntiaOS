@@ -14,9 +14,12 @@ process = subprocess.Popen(
 string = ""
 
 
-def process_string(string):
+dumping_kasan = False
 
-    if flag == "verbose":
+def process_string(string):
+    global dumping_kasan
+
+    if flag == "verbose" or dumping_kasan:
         print(string)
 
     if (string.startswith("[OK]")):
@@ -35,6 +38,14 @@ def process_string(string):
               "bold"]), string.replace("$", "/")[9:])
         os.killpg(os.getpgid(process.pid), signal.SIGTERM)
         exit(1)
+
+    if (string.startswith("======== KASAN ERROR ========")):
+        dumping_kasan = True
+        print(colored(string, color="red", attrs=["bold"]))
+
+    if (string.startswith("=============================")):
+        dumping_kasan = False
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
 
 
 for c in iter(lambda: process.stdout.read(1), b''):
