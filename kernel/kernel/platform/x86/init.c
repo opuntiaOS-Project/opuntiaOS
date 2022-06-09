@@ -9,12 +9,12 @@
 #include <drivers/x86/ata.h>
 #include <drivers/x86/bga.h>
 #include <drivers/x86/display.h>
-#include <drivers/x86/fpu.h>
 #include <drivers/x86/ide.h>
 #include <drivers/x86/keyboard.h>
 #include <drivers/x86/mouse.h>
 #include <drivers/x86/pci.h>
 #include <drivers/x86/pit.h>
+#include <platform/x86/fpu/fpu.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/idt.h>
 #include <platform/x86/init.h>

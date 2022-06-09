@@ -6,9 +6,9 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/generic/fpu.h>
 #include <mem/vmm.h>
 #include <platform/aarch32/interrupts.h>
+#include <platform/generic/fpu/fpu.h>
 #include <platform/generic/system.h>
 #include <platform/generic/tasking/trapframe.h>
 #include <security/defs.h>

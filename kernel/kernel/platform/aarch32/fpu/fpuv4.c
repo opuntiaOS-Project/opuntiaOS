@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/aarch32/fpuv4.h>
 #include <libkern/libkern.h>
+#include <platform/aarch32/fpu/fpuv4.h>
 #include <platform/aarch32/registers.h>
 
 void fpuv4_install()

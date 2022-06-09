@@ -6,9 +6,9 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/x86/fpu.h>
 #include <mem/vmm.h>
 #include <platform/generic/system.h>
+#include <platform/x86/fpu/fpu.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/tasking/switchvm.h>
 #include <platform/x86/tasking/tss.h>

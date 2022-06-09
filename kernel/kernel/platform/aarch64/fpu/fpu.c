@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/aarch64/fpu.h>
 #include <libkern/libkern.h>
+#include <platform/aarch64/fpu/fpu.h>
 #include <platform/aarch64/registers.h>
 
 void fpu_install()

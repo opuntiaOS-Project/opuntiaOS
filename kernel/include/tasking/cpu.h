@@ -9,8 +9,8 @@
 #ifndef _KERNEL_TASKING_CPU_H
 #define _KERNEL_TASKING_CPU_H
 
-#include <drivers/generic/fpu.h>
 #include <platform/generic/cpu.h>
+#include <platform/generic/fpu/fpu.h>
 #include <tasking/bits/sched.h>
 #include <tasking/proc.h>
 #include <tasking/thread.h>

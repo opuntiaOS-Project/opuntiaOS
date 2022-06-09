@@ -6,9 +6,9 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/aarch64/fpu.h>
 #include <drivers/aarch64/gicv2.h>
 #include <drivers/aarch64/timer.h>
+#include <platform/aarch64/fpu/fpu.h>
 #include <platform/aarch64/init.h>
 #include <platform/aarch64/interrupts.h>
 

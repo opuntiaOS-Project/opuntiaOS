@@ -6,9 +6,6 @@
  * found in the LICENSE file.
  */
 
-#ifdef FPU_ENABLED
-#include <drivers/x86/fpu.h>
-#endif
 #include <io/tty/vconsole.h>
 #include <libkern/bits/errno.h>
 #include <libkern/bits/sys/wait.h>

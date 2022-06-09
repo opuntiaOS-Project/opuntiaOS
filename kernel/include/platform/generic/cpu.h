@@ -9,10 +9,10 @@
 #ifndef _KERNEL_TASKING_BITS_CPU_H
 #define _KERNEL_TASKING_BITS_CPU_H
 
-#include <drivers/generic/fpu.h>
 #include <libkern/types.h>
 #include <mem/kmemzone.h>
 #include <mem/vmm.h>
+#include <platform/generic/fpu/fpu.h>
 #include <platform/generic/tasking/context.h>
 #include <tasking/bits/sched.h>
 

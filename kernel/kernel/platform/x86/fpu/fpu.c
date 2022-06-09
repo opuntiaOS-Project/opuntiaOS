@@ -6,9 +6,9 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/x86/fpu.h>
 #include <libkern/log.h>
 #include <libkern/mem.h>
+#include <platform/x86/fpu/fpu.h>
 #include <platform/x86/idt.h>
 #include <tasking/tasking.h>
 
