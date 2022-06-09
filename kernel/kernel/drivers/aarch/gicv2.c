@@ -77,22 +77,18 @@ void gicv2_enable_irq(irq_line_t id, irq_priority_t prior, irq_flags_t flags, in
         distributor_registers->igroup[id_1bit_offset] |= (1 << id_1bit_bitpos);
     }
 
-    /* Setting priority */
     distributor_registers->ipriorityr[id_8bit_offset] |= (prior << id_8bit_bitpos);
 
     if (TEST_FLAG(flags, IRQ_FLAG_EDGE_TRIGGERED)) {
-        distributor_registers->ipriorityr[id_8bit_offset] |= (prior << id_8bit_bitpos);
+        distributor_registers->icfgr[id_2bit_offset] |= (0b10 << id_2bit_bitpos);
     } else {
-        distributor_registers->ipriorityr[id_8bit_offset] &= ~(uint32_t)(prior << id_8bit_bitpos);
+        distributor_registers->icfgr[id_2bit_offset] |= ~(uint32_t)(0b11 << id_2bit_bitpos);
     }
-
-    distributor_registers->icfgr[id_2bit_offset] |= (0b10 << id_2bit_bitpos);
 
     if (IS_SPI(id)) {
         distributor_registers->itargetsr[id_8bit_offset] |= (cpu_mask << id_8bit_bitpos);
     }
 
-    /* Enabling */
     distributor_registers->isenabler[id_1bit_offset] |= (1 << id_1bit_bitpos);
 }
 
