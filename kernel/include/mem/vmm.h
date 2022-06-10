@@ -65,9 +65,7 @@ void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t len
 void vmm_copy_to_address_space(vm_address_space_t* vm_aspace, void* src, uintptr_t dest_vaddr, size_t length);
 
 vm_address_space_t* vmm_get_active_address_space();
-ptable_t* vmm_get_active_pdir();
 vm_address_space_t* vmm_get_kernel_address_space();
-ptable_t* vmm_get_kernel_pdir();
 
 int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace);
 int vmm_switch_address_space(vm_address_space_t* vm_aspace);

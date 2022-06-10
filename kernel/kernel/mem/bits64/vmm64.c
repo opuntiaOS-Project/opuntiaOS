@@ -417,9 +417,7 @@ int vmm_free_address_space_locked_impl(vm_address_space_t* vm_aspace)
 }
 
 vm_address_space_t* vmm_get_active_address_space() { return THIS_CPU->active_address_space; }
-ptable_t* vmm_get_active_pdir() { return NULL; }
 vm_address_space_t* vmm_get_kernel_address_space() { return _vmm_kernel_address_space_ptr; }
-ptable_t* vmm_get_kernel_pdir() { return NULL; }
 
 static uintptr_t _vmm_convert_vaddr2paddr(uintptr_t vaddr)
 {

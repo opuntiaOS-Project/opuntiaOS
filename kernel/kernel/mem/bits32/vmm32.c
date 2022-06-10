@@ -412,7 +412,7 @@ int vmm_map_page_locked_impl(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_f
     vm_ptable_entity_set_frame(page_desc, PTABLE_LV0, paddr);
 
 #ifdef VMM_DEBUG
-    log("Page mapped %x in pdir: %x", vaddr, vmm_get_active_pdir());
+    log("Page mapped %x in pdir: %x", vaddr, vmm_get_active_address_space()->pdir);
 #endif
 
     system_flush_local_tlb_entry(vaddr);
@@ -824,21 +824,9 @@ vm_address_space_t* vmm_get_active_address_space()
     return THIS_CPU->active_address_space;
 }
 
-// TODO: Depracte this
-ptable_t* vmm_get_active_pdir()
-{
-    return vmm_get_active_address_space()->pdir;
-}
-
 vm_address_space_t* vmm_get_kernel_address_space()
 {
     return _vmm_kernel_address_space_ptr;
-}
-
-// TODO: Depracte this
-ptable_t* vmm_get_kernel_pdir()
-{
-    return _vmm_kernel_pdir;
 }
 
 /**

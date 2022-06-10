@@ -87,7 +87,7 @@ ptable_t* vm_alloc_ptable_lv_top()
 
 void vm_free_ptable_lv_top(ptable_t* pdir)
 {
-    if (pdir == vmm_get_kernel_pdir()) {
+    if (pdir == vmm_get_kernel_address_space()->pdir) {
         return;
     }
 
