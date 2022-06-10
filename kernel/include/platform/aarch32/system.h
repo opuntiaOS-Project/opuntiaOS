@@ -92,7 +92,7 @@ inline static void system_disable_write_protect()
 
 inline static void system_enable_paging()
 {
-    volatile uint32_t val;
+    uint32_t val;
     asm volatile("mrc p15, 0, %0, c1, c0, 0"
                  : "=r"(val));
     asm volatile("orr %0, %1, #0x1"
