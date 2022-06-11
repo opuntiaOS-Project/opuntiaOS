@@ -84,7 +84,7 @@ int kthread_setup_regs(proc_t* p, void* entry_point)
 {
     tf_setup_as_kernel_thread(p->main_thread->tf);
     uintptr_t stack = (p->main_thread->kstack.start + USTACK_TOP);
-    set_base_pointer(p->main_thread->tf, stack);
+    set_frame_pointer(p->main_thread->tf, stack);
     set_stack_pointer(p->main_thread->tf, stack);
     set_instruction_pointer(p->main_thread->tf, (uintptr_t)entry_point);
     return 0;
@@ -107,6 +107,8 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
     vmm_copy_to_address_space(thread->process->address_space, &data, get_stack_pointer(thread->tf), sizeof(data));
 #elif __arm__
     thread->tf->r[0] = (uintptr_t)data;
+#elif __aarch64__
+    thread->tf->x[0] = (uintptr_t)data;
 #endif
     return 0;
 }

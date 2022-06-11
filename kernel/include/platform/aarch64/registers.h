@@ -12,7 +12,8 @@
 #include <libkern/types.h>
 #include <platform/aarch64/system.h>
 
-static inline uint64_t current_el()
+extern uint64_t read_ip();
+static inline uint64_t read_el()
 {
     uint64_t el;
     asm volatile("mrs %x0, CurrentEL"
@@ -21,13 +22,22 @@ static inline uint64_t current_el()
     return el >> 2;
 }
 
-static inline uint64_t current_sp()
+static inline uint64_t read_sp()
 {
-    uint64_t el;
+    uint64_t sp;
     asm volatile("mov %x0, sp"
-                 : "=r"(el)
+                 : "=r"(sp)
                  :);
-    return el;
+    return sp;
+}
+
+static inline uint64_t read_fp()
+{
+    uint64_t fp;
+    asm volatile("mov %x0, x29"
+                 : "=r"(fp)
+                 :);
+    return fp;
 }
 
 static inline uint64_t read_cbar()

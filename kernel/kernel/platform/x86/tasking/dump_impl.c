@@ -60,7 +60,7 @@ int dump_impl(dump_data_t* dump_data)
 {
     trapframe_t* tf = dump_data->p->main_thread->tf;
     dump_regs(dump_data);
-    dump_backtrace(dump_data, get_instruction_pointer(tf), (uintptr_t*)get_base_pointer(tf), 0);
+    dump_backtrace(dump_data, get_instruction_pointer(tf), (uintptr_t*)get_frame_pointer(tf), 0);
     return 0;
 }
 

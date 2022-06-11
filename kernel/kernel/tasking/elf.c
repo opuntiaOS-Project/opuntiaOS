@@ -146,7 +146,7 @@ static int _elf_load_alloc_stack(proc_t* p)
     memzone_t* stack_zone = memzone_new_random_backward(p->address_space, USER_STACK_SIZE);
     stack_zone->type = ZONE_TYPE_STACK;
     stack_zone->mmu_flags = MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
-    set_base_pointer(p->main_thread->tf, stack_zone->vaddr + USER_STACK_SIZE);
+    set_frame_pointer(p->main_thread->tf, stack_zone->vaddr + USER_STACK_SIZE);
     set_stack_pointer(p->main_thread->tf, stack_zone->vaddr + USER_STACK_SIZE);
     return 0;
 }
@@ -241,7 +241,7 @@ int elf_find_symtab_unchecked(void* mapped_data, void** symtab, size_t* symtab_e
 ssize_t elf_find_function_in_symtab(void* symtab_p, size_t syms_n, uintptr_t ip)
 {
     elf_sym_t* symtab = (elf_sym_t*)(symtab_p);
-    uint32_t prev = 0;
+    uintptr_t prev = 0;
     ssize_t ans = -1;
 
     for (size_t i = 0; i < syms_n; i++) {

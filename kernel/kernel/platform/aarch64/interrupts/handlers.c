@@ -75,7 +75,7 @@ void sync_handler(trapframe_t* tf)
                 snprintf(err_buf, ERR_BUF_SIZE, "Kernel trap at %zx, %zx prefetch_abort_handler", tf->elr, fault_addr);
                 kpanic_tf(err_buf, tf);
             } else {
-                log_warn("Crash: sync abort %zd at %zx: %d pid, %zx eip\n", esr, fault_addr, RUNNING_THREAD->tid, tf);
+                log_warn("Crash: sync abort %zx at %zx: %d pid, %zx eip", esr, fault_addr, RUNNING_THREAD->tid, tf);
                 dump_and_kill(RUNNING_THREAD->process);
             }
         }
@@ -92,6 +92,8 @@ void sync_handler(trapframe_t* tf)
         fpu_make_avail();
 
         if (RUNNING_THREAD->tid == THIS_CPU->fpu_for_pid) {
+            cpu_set_state(prev_cpu_state);
+            system_enable_interrupts_only_counter();
             return;
         }
 
@@ -102,6 +104,7 @@ void sync_handler(trapframe_t* tf)
         fpu_restore(RUNNING_THREAD->fpu_state);
         THIS_CPU->fpu_for_thread = RUNNING_THREAD;
         THIS_CPU->fpu_for_pid = RUNNING_THREAD->tid;
+        cpu_set_state(prev_cpu_state);
         system_enable_interrupts_only_counter();
         return;
 #endif // FPU_ENABLED

@@ -32,13 +32,14 @@ static inline void set_stack_pointer(trapframe_t* tf, uintptr_t sp)
     tf->sp = sp;
 }
 
-static inline uintptr_t get_base_pointer(trapframe_t* tf)
+static inline uintptr_t get_frame_pointer(trapframe_t* tf)
 {
-    return 0;
+    return tf->x[29];
 }
 
-static inline void set_base_pointer(trapframe_t* tf, uintptr_t bp)
+static inline void set_frame_pointer(trapframe_t* tf, uintptr_t bp)
 {
+    tf->x[29] = bp;
 }
 
 static inline uintptr_t get_instruction_pointer(trapframe_t* tf)

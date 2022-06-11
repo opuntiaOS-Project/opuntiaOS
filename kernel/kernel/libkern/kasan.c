@@ -13,6 +13,7 @@
 #include <libkern/libkern.h>
 #include <libkern/types.h>
 #include <mem/vmm.h>
+#include <tasking/dump.h>
 #include <tasking/tasking.h>
 
 static bool kasan_global_enabled = false;
@@ -94,6 +95,7 @@ void kasan_dump(uintptr_t addr, size_t size, bool write, uintptr_t retip)
     log_not_formatted("KASAN INFO: at %zx of size: %zx, is on write: %d\n", addr, size, write);
     log_not_formatted("KASAN LoC:  at %zx\n", retip);
     kasan_dump_shadow_area(addr, size);
+    dump_kernel(NULL);
     log_not_formatted("=============================\n");
     kasan_disable();
 }

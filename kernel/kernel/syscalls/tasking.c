@@ -104,7 +104,7 @@ void sys_create_thread(trapframe_t* tf)
     set_instruction_pointer(thread->tf, kparams.entry_point);
     uintptr_t esp = kparams.stack_start + kparams.stack_size;
     set_stack_pointer(thread->tf, esp);
-    set_base_pointer(thread->tf, esp);
+    set_frame_pointer(thread->tf, esp);
 
     return_with_val(thread->tid);
 }

@@ -11,7 +11,7 @@
 
 #include <libkern/kassert.h>
 #include <libkern/types.h>
-#include <platform/x86/registers.h>
+#include <platform/aarch64/registers.h>
 
 #define FPU_STATE_ALIGNMENT (32)
 

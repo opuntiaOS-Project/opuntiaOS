@@ -11,20 +11,61 @@
 #include <platform/aarch64/tasking/dump_impl.h>
 #include <platform/generic/system.h>
 
-void dump_regs(dump_data_t* dump_data)
+static void dump_xregs_row(dump_data_t* dump_data, int a)
 {
+    char buf[64];
+    trapframe_t* tf = dump_data->p->main_thread->tf;
+    snprintf(buf, 64, "x%d: %zx  x%d: %zx  x%d: %zx\n", a, tf->x[a], a + 1, tf->x[a + 1], a + 2, tf->x[a + 2]);
+    dump_data->writer(buf);
 }
 
-void dump_backtrace(dump_data_t* dump_data)
+void dump_regs(dump_data_t* dump_data)
 {
+    trapframe_t* tf = dump_data->p->main_thread->tf;
+    for (int i = 0; i < 30; i += 3) {
+        dump_xregs_row(dump_data, i);
+    }
+}
+
+void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_kernel)
+{
+    size_t id = 1;
+    char buf[64];
+
+    do {
+        if (id > 64) {
+            return;
+        }
+        if (IS_KERNEL_VADDR(ip) && !is_kernel) {
+            return;
+        }
+        if (ip == 0) {
+            return;
+        }
+
+        snprintf(buf, 64, "[%zd] %zx : ", id, ip);
+        dump_data->writer(buf);
+        int index = dump_data->sym_resolver(dump_data->syms, dump_data->symsn, ip);
+        dump_data->writer(&dump_data->strs[index]);
+        dump_data->writer("\n");
+
+        if (IS_KERNEL_VADDR((uintptr_t)bp) != is_kernel) {
+            return;
+        }
+
+        ip = bp[1];
+        bp = (uintptr_t*)*bp;
+        id++;
+    } while (ip != dump_data->entry_point);
+
+    return;
 }
 
 int dump_impl(dump_data_t* dump_data)
 {
-    char buf[64];
     trapframe_t* tf = dump_data->p->main_thread->tf;
-    snprintf(buf, 64, "Dump not supported for aarch64 target yet!\n");
-    dump_data->writer(buf);
+    dump_regs(dump_data);
+    dump_backtrace(dump_data, get_instruction_pointer(tf), (uintptr_t*)get_frame_pointer(tf), 0);
     return 0;
 }
 
@@ -33,6 +74,7 @@ int dump_kernel_impl(dump_data_t* dump_data, const char* err_desc)
     if (err_desc) {
         dump_data->writer(err_desc);
     }
+    dump_backtrace(dump_data, read_ip(), (uintptr_t*)read_fp(), 1);
     return 0;
 }
 
@@ -41,5 +83,6 @@ int dump_kernel_impl_from_tf(dump_data_t* dump_data, const char* err_desc, trapf
     if (err_desc) {
         dump_data->writer(err_desc);
     }
+    dump_backtrace(dump_data, tf->elr, (uintptr_t*)tf->x[30], 1);
     return 0;
 }

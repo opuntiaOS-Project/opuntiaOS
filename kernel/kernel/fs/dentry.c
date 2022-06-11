@@ -282,20 +282,21 @@ void kdentryflusherd()
 #endif
         dentry_cache_list_t* dentry_cache_block = dentry_cache;
         while (dentry_cache_block) {
+            system_disable_interrupts();
             spinlock_acquire(&dentry_cache_block->lock);
             int dentries_in_block = dentry_cache_block->len / sizeof(dentry_t);
             for (int i = 0; i < dentries_in_block; i++) {
                 if (dentry_cache_block->data[i].inode_indx != 0) {
                     // Keep only locks here might not be as effective as with disabled interrupts.
                     spinlock_acquire(&dentry_cache_block->data[i].lock);
-                    system_disable_interrupts();
                     dentry_flush_locked(&dentry_cache_block->data[i]);
-                    system_enable_interrupts();
                     spinlock_release(&dentry_cache_block->data[i].lock);
                 }
             }
+            dentry_cache_list_t* nxt = dentry_cache_block->next;
             spinlock_release(&dentry_cache_block->lock);
-            dentry_cache_block = dentry_cache_block->next;
+            system_enable_interrupts();
+            dentry_cache_block = nxt;
         }
 
         timespec_t ts;

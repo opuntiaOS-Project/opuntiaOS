@@ -41,12 +41,12 @@ static inline void set_stack_pointer(trapframe_t* tf, uintptr_t sp)
     tf->user_sp = sp;
 }
 
-static inline uintptr_t get_base_pointer(trapframe_t* tf)
+static inline uintptr_t get_frame_pointer(trapframe_t* tf)
 {
     return 0;
 }
 
-static inline void set_base_pointer(trapframe_t* tf, uintptr_t bp)
+static inline void set_frame_pointer(trapframe_t* tf, uintptr_t bp)
 {
 }
 
