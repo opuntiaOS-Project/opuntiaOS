@@ -8,6 +8,7 @@
 
 #include <drivers/generic/screen.h>
 #include <drivers/generic/uart.h>
+#include <libkern/libkern.h>
 #include <libkern/lock.h>
 #include <libkern/log.h>
 #include <libkern/stdarg.h>
@@ -36,7 +37,9 @@ static int vlog_fmt(const char* init_msg, const char* format, va_list arg)
 {
     vlog_unfmt(init_msg, arg);
     vlog_unfmt(format, arg);
-    if (format[-1] != '\n') {
+
+    size_t formatlen = strlen(format);
+    if (format[formatlen - 1] != '\n') {
         vlog_unfmt("\n", arg);
     }
     return 0;
