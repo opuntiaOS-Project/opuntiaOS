@@ -38,7 +38,7 @@ Font& Font::system_font(int size)
 {
     static Font* s_system_font_ptr[SystemMaxSize + 1];
     if (!s_system_font_ptr[size]) {
-        s_system_font_ptr[size] = Font::load_from_file_ttf("/GoogleSans.ttf", size);
+        s_system_font_ptr[size] = Font::load_from_file_ttf("/res/fonts/system.font/truetype/regular.ttf", size);
     }
     return *s_system_font_ptr[size];
 }
@@ -47,7 +47,7 @@ Font& Font::system_bold_font(int size)
 {
     static Font* s_system_font_ptr[SystemMaxSize + 1];
     if (!s_system_font_ptr[size]) {
-        s_system_font_ptr[size] = Font::load_from_file_ttf("/GoogleSansBold.ttf", size);
+        s_system_font_ptr[size] = Font::load_from_file_ttf("/res/fonts/system.font/truetype/bold.ttf", size);
     }
     return *s_system_font_ptr[size];
 }
