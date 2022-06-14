@@ -27,7 +27,6 @@ void platform_init_boot_cpu()
 
 void platform_setup_boot_cpu()
 {
-    clean_screen();
     pit_setup();
     fpu_init();
 }

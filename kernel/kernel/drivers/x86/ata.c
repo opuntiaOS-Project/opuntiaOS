@@ -9,6 +9,8 @@
 #include <drivers/x86/ata.h>
 #include <libkern/bits/errno.h>
 
+// #define DEBUG_ATA
+
 ata_t _ata_drives[MAX_DEVICES_COUNT];
 
 static uint8_t _ata_drives_count = 0;
@@ -68,7 +70,9 @@ int ata_init_with_dev(device_t* dev)
     uint16_t port = dev->device_desc.pci.port_base & 0xFFF;
     ata_init(&_ata_drives[dev->id], port, is_master);
     if (ata_indentify(&_ata_drives[dev->id])) {
-        kprintf("Device added to ata driver\n");
+#ifdef DEBUG_ATA
+        log("Device added to ata driver");
+#endif
     } else {
         return -1;
     }
@@ -108,7 +112,9 @@ bool ata_indentify(ata_t* ata)
     // check the acceptance of a command
     uint8_t status = port_8bit_in(ata->port.command);
     if (status == 0x00) {
-        kprintf("Cmd isn't accepted");
+#ifdef DEBUG_ATA
+        log("Cmd isn't accepted");
+#endif
         return false;
     }
 
@@ -119,7 +125,9 @@ bool ata_indentify(ata_t* ata)
     }
     // check if drive isn't ready to transer DRQ
     if ((status & 0x08) != 0x08) {
-        kprintf("Doesn't ready to transfer DRQ");
+#ifdef DEBUG_ATA
+        log("Doesn't ready to transfer DRQ");
+#endif
         return false;
     }
 
@@ -178,7 +186,9 @@ int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size
 
     // check if drive isn't ready to transer DRQ
     if (((status >> 0) & 1) == 1) {
-        kprintf("Error");
+#ifdef DEBUG_ATA
+        log("Error");
+#endif
         return -EBUSY;
     }
 
@@ -217,12 +227,16 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
 
     // check if drive isn't ready to transer DRQ
     if (((status >> 0) & 1) == 1) {
-        kprintf("Error");
+#ifdef DEBUG_ATA
+        log("Error");
+#endif
         return -EBUSY;
     }
 
     if (((status >> 3) & 1) == 0) {
-        kprintf("No DRQ");
+#ifdef DEBUG_ATA
+        log("No DRQ");
+#endif
         return -ENODEV;
     }
 

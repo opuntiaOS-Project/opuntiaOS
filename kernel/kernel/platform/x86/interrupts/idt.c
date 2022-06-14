@@ -18,7 +18,8 @@ void** handlers[IDT_ENTRIES];
 
 void lidt(void* p, uint16_t size)
 {
-    uint16_t pd[3];
+    // Need to use volatile as GCC optimizes out the following writes.
+    volatile uint16_t pd[3];
     pd[0] = size - 1;
     pd[1] = (uint32_t)p;
     pd[2] = (uint32_t)p >> 16;
