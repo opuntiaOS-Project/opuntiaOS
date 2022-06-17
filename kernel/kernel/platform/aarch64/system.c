@@ -64,7 +64,7 @@ void system_cache_clean_and_invalidate(void* addr, size_t size)
     for (size_t curaddr = start; curaddr < end; curaddr += cache_line_size) {
         asm volatile("dc civac, %0"
                      :
-                     : "r"(addr));
+                     : "r"(curaddr));
     }
     asm volatile("dsb sy");
     asm volatile("isb");
