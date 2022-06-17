@@ -52,8 +52,7 @@ void interrupts_setup()
 
 void serror_handler(trapframe_t* tf)
 {
-    log("serror_handler");
-    system_stop();
+    kpanic_tf("serror_handler", tf);
 }
 
 void sync_handler(trapframe_t* tf)

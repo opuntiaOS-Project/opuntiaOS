@@ -83,6 +83,7 @@ static void vm_alloc_kernel_pdir()
     _vmm_kernel_address_space.pdir = _vmm_kernel_pdir;
     spinlock_init(&_vmm_kernel_address_space.lock);
     memset((void*)_vmm_kernel_address_space.pdir, 0, PTABLE_SIZE(PTABLE_LV_TOP));
+    system_cache_clean_and_invalidate((void*)_vmm_kernel_address_space.pdir, PTABLE_SIZE(PTABLE_LV_TOP));
 
     // Set as an active one to set up kernel address space.
     THIS_CPU->active_address_space = _vmm_kernel_address_space_ptr;
@@ -133,6 +134,8 @@ static void _vmm_map_kernel_page(uintptr_t paddr, uintptr_t vaddr)
     vm_ptable_entity_set_default_flags(page_desc, PTABLE_LV0);
     vm_ptable_entity_set_mmu_flags(page_desc, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
     vm_ptable_entity_set_frame(page_desc, PTABLE_LV0, paddr);
+
+    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
 }
 
 /**
@@ -175,6 +178,8 @@ static bool _vmm_create_kernel_ptables()
         if (i > VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)) {
             vm_ptable_entity_set_mmu_flags(ptable_entity, ptable_entity_lv, MMU_FLAG_NONPRIV);
         }
+
+        system_cache_clean_and_invalidate(ptable_entity, sizeof(*ptable_entity));
     }
 
     const pmm_state_t* pmm_state = pmm_get_state();
@@ -261,6 +266,8 @@ static inline void _vmm_table_desc_init_from_allocated_state(ptable_entity_t* pt
     vm_ptable_entity_set_default_flags(ptable_desc, lv);
     vm_ptable_entity_set_mmu_flags(ptable_desc, lv, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC | MMU_FLAG_NONPRIV);
     vm_ptable_entity_set_frame(ptable_desc, lv, frame);
+
+    system_cache_clean_and_invalidate(ptable_desc, sizeof(*ptable_desc));
 }
 
 /**
@@ -302,6 +309,7 @@ static int _vmm_allocate_ptable_locked(uintptr_t vaddr, ptable_lv_t ptable_lv)
         vm_ptable_entity_allocated(tmp_ptable_desc, ptable_desc_lv);
         vm_ptable_entity_set_frame(tmp_ptable_desc, ptable_desc_lv, ptable_paddr);
 
+        system_cache_clean_and_invalidate(tmp_ptable_desc, sizeof(*tmp_ptable_desc));
         pvaddr += table_coverage;
         ptable_paddr += PTABLE_SIZE(ptable_lv);
     }
@@ -314,6 +322,7 @@ static int _vmm_allocate_ptable_locked(uintptr_t vaddr, ptable_lv_t ptable_lv)
 skip_allocation:
     _vmm_table_desc_init_from_allocated_state(ptable_desc, ptable_desc_lv);
     memset(vm_get_table(vaddr, ptable_lv), 0, PTABLE_SIZE(ptable_lv));
+    system_cache_clean_and_invalidate(vm_get_table(vaddr, ptable_lv), PTABLE_SIZE(ptable_lv));
     return 0;
 }
 
@@ -415,6 +424,7 @@ int vmm_map_page_locked_impl(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_f
     log("Page mapped %x in pdir: %x", vaddr, vmm_get_active_address_space()->pdir);
 #endif
 
+    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
@@ -441,6 +451,7 @@ int vmm_unmap_page_locked_impl(uintptr_t vaddr)
     }
 
     vm_ptable_entity_invalidate(page_desc, PTABLE_LV0);
+    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
@@ -459,7 +470,10 @@ static void _vmm_tables_set_cow(size_t table_index, ptable_entity_t* cur, ptable
     // TODO: Support 2-level translation for now only.
     // Reimplement getting a target pdir and moving levels down.
     vm_ptable_entity_set_mmu_flags(cur, lv, MMU_FLAG_COW);
+    system_cache_clean_and_invalidate(cur, sizeof(*cur));
+
     vm_ptable_entity_set_mmu_flags(new, lv, MMU_FLAG_COW);
+    system_cache_clean_and_invalidate(new, sizeof(*new));
 
     // Marking all pages as not-writable to handle COW. Later will restore using zones data.
     ptable_t* ptable = vm_pspace_get_nth_active_ptable(table_index, lower_level(lv));
@@ -467,6 +481,7 @@ static void _vmm_tables_set_cow(size_t table_index, ptable_entity_t* cur, ptable
         ptable_entity_t* page = &ptable->entities[i];
         if (vm_ptable_entity_is_present(page, lower_level(lv))) {
             vm_ptable_entity_rm_mmu_flags(page, lower_level(lv), MMU_FLAG_PERM_WRITE);
+            system_cache_clean_and_invalidate(page, sizeof(*page));
         }
     }
 }
@@ -605,6 +620,7 @@ int vmm_resolve_copy_on_write(uintptr_t vaddr)
 #endif
                 swapfile_new_ref(id);
                 *current_page_desc = *page_desc;
+                system_cache_clean_and_invalidate(current_page_desc, sizeof(*current_page_desc));
                 continue;
             }
 
@@ -854,6 +870,7 @@ int vmm_tune_page_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
         vmm_alloc_page_locked(vaddr, mmu_flags);
     }
 
+    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }

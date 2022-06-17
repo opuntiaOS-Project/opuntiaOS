@@ -46,10 +46,11 @@ void system_cache_clean_and_invalidate(void* addr, size_t size)
     size_t end = ROUND_CEIL((size_t)addr + size, cache_line_size);
 
     for (size_t curaddr = start; curaddr < end; curaddr += cache_line_size) {
-        asm volatile("clflush (%0)"
-                     :
-                     : "r"(curaddr)
-                     : "memory");
+        // TODO(x86) This is commented out until cpuid flags are avail.
+        // asm volatile("clflush (%0)"
+        //              :
+        //              : "r"(curaddr)
+        //              : "memory");
     }
 }
 

@@ -77,6 +77,8 @@ static void vm_map_kernel_huge_page_1gb(uintptr_t vaddr, uintptr_t paddr, mmu_fl
     vm_ptable_entity_set_default_flags(ptable_desc, PTABLE_LV2);
     vm_ptable_entity_set_mmu_flags(ptable_desc, PTABLE_LV2, MMU_FLAG_HUGE_PAGE | mmu_flags);
     vm_ptable_entity_set_frame(ptable_desc, PTABLE_LV2, paddr);
+
+    system_cache_clean_and_invalidate(ptable_desc, sizeof(*ptable_desc));
 }
 
 static void vm_alloc_kernel_pdir()
@@ -167,8 +169,9 @@ static int _vmm_map_page_locked_lv0(ptable_t* ptable, uintptr_t vaddr, uintptr_t
 #ifdef VMM_DEBUG
     log("Page mapped %zx at %zx :: (%p) => %llx", vaddr, paddr, page_desc, *page_desc);
 #endif
-    system_flush_local_tlb_entry(vaddr);
 
+    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
+    system_flush_local_tlb_entry(vaddr);
     return 0;
 }
 
@@ -190,6 +193,7 @@ static int _vmm_map_page_locked_impl(ptable_t* ptable, uintptr_t vaddr, uintptr_
 #endif
         ptable_t* this_table = vm_get_table(vaddr, lv);
         memset(this_table, 0, PTABLE_SIZE(lv));
+        system_cache_clean_and_invalidate(this_table, PTABLE_SIZE(lv));
     }
 
     if (lv == PTABLE_LV0) {
@@ -240,6 +244,7 @@ int vmm_unmap_page_locked_impl(uintptr_t vaddr)
     }
 
     vm_ptable_entity_invalidate(page_desc, PTABLE_LV0);
+    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
@@ -271,6 +276,7 @@ int vmm_tune_page_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
         vmm_alloc_page_locked(vaddr, mmu_flags);
     }
 
+    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
@@ -352,6 +358,7 @@ vm_address_space_t* vmm_alloc_new_address_space_locked()
 int vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
 {
     memset(new_aspace->pdir, 0, PTABLE_SIZE(PTABLE_LV_TOP));
+    system_cache_clean_and_invalidate(new_aspace->pdir, PTABLE_SIZE(PTABLE_LV_TOP));
     return 0;
 }
 
