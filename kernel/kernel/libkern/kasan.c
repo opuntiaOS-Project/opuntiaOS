@@ -130,13 +130,13 @@ static bool mem_is_zero(uintptr_t addr, size_t size)
         return mem_is_zero_bytes(addr, size);
     }
 
-    unsigned int align_start = addr % 8;
-    if (!mem_is_zero_bytes(addr, align_start)) {
+    size_t aligment = (8 - (addr % 8)) % 8;
+    if (!mem_is_zero_bytes(addr, aligment)) {
         return false;
     }
 
     addr = ROUND_CEIL(addr, 8);
-    size -= align_start;
+    size -= aligment;
 
     uint64_t* addr_u64 = (uint64_t*)addr;
     size_t words = size / 8;

@@ -20,7 +20,7 @@ void* memset(void* dest, uint8_t fll, size_t nbytes)
     }
 
     uintptr_t destaddr = (uintptr_t)dest;
-    size_t aligment = destaddr % 8;
+    size_t aligment = (8 - (destaddr % 8)) % 8;
     for (int i = 0; i < aligment; i++) {
         *((uint8_t*)dest + i) = fll;
     }
