@@ -67,4 +67,13 @@ static inline void write_cpacr(uint64_t val)
     asm volatile("isb");
 }
 
+static inline void write_tpidr(uint64_t val)
+{
+    asm volatile("msr TPIDR_EL1, %x0"
+                 :
+                 : "r"(val)
+                 : "memory");
+    asm volatile("isb");
+}
+
 #endif /* _KERNEL_PLATFORM_AARCH64_REGISTERS_H */

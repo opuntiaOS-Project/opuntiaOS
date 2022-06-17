@@ -7,7 +7,7 @@
  */
 
 #include <mem/vmm.h>
-#include <platform/aarch32/interrupts.h>
+#include <platform/aarch64/interrupts.h>
 #include <platform/generic/fpu/fpu.h>
 #include <platform/generic/system.h>
 #include <platform/generic/tasking/trapframe.h>
@@ -19,6 +19,7 @@ void switchuvm(thread_t* thread)
 {
     system_disable_interrupts();
     RUNNING_THREAD = thread;
+    write_tpidr((uintptr_t)thread);
     vmm_switch_address_space(thread->process->address_space);
     fpu_make_unavail();
     system_enable_interrupts();
