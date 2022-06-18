@@ -77,8 +77,6 @@ static void vm_map_kernel_huge_page_1gb(uintptr_t vaddr, uintptr_t paddr, mmu_fl
     vm_ptable_entity_set_default_flags(ptable_desc, PTABLE_LV2);
     vm_ptable_entity_set_mmu_flags(ptable_desc, PTABLE_LV2, MMU_FLAG_HUGE_PAGE | mmu_flags);
     vm_ptable_entity_set_frame(ptable_desc, PTABLE_LV2, paddr);
-
-    system_cache_clean_and_invalidate(ptable_desc, sizeof(*ptable_desc));
 }
 
 static void vm_alloc_kernel_pdir()
@@ -116,16 +114,21 @@ static void vmm_create_kernel_ptables(boot_args_t* args)
     }
 
     // Mapping kernel ptable to access them.
-    vmm_map_page_locked((uintptr_t)_vmm_kernel_pdir0, _vmm_kernel_pdir0_paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
-    vmm_map_page_locked((uintptr_t)_vmm_kernel_pdir1, _vmm_kernel_pdir1_paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
-    vm_map_kernel_huge_page_1gb(KERNEL_PADDR_BASE, args->paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+    vmm_map_page_locked((uintptr_t)_vmm_kernel_pdir0, _vmm_kernel_pdir0_paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_UNCACHED);
+    vmm_map_page_locked((uintptr_t)_vmm_kernel_pdir1, _vmm_kernel_pdir1_paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_UNCACHED);
+
+    // Mapping physical RAM to access it inside kernelspace.
+    // Note: This area is marked as uncached, since VIVT caches could break translation,
+    // since code could change content of a transation table and changes will stuck
+    // in VIVT caches and could be not evicted in some scenarios.
+    vm_map_kernel_huge_page_1gb(KERNEL_PADDR_BASE, args->paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_UNCACHED);
 
     // Debug mapping, should be removed.
     if (!args->fb_boot_desc.vaddr) {
-        vmm_map_page_locked(0x09000000, 0x09000000, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+        vmm_map_page_locked(0x09000000, 0x09000000, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
     } else {
         // Mapping 16mb.
-        vmm_map_pages_locked((uintptr_t)args->fb_boot_desc.vaddr, (uintptr_t)args->fb_boot_desc.paddr, 256 * 16, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
+        vmm_map_pages_locked((uintptr_t)args->fb_boot_desc.vaddr, (uintptr_t)args->fb_boot_desc.paddr, 256 * 16, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
     }
 }
 
@@ -170,7 +173,6 @@ static int _vmm_map_page_locked_lv0(ptable_t* ptable, uintptr_t vaddr, uintptr_t
     log("Page mapped %zx at %zx :: (%p) => %llx", vaddr, paddr, page_desc, *page_desc);
 #endif
 
-    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
@@ -193,7 +195,6 @@ static int _vmm_map_page_locked_impl(ptable_t* ptable, uintptr_t vaddr, uintptr_
 #endif
         ptable_t* this_table = vm_get_table(vaddr, lv);
         memset(this_table, 0, PTABLE_SIZE(lv));
-        system_cache_clean_and_invalidate(this_table, PTABLE_SIZE(lv));
     }
 
     if (lv == PTABLE_LV0) {
@@ -244,7 +245,6 @@ int vmm_unmap_page_locked_impl(uintptr_t vaddr)
     }
 
     vm_ptable_entity_invalidate(page_desc, PTABLE_LV0);
-    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
@@ -276,7 +276,6 @@ int vmm_tune_page_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
         vmm_alloc_page_locked(vaddr, mmu_flags);
     }
 
-    system_cache_clean_and_invalidate(page_desc, sizeof(*page_desc));
     system_flush_local_tlb_entry(vaddr);
     return 0;
 }
@@ -358,7 +357,6 @@ vm_address_space_t* vmm_alloc_new_address_space_locked()
 int vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
 {
     memset(new_aspace->pdir, 0, PTABLE_SIZE(PTABLE_LV_TOP));
-    system_cache_clean_and_invalidate(new_aspace->pdir, PTABLE_SIZE(PTABLE_LV_TOP));
     return 0;
 }
 

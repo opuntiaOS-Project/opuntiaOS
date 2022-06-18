@@ -42,7 +42,7 @@ void vm_free_page_paddr(uintptr_t addr)
     pmm_free((void*)addr, VMM_PAGE_SIZE);
 }
 
-int vm_alloc_mapped_zone(size_t size, size_t alignment, kmemzone_t* kmemzone)
+int vm_alloc_mapped_zone(size_t size, size_t alignment, kmemzone_t* kmemzone, mmu_flags_t flags)
 {
     if (size % VMM_PAGE_SIZE) {
         size += VMM_PAGE_SIZE - (size % VMM_PAGE_SIZE);
@@ -58,7 +58,7 @@ int vm_alloc_mapped_zone(size_t size, size_t alignment, kmemzone_t* kmemzone)
     }
 
     kmemzone_t zone = kmemzone_new_aligned(size, alignment);
-    vmm_map_pages_locked(zone.start, paddr, size / VMM_PAGE_SIZE, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
+    vmm_map_pages_locked(zone.start, paddr, size / VMM_PAGE_SIZE, flags);
     *kmemzone = zone;
     return 0;
 }
@@ -78,7 +78,8 @@ int vm_free_mapped_zone(kmemzone_t zone)
 ptable_t* vm_alloc_ptable_lv_top()
 {
     kmemzone_t zone;
-    int err = vm_alloc_mapped_zone(ptable_size_at_level[PTABLE_LV_TOP], ptable_size_at_level[PTABLE_LV_TOP], &zone);
+    size_t size = ptable_size_at_level[PTABLE_LV_TOP];
+    int err = vm_alloc_mapped_zone(size, size, &zone, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED);
     if (err) {
         return NULL;
     }

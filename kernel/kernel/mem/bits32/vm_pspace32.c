@@ -73,7 +73,7 @@ void vm_pspace_init(boot_args_t* args)
         ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - VMM_KERNEL_TABLES_START) * PTABLE_SIZE(PTABLE_LV0));
         ptable_entity_t* page_desc = vm_lookup(ptable_vaddr, PTABLE_LV0, kernel_ptabels_vaddr);
         vm_ptable_entity_set_default_flags(page_desc, PTABLE_LV0);
-        vm_ptable_entity_set_mmu_flags(page_desc, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
+        vm_ptable_entity_set_mmu_flags(page_desc, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED);
         vm_ptable_entity_set_frame(page_desc, PTABLE_LV0, kernel_ptabels_paddr);
         kernel_ptabels_vaddr += VMM_PAGE_SIZE;
         kernel_ptabels_paddr += VMM_PAGE_SIZE;
@@ -102,7 +102,7 @@ void vm_pspace_gen(ptable_t* pdir)
 
     ptable_entity_t pspace_page;
     vm_ptable_entity_set_default_flags(&pspace_page, PTABLE_LV0);
-    vm_ptable_entity_set_mmu_flags(&pspace_page, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
+    vm_ptable_entity_set_mmu_flags(&pspace_page, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED);
     vm_ptable_entity_set_frame(&pspace_page, PTABLE_LV0, ptable_paddr);
 
     /* According to prev comment, we can remain overflow here, since we write to the right memory cell */
@@ -114,7 +114,7 @@ void vm_pspace_gen(ptable_t* pdir)
     for (int i = 0; i < ptables_per_page; i++, ptable_vaddr_for += table_coverage, ptable_paddr_for += PTABLE_SIZE(PTABLE_LV0)) {
         ptable_entity_t pspace_table;
         vm_ptable_entity_set_default_flags(&pspace_table, PTABLE_LV1);
-        vm_ptable_entity_set_mmu_flags(&pspace_table, PTABLE_LV1, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
+        vm_ptable_entity_set_mmu_flags(&pspace_table, PTABLE_LV1, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED);
         vm_ptable_entity_set_frame(&pspace_table, PTABLE_LV1, ptable_paddr_for);
 
         pdir->entities[VMM_OFFSET_IN_DIRECTORY(ptable_vaddr_for)] = pspace_table;
@@ -147,7 +147,7 @@ void vm_pspace_free(ptable_t* pdir)
 int vm_pspace_on_ptable_mapped(uintptr_t vaddr, uintptr_t ptable_paddr, ptable_lv_t lv)
 {
     const uintptr_t pspace_table_vaddr = PAGE_START((uintptr_t)vm_pspace_get_vaddr_of_active_ptable(vaddr, lv));
-    return vmm_map_page_locked(pspace_table_vaddr, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
+    return vmm_map_page_locked(pspace_table_vaddr, ptable_paddr, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED);
 }
 
 /**

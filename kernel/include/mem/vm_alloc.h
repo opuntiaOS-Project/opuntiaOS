@@ -20,7 +20,7 @@ void vm_free_ptables_to_cover_page(uintptr_t addr);
 uintptr_t vm_alloc_page_paddr();
 void vm_free_page_paddr(uintptr_t addr);
 
-int vm_alloc_mapped_zone(size_t size, size_t alignment, kmemzone_t* zone);
+int vm_alloc_mapped_zone(size_t size, size_t alignment, kmemzone_t* zone, mmu_flags_t flags);
 int vm_free_mapped_zone(kmemzone_t zone);
 
 ptable_t* vm_alloc_ptable_lv_top();
