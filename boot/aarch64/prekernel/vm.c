@@ -9,6 +9,7 @@
 #include "vm.h"
 #include <libboot/abi/kernel.h>
 #include <libboot/abi/rawimage.h>
+#include <libboot/devtree/devtree.h>
 #include <libboot/log/log.h>
 #include <libboot/mem/alloc.h>
 #include <libboot/mem/mem.h>
@@ -141,18 +142,18 @@ void vm_setup(uintptr_t base, boot_args_t* args, rawimage_header_t* riheader)
 
     // The initial boot requires framebuffer and uart to be mapped.
     // Checking this and mapping devices.
-    map_uart();
-    map_fb();
-    if (args->fb_boot_desc.vaddr == 0) {
-        map4kb_1gb(args, 0x0, 0x0);
-    } else {
-        uint64_t paddr = args->fb_boot_desc.paddr;
-        const size_t page_covers = (1ull << PTABLE_LV2_VADDR_OFFSET);
-        paddr &= ~(page_covers - 1);
+    map_uart(args);
+    map_fb(args);
+    // if (args->fb_boot_desc.vaddr == 0) {
+    //     map4kb_1gb(args, 0x0, 0x0);
+    // } else {
+    //     uint64_t paddr = args->fb_boot_desc.paddr;
+    //     const size_t page_covers = (1ull << PTABLE_LV2_VADDR_OFFSET);
+    //     paddr &= ~(page_covers - 1);
 
-        map4kb_1gb(args, paddr, 0xfc0000000ULL);
-        args->fb_boot_desc.vaddr = 0xfc0000000ULL + (args->fb_boot_desc.paddr - paddr);
-    }
+    //     map4kb_1gb(args, paddr, 0xfc0000000ULL);
+    //     args->fb_boot_desc.vaddr = 0xfc0000000ULL + (args->fb_boot_desc.paddr - paddr);
+    // }
 
     extern void enable_mmu_el1(uint64_t ttbr0, uint64_t tcr, uint64_t mair, uint64_t ttbr1);
     enable_mmu_el1((uint64_t)global_page_table_0, 0x135003500 | (tg0 << 14) | (tg1 << 30) | (t1sz << 16) | t0sz, 0x04ff, (uint64_t)global_page_table_1);

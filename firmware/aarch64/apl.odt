@@ -1,6 +1,14 @@
 {
     "name": "apl_a7",
     "devices": [{
+            "name": "ram",
+            "type": "RAM",
+            "mem": {
+                "base": "0x0",
+                "size": "0x0"
+            }
+        },
+        {
             "name": "aa64timer",
             "type": "TIMER",
             "flags": "MMIO"

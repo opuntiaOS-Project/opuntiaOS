@@ -40,4 +40,6 @@ DEVTREE_ENTRY = Struct(
     "rel_name_offset" / Int32ul,
     "aux1" / Int64ul,
     "aux2" / Int64ul,
+    "aux3" / Int64ul,
+    "aux4" / Int64ul,
 )
