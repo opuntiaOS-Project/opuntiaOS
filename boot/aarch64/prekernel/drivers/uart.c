@@ -7,6 +7,7 @@
  */
 
 #include "uart.h"
+#include <libboot/devtree/devtree.h>
 
 volatile uint32_t* output = NULL;
 
