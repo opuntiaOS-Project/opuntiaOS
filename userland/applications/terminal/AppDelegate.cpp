@@ -2,6 +2,7 @@
 #include "TerminalViewController.h"
 #include <csignal>
 #include <libui/AppDelegate.h>
+#include <libfoundation/AssetManager.h>
 
 static int shell_pid = 0;
 
@@ -38,7 +39,10 @@ public:
     virtual ~AppDelegate() = default;
 
     LG::Size preferred_desktop_window_size() const override { return LG::Size(400, 300); }
-    const char* icon_path() const override { return "/res/icons/apps/terminal.icon"; }
+    const char* icon_path() const override {
+        LFoundation::AssetManager assets = LFoundation::AssetManager("terminal");
+        return assets.find("Resources/terminal.icon").c_str();
+    }
 
     bool application() override
     {

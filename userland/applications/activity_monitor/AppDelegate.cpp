@@ -1,5 +1,6 @@
 #include "ViewController.h"
 #include <libui/AppDelegate.h>
+#include <libfoundation/AssetManager.h>
 
 class AppDelegate : public UI::AppDelegate {
 public:
@@ -7,7 +8,10 @@ public:
     virtual ~AppDelegate() = default;
 
     LG::Size preferred_desktop_window_size() const override { return LG::Size(220, 210); }
-    const char* icon_path() const override { return "/res/icons/apps/activity_monitor.icon"; }
+    const char* icon_path() const override {
+        LFoundation::AssetManager assets = LFoundation::AssetManager("activity_monitor");
+        return assets.find("Resources/activity_monitor.icon").c_str();
+    }
 
     virtual bool application() override
     {

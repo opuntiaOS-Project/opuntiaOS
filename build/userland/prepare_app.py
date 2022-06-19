@@ -8,6 +8,7 @@ import sys
 import os
 import json
 import subprocess
+from distutils.dir_util import copy_tree
 
 fs_app_name = sys.argv[1]
 app_name = sys.argv[2]
@@ -45,6 +46,11 @@ config = {}
 for fname in os.listdir(src_dir):
     if fname == "info.json":
         config = read_config(src_dir + "/info.json")
+
+        if 'assets' in config:
+            for asset_dir in config['assets']:
+                copy_tree(src_dir + "/" + asset_dir, outpath + '/' + asset_dir)
+                
         break
 
 write_config(config, outpath)
