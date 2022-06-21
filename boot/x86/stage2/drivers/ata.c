@@ -4,6 +4,9 @@
  */
 
 #include "ata.h"
+#include <libboot/log/log.h>
+
+// #define DEBUG_ATA
 
 ata_t active_ata_drive;
 
@@ -56,26 +59,30 @@ int indentify_ata_device(drive_desc_t* drive_desc)
         text[0] = (data >> 8) & 0xFF;
         text[1] = data & 0xFF;
         if (i == 1) {
-            // printf("Logical cylindres");
-            // printd(data);
-            // printf("\n");
+#ifdef DEBUG_ATA
+            log("Logical cylindres %x", data);
+#endif
         }
         if (i == 3) {
-            // printf("Logical heads");
-            // printd(data);
-            // printf("\n");
+#ifdef DEBUG_ATA
+            log("Logical heads %x", data);
+#endif
         }
         if (i == 6) {
-            // printf("Logical sectors");
-            // printd(data);
-            // printf("\n");
+#ifdef DEBUG_ATA
+            log("Logical sectors %x", data);
+#endif
         }
         if (i == 49) {
             if (((data >> 8) & 0x1) == 1) {
-                // printf("Dma supported\n");
+#ifdef DEBUG_ATA
+                log("Dma supported");
+#endif
             }
             if (((data >> 9) & 0x1) == 1) {
-                // printf("Lba supported\n");
+#ifdef DEBUG_ATA
+                log("Lba supported");
+#endif
             }
         }
     }
