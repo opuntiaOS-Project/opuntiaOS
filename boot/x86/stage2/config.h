@@ -16,8 +16,8 @@ struct x86_memory_map {
 typedef struct x86_memory_map x86_memory_map_t;
 
 struct x86_mem_desc {
-    uint16_t memory_map_size;
-    uint16_t kernel_size;
+    uint32_t memory_map_size;
+    uint32_t kernel_size;
 };
 typedef struct x86_mem_desc x86_mem_desc_t;
 

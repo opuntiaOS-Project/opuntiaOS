@@ -32,6 +32,7 @@ executable("stage2") {
     "-T$linker_script",
     "--oformat",
     "binary",
+    "-Map=stage2.map",
   ]
 
   cflags = [

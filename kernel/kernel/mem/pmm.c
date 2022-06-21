@@ -65,30 +65,6 @@ static void _pmm_init_ram()
 {
     pmm_state.ram_offset = pmm_state.boot_args->mem_boot_desc.ram_base;
     pmm_state.ram_size = pmm_state.boot_args->mem_boot_desc.ram_size;
-
-    //     pmm_state.boot_args->mem_boot_desc.reserved_areas
-    //     memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->mem;
-    //     for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
-    //         if (memory_map[i].type == 1) {
-    //             uint64_t start = ((uint64_t)memory_map[i].startHi << 32) + memory_map[i].startLo;
-    //             uint64_t size = ((uint64_t)memory_map[i].sizeHi << 32) + memory_map[i].sizeLo;
-    //             pmm_state.ram_offset = min(pmm_state.ram_offset, start);
-
-    // #ifdef DEBUG_PMM
-    //             log("Pmm desc: %zx %zx", start, size);
-    // #endif
-
-    //             // This is a hack, since memory map differs a lot for x86 and arm.
-    //             // Might need to unify this somehow (maybe pass info from bootloader?).
-    // #ifdef __i386__
-    //             pmm_state.ram_size = max(pmm_state.ram_size, start + memory_map[i].sizeLo);
-    // #elif __arm__
-    //             pmm_state.ram_size += memory_map[i].sizeLo;
-    // #elif __aarch64__
-    //             pmm_state.ram_size += size;
-    // #endif
-    //         }
-    //     }
 }
 
 static void _pmm_allocate_mat()
@@ -116,18 +92,6 @@ static void _pmm_init_mat()
 
         _pmm_mark_used_region(mem_layout[i].base, mem_layout[i].size);
     }
-
-    //     memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->memory_map;
-    //     for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
-    //         if (memory_map[i].type == 1) {
-    //             uint64_t start = ((uint64_t)memory_map[i].startHi << 32) + memory_map[i].startLo;
-    //             uint64_t size = ((uint64_t)memory_map[i].sizeHi << 32) + memory_map[i].sizeLo;
-    // #ifdef DEBUG_PMM
-    //             log("  %d: %zx - %zx", i, start, size);
-    // #endif
-    //             _pmm_mark_avail_region(start, size);
-    //         }
-    //     }
 }
 
 static void _pmm_init_from_desc(boot_args_t* boot_args)
