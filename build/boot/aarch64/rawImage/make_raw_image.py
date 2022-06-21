@@ -31,9 +31,11 @@ if prekernel_header == b'\x7fELF':
         signature_section = None
         for section in ELFFile(elffile).iter_sections():
             if (section['sh_flags'] & SH_FLAGS.SHF_ALLOC) == SH_FLAGS.SHF_ALLOC:
-                kernel_vaddr_end = max(kernel_vaddr_end, section['sh_addr'] + section['sh_size'])
+                kernel_vaddr_end = max(
+                    kernel_vaddr_end, section['sh_addr'] + section['sh_size'])
 
-    output = subprocess.check_output("aarch64-elf-objcopy -O binary {0} {0}".format(prekernel_path), shell=True)
+    output = subprocess.check_output(
+        "aarch64-elf-objcopy -O binary {0} {0}".format(prekernel_path), shell=True)
     binary_blob_size = os.path.getsize(prekernel_path)
     assert(binary_blob_size <= kernel_vaddr_end)
 
@@ -75,4 +77,5 @@ rawimage_header = Struct(
 with open(rawimage_header_path, "wb") as binfile:
     binfile.write(bytes(rawimage_header))
 
-output = subprocess.check_output("cat {0} {1} {2} {3} > {4}".format(prekernel_path, rawimage_header_path, kernel_path, devtree_path, out_path), shell=True)
+output = subprocess.check_output("cat {0} {1} {2} {3} > {4}".format(
+    prekernel_path, rawimage_header_path, kernel_path, devtree_path, out_path), shell=True)

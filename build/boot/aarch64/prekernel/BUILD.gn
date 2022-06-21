@@ -47,6 +47,7 @@ linker_script =
 executable("prekernelaarch64") {
   output_name = "prekernelaarch64.bin"
   sources = [
+    "//boot/aarch64/prekernel/drivers/fb.c",
     "//boot/aarch64/prekernel/drivers/uart.c",
     "//boot/aarch64/prekernel/entry.S",
     "//boot/aarch64/prekernel/main.c",

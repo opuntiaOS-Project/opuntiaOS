@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include "drivers/fb.h"
 #include "drivers/uart.h"
 #include "vm.h"
 #include <libboot/abi/memory.h>
@@ -40,6 +41,10 @@ static int alloc_init(uintptr_t base, rawimage_header_t* riheader)
     uintptr_t start_addr = ROUND_CEIL(base + riheader->rawimage_size, page_size());
     size_t free_space = dev->region_size - (start_addr - dev->region_base);
     malloc_init((void*)start_addr, free_space);
+
+#ifdef DEBUG_BOOT
+    log("malloc inited %llx %llx", start_addr, free_space);
+#endif
     return 0;
 }
 
@@ -127,17 +132,27 @@ static void load_kernel(void* kenrelstart)
 #endif
 }
 
+static int log_merged_output(uint8_t ch)
+{
+    uart_write(ch);
+    fb_put_char(ch);
+    return 0;
+}
+
 int main(uintptr_t base, rawimage_header_t* riheader, void* devtree)
 {
     devtree_init((void*)(base + riheader->devtree_off), riheader->devtree_size);
     uart_init();
-    log_init(base + uart_write);
+    fb_init();
+    log_init(log_merged_output);
     alloc_init(base, riheader);
 
     load_kernel((void*)(base + riheader->kern_off));
     vm_setup(base, bootdesc_paddr, riheader);
 
-    log("Hey from preboot %lx %lx %lx %lx", base, riheader->kern_off, bootdesc_vaddr, ((boot_args_t*)bootdesc_vaddr)->vaddr);
+#ifdef DEBUG_BOOT
+    log("Preboot done: booting to OS@%llx", ((boot_args_t*)bootdesc_vaddr)->vaddr);
+#endif
 
     ((boot_args_t*)bootdesc_vaddr)->kernel_data_size = ROUND_CEIL(palloc_used_size(), page_size());
     jump_to_kernel((void*)bootdesc_vaddr, ((boot_args_t*)bootdesc_vaddr)->vaddr);
