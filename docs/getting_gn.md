@@ -14,13 +14,25 @@ You can download the latest version of GN binary for Linux and macOS from Google
 
 Alternatively, you can build GN from source with a C++17 compiler:
 
+**macOS:**
+```bash
+git clone https://gn.googlesource.com/gn
+cd gn
+python3 build/gen.py
+ninja -C out
+```
+
+**Linux:**
 ```bash
 git clone https://gn.googlesource.com/gn
 cd gn
 python build/gen.py
 ninja -C out
-# To run tests:
-out/gn_unittests
+```
+
+**Running tests:** (Optional) 
+```bash
+/out/gn_unittests
 ```
 
 *Note:* On Linux and Mac, the default compiler is clang++, a recent version is expected to be found in PATH. This can be overridden by setting CC, CXX, and AR.
