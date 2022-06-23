@@ -104,8 +104,14 @@ Learn more on <https://apt.llvm.org>
 
 ### Python Dependencies
 
+**macOS:**
 ```bash
-pip intall -r utils/python_requirements.txt
+pip3 install -r utils/python_requirements.txt
+```
+
+**Linux:**
+```bash
+pip install -r utils/python_requirements.txt
 ```
 
 ## Building OS
