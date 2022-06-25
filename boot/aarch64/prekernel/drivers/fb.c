@@ -70,7 +70,7 @@ static void draw_char_on_screen(char c)
 
 int fb_init()
 {
-    devtree_entry_t* dev = devtree_find_device("aplfb");
+    devtree_entry_t* dev = devtree_find_device("simplefb");
     if (!dev) {
         return -1;
     }

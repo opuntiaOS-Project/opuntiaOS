@@ -109,7 +109,7 @@ static void map_uart(boot_args_t* args)
 
 static void map_fb(boot_args_t* args)
 {
-    devtree_entry_t* dev = devtree_find_device("aplfb");
+    devtree_entry_t* dev = devtree_find_device("simplefb");
     if (!dev) {
         return;
     }
