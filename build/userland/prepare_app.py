@@ -32,7 +32,16 @@ def write_config(config, outpath):
 
     config['name'] = app_name
     config['exec_rel_path'] = fs_app_name
-    config['icon_path'] = "/res/icons/apps/" + fs_app_name + ".icon"
+    
+    # Resolve app icon
+    if 'assets' in config:
+        if 'AppIcon' in os.listdir(outpath + '/' + config['assets']):
+            config['icon_path'] = outpath[4:] + '/' + config['assets'] + '/AppIcon'
+        else:
+            raise Exception("An \"AppIcon\" folder is required within the assets folder \"" + config['assets'] + "\"")
+    else:
+        config['icon_path'] = '/res/icons/apps/missing.icon'
+
     config['bundle_id'] = "com.opuntia.{0}".format(fs_app_name)
 
     print_json(config_file, config)
@@ -47,9 +56,9 @@ for fname in os.listdir(src_dir):
     if fname == "info.json":
         config = read_config(src_dir + "/info.json")
 
-        if 'assets' in config:
-            for asset_dir in config['assets']:
-                copy_tree(src_dir + "/" + asset_dir, outpath + '/' + asset_dir)
+        if 'resources' in config:
+            for resource_dir in config['resources']:
+                copy_tree(src_dir + "/" + resource_dir, outpath + '/' + resource_dir)
                 
         break
 

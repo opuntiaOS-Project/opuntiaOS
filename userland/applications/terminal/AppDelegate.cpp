@@ -42,7 +42,7 @@ public:
     const char* icon_path() const override 
     {
         LFoundation::AssetManager assets = LFoundation::AssetManager("terminal");
-        return assets.find("Resources/terminal.icon").c_str();
+        return assets.find("Resources/Assets/AppIcon").c_str();
     }
 
     bool application() override

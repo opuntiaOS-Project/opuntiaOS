@@ -12,7 +12,7 @@ public:
     const char* icon_path() const override 
     {
         LFoundation::AssetManager assets = LFoundation::AssetManager("about");
-        return assets.find("Resources/about.icon").c_str();
+        return assets.find("Resources/Assets/AppIcon").c_str();
     }
 
     virtual bool application() override

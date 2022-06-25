@@ -11,7 +11,7 @@ public:
     const char* icon_path() const override 
     {
         LFoundation::AssetManager assets = LFoundation::AssetManager("activity_monitor");
-        return assets.find("Resources/activity_monitor.icon").c_str();
+        return assets.find("Resources/Assets/AppIcon").c_str();;
     }
 
     virtual bool application() override
