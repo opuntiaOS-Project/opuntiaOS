@@ -39,7 +39,8 @@ public:
     virtual ~AppDelegate() = default;
 
     LG::Size preferred_desktop_window_size() const override { return LG::Size(400, 300); }
-    const char* icon_path() const override {
+    const char* icon_path() const override 
+    {
         LFoundation::AssetManager assets = LFoundation::AssetManager("terminal");
         return assets.find("Resources/terminal.icon").c_str();
     }

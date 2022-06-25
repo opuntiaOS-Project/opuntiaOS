@@ -8,7 +8,8 @@ public:
     virtual ~AppDelegate() = default;
 
     LG::Size preferred_desktop_window_size() const override { return LG::Size(240, 340); }
-    const char* icon_path() const override {
+    const char* icon_path() const override 
+    {
         LFoundation::AssetManager assets = LFoundation::AssetManager("calculator");
         return assets.find("Resources/calculator.icon").c_str();
     }

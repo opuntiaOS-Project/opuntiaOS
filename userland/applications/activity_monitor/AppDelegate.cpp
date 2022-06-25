@@ -8,7 +8,8 @@ public:
     virtual ~AppDelegate() = default;
 
     LG::Size preferred_desktop_window_size() const override { return LG::Size(220, 210); }
-    const char* icon_path() const override {
+    const char* icon_path() const override 
+    {
         LFoundation::AssetManager assets = LFoundation::AssetManager("activity_monitor");
         return assets.find("Resources/activity_monitor.icon").c_str();
     }

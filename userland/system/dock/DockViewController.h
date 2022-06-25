@@ -23,17 +23,17 @@ public:
     DockViewController(DockView& view)
         : UI::ViewController<DockView>(view)
     {
-        dock_apps.push_back("about");
-        dock_apps.push_back("terminal");
-        dock_apps.push_back("calculator");
-        dock_apps.push_back("activity_monitor");
+        m_dock_apps.push_back("about");
+        m_dock_apps.push_back("terminal");
+        m_dock_apps.push_back("calculator");
+        m_dock_apps.push_back("activity_monitor");
     }
     virtual ~DockViewController() = default;
 
     virtual void view_did_load() override
     {
         view().set_background_color(LG::Color::LightSystemOpaque);
-        for (auto& app : dock_apps) {
+        for (auto& app : m_dock_apps) {
             std::string app_content_dir = "/Applications/";
             app_content_dir += app;
             app_content_dir += ".app/Content/";
@@ -52,6 +52,7 @@ public:
             if (!icon_rel_path.empty()) {
                 icon_path = app_content_dir + icon_rel_path;
             }
+            
             std::string bundle_id = jdict_root->data()["bundle_id"]->cast_to<LFoundation::Json::StringObject>()->data();
             view().new_dock_entity(app_content_dir + app, icon_path, bundle_id);
         }
@@ -60,5 +61,5 @@ public:
     }
 
 private:
-    std::vector<std::string> dock_apps;
+    std::vector<std::string> m_dock_apps;
 };
