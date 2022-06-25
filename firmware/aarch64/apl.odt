@@ -23,7 +23,7 @@
             }
         },
         {
-            "name": "aplfb",
+            "name": "simplefb",
             "type": "FB",
             "flags": "MMIO",
             "mem": {
