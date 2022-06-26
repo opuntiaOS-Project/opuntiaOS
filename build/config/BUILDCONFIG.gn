@@ -37,12 +37,16 @@ if (device_type == "m") {
 if (device_type == "d") {
   device_type = "desktop"
 }
+
+if (target_cpu == "x86") {
+  target_board = "i686"
+}
+if (target_cpu == "x86_64") {
+  target_board = "x86_64"
+}
 if (target_cpu == "arm32") {
   # Currently we support only vexpress-a15.
   target_board = "vexpress-a15"
-}
-if (target_cpu == "x86") {
-  target_board = "i686"
 }
 if (target_cpu == "arm64") {
   if (target_board == "") {
