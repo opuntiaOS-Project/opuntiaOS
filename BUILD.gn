@@ -5,6 +5,7 @@
 group("build") {
   deps = [
     ":env",
+    "//build/boot:boot",
     "//build/kernel:kernel",
     "//build/libs:libs",
     "//build/third_party:third_party",

@@ -46,10 +46,10 @@ begin_pm:
     mov ebx, MSG_PROT_MODE
     call print_string_pm
     mov eax, dword [memory_map_size]
-    mov [MEM_DESC], eax
+    push eax
     mov eax, dword KERNEL_SIZE
-    mov [MEM_DESC+2], eax
-    push dword MEM_DESC
+    push eax
+    push esp
     call KERNEL_OFFSET
     jmp $
 
@@ -61,10 +61,6 @@ MSG_KERNEL_LOAD:
     db ' Loading kernel from drive', 0
 
 BOOT_DISK: db 0
-MEM_DESC:
-    dw 0x00 ; mem table size
-    dw 0x00 ; kernel size
-
 
 times (510-($-$$)) db 0
 db 0x55

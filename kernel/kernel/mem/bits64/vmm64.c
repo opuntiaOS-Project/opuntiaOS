@@ -108,7 +108,6 @@ static void vmm_create_kernel_ptables(boot_args_t* args)
     // Mapping kernel and MAT.
     while (vaddr < end_vaddr) {
         vmm_map_page_locked(vaddr, paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
-        vmm_map_page_locked(paddr, paddr, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ | MMU_FLAG_PERM_EXEC);
         vaddr += VMM_PAGE_SIZE;
         paddr += VMM_PAGE_SIZE;
     }

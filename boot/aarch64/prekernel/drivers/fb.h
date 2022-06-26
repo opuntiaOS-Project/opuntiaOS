@@ -6,17 +6,14 @@
  * found in the LICENSE file.
  */
 
-#ifndef _BOOT_TARGET_CORTEX_A15_MEMMAP_H
-#define _BOOT_TARGET_CORTEX_A15_MEMMAP_H
+#ifndef _BOOT_DRIVERS_SCREEN_H
+#define _BOOT_DRIVERS_SCREEN_H
 
 #include <libboot/abi/memory.h>
+#include <libboot/types.h>
 
-extern memory_map_t arm_memmap[2];
+int fb_init();
+int fb_reinit_after_map(uintptr_t vaddr);
+int fb_put_char(uint8_t c);
 
-memory_map_t* memmap_init();
-static inline size_t memmap_size()
-{
-    return sizeof(arm_memmap);
-}
-
-#endif // _BOOT_TARGET_CORTEX_A15_MEMMAP_H
+#endif // _BOOT_DRIVERS_SCREEN_H

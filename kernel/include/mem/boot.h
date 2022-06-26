@@ -3,15 +3,23 @@
 
 #include <libkern/types.h>
 
-struct memory_map {
-    uint32_t startLo;
-    uint32_t startHi;
-    uint32_t sizeLo;
-    uint32_t sizeHi;
-    uint32_t type;
-    uint32_t acpi_3_0;
+enum MEMORY_LAYOUT_FLAGS {
+    MEMORY_LAYOUT_FLAG_TERMINATE = (1 << 0),
 };
-typedef struct memory_map memory_map_t;
+
+struct memory_layout {
+    uint64_t base;
+    uint64_t size;
+    uint32_t flags;
+};
+typedef struct memory_layout memory_layout_t;
+
+struct memory_boot_desc {
+    uint64_t ram_base;
+    uint64_t ram_size;
+    memory_layout_t* reserved_areas;
+};
+typedef struct memory_boot_desc memory_boot_desc_t;
 
 struct fb_boot_desc {
     uintptr_t vaddr;
@@ -25,11 +33,10 @@ typedef struct fb_boot_desc fb_boot_desc_t;
 struct boot_args {
     size_t paddr;
     size_t vaddr;
-    void* memory_map;
-    size_t memory_map_size;
-    size_t kernel_size;
-    void* devtree;
+    size_t kernel_data_size;
+    memory_boot_desc_t mem_boot_desc;
     fb_boot_desc_t fb_boot_desc;
+    void* devtree;
     char cmd_args[32];
     char init_process[32];
 };

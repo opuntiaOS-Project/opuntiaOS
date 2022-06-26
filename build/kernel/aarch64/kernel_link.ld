@@ -4,32 +4,16 @@ _va_base = 0xffffff8000000000;
 /* _pa_base = 0xc10000000;
 _va_base = 0xc10000000; */
 
-ENTRY(_pa_base)
+ENTRY(_va_base)
 
 SECTIONS
 {
-	boot_start = _pa_base;
-	. = _pa_base;
-	.prekenel :
-	{
-		*(.prekernel_entry)
-		*(.prekernel_code)
-		*(.prekernel_data)
-		*(.prekernel_rodata)
-	}
-	.prekernel_stack ALIGN(4K) :
-	{
-		PREKERNEL_STACK_BASE = .;
-		. += 0x1000;
-		PREKERNEL_STACK_TOP =  .;
-	}
-	
-	. += _va_base - _pa_base;
+	. = _va_base;
 
 	__text_start = .;
 	.text ALIGN(4K) : AT (ADDR(.text) - _va_base + _pa_base)
 	{
-		*(.interrupt_vector_table)
+		*(.opuntiaos_kernel_boot)
 		*(.text)
 		*(.text.*)
 	}
