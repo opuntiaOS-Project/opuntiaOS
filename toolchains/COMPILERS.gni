@@ -6,6 +6,15 @@ if (target_cpu == "x86") {
   gnu_asm = "nasm"
   gnu_target = "i686"
 }
+if (target_cpu == "x86_64") {
+  gnu_ar = "x86_64-elf-ar"
+  gnu_cc = "x86_64-elf-gcc"
+  gnu_cxx = "x86_64-elf-g++"
+  gnu_ld = "x86_64-elf-ld"
+  gnu_asm = "nasm"
+  gnu_target = "x86_64"
+}
+
 if (target_cpu == "arm32") {
   gnu_ar = "arm-none-eabi-ar"
   gnu_cc = "arm-none-eabi-gcc"
@@ -33,6 +42,17 @@ if (target_cpu == "x86") {
   llvm_ccpp_target_flag = "-target $llvm_target"
   llvm_asm_target_flag = ""  # No additinal flags are provided for nasm
 }
+if (target_cpu == "x86_64") {
+  llvm_ar = "$llvm_bin_path/llvm-ar"
+  llvm_cc = "$llvm_bin_path/clang"
+  llvm_cxx = "$llvm_bin_path/clang++"
+  llvm_ld = "$llvm_bin_path/ld.lld"
+  llvm_asm = "nasm"
+  llvm_target = "x86_64--linux"
+  llvm_ccpp_target_flag = "-target $llvm_target"
+  llvm_asm_target_flag = ""  # No additinal flags are provided for nasm
+}
+
 if (target_cpu == "arm32") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
