@@ -105,8 +105,9 @@ Learn more on <https://apt.llvm.org>
 ### Python Dependencies
 
 ```bash
-pip intall -r utils/python_requirements.txt
+pip install -r utils/python_requirements.txt
 ```
+*Note:* Python version must be lower or equal to 3.5
 
 ## Building OS
 
