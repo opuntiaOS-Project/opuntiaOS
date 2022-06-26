@@ -13,16 +13,6 @@ You can download the latest version of GN binary for Linux and macOS from Google
 | [amd64](https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-amd64/+/latest)<br>[arm64](https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-arm64/+/latest) | [amd64](https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-amd64/+/latest)<br>[arm64](https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-arm64/+/latest) |
 
 Alternatively, you can build GN from source with a C++17 compiler:
-
-**macOS:**
-```bash
-git clone https://gn.googlesource.com/gn
-cd gn
-python3 build/gen.py
-ninja -C out
-```
-
-**Linux:**
 ```bash
 git clone https://gn.googlesource.com/gn
 cd gn
@@ -30,7 +20,7 @@ python build/gen.py
 ninja -C out
 ```
 
-**Running tests:** (Optional) 
+Running tests: (Optional) 
 ```bash
 /out/gn_unittests
 ```
