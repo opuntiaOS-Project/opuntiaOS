@@ -35,6 +35,6 @@ run_command("$CHECKRAIN -k " + pongodir +
             "/build/PongoConsolidated.bin -cpE", pongodir)
 
 opuntiaos_outdir = os.path.dirname(rootdir) + "/out/"
-pathrun = "python3 scripts/load_opuntiaos.py -k {0}/base/boot/kernel.bin -d {0}/firmware/apl.obt -r {0}/one.img".format(
+pathrun = "python3 scripts/load_opuntiaos.py -k {0}/rawImage.bin -r {0}/one.img".format(
     opuntiaos_outdir)
 run_command(pathrun, pongodir)

@@ -8,7 +8,7 @@
 
 #include "vmm.h"
 #include <libboot/log/log.h>
-#include <libboot/mem/malloc.h>
+#include <libboot/mem/alloc.h>
 #include <libboot/mem/mem.h>
 #include <libboot/types.h>
 

@@ -28,5 +28,8 @@ action("devtree_compile") {
 }
 
 group("bootaarch64") {
-  deps = [ ":devtree_compile" ]
+  deps = [
+    ":devtree_compile",
+    "rawImage:rawImage",
+  ]
 }

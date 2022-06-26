@@ -63,31 +63,8 @@ void _pmm_mark_used_region(size_t region_start, size_t region_len)
 
 static void _pmm_init_ram()
 {
-    pmm_state.ram_offset = (size_t)-1;
-    pmm_state.ram_size = 0;
-
-    memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->memory_map;
-    for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
-        if (memory_map[i].type == 1) {
-            uint64_t start = ((uint64_t)memory_map[i].startHi << 32) + memory_map[i].startLo;
-            uint64_t size = ((uint64_t)memory_map[i].sizeHi << 32) + memory_map[i].sizeLo;
-            pmm_state.ram_offset = min(pmm_state.ram_offset, start);
-
-#ifdef DEBUG_PMM
-            log("Pmm desc: %zx %zx", start, size);
-#endif
-
-            // This is a hack, since memory map differs a lot for x86 and arm.
-            // Might need to unify this somehow (maybe pass info from bootloader?).
-#ifdef __i386__
-            pmm_state.ram_size = max(pmm_state.ram_size, start + memory_map[i].sizeLo);
-#elif __arm__
-            pmm_state.ram_size += memory_map[i].sizeLo;
-#elif __aarch64__
-            pmm_state.ram_size += size;
-#endif
-        }
-    }
+    pmm_state.ram_offset = pmm_state.boot_args->mem_boot_desc.ram_base;
+    pmm_state.ram_size = pmm_state.boot_args->mem_boot_desc.ram_size;
 }
 
 static void _pmm_allocate_mat()
@@ -105,16 +82,15 @@ static void _pmm_allocate_mat()
 
 static void _pmm_init_mat()
 {
-    memory_map_t* memory_map = (memory_map_t*)pmm_state.boot_args->memory_map;
-    for (int i = 0; i < pmm_state.boot_args->memory_map_size; i++) {
-        if (memory_map[i].type == 1) {
-            uint64_t start = ((uint64_t)memory_map[i].startHi << 32) + memory_map[i].startLo;
-            uint64_t size = ((uint64_t)memory_map[i].sizeHi << 32) + memory_map[i].sizeLo;
-#ifdef DEBUG_PMM
-            log("  %d: %zx - %zx", i, start, size);
-#endif
-            _pmm_mark_avail_region(start, size);
+    _pmm_mark_avail_region(pmm_state.ram_offset, pmm_state.ram_size);
+
+    memory_layout_t* mem_layout = (memory_layout_t*)pmm_state.boot_args->mem_boot_desc.reserved_areas;
+    for (int i = 0;; i++) {
+        if (TEST_FLAG(mem_layout[i].flags, MEMORY_LAYOUT_FLAG_TERMINATE)) {
+            break;
         }
+
+        _pmm_mark_used_region(mem_layout[i].base, mem_layout[i].size);
     }
 }
 
@@ -122,8 +98,8 @@ static void _pmm_init_from_desc(boot_args_t* boot_args)
 {
     spinlock_init(&_pmm_global_lock);
     pmm_state.boot_args = boot_args;
-    pmm_state.kernel_va_base = ROUND_CEIL(boot_args->vaddr, PMM_BLOCK_SIZE);
-    pmm_state.kernel_data_size = ROUND_CEIL(boot_args->kernel_size, PMM_BLOCK_SIZE);
+    pmm_state.kernel_va_base = ROUND_FLOOR(boot_args->vaddr, PMM_BLOCK_SIZE);
+    pmm_state.kernel_data_size = ROUND_CEIL(boot_args->kernel_data_size, PMM_BLOCK_SIZE);
 
     _pmm_init_ram();
     _pmm_allocate_mat();

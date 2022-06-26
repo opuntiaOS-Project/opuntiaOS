@@ -8,7 +8,6 @@
 
 #include "drivers/pl181.h"
 #include "drivers/uart.h"
-#include "target/memmap.h"
 #include "vmm/vmm.h"
 #include <libboot/crypto/sha256.h>
 #include <libboot/crypto/signature.h>
@@ -18,7 +17,7 @@
 #include <libboot/elf/elf_lite.h>
 #include <libboot/fs/ext2_lite.h>
 #include <libboot/log/log.h>
-#include <libboot/mem/malloc.h>
+#include <libboot/mem/alloc.h>
 #include <libboot/mem/mem.h>
 
 // #define DEBUG_BOOT
@@ -47,6 +46,31 @@ static int alloc_init()
     size_t alloc_space = (size_t)bootloader_start - dev->region_base;
     malloc_init((void*)(uint32_t)dev->region_base, alloc_space);
     return 0;
+}
+
+static memory_boot_desc_t memory_boot_desc_init()
+{
+    devtree_entry_t* dev = devtree_find_device("ram");
+    if (!dev) {
+        log("Can't find RAM in devtree");
+        while (1) { };
+    }
+
+    char dummy_data = 0x0;
+    memory_boot_desc_t res;
+    memory_layout_t* mem_layout_paddr = copy_after_kernel(kernel_paddr, &dummy_data, sizeof(dummy_data), &kernel_size, VMM_PAGE_SIZE);
+
+    // Init of trailing element.
+    mem_layout_paddr[0].flags = MEMORY_LAYOUT_FLAG_TERMINATE;
+    memory_layout_t* mem_layout_vaddr = paddr_to_vaddr(mem_layout_paddr, kernel_paddr, kernel_vaddr);
+#ifdef DEBUG_BOOT
+    log("initing MEMLAYOUT %lx of %d elems", mem_layout_vaddr, memory_layout_size);
+#endif
+
+    res.ram_base = dev->region_base;
+    res.ram_size = dev->region_size;
+    res.reserved_areas = mem_layout_vaddr;
+    return res;
 }
 
 static int prepare_boot_disk(drive_desc_t* drive_desc)
@@ -92,19 +116,14 @@ static void load_kernel(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
     log("copying ODT %x -> %x of %d", devtree_start(), odt_ptr, devtree_size());
 #endif
 
-    memory_map_t* memmap = memmap_init();
-    void* rammap_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, arm_memmap, memmap_size(), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);
-#ifdef DEBUG_BOOT
-    log("copying RAMMAP %x -> %x of %d", memmap, rammap_ptr, memmap_size());
-#endif
+    size_t kernel_data_size = kernel_size + align_size(sizeof(boot_args_t), VMM_PAGE_SIZE) + VMM_PAGE_SIZE;
 
     boot_args_t boot_args;
     boot_args.vaddr = kernel_vaddr;
     boot_args.paddr = kernel_paddr;
-    boot_args.kernel_size = (kernel_size + align_size(sizeof(boot_args_t), VMM_PAGE_SIZE));
+    boot_args.kernel_data_size = kernel_data_size;
     boot_args.devtree = odt_ptr;
-    boot_args.memory_map = (void*)rammap_ptr;
-    boot_args.memory_map_size = memmap_size() / sizeof(arm_memmap[0]);
+    boot_args.mem_boot_desc = memory_boot_desc_init();
     memcpy(boot_args.init_process, LAUNCH_SERVER_PATH, sizeof(LAUNCH_SERVER_PATH));
 
     bootdesc_ptr = paddr_to_vaddr(copy_after_kernel(kernel_paddr, &boot_args, sizeof(boot_args), &kernel_size, VMM_PAGE_SIZE), kernel_paddr, kernel_vaddr);

@@ -78,7 +78,7 @@ static ALWAYS_INLINE void vmm_ensure_writing_to_active_address_space_locked(uint
 static void vm_alloc_kernel_pdir()
 {
     _vmm_kernel_pdir_paddr = (uintptr_t)pmm_alloc_aligned(PTABLE_SIZE(PTABLE_LV_TOP), PTABLE_SIZE(PTABLE_LV_TOP));
-    _vmm_kernel_pdir = (ptable_t*)(_vmm_kernel_pdir_paddr + pmm_get_state()->boot_args->vaddr - pmm_get_state()->boot_args->paddr);
+    _vmm_kernel_pdir = (ptable_t*)(_vmm_kernel_pdir_paddr - pmm_get_state()->boot_args->paddr + pmm_get_state()->boot_args->vaddr);
     _vmm_kernel_address_space.count = 1;
     _vmm_kernel_address_space.pdir = _vmm_kernel_pdir;
     spinlock_init(&_vmm_kernel_address_space.lock);

@@ -44,6 +44,8 @@ struct PACKED devtree_entry {
     uint32_t rel_name_offset;
     uint64_t aux1;
     uint64_t aux2;
+    uint64_t aux3;
+    uint64_t aux4;
 };
 typedef struct devtree_entry devtree_entry_t;
 

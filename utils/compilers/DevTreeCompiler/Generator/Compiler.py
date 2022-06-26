@@ -45,6 +45,8 @@ class Compiler():
             "rel_name_offset": len(self.names_binarr),
             "aux1": 0,
             "aux2": 0,
+            "aux3": 0,
+            "aux4": 0,
         }
 
         if "type" in dev:
@@ -75,6 +77,10 @@ class Compiler():
             result["aux1"] = Translator.number(dev["aux1"])
         if "aux2" in dev:
             result["aux2"] = Translator.number(dev["aux2"])
+        if "aux3" in dev:
+            result["aux3"] = Translator.number(dev["aux3"])
+        if "aux4" in dev:
+            result["aux4"] = Translator.number(dev["aux4"])
 
         self.devs_binarr += DEVTREE_ENTRY.build(result)
         self.names_binarr += bytearray((map(ord,
