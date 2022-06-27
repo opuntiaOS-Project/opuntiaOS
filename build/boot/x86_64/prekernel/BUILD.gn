@@ -12,6 +12,7 @@ prekernel_c_flags = [
   "-mno-sse",
   "-mno-sse2",
   "-fpie",
+  "-m32"
 ]
 prekernel_asm_flags = [
   "-w+all",
@@ -57,7 +58,7 @@ executable("prekernelx86_64") {
   sources = [
     # "//boot/x86_64/prekernel/drivers/uart.c",
     "//boot/x86_64/prekernel/mboot1.S",
-    # "//boot/aarch64/prekernel/main.c",
+    "//boot/x86_64/prekernel/main.c",
     # "//boot/aarch64/prekernel/vm.c",
     # "//boot/libboot/devtree/devtree.c",
     # "//boot/libboot/elf/elf_lite.c",
