@@ -8,13 +8,15 @@ section .multiboot
 dd MBOOT_HEADER_MAGIC
 dd MBOOT_HEADER_FLAGS
 dd MBOOT_CHECKSUM
-
-; Memory info location
-dd 0x00000000; Header
-dd 0x00000000; Load begin
-dd 0x00000000; Load end
-dd 0x00000000; Bss end
-dd 0x00000000; Entry point
+dd 0x00000000; header_addr
+dd 0x00000000; load_addr
+dd 0x00000000; load_end_addr
+dd 0x00000000; bss_end_addr
+dd 0x00000000; entry_addr
+dd 0x00000000; mode_type
+dd 0x00000000; width
+dd 0x00000000; height
+dd 0x00000000; depth
 
 [bits 32]
 section .opuntiaos_boot_text
@@ -28,25 +30,24 @@ prekernel_entry:
     cli
     cld
 
-    ;push welcome_msg
-    ;call early_boot_print_string
-    ;add esp, 4
+    ; Save entry point to one of callee-saved regs.
+    mov esi, ecx
 
     ; PAE is required for x86_64
-    ;call check_for_pae
+    call check_for_pae
 
     ; Checking for long mode.
-    ;call check_for_long_mode
+    call check_for_long_mode
 
     ; x86_64 required paging enabled, thus we have to map 128MB of physical memmory
     ; for booting the kernel without any problems. 1 + 1 + 1 + 64.
     call setup_tables
 
-    ; Enabling long mode
+    ; Enabling long mode with a 32-bit compatibility submode.
     call enable_long_mode
 
-    ; Entering main
-    jmp jump_to_entry
+    ; Just give control to jumper.
+    jmp jump_to_entry64
 
 CPUID_FEATURE_PAE equ (1 << 6)
 check_for_pae:
@@ -109,11 +110,6 @@ setup_tables:
     mov ecx, 4096
     rep stosd
 
-    mov edi, table3
-    xor eax, eax
-    mov ecx, 4096
-    rep stosd
-
     mov eax, table1
     add eax, 0x3
     mov DWORD [table0], eax
@@ -122,16 +118,12 @@ setup_tables:
     add eax, 0x3
     mov DWORD [table1], eax
     
-    mov eax, table3
-    add eax, 0x3
-    mov DWORD [table2], eax
-
-    mov edi, table3
-    mov eax, 0x3
+    mov edi, table2
+    mov eax, 0x83
     mov ecx, 512
 .table_fillup_last:
     mov DWORD [edi], eax
-    add eax, 0x1000
+    add eax, 0x200000
     add edi, 8
     loop .table_fillup_last
 
@@ -247,12 +239,12 @@ gdt_descriptor:
 CODE_SEG equ gdt_code - gdt_begin
 DATA_SEG equ gdt_data - gdt_begin
 
-jump_to_entry:
+jump_to_entry64:
     lgdt [gdt_descriptor]
-    jmp CODE_SEG:main_entry
+    jmp CODE_SEG:main_entry64
 
 [bits 64]
-main_entry:
+main_entry64:
     cli
     mov ax, DATA_SEG
     mov ds, ax
@@ -260,6 +252,9 @@ main_entry:
     mov fs, ax
     mov gs, ax
     mov ss, ax
+
+    mov edi, esi
+    mov esi, ebx
     call main
     hlt
 
@@ -283,9 +278,5 @@ table1:
     resb 4096
 
 table2:
-    align 4096
-    resb 4096
-
-table3:
     align 4096
     resb 4096

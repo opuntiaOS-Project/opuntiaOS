@@ -55,15 +55,15 @@ linker_script =
 executable("prekernelx86_64") {
   output_name = "prekernelx86_64.bin"
   sources = [
-    # "//boot/x86_64/prekernel/drivers/uart.c",
+    "//boot/x86_64/prekernel/drivers/uart.c",
     "//boot/x86_64/prekernel/mboot1.S",
     "//boot/x86_64/prekernel/main.c",
     # "//boot/aarch64/prekernel/vm.c",
     # "//boot/libboot/devtree/devtree.c",
     # "//boot/libboot/elf/elf_lite.c",
-    # "//boot/libboot/log/log.c",
+    "//boot/libboot/log/log.c",
     # "//boot/libboot/mem/alloc.c",
-    # "//boot/libboot/mem/mem.c",
+    "//boot/libboot/mem/mem.c",
   ]
 
   include_dirs = [ "//boot" ]
