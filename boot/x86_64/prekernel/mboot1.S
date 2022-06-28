@@ -22,6 +22,7 @@ dd 0x00000000; depth
 section .opuntiaos_boot_text
 
 extern main
+extern PREKERNEL_STACK_TOP
 
 global _start
 _start:
@@ -29,6 +30,10 @@ global prekernel_entry
 prekernel_entry:
     cli
     cld
+
+    ; Setting up the stack.
+    mov ebp, PREKERNEL_STACK_TOP
+    mov esp, ebp
 
     ; Save entry point to one of callee-saved regs.
     mov esi, ecx
@@ -39,8 +44,8 @@ prekernel_entry:
     ; Checking for long mode.
     call check_for_long_mode
 
-    ; x86_64 required paging enabled, thus we have to map 128MB of physical memmory
-    ; for booting the kernel without any problems. 1 + 1 + 1 + 64.
+    ; x86_64 required paging enabled, thus 1GB of physical memmory is mapped
+    ; for booting the kernel without any problems.
     call setup_tables
 
     ; Enabling long mode with a 32-bit compatibility submode.
@@ -98,17 +103,17 @@ setup_tables:
     mov edi, table0
     xor eax, eax
     mov ecx, 4096
-    rep stosd
+    rep stosb
 
     mov edi, table1
     xor eax, eax
     mov ecx, 4096
-    rep stosd
+    rep stosb
 
     mov edi, table2
     xor eax, eax
     mov ecx, 4096
-    rep stosd
+    rep stosb
 
     mov eax, table1
     add eax, 0x3
