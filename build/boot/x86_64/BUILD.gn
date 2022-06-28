@@ -10,6 +10,6 @@
 
 group("bootx86_64") {
   deps = [
-    "prekernel:prekernelx86_64",
+    "rawImage:rawImage",
   ]
 }

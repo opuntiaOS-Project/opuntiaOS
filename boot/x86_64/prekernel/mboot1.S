@@ -28,15 +28,15 @@ prekernel_entry:
     cli
     cld
 
-    push welcome_msg
-    call early_boot_print_string
-    add esp, 4
+    ;push welcome_msg
+    ;call early_boot_print_string
+    ;add esp, 4
 
     ; PAE is required for x86_64
-    call check_for_pae
+    ;call check_for_pae
 
     ; Checking for long mode.
-    call check_for_long_mode
+    ;call check_for_long_mode
 
     ; x86_64 required paging enabled, thus we have to map 128MB of physical memmory
     ; for booting the kernel without any problems. 1 + 1 + 1 + 64.
@@ -46,7 +46,7 @@ prekernel_entry:
     call enable_long_mode
 
     ; Entering main
-    call main
+    jmp jump_to_entry
 
 CPUID_FEATURE_PAE equ (1 << 6)
 check_for_pae:
@@ -205,6 +205,64 @@ _print_string_end:
     ret
 
 
+; Access bits
+PRESENT        equ 1 << 7
+NOT_SYS        equ 1 << 4
+EXEC           equ 1 << 3
+DC             equ 1 << 2
+RW             equ 1 << 1
+ACCESSED       equ 1 << 0
+ 
+; Flags bits
+GRAN_4K       equ 1 << 7
+SZ_32         equ 1 << 6
+LONG_MODE     equ 1 << 5
+
+align 32
+gdt_begin:
+gdt_null:
+    dq 0x0
+gdt_code:
+    dd 0xffff
+    db 0x0
+    db PRESENT | NOT_SYS | EXEC | RW
+    db GRAN_4K | LONG_MODE | 0xF
+    db 0x0
+gdt_data:
+    dd 0xffff
+    db 0x0
+    db PRESENT | NOT_SYS | RW
+    db GRAN_4K | SZ_32 | 0xF
+    db 0x0
+gdt_tss:
+    dd 0x00000068
+    dd 0x00CF8900
+gdt_end:
+
+gdt_descriptor:
+    dw gdt_end - gdt_begin - 1
+    dd gdt_begin
+    dd 0x0
+
+CODE_SEG equ gdt_code - gdt_begin
+DATA_SEG equ gdt_data - gdt_begin
+
+jump_to_entry:
+    lgdt [gdt_descriptor]
+    jmp CODE_SEG:main_entry
+
+[bits 64]
+main_entry:
+    cli
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    call main
+    hlt
+
 welcome_msg:
     db "Welcome to x86-64 on opuntiaOS", 0
 
@@ -213,7 +271,6 @@ pae_unsupported_msg:
 
 long_mode_unsupported_msg:
     db "Required Long Mode Feature is unavailable, stopping...", 0
-
 
 section .bss
 
