@@ -70,24 +70,24 @@ static driver_desc_t _mouse_driver_info()
 
 static inline void _mouse_wait_in()
 {
-    while ((port_8bit_in(0x64) & 1) == 0) { }
+    while ((port_read8(0x64) & 1) == 0) { }
 }
 
 static inline void _mouse_wait_out()
 {
-    while ((port_8bit_in(0x64) & 2) == 1) { }
+    while ((port_read8(0x64) & 2) == 1) { }
 }
 
 static inline void _mouse_wait_then_write(uint16_t port, uint8_t data)
 {
     _mouse_wait_out();
-    port_8bit_out(port, data);
+    port_write8(port, data);
 }
 
 static inline uint8_t _mouse_wait_then_read(uint16_t port)
 {
     _mouse_wait_in();
-    return port_8bit_in(port);
+    return port_read8(port);
 }
 
 static inline void _mouse_send_cmd(uint8_t cmd)
@@ -119,14 +119,14 @@ static inline void _mouse_enable_aux()
 
 void mouse_handler()
 {
-    uint8_t status = port_8bit_in(0x64);
+    uint8_t status = port_read8(0x64);
     if ((status & 0x1) == 0 || (status & 0x20) != 0x20) {
         return;
     }
-    uint8_t resp = port_8bit_in(0x60);
-    uint8_t xm = port_8bit_in(0x60);
-    uint8_t ym = port_8bit_in(0x60);
-    int8_t wheel = port_8bit_in(0x60);
+    uint8_t resp = port_read8(0x60);
+    uint8_t xm = port_read8(0x60);
+    uint8_t ym = port_read8(0x60);
+    int8_t wheel = port_read8(0x60);
 
     uint8_t y_overflow = (resp >> 7) & 1;
     uint8_t x_overflow = (resp >> 6) & 1;

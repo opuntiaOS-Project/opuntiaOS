@@ -52,14 +52,14 @@ static vm_ops_t mmap_file_vm_ops = {
 
 static inline void _bga_write_reg(uint16_t cmd, uint16_t data)
 {
-    port_16bit_out(VBE_DISPI_IOPORT_INDEX, cmd);
-    port_16bit_out(VBE_DISPI_IOPORT_DATA, data);
+    port_write16(VBE_DISPI_IOPORT_INDEX, cmd);
+    port_write16(VBE_DISPI_IOPORT_DATA, data);
 }
 
 static inline uint16_t _bga_read_reg(uint16_t cmd)
 {
-    port_16bit_out(VBE_DISPI_IOPORT_INDEX, cmd);
-    return port_16bit_in(VBE_DISPI_IOPORT_DATA);
+    port_write16(VBE_DISPI_IOPORT_INDEX, cmd);
+    return port_read16(VBE_DISPI_IOPORT_DATA);
 }
 
 static void _bga_set_resolution(uint16_t width, uint16_t height)

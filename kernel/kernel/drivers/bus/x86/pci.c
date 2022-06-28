@@ -60,8 +60,8 @@ uint32_t pci_read(uint16_t bus, uint16_t device, uint16_t function, uint32_t off
         | ((device & 0x1F) << 11)
         | ((function & 0x07) << 8)
         | (offset & 0xFC);
-    port_dword_out(0xCF8, id);
-    uint32_t tmp = (uint32_t)(port_dword_in(0xCFC) >> (8 * (offset % 4)));
+    port_write32(0xCF8, id);
+    uint32_t tmp = (uint32_t)(port_read32(0xCFC) >> (8 * (offset % 4)));
     return tmp;
 }
 
@@ -75,8 +75,8 @@ void pci_write(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset, ui
         | (device32 << 11)
         | (function16 << 8)
         | (offset & 0xFC);
-    port_dword_out(0xCF8, address);
-    port_dword_out(0xCFC, data);
+    port_write32(0xCF8, address);
+    port_write32(0xCFC, data);
 }
 
 char pci_has_device_functions(uint8_t bus, uint8_t device)

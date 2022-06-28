@@ -22,9 +22,9 @@ static inline void irq_redirect(uint8_t int_no)
 static void irq_accept_next(int int_no)
 {
     if (int_no >= IRQ_SLAVE_OFFSET) {
-        port_byte_out(0xA0, 0x20);
+        port_write8(0xA0, 0x20);
     }
-    port_byte_out(0x20, 0x20);
+    port_write8(0x20, 0x20);
 }
 
 void irq_handler(trapframe_t* tf)

@@ -102,15 +102,15 @@ void ata_init(ata_t* ata, uint32_t port, bool is_master)
 
 bool ata_indentify(ata_t* ata)
 {
-    port_8bit_out(ata->port.device, ata->is_master ? 0xA0 : 0xB0);
-    port_8bit_out(ata->port.sector_count, 0);
-    port_8bit_out(ata->port.lba_lo, 0);
-    port_8bit_out(ata->port.lba_mid, 0);
-    port_8bit_out(ata->port.lba_hi, 0);
-    port_8bit_out(ata->port.command, 0xEC);
+    port_write8(ata->port.device, ata->is_master ? 0xA0 : 0xB0);
+    port_write8(ata->port.sector_count, 0);
+    port_write8(ata->port.lba_lo, 0);
+    port_write8(ata->port.lba_mid, 0);
+    port_write8(ata->port.lba_hi, 0);
+    port_write8(ata->port.command, 0xEC);
 
     // check the acceptance of a command
-    uint8_t status = port_8bit_in(ata->port.command);
+    uint8_t status = port_read8(ata->port.command);
     if (status == 0x00) {
 #ifdef DEBUG_ATA
         log("Cmd isn't accepted");
@@ -121,7 +121,7 @@ bool ata_indentify(ata_t* ata)
     // waiting for processing
     // while BSY is on
     while ((status & 0x80) == 0x80) {
-        status = port_8bit_in(ata->port.command);
+        status = port_read8(ata->port.command);
     }
     // check if drive isn't ready to transer DRQ
     if ((status & 0x08) != 0x08) {
@@ -133,7 +133,7 @@ bool ata_indentify(ata_t* ata)
 
     // transfering 256 bytes of data
     for (int i = 0; i < 256; i++) {
-        uint16_t data = port_16bit_in(ata->port.data);
+        uint16_t data = port_read16(ata->port.data);
         if (i == 1) {
             ata->cylindres = data;
         }
@@ -169,19 +169,19 @@ int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size
 
     uint8_t dev_config = _ata_gen_drive_head_register(true, !dev->is_master, 0);
 
-    port_8bit_out(dev->port.device, dev_config);
-    port_8bit_out(dev->port.sector_count, 1);
-    port_8bit_out(dev->port.lba_lo, sectorNum & 0x000000FF);
-    port_8bit_out(dev->port.lba_mid, (sectorNum & 0x0000FF00) >> 8);
-    port_8bit_out(dev->port.lba_hi, (sectorNum & 0x00FF0000) >> 16);
-    port_8bit_out(dev->port.error, 0);
-    port_8bit_out(dev->port.command, 0x31);
+    port_write8(dev->port.device, dev_config);
+    port_write8(dev->port.sector_count, 1);
+    port_write8(dev->port.lba_lo, sectorNum & 0x000000FF);
+    port_write8(dev->port.lba_mid, (sectorNum & 0x0000FF00) >> 8);
+    port_write8(dev->port.lba_hi, (sectorNum & 0x00FF0000) >> 16);
+    port_write8(dev->port.error, 0);
+    port_write8(dev->port.command, 0x31);
 
     // waiting for processing
     // while BSY is on and no Errors
-    uint8_t status = port_8bit_in(dev->port.command);
+    uint8_t status = port_read8(dev->port.command);
     while (((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
-        status = port_8bit_in(dev->port.command);
+        status = port_read8(dev->port.command);
     }
 
     // check if drive isn't ready to transer DRQ
@@ -194,11 +194,11 @@ int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size
 
     for (int i = 0; i < size; i += 2) {
         uint16_t db = (data[i + 1] << 8) + data[i];
-        port_16bit_out(dev->port.data, db);
+        port_write16(dev->port.data, db);
     }
 
     for (int i = size / 2; i < 256; i++) {
-        port_16bit_out(dev->port.data, 0);
+        port_write16(dev->port.data, 0);
     }
 
     return ata_flush(device);
@@ -210,19 +210,19 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
 
     uint8_t dev_config = _ata_gen_drive_head_register(true, !dev->is_master, 0);
 
-    port_8bit_out(dev->port.device, dev_config);
-    port_8bit_out(dev->port.sector_count, 1);
-    port_8bit_out(dev->port.lba_lo, sectorNum & 0x000000FF);
-    port_8bit_out(dev->port.lba_mid, (sectorNum & 0x0000FF00) >> 8);
-    port_8bit_out(dev->port.lba_hi, (sectorNum & 0x00FF0000) >> 16);
-    port_8bit_out(dev->port.error, 0);
-    port_8bit_out(dev->port.command, 0x21);
+    port_write8(dev->port.device, dev_config);
+    port_write8(dev->port.sector_count, 1);
+    port_write8(dev->port.lba_lo, sectorNum & 0x000000FF);
+    port_write8(dev->port.lba_mid, (sectorNum & 0x0000FF00) >> 8);
+    port_write8(dev->port.lba_hi, (sectorNum & 0x00FF0000) >> 16);
+    port_write8(dev->port.error, 0);
+    port_write8(dev->port.command, 0x21);
 
     // waiting for processing
     // while BSY is on and no Errors
-    uint8_t status = port_8bit_in(dev->port.command);
+    uint8_t status = port_read8(dev->port.command);
     while (((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
-        status = port_8bit_in(dev->port.command);
+        status = port_read8(dev->port.command);
     }
 
     // check if drive isn't ready to transer DRQ
@@ -241,7 +241,7 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
     }
 
     for (int i = 0; i < 256; i++) {
-        uint16_t data = port_16bit_in(dev->port.data);
+        uint16_t data = port_read16(dev->port.data);
         read_data[2 * i + 1] = (data >> 8) & 0xFF;
         read_data[2 * i + 0] = (data >> 0) & 0xFF;
     }
@@ -255,16 +255,16 @@ int ata_flush(device_t* device)
 
     uint8_t dev_config = _ata_gen_drive_head_register(true, !dev->is_master, 0);
 
-    port_8bit_out(dev->port.device, dev_config);
-    port_8bit_out(dev->port.command, 0xE7);
+    port_write8(dev->port.device, dev_config);
+    port_write8(dev->port.command, 0xE7);
 
-    uint8_t status = port_8bit_in(dev->port.command);
+    uint8_t status = port_read8(dev->port.command);
     if (status == 0x00) {
         return -ENODEV;
     }
 
     while (((status >> 7) & 1) == 1 && ((status >> 0) & 1) != 1) {
-        status = port_8bit_in(dev->port.command);
+        status = port_read8(dev->port.command);
     }
 
     if (status & 0x01) {
