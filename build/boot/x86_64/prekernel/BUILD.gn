@@ -12,13 +12,12 @@ prekernel_c_flags = [
   "-mno-sse",
   "-mno-sse2",
   "-fpie",
-  "-m32"
 ]
 prekernel_asm_flags = [
   "-w+all",
   "-Werror",
   "-f",
-  "elf32",
+  "elf64",
 ]
 prekernel_ld_flags = [ "-nostdlib" ]
 
@@ -38,7 +37,7 @@ if (host == "gnu") {
 if (host == "llvm") {
   prekernel_ld_flags += [
     "--oformat",
-    "elf32",
+    "elf64",
   ]
 }
 
