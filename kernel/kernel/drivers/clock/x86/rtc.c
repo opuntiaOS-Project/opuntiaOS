@@ -15,8 +15,8 @@
 
 inline static uint8_t cmos_read(uint8_t port)
 {
-    port_8bit_out(0x70, port);
-    return port_8bit_in(0x71);
+    port_write8(0x70, port);
+    return port_read8(0x71);
 }
 
 inline static void cmos_wait_while_updating()

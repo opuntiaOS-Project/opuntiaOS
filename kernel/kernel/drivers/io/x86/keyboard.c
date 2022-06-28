@@ -54,6 +54,6 @@ int kbdriver_run()
 /* Keyboard interrupt handler */
 void keyboard_handler()
 {
-    uint32_t scancode = (uint32_t)port_byte_in(0x60);
+    uint32_t scancode = (uint32_t)port_read8(0x60);
     generic_emit_key_set1(scancode);
 }
