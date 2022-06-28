@@ -6,7 +6,7 @@ _pa_base = 1M;
 SECTIONS
 {
 	. = _pa_base;
-	PREKERNEL_START_OFFSET = .;
+	PREKERNEL_START = .;
 
 	.multiboot :
 	{
@@ -47,10 +47,11 @@ SECTIONS
 
 	.stack ALIGN(4K) :
 	{
-		PREKERNEL_STACK_BASE_OFFSET = .;
+		PREKERNEL_STACK_BASE = .;
 		. += 0x1000;
-		PREKERNEL_STACK_TOP_OFFSET = .;
+		PREKERNEL_STACK_TOP = .;
 	}
 
-	PREKERNEL_END_OFFSET = .;
+	PREKERNEL_END = .;
+	RAWIMAGE_END = .;
 }
