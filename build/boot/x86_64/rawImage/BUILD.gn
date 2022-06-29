@@ -5,9 +5,7 @@
 if (target_cpu == "x86_64") {
   action("rawImage") {
     script = "make_raw_image.py"
-    sources = [
-      "$root_build_dir/prekernelx86_64.bin",
-    ]
+    sources = [ "$root_build_dir/prekernelx86_64.bin" ]
     outputs = [ "$root_build_dir/rawImage.elf" ]
     args = [
       rebase_path("$root_build_dir/prekernelx86_64.bin", root_build_dir),

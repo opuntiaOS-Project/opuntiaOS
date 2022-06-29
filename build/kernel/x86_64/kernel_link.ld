@@ -1,11 +1,11 @@
 _pa_base = 0x0;
-_va_base = 0xffffff8000000000;
+_va_base = 0xffff800000000000;
 
 ENTRY(_va_base)
 
 SECTIONS
 {
-	. = _va_base;
+    . = _va_base;
 
 	__text_start = .;
 	.text ALIGN(4K) : AT (ADDR(.text) - _va_base + _pa_base)
@@ -51,17 +51,10 @@ SECTIONS
 	__stack_start = .;
 	.stack ALIGN(4K) : AT (ADDR(.stack) - _va_base + _pa_base)
 	{
-		STACK_SECONDARY_BASE = .;
-		. += 0x1000;
-		STACK_SECONDARY_TOP =  .;
-
 		STACK_BASE = .;
 		. += 0x1000;
 		STACK_TOP =  .;
 	}
 	__stack_end = .;
-
-	.ARM.exidx : { *(.ARM.exidx) }
-
 	__end = .;
 }
