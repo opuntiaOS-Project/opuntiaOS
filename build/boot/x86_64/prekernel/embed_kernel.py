@@ -17,4 +17,4 @@ build_dir_path = os.path.dirname(os.path.abspath(sys.argv[2]))
 # implement support for multiboot2 specs, which could load elf64, we have
 # to change the type of the elf file to elf32-i686.
 output = subprocess.check_output(
-    "x86_64-elf-objcopy -O elf32-i386 {0} {1}".format(prekernel_path, out_path), shell=True)
+    "x86_64-elf-objcopy -I binary -O elf64-x86-64 --rename-section .data=.kernelelf {0} {1}".format(prekernel_path, out_path), shell=True)

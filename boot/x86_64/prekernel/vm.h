@@ -17,7 +17,7 @@
 #define VMM_LV2_ENTITY_COUNT (512)
 #define VMM_LV3_ENTITY_COUNT (512)
 
-#define PTABLE_LV_TOP (2)
+#define PTABLE_LV_TOP (3)
 #define PTABLE_LV0_VADDR_OFFSET (12)
 #define PTABLE_LV1_VADDR_OFFSET (21)
 #define PTABLE_LV2_VADDR_OFFSET (30)
@@ -27,6 +27,6 @@
 
 static size_t page_size() { return 0x1000; }
 
-void vm_setup(uintptr_t base);
+void vm_setup(uintptr_t base, boot_args_t* args);
 
 #endif // _BOOT_VM_H

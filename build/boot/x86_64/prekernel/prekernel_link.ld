@@ -53,5 +53,13 @@ SECTIONS
 	}
 
 	PREKERNEL_END = .;
+
+	.kernelelf ALIGN(4K) :
+	{
+		EMBED_KERNEL_START = .;
+		*(.kernelelf)
+		EMBED_KERNEL_END = .;
+	}
+
 	RAWIMAGE_END = .;
 }

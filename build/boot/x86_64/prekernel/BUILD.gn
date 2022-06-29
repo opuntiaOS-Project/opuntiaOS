@@ -52,23 +52,40 @@ linker_script =
     rebase_path("//build/boot/$target_cpu/prekernel/prekernel_link.ld",
                 root_build_dir)
 
+action("embed_kernel") {
+  script = "embed_kernel.py"
+  sources = [ "$root_build_dir/base/boot/kernel.bin" ]
+  outputs = [ "$root_build_dir/tmp/boot/kernel.o" ]
+  args = [
+    rebase_path("$root_build_dir/base/boot/kernel.bin", root_build_dir),
+    rebase_path("$root_build_dir/tmp/boot/kernel.o", root_build_dir),
+  ]
+
+  deps = [ "//build/kernel:kernel_build" ]
+}
+
 executable("prekernelx86_64") {
   output_name = "prekernelx86_64.bin"
   sources = [
-    "//boot/x86_64/prekernel/drivers/uart.c",
-    "//boot/x86_64/prekernel/mboot1.S",
-    "//boot/x86_64/prekernel/main.c",
-    # "//boot/aarch64/prekernel/vm.c",
-    # "//boot/libboot/devtree/devtree.c",
-    # "//boot/libboot/elf/elf_lite.c",
+    "//boot/libboot/elf/elf_lite.c",
     "//boot/libboot/log/log.c",
-    # "//boot/libboot/mem/alloc.c",
+    "//boot/libboot/mem/alloc.c",
     "//boot/libboot/mem/mem.c",
+    "//boot/x86_64/prekernel/drivers/uart.c",
+    "//boot/x86_64/prekernel/main.c",
+    "//boot/x86_64/prekernel/mboot1.S",
+    "//boot/x86_64/prekernel/vm.c",
   ]
+
+  deps = [ ":embed_kernel" ]
 
   include_dirs = [ "//boot" ]
 
   configs = [ ":prekernel_flags" ]
 
-  ldflags = [ "-T$linker_script" ]
+  ldflags = [
+    # Embeding kernel elf file into rawimage.
+    rebase_path("$root_out_dir/tmp/boot/kernel.o", ""),
+    "-T$linker_script",
+  ]
 }

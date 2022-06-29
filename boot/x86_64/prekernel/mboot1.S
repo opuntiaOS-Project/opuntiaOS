@@ -151,7 +151,7 @@ enable_long_mode:
     mov cr4, eax
 
     ; Enabling Long Mode
-    mov ecx, 0xC0000080
+    mov ecx, 0xc0000080
     rdmsr
     or eax, 1 << 8
     wrmsr
@@ -233,7 +233,7 @@ gdt_data:
     db 0x0
 gdt_tss:
     dd 0x00000068
-    dd 0x00CF8900
+    dd 0x00cf8900
 gdt_end:
 
 gdt_descriptor:
@@ -263,8 +263,20 @@ main_entry64:
     call main
     hlt
 
-welcome_msg:
-    db "Welcome to x86-64 on opuntiaOS", 0
+
+global set_cr3
+set_cr3:
+    mov cr3, rdi
+    ret
+
+
+global jump_to_kernel
+jump_to_kernel:
+    mov rax, cr3
+    mov cr3, rax
+    call rsi
+    jmp $
+
 
 pae_unsupported_msg:
     db "Required PAE Feature is unavailable, stopping...", 0

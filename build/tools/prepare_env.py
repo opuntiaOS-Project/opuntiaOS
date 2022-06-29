@@ -40,6 +40,13 @@ elif (arch == "x86"):
     elif host == "llvm":
         OBJCOPY_TOOL = "{0}llvm-objcopy".format(path_to_bins)
         OBJCOPY_TARGET = "elf32-i386"
+elif (arch == "x86_64"):
+    if host == "gnu":
+        OBJCOPY_TOOL = "{0}x86_64-elf-objcopy".format(path_to_bins)
+        OBJCOPY_TARGET = "elf64-x86-64"
+    elif host == "llvm":
+        OBJCOPY_TOOL = "{0}llvm-objcopy".format(path_to_bins)
+        OBJCOPY_TARGET = "elf64-x86-64"
 elif (arch == "arm64"):
     if host == "gnu":
         OBJCOPY_TOOL = "{0}aarch64-elf-objcopy".format(path_to_bins)

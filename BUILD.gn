@@ -20,7 +20,7 @@ group("build") {
 group("env") {
   deps = [
     ":scripts",
-    # "//build/tools:prepare_env",
+    "//build/tools:prepare_env",
   ]
 }
 

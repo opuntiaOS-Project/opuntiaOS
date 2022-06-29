@@ -8,20 +8,26 @@ import sys
 # sys.argv[2] Target to generate for
 target = sys.argv[2]
 
-platforms = ['x86', 'arm', 'arm32', 'arm64', 'aarch32', 'aarch64']
+platforms = ['x86', 'i386', 'x86_64', 'arm', 'arm32', 'arm64', 'aarch32', 'aarch64']
 bits = ['bits32', 'bits64']
 
 platform_to_bits = {
     "x86": "bits32",
+    "x86_64": "bits64",
     "arm32": "bits32",
     "arm64": "bits64",
 }
 
 allowed_paths = {
-    "x86": ["x86"],
+    "x86": ["x86", "i386"],
+    "x86_64": ["x86", "x86_64"],
     "arm32": ["aarch32", "arm32", "arm"],
     "arm64": ["aarch64", "arm64", "arm"],
 }
+
+if target == "x86_64":
+    print("//kernel/kernel/platform/x86_64/entry.s")
+    exit(0)
 
 ignore_platforms = []
 ignore_bits = []
@@ -36,7 +42,7 @@ for platform in platforms:
         ignore_platforms.append(platform)
 
 for bit in bits:
-    if platform_to_bits[sys.argv[2]] != bit:
+    if platform_to_bits[target] != bit:
         ignore_bits.append(bit)
 
 
@@ -72,4 +78,4 @@ def special_paths(platform):
     pass
 
 
-special_paths(sys.argv[2])
+special_paths(target)
