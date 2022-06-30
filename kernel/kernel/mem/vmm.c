@@ -657,9 +657,10 @@ int vmm_page_fault_handler(arch_pf_info_t info, uintptr_t vaddr)
         spinlock_acquire(&active_address_space->lock);
         int res = _vmm_pf_on_writing_locked(vaddr);
         spinlock_release(&active_address_space->lock);
+        return res;
     }
 
-    return 0;
+    return -EINVAL;
 }
 
 static void dump_pf_info(arch_pf_info_t info, uintptr_t vaddr)
