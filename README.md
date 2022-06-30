@@ -8,7 +8,7 @@
 
 ### Kernel
 
-* x86-32, ARMv7 and Aarch64 kernel with pre-emptive multi-threading
+* x86-32, ARMv7 and Arm64 kernel with pre-emptive multi-threading
 * Ext2 filesystem
 * /dev and /proc filesystems
 * Local sockets

@@ -1,0 +1,67 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+prekernel_c_flags = [
+  "-ffreestanding",
+  "-Werror",
+  "-Wno-address-of-packed-member",
+  "-fno-builtin",
+  "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
+  "-fpie",
+]
+prekernel_asm_flags = [ "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc" ]
+prekernel_ld_flags = [ "-nostdlib" ]
+
+if (kernel_symbols) {
+  prekernel_c_flags += [ "-ggdb" ]
+}
+
+if (host == "gnu") {
+  prekernel_ld_flags += [
+    "-nostdinc",
+    "-nodefaultlibs",
+    "-nostartfiles",
+    "-lgcc",
+  ]
+}
+
+if (host == "llvm") {
+  prekernel_ld_flags += [
+    "--oformat",
+    "binary",
+  ]
+}
+
+config("prekernel_flags") {
+  cflags = prekernel_c_flags
+  asmflags = prekernel_asm_flags
+  ldflags = prekernel_ld_flags
+  defines = [ "opuntiaOS_prekernel" ]
+}
+
+linker_script =
+    rebase_path("//build/boot/$target_cpu/prekernel/prekernel_link.ld",
+                root_build_dir)
+
+executable("prekernelarm64") {
+  output_name = "prekernelarm64.bin"
+  sources = [
+    "//boot/arm64/prekernel/drivers/fb.c",
+    "//boot/arm64/prekernel/drivers/uart.c",
+    "//boot/arm64/prekernel/entry.S",
+    "//boot/arm64/prekernel/main.c",
+    "//boot/arm64/prekernel/vm.c",
+    "//boot/libboot/devtree/devtree.c",
+    "//boot/libboot/elf/elf_lite.c",
+    "//boot/libboot/log/log.c",
+    "//boot/libboot/mem/alloc.c",
+    "//boot/libboot/mem/mem.c",
+  ]
+
+  include_dirs = [ "//boot" ]
+
+  configs = [ ":prekernel_flags" ]
+
+  ldflags = [ "-T$linker_script" ]
+}

@@ -10,7 +10,7 @@ The project uses GN Build System, please ensure that you have `gn` binary. If yo
 
 The project uses QEMU as a primary build and test target. Please follow [instructions how to get a QEMU binary](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_qemu.md).
 
-*Note:* even if you have a `qemu-system-aarch64` installed and you are going to build for *Aarch64*, please follow the link to compile a custom version QEMU as it is required for this target.
+*Note:* even if you have a `qemu-system-aarch64` installed and you are going to build for *arm64*, please follow the link to compile a custom version QEMU as it is required for this target.
 
 ### Tools for MacOS
 
@@ -60,7 +60,7 @@ brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
 brew install opuntiaOS-Project/homebrew-formulae-arm-gcc/arm-none-eabi-gcc
 ```
 
-***Aarch64***
+***Arm64***
 
 ```bash
 brew install aarch64-elf-gcc
@@ -125,7 +125,7 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
   * Possible values:
     * x86 *(default)*
     * arm32 / arm
-    * aarch64
+    * arm64 / aarch64
 * --host *value*
   * Sets toolchain to build the OS
   * Possible values:
@@ -196,7 +196,7 @@ Also you can run `gdb` or `lldb` from the `out/` directory, which will automitic
 * `vexpress-a15` - QEMU's vexpress-a15 target. (default)
 
 
-***Aarch64***
+***Arm64***
 
 * `qemu_opun` - QEMU's opuntia target, see [Getting QEMU page](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/getting_qemu.md). (default)
 * `apl` - i-device, see [Target Apl page](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/target_apl.md).

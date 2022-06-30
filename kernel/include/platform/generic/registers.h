@@ -3,5 +3,5 @@
 #elif __arm__
 #include <platform/arm32/registers.h>
 #elif __aarch64__
-#include <platform/aarch64/registers.h>
+#include <platform/arm64/registers.h>
 #endif

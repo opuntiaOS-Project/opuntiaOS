@@ -67,8 +67,8 @@ static void vmm_setup_kasan()
 
 static void vm_map_kernel_huge_page_1gb(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
 {
-    // TODO(aarch64): Look like aarch64 and 4kb pages specific, need to
-    //                unify this for other page sizes as well.
+    // TODO(arm64): Look like arm64 and 4kb pages specific, need to
+    //              unify this for other page sizes as well.
     ASSERT(PTABLE_LV_TOP == PTABLE_LV2);
     vaddr = ROUND_FLOOR(vaddr, 1 << 30);
     paddr = ROUND_FLOOR(paddr, 1 << 30);
@@ -229,7 +229,7 @@ int vmm_map_page_locked_impl(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_f
  */
 int vmm_unmap_page_locked_impl(uintptr_t vaddr)
 {
-    // TODO(aarch64): This does not clean up used table.
+    // TODO(arm64): This does not clean up used table.
     if (!THIS_CPU->active_address_space) {
         return -EACCES;
     }
@@ -301,7 +301,7 @@ bool vmm_is_page_present_impl(uintptr_t vaddr)
 int vmm_alloc_page_no_fill_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
     uintptr_t paddr = vm_alloc_page_paddr();
-    // TODO(aarch64): Add sleep here.
+    // TODO(arm64): Add sleep here.
     int res = vmm_map_page_locked(vaddr, paddr, mmu_flags);
     return res;
 }
@@ -347,7 +347,7 @@ vm_address_space_t* vmm_alloc_new_address_space_locked()
 {
     vm_address_space_t* new_address_space = vm_address_space_alloc();
 
-    // TODO(aarch64): Add sleep here.
+    // TODO(arm64): Add sleep here.
     ptable_t* new_pdir = vm_alloc_ptable_lv_top();
     new_address_space->pdir = new_pdir;
     return new_address_space;
@@ -408,7 +408,7 @@ int vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
     vm_address_space_t* active_address_space = THIS_CPU->active_address_space;
     spinlock_acquire(&active_address_space->lock);
 
-    // TODO(aarch64): Implement CoW.
+    // TODO(arm64): Implement CoW.
     _vmm_copy_of_aspace(active_address_space->pdir, new_aspace->pdir, PTABLE_LV_TOP);
     system_flush_whole_tlb();
     spinlock_release(&active_address_space->lock);

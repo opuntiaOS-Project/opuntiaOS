@@ -28,6 +28,9 @@ if (target_cpu == "") {
 if (target_cpu == "arm") {
   target_cpu = "arm32"
 }
+if (target_cpu == "aarch64") {
+  target_cpu = "arm64"
+}
 if (device_type == "m") {
   device_type = "mobile"
 }
@@ -41,7 +44,7 @@ if (target_cpu == "arm32") {
 if (target_cpu == "x86") {
   target_board = "i686"
 }
-if (target_cpu == "aarch64") {
+if (target_cpu == "arm64") {
   if (target_board == "") {
     target_board = "qemu_virt"
   }

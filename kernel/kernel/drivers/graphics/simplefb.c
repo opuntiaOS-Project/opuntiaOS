@@ -81,7 +81,7 @@ static void* memcpy64(uint64_t* dest, const uint64_t* src, size_t nbytes)
 
 static int swap_buffers(int id)
 {
-    // TODO(aarch64): This is a hack, but we should use share vaddr between driver and screen.h
+    // TODO(arm64): This is a hack, but we should use share vaddr between driver and screen.h
     extern volatile uint32_t* _fb;
     memcpy64((uint64_t*)_fb, (uint64_t*)simplefb_stub_buf_vaddr[id], simplefb_one_buffer_size);
     return 0;

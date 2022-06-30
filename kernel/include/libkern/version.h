@@ -13,7 +13,7 @@
 #elif __arm__
 #define MACHINE "arm"
 #elif __aarch64__
-#define MACHINE "aarch64"
+#define MACHINE "arm64"
 #endif
 
 #endif // _KERNEL_LIBKERN_VERSION_H

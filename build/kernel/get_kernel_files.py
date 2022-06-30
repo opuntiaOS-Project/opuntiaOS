@@ -8,19 +8,19 @@ import sys
 # sys.argv[2] Target to generate for
 target = sys.argv[2]
 
-platforms = ['x86', 'arm', 'arm32', 'arm64', 'aarch', 'aarch32', 'aarch64']
+platforms = ['x86', 'arm', 'arm32', 'arm64', 'aarch32', 'aarch64']
 bits = ['bits32', 'bits64']
 
 platform_to_bits = {
     "x86": "bits32",
     "arm32": "bits32",
-    "aarch64": "bits64",
+    "arm64": "bits64",
 }
 
 allowed_paths = {
     "x86": ["x86"],
-    "arm32": ["aarch32", "arm32","aarch", "arm"],
-    "aarch64": ["aarch64", "arm64", "aarch", "arm"],
+    "arm32": ["aarch32", "arm32", "arm"],
+    "arm64": ["aarch64", "arm64", "arm"],
 }
 
 ignore_platforms = []

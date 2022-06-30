@@ -95,7 +95,7 @@ if (target_cpu == "arm32") {
   }
 }
 
-if (target_cpu == "aarch64") {
+if (target_cpu == "arm64") {
   kernel_c_flags += [
     "-fno-builtin",
     "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
