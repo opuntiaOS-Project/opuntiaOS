@@ -26,7 +26,7 @@ if len(path_to_bins) != 0:
     if path_to_bins[-1] != '/':
         path_to_bins += "/"
 
-if (arch == "aarch32"):
+if (arch == "arm32"):
     if host == "gnu":
         OBJCOPY_TOOL = "{0}arm-none-eabi-objcopy".format(path_to_bins)
         OBJCOPY_TARGET = "elf32-littlearm"

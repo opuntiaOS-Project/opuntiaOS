@@ -9,7 +9,7 @@ import os
 import sys
 
 target = "all"  # all, kernel, userland
-target_arch = "x86"  # x86, aarch32
+target_arch = "x86"  # x86, arm32
 
 
 class ClassTidyLauncher():
@@ -17,7 +17,7 @@ class ClassTidyLauncher():
     backend_flags = {
         "x86": ["-c", "-m32",
                 "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS"],
-        "aarch32": [
+        "arm32": [
             "-fno-builtin",
             "-march=armv7-a",
             "-mfpu=neon-vfpv4",
@@ -49,7 +49,7 @@ class ClassTidyLauncher():
     def get_files(self):
         self.c_files = []
         self.cpp_files = []
-        platforms = ["x86", "aarch32"]
+        platforms = ["x86", "arm32"]
         ignore_platforms = []
 
         for platform in platforms:

@@ -13,13 +13,13 @@ bits = ['bits32', 'bits64']
 
 platform_to_bits = {
     "x86": "bits32",
-    "aarch32": "bits32",
+    "arm32": "bits32",
     "aarch64": "bits64",
 }
 
 allowed_paths = {
     "x86": ["x86"],
-    "aarch32": ["aarch32", "arm32","aarch", "arm"],
+    "arm32": ["aarch32", "arm32","aarch", "arm"],
     "aarch64": ["aarch64", "arm64", "aarch", "arm"],
 }
 

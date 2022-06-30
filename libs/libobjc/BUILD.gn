@@ -20,10 +20,10 @@ opuntiaOS_static_library("libobjc") {
 
   configs = [ "//build/libs:libobjcc_flags" ]
 
-  # Currently, using Clang+LTO and aarch32 as a traget, a weird issue
+  # Currently, using Clang+LTO and arm32 as a traget, a weird issue
   # happens, when linker can't resolve objc_load_function.
   # Such functions contain `und` instruction and leads to a crash.
-  if (host == "llvm" && target_cpu != "aarch32") {
+  if (host == "llvm" && target_cpu != "arm32") {
     cflags = [ "-flto" ]
   }
 }

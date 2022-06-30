@@ -47,7 +47,7 @@ if (target_cpu == "x86") {
   ]
 }
 
-if (target_cpu == "aarch32") {
+if (target_cpu == "arm32") {
   uland_c_flags += [
     "-fno-builtin",
     "-march=armv7-a",

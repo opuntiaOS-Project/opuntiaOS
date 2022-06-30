@@ -53,7 +53,7 @@ opuntiaOS supports compilation both with GNU toolchains and LLVM.
 brew install i686-elf-gcc
 ```
 
-***Aarch32***
+***Arm32***
 
 ```bash
 brew tap opuntiaOS-Project/homebrew-formulae-arm-gcc
@@ -84,7 +84,7 @@ brew install llvm
 ./toolchains/scripts/i686-elf-tools.sh
 ```
 
-***Aarch32***
+***Arm32***
 
 ```bash
 ./toolchains/scripts/arm-none-eabi-tools.sh
@@ -124,7 +124,7 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
   * Sets target arch
   * Possible values:
     * x86 *(default)*
-    * aarch32 / arm
+    * arm32 / arm
     * aarch64
 * --host *value*
   * Sets toolchain to build the OS
@@ -146,7 +146,7 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
 * --help
   * Prints all options of ./gn_gen.sh
 
-So to build opuntiaOS for Arm with LLVM you have to generate Ninja files with `./gn_gen.sh --target_cpu aarch32 --host llvm`
+So to build opuntiaOS for Arm with LLVM you have to generate Ninja files with `./gn_gen.sh --target_cpu arm32 --host llvm`
 
 #### **Environment variables**
 
@@ -191,7 +191,7 @@ Also you can run `gdb` or `lldb` from the `out/` directory, which will automitic
 
 * `x86` - regular x86. (default)
 
-***Aarch32***
+***Arm32***
 
 * `vexpress-a15` - QEMU's vexpress-a15 target. (default)
 

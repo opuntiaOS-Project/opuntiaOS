@@ -20,7 +20,7 @@ expected_benchmark_results = {
         "FORK": 320000,
         "PNG LOADER": 1180000
     },
-    "aarch32": {
+    "arm32": {
         "FORK": 954667,
         "PNG LOADER": 5176000
     },
