@@ -26,7 +26,7 @@ if args.clean:
         shutil.rmtree("{0}/src/".format(portname))
     for filename in glob.glob("{0}/patches/.applied_*".format(portname)):
         os.remove(filename)
-    for arch in ["x86", "aarch32"]:
+    for arch in ["x86", "arm32"]:
         path = "{0}/bin_{1}/".format(portname, arch)
         if os.path.exists(path):
             shutil.rmtree(path)

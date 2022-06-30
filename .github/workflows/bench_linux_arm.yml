@@ -33,7 +33,7 @@ jobs:
       - name: Create LLVM Build Environment
         run: |
           export LLVM_BIN_PATH="/usr/lib/llvm-12/bin"
-          ./gn_gen.sh --target_cpu aarch32 --host llvm --test_method bench
+          ./gn_gen.sh --target_cpu arm32 --host llvm --test_method bench
 
       - name: Building
         run: |
@@ -43,4 +43,4 @@ jobs:
       - name: Benching
         run: |
           cd out
-          python3 ../utils/test/bench.py aarch32
+          python3 ../utils/test/bench.py arm32

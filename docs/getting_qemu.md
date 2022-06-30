@@ -2,9 +2,9 @@
 
 # Getting QEMU
 
-QEMU is an emulator used for running and debugging opuntiaOS. While *x86* and *aarch32* targets use the regular QEMU binary, *aarch64* target uses a custom QEMU board configuration.
+QEMU is an emulator used for running and debugging opuntiaOS. While *x86* and *arm32* targets use the regular QEMU binary, *aarch64* target uses a custom QEMU board configuration.
 
-## Getting QEMU for x86 and Aarch32
+## Getting QEMU for x86 and Arm32
 
 ### QEMU for MacOS
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# pass --target_cpu aarch32 as arg to build for arm
+# pass --target_cpu arm32 as arg to build for arm
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -14,7 +14,7 @@ for arg in "$@"; do
   Sets target arch
   Possible values:
     x86 (default)
-    aarch32 / arm
+    arm32 / arm
 
 --host
   Sets toolchain to build the OS

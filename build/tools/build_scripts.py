@@ -20,7 +20,7 @@ if arch == "x86":
     QEMU_STD_PATH = "qemu-system-i386"
     qemu_run_cmd = "${2} -m 256M --drive file={1}/os-image.bin,format=raw,index=0,if=floppy -device piix3-ide,id=ide -drive id=disk,format=raw,file={1}/one.img,if=none -device ide-hd,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std -qmp unix:./qmp-sock,server,nowait".format(
         base, out, QEMU_PATH_VAR)
-if arch == "aarch32":
+if arch == "arm32":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_ARM"
     QEMU_STD_PATH = "qemu-system-arm"
     qemu_run_cmd = "${2} -m 256M -M vexpress-a15 -cpu cortex-a15 -kernel {1}/bootarm.bin -smp ${3} -serial mon:stdio -vga std -drive id=disk,if=sd,format=raw,file={1}/one.img".format(
