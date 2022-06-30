@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_DRIVERS_AARCH64_FPU_H
-#define _KERNEL_DRIVERS_AARCH64_FPU_H
+#ifndef _KERNEL_PLATFORM_AARCH64_FPU_FPU_H
+#define _KERNEL_PLATFORM_AARCH64_FPU_FPU_H
 
 #include <libkern/kassert.h>
 #include <libkern/types.h>
@@ -49,4 +49,4 @@ static inline void fpu_make_unavail()
     write_cpacr(val | ((0b01) << 20));
 }
 
-#endif //_KERNEL_DRIVERS_AARCH64_FPU_H
+#endif //_KERNEL_PLATFORM_AARCH64_FPU_FPU_H

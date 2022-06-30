@@ -9,11 +9,12 @@
 #ifndef _KERNEL_TIME_TIME_MANAGER_H
 #define _KERNEL_TIME_TIME_MANAGER_H
 
-#include <drivers/generic/timer.h>
 #include <libkern/atomic.h>
 #include <libkern/bits/time.h>
 #include <libkern/types.h>
 #include <platform/generic/cpu.h>
+
+#define TIMER_TICKS_PER_SECOND 125
 
 extern time_t ticks_since_boot;
 extern time_t ticks_since_second;

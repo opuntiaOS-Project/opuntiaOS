@@ -6,17 +6,42 @@
  * found in the LICENSE file.
  */
 
+#include <libkern/kassert.h>
 #include <platform/x86/idt.h>
 #include <platform/x86/syscalls/params.h>
 #include <syscalls/handlers.h>
 
 struct idt_entry idt[IDT_ENTRIES];
-void** handlers[IDT_ENTRIES];
+irq_handler_t handlers[IDT_ENTRIES];
 
 #define USER true
 #define SYS false
 
-void lidt(void* p, uint16_t size)
+static void init_irq_handlers()
+{
+    for (int i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++) {
+        handlers[i] = (void*)irq_empty_handler;
+    }
+    for (int i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++) {
+        handlers[i] = (void*)irq_empty_handler;
+    }
+}
+
+static void idt_element_setup(uint8_t n, void* handler_addr, bool is_user)
+{
+    idt[n].offset_lower = (uintptr_t)handler_addr & 0xffff;
+    idt[n].segment = INIT_CODE_SEG;
+    idt[n].zero = 0;
+    idt[n].type = 0x8E;
+    // setting user type
+    // now user can call this sw interrupts (syscalls)
+    if (is_user) {
+        idt[n].type |= (0b1100000);
+    }
+    idt[n].offset_upper = (uintptr_t)handler_addr >> 16;
+}
+
+static void lidt(void* p, uint16_t size)
 {
     // Need to use volatile as GCC optimizes out the following writes.
     volatile uint16_t pd[3];
@@ -93,32 +118,18 @@ void interrupts_setup()
     asm volatile("sti");
 }
 
-void set_irq_handler(uint8_t interrupt_no, void (*handler)())
+void irq_set_dev(irqdev_descritptor_t irqdev_desc)
 {
-    handlers[interrupt_no] = (void*)handler;
+    // This handler is empty for x86.
 }
 
-inline void init_irq_handlers()
+void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_flags_t flags, irq_handler_t func, int cpu_mask)
 {
-    int i;
-    for (i = IRQ_MASTER_OFFSET; i < IRQ_MASTER_OFFSET + 8; i++) {
-        handlers[i] = (void*)irq_empty_handler;
-    }
-    for (i = IRQ_SLAVE_OFFSET; i < IRQ_SLAVE_OFFSET + 8; i++) {
-        handlers[i] = (void*)irq_empty_handler;
-    }
+    ASSERT(32 <= line && line < 48);
+    handlers[line] = func;
 }
 
-inline void idt_element_setup(uint8_t n, void* handler_addr, bool is_user)
+irq_line_t irqline_from_id(int id)
 {
-    idt[n].offset_lower = (uintptr_t)handler_addr & 0xffff;
-    idt[n].segment = INIT_CODE_SEG;
-    idt[n].zero = 0;
-    idt[n].type = 0x8E;
-    // setting user type
-    // now user can call this sw interrupts (syscalls)
-    if (is_user) {
-        idt[n].type |= (0b1100000);
-    }
-    idt[n].offset_upper = (uintptr_t)handler_addr >> 16;
+    return id + IRQ_MASTER_OFFSET;
 }

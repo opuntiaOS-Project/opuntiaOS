@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_TASKING_BITS_CPU_H
-#define _KERNEL_TASKING_BITS_CPU_H
+#ifndef _KERNEL_PLATFORM_GENERIC_CPU_H
+#define _KERNEL_PLATFORM_GENERIC_CPU_H
 
 #include <libkern/types.h>
 #include <mem/kmemzone.h>
@@ -64,4 +64,4 @@ typedef struct {
 
 extern cpu_t cpus[MAX_CPU_CNT];
 
-#endif // _KERNEL_TASKING_BITS_CPU_H
+#endif // _KERNEL_PLATFORM_GENERIC_CPU_H

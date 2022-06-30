@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/aarch64/gicv2.h>
-#include <drivers/aarch64/timer.h>
+#include <drivers/irq/arm/gicv2.h>
+#include <drivers/timer/arm/arm64/timer.h>
 #include <libkern/libkern.h>
 #include <libkern/log.h>
 #include <platform/aarch64/interrupts.h>
@@ -21,7 +21,7 @@
 #define ERR_BUF_SIZE 64
 static char err_buf[ERR_BUF_SIZE];
 
-static gic_descritptor_t gic_descriptor;
+static irqdev_descritptor_t gic_descriptor;
 static irq_handler_t _irq_handlers[IRQ_HANDLERS_MAX];
 
 static void _irq_empty_handler()
@@ -169,9 +169,14 @@ void gic_setup_secondary_cpu()
     gicv2_install_secondary_cpu();
 }
 
-void irq_set_gic_desc(gic_descritptor_t gic_desc)
+void irq_set_dev(irqdev_descritptor_t gic_desc)
 {
     gic_descriptor = gic_desc;
+}
+
+irq_line_t irqline_from_id(int id)
+{
+    ASSERT(false && "x86 specific, should not be called on ARM64");
 }
 
 void irq_register_handler(irq_line_t line, irq_priority_t prior, irq_flags_t flags, irq_handler_t func, int cpu_mask)
