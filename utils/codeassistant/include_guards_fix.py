@@ -29,7 +29,7 @@ def get_guard(line):
 
 
 def new_guard(line, path):
-    gen = path.split('/')[1:]
+    gen = path.split('/')
     gen = list(filter(lambda a: a != "libs", gen))
     gen = list(filter(lambda a: a != "include", gen))
     line = "_"
@@ -42,6 +42,7 @@ def new_guard(line, path):
 
 
 def fix_guards(file):
+    print("prc ", file)
     data = []
     guard = None
     with open(file) as old_file:

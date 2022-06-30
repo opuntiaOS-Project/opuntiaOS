@@ -9,11 +9,11 @@
 #include <drivers/driver_manager.h>
 #include <libkern/log.h>
 #include <libkern/types.h>
-#include <platform/aarch64/interrupts.h>
-#include <platform/aarch64/registers.h>
+#include <platform/arm64/interrupts.h>
+#include <platform/arm64/registers.h>
 #include <tasking/sched.h>
 
-static void aarch64_timer_write_reg(uint64_t val)
+static void arm64_timer_write_reg(uint64_t val)
 {
     asm volatile("msr cntp_ctl_el0, %x0"
                  :
@@ -22,7 +22,7 @@ static void aarch64_timer_write_reg(uint64_t val)
     system_instruction_barrier();
 }
 
-static void aarch64_timer_write_ctrl(uint64_t val)
+static void arm64_timer_write_ctrl(uint64_t val)
 {
     asm volatile("msr cntp_tval_el0, %x0"
                  :
@@ -31,35 +31,35 @@ static void aarch64_timer_write_ctrl(uint64_t val)
     system_instruction_barrier();
 }
 
-void aarch64_timer_enable()
+void arm64_timer_enable()
 {
-    aarch64_timer_write_reg(1);
+    arm64_timer_write_reg(1);
 }
 
-void aarch64_timer_disable()
+void arm64_timer_disable()
 {
-    aarch64_timer_write_reg(0b10);
+    arm64_timer_write_reg(0b10);
 }
 
-void aarch64_timer_rearm()
+void arm64_timer_rearm()
 {
     uint64_t el;
     asm volatile("mrs %x0, CNTFRQ_EL0"
                  : "=r"(el)
                  :);
 
-    aarch64_timer_write_ctrl(el / 125);
+    arm64_timer_write_ctrl(el / 125);
 }
 
 void tick()
 {
-    aarch64_timer_rearm();
+    arm64_timer_rearm();
     cpu_tick();
     timeman_timer_tick();
     sched_tick();
 }
 
-int aarch64_timer_init(device_t* dev)
+int arm64_timer_init(device_t* dev)
 {
     if (dev->device_desc.type != DEVICE_DESC_DEVTREE) {
         return -1;
@@ -71,25 +71,25 @@ int aarch64_timer_init(device_t* dev)
         irq_register_handler(devtree_entry->irq_lane, devtree_entry->irq_priority, irqflags, tick, ALL_CPU_MASK);
     }
 
-    aarch64_timer_disable();
-    aarch64_timer_write_ctrl(0xfffffff);
-    aarch64_timer_enable();
-    aarch64_timer_rearm();
+    arm64_timer_disable();
+    arm64_timer_write_ctrl(0xfffffff);
+    arm64_timer_enable();
+    arm64_timer_rearm();
     return 0;
 }
 
-static driver_desc_t _aarch64_timer_keyboard_driver_info()
+static driver_desc_t _arm64_timer_keyboard_driver_info()
 {
     driver_desc_t ms_desc = { 0 };
     ms_desc.type = DRIVER_TIMER;
-    ms_desc.system_funcs.init_with_dev = aarch64_timer_init;
+    ms_desc.system_funcs.init_with_dev = arm64_timer_init;
     ms_desc.system_funcs.recieve_notification = NULL;
     return ms_desc;
 }
 
-void aarch64_timer_install()
+void arm64_timer_install()
 {
-    devman_register_driver(_aarch64_timer_keyboard_driver_info(), "aa64timer");
+    devman_register_driver(_arm64_timer_keyboard_driver_info(), "aa64timer");
 }
 
-devman_register_driver_installation(aarch64_timer_install);
+devman_register_driver_installation(arm64_timer_install);

@@ -3,5 +3,5 @@
 #elif __arm__
 #include <platform/arm32/pmm/settings.h>
 #elif __aarch64__
-#include <platform/aarch64/pmm/settings.h>
+#include <platform/arm64/pmm/settings.h>
 #endif

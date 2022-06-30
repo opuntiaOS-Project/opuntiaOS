@@ -14,7 +14,7 @@ if (target_cpu == "arm32") {
   gnu_asm = "arm-none-eabi-as"
   gnu_target = "arm-none-eabi"
 }
-if (target_cpu == "aarch64") {
+if (target_cpu == "arm64") {
   gnu_ar = "aarch64-elf-ar"
   gnu_cc = "aarch64-elf-gcc"
   gnu_cxx = "aarch64-elf-g++"
@@ -43,7 +43,7 @@ if (target_cpu == "arm32") {
   llvm_ccpp_target_flag = "-target $llvm_target"
   llvm_asm_target_flag = "-target $llvm_target -c"
 }
-if (target_cpu == "aarch64") {
+if (target_cpu == "arm64") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
   llvm_cxx = "$llvm_bin_path/clang++"

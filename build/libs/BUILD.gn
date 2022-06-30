@@ -66,7 +66,7 @@ if (target_cpu == "arm32") {
   ]
 }
 
-if (target_cpu == "aarch64") {
+if (target_cpu == "arm64") {
   lib_c_flags += [
     "-fno-builtin",
     "-mcpu=cortex-a53+nocrypto+nocrc",

@@ -26,6 +26,6 @@ An alternative to *prekernel* part is a standalone bootloader which could prepar
 ## Dirs
 
 * [arm32](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/boot/arm32) Arm32 bootloader.
-* [aarch64](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/boot/aarch64) Aarch64 bootloader.
+* [arm64](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/boot/arm64) Arm64 bootloader.
 * [libboot](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/boot/libboot) Bootloader library.
 * [x86](https://github.com/opuntiaOS-Project/opuntiaOS/tree/master/boot/x86) x86 bootloader.

@@ -1,4 +1,4 @@
-name: Testing Aarch64
+name: Testing Arm64
 
 on: [push, pull_request]
 
@@ -38,7 +38,7 @@ jobs:
       - name: Create LLVM Build Environment
         run: |
           export LLVM_BIN_PATH="/usr/lib/llvm-12/bin"
-          ./gn_gen.sh --target_cpu aarch64 --target_board qemu_virt --host llvm --test_method tests
+          ./gn_gen.sh --target_cpu arm64 --target_board qemu_virt --host llvm --test_method tests
 
       - name: Building
         run: |

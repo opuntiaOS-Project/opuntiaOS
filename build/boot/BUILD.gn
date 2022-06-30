@@ -7,7 +7,7 @@ group("boot") {
     deps = [ "x86:bootx86" ]
   } else if (target_cpu == "arm32") {
     deps = [ "arm32:bootarm" ]
-  } else if (target_cpu == "aarch64") {
-    deps = [ "aarch64:bootaarch64" ]
+  } else if (target_cpu == "arm64") {
+    deps = [ "arm64:bootarm64" ]
   }
 }

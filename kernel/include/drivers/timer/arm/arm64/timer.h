@@ -12,7 +12,7 @@
 #include <libkern/types.h>
 #include <time/time_manager.h>
 
-void aarch64_timer_rearm();
-void aarch64_timer_install();
+void arm64_timer_rearm();
+void arm64_timer_install();
 
 #endif // _KERNEL_DRIVERS_TIMER_ARM_ARM64_TIMER_H

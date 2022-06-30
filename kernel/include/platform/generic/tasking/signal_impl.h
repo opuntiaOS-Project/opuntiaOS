@@ -3,5 +3,5 @@
 #elif __arm__
 #include <platform/arm32/tasking/signal_impl.h>
 #elif __aarch64__
-#include <platform/aarch64/tasking/signal_impl.h>
+#include <platform/arm64/tasking/signal_impl.h>
 #endif
