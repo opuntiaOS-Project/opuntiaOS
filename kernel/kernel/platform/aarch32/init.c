@@ -6,12 +6,6 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/aarch32/pl031.h>
-#include <drivers/aarch32/pl050.h>
-#include <drivers/aarch32/pl111.h>
-#include <drivers/aarch32/pl181.h>
-#include <drivers/aarch32/sp804.h>
-#include <drivers/aarch32/uart.h>
 #include <platform/aarch32/fpu/fpuv4.h>
 #include <platform/aarch32/init.h>
 #include <platform/aarch32/interrupts.h>

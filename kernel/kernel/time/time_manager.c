@@ -7,7 +7,6 @@
  */
 
 #include <drivers/driver_manager.h>
-#include <drivers/generic/timer.h>
 #include <libkern/log.h>
 #include <time/time_manager.h>
 

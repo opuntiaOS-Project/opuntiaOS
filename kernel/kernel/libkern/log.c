@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#include <drivers/generic/screen.h>
-#include <drivers/generic/uart.h>
+#include <drivers/debug/screen.h>
+#include <drivers/serial/uart_api.h>
 #include <libkern/libkern.h>
 #include <libkern/lock.h>
 #include <libkern/log.h>

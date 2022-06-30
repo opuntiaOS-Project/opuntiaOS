@@ -42,8 +42,7 @@ jobs:
 
       - name: Create LLVM Build Environment
         run: |
-          export LLVM_VERSION=`ls -l /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
-          export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
+          export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
           gn gen out --args='target_cpu="aarch64" host="llvm"'
 
       - name: Build LLVM
@@ -56,8 +55,7 @@ jobs:
 
       - name: Create Mobile LLVM Build Environment
         run: |
-          export LLVM_VERSION=`ls -l /usr/local/Cellar/llvm | awk '/13.0/{print $9}'`
-          export LLVM_BIN_PATH="/usr/local/Cellar/llvm/${LLVM_VERSION}/bin"
+          export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
           gn gen out --args='target_cpu="aarch64" host="llvm" device_type="m"'
 
       - name: Build Mobile with LLVM

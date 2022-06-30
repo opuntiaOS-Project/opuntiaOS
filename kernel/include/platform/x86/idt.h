@@ -9,9 +9,10 @@
 #ifndef _KERNEL_PLATFORM_X86_IDT_H
 #define _KERNEL_PLATFORM_X86_IDT_H
 
+#include <drivers/irq/irq_api.h>
+#include <drivers/irq/x86/pic.h>
 #include <libkern/c_attrs.h>
 #include <libkern/types.h>
-#include <platform/x86/pic.h>
 #include <platform/x86/port.h>
 #include <platform/x86/tasking/trapframe.h>
 
@@ -30,14 +31,7 @@ struct PACKED idt_entry { // call gate
     uint16_t offset_upper;
 };
 
-extern struct idt_entry idt[IDT_ENTRIES];
-extern void** handlers[IDT_ENTRIES];
-
-void idt_element_setup(uint8_t n, void* handler_addr, bool user);
 void interrupts_setup();
-
-void set_irq_handler(uint8_t interrupt_no, void (*handler)());
-void init_irq_handlers();
 
 /* ISRs reserved for CPU exceptions */
 extern void isr0();

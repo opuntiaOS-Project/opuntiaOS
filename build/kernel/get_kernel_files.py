@@ -6,8 +6,9 @@ import os
 import glob
 import sys
 # sys.argv[2] Target to generate for
+target = sys.argv[2]
 
-platforms = ['x86', 'aarch', 'aarch32', 'aarch64']
+platforms = ['x86', 'arm', 'arm32', 'arm64', 'aarch', 'aarch32', 'aarch64']
 bits = ['bits32', 'bits64']
 
 platform_to_bits = {
@@ -16,11 +17,22 @@ platform_to_bits = {
     "aarch64": "bits64",
 }
 
+allowed_paths = {
+    "x86": ["x86"],
+    "aarch32": ["aarch32", "arm32","aarch", "arm"],
+    "aarch64": ["aarch64", "arm64", "aarch", "arm"],
+}
+
 ignore_platforms = []
 ignore_bits = []
 
+allowed_paths_for_target = allowed_paths.get(target, None)
+if allowed_paths_for_target is None:
+    print("Unknown paltform {0}".format(target))
+    exit(1)
+
 for platform in platforms:
-    if sys.argv[2][:len(platform)] != platform:
+    if not (platform in allowed_paths_for_target):
         ignore_platforms.append(platform)
 
 for bit in bits:

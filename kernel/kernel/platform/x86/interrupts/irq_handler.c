@@ -15,8 +15,8 @@ extern void x86_process_tf_for_kthread(trapframe_t* tf);
 
 static inline void irq_redirect(uint8_t int_no)
 {
-    void (*func)() = (void*)handlers[int_no];
-    func();
+    extern irq_handler_t handlers[IDT_ENTRIES];
+    handlers[int_no]();
 }
 
 static void irq_accept_next(int int_no)

@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_DRIVERS_AARCH32_FPUV4_H
-#define _KERNEL_DRIVERS_AARCH32_FPUV4_H
+#ifndef _KERNEL_PLATFORM_AARCH32_FPU_FPUV4_H
+#define _KERNEL_PLATFORM_AARCH32_FPU_FPUV4_H
 
 #include <drivers/driver_manager.h>
 #include <libkern/mask.h>
@@ -56,4 +56,4 @@ static inline void fpu_make_unavail()
     write_cpacr(val | ((0b0101) << 20));
 }
 
-#endif //_KERNEL_DRIVERS_AARCH32_FPUV4_H
+#endif //_KERNEL_PLATFORM_AARCH32_FPU_FPUV4_H
