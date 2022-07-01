@@ -39,6 +39,14 @@ SECTIONS
 	}
 	__data_end = .;
 
+	__got_start = .;
+	.got ALIGN(4K) : AT (ADDR(.got) - _va_base + _pa_base)
+	{
+		*(.got)
+		*(.got.*)
+	}
+	__got_end = .;
+
 	__bss_start = .;
 	.bss ALIGN(4K) : AT (ADDR(.bss) - _va_base + _pa_base)
 	{

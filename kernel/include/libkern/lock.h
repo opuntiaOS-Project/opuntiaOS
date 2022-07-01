@@ -33,13 +33,13 @@ static ALWAYS_INLINE void spinlock_acquire(spinlock_t* lock)
 {
     int counter = 16;
     while (__atomic_exchange_n(&lock->status, 1, __ATOMIC_ACQUIRE) == 1) {
-        extern bool system_can_preempt_kernel();
-        if (system_can_preempt_kernel()) {
-            if (!(--counter)) {
-                extern void resched();
-                resched();
-            }
-        }
+        // extern bool system_can_preempt_kernel();
+        // if (system_can_preempt_kernel()) {
+        //     if (!(--counter)) {
+        //         extern void resched();
+        //         resched();
+        //     }
+        // }
     }
 }
 
