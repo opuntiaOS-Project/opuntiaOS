@@ -13,7 +13,7 @@
 #include <libkern/log.h>
 #include <libkern/types.h>
 #include <platform/generic/system.h>
-#include <platform/generic/tasking/trapframe.h>
+// #include <platform/generic/tasking/trapframe.h>
 
 void assert_handler(const char* cond, const char* func, const char* file, int line) NORETURN;
 #define ASSERT(x)                                         \
@@ -38,6 +38,9 @@ void assert_handler(const char* cond, const char* func, const char* file, int li
 #define STATIC_ASSERT(predicate, file) __IMPL_SASSERT_LINE(predicate, __LINE__, file)
 
 void kpanic(const char* msg) NORETURN;
+
+typedef int trapframe_t;
+// struct trapframe_t;
 void kpanic_tf(const char* err_msg, trapframe_t* tf) NORETURN;
 
 #endif // _KERNEL_LIBKERN_KASSERT_H

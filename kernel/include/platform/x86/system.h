@@ -29,9 +29,10 @@ inline static void system_enable_interrupts_no_counter() { asm volatile("sti"); 
 
 inline static void system_set_pdir(uintptr_t pdir)
 {
-    asm volatile("mov %%eax, %%cr3"
+    asm volatile("mov %0, %%cr3"
                  :
-                 : "a"(pdir));
+                 : "r"(pdir)
+                 : "memory");
 }
 
 inline static void system_flush_local_tlb_entry(uintptr_t vaddr)
@@ -53,30 +54,30 @@ inline static void system_flush_whole_tlb()
 
 inline static void system_enable_write_protect()
 {
-    asm volatile("mov %cr0, %eax");
-    asm volatile("or $0x10000, %eax");
-    asm volatile("mov %eax, %cr0");
+    uintptr_t cr = read_cr0();
+    cr |= 0x10000;
+    write_cr0(cr);
 }
 
 inline static void system_disable_write_protect()
 {
-    asm volatile("mov %cr0, %eax");
-    asm volatile("and $0xFFFEFFFF, %eax");
-    asm volatile("mov %eax, %cr0");
+    uintptr_t cr = read_cr0();
+    cr &= 0xfffeffff;
+    write_cr0(cr);
 }
 
 inline static void system_enable_paging()
 {
-    asm volatile("mov %cr0, %eax");
-    asm volatile("or $0x80000000, %eax");
-    asm volatile("mov %eax, %cr0");
+    uintptr_t cr = read_cr0();
+    cr |= 0x80000000;
+    write_cr0(cr);
 }
 
 inline static void system_disable_paging()
 {
-    asm volatile("mov %cr0, %eax");
-    asm volatile("and $0x7FFFFFFF, %eax");
-    asm volatile("mov %eax, %cr0");
+    uintptr_t cr = read_cr0();
+    cr &= 0x7fffffff;
+    write_cr0(cr);
 }
 
 inline static void system_stop_until_interrupt()

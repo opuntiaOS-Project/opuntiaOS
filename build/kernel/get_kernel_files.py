@@ -8,7 +8,8 @@ import sys
 # sys.argv[2] Target to generate for
 target = sys.argv[2]
 
-platforms = ['x86', 'i386', 'x86_64', 'arm', 'arm32', 'arm64', 'aarch32', 'aarch64']
+platforms = ['x86', 'i386', 'x86_64', 'arm',
+             'arm32', 'arm64', 'aarch32', 'aarch64']
 bits = ['bits32', 'bits64']
 
 platform_to_bits = {
@@ -26,7 +27,16 @@ allowed_paths = {
 }
 
 if target == "x86_64":
-    print("//kernel/kernel/platform/x86_64/entry.s")
+    print("//kernel/kernel/platform/x86/x86_64/entry.s")
+    print("//kernel/kernel/kernel.c")
+    print("//kernel/kernel/libkern/log.c")
+    print("//kernel/kernel/libkern/printf.c")
+    print("//kernel/kernel/libkern/kassert.c")
+    print("//kernel/kernel/libkern/utils.c")
+
+    print("//kernel/kernel/platform/x86/system.c")
+    print("//kernel/kernel/platform/x86/port.c")
+    print("//kernel/kernel/drivers/serial/x86/uart.c")
     exit(0)
 
 ignore_platforms = []

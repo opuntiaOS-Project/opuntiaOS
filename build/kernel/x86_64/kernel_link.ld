@@ -8,7 +8,7 @@ SECTIONS
     . = _va_base;
 
 	__text_start = .;
-	.text ALIGN(4K) : AT (ADDR(.text) - _va_base + _pa_base)
+	.text ALIGN(4K) :
 	{
 		*(.opuntiaos_kernel_boot)
 		*(.text)
@@ -17,13 +17,13 @@ SECTIONS
 	__text_end = .;
 
 	__rodata_start = .;
-	.rodata ALIGN(4K) : AT (ADDR(.rodata) - _va_base + _pa_base)
+	.rodata ALIGN(4K) :
 	{
 		*(.rodata)
 		*(.rodata.*)
 	}
 
-	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - _va_base + _pa_base)
+	.rodata.driver_init ALIGN(4K) :
 	{
 		_dirvers_init_start = .;
 		*(SORT_BY_NAME(.driver_init_sections.*))
@@ -32,15 +32,23 @@ SECTIONS
 	__rodata_end = .;
 
 	__data_start = .;
-	.data ALIGN(4K) : AT (ADDR(.data) - _va_base + _pa_base)
+	.data ALIGN(4K) :
 	{
 		*(.data)
 		*(.data.*)
 	}
 	__data_end = .;
 
+	__got_start = .;
+	.got ALIGN(4K) :
+	{
+		*(.got)
+		*(.got.*)
+	}
+	__got_end = .;
+
 	__bss_start = .;
-	.bss ALIGN(4K) : AT (ADDR(.bss) - _va_base + _pa_base)
+	.bss ALIGN(4K) :
 	{
 		*(.bss)
 		*(.bss.*)
@@ -49,7 +57,7 @@ SECTIONS
 	__bss_end = .;
 
 	__stack_start = .;
-	.stack ALIGN(4K) : AT (ADDR(.stack) - _va_base + _pa_base)
+	.stack ALIGN(4K) :
 	{
 		STACK_BASE = .;
 		. += 0x1000;

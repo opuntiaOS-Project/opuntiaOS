@@ -26,7 +26,8 @@ if (kernel_symbols) {
 
 if (optimize) {
   kernel_c_flags += [ "-Os" ]
-  if (host == "llvm") {
+  if (host == "llvm" && target_cpu != "x86_64") {
+    # TODO(x64): lto fails with relocs out-of-range.
     kernel_c_flags += [ "-flto" ]
   }
 }
@@ -67,6 +68,8 @@ if (target_cpu == "x86_64") {
     "-mno-mmx",
     "-mno-sse",
     "-mno-sse2",
+    "-mno-red-zone",
+    "-fno-omit-frame-pointer"
   ]
   kernel_asm_flags += [
     "-w+all",
@@ -76,7 +79,7 @@ if (target_cpu == "x86_64") {
   ]
   kernel_ld_flags += [
     "--oformat",
-    "elf64-x86-64",
+    "elf64",
   ]
 }
 
