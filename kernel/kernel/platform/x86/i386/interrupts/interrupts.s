@@ -56,10 +56,6 @@ extern sys_handler
 
 global trap_return
 
-int_no: db 0
-com_inf: db 0
-cr2_ch: db 0
-
 isr_common:
     cli
     
@@ -69,7 +65,7 @@ isr_common:
     push gs
     pushad
 
-    mov ax, 0x8 ; SEG_KDATA
+    mov ax, 0x10 ; SEG_KDATA
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -89,7 +85,7 @@ irq_common:
     push gs
     pushad
 
-    mov ax, 0x8 ; SEG_KDATA
+    mov ax, 0x10 ; SEG_KDATA
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -109,7 +105,7 @@ sys_common:
     push gs
     pushad
 
-    mov ax, 0x8 ; SEG_KDATA
+    mov ax, 0x10 ; SEG_KDATA
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -419,5 +415,3 @@ syscall:
     push 0
     push 0x80
     jmp  sys_common
-
-

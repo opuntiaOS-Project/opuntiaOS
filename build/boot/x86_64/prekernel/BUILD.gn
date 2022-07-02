@@ -66,6 +66,7 @@ action("embed_kernel") {
 
 executable("prekernelx86_64") {
   output_name = "prekernelx86_64.bin"
+  inputs = ["$root_build_dir/tmp/boot/kernel.o"]
   sources = [
     "//boot/libboot/elf/elf_lite.c",
     "//boot/libboot/log/log.c",

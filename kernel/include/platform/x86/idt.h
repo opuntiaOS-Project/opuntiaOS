@@ -16,20 +16,23 @@
 #include <platform/x86/port.h>
 #include <platform/x86/tasking/trapframe.h>
 
-#define INIT_CODE_SEG 0x08
-#define INIT_DATA_SEG 0x10
-#define IDT_ENTRIES 0x100
+#define IDT_ENTRIES 256
 
 #define IRQ_MASTER_OFFSET 32
 #define IRQ_SLAVE_OFFSET 40
 
-struct PACKED idt_entry { // call gate
-    uint16_t offset_lower;
+struct PACKED idt_entry {
+    uint16_t offset_lower; // bits 0..15
     uint16_t segment;
     uint8_t zero;
     uint8_t type;
-    uint16_t offset_upper;
+    uint16_t offset_upper; // bits 16..31
+#ifdef __x86_64__
+    uint32_t offset_long; // bits 32..63
+    uint32_t zero2;
+#endif
 };
+typedef struct idt_entry idt_entry_t;
 
 void interrupts_setup();
 
