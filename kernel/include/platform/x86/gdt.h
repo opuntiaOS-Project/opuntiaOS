@@ -12,7 +12,19 @@
 #include <libkern/c_attrs.h>
 #include <libkern/types.h>
 
+#ifdef __x86_64__
+#define GDT_MAX_ENTRIES 7 // TSS takes 2 entries.
+
+// Marking that code segment contains native 64-bit code.
+#define GDT_LONGMODE_FLAG 1
+#define GDT_DB_FLAG 0
+#else
 #define GDT_MAX_ENTRIES 6
+
+#define GDT_LONGMODE_FLAG 0
+#define GDT_DB_FLAG 1
+#endif
+
 #define GDT_SEG_NULL 0 // kernel code
 #define GDT_SEG_KCODE 1 // kernel code
 #define GDT_SEG_KDATA 2 // kernel data+stack
@@ -42,7 +54,7 @@ struct PACKED gdt_desc {
     uint32_t p : 1;
     uint32_t lim_19_16 : 4;
     uint32_t avl : 1;
-    uint32_t rsv1 : 1;
+    uint32_t l : 1;
     uint32_t db : 1;
     uint32_t g : 1;
     uint32_t base_31_24 : 8;
@@ -51,8 +63,16 @@ typedef struct gdt_desc gdt_desc_t;
 
 extern gdt_desc_t gdt[GDT_MAX_ENTRIES];
 
-// segment with page granularity
-#define GDT_SEG_PG(type, base, limit, dpl)                                \
+#define GDT_SEG_CODE_DESC(type, base, limit, dpl)                         \
+    (gdt_desc_t)                                                          \
+    {                                                                     \
+        ((limit) >> 12) & 0xffff, (uint32_t)(base)&0xffff,                \
+            ((uint32_t)(base) >> 16) & 0xff, type, 1, dpl, 1,             \
+            ((uint32_t)(limit) >> 28), 0, GDT_LONGMODE_FLAG, GDT_DB_FLAG, \
+            1, (uint32_t)(base) >> 24                                     \
+    }
+
+#define GDT_SEG_DATA_DESC(type, base, limit, dpl)                         \
     (gdt_desc_t)                                                          \
     {                                                                     \
         ((limit) >> 12) & 0xffff, (uint32_t)(base)&0xffff,                \
@@ -60,8 +80,7 @@ extern gdt_desc_t gdt[GDT_MAX_ENTRIES];
             ((uint32_t)(limit) >> 28), 0, 0, 1, 1, (uint32_t)(base) >> 24 \
     }
 
-// segment with byte granularity
-#define GDT_SEG_BG(type, base, limit, dpl)                                        \
+#define GDT_SEG_TSS_DESC(type, base, limit, dpl)                                  \
     (gdt_desc_t)                                                                  \
     {                                                                             \
         ((limit)) & 0xffff, (uint32_t)(base)&0xffff,                              \

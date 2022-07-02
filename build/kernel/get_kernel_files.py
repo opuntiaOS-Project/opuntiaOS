@@ -37,6 +37,15 @@ if target == "x86_64":
     print("//kernel/kernel/platform/x86/system.c")
     print("//kernel/kernel/platform/x86/port.c")
     print("//kernel/kernel/drivers/serial/x86/uart.c")
+
+    print("//kernel/kernel/platform/x86/init.c")
+    print("//kernel/kernel/platform/x86/gdt.c")
+    print("//kernel/kernel/platform/x86/interrupts/idt.c")
+    print("//kernel/kernel/platform/x86/interrupts/irq_handler.c")
+    print("//kernel/kernel/platform/x86/interrupts/isr_handler.c")
+    print("//kernel/kernel/platform/x86/x86_64/interrupts/interrupts.s")
+    print("//kernel/kernel/drivers/irq/x86/pic.c")
+    
     exit(0)
 
 ignore_platforms = []

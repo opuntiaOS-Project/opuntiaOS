@@ -22,7 +22,7 @@ bool system_can_preempt_kernel()
 void system_disable_interrupts()
 {
     // TODO(x64):THIS_CPU->int_depth_counter++;
-    // system_disable_interrupts_no_counter();
+    system_disable_interrupts_no_counter();
 }
 
 void system_enable_interrupts()
@@ -30,7 +30,7 @@ void system_enable_interrupts()
     // TODO(x64):THIS_CPU->int_depth_counter--;
     // ASSERT(THIS_CPU->int_depth_counter >= 0);
     // if (THIS_CPU->int_depth_counter == 0) {
-    //     system_enable_interrupts_no_counter();
+        system_enable_interrupts_no_counter();
     // }
 }
 

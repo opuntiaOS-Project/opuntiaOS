@@ -11,7 +11,7 @@
 #include <platform/x86/syscalls/params.h>
 #include <syscalls/handlers.h>
 
-struct idt_entry idt[IDT_ENTRIES];
+idt_entry_t idt[IDT_ENTRIES];
 irq_handler_t handlers[IDT_ENTRIES];
 
 #define USER true
@@ -27,30 +27,47 @@ static void init_irq_handlers()
     }
 }
 
-static void idt_element_setup(uint8_t n, void* handler_addr, bool is_user)
+static void idt_element_setup(uint8_t n, void* handler_ptr, bool is_user)
 {
-    idt[n].offset_lower = (uintptr_t)handler_addr & 0xffff;
-    idt[n].segment = INIT_CODE_SEG;
+    uintptr_t handler_addr = (uintptr_t)handler_ptr;
+    
+    idt[n].offset_lower = handler_addr & 0xffff;
+    idt[n].segment = (GDT_SEG_KCODE << 3);
     idt[n].zero = 0;
     idt[n].type = 0x8E;
-    // setting user type
-    // now user can call this sw interrupts (syscalls)
     if (is_user) {
         idt[n].type |= (0b1100000);
     }
-    idt[n].offset_upper = (uintptr_t)handler_addr >> 16;
+    idt[n].offset_upper = (handler_addr >> 16) & 0xffff;
+#ifdef __x86_64__
+    idt[n].offset_long = (handler_addr >> 32) & 0xffffffff;
+#endif
 }
 
-static void lidt(void* p, uint16_t size)
+static void lidt(void* ptr, uint16_t size)
 {
+    uintptr_t p = (uintptr_t)ptr;
+#ifdef __i386__
     // Need to use volatile as GCC optimizes out the following writes.
     volatile uint16_t pd[3];
     pd[0] = size - 1;
-    pd[1] = (uint32_t)p;
-    pd[2] = (uint32_t)p >> 16;
+    pd[1] = p & 0xffff;
+    pd[2] = (p >> 16) & 0xffff;
     asm volatile("lidt (%0)"
                  :
                  : "r"(pd));
+#elif __x86_64__
+    // Need to use volatile as GCC optimizes out the following writes.
+    volatile uint16_t pd[5];
+    pd[0] = size - 1;
+    pd[1] = p & 0xffff;
+    pd[2] = (p >> 16) & 0xffff;
+    pd[3] = (p >> 32) & 0xffff;
+    pd[4] = (p >> 48) & 0xffff;
+    asm volatile("lidt (%0)"
+                 :
+                 : "r"(pd));
+#endif
 }
 
 void interrupts_setup()
@@ -110,7 +127,6 @@ void interrupts_setup()
     for (int i = 48; i < 256; i++) {
         idt_element_setup(i, (void*)syscall, SYS);
     }
-
     idt_element_setup(SYSCALL_HANDLER_NO, (void*)syscall, USER);
 
     init_irq_handlers();
