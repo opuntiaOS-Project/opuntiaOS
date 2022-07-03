@@ -76,17 +76,13 @@ void stage3(boot_args_t* boot_args)
     // devtree_init(boot_args);
     logger_setup(boot_args);
 
-    log("Giv");
-
-    // platform_init_boot_cpu();
-
-    log("Done");
-
-    while (1) {}
-/*
+    platform_init_boot_cpu();
 
     // mem setup
     pmm_setup(boot_args);
+
+    /*
+
     vmm_setup(boot_args);
 
     platform_setup_boot_cpu();

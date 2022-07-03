@@ -7,8 +7,6 @@
  */
 
 #include <mem/vmm.h>
-#include <platform/x86/i386/vmm/pde.h>
-#include <platform/x86/i386/vmm/pte.h>
 
 #define SET_FLAGS(mmu_flags, mf, arch_flags, af) \
     if (TEST_FLAG(mmu_flags, mf)) {              \
@@ -22,97 +20,24 @@ static inline void clear_arch_flags(ptable_entity_t* entity)
 
 ptable_entity_t vm_mmu_to_arch_flags(mmu_flags_t mmu_flags, ptable_lv_t lv)
 {
-    ptable_entity_t arch_flags = 0;
-    vm_ptable_entity_set_default_flags(&arch_flags, lv);
-
-    switch (lv) {
-    case PTABLE_LV0:
-        SET_FLAGS(mmu_flags, MMU_FLAG_PERM_READ, arch_flags, PAGE_DESC_PRESENT);
-        SET_FLAGS(mmu_flags, MMU_FLAG_PERM_WRITE, arch_flags, PAGE_DESC_WRITABLE);
-        SET_FLAGS(mmu_flags, MMU_FLAG_NONPRIV, arch_flags, PAGE_DESC_USER);
-        SET_FLAGS(mmu_flags, MMU_FLAG_UNCACHED, arch_flags, PAGE_DESC_NOT_CACHEABLE);
-        return arch_flags;
-
-    case PTABLE_LV1:
-        SET_FLAGS(mmu_flags, MMU_FLAG_PERM_READ, arch_flags, TABLE_DESC_PRESENT);
-        SET_FLAGS(mmu_flags, MMU_FLAG_PERM_WRITE, arch_flags, TABLE_DESC_WRITABLE);
-        SET_FLAGS(mmu_flags, MMU_FLAG_NONPRIV, arch_flags, TABLE_DESC_USER);
-        SET_FLAGS(mmu_flags, MMU_FLAG_COW, arch_flags, TABLE_DESC_COPY_ON_WRITE);
-        return arch_flags;
-
-    case PTABLE_LV2:
-    case PTABLE_LV3:
-        ASSERT(false);
-    }
-
-    return arch_flags;
+    return 0;
 }
 
 mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
 {
-    ptable_entity_t arch_flags = *entity;
     mmu_flags_t mmu_flags = 0;
-    switch (lv) {
-    case PTABLE_LV0:
-        SET_FLAGS(arch_flags, PAGE_DESC_PRESENT, mmu_flags, MMU_FLAG_PERM_READ);
-        SET_FLAGS(arch_flags, PAGE_DESC_WRITABLE, mmu_flags, MMU_FLAG_PERM_WRITE);
-        SET_FLAGS(arch_flags, PAGE_DESC_USER, mmu_flags, MMU_FLAG_NONPRIV);
-        SET_FLAGS(arch_flags, PAGE_DESC_NOT_CACHEABLE, mmu_flags, MMU_FLAG_UNCACHED);
-        return mmu_flags;
-
-    case PTABLE_LV1:
-        SET_FLAGS(arch_flags, TABLE_DESC_PRESENT, mmu_flags, MMU_FLAG_PERM_READ);
-        SET_FLAGS(arch_flags, TABLE_DESC_WRITABLE, mmu_flags, MMU_FLAG_PERM_WRITE);
-        SET_FLAGS(arch_flags, TABLE_DESC_USER, mmu_flags, MMU_FLAG_NONPRIV);
-        SET_FLAGS(arch_flags, TABLE_DESC_COPY_ON_WRITE, mmu_flags, MMU_FLAG_COW);
-        return mmu_flags;
-
-    case PTABLE_LV2:
-    case PTABLE_LV3:
-        ASSERT(false);
-    }
-
     return mmu_flags;
 }
 
 mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info)
 {
     mmu_pf_info_flags_t res = 0;
-    if ((info & 0b100) == 0b100) {
-        res |= MMU_PF_INFO_ON_NONPRIV_ACCESS;
-    }
-    if ((info & 0b010) == 0b010) {
-        res |= MMU_PF_INFO_ON_WRITE;
-    }
-    if ((info & 0b001) == 0) {
-        res |= MMU_PF_INFO_ON_NOT_PRESENT;
-    }
     return res;
 }
 
 ptable_state_t vm_ptable_entity_state(ptable_entity_t* entity, ptable_lv_t lv)
 {
     ptable_entity_t arch_flags = *entity;
-    switch (lv) {
-    case PTABLE_LV0:
-        if (TEST_FLAG(arch_flags, PAGE_DESC_PRESENT)) {
-            return PTABLE_ENTITY_PRESENT;
-        } else {
-            return PTABLE_ENTITY_INVALID;
-        }
-
-    case PTABLE_LV1:
-        if (TEST_FLAG(arch_flags, TABLE_DESC_PRESENT)) {
-            return PTABLE_ENTITY_PRESENT;
-        } else {
-            return PTABLE_ENTITY_INVALID;
-        }
-
-    case PTABLE_LV2:
-    case PTABLE_LV3:
-        ASSERT(false);
-    }
-
     return PTABLE_ENTITY_INVALID;
 }
 
