@@ -45,6 +45,10 @@ if target == "x86_64":
     print("//kernel/kernel/platform/x86/interrupts/isr_handler.c")
     print("//kernel/kernel/platform/x86/x86_64/interrupts/interrupts.s")
     print("//kernel/kernel/drivers/irq/x86/pic.c")
+
+    print("//kernel/kernel/mem/pmm.c")
+    print("//kernel/kernel/algo/bitmap.c")
+    print("//kernel/kernel/libkern/mem.c")
     
     exit(0)
 
