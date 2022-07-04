@@ -95,7 +95,7 @@ static void vm_alloc_kernel_pdir()
  */
 static void* _vmm_kernel_convert_vaddr2paddr(uintptr_t vaddr)
 {
-    ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - VMM_KERNEL_TABLES_START) * PTABLE_SIZE(PTABLE_LV0));
+    ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - PTABLE_TOP_KERNEL_OFFSET) * PTABLE_SIZE(PTABLE_LV0));
     ptable_entity_t* page_desc = vm_lookup(ptable_paddr, PTABLE_LV0, vaddr);
     return (void*)((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & 0xfff));
 }
@@ -116,7 +116,7 @@ static bool _vmm_init_switch_to_kernel_pdir()
 {
     THIS_CPU->active_address_space = _vmm_kernel_address_space_ptr;
     system_disable_interrupts();
-    system_set_pdir((uintptr_t)_vmm_kernel_convert_vaddr2paddr((uintptr_t)_vmm_kernel_address_space.pdir));
+    system_set_pdir((uintptr_t)_vmm_kernel_convert_vaddr2paddr((uintptr_t)_vmm_kernel_address_space.pdir), 0x0);
     system_enable_interrupts();
     return true;
 }
@@ -128,7 +128,7 @@ static bool _vmm_init_switch_to_kernel_pdir()
  */
 static void _vmm_map_kernel_page(uintptr_t paddr, uintptr_t vaddr)
 {
-    ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - VMM_KERNEL_TABLES_START) * PTABLE_SIZE(PTABLE_LV0));
+    ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - PTABLE_TOP_KERNEL_OFFSET) * PTABLE_SIZE(PTABLE_LV0));
     ptable_entity_t* page_desc = vm_lookup(ptable_paddr, PTABLE_LV0, vaddr);
     vm_ptable_entity_set_default_flags(page_desc, PTABLE_LV0);
     vm_ptable_entity_set_mmu_flags(page_desc, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_EXEC);
@@ -145,7 +145,7 @@ static bool _vmm_create_kernel_ptables()
     const ptable_lv_t ptable_entity_lv = PTABLE_LV_TOP;
     const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(lower_level(ptable_entity_lv));
     const size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(lower_level(ptable_entity_lv));
-    uintptr_t kernel_ptables_vaddr = VMM_KERNEL_TABLES_START * table_coverage;
+    uintptr_t kernel_ptables_vaddr = PTABLE_TOP_KERNEL_OFFSET * table_coverage;
 
     // Tables allocated here should be continuous to correctly generate
     // pspace, see vm_pspace_init().
@@ -157,7 +157,7 @@ static bool _vmm_create_kernel_ptables()
     kernel_ptables_start_paddr = ptables_paddr;
 
     uintptr_t ptable_paddr = ptables_paddr;
-    for (int i = VMM_KERNEL_TABLES_START; i < PTABLE_ENTITY_COUNT(ptable_entity_lv); i++) {
+    for (int i = PTABLE_TOP_KERNEL_OFFSET; i < PTABLE_ENTITY_COUNT(ptable_entity_lv); i++) {
         ptable_entity_t* ptable_entity = vm_get_entity(kernel_ptables_vaddr, ptable_entity_lv);
         vm_ptable_entity_set_default_flags(ptable_entity, ptable_entity_lv);
         vm_ptable_entity_set_mmu_flags(ptable_entity, ptable_entity_lv, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE);
@@ -768,11 +768,11 @@ vm_address_space_t* vmm_alloc_new_address_space_locked()
 
 int vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
 {
-    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+    for (int i = 0; i < PTABLE_TOP_KERNEL_OFFSET; i++) {
         vm_ptable_entity_invalidate(&new_aspace->pdir->entities[i], PTABLE_LV_TOP);
     }
 
-    for (int i = VMM_KERNEL_TABLES_START; i < PTABLE_ENTITY_COUNT(PTABLE_LV_TOP); i++) {
+    for (int i = PTABLE_TOP_KERNEL_OFFSET; i < PTABLE_ENTITY_COUNT(PTABLE_LV_TOP); i++) {
         if (!IS_INDIVIDUAL_PER_DIR(i)) {
             new_aspace->pdir->entities[i] = _vmm_kernel_pdir->entities[i];
         }
@@ -793,7 +793,7 @@ int vmm_fill_up_forked_address_space(vm_address_space_t* new_aspace)
     }
     vm_pspace_gen(new_aspace->pdir);
 
-    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+    for (int i = 0; i < PTABLE_TOP_KERNEL_OFFSET; i++) {
         ptable_entity_t* act_ptable_desc = &active_address_space->pdir->entities[i];
         if (vm_ptable_entity_is_present(act_ptable_desc, PTABLE_LV_TOP)) {
             ptable_entity_t* new_ptable_desc = &new_aspace->pdir->entities[i];
@@ -892,7 +892,7 @@ int vmm_switch_address_space_locked_impl(vm_address_space_t* vm_aspace)
         return 0;
     }
     THIS_CPU->active_address_space = vm_aspace;
-    system_set_pdir((uintptr_t)_vmm_convert_vaddr2paddr((uintptr_t)vm_aspace->pdir));
+    system_set_pdir((uintptr_t)_vmm_convert_vaddr2paddr((uintptr_t)vm_aspace->pdir), 0x0);
     system_enable_interrupts();
     return 0;
 }

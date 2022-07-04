@@ -36,8 +36,8 @@ static inline int vm_page_mask()
 #define PTABLE_LV2_VADDR_OFFSET (30)
 #define PTABLE_LV3_VADDR_OFFSET (39)
 
-#define VMM_USER_TABLES_START 0
-#define VMM_KERNEL_TABLES_START VMM_LV0_ENTITY_COUNT
+// Since arm64 uses double-table setup, this values are not used.
+#define PTABLE_TOP_KERNEL_OFFSET VMM_LV0_ENTITY_COUNT
 
 #define USER_HIGH 0x1fffffffff
 #define KERNEL_BASE 0xffffff8000000000

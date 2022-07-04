@@ -9,8 +9,8 @@
 #include <libkern/log.h>
 #include <platform/generic/system.h>
 #include <platform/x86/irq_handler.h>
-// #include <tasking/cpu.h>
-// #include <tasking/tasking.h>
+#include <tasking/cpu.h>
+#include <tasking/tasking.h>
 
 extern void x86_process_tf_for_kthread(trapframe_t* tf);
 
@@ -30,34 +30,33 @@ static void irq_accept_next(int int_no)
 
 void irq_handler(trapframe_t* tf)
 {
-    log("irq");
-    // #ifdef PREEMPT_KERNEL
-    //     system_enable_interrupts_no_counter();
-    // #else
-    //     system_disable_interrupts();
-    // #endif
-    //     x86_process_tf_for_kthread(tf);
-    //     cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
+#ifdef PREEMPT_KERNEL
+    system_enable_interrupts_no_counter();
+#else
+    system_disable_interrupts();
+#endif
+    x86_process_tf_for_kthread(tf);
+    cpu_state_t prev_cpu_state = cpu_enter_kernel_space();
 
-    //     switch (tf->int_no) {
-    //     case 1:
-    //         // Since the timer handler could call resched(), it is needed
-    //         // to reset irq before calling the handler.
-    //         irq_accept_next(tf->int_no);
-    //         irq_redirect(tf->int_no);
-    //         break;
+    switch (tf->int_no) {
+    case 32:
+        // Since the timer handler could call resched(), it is needed
+        // to reset irq before calling the handler.
+        irq_accept_next(tf->int_no);
+        irq_redirect(tf->int_no);
+        break;
 
-    //     default:
-    //         irq_redirect(tf->int_no);
-    //         irq_accept_next(tf->int_no);
-    //     }
+    default:
+        irq_redirect(tf->int_no);
+        irq_accept_next(tf->int_no);
+    }
 
-    //     cpu_set_state(prev_cpu_state);
-    // #ifndef PREEMPT_KERNEL
-    //     // We are leaving interrupt, and later interrupts will be on,
-    //     // when flags are restored.
-    //     system_enable_interrupts_only_counter();
-    // #endif
+    cpu_set_state(prev_cpu_state);
+#ifndef PREEMPT_KERNEL
+    // We are leaving interrupt, and later interrupts will be on,
+    // when flags are restored.
+    system_enable_interrupts_only_counter();
+#endif
 }
 
 void irq_empty_handler()

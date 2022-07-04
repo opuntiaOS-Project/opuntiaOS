@@ -16,6 +16,10 @@
 
 typedef struct {
     uint8_t buffer[512];
+#ifdef __x86_64__
+    // Space for YMM.
+    uint8_t ext_save_area[256];
+#endif
 } __attribute__((aligned(FPU_STATE_ALIGNMENT))) fpu_state_t;
 
 void fpu_handler();

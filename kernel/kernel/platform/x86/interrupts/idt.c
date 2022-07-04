@@ -30,7 +30,7 @@ static void init_irq_handlers()
 static void idt_element_setup(uint8_t n, void* handler_ptr, bool is_user)
 {
     uintptr_t handler_addr = (uintptr_t)handler_ptr;
-    
+
     idt[n].offset_lower = handler_addr & 0xffff;
     idt[n].segment = (GDT_SEG_KCODE << 3);
     idt[n].zero = 0;
@@ -131,7 +131,7 @@ void interrupts_setup()
 
     init_irq_handlers();
     lidt(idt, sizeof(idt));
-    asm volatile("sti");
+    system_disable_interrupts_no_counter();
 }
 
 void irq_set_dev(irqdev_descritptor_t irqdev_desc)

@@ -4,7 +4,7 @@
 
 // #define DEBUG_DM
 
-extern driver_installation_func_t _dirvers_init_start[], _dirvers_init_end[];
+extern driver_installation_func_t _drivers_init_start[], _drivers_init_end[];
 
 static int _drivers_count = 0;
 static int _devices_count = 0;
@@ -19,9 +19,9 @@ int devman_init()
 
 int devman_install_drivers()
 {
-    size_t _dirvers_init_size = (_dirvers_init_end - _dirvers_init_start);
-    for (size_t i = 0; i < _dirvers_init_size; i++) {
-        (*_dirvers_init_start[i])();
+    size_t _drivers_init_size = (_drivers_init_end - _drivers_init_start);
+    for (size_t i = 0; i < _drivers_init_size; i++) {
+        (*_drivers_init_start[i])();
     }
     return 0;
 }

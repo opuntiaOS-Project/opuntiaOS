@@ -12,6 +12,9 @@
 #include <libkern/types.h>
 #include <mem/bits/mmu.h>
 
+// arm64 uses 2 tables to manage virtual space.
+#define DOUBLE_TABLE_PAGING
+
 typedef uint64_t ptable_entity_t;
 typedef uint64_t arch_pf_info_t;
 

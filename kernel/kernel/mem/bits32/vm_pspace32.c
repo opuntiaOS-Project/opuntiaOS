@@ -62,15 +62,15 @@ void vm_pspace_init(boot_args_t* args)
        is 4KB and that the tables are fit in a single page and are continuous. */
     extern uintptr_t kernel_ptables_start_paddr;
     const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(PTABLE_LV0);
-    uintptr_t kernel_ptabels_vaddr = pspace_zone.start + VMM_KERNEL_TABLES_START * PTABLE_SIZE(PTABLE_LV0);
+    uintptr_t kernel_ptabels_vaddr = pspace_zone.start + PTABLE_TOP_KERNEL_OFFSET * PTABLE_SIZE(PTABLE_LV0);
     uintptr_t kernel_ptabels_paddr = kernel_ptables_start_paddr;
-    for (int i = VMM_KERNEL_TABLES_START; i < PTABLE_ENTITY_COUNT(PTABLE_LV_TOP); i += ptables_per_page) {
+    for (int i = PTABLE_TOP_KERNEL_OFFSET; i < PTABLE_ENTITY_COUNT(PTABLE_LV_TOP); i += ptables_per_page) {
         ptable_entity_t* ptable_desc = vm_lookup(vmm_get_kernel_address_space()->pdir, PTABLE_LV_TOP, kernel_ptabels_vaddr);
         if (!vm_ptable_entity_is_present(ptable_desc, PTABLE_LV_TOP)) {
             kpanic("vm_pspace_init: pspace should present");
         }
 
-        ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - VMM_KERNEL_TABLES_START) * PTABLE_SIZE(PTABLE_LV0));
+        ptable_t* ptable_vaddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(kernel_ptabels_vaddr) - PTABLE_TOP_KERNEL_OFFSET) * PTABLE_SIZE(PTABLE_LV0));
         ptable_entity_t* page_desc = vm_lookup(ptable_vaddr, PTABLE_LV0, kernel_ptabels_vaddr);
         vm_ptable_entity_set_default_flags(page_desc, PTABLE_LV0);
         vm_ptable_entity_set_mmu_flags(page_desc, PTABLE_LV0, MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED);
@@ -289,7 +289,7 @@ int vm_pspace_free_address_space_locked(vm_address_space_t* vm_aspace)
     vmm_switch_address_space_locked(vm_aspace);
 
     size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(PTABLE_LV0);
-    for (int i = 0; i < VMM_KERNEL_TABLES_START; i++) {
+    for (int i = 0; i < PTABLE_TOP_KERNEL_OFFSET; i++) {
         vm_pspace_free_ptable_locked(table_coverage * i);
     }
 

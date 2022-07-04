@@ -6,13 +6,13 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_PLATFORM_X86_VMM_MMU_H
-#define _KERNEL_PLATFORM_X86_VMM_MMU_H
+#ifndef _KERNEL_PLATFORM_X86_I386_VMM_MMU_H
+#define _KERNEL_PLATFORM_X86_I386_VMM_MMU_H
 
 #include <libkern/types.h>
 #include <mem/bits/mmu.h>
-#include <platform/x86/vmm/pde.h>
-#include <platform/x86/vmm/pte.h>
+#include <platform/x86/i386/vmm/pde.h>
+#include <platform/x86/i386/vmm/pte.h>
 
 typedef uint32_t ptable_entity_t;
 typedef uint32_t arch_pf_info_t;
@@ -34,4 +34,4 @@ ptable_state_t vm_ptable_entity_state(ptable_entity_t* entity, ptable_lv_t lv);
 bool vm_ptable_entity_is_present(ptable_entity_t* entity, ptable_lv_t lv);
 bool vm_ptable_entity_is_only_allocated(ptable_entity_t* entity, ptable_lv_t lv);
 
-#endif // _KERNEL_PLATFORM_X86_VMM_MMU_H
+#endif // _KERNEL_PLATFORM_X86_I386_VMM_MMU_H

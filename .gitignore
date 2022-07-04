@@ -13,6 +13,7 @@ mountpoint/
 out/
 third_party/*/src
 third_party/*/bin_x86/
+third_party/*/bin_x86_64/
 third_party/*/bin_arm32/
 third_party/*/bin_arm64/
 third_party/*/patches/.applied_*

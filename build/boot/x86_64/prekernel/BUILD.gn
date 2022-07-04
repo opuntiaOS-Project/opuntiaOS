@@ -25,15 +25,6 @@ if (kernel_symbols) {
   prekernel_c_flags += [ "-ggdb" ]
 }
 
-if (host == "gnu") {
-  prekernel_ld_flags += [
-    "-nostdinc",
-    "-nodefaultlibs",
-    "-nostartfiles",
-    "-lgcc",
-  ]
-}
-
 if (host == "llvm") {
   prekernel_ld_flags += [
     "--oformat",

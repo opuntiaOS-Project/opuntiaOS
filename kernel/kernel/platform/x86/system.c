@@ -8,7 +8,7 @@
 
 #include <libkern/libkern.h>
 #include <platform/x86/system.h>
-// #include <tasking/tasking.h>
+#include <tasking/tasking.h>
 
 bool system_can_preempt_kernel()
 {
@@ -21,23 +21,23 @@ bool system_can_preempt_kernel()
 
 void system_disable_interrupts()
 {
-    // TODO(x64):THIS_CPU->int_depth_counter++;
+    THIS_CPU->int_depth_counter++;
     system_disable_interrupts_no_counter();
 }
 
 void system_enable_interrupts()
 {
-    // TODO(x64):THIS_CPU->int_depth_counter--;
-    // ASSERT(THIS_CPU->int_depth_counter >= 0);
-    // if (THIS_CPU->int_depth_counter == 0) {
+    THIS_CPU->int_depth_counter--;
+    ASSERT(THIS_CPU->int_depth_counter >= 0);
+    if (THIS_CPU->int_depth_counter == 0) {
         system_enable_interrupts_no_counter();
-    // }
+    }
 }
 
 void system_enable_interrupts_only_counter()
 {
-    // TODO(x64):THIS_CPU->int_depth_counter--;
-    // ASSERT(THIS_CPU->int_depth_counter >= 0);
+    THIS_CPU->int_depth_counter--;
+    ASSERT(THIS_CPU->int_depth_counter >= 0);
 }
 
 void system_cache_clean_and_invalidate(void* addr, size_t size)

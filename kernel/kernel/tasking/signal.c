@@ -24,6 +24,8 @@
 
 #ifdef __i386__
 #define return_tf (thread->tf->ebx)
+#elif __x86_64__
+#define return_tf (thread->tf->rbx)
 #elif __arm__
 #define return_tf (thread->tf->r[1])
 #elif __aarch64__

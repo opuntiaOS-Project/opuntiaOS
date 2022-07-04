@@ -35,10 +35,10 @@ struct PACKED trapframe {
     // rest of trap frame
     uint64_t gs;
     uint64_t fs;
-    uint64_t trapno;
+    uint64_t int_no;
 
     // below here defined by x86 hardware
-    uint32_t err;
+    uint64_t err;
     uint64_t rip;
     uint64_t cs;
 
@@ -99,7 +99,7 @@ static inline void tf_push_to_stack(trapframe_t* tf, uintptr_t val)
     *((uintptr_t*)tf->rsp) = val;
 }
 
-static inline uint32_t tf_pop_to_stack(trapframe_t* tf)
+static inline uintptr_t tf_pop_to_stack(trapframe_t* tf)
 {
     uintptr_t val = *((uintptr_t*)tf->rsp);
     tf->rsp += sizeof(uintptr_t);

@@ -593,6 +593,7 @@ int vfs_resolve_path_start_from(const path_t* vfspath, const char* path, path_t*
     dentry_t* cur_dent;
 
     if (!vfspath || !vfspath->dentry || path[0] == '/') {
+        ASSERT(root_fs_dev_id != -1);
         cur_dent = dentry_get(root_fs_dev_id, 2);
         while (*path == '/') {
             path++;

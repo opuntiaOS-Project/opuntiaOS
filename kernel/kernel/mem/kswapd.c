@@ -66,7 +66,7 @@ static int find_victim(proc_t* p, ptable_t* pdir)
     const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(PTABLE_LV0);
     const size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(PTABLE_LV0);
 
-    for (int pti = last_pti; pti < VMM_KERNEL_TABLES_START; pti += ptables_per_page, last_pti += ptables_per_page) {
+    for (int pti = last_pti; pti < PTABLE_TOP_KERNEL_OFFSET; pti += ptables_per_page, last_pti += ptables_per_page) {
         ptable_entity_t* ptable_desc = &pdir->entities[pti];
         if (!vm_ptable_entity_is_present(ptable_desc, PTABLE_LV1)) {
             continue;

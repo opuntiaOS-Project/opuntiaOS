@@ -13,6 +13,7 @@
 
 #define SYSCALL_HANDLER_NO 0x80
 
+#ifdef __i386__
 #define SYSCALL_ID(tf) (tf->eax)
 #define SYSCALL_VAR1(tf) (tf->ebx)
 #define SYSCALL_VAR2(tf) (tf->ecx)
@@ -23,5 +24,17 @@
 #define return_with_val(val) \
     (return_val = val);      \
     return
+#elif __x86_64__
+#define SYSCALL_ID(tf) (tf->rax)
+#define SYSCALL_VAR1(tf) (tf->rdi)
+#define SYSCALL_VAR2(tf) (tf->rsi)
+#define SYSCALL_VAR3(tf) (tf->rdx)
+#define SYSCALL_VAR4(tf) (tf->r10)
+#define SYSCALL_VAR5(tf) (tf->r8)
+#define return_val (tf->rax)
+#define return_with_val(val) \
+    (return_val = val);      \
+    return
+#endif
 
 #endif // _KERNEL_PLATFORM_X86_SYSCALLS_PARAMS_H

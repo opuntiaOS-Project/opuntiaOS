@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-// #include <drivers/timer/x86/pit.h>
+#include <drivers/timer/x86/pit.h>
 // #include <platform/x86/fpu/fpu.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/idt.h>
@@ -20,8 +20,8 @@ void platform_init_boot_cpu()
 
 void platform_setup_boot_cpu()
 {
-    // pit_setup();
-    // fpu_init();
+    pit_setup();
+    fpu_init();
 }
 
 void platform_setup_secondary_cpu()

@@ -667,7 +667,7 @@ static void dump_pf_info(arch_pf_info_t info, uintptr_t vaddr)
 {
     mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);
     ptable_entity_t* ent = vm_get_entity(vaddr, PTABLE_LV0);
-    log("PF %zx mmu flags: %zx, arch falgs: %zx %zx", vaddr, pf_info_flags, info);
+    log("PF %zx mmu flags: %zx, arch flags: %zx", vaddr, pf_info_flags, info);
     if (ent) {
         log("ent %zx", *ent);
     } else {

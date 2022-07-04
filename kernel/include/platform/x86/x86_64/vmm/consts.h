@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_PLATFORM_X86_VMM_CONSTS_H
-#define _KERNEL_PLATFORM_X86_VMM_CONSTS_H
+#ifndef _KERNEL_PLATFORM_X86_X86_64_VMM_CONSTS_H
+#define _KERNEL_PLATFORM_X86_X86_64_VMM_CONSTS_H
 
 static inline int vm_page_size()
 {
@@ -34,10 +34,10 @@ static inline int vm_page_mask()
 #define PTABLE_LV2_VADDR_OFFSET (30)
 #define PTABLE_LV3_VADDR_OFFSET (39)
 
-#define VMM_USER_TABLES_START 0
-#define VMM_KERNEL_TABLES_START VMM_LV0_ENTITY_COUNT
+#define PTABLE_TOP_KERNEL_OFFSET (VMM_LV3_ENTITY_COUNT / 2)
 
 #define USER_HIGH 0x7fffffffffff
 #define KERNEL_BASE 0xffff800000000000
+#define KERNEL_PADDR_BASE 0xffffffff00000000 // TODO(x64): up to 4gbs are supported.
 
-#endif //_KERNEL_PLATFORM_X86_VMM_CONSTS_H
+#endif //_KERNEL_PLATFORM_X86_X86_64_VMM_CONSTS_H
