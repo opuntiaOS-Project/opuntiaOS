@@ -18,7 +18,7 @@ static fpu_state_t fpu_state;
 
 void fpu_setup(void)
 {
-    uint32_t tmp;
+    uintptr_t tmp;
     asm volatile("mov %%cr0, %0"
                  : "=r"(tmp));
     tmp &= ~(1 << 2);

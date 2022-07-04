@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_PLATFORM_X86_VMM_PTE_H
-#define _KERNEL_PLATFORM_X86_VMM_PTE_H
+#ifndef _KERNEL_PLATFORM_X86_I386_VMM_PTE_H
+#define _KERNEL_PLATFORM_X86_I386_VMM_PTE_H
 
 #include <libkern/types.h>
 #include <mem/bits/mmu.h>
@@ -28,4 +28,4 @@ enum PAGE_DESC_PAGE_FLAGS {
     PAGE_DESC_COPY_ON_WRITE = 0x400,
 };
 
-#endif //_KERNEL_PLATFORM_X86_VMM_PTE_H
+#endif //_KERNEL_PLATFORM_X86_I386_VMM_PTE_H

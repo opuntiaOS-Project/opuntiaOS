@@ -25,9 +25,9 @@ SECTIONS
 
 	.rodata.driver_init ALIGN(4K) : AT (ADDR(.rodata.driver_init) - _va_base + _pa_base)
 	{
-		_dirvers_init_start = .;
+		_drivers_init_start = .;
 		*(SORT_BY_NAME(.driver_init_sections.*))
-		_dirvers_init_end = .;
+		_drivers_init_end = .;
 	}
 	__rodata_end = .;
 
@@ -38,14 +38,6 @@ SECTIONS
 		*(.data.*)
 	}
 	__data_end = .;
-
-	__got_start = .;
-	.got ALIGN(4K) : AT (ADDR(.got) - _va_base + _pa_base)
-	{
-		*(.got)
-		*(.got.*)
-	}
-	__got_end = .;
 
 	__bss_start = .;
 	.bss ALIGN(4K) : AT (ADDR(.bss) - _va_base + _pa_base)

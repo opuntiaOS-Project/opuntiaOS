@@ -45,47 +45,87 @@
 #define DPL_USER 0x3
 
 struct PACKED gdt_desc {
-    uint32_t lim_15_0 : 16;
-    uint32_t base_15_0 : 16;
-    uint32_t base_23_16 : 8;
-    uint32_t type : 4;
-    uint32_t dt : 1;
-    uint32_t dpl : 2;
-    uint32_t p : 1;
-    uint32_t lim_19_16 : 4;
-    uint32_t avl : 1;
-    uint32_t l : 1;
-    uint32_t db : 1;
-    uint32_t g : 1;
-    uint32_t base_31_24 : 8;
+    union {
+        struct {
+            uint32_t lim_15_0 : 16;
+            uint32_t base_15_0 : 16;
+            uint32_t base_23_16 : 8;
+            uint32_t type : 4;
+            uint32_t dt : 1;
+            uint32_t dpl : 2;
+            uint32_t p : 1;
+            uint32_t lim_19_16 : 4;
+            uint32_t avl : 1;
+            uint32_t l : 1;
+            uint32_t db : 1;
+            uint32_t g : 1;
+            uint32_t base_31_24 : 8;
+        };
+        uint32_t raw;
+    };
 };
 typedef struct gdt_desc gdt_desc_t;
 
 extern gdt_desc_t gdt[GDT_MAX_ENTRIES];
 
-#define GDT_SEG_CODE_DESC(type, base, limit, dpl)                         \
-    (gdt_desc_t)                                                          \
-    {                                                                     \
-        ((limit) >> 12) & 0xffff, (uint32_t)(base)&0xffff,                \
-            ((uint32_t)(base) >> 16) & 0xff, type, 1, dpl, 1,             \
-            ((uint32_t)(limit) >> 28), 0, GDT_LONGMODE_FLAG, GDT_DB_FLAG, \
-            1, (uint32_t)(base) >> 24                                     \
+#define GDT_SEG_CODE_DESC(vtype, vbase, vlimit, vdpl)   \
+    (gdt_desc_t)                                        \
+    {                                                   \
+        .lim_15_0 = ((vlimit) >> 12) & 0xffff,          \
+        .base_15_0 = (uint32_t)(vbase)&0xffff,          \
+        .base_23_16 = ((uint32_t)(vbase) >> 16) & 0xff, \
+        .type = vtype,                                  \
+        .dt = 1,                                        \
+        .dpl = vdpl,                                    \
+        .p = 1,                                         \
+        .lim_19_16 = ((uint32_t)(vlimit) >> 28),        \
+        .avl = 0,                                       \
+        .l = GDT_LONGMODE_FLAG,                         \
+        .db = GDT_DB_FLAG,                              \
+        .g = 1,                                         \
+        .base_31_24 = (uint32_t)(vbase) >> 24           \
     }
 
-#define GDT_SEG_DATA_DESC(type, base, limit, dpl)                         \
-    (gdt_desc_t)                                                          \
-    {                                                                     \
-        ((limit) >> 12) & 0xffff, (uint32_t)(base)&0xffff,                \
-            ((uint32_t)(base) >> 16) & 0xff, type, 1, dpl, 1,             \
-            ((uint32_t)(limit) >> 28), 0, 0, 1, 1, (uint32_t)(base) >> 24 \
+#define GDT_SEG_DATA_DESC(vtype, vbase, vlimit, vdpl)   \
+    (gdt_desc_t)                                        \
+    {                                                   \
+        .lim_15_0 = ((vlimit) >> 12) & 0xffff,          \
+        .base_15_0 = (uint32_t)(vbase)&0xffff,          \
+        .base_23_16 = ((uint32_t)(vbase) >> 16) & 0xff, \
+        .type = vtype,                                  \
+        .dt = 1,                                        \
+        .dpl = vdpl,                                    \
+        .p = 1,                                         \
+        .lim_19_16 = ((uint32_t)(vlimit) >> 28),        \
+        .avl = 0,                                       \
+        .l = 0,                                         \
+        .db = 1,                                        \
+        .g = 1,                                         \
+        .base_31_24 = (uint32_t)(vbase) >> 24           \
     }
 
-#define GDT_SEG_TSS_DESC(type, base, limit, dpl)                                  \
-    (gdt_desc_t)                                                                  \
-    {                                                                             \
-        ((limit)) & 0xffff, (uint32_t)(base)&0xffff,                              \
-            ((uint32_t)(base) >> 16) & 0xff, type, 0, dpl, 1,                     \
-            (((uint32_t)(limit) >> 16) & 0xf), 0, 0, 0, 0, (uint32_t)(base) >> 24 \
+#define GDT_SEG_TSS_DESC(vtype, vbase, vlimit, vdpl)    \
+    (gdt_desc_t)                                        \
+    {                                                   \
+        .lim_15_0 = ((vlimit)) & 0xffff,                \
+        .base_15_0 = (uint32_t)(vbase)&0xffff,          \
+        .base_23_16 = ((uint32_t)(vbase) >> 16) & 0xff, \
+        .type = vtype,                                  \
+        .dt = 0,                                        \
+        .dpl = vdpl,                                    \
+        .p = 1,                                         \
+        .lim_19_16 = ((uint32_t)(vlimit) >> 16),        \
+        .avl = 0,                                       \
+        .l = 0,                                         \
+        .db = 0,                                        \
+        .g = 0,                                         \
+        .base_31_24 = (uint32_t)(vbase) >> 24           \
+    }
+
+#define GDT_SEG_SET_RAW(rawvalue) \
+    (gdt_desc_t)                  \
+    {                             \
+        .raw = rawvalue           \
     }
 
 void gdt_setup();

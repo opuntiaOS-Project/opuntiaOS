@@ -10,6 +10,8 @@
 
 #ifdef __i386__
 #define MACHINE "x86"
+#elif __x86_64__
+#define MACHINE "x86-64"
 #elif __arm__
 #define MACHINE "arm"
 #elif __aarch64__

@@ -72,12 +72,12 @@ inline static void system_flush_whole_tlb()
     system_data_synchronise_barrier();
 }
 
-inline static void system_set_pdir(uintptr_t pdir)
+inline static void system_set_pdir(uintptr_t pdir0, uintptr_t pdir1)
 {
     system_data_synchronise_barrier();
     asm volatile("mcr p15, 0, %0, c2, c0, 0"
                  :
-                 : "r"(pdir)
+                 : "r"(pdir0)
                  : "memory");
     system_flush_whole_tlb();
 }

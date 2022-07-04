@@ -40,7 +40,6 @@ static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt)
     // Mapping from level3.
     uint64_t* page_table = global_page_table;
     uint64_t ptable_desc = page_table[VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV3_VADDR_OFFSET, VMM_LV3_ENTITY_COUNT)];
-    // log("map33 %x", VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV3_VADDR_OFFSET, VMM_LV3_ENTITY_COUNT));
     if (ptable_desc == 0) {
         uint64_t* nptbl = new_ptable(args);
         uint64_t pdesc = 0x00000000000003;
@@ -52,7 +51,6 @@ static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt)
     // Level2
     page_table = (uint64_t*)(((ptable_desc >> 12) << 12) & 0xffffffffffff);
     ptable_desc = page_table[VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV2_VADDR_OFFSET, VMM_LV2_ENTITY_COUNT)];
-    // log("map22 %x", VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV2_VADDR_OFFSET, VMM_LV2_ENTITY_COUNT));
     if (ptable_desc == 0) {
         uint64_t* nptbl = new_ptable(args);
         uint64_t pdesc = 0x00000000000003;
@@ -61,7 +59,6 @@ static void map4kb_2mb(boot_args_t* args, size_t phyz, size_t virt)
         ptable_desc = pdesc;
     }
 
-    // log("map21 %x", VM_VADDR_OFFSET_AT_LEVEL(virt, PTABLE_LV1_VADDR_OFFSET, VMM_LV1_ENTITY_COUNT));
     page_table = (uint64_t*)(((ptable_desc >> 12) << 12) & 0xffffffffffff);
     uint64_t pdesc = 0x0000000000083;
     pdesc |= (uintptr_t)phyz;

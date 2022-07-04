@@ -35,6 +35,13 @@ elif (arch == "x86"):
         AR_TOOL = "{0}llvm-ar".format(path_to_bins)
     srcs_lib.append(
         "../toolchains/llvm_runtime/11.1.0/libclang_rt.builtins-i386.a")
+elif (arch == "x86_64"):
+    if host == "gnu":
+        AR_TOOL = "{0}x86_64-elf-ar".format(path_to_bins)
+        srcs_lib.append(
+            "../toolchains/gcc_runtime/10.2.1/x86_64-libgcc.a")
+    elif host == "llvm":
+        AR_TOOL = "{0}llvm-ar".format(path_to_bins)
 elif (arch == "arm64"):
     if host == "gnu":
         AR_TOOL = "{0}aarch64-elf-ar".format(path_to_bins)

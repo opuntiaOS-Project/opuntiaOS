@@ -58,10 +58,12 @@ ptable_t* vm_get_table(uintptr_t vaddr, ptable_lv_t lv)
     }
 
     ptable_t* active_pdir = THIS_CPU->active_address_space->pdir;
+#ifdef DOUBLE_TABLE_PAGING
     if (IS_KERNEL_VADDR(vaddr)) {
         extern ptable_t* _vmm_kernel_pdir1;
         active_pdir = _vmm_kernel_pdir1;
     }
+#endif
     ASSERT(active_pdir);
 
     return vm_get_table_impl(active_pdir, vaddr, PTABLE_LV_TOP, lv);
@@ -110,12 +112,19 @@ static int vm_pspace_free_page_locked(uintptr_t vaddr, ptable_entity_t* page)
 
 static int vm_pspace_free_ptable_locked(uintptr_t vaddr, ptable_t* ptable, ptable_lv_t lv)
 {
+    size_t nents = PTABLE_ENTITY_COUNT(lv);
+#ifndef DOUBLE_TABLE_PAGING
+    if (lv == PTABLE_LV_TOP) {
+        // When one table is used for userland and kernel, we have to copy only userland part.
+        nents = PTABLE_TOP_KERNEL_OFFSET;
+    }
+#endif
+
     uintptr_t vaddrstart = vaddr;
-    const size_t table_coverage = (1 << ptable_entity_vaddr_offset_at_level[lv]);
+    const size_t table_coverage = (1ll << ptable_entity_vaddr_offset_at_level[lv]);
 
-    for (int i = 0; i < PTABLE_ENTITY_COUNT(lv); i++) {
+    for (int i = 0; i < nents; i++) {
         ptable_entity_t* ptable_desc = &ptable->entities[i];
-
         if (!vm_ptable_entity_is_present(ptable_desc, lv)) {
             vaddrstart += table_coverage;
             continue;

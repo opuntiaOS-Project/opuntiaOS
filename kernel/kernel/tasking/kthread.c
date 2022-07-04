@@ -19,7 +19,7 @@
  * For arm we need use 2 stacks: one stack for svc mode and one for sys mode, so
  * we create a bigger stack (2 * page_size) to fit 2 stacks required for arm.
  */
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
 #define KSTACK_ZONE_SIZE VMM_PAGE_SIZE
 #define KSTACK_TOP VMM_PAGE_SIZE
 #define USTACK_TOP VMM_PAGE_SIZE

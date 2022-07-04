@@ -27,11 +27,11 @@ inline static void system_enable_interrupts_no_counter() { asm volatile("sti"); 
  * PAGING
  */
 
-inline static void system_set_pdir(uintptr_t pdir)
+inline static void system_set_pdir(uintptr_t pdir0, uintptr_t pdir1)
 {
     asm volatile("mov %0, %%cr3"
                  :
-                 : "r"(pdir)
+                 : "r"(pdir0)
                  : "memory");
 }
 
@@ -49,7 +49,7 @@ inline static void system_flush_all_cpus_tlb_entry(uintptr_t vaddr)
 
 inline static void system_flush_whole_tlb()
 {
-    system_set_pdir(read_cr3());
+    system_set_pdir(read_cr3(), 0x0);
 }
 
 inline static void system_enable_write_protect()

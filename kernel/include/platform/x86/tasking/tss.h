@@ -14,6 +14,7 @@
 
 #define SEGTSS_TYPE 0x9 // defined in the Intel's manual 3a
 
+#ifdef __i386__
 struct PACKED tss {
     uint32_t back_link : 16; // back link to prev tss
     uint32_t zero1 : 16; // always zero
@@ -55,6 +56,7 @@ struct PACKED tss {
     uint32_t zero12 : 15; // always zero
     uint32_t iomap_offset : 16;
 };
+#endif
 typedef struct tss tss_t;
 
 extern tss_t tss;

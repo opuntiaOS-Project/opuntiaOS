@@ -20,7 +20,6 @@
 #define PAGE_START(vaddr) ((vaddr >> 12) << 12)
 #define FRAME(addr) (addr / VMM_PAGE_SIZE)
 
-#define VMM_USER_TABLES_START 0
-#define VMM_KERNEL_TABLES_START 3072
+#define PTABLE_TOP_KERNEL_OFFSET 3072
 
 #endif //_BOOT_VMM_CONSTS_H

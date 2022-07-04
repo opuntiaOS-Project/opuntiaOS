@@ -73,7 +73,7 @@ static const void* syscalls[] = {
     [SYS_SHBUF_FREE] = sys_shbuf_free,
 };
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
 int ksyscall_impl(intptr_t id, intptr_t a, intptr_t b, intptr_t c, intptr_t d)
 {
 #ifndef PREEMPT_KERNEL

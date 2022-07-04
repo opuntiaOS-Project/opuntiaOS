@@ -32,7 +32,7 @@
 
 #define PTABLE_ENTITY_COUNT(lv) (ptable_entity_count_at_level[lv])
 #define PTABLE_SIZE(lv) (ptable_size_at_level[lv])
-#define IS_INDIVIDUAL_PER_DIR(index) (index < VMM_KERNEL_TABLES_START || (index == VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)))
+#define IS_INDIVIDUAL_PER_DIR(index) (index < PTABLE_TOP_KERNEL_OFFSET || (index == VMM_OFFSET_IN_DIRECTORY(pspace_zone.start)))
 
 typedef struct {
     ptable_entity_t entities[1];

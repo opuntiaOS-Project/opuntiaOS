@@ -75,7 +75,7 @@ int devtree_init(boot_args_t* boot_args)
 
 const char* devtree_name_of_entry(devtree_entry_t* en)
 {
-    if (&devtree_body[0] <= en && en <= &devtree_body[devtree_header->entries_count]) {
+    if (devtree_body && &devtree_body[0] <= en && en <= &devtree_body[devtree_header->entries_count]) {
         return &devtree_name_section[en->rel_name_offset];
     }
     return devtree_virt_name_sections[en->rel_name_offset];

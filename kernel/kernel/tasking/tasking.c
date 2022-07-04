@@ -46,7 +46,7 @@ pid_t tasking_get_proc_count()
  * used to jump to trapend
  * the jump will start the process
  */
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
 void _tasking_jumper()
 {
     cpu_enter_user_space();

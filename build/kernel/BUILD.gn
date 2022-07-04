@@ -26,9 +26,15 @@ if (kernel_symbols) {
 
 if (optimize) {
   kernel_c_flags += [ "-Os" ]
-  if (host == "llvm" && target_cpu != "x86_64") {
-    # TODO(x64): lto fails with relocs out-of-range.
+  if (host == "llvm") {
     kernel_c_flags += [ "-flto" ]
+
+    if (target_cpu == "x86_64") {
+      kernel_c_flags += [
+        "-mllvm",
+        "-code-model=large",
+      ]
+    }
   }
 }
 
@@ -69,7 +75,8 @@ if (target_cpu == "x86_64") {
     "-mno-sse",
     "-mno-sse2",
     "-mno-red-zone",
-    "-fno-omit-frame-pointer"
+    "-fno-omit-frame-pointer",
+    "-mcmodel=large",
   ]
   kernel_asm_flags += [
     "-w+all",
@@ -77,10 +84,12 @@ if (target_cpu == "x86_64") {
     "-f",
     "elf64",
   ]
-  kernel_ld_flags += [
-    "--oformat",
-    "elf64",
-  ]
+  if (host == "llvm") {
+    kernel_ld_flags += [
+      "--oformat",
+      "elf64",
+    ]
+  }
 }
 
 if (target_cpu == "arm32") {
