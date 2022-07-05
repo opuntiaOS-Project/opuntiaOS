@@ -17,6 +17,12 @@ __BEGIN_DECLS
  *   - return address
  */
 #define _jblen (6 * 4)
+#elif defined(__x86_64__)
+/**
+ * x86_64 (8 * 8):
+ *   - rip, rbp, rsp, rbx, r12, r13, r14, r15
+ */
+#define _jblen (8 * 8)
 #elif defined(__arm__)
 /**
  * ARMv7 (11 * 4 + 8 * 8):

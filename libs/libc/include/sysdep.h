@@ -16,6 +16,19 @@ static inline intptr_t _syscall_impl(sysid_t sysid, intptr_t p1, intptr_t p2, in
                  : "=a"(ret)
                  : "0"(sysid), "r"((intptr_t)(p1)), "c"((intptr_t)(p2)), "d"((intptr_t)(p3)), "S"((intptr_t)(p4)), "D"((intptr_t)(p5))
                  : "memory");
+#elif __x86_64__
+    asm volatile(
+        "movq %1, %%rax;\
+        movq %2, %%rdi;\
+        movq %3, %%rsi;\
+        movq %4, %%rdx;\
+        movq %5, %%r10;\
+        movq %6, %%r8;\
+        int $0x80;\
+        movq %%rax, %0;"
+        : "=r"(ret)
+        : "r"(sysid), "r"((intptr_t)(p1)), "r"((intptr_t)(p2)), "r"((intptr_t)(p3)), "r"((intptr_t)(p4)), "r"((intptr_t)(p5))
+        : "memory", "rax", "rdi", "rsi", "rdx", "r10", "r8");
 #elif __arm__
     asm volatile(
         "mov r7, %1;\

@@ -3,7 +3,9 @@
 #ifndef _LIBC_BITS_SYSCALLS_H
 #define _LIBC_BITS_SYSCALLS_H
 
-#ifdef __i386__
+#include <stdint.h>
+
+#if defined(__i386__) || defined(__x86_64__)
 enum __sysid {
     SYS_RESTART_SYSCALL = 0,
     SYS_EXIT = 1,
@@ -1122,6 +1124,6 @@ enum __sysid {
 };
 #endif
 
-typedef enum __sysid sysid_t;
+typedef uintptr_t sysid_t;
 
 #endif // _LIBC_BITS_SYSCALLS_H

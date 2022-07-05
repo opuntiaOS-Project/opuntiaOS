@@ -111,7 +111,7 @@ group("libs") {
     "//libs/libui:libui",
   ]
 
-  # if (objc_support) {
-  #   deps += [ "//libs/libobjc:libobjc" ]
-  # }
+  if (objc_support) {
+    deps += [ "//libs/libobjc:libobjc" ]
+  }
 }
