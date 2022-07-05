@@ -26,9 +26,8 @@ void switchuvm(thread_t* thread)
     gdt[GDT_SEG_TSS + 1] = GDT_SEG_SET_RAW(tssptrhi);
 
     uintptr_t esp0 = ((uintptr_t)thread->tf + sizeof(trapframe_t));
-    tss.rsp0l = esp0 & 0xffffffff;
-    tss.rsp0h = esp0 >> 32;
-    tss.iomapbase = sizeof(tss);
+    tss.rsp0 = esp0;
+    tss.iomap_offset = sizeof(tss);
     RUNNING_THREAD = thread;
 
     fpu_make_unavail();

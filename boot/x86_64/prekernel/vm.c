@@ -13,7 +13,7 @@
 #include <libboot/mem/alloc.h>
 #include <libboot/mem/mem.h>
 
-#define DEBUG_VM
+// #define DEBUG_VM
 
 static uint64_t* global_page_table;
 static const uint64_t kernel_base = 0xffff800000000000;
