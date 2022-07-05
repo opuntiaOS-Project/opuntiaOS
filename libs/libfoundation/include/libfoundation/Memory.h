@@ -14,7 +14,7 @@ namespace LFoundation {
 
 [[gnu::always_inline]] inline void fast_copy(uint32_t* dest, const uint32_t* src, std::size_t count)
 {
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
     asm volatile(
         "rep movsl\n"
         : "=S"(src), "=D"(dest), "=c"(count)
@@ -34,7 +34,7 @@ namespace LFoundation {
 
 [[gnu::always_inline]] inline void fast_set(uint32_t* dest, uint32_t val, std::size_t count)
 {
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
     asm volatile(
         "rep stosl\n"
         : "=D"(dest), "=c"(count)
