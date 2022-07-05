@@ -79,6 +79,10 @@ isr_common:
     push r14
     push r15
 
+    mov ax, 0x23 ; SEG_UDATA | DPL_USER
+    mov ds, ax
+    mov es, ax
+
     mov rdi, rsp
     call isr_handler
     jmp trap_return
@@ -105,6 +109,10 @@ irq_common:
     push r14
     push r15
 
+    mov ax, 0x23 ; SEG_UDATA | DPL_USER
+    mov ds, ax
+    mov es, ax
+
     mov rdi, rsp
     call irq_handler
     jmp trap_return
@@ -130,6 +138,10 @@ sys_common:
     push r13
     push r14
     push r15
+
+    mov ax, 0x23 ; SEG_UDATA | DPL_USER
+    mov ds, ax
+    mov es, ax
     
     mov rdi, rsp
     call sys_handler

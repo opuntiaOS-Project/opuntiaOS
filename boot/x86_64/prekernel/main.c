@@ -14,7 +14,7 @@
 #include <libboot/mem/alloc.h>
 #include <libboot/types.h>
 
-#define DEBUG_BOOT
+// #define DEBUG_BOOT
 
 extern void jump_to_kernel(void*, uintptr_t);
 static void* bootdesc_paddr;

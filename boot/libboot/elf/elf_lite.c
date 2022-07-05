@@ -12,6 +12,8 @@
 #include <libboot/mem/alloc.h>
 #include <libboot/mem/mem.h>
 
+// #define DEBUG_ELF
+
 int elf_init_ctx(drive_desc_t* drive_desc, fs_desc_t* fs_desc, const char* path, elfctx_t* elfctx)
 {
     elfctx->drive_desc = drive_desc;
@@ -136,7 +138,9 @@ int elf_load_kernel(void* elffile, size_t size, uintptr_t* kernel_vaddr, uintptr
             uintptr_t data_paddr = (program_header->p_vaddr - vaddr) + paddr;
             uintptr_t data_offset = (uintptr_t)elffile + program_header->p_offset;
 
+#ifdef DEBUG_ELF
             log("copying elf %lx %lx %lx", data_paddr, data_offset, program_header->p_filesz);
+#endif
             memcpy((void*)data_paddr, (void*)data_offset, program_header->p_filesz);
         }
     }

@@ -622,7 +622,7 @@ int devfs_mount()
         log("Devfs: no driver is installed, exiting");
         return -ENOENT;
     }
-    log("devfs: %x", driver_id);
+
     int err = vfs_mount(&vfspth, new_virtual_device(DEVICE_STORAGE), driver_id);
     path_put(&vfspth);
     if (!err) {

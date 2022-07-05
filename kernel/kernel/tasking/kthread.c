@@ -105,6 +105,8 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
 #ifdef __i386__
     tf_move_stack_pointer(thread->tf, -sizeof(data));
     vmm_copy_to_address_space(thread->process->address_space, &data, get_stack_pointer(thread->tf), sizeof(data));
+#elif __x86_64__
+    thread->tf->rdi = (uintptr_t)data;
 #elif __arm__
     thread->tf->r[0] = (uintptr_t)data;
 #elif __aarch64__
