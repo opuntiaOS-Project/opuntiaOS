@@ -7,16 +7,17 @@
  */
 
 #include <libkern/libkern.h>
+#include <platform/x86/cpuinfo.h>
 #include <platform/x86/system.h>
 #include <tasking/tasking.h>
 
 bool system_can_preempt_kernel()
 {
-    // TODO(x64): #ifdef PREEMPT_KERNEL
-    //     return THIS_CPU->int_depth_counter == 0;
-    // #else
+#ifdef PREEMPT_KERNEL
+    return THIS_CPU->int_depth_counter == 0;
+#else
     return 0;
-    // #endif
+#endif
 }
 
 void system_disable_interrupts()
@@ -42,16 +43,19 @@ void system_enable_interrupts_only_counter()
 
 void system_cache_clean_and_invalidate(void* addr, size_t size)
 {
+    if (!TEST_FLAG(THIS_CPU->cpufeat, CPUFEAT_CLFSH)) {
+        return;
+    }
+
     const size_t cache_line_size = 64;
     size_t start = ROUND_FLOOR((size_t)addr, cache_line_size);
     size_t end = ROUND_CEIL((size_t)addr + size, cache_line_size);
 
     for (size_t curaddr = start; curaddr < end; curaddr += cache_line_size) {
-        // TODO(x86) This is commented out until cpuid flags are avail.
-        // asm volatile("clflush (%0)"
-        //              :
-        //              : "r"(curaddr)
-        //              : "memory");
+        asm volatile("clflush (%0)"
+                     :
+                     : "r"(curaddr)
+                     : "memory");
     }
 }
 

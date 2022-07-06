@@ -7,13 +7,15 @@
  */
 
 #include <drivers/timer/x86/pit.h>
-// #include <platform/x86/fpu/fpu.h>
+#include <platform/x86/cpuinfo.h>
+#include <platform/x86/fpu/fpu.h>
 #include <platform/x86/gdt.h>
 #include <platform/x86/idt.h>
-// #include <platform/x86/init.h>
+#include <platform/x86/init.h>
 
 void platform_init_boot_cpu()
 {
+    cpuinfo_init();
     gdt_setup();
     interrupts_setup();
 }

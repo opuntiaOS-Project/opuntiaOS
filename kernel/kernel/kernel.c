@@ -117,15 +117,15 @@ void stage3(boot_args_t* boot_args)
 
 void boot_secondary_cpu()
 {
-    // system_disable_interrupts();
+    system_disable_interrupts();
 
-    // wait_for_boot_cpu_to_finish(&__boot_cpu_setup_devices);
-    // vmm_setup_secondary_cpu();
-    // platform_setup_secondary_cpu();
+    wait_for_boot_cpu_to_finish(&__boot_cpu_setup_devices);
+    vmm_setup_secondary_cpu();
+    platform_setup_secondary_cpu();
 
-    // wait_for_boot_cpu_to_finish(&__boot_cpu_setup_tasking);
-    // schedule_activate_cpu();
-    // resched();
+    wait_for_boot_cpu_to_finish(&__boot_cpu_setup_tasking);
+    schedule_activate_cpu();
+    resched();
 
-    // system_stop();
+    system_stop();
 }

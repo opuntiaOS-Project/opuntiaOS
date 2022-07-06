@@ -6,7 +6,7 @@
  * found in the LICENSE file.
  */
 
-// #include <drivers/debug/screen.h>
+#include <drivers/debug/screen.h>
 #include <drivers/serial/uart_api.h>
 #include <libkern/libkern.h>
 #include <libkern/lock.h>
@@ -25,8 +25,7 @@ static spinlock_t _log_lock;
 
 static int putch_callback_stream(char c, char* buf_base, size_t* written, void* callback_params)
 {
-    // TODO(x64): return (uart_write(c) && screen_put_char(c));
-    return (uart_write(c));
+    return (uart_write(c) && screen_put_char(c));
 }
 
 static int vlog_unfmt(const char* format, va_list arg)
@@ -94,5 +93,5 @@ void logger_setup(boot_args_t* boot_args)
 {
     spinlock_init(&_log_lock);
     uart_setup(boot_args);
-    // TODO(x64): screen_setup(boot_args);
+    screen_setup(boot_args);
 }

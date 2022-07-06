@@ -2,7 +2,7 @@
 
 # Prickly Pear Kernel
 
-Prickly Pear Kernel is a unix-like kernel of opuntiaOS.
+Prickly Pear Kernel is a unix-like kernel of opuntiaOS, supporting x86/x86-64, arm32 and arm64 architectures.
 
 ## Dirs
 

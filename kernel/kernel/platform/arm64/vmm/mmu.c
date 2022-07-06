@@ -119,7 +119,7 @@ mmu_flags_t vm_arch_to_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv)
         if ((arch_flags & 0b11) == 0b11) {
             mmu_flags |= MMU_FLAG_PERM_READ;
         }
-        mmu_flags |= MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
+        mmu_flags |= MMU_FLAG_PERM_WRITE | MMU_FLAG_NONPRIV;
         return mmu_flags;
     }
 
@@ -142,7 +142,6 @@ mmu_pf_info_flags_t vm_arch_parse_pf_info(arch_pf_info_t info)
     if ((esr_iss & 0b111100) == 0b000100) {
         res |= MMU_PF_INFO_ON_NOT_PRESENT;
     }
-    // 0x92000042
     if ((esr_iss & 0b111000) == 0b001000) {
         res |= MMU_PF_INFO_SECURITY_VIOLATION;
     }

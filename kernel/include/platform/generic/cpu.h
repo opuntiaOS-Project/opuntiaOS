@@ -20,6 +20,8 @@
 #define THIS_CPU (&cpus[system_cpu_id()])
 #define FPU_ENABLED
 
+typedef uint32_t cpufeat_flags_t;
+
 struct thread;
 typedef int cpu_state_t;
 enum CPU_STATE {
@@ -60,6 +62,8 @@ typedef struct {
 #ifdef KASAN_ENABLED
     int kasan_depth_counter;
 #endif
+
+    cpufeat_flags_t cpufeat;
 } cpu_t;
 
 extern cpu_t cpus[MAX_CPU_CNT];
