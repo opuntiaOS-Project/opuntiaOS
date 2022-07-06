@@ -41,7 +41,7 @@ apt install build-essential curl libmpfr-dev libmpc-dev libgmp-dev e2fsprogs qem
 
 ## Cross-compiler
 
-opuntiaOS supports compilation both with GNU toolchains and LLVM. 
+opuntiaOS could be compiled both with GNU and LLVM toochains.
 
 *Note* that in GNU world, every host/target combination has its own set of binaries, headers, libraries, etc. So, choose GNU Toolchain based on target architecture you want to compile the OS to.
 
@@ -51,6 +51,12 @@ opuntiaOS supports compilation both with GNU toolchains and LLVM.
 
 ```bash
 brew install i686-elf-gcc
+```
+
+***x86-64***
+
+```bash
+brew install x86_64-elf-gcc
 ```
 
 ***Arm32***
@@ -124,6 +130,7 @@ To generate ninja just run `./gn_gen.sh`. This command creates build directory `
   * Sets target arch
   * Possible values:
     * x86 *(default)*
+    * x86_64
     * arm32 / arm
     * arm64 / aarch64
 * --host *value*
@@ -153,16 +160,18 @@ So to build opuntiaOS for Arm with LLVM you have to generate Ninja files with `.
 Another option how to configure the project is environment variables.
 
 * `ONEOS_QEMU_SMP`
-  * Provide cpu cores count in the system.
+  * CPU cores count in the system.
 * `ONEOS_QEMU_X86`
-  * Provide path to *qemu-system-i386* executable
+  * Path to *qemu-system-i386* executable
+* `ONEOS_QEMU_X86_64`
+  * Path to *qemu-system-x86_64* executable
 * `ONEOS_QEMU_ARM`
-  * Provide path to *qemu-system-arm* executable
+  * Path to *qemu-system-arm* executable
 * `ONEOS_QEMU_AA64`
-  * Provide path to *qemu-system-aarch64* executable
+  * Path to *qemu-system-aarch64* executable
 * `LLVM_BIN_PATH`  *(Only with --host llvm)*
   * ***Must be set before `./gn_gen.sh`***
-  * Provide path to LLVM bins.
+  * Path to LLVM bins.
 
 </br>
 
@@ -189,7 +198,11 @@ Also you can run `gdb` or `lldb` from the `out/` directory, which will automitic
 
 ***x86***
 
-* `x86` - regular x86. (default)
+* `i386` - regular x86 (i386). (default)
+
+***x86_64***
+
+* `x86_64` - regular x86_64. (default)
 
 ***Arm32***
 

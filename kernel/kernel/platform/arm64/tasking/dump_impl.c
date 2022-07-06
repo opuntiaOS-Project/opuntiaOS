@@ -57,8 +57,6 @@ void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_
         bp = (uintptr_t*)*bp;
         id++;
     } while (ip != dump_data->entry_point);
-
-    return;
 }
 
 int dump_impl(dump_data_t* dump_data)

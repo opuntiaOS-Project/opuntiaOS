@@ -8,7 +8,7 @@
 
 ### Kernel
 
-* x86-32, ARMv7 and Arm64 kernel with pre-emptive multi-threading
+* x86/x86-64, ARMv7 and Arm64 kernel with pre-emptive multi-threading
 * Ext2 filesystem
 * /dev and /proc filesystems
 * Local sockets
@@ -31,7 +31,7 @@
 
 ### Boot
 
-* Custom bootloaders for x86-32, ARMv7 and iDevices
+* Custom bootloaders
 * Kernel validation during the boot proccess
 * Custom device tree
 * [learn more](https://github.com/opuntiaOS-Project/opuntiaOS/blob/master/docs/boot.md)

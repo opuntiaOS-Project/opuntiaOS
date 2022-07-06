@@ -6,8 +6,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_PLATFORM_X86_TASKING_CONTEXT_H
-#define _KERNEL_PLATFORM_X86_TASKING_CONTEXT_H
+#ifndef _KERNEL_PLATFORM_X86_I386_TASKING_CONTEXT_H
+#define _KERNEL_PLATFORM_X86_I386_TASKING_CONTEXT_H
 
 #include <libkern/c_attrs.h>
 #include <libkern/types.h>
@@ -31,4 +31,4 @@ static inline void context_set_instruction_pointer(context_t* ctx, uintptr_t ip)
     ctx->eip = ip;
 }
 
-#endif // _KERNEL_PLATFORM_X86_TASKING_CONTEXT_H
+#endif // _KERNEL_PLATFORM_X86_I386_TASKING_CONTEXT_H

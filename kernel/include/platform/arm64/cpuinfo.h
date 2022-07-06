@@ -6,20 +6,16 @@
  * found in the LICENSE file.
  */
 
-#ifndef _KERNEL_PLATFORM_X86_CPUID_H
-#define _KERNEL_PLATFORM_X86_CPUID_H
+#ifndef _KERNEL_PLATFORM_ARM64_CPUINFO_H
+#define _KERNEL_PLATFORM_ARM64_CPUINFO_H
 
 #include <libkern/c_attrs.h>
 #include <libkern/types.h>
+#include <platform/generic/cpu.h>
 
-struct cpuid {
-    uint32_t eax;
-    uint32_t ebx;
-    uint32_t ecx;
-    uint32_t edx;
-};
-typedef struct cpuid cpuid_t;
+static inline bool cpuinfo_has_1gb_pages()
+{
+    return true;
+}
 
-cpuid_t get_cpuid(int eax, int ecx);
-
-#endif // _KERNEL_PLATFORM_X86_CPUID_H
+#endif // _KERNEL_PLATFORM_ARM64_CPUINFO_H

@@ -19,6 +19,7 @@
 #include <mem/vm_pspace.h>
 #include <mem/vmm.h>
 #include <platform/generic/cpu.h>
+#include <platform/generic/cpuinfo.h>
 #include <platform/generic/system.h>
 
 // #define VMM_DEBUG
@@ -68,7 +69,8 @@ static void vmm_setup_kasan()
 
 static void vm_map_kernel_huge_page_1gb(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_flags)
 {
-    // TODO(x64): Pretending that all arches support that, but should double check this for x86_64.
+    ASSERT(cpuinfo_has_1gb_pages());
+
     vaddr = ROUND_FLOOR(vaddr, 1 << 30);
     paddr = ROUND_FLOOR(paddr, 1 << 30);
     vmm_map_huge_page_locked_impl(vaddr, paddr, mmu_flags, PTABLE_LV2);

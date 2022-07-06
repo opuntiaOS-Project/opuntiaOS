@@ -14,6 +14,7 @@
  */
 
 #define TEST_FLAG(val, flag) (((val) & (flag)) == (flag))
+#define TEST_BIT(val, bitnum) (((val) & (1 << bitnum)) == (1 << bitnum))
 
 int stoi(void* str, int len);
 void htos(uintptr_t hex, char str[]);

@@ -2,9 +2,9 @@
 
 # Getting QEMU
 
-QEMU is an emulator used for running and debugging opuntiaOS. While *x86* and *arm32* targets use the regular QEMU binary, *arm64* target uses a custom QEMU board configuration.
+QEMU is an emulator used for running and debugging opuntiaOS. While *x86*, *x86-64* and *arm32* targets use the regular QEMU binary, *arm64* target uses a custom QEMU board configuration.
 
-## Getting QEMU for x86 and Arm32
+## Getting QEMU for x86, x86-64 and arm32
 
 ### QEMU for MacOS
 
@@ -15,10 +15,10 @@ brew install qemu
 ### Tools for Linux (Ubuntu)
 
 ```bash
-apt install qemu-utils qemu-system-i386 qemu-system-arm
+apt install qemu-utils qemu-system-i386 qemu-system-x86_64 qemu-system-arm
 ```
 
-## Compiling a custom QEMU for Arm64
+## Compiling a custom QEMU for arm64
 
 ```bash
 git clone https://github.com/opuntiaOS-Project/qemu.git

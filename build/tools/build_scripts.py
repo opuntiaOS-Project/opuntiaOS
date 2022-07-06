@@ -23,7 +23,7 @@ if arch == "x86":
 if arch == "x86_64":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_X86_64"
     QEMU_STD_PATH = "qemu-system-x86_64"
-    qemu_run_cmd = "${2} -m 256M -kernel {1}/rawImage.elf -device piix3-ide,id=ide -drive id=disk,format=raw,file={1}/one.img,if=none -device ide-hd,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std".format(
+    qemu_run_cmd = "${2} -m 1G -kernel {1}/rawImage.elf -cpu phenom -device piix3-ide,id=ide -drive id=disk,format=raw,file={1}/one.img,if=none -device ide-hd,drive=disk,bus=ide.0 -serial mon:stdio -rtc base=utc -vga std".format(
         base, out, QEMU_PATH_VAR)
 if arch == "arm32":
     QEMU_PATH_ENV_VAR = "ONEOS_QEMU_ARM"
