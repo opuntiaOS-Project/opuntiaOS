@@ -99,7 +99,7 @@ int kthread_fill_up_stack(struct thread* thread, void* data);
 int proc_load(proc_t* p, struct thread* main_thread, const char* path);
 int proc_fork_from(proc_t* new_proc, struct thread* from_thread);
 
-int proc_die(proc_t* p);
+int proc_die(proc_t* p, int exit_code);
 int proc_block_all_threads(proc_t* p, const struct blocker* blocker);
 
 /**

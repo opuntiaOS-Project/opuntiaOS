@@ -152,7 +152,8 @@ void fourfiles(void)
         }
         close(fd);
         if (total != 12 * 500) {
-            write(1, "wrong length\n", 13);
+            printf("wrong length %d != %d\n", total, 12 * 500);
+            fflush(stdout);
             exit(-1);
         }
         unlink(fname);

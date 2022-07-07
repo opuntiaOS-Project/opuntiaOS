@@ -123,27 +123,28 @@ static int signal_setup_stack_to_handle_signal(thread_t* thread, int signo)
     uintptr_t magic = MAGIC_STATE_JUST_TF; /* helps to restore thread after signal to the right state */
 
     if (thread != RUNNING_THREAD) {
-        /*
-        If we are here that means that the thread was stopped while
-        being in kernel (because of scheduler or blocker). That means,
-        we need not to corrupt it's kernel state, so we create a new state
-        to send signal.
+        // If we are here that means that the thread was stopped while
+        // being in kernel (because of scheduler or blocker). That means,
+        // we need not to corrupt it's kernel state, so we create a new state
+        // to send signal.
 
-        We setup a new kernel state upper the previous one
-        Stack:
-            Trapframe
-            Function calls and local vars...
-            Context
-        ---- added after setup ----
-            Trapframe for signal
-            Context for signal
-        */
+        // We setup a new kernel state upper the previous one
+        // Stack:
+        //     Trapframe
+        //     Function calls and local vars...
+        //     Context
+        // ---- added after setup ----
+        //     Trapframe for signal
+        //     Context for signal
 
         magic = MAGIC_STATE_NEW_STACK;
         trapframe_t* old_tf = thread->tf;
         context_t* old_ctx = thread->context;
 
-        _thread_setup_kstack(thread, (uintptr_t)thread->context);
+        const size_t alignment = sizeof(uintptr_t) * 2;
+        uintptr_t new_tf_loc = ROUND_FLOOR((uintptr_t)thread->context, alignment);
+
+        _thread_setup_kstack(thread, new_tf_loc);
         memcpy(thread->tf, old_tf, sizeof(trapframe_t));
 
         tf_push_to_stack(thread->tf, (uintptr_t)old_tf);
@@ -173,7 +174,7 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
 
         if (checksum != calced_checksum) {
             log_error("Killed %d: wrong signal checksum\n", thread->process->pid);
-            proc_die(thread->process);
+            proc_die(thread->process, 9);
             resched_dont_save_context();
         }
 
@@ -182,7 +183,9 @@ int signal_restore_thread_after_handling_signal(thread_t* thread)
     }
 
     if (old_sp != get_stack_pointer(thread->tf)) {
-        log_error("SPs are diff after signal");
+        log_error("SPs are diff after signal %zx != %zx", old_sp, get_stack_pointer(thread->tf));
+        proc_die(thread->process, 9);
+        resched_dont_save_context();
     }
 
     // If our thread is blocked, that means that it already has a context on stack, no need to overwrite it.
@@ -253,7 +256,7 @@ static int signal_process(thread_t* thread, int signo)
         int result = signal_default_action(signo);
         switch (result) {
         case SIGNAL_ACTION_TERMINATE:
-            proc_die(thread->process);
+            proc_die(thread->process, 0);
             return 0;
         case SIGNAL_ACTION_ABNORMAL_TERMINATE:
             dump_and_kill(RUNNING_THREAD->process);

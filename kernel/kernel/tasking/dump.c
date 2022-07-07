@@ -100,7 +100,7 @@ static void dumper(proc_t* p)
     err = dump_impl(&dump_data);
 
 exit:
-    proc_die(p);
+    proc_die(p, 9);
     ksys1(SYS_EXIT, err);
 }
 
