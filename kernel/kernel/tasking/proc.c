@@ -384,9 +384,10 @@ int proc_free(proc_t* p)
     return res;
 }
 
-int proc_die(proc_t* p)
+int proc_die(proc_t* p, int exit_code)
 {
     spinlock_acquire(&p->lock);
+    p->exit_code = exit_code;
     p->status = PROC_DYING;
     foreach_thread(p)
     {

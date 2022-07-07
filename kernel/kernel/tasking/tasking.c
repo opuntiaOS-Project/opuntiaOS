@@ -383,8 +383,7 @@ int tasking_waitpid(int pid, int* status, int options)
 void tasking_exit(int exit_code)
 {
     proc_t* p = RUNNING_THREAD->process;
-    p->exit_code = exit_code;
-    proc_die(p);
+    proc_die(p, exit_code);
     resched();
 }
 

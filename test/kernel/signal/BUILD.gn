@@ -1,8 +1,10 @@
-import("//build/test/TEMPLATE.gni")
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
-opuntiaOS_test("signal") {
-  test_bundle = "kernel/signal"
-  sources = [ "main.c" ]
-  configs = [ "//build/userland:userland_flags" ]
-  deplibs = [ "libc" ]
+group("signal") {
+  deps = [
+    "//test/kernel/signal/signalchild:signalchild",
+    "//test/kernel/signal/signalself:signalself",
+  ]
 }
