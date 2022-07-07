@@ -157,5 +157,6 @@ void umem_copy_from_user(void* dest, const void __user* src, size_t length)
 #endif // DEBUG_UMEM_ACCESSES
         return;
     }
+    vmm_ensure_reading_from_active_address_space((uintptr_t)src, length);
     memcpy(dest, (void*)src, length);
 }

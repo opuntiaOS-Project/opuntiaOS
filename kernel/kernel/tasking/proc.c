@@ -328,11 +328,9 @@ restore:
 
 int proc_load(proc_t* p, thread_t* main_thread, const char* path)
 {
-    spinlock_acquire(&p->vm_lock);
     spinlock_acquire(&p->lock);
     int res = proc_load_locked(p, main_thread, path);
     spinlock_release(&p->lock);
-    spinlock_release(&p->vm_lock);
     return res;
 }
 
@@ -376,11 +374,9 @@ int proc_free_locked(proc_t* p)
 
 int proc_free(proc_t* p)
 {
-    spinlock_acquire(&p->vm_lock);
     spinlock_acquire(&p->lock);
     int res = proc_free_locked(p);
     spinlock_release(&p->lock);
-    spinlock_release(&p->vm_lock);
     return res;
 }
 
