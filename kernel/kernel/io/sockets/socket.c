@@ -52,8 +52,8 @@ socket_t* socket_duplicate(socket_t* sock)
 int socket_put(socket_t* sock)
 {
     spinlock_acquire(&sock->lock);
-    sock->d_count--;
     ASSERT(sock->d_count > 0);
+    sock->d_count--;
     if (sock->d_count == 0) {
         sync_ringbuffer_free(&sock->buffer);
     }

@@ -61,7 +61,7 @@ static void do_sleep()
 
 static int find_victim(proc_t* p, ptable_t* pdir)
 {
-    spinlock_acquire(&p->vm_lock);
+    spinlock_acquire(&p->address_space->lock);
     ptable_t* ptable_map_zone = (ptable_t*)_mapzone.ptr;
     const size_t ptables_per_page = VMM_PAGE_SIZE / PTABLE_SIZE(PTABLE_LV0);
     const size_t table_coverage = VMM_PAGE_SIZE * PTABLE_ENTITY_COUNT(PTABLE_LV0);
@@ -94,7 +94,7 @@ static int find_victim(proc_t* p, ptable_t* pdir)
                 if (err) {
                     faild_pages++;
                     if (faild_pages > 6) {
-                        spinlock_release(&p->vm_lock);
+                        spinlock_release(&p->address_space->lock);
                         faild_pages = 0;
                         return 0;
                     }
@@ -102,14 +102,14 @@ static int find_victim(proc_t* p, ptable_t* pdir)
                 }
                 after_page_swap();
                 if (moved_out_pages_per_pid >= KSWAPD_SWAP_PER_PID_THRESHOLD) {
-                    spinlock_release(&p->vm_lock);
+                    spinlock_release(&p->address_space->lock);
                     return 0;
                 }
             }
         }
     }
 
-    spinlock_release(&p->vm_lock);
+    spinlock_release(&p->address_space->lock);
     return 0;
 }
 

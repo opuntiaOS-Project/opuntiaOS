@@ -415,6 +415,7 @@ int vmm_fill_up_new_address_space(vm_address_space_t* new_aspace)
 {
     memset(new_aspace->pdir, 0, PTABLE_SIZE(PTABLE_LV_TOP));
 #ifndef DOUBLE_TABLE_PAGING
+    // No lock needed, since all kernel tables are allocated at init and cannot be changed.
     vmm_copy_kernel_tables(new_aspace);
 #endif
     return 0;

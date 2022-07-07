@@ -307,6 +307,8 @@ extern int vmm_resolve_copy_on_write(uintptr_t vaddr);
 /**
  * VMM CHECK FUNCTIONS
  */
+bool vmm_is_page_swapped(uintptr_t vaddr);
+int vmm_restore_swapped_page_locked(uintptr_t vaddr);
 
 int vmm_ensure_cow_for_page(uintptr_t vaddr)
 {
@@ -418,6 +420,123 @@ static inline void vmm_ensure_writing_to_active_address_space_locked(uintptr_t d
 void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t length)
 {
     _vmm_ensure_write_to_range(dest_vaddr, length);
+}
+
+/**
+ * @brief Loads page which will be read. The funciton might create a new page or load
+ *        an existing one from drive (so fs drivers should be careful here).
+ *
+ * @param vaddr The virtual address of a page to load.
+ */
+static int _vmm_ensure_read_from_page_locked_impl(uintptr_t vaddr)
+{
+    if (IS_KERNEL_VADDR(vaddr)) {
+        return vm_alloc_kernel_page_locked(vaddr);
+    }
+
+    memzone_t* zone = vmm_memzone_for_active_address_space(vaddr);
+    if (!zone) {
+        return -EFAULT;
+    }
+
+    if (vmm_is_page_swapped(vaddr)) {
+        return vmm_restore_swapped_page_locked(vaddr);
+    }
+
+    int err = vm_alloc_user_page_no_fill_locked(zone, vaddr);
+    if (err) {
+        return err;
+    }
+
+    if (zone->ops && zone->ops->load_page_content) {
+        return zone->ops->load_page_content(zone, vaddr);
+    } else {
+        void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+        memset(dest, 0, VMM_PAGE_SIZE);
+    }
+
+    return 0;
+}
+
+static int _vmm_ensure_read_from_page_locked(uintptr_t vaddr)
+{
+    if (!vmm_is_page_present(vaddr)) {
+        int err = _vmm_ensure_read_from_page_locked_impl(vaddr);
+        if (err) {
+            return err;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Prepare the page for writing. Might allocate a page if needed.
+ */
+static int _vmm_ensure_read_from_range_locked(uintptr_t vaddr, size_t length)
+{
+    uintptr_t page_addr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+    while (page_addr < vaddr + length) {
+        int err = _vmm_ensure_read_from_page_locked(page_addr);
+        if (err) {
+            return err;
+        }
+        page_addr += VMM_PAGE_SIZE;
+    }
+    return 0;
+}
+
+static int _vmm_ensure_read_from_page(uintptr_t vaddr)
+{
+    vm_address_space_t* active_address_space = vmm_get_active_address_space();
+
+    if (!vmm_is_page_present(vaddr)) {
+        spinlock_acquire(&active_address_space->lock);
+        int err = _vmm_ensure_read_from_page_locked_impl(vaddr);
+        spinlock_release(&active_address_space->lock);
+        if (err) {
+            return err;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Prepare the page for reading. Might allocate a page if needed.
+ */
+static int _vmm_ensure_read_from_range(uintptr_t vaddr, size_t length)
+{
+    uintptr_t page_addr = ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+    while (page_addr < vaddr + length) {
+        int err = _vmm_ensure_read_from_page(page_addr);
+        if (err) {
+            return err;
+        }
+        page_addr += VMM_PAGE_SIZE;
+    }
+    return 0;
+}
+
+/*
+ * @brief Ensures that reading from the address is safe and does NOT cause any faults.
+ *
+ * @param vaddr The virtual address to examine.
+ * @param length The length of data which is written to the address.
+ */
+void vmm_ensure_reading_from_active_address_space_locked(uintptr_t dest_vaddr, size_t length)
+{
+    _vmm_ensure_read_from_range_locked(dest_vaddr, length);
+}
+
+/*
+ * @brief Ensures that reading from the address is safe and does NOT cause any faults.
+ *
+ * @param vaddr The virtual address to examine.
+ * @param length The length of data which is written to the address.
+ */
+void vmm_ensure_reading_from_active_address_space(uintptr_t dest_vaddr, size_t length)
+{
+    _vmm_ensure_read_from_range(dest_vaddr, length);
 }
 
 /**
