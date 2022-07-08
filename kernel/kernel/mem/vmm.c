@@ -310,20 +310,47 @@ extern int vmm_resolve_copy_on_write(uintptr_t vaddr);
 bool vmm_is_page_swapped(uintptr_t vaddr);
 int vmm_restore_swapped_page_locked(uintptr_t vaddr);
 
-int vmm_ensure_cow_for_page(uintptr_t vaddr)
+/**
+ * @brief Loads an unpresent page. The funciton might create a new page or load
+ *        an existing one from drive.
+ *
+ * @param vaddr The virtual address of a page to load.
+ */
+static int vmm_resolve_page_not_present_locked(uintptr_t vaddr)
 {
-    if (vmm_is_copy_on_write(vaddr)) {
-        int err = vmm_resolve_copy_on_write(vaddr);
-        if (err) {
-            return err;
-        }
+    // CoW should be resolved before calling this function.
+    assert(!vmm_is_copy_on_write(vaddr));
+
+    if (IS_KERNEL_VADDR(vaddr)) {
+        return vm_alloc_kernel_page_locked(vaddr);
+    }
+
+    memzone_t* zone = vmm_memzone_for_active_address_space(vaddr);
+    if (!zone) {
+        return -EFAULT;
+    }
+
+    if (vmm_is_page_swapped(vaddr)) {
+        return vmm_restore_swapped_page_locked(vaddr);
+    }
+
+    int err = vm_alloc_user_page_no_fill_locked(zone, vaddr);
+    if (err) {
+        return err;
+    }
+
+    if (zone->ops && zone->ops->load_page_content) {
+        return zone->ops->load_page_content(zone, vaddr);
+    } else {
+        void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
+        memset(dest, 0, VMM_PAGE_SIZE);
     }
     return 0;
 }
 
 static int _vmm_ensure_write_to_page_locked(uintptr_t vaddr)
 {
-    if (!IS_USER_VADDR(vaddr) && vmm_is_copy_on_write(vaddr)) {
+    if (IS_USER_VADDR(vaddr) && vmm_is_copy_on_write(vaddr)) {
         int err = vmm_resolve_copy_on_write(vaddr);
         if (err) {
             return err;
@@ -331,7 +358,7 @@ static int _vmm_ensure_write_to_page_locked(uintptr_t vaddr)
     }
 
     if (!vmm_is_page_present(vaddr)) {
-        int err = vm_alloc_page_with_perm(vaddr);
+        int err = vmm_resolve_page_not_present_locked(vaddr);
         if (err) {
             return err;
         }
@@ -360,7 +387,7 @@ static int _vmm_ensure_write_to_page(uintptr_t vaddr)
 {
     vm_address_space_t* active_address_space = vmm_get_active_address_space();
 
-    if (!IS_USER_VADDR(vaddr) && vmm_is_copy_on_write(vaddr)) {
+    if (IS_USER_VADDR(vaddr) && vmm_is_copy_on_write(vaddr)) {
         spinlock_acquire(&active_address_space->lock);
         int err = vmm_resolve_copy_on_write(vaddr);
         spinlock_release(&active_address_space->lock);
@@ -372,7 +399,7 @@ static int _vmm_ensure_write_to_page(uintptr_t vaddr)
     // Take lock only if page is not available.
     if (!vmm_is_page_present(vaddr)) {
         spinlock_acquire(&active_address_space->lock);
-        int err = vm_alloc_page_with_perm(vaddr);
+        int err = vmm_resolve_page_not_present_locked(vaddr);
         spinlock_release(&active_address_space->lock);
         if (err) {
             return err;
@@ -422,46 +449,10 @@ void vmm_ensure_writing_to_active_address_space(uintptr_t dest_vaddr, size_t len
     _vmm_ensure_write_to_range(dest_vaddr, length);
 }
 
-/**
- * @brief Loads page which will be read. The funciton might create a new page or load
- *        an existing one from drive (so fs drivers should be careful here).
- *
- * @param vaddr The virtual address of a page to load.
- */
-static int _vmm_ensure_read_from_page_locked_impl(uintptr_t vaddr)
-{
-    if (IS_KERNEL_VADDR(vaddr)) {
-        return vm_alloc_kernel_page_locked(vaddr);
-    }
-
-    memzone_t* zone = vmm_memzone_for_active_address_space(vaddr);
-    if (!zone) {
-        return -EFAULT;
-    }
-
-    if (vmm_is_page_swapped(vaddr)) {
-        return vmm_restore_swapped_page_locked(vaddr);
-    }
-
-    int err = vm_alloc_user_page_no_fill_locked(zone, vaddr);
-    if (err) {
-        return err;
-    }
-
-    if (zone->ops && zone->ops->load_page_content) {
-        return zone->ops->load_page_content(zone, vaddr);
-    } else {
-        void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-        memset(dest, 0, VMM_PAGE_SIZE);
-    }
-
-    return 0;
-}
-
 static int _vmm_ensure_read_from_page_locked(uintptr_t vaddr)
 {
     if (!vmm_is_page_present(vaddr)) {
-        int err = _vmm_ensure_read_from_page_locked_impl(vaddr);
+        int err = vmm_resolve_page_not_present_locked(vaddr);
         if (err) {
             return err;
         }
@@ -492,7 +483,7 @@ static int _vmm_ensure_read_from_page(uintptr_t vaddr)
 
     if (!vmm_is_page_present(vaddr)) {
         spinlock_acquire(&active_address_space->lock);
-        int err = _vmm_ensure_read_from_page_locked_impl(vaddr);
+        int err = vmm_resolve_page_not_present_locked(vaddr);
         spinlock_release(&active_address_space->lock);
         if (err) {
             return err;
@@ -707,38 +698,15 @@ static int _vmm_on_page_not_present_locked(uintptr_t vaddr)
         return 0;
     }
 
-    if (IS_KERNEL_VADDR(vaddr)) {
-        return vm_alloc_kernel_page_locked(vaddr);
-    }
-
-    memzone_t* zone = vmm_memzone_for_active_address_space(vaddr);
-    if (!zone) {
-        return -EFAULT;
-    }
-
-    if (vmm_is_copy_on_write(vaddr)) {
-        int err = vmm_ensure_cow_for_page(vaddr);
+    // Resolving a potential CoW only for user pages.
+    if (IS_USER_VADDR(vaddr) && vmm_is_copy_on_write(vaddr)) {
+        int err = vmm_resolve_copy_on_write(vaddr);
         if (err) {
             return err;
         }
     }
 
-    if (vmm_is_page_swapped(vaddr)) {
-        return vmm_restore_swapped_page_locked(vaddr);
-    }
-
-    int err = vm_alloc_user_page_no_fill_locked(zone, vaddr);
-    if (err) {
-        return err;
-    }
-
-    if (zone->ops && zone->ops->load_page_content) {
-        return zone->ops->load_page_content(zone, vaddr);
-    } else {
-        void* dest = (void*)ROUND_FLOOR(vaddr, VMM_PAGE_SIZE);
-        memset(dest, 0, VMM_PAGE_SIZE);
-    }
-    return 0;
+    return vmm_resolve_page_not_present_locked(vaddr);
 }
 
 static int _vmm_pf_on_writing_locked(uintptr_t vaddr)
@@ -746,7 +714,7 @@ static int _vmm_pf_on_writing_locked(uintptr_t vaddr)
     int visited = 0;
 
     if (vmm_is_copy_on_write(vaddr)) {
-        int err = vmm_ensure_cow_for_page(vaddr);
+        int err = vmm_resolve_copy_on_write(vaddr);
         if (err) {
             return err;
         }
