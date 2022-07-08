@@ -83,6 +83,8 @@ inline static int _pl181_select_card(uint32_t rca)
 
 static int _pl181_read_block(device_t* device, uint32_t lba_like, void* read_data)
 {
+    // Disbling interrupts tp be sure that we are not interrupted doing PIO.
+    system_disable_interrupts();
     sd_card_t* sd_card = &sd_cards[device->id];
     uint32_t* read_data32 = (uint32_t*)read_data;
     uint32_t bytes_read = 0;
@@ -101,11 +103,15 @@ static int _pl181_read_block(device_t* device, uint32_t lba_like, void* read_dat
         read_data32++;
         bytes_read += 4;
     }
+
+    system_enable_interrupts();
     return bytes_read;
 }
 
 static int _pl181_write_block(device_t* device, uint32_t lba_like, void* write_data)
 {
+    // Disbling interrupts tp be sure that we are not interrupted doing PIO.
+    system_disable_interrupts();
     sd_card_t* sd_card = &sd_cards[device->id];
     uint32_t* write_data32 = (uint32_t*)write_data;
     uint32_t bytes_written = 0;
@@ -124,6 +130,8 @@ static int _pl181_write_block(device_t* device, uint32_t lba_like, void* write_d
         write_data32++;
         bytes_written += 4;
     }
+
+    system_enable_interrupts();
     return bytes_written;
 }
 

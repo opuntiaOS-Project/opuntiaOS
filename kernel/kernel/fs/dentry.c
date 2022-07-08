@@ -288,9 +288,10 @@ void kdentryflusherd()
             for (int i = 0; i < dentries_in_block; i++) {
                 if (dentry_cache_block->data[i].inode_indx != 0) {
                     // Keep only locks here might not be as effective as with disabled interrupts.
-                    spinlock_acquire(&dentry_cache_block->data[i].lock);
-                    dentry_flush_locked(&dentry_cache_block->data[i]);
-                    spinlock_release(&dentry_cache_block->data[i].lock);
+                    if (spinlock_try_acquire(&dentry_cache_block->data[i].lock)) {
+                        dentry_flush_locked(&dentry_cache_block->data[i]);
+                        spinlock_release(&dentry_cache_block->data[i].lock);
+                    }
                 }
             }
             dentry_cache_list_t* nxt = dentry_cache_block->next;
@@ -409,7 +410,7 @@ void dentry_force_put(dentry_t* dentry)
     spinlock_release(&dentry->lock);
 }
 
-inline void dentry_put_locked(dentry_t* dentry)
+void dentry_put_locked(dentry_t* dentry)
 {
     ASSERT(dentry->d_count > 0);
     dentry->d_count--;
@@ -442,35 +443,35 @@ void dentry_put_all_dentries_of_dev(dev_t dev_indx)
     }
 }
 
-inline void dentry_set_flag_locked(dentry_t* dentry, uint32_t flag)
+void dentry_set_flag_locked(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags |= flag;
 }
 
-inline bool dentry_test_flag_locked(dentry_t* dentry, uint32_t flag)
+bool dentry_test_flag_locked(dentry_t* dentry, uint32_t flag)
 {
     return (dentry->flags & flag) > 0;
 }
 
-inline void dentry_rem_flag_locked(dentry_t* dentry, uint32_t flag)
+void dentry_rem_flag_locked(dentry_t* dentry, uint32_t flag)
 {
     dentry->flags &= ~flag;
 }
 
 // dentry_test_mode_locked test ONE flag and return if it is set.
-inline bool dentry_test_mode_locked(dentry_t* dentry, mode_t mode)
+bool dentry_test_mode_locked(dentry_t* dentry, mode_t mode)
 {
     return mode >= 0x1000 ? (dentry->inode->mode & 0xF000) == mode : ((dentry->inode->mode) & mode) > 0;
 }
 
-inline void dentry_set_flag(dentry_t* dentry, uint32_t flag)
+void dentry_set_flag(dentry_t* dentry, uint32_t flag)
 {
     spinlock_acquire(&dentry->lock);
     dentry->flags |= flag;
     spinlock_release(&dentry->lock);
 }
 
-inline bool dentry_test_flag(dentry_t* dentry, uint32_t flag)
+bool dentry_test_flag(dentry_t* dentry, uint32_t flag)
 {
     spinlock_acquire(&dentry->lock);
     bool res = (dentry->flags & flag) > 0;
@@ -478,14 +479,14 @@ inline bool dentry_test_flag(dentry_t* dentry, uint32_t flag)
     return res;
 }
 
-inline void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
+void dentry_rem_flag(dentry_t* dentry, uint32_t flag)
 {
     spinlock_acquire(&dentry->lock);
     dentry->flags &= ~flag;
     spinlock_release(&dentry->lock);
 }
 
-inline void dentry_inode_set_flag(dentry_t* dentry, mode_t mode)
+void dentry_inode_set_flag(dentry_t* dentry, mode_t mode)
 {
     spinlock_acquire(&dentry->lock);
     if (!dentry_test_mode_locked(dentry, mode)) {
@@ -495,7 +496,7 @@ inline void dentry_inode_set_flag(dentry_t* dentry, mode_t mode)
     spinlock_release(&dentry->lock);
 }
 
-inline bool dentry_test_mode(dentry_t* dentry, mode_t mode)
+bool dentry_test_mode(dentry_t* dentry, mode_t mode)
 {
     spinlock_acquire(&dentry->lock);
     bool res = dentry_test_mode_locked(dentry, mode);
@@ -503,7 +504,7 @@ inline bool dentry_test_mode(dentry_t* dentry, mode_t mode)
     return res;
 }
 
-inline void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode)
+void dentry_inode_rem_flag(dentry_t* dentry, mode_t mode)
 {
     spinlock_acquire(&dentry->lock);
     if (dentry_test_mode_locked(dentry, mode)) {

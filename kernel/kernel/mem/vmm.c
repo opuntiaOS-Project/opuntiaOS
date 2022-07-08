@@ -319,7 +319,7 @@ int vmm_restore_swapped_page_locked(uintptr_t vaddr);
 static int vmm_resolve_page_not_present_locked(uintptr_t vaddr)
 {
     // CoW should be resolved before calling this function.
-    assert(!vmm_is_copy_on_write(vaddr));
+    ASSERT(!vmm_is_copy_on_write(vaddr));
 
     if (IS_KERNEL_VADDR(vaddr)) {
         return vm_alloc_kernel_page_locked(vaddr);

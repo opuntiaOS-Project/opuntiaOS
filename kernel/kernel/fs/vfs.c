@@ -115,7 +115,7 @@ int vfs_add_dev(device_t* dev)
     }
 
     _vfs_devices[dev->id].dev = dev;
-    spinlock_init(&_vfs_devices[dev->id].lock);
+    spinlock_init(&_vfs_devices[dev->id].fslock);
     if (!dev->is_virtual) {
         if (vfs_choose_fs_of_dev(&_vfs_devices[dev->id]) < 0) {
             return -ENOENT;

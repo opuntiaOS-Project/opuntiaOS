@@ -37,9 +37,10 @@ typedef struct {
 } fsdata_t;
 
 typedef struct {
-    int fs;
     device_t* dev;
-    spinlock_t lock;
+
+    int fs;
+    spinlock_t fslock;
 } vfs_device_t;
 
 struct dirent {
@@ -65,6 +66,8 @@ struct dentry {
     dentry_flag_t flags;
     ino_t inode_indx;
     inode_t* inode;
+
+    // Lock controls all dentry fields, (including inode, since it could be hold only by one dentry).
     spinlock_t lock;
     fsdata_t fsdata;
     struct fs_ops* ops;

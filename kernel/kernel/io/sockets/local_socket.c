@@ -150,7 +150,7 @@ int local_socket_connect(file_descriptor_t* sock, char* path, size_t len)
     sock->file = file_init_socket(bind_path.dentry->sock, &local_socket_ops);
     sock->offset = bind_path.dentry->sock->buffer.ringbuffer.end; // Starting to read from the end.
 #ifdef LOCAL_SOCKET_DEBUG
-    log("Connected to local socket at %p : %d pid", bind_dentry->sock, p->pid);
+    log("Connected to local socket at %p : %d pid", bind_path.dentry->sock, p->pid);
 #endif
     return 0;
 }

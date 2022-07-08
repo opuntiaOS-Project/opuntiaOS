@@ -102,6 +102,8 @@ void ata_init(ata_t* ata, uint32_t port, bool is_master)
 
 bool ata_indentify(ata_t* ata)
 {
+    // Disbling interrupts tp be sure that we are not interrupted doing PIO.
+    system_disable_interrupts();
     port_write8(ata->port.device, ata->is_master ? 0xA0 : 0xB0);
     port_write8(ata->port.sector_count, 0);
     port_write8(ata->port.lba_lo, 0);
@@ -115,6 +117,7 @@ bool ata_indentify(ata_t* ata)
 #ifdef DEBUG_ATA
         log("Cmd isn't accepted");
 #endif
+        system_enable_interrupts();
         return false;
     }
 
@@ -128,6 +131,7 @@ bool ata_indentify(ata_t* ata)
 #ifdef DEBUG_ATA
         log("Doesn't ready to transfer DRQ");
 #endif
+        system_enable_interrupts();
         return false;
     }
 
@@ -160,11 +164,14 @@ bool ata_indentify(ata_t* ata)
         }
     }
 
+    system_enable_interrupts();
     return true;
 }
 
 int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size)
 {
+    // Disbling interrupts tp be sure that we are not interrupted doing PIO.
+    system_disable_interrupts();
     ata_t* dev = &_ata_drives[device->id];
 
     uint8_t dev_config = _ata_gen_drive_head_register(true, !dev->is_master, 0);
@@ -189,6 +196,7 @@ int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size
 #ifdef DEBUG_ATA
         log("Error");
 #endif
+        system_enable_interrupts();
         return -EBUSY;
     }
 
@@ -201,11 +209,14 @@ int ata_write(device_t* device, uint32_t sectorNum, uint8_t* data, uint32_t size
         port_write16(dev->port.data, 0);
     }
 
+    system_enable_interrupts();
     return ata_flush(device);
 }
 
 int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
 {
+    // Disbling interrupts tp be sure that we are not interrupted doing PIO.
+    system_disable_interrupts();
     ata_t* dev = &_ata_drives[device->id];
 
     uint8_t dev_config = _ata_gen_drive_head_register(true, !dev->is_master, 0);
@@ -230,6 +241,7 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
 #ifdef DEBUG_ATA
         log("Error");
 #endif
+        system_enable_interrupts();
         return -EBUSY;
     }
 
@@ -237,6 +249,7 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
 #ifdef DEBUG_ATA
         log("No DRQ");
 #endif
+        system_enable_interrupts();
         return -ENODEV;
     }
 
@@ -246,11 +259,14 @@ int ata_read(device_t* device, uint32_t sectorNum, uint8_t* read_data)
         read_data[2 * i + 0] = (data >> 0) & 0xFF;
     }
 
+    system_enable_interrupts();
     return 0;
 }
 
 int ata_flush(device_t* device)
 {
+    // Disbling interrupts tp be sure that we are not interrupted doing PIO.
+    system_disable_interrupts();
     ata_t* dev = &_ata_drives[device->id];
 
     uint8_t dev_config = _ata_gen_drive_head_register(true, !dev->is_master, 0);
@@ -260,6 +276,7 @@ int ata_flush(device_t* device)
 
     uint8_t status = port_read8(dev->port.command);
     if (status == 0x00) {
+        system_enable_interrupts();
         return -ENODEV;
     }
 
@@ -268,9 +285,11 @@ int ata_flush(device_t* device)
     }
 
     if (status & 0x01) {
+        system_enable_interrupts();
         return -EBUSY;
     }
 
+    system_enable_interrupts();
     return 0;
 }
 

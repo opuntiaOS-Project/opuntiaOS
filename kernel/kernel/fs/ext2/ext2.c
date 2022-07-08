@@ -20,11 +20,12 @@
 #define SUPERBLOCK _ext2_superblocks[dev->dev->id]
 #define GROUPS_COUNT _ext2_group_table_info[dev->dev->id].count
 #define GROUP_TABLES _ext2_group_table_info[dev->dev->id].table
-#define VFS_DEVICE_LOCK dev->lock
-#define VFS_DEVICE_LOCK_OWNED_BY(x) x->dev->lock
 #define BLOCK_LEN(sb) (1024 << (sb->log_block_size))
 #define TO_EXT_BLOCKS_CNT(sb, x) (x / (2 << (sb->log_block_size)))
 #define NORM_FILENAME(x) (x + ((4 - (x & 0b11)) & 0b11))
+
+#define FS_LOCK dev->fslock
+#define FS_LOCK_OWNED_BY(x) x->dev->fslock
 
 static superblock_t* _ext2_superblocks[MAX_DEVICES_COUNT];
 static groups_info_t _ext2_group_table_info[MAX_DEVICES_COUNT];
@@ -75,7 +76,6 @@ int ext2_free_inode(dentry_t* dentry);
 static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t group_index);
 static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t pref_group);
 static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t inode_index);
-static int _ext2_decriment_links_count(dentry_t* dentry);
 
 /* DIR FUNCTIONS */
 static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, const char* name, uint32_t len, uint32_t* found_inode_index);
@@ -156,6 +156,16 @@ static void _ext2_write_to_dev(vfs_device_t* dev, uint8_t* buf, uint32_t start, 
     }
 }
 
+static void _ext2_umem_copy_to_user(vfs_device_t* dev, void __user* dest, const void* src, size_t len)
+{
+    umem_copy_to_user(dest, src, len);
+}
+
+static void _ext2_umem_copy_from_user(vfs_device_t* dev, void* dest, const void __user* src, size_t len)
+{
+    umem_copy_from_user(dest, src, len);
+}
+
 static void _ext2_user_read_from_dev(vfs_device_t* dev, void __user* buf, uint32_t start, uint32_t len)
 {
     void (*read)(device_t * d, uint32_t s, uint8_t * r) = devman_function_handler(dev->dev, DRIVER_STORAGE_READ);
@@ -168,7 +178,7 @@ static void _ext2_user_read_from_dev(vfs_device_t* dev, void __user* buf, uint32
         read(dev->dev, sector, tmp_buf);
 
         size_t to_read = min(512 - start_offset, len);
-        umem_copy_to_user(buf + already_read, &tmp_buf[start_offset], to_read);
+        _ext2_umem_copy_to_user(dev, buf + already_read, &tmp_buf[start_offset], to_read);
 
         len -= to_read;
         already_read += to_read;
@@ -191,7 +201,7 @@ static void _ext2_user_write_to_dev(vfs_device_t* dev, void __user* buf, uint32_
         }
 
         size_t to_write = min(512 - start_offset, len);
-        umem_copy_from_user(&tmp_buf[start_offset], buf + already_written, to_write);
+        _ext2_umem_copy_from_user(dev, &tmp_buf[start_offset], buf + already_written, to_write);
 
         write(dev->dev, sector, tmp_buf, 512);
         len -= to_write;
@@ -344,13 +354,15 @@ static int _ext2_set_block_of_inode_lev2(dentry_t* dentry, uint32_t cur_block, u
     return res ? _ext2_set_block_of_inode_lev1(dentry, res, offset_inner, val) : -1;
 }
 
-/* FIXME: think of more effecient way */
+/**
+ * @note Both dentry and dev lock are acquired.
+ */
 int _ext2_set_block_of_inode(dentry_t* dentry, uint32_t inode_block_index, uint32_t val)
 {
     uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb) / 4;
     if (inode_block_index < 12) {
         dentry->inode->block[inode_block_index] = val;
-        dentry_set_flag(dentry, DENTRY_DIRTY);
+        dentry_set_flag_locked(dentry, DENTRY_DIRTY);
         return 0;
     }
     if (inode_block_index < 12 + block_len) { // single indirect
@@ -381,6 +393,9 @@ int _ext2_set_block_of_inode(dentry_t* dentry, uint32_t inode_block_index, uint3
     return _ext2_set_block_of_inode_lev2(dentry, dentry->inode->block[14], inode_block_index - (12 + block_len + block_len * block_len), val);
 }
 
+/**
+ * @note Both dentry and dev lock are acquired.
+ */
 static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* block_index, uint32_t group_index)
 {
     uint8_t block_bitmap[MAX_BLOCK_LEN];
@@ -397,6 +412,9 @@ static int _ext2_find_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint3
     return -ENOSPC;
 }
 
+/**
+ * @note Both dentry and dev lock are acquired.
+ */
 static int _ext2_allocate_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* block_index, uint32_t pref_group)
 {
     uint32_t groups_cnt = GROUPS_COUNT;
@@ -412,8 +430,15 @@ static int _ext2_allocate_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32
     return -ENOSPC;
 }
 
+/**
+ * @brief Frees block on device.
+ *
+ * @note Dentry lock should be acquired calling this function.
+ */
 static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index)
 {
+    spinlock_acquire(&FS_LOCK);
+
     block_index--;
     uint32_t block_len = BLOCK_LEN(fsdata.sb);
     uint32_t blockes_per_group = fsdata.sb->blocks_per_group;
@@ -426,22 +451,31 @@ static int _ext2_free_block_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t b
     _ext2_bitmap_unset_bit(block_bitmap, off);
     _ext2_write_to_dev(dev, block_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].block_bitmap), block_len);
     GROUP_TABLES[group_index].free_blocks_count++;
+
+    spinlock_release(&FS_LOCK);
     return 0;
 }
 
 /**
- * Returns allocated block in @block_index
+ * @brief Allocated block on device.
+ *
+ * @note Dentry lock should be acquired calling this function.
  */
 static int _ext2_allocate_block_for_inode(dentry_t* dentry, uint32_t pref_group, uint32_t* block_index)
 {
+    spinlock_acquire(&FS_LOCK_OWNED_BY(dentry));
+
     if (_ext2_allocate_block_index(dentry->dev, dentry->fsdata, block_index, pref_group) == 0) {
         uint32_t blocks_per_inode = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
         if (_ext2_set_block_of_inode(dentry, blocks_per_inode, *block_index) == 0) {
             dentry->inode->blocks += BLOCK_LEN(dentry->fsdata.sb) / 512;
-            dentry_set_flag(dentry, DENTRY_DIRTY);
+            dentry_set_flag_locked(dentry, DENTRY_DIRTY);
+            spinlock_release(&FS_LOCK_OWNED_BY(dentry));
             return 0;
         }
     }
+
+    spinlock_release(&FS_LOCK_OWNED_BY(dentry));
     return -ENOSPC;
 }
 
@@ -469,6 +503,9 @@ int ext2_write_inode(dentry_t* dentry)
     return 0;
 }
 
+/**
+ * @note Both dentry and dev lock are acquired.
+ */
 static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t group_index)
 {
     uint8_t inode_bitmap[MAX_BLOCK_LEN];
@@ -485,22 +522,35 @@ static int _ext2_find_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint3
     return -ENOSPC;
 }
 
+/**
+ * @note Dentry lock should be acquired calling this function.
+ */
 static int _ext2_allocate_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t* inode_index, uint32_t pref_group)
 {
+    spinlock_acquire(&FS_LOCK);
+
     uint32_t groups_cnt = GROUPS_COUNT;
     for (int i = 0; i < groups_cnt; i++) {
         uint32_t group_id = (pref_group + i) % groups_cnt;
         if (fsdata.gt->table[group_id].free_inodes_count) {
             if (_ext2_find_free_inode_index(dev, fsdata, inode_index, group_id) == 0) {
+                spinlock_release(&FS_LOCK);
                 return 0;
             }
         }
     }
+
+    spinlock_release(&FS_LOCK);
     return -ENOSPC;
 }
 
+/**
+ * @note Dentry lock should be acquired calling this function.
+ */
 static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t inode_index)
 {
+    spinlock_acquire(&FS_LOCK);
+
     inode_index--;
     uint32_t block_len = BLOCK_LEN(fsdata.sb);
     uint32_t inodes_per_group = fsdata.sb->inodes_per_group;
@@ -512,9 +562,14 @@ static int _ext2_free_inode_index(vfs_device_t* dev, fsdata_t fsdata, uint32_t i
 
     _ext2_bitmap_unset_bit(inode_bitmap, off);
     _ext2_write_to_dev(dev, inode_bitmap, _ext2_get_block_offset(fsdata.sb, fsdata.gt->table[group_index].inode_bitmap), block_len);
+
+    spinlock_release(&FS_LOCK);
     return 0;
 }
 
+/**
+ * @note Dentry lock should be acquired calling this function.
+ */
 int ext2_free_inode(dentry_t* dentry)
 {
     ASSERT(dentry->d_count == 0 && dentry->inode->links_count == 0);
@@ -528,11 +583,6 @@ int ext2_free_inode(dentry_t* dentry)
 
     _ext2_free_inode_index(dentry->dev, dentry->fsdata, dentry->inode_indx);
     return 0;
-}
-
-static int _ext2_decriment_links_count(dentry_t* dentry)
-{
-    return (--dentry->inode->links_count) == 0;
 }
 
 /**
@@ -575,39 +625,6 @@ static int _ext2_lookup_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block
     return -EFAULT;
 }
 
-static int _ext2_getdirent_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, off_t* offset, dirent_t* dirent)
-{
-    if (block_index == 0) {
-        return -EINVAL;
-    }
-    const uint32_t block_len = BLOCK_LEN(fsdata.sb);
-    uint32_t internal_offset = *offset % block_len;
-
-    uint8_t tmp_buf[MAX_BLOCK_LEN];
-    _ext2_read_from_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), block_len);
-    for (;;) {
-        dir_entry_t* start_of_entry = (dir_entry_t*)((uintptr_t)tmp_buf + internal_offset);
-        internal_offset += start_of_entry->rec_len;
-        *offset += start_of_entry->rec_len;
-
-        if (start_of_entry->inode != 0) {
-            int name_len = start_of_entry->name_len;
-            if (name_len > 251) {
-                log_warn("[VFS] Full name len is unsupported\n");
-                name_len = 251;
-            }
-            memcpy(dirent->name, (char*)start_of_entry + 8, name_len);
-            dirent->name[name_len] = '\0';
-            return 0;
-        }
-
-        if (internal_offset >= block_len) {
-            return -EFAULT;
-        }
-    }
-    return -EFAULT;
-}
-
 static int _ext2_get_dir_entries_count_in_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index)
 {
     ASSERT(block_index != 0);
@@ -643,7 +660,7 @@ static bool _ext2_is_dir_empty(dentry_t* dir)
         uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
         result += _ext2_get_dir_entries_count_in_block(dir->dev, dir->fsdata, data_block_index);
 
-        /* 2 here is because don't count . and .. */
+        // At least 3 elemetns are required (including . and .. which should be ignored).
         if (result > 2) {
             return false;
         }
@@ -692,7 +709,7 @@ static int _ext2_getdents_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t blo
             // Change it here, to have the correct copied data.
             start_of_entry->rec_len = real_rec_len;
 
-            umem_copy_to_user(buf + already_read, (void*)start_of_entry, real_rec_len);
+            _ext2_umem_copy_to_user(dev, buf + already_read, (void*)start_of_entry, real_rec_len);
             char __user* cbuf = (char __user*)buf;
             umem_put_user('\0', &cbuf[already_read + real_rec_len - 1]);
 
@@ -730,6 +747,9 @@ static int _ext2_add_first_entry_to_dir_block(vfs_device_t* dev, fsdata_t fsdata
     return 0;
 }
 
+/**
+ * @note Both dentry and dev lock are acquired.
+ */
 static int _ext2_add_to_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t block_index, dentry_t* child_dentry, const char* filename, uint32_t len)
 {
     if (block_index == 0) {
@@ -791,17 +811,15 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
     for (;;) {
 
         if (start_of_entry->inode == child_dentry->inode_indx) {
-            /* FIXME: just fix that */
+            // TODO: Better to remove the following if.
             if (!prev_entry) {
                 kpanic("Ext2: can't delete first entry!");
             }
 
-            /* deleting entry */
             start_of_entry->inode = 0;
             prev_entry->rec_len += start_of_entry->rec_len;
 
             _ext2_write_to_dev(dev, tmp_buf, _ext2_get_block_offset(fsdata.sb, block_index), BLOCK_LEN(fsdata.sb));
-
             return 0;
         }
 
@@ -813,6 +831,9 @@ static int _ext2_rm_from_dir_block(vfs_device_t* dev, fsdata_t fsdata, uint32_t 
     }
 }
 
+/**
+ * @note Both dentries should be acquired.
+ */
 static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* name, int len)
 {
     uint32_t block_index;
@@ -838,10 +859,13 @@ static int _ext2_add_child(dentry_t* dir, dentry_t* child_dentry, const char* na
 
 updated_inode:
     child_dentry->inode->links_count++;
-    dentry_set_flag(child_dentry, DENTRY_DIRTY);
+    dentry_set_flag_locked(child_dentry, DENTRY_DIRTY);
     return 0;
 }
 
+/**
+ * @note Both dentries should be acquired.
+ */
 static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
 {
     uint32_t block_index;
@@ -851,7 +875,7 @@ static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
         if ((block_index = _ext2_get_block_of_inode(dir, i))) {
             if (_ext2_rm_from_dir_block(dir->dev, dir->fsdata, block_index, child_dentry) == 0) {
                 child_dentry->inode->links_count--;
-                dentry_set_flag(child_dentry, DENTRY_DIRTY);
+                dentry_set_flag_locked(child_dentry, DENTRY_DIRTY);
                 return 0;
             }
         }
@@ -860,6 +884,9 @@ static int _ext2_rm_child(dentry_t* dir, dentry_t* child_dentry)
     return -ENOENT;
 }
 
+/**
+ * @note Both dentries should be acquired.
+ */
 static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode, uid_t uid, gid_t gid)
 {
     dir->inode->mode = mode;
@@ -867,7 +894,7 @@ static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode, uid
     dir->inode->gid = gid;
     dir->inode->links_count = 0;
     dir->inode->blocks = 0;
-    dentry_set_flag(dir, DENTRY_DIRTY);
+    dentry_set_flag_locked(dir, DENTRY_DIRTY);
     if (_ext2_add_child(dir, dir, ".", 1) < 0) {
         return -EFAULT;
     }
@@ -881,6 +908,9 @@ static int _ext2_setup_dir(dentry_t* dir, dentry_t* parent_dir, mode_t mode, uid
  * FILE FUNCTIONS
  */
 
+/**
+ * @note Both dentries should be acquired.
+ */
 static int _ext2_setup_file(dentry_t* file, mode_t mode, uid_t uid, gid_t gid)
 {
     file->inode->mode = mode;
@@ -889,7 +919,7 @@ static int _ext2_setup_file(dentry_t* file, mode_t mode, uid_t uid, gid_t gid)
     file->inode->links_count = 0;
     file->inode->blocks = 0;
     file->inode->size = 0;
-    dentry_set_flag(file, DENTRY_DIRTY);
+    dentry_set_flag_locked(file, DENTRY_DIRTY);
     return 0;
 }
 
@@ -911,14 +941,14 @@ int ext2_read(file_t* file, void __user* buf, size_t start, size_t len)
 {
     dentry_t* dentry = file_dentry_assert(file);
 
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&dentry->lock);
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t blocks_allocated = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
     uint32_t start_block_index = start / block_len;
     uint32_t end_block_index = min((start + len - 1) / block_len, blocks_allocated - 1);
 
     if (start >= dentry->inode->size) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&dentry->lock);
         return 0;
     }
 
@@ -935,7 +965,7 @@ int ext2_read(file_t* file, void __user* buf, size_t start, size_t len)
         read_offset = 0;
     }
 
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&dentry->lock);
     return already_read;
 }
 
@@ -943,7 +973,7 @@ int ext2_write(file_t* file, void __user* buf, size_t start, size_t len)
 {
     dentry_t* dentry = file_dentry_assert(file);
 
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&dentry->lock);
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t start_block_index = start / block_len;
     uint32_t end_block_index = (start + len) / block_len;
@@ -974,9 +1004,9 @@ int ext2_write(file_t* file, void __user* buf, size_t start, size_t len)
         dentry->inode->size = start + len;
     }
     dentry->inode->mtime = (uint32_t)timeman_seconds_since_epoch();
-    dentry_set_flag(dentry, DENTRY_DIRTY);
+    dentry_set_flag_locked(dentry, DENTRY_DIRTY);
 
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&dentry->lock);
     return already_written;
 }
 
@@ -984,9 +1014,9 @@ int ext2_truncate(file_t* file, size_t len)
 {
     dentry_t* dentry = file_dentry_assert(file);
 
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&dentry->lock);
     if (dentry->inode->size <= len) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&dentry->lock);
         return 0;
     }
 
@@ -1003,108 +1033,93 @@ int ext2_truncate(file_t* file, size_t len)
 
     dentry->inode->size = len;
     dentry->inode->mtime = (uint32_t)timeman_seconds_since_epoch();
-    dentry_set_flag(dentry, DENTRY_DIRTY);
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    dentry_set_flag_locked(dentry, DENTRY_DIRTY);
+    spinlock_release(&dentry->lock);
     return 0;
 }
 
 int ext2_lookup(const path_t* path, const char* name, size_t len, path_t* result)
 {
     dentry_t* dir = path->dentry;
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&dir->lock);
     uint32_t block_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
     for (int block_index = 0; block_index < block_per_dir; block_index++) {
         uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
         uint32_t res_inode_indx = 0;
         if (_ext2_lookup_block(dir->dev, dir->fsdata, data_block_index, name, len, &res_inode_indx) == 0) {
             result->dentry = dentry_get(dir->dev_indx, res_inode_indx);
-            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+            spinlock_release(&dir->lock);
             return 0;
         }
     }
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&dir->lock);
     return -ENOENT;
 }
 
 int ext2_mkdir(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
     dentry_t* dir = path->dentry;
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&dir->lock);
     uint32_t new_dir_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_dir_inode_indx, 0) < 0) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&dir->lock);
         return -ENOSPC;
     }
 
     dentry_t* new_dir = dentry_get(dir->dev_indx, new_dir_inode_indx);
-
+    spinlock_acquire(&new_dir->lock);
     if (_ext2_setup_dir(new_dir, dir, mode, uid, gid) < 0) {
+        spinlock_release(&new_dir->lock);
         dentry_put(new_dir);
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
-        return -EFAULT;
-    }
-    if (_ext2_add_child(dir, new_dir, name, len) < 0) {
-        dentry_put(new_dir);
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&dir->lock);
         return -EFAULT;
     }
 
+    if (_ext2_add_child(dir, new_dir, name, len) < 0) {
+        spinlock_release(&new_dir->lock);
+        dentry_put(new_dir);
+        spinlock_release(&dir->lock);
+        return -EFAULT;
+    }
+
+    spinlock_release(&new_dir->lock);
     dentry_put(new_dir);
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&dir->lock);
     return 0;
 }
 
 int ext2_rmdir(const path_t* path)
 {
     dentry_t* dir = path->dentry;
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
     dentry_t* parent_dir = dentry_get_parent(dir);
+    spinlock_acquire(&dir->lock);
 
     if (!parent_dir) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&dir->lock);
         return -EPERM;
     }
 
     if (_ext2_is_dir_empty(dir)) {
+        spinlock_acquire(&parent_dir->lock);
         if (_ext2_rm_child(parent_dir, dir) < 0) {
-            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+            spinlock_release(&parent_dir->lock);
+            spinlock_release(&dir->lock);
             return -EFAULT;
         }
         parent_dir->inode->links_count--;
         dir->inode->links_count--;
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&parent_dir->lock);
+        spinlock_release(&dir->lock);
         return 0;
     }
 
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&dir->lock);
     return -ENOTEMPTY;
-}
-
-int ext2_getdirent(dentry_t* dir, off_t* offset, dirent_t* res)
-{
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
-    const uint32_t block_len = BLOCK_LEN(dir->fsdata.sb);
-    uint32_t blocks_per_dir = TO_EXT_BLOCKS_CNT(dir->fsdata.sb, dir->inode->blocks);
-    if (*offset >= blocks_per_dir * block_len) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
-        return -1;
-    }
-
-    for (uint32_t block_index = *offset / block_len; block_index < blocks_per_dir; block_index++) {
-        uint32_t data_block_index = _ext2_get_block_of_inode(dir, block_index);
-        if (_ext2_getdirent_block(dir->dev, dir->fsdata, data_block_index, offset, res) == 0) {
-            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
-            return 0;
-        }
-    }
-
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
-    return 0;
 }
 
 int ext2_getdents(dentry_t* dentry, void __user* buf, off_t* offset, size_t len)
 {
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&dentry->lock);
     const uint32_t block_len = BLOCK_LEN(dentry->fsdata.sb);
     uint32_t start_block_index = *offset / block_len;
     uint32_t end_block_index = TO_EXT_BLOCKS_CNT(dentry->fsdata.sb, dentry->inode->blocks);
@@ -1116,7 +1131,7 @@ int ext2_getdents(dentry_t* dentry, void __user* buf, off_t* offset, size_t len)
         uint32_t read_from_block = min(len, block_len - read_offset);
         int act_read = _ext2_getdents_block(dentry->dev, dentry->fsdata, data_block_index, buf + already_read, read_from_block, read_offset, offset);
         if (act_read < 0) {
-            spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+            spinlock_release(&dentry->lock);
             if (already_read == 0) {
                 return act_read;
             }
@@ -1127,55 +1142,63 @@ int ext2_getdents(dentry_t* dentry, void __user* buf, off_t* offset, size_t len)
         read_offset = 0;
     }
 
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&dentry->lock);
     return already_read;
 }
 
 int ext2_create(const path_t* path, const char* name, size_t len, mode_t mode, uid_t uid, gid_t gid)
 {
     dentry_t* dir = path->dentry;
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_acquire(&dir->lock);
     uint32_t new_file_inode_indx = 0;
     if (_ext2_allocate_inode_index(dir->dev, dir->fsdata, &new_file_inode_indx, 0) < 0) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&dir->lock);
         return -ENOSPC;
     }
+
     dentry_t* new_file = dentry_get(dir->dev_indx, new_file_inode_indx);
+    spinlock_acquire(&new_file->lock);
 
     if (_ext2_setup_file(new_file, mode, uid, gid) < 0) {
+        spinlock_release(&new_file->lock);
         dentry_put(new_file);
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&dir->lock);
         return -EFAULT;
     }
 
     if (_ext2_add_child(dir, new_file, name, len) < 0) {
+        spinlock_release(&new_file->lock);
         dentry_put(new_file);
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+        spinlock_release(&dir->lock);
         return -EFAULT;
     }
 
+    spinlock_release(&new_file->lock);
     dentry_put(new_file);
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dir));
+    spinlock_release(&dir->lock);
     return 0;
 }
 
 int ext2_rm(const path_t* path)
 {
     dentry_t* dentry = path->dentry;
-    spinlock_acquire(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_acquire(&dentry->lock);
     dentry_t* parent_dir = dentry_get_parent(dentry);
 
     if (!parent_dir) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&dentry->lock);
         return -EPERM;
     }
 
+    spinlock_acquire(&parent_dir->lock);
     if (_ext2_rm_child(parent_dir, dentry) < 0) {
-        spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+        spinlock_release(&parent_dir->lock);
+        spinlock_release(&dentry->lock);
         return -EFAULT;
     }
 
-    spinlock_release(&VFS_DEVICE_LOCK_OWNED_BY(dentry));
+    spinlock_release(&parent_dir->lock);
+    spinlock_release(&dentry->lock);
     return 0;
 }
 
@@ -1188,36 +1211,38 @@ int ext2_fchmod(file_t* file, mode_t mode)
         return -EPERM;
     }
 
-    dentry_set_flag(dentry, DENTRY_DIRTY);
+    spinlock_acquire(&dentry->lock);
+    dentry_set_flag_locked(dentry, DENTRY_DIRTY);
     dentry->inode->mode = (dentry->inode->mode & ~(uint32_t)07777) | (mode & (uint32_t)07777);
+    spinlock_release(&dentry->lock);
     return 0;
 }
 
 int ext2_recognize_drive(vfs_device_t* dev)
 {
-    spinlock_acquire(&VFS_DEVICE_LOCK);
+    spinlock_acquire(&FS_LOCK);
     superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
 
     if (superblock->magic != 0xEF53) {
         kfree(superblock);
-        spinlock_release(&VFS_DEVICE_LOCK);
+        spinlock_release(&FS_LOCK);
         return -EINVAL;
     }
     if (superblock->rev_level != 0) {
         kfree(superblock);
-        spinlock_release(&VFS_DEVICE_LOCK);
+        spinlock_release(&FS_LOCK);
         return -EINVAL;
     }
 
     kfree(superblock);
-    spinlock_release(&VFS_DEVICE_LOCK);
+    spinlock_release(&FS_LOCK);
     return 0;
 }
 
 int ext2_prepare_fs(vfs_device_t* dev)
 {
-    spinlock_acquire(&VFS_DEVICE_LOCK);
+    spinlock_acquire(&FS_LOCK);
     superblock_t* superblock = (superblock_t*)kmalloc(SUPERBLOCK_LEN);
     _ext2_read_from_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     _ext2_superblocks[dev->dev->id] = superblock;
@@ -1229,15 +1254,15 @@ int ext2_prepare_fs(vfs_device_t* dev)
 
     _ext2_group_table_info[dev->dev->id].count = groups_cnt;
     _ext2_group_table_info[dev->dev->id].table = group_table;
-    spinlock_release(&VFS_DEVICE_LOCK);
+    spinlock_release(&FS_LOCK);
     return 0;
 }
 
 int ext2_save_state(vfs_device_t* dev)
 {
-    spinlock_acquire(&VFS_DEVICE_LOCK);
+    spinlock_acquire(&FS_LOCK);
     if (!_ext2_superblocks[dev->dev->id]) {
-        spinlock_release(&VFS_DEVICE_LOCK);
+        spinlock_release(&FS_LOCK);
         return -1;
     }
 
@@ -1250,7 +1275,7 @@ int ext2_save_state(vfs_device_t* dev)
 
     _ext2_write_to_dev(dev, (uint8_t*)superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
     kfree(superblock);
-    spinlock_release(&VFS_DEVICE_LOCK);
+    spinlock_release(&FS_LOCK);
     return 0;
 }
 
