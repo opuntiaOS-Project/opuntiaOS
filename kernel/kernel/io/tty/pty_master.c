@@ -38,7 +38,6 @@ static fs_ops_t pty_master_ops = {
         .read_inode = NULL,
         .write_inode = NULL,
         .free_inode = _pty_master_free_dentry_data,
-        .get_fsdata = NULL,
     },
     .file = {
         .can_read = pty_master_can_read,

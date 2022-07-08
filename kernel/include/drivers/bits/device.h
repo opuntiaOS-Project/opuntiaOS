@@ -9,6 +9,7 @@
 #ifndef _KERNEL_DRIVERS_BITS_DEVICE_H
 #define _KERNEL_DRIVERS_BITS_DEVICE_H
 
+#include <libkern/lock.h>
 #include <libkern/types.h>
 
 enum DEVICES_TYPE {
@@ -66,6 +67,8 @@ struct device {
     int type;
     bool is_virtual;
     int driver_id;
+
+    spinlock_t lock;
     device_desc_t device_desc;
 };
 typedef struct device device_t;

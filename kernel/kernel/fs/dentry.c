@@ -24,9 +24,10 @@
 #define DENTRY_ALLOC_SIZE (4 * KB) /* Shows the size of list's parts. */
 #define DENTRY_SWAP_THRESHOLD_FOR_INODE_CACHE (16 * KB)
 
+extern int _fs_count;
+extern fs_desc_t _vfs_fses[];
 extern vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
-extern dynamic_array_t _vfs_fses;
-extern uint32_t root_fs_dev_id;
+extern int32_t root_fs_dev_id;
 
 static bool can_cache_inodes = 1;
 static size_t stat_cached_dentries = 0; /* Count of dentries which are held. */
@@ -194,7 +195,6 @@ static dentry_t* dentry_alloc_new(dev_t dev_indx, ino_t inode_indx, int need_to_
     }
 
     dentry_t* dentry = dentry_cache_find_empty_entry();
-    fs_desc_t* fs_desc;
 
     /* If inode_indx isn't 0, so we can say that we replace a valid dentry, which
        has area for storing inode allocated. */
@@ -203,11 +203,9 @@ static dentry_t* dentry_alloc_new(dev_t dev_indx, ino_t inode_indx, int need_to_
     dentry->d_count = 1;
     dentry->flags = 0;
     dentry->dev_indx = dev_indx;
-    dentry->dev = &_vfs_devices[dentry->dev_indx];
-    fs_desc = dynarr_get(&_vfs_fses, dentry->dev->fs);
-    dentry->ops = fs_desc->ops;
+    dentry->vfsdev = &_vfs_devices[dentry->dev_indx];
+    dentry->ops = dentry->vfsdev->fsdesc->ops;
     dentry->inode_indx = inode_indx;
-    dentry->fsdata = dentry->ops->dentry.get_fsdata(dentry);
     dentry->parent = NULL;
     dentry->filename = NULL;
 
