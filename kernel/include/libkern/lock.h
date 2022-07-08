@@ -49,6 +49,11 @@ static ALWAYS_INLINE void spinlock_release(spinlock_t* lock)
     __atomic_store_n(&lock->status, 0, __ATOMIC_RELEASE);
 }
 
+static ALWAYS_INLINE bool spinlock_try_acquire(spinlock_t* lock)
+{
+    return !__atomic_exchange_n(&lock->status, 1, __ATOMIC_ACQUIRE);
+}
+
 #ifdef DEBUG_SPINLOCK
 #define spinlock_acquire(x)                                                        \
     system_disable_interrupts();                                                   \
