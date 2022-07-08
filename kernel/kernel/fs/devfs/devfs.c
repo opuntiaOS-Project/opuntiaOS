@@ -243,17 +243,6 @@ static int _devfs_setup_root()
  * VFS Api
  */
 
-fsdata_t devfs_data(dentry_t* dentry)
-{
-    // Set everything to NULL, since devfs isn't supposed to be used by several devices.
-    // All of mount of devfs will show the same info.
-    fsdata_t fsdata;
-    fsdata.sb = NULL;
-    fsdata.gt = NULL;
-    fsdata.blksize = 1;
-    return fsdata;
-}
-
 int devfs_prepare_fs(vfs_device_t* vdev)
 {
     dynarr_init(void*, &name_zones);
@@ -548,7 +537,6 @@ driver_desc_t _devfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = devfs_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = devfs_write_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE] = devfs_free_inode;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = devfs_data;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = devfs_lookup;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = devfs_getdents;
     fs_desc.functions[DRIVER_FILE_SYSTEM_CREATE] = NULL;

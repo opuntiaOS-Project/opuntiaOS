@@ -23,24 +23,21 @@
 #define VFS_MAX_FILENAME 16
 #define VFS_MAX_FILENAME_EXT 4
 #define VFS_ATTR_NOTFILE 0xff
-#define VFS_USE_STD_MMAP 0xffffffff /* If custom mmap impl isn't support for such a file, you can return the flag and std impl will be used */
 
+// The flag could be used as return when custom mmap function could not handle file.
+// In this case the standard implementation will be used if possible.
+#define VFS_USE_STD_MMAP 0xffffffff
+
+// VFS Device is a wrapper for each of logical storage device.
+// The wrapper is created only for those.
+struct fs_desc;
 typedef struct {
-    uint32_t count;
-    group_desc_t* table;
-} groups_info_t;
-
-typedef struct {
-    superblock_t* sb;
-    groups_info_t* gt;
-    size_t blksize;
-} fsdata_t;
-
-typedef struct {
-    device_t* dev;
-
-    int fs;
+    int fsid;
+    void* fsdata; // Holds data which is needed for FS, like pointers to superblocks and e.g.
+    struct fs_desc* fsdesc;
     spinlock_t fslock;
+
+    device_t* dev;
 } vfs_device_t;
 
 struct dirent {
@@ -52,13 +49,12 @@ struct dirent {
 };
 typedef struct dirent dirent_t;
 
-// Dentry Flags
 #define DENTRY_DIRTY 0x1
 #define DENTRY_MOUNTPOINT 0x2
 #define DENTRY_MOUNTED 0x4
 #define DENTRY_INODE_TO_BE_DELETED 0x8
-#define DENTRY_PRIVATE 0x10 /* This dentry can't be opened so can't be copied */
-#define DENTRY_CUSTOM 0x20 /* Such dentries won't be process in dentry.c file */
+#define DENTRY_PRIVATE 0x10 // This dentry can't be opened so can't be copied.
+#define DENTRY_CUSTOM 0x20 // Such dentries won't be process in dentry.c file.
 typedef uint32_t dentry_flag_t;
 
 struct dentry {
@@ -69,10 +65,9 @@ struct dentry {
 
     // Lock controls all dentry fields, (including inode, since it could be hold only by one dentry).
     spinlock_t lock;
-    fsdata_t fsdata;
     struct fs_ops* ops;
     dev_t dev_indx;
-    vfs_device_t* dev;
+    vfs_device_t* vfsdev;
 
     char* filename;
     struct dentry* parent;
@@ -114,7 +109,6 @@ struct dentry_ops {
     int (*read_inode)(dentry_t* dentry);
     int (*write_inode)(dentry_t* dentry);
     int (*free_inode)(dentry_t* dentry);
-    fsdata_t (*get_fsdata)(dentry_t* dentry);
 };
 typedef struct dentry_ops dentry_ops_t;
 

@@ -73,6 +73,18 @@ struct PACKED group_desc {
 };
 typedef struct group_desc group_desc_t;
 
+typedef struct {
+    uint32_t count;
+    group_desc_t* table;
+} ext2_groups_info_t;
+
+struct ext2_fsdata {
+    superblock_t* sb;
+    ext2_groups_info_t* gt;
+    size_t blksize;
+};
+typedef struct ext2_fsdata ext2_fsdata_t;
+
 #define S_IFSOCK 0xC000
 #define S_IFLNK 0xA000
 #define S_IFREG 0x8000

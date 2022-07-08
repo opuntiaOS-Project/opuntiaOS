@@ -45,15 +45,6 @@ int procfs_free_inode(dentry_t* dentry)
     return 0;
 }
 
-fsdata_t procfs_data(dentry_t* dentry)
-{
-    fsdata_t fsdata;
-    fsdata.sb = NULL;
-    fsdata.gt = NULL;
-    fsdata.blksize = 1;
-    return fsdata;
-}
-
 int procfs_can_write(file_t* file, size_t start)
 {
     procfs_inode_t* procfs_inode = (procfs_inode_t*)file_dentry_assert(file)->inode;
@@ -108,6 +99,32 @@ int procfs_lookup(const path_t* path, const char* name, size_t len, path_t* resu
     return procfs_inode->ops->lookup(path, name, len, result);
 }
 
+int procfs_fstat(file_t* file, stat_t* stat)
+{
+    dentry_t* dentry = file_dentry_assert(file);
+    spinlock_acquire(&dentry->lock);
+
+    procfs_inode_t* procfs_inode = (procfs_inode_t*)dentry->inode;
+    stat->st_dev = 0;
+    stat->st_ino = procfs_inode->index;
+    stat->st_mode = procfs_inode->mode;
+    stat->st_size = 0;
+    stat->st_uid = 0;
+    stat->st_gid = 0;
+    stat->st_blksize = 1;
+    stat->st_nlink = 1;
+    stat->st_blocks = 0;
+    stat->st_atim.tv_sec = 0;
+    stat->st_atim.tv_nsec = 0;
+    stat->st_mtim.tv_sec = 0;
+    stat->st_mtim.tv_nsec = 0;
+    stat->st_ctim.tv_sec = 0;
+    stat->st_ctim.tv_nsec = 0;
+
+    spinlock_release(&dentry->lock);
+    return 0;
+}
+
 driver_desc_t _procfs_driver_info()
 {
     driver_desc_t fs_desc = { 0 };
@@ -126,11 +143,10 @@ driver_desc_t _procfs_driver_info()
     fs_desc.functions[DRIVER_FILE_SYSTEM_READ_INODE] = procfs_read_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE] = procfs_write_inode;
     fs_desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE] = procfs_free_inode;
-    fs_desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA] = procfs_data;
     fs_desc.functions[DRIVER_FILE_SYSTEM_LOOKUP] = procfs_lookup;
     fs_desc.functions[DRIVER_FILE_SYSTEM_GETDENTS] = procfs_getdents;
 
-    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = NULL;
+    fs_desc.functions[DRIVER_FILE_SYSTEM_FSTAT] = procfs_fstat;
     fs_desc.functions[DRIVER_FILE_SYSTEM_FCHMOD] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_IOCTL] = NULL;
     fs_desc.functions[DRIVER_FILE_SYSTEM_MMAP] = NULL;

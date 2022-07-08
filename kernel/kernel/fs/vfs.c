@@ -19,10 +19,11 @@
 #include <tasking/tasking.h>
 
 // #define VFS_DEBUG
-#define MAX_FS 8
+#define MAX_FS_COUNT 8
 
+int _fs_count = 0;
+fs_desc_t _vfs_fses[MAX_FS_COUNT];
 vfs_device_t _vfs_devices[MAX_DEVICES_COUNT];
-dynamic_array_t _vfs_fses;
 int32_t root_fs_dev_id = -1;
 
 static void vfs_recieve_notification(uintptr_t msg, uintptr_t param);
@@ -55,7 +56,6 @@ driver_desc_t _vfs_driver_info()
 void vfs_install()
 {
     devman_register_driver(_vfs_driver_info(), "vfs");
-    dynarr_init_of_size(fs_desc_t, &_vfs_fses, MAX_FS);
 }
 devman_register_driver_installation(vfs_install);
 
@@ -71,37 +71,61 @@ static void vfs_recieve_notification(uintptr_t msg, uintptr_t param)
     }
 }
 
+static fs_desc_t* fsdesc_get(int id)
+{
+    ASSERT(0 <= id && id < _fs_count);
+    return &_vfs_fses[id];
+}
+
+static fs_desc_t* fsdesc_alloc()
+{
+    ASSERT(_fs_count < MAX_FS_COUNT);
+    return &_vfs_fses[_fs_count++];
+}
+
+static vfs_device_t* dev_to_vfsdev(device_t* dev)
+{
+    ASSERT(0 <= dev->id && dev->id < MAX_DEVICES_COUNT);
+    _vfs_devices[dev->id].dev = dev;
+    return &_vfs_devices[dev->id];
+}
+
 int vfs_choose_fs_of_dev(vfs_device_t* vfs_dev)
 {
-    int fs_cnt = _vfs_fses.size;
-    for (int i = 0; i < fs_cnt; i++) {
-        fs_desc_t* fs = dynarr_get(&_vfs_fses, (int)i);
+    for (int i = 0; i < _fs_count; i++) {
+        fs_desc_t* fs = fsdesc_get(i);
         if (!fs->ops->recognize) {
             continue;
         }
 
         int err = fs->ops->recognize(vfs_dev);
-        if (!err) {
-            vfs_dev->fs = i;
-            if (fs->ops->prepare_fs) {
-                return fs->ops->prepare_fs(&_vfs_devices[vfs_dev->dev->id]);
-            }
+        if (err) {
+            continue;
+        }
+
+        vfs_dev->fsid = i;
+        vfs_dev->fsdata = NULL;
+        vfs_dev->fsdesc = fs;
+        if (!fs->ops->prepare_fs) {
             return 0;
         }
+
+        ASSERT(vfs_dev == &_vfs_devices[vfs_dev->dev->id]);
+        return fs->ops->prepare_fs(vfs_dev);
     }
     return -ENOENT;
 }
 
 int vfs_get_fs_id(const char* name)
 {
-    int fs_cnt = _vfs_fses.size;
+    int fs_cnt = _fs_count;
     for (int i = 0; i < fs_cnt; i++) {
-        fs_desc_t* fs = dynarr_get(&_vfs_fses, (int)i);
+        fs_desc_t* fs = fsdesc_get(i);
         if (strcmp(name, fs->driver->name) == 0) {
             return i;
         }
     }
-    return -1;
+    return -ENOENT;
 }
 
 int vfs_add_dev(device_t* dev)
@@ -114,17 +138,21 @@ int vfs_add_dev(device_t* dev)
         root_fs_dev_id = dev->id;
     }
 
-    _vfs_devices[dev->id].dev = dev;
-    spinlock_init(&_vfs_devices[dev->id].fslock);
-    if (!dev->is_virtual) {
-        if (vfs_choose_fs_of_dev(&_vfs_devices[dev->id]) < 0) {
-            return -ENOENT;
-        }
+    vfs_device_t* vfsdev = dev_to_vfsdev(dev);
+    spinlock_init(&vfsdev->fslock);
+    if (dev->is_virtual) {
+        // Ignoring virtual devices, since we could not detect fs.
+        return -EINVAL;
+    }
+
+    int err = vfs_choose_fs_of_dev(&_vfs_devices[dev->id]);
+    if (err) {
+        return err;
     }
     return 0;
 }
 
-int vfs_add_dev_with_fs(device_t* dev, int fs_id)
+int vfs_add_dev_with_fs(device_t* dev, int fsid)
 {
     if (dev->type != DEVICE_STORAGE) {
         return -EPERM;
@@ -134,16 +162,17 @@ int vfs_add_dev_with_fs(device_t* dev, int fs_id)
         root_fs_dev_id = dev->id;
     }
 
-    _vfs_devices[dev->id].dev = dev;
-    _vfs_devices[dev->id].fs = fs_id;
+    fs_desc_t* fs = fsdesc_get(fsid);
+    vfs_device_t* vfsdev = dev_to_vfsdev(dev);
+    spinlock_init(&vfsdev->fslock);
 
-    fs_desc_t* fs = dynarr_get(&_vfs_fses, fs_id);
-    if (fs->ops->prepare_fs) {
-        int (*prepare_fs)(vfs_device_t * nd) = fs->ops->prepare_fs;
-        return prepare_fs(&_vfs_devices[dev->id]);
+    vfsdev->fsid = fsid;
+    vfsdev->fsdata = NULL;
+    vfsdev->fsdesc = fs;
+    if (!fs->ops->prepare_fs) {
+        return 0;
     }
-
-    return 0;
+    return fs->ops->prepare_fs(vfsdev);
 }
 
 // TODO: reuse unused slots
@@ -152,11 +181,10 @@ void vfs_eject_device(device_t* dev)
 #ifdef VFS_DEBUG
     log("Ejecting\n");
 #endif
-    int fs_id = _vfs_devices[dev->id].fs;
-    fs_desc_t* fs = dynarr_get(&_vfs_fses, (int)fs_id);
+    vfs_device_t* vfsdev = dev_to_vfsdev(dev);
+    fs_desc_t* fs = vfsdev->fsdesc;
     if (fs->ops->eject_device) {
-        int (*eject)(vfs_device_t * nd) = fs->ops->eject_device;
-        eject(&_vfs_devices[dev->id]);
+        fs->ops->eject_device(vfsdev);
     }
     dentry_put_all_dentries_of_dev(dev->id);
 }
@@ -193,12 +221,10 @@ int vfs_add_fs(driver_t* new_driver)
     new_ops->dentry.write_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_WRITE_INODE];
     new_ops->dentry.read_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_READ_INODE];
     new_ops->dentry.free_inode = new_driver->desc.functions[DRIVER_FILE_SYSTEM_FREE_INODE];
-    new_ops->dentry.get_fsdata = new_driver->desc.functions[DRIVER_FILE_SYSTEM_GET_FSDATA];
 
-    fs_desc_t new_fs;
-    new_fs.driver = new_driver;
-    new_fs.ops = new_ops;
-    dynarr_push(&_vfs_fses, &new_fs);
+    fs_desc_t* new_fs = fsdesc_alloc();
+    new_fs->driver = new_driver;
+    new_fs->ops = new_ops;
     return 0;
 }
 
@@ -515,45 +541,16 @@ int vfs_getdents(file_descriptor_t* fd, void __user* buf, size_t len)
 
 int vfs_fstat(file_descriptor_t* fd, stat_t* stat)
 {
-    if (fd->file->ops->fstat) {
-        int res = fd->file->ops->fstat(fd->file, stat);
-        return res;
-    }
-
     spinlock_acquire(&fd->file->lock);
-    dentry_t* dentry = file_dentry(fd->file);
-
-    switch (fd->file->type) {
-    case FTYPE_FILE:
-        ASSERT(dentry);
-        // For drives we set MAJOR=0 and MINOR=drive's id.
-        stat->st_dev = MKDEV(0, dentry->dev_indx);
-        stat->st_ino = dentry->inode_indx;
-        stat->st_mode = dentry->inode->mode;
-        stat->st_size = dentry->inode->size;
-        stat->st_uid = dentry->inode->uid;
-        stat->st_gid = dentry->inode->gid;
-        stat->st_blksize = dentry->fsdata.blksize;
-        stat->st_nlink = dentry->inode->links_count;
-        stat->st_blocks = dentry->inode->blocks;
-        stat->st_atim.tv_sec = dentry->inode->atime;
-        stat->st_atim.tv_nsec = 0;
-        stat->st_mtim.tv_sec = dentry->inode->mtime;
-        stat->st_mtim.tv_nsec = 0;
-        stat->st_ctim.tv_sec = dentry->inode->ctime;
-        stat->st_ctim.tv_nsec = 0;
-        break;
-
-    case FTYPE_SOCKET:
-        ASSERT(false && "No fstat for FD_TYPE_SOCKET");
-        break;
-
-    default:
-        break;
+    if (!fd->file->ops->fstat) {
+        log_warn("Could not do fstat as no handler is present");
+        spinlock_release(&fd->file->lock);
+        return -ENOEXEC;
     }
 
+    int res = fd->file->ops->fstat(fd->file, stat);
     spinlock_release(&fd->file->lock);
-    return 0;
+    return res;
 }
 
 int vfs_chmod(const path_t* vfspath, mode_t mode)
