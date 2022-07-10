@@ -21,6 +21,9 @@ extern void _tasking_jumper();
 
 int _thread_setup_kstack(thread_t* thread, uintptr_t esp)
 {
+    const uintptr_t alignment = sizeof(uintptr_t) * 2;
+    ASSERT(esp == ROUND_FLOOR(esp, alignment));
+
     char* sp = (char*)(esp);
     /* setting trapframe in kernel stack */
     sp -= sizeof(*thread->tf);

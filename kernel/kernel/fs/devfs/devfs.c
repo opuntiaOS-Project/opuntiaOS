@@ -461,7 +461,10 @@ int devfs_fstat(file_t* file, stat_t* stat)
 {
     // Filling the default data, while custom fstat function of a
     // device could rewrite this.
-    devfs_inode_t* devfs_inode = (devfs_inode_t*)file_dentry_assert(file)->inode;
+    dentry_t* dentry = file_dentry_assert(file);
+    spinlock_acquire(&dentry->lock);
+
+    devfs_inode_t* devfs_inode = (devfs_inode_t*)(dentry->inode);
     stat->st_dev = devfs_inode->dev_id;
     stat->st_ino = devfs_inode->index;
     stat->st_mode = devfs_inode->mode;
@@ -477,6 +480,8 @@ int devfs_fstat(file_t* file, stat_t* stat)
     stat->st_mtim.tv_nsec = 0;
     stat->st_ctim.tv_sec = 0;
     stat->st_ctim.tv_nsec = 0;
+
+    spinlock_release(&dentry->lock);
 
     // Calling a custom fstat if present.
     if (devfs_inode->handlers->fstat) {

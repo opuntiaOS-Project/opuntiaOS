@@ -37,13 +37,6 @@ if (arch == "arm32"):
     elif host == "llvm":
         OBJCOPY_TOOL = "{0}llvm-objcopy".format(path_to_bins)
         OBJCOPY_TARGET = "elf32-littlearm"
-elif (arch == "x86"):
-    if host == "gnu":
-        OBJCOPY_TOOL = "{0}i686-elf-objcopy".format(path_to_bins)
-        OBJCOPY_TARGET = "elf32-i386"
-    elif host == "llvm":
-        OBJCOPY_TOOL = "{0}llvm-objcopy".format(path_to_bins)
-        OBJCOPY_TARGET = "elf32-i386"
 elif (arch == "arm64"):
     if host == "gnu":
         OBJCOPY_TOOL = "{0}aarch64-elf-objcopy".format(path_to_bins)
