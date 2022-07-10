@@ -91,7 +91,7 @@ void isr_handler(trapframe_t* frame)
             dump_and_kill(proc);
         } else {
             snprintf(
-                err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s",
+                err_buf, ERR_BUF_SIZE, "Kernel trap at %zx, type %d=%s",
                 get_instruction_pointer(frame), frame->int_no,
                 &exception_messages[frame->int_no]);
             kpanic_tf(err_buf, frame);
@@ -112,13 +112,12 @@ void isr_handler(trapframe_t* frame)
 
     /* Invalid opcode or kernel trap (if no process). */
     case 6:
-
         if (proc) {
             log_warn("Crash: invalid opcode in %d tid\n", RUNNING_THREAD->tid);
             dump_and_kill(proc);
         } else {
             snprintf(
-                err_buf, ERR_BUF_SIZE, "Kernel trap at %x, type %d=%s",
+                err_buf, ERR_BUF_SIZE, "Kernel trap at %zx, type %d=%s",
                 get_instruction_pointer(frame), frame->int_no, &exception_messages[frame->int_no]);
             kpanic_tf(err_buf, frame);
         }
@@ -136,9 +135,18 @@ void isr_handler(trapframe_t* frame)
     case 11:
     case 12:
     case 13:
-        log_error("Int w/o handler: %d: %s: %d", frame->int_no,
-            exception_messages[frame->int_no], frame->err);
-        system_stop();
+        log_error("Int w/o handler: %d: %s: %d %zx", frame->int_no,
+            exception_messages[frame->int_no], frame->err, get_instruction_pointer(frame));
+        if (proc) {
+            log_warn("Crash: err %d: %d pid, %zx ip",
+                frame->err, proc->pid, get_instruction_pointer(frame));
+            dump_and_kill(proc);
+        } else {
+            snprintf(
+                err_buf, ERR_BUF_SIZE, "Kernel trap at %zx, type %d=%s",
+                get_instruction_pointer(frame), frame->int_no, &exception_messages[frame->int_no]);
+            kpanic_tf(err_buf, frame);
+        }
         break;
 
     case 14:
@@ -147,7 +155,7 @@ void isr_handler(trapframe_t* frame)
             break;
 
         if (proc) {
-            log_warn("Crash: pf err %d at %x: %d pid, %x ip",
+            log_warn("Crash: pf err %d at %zx: %d pid, %zx ip",
                 frame->err, read_cr2(), proc->pid, get_instruction_pointer(frame));
             dump_and_kill(proc);
         } else {
