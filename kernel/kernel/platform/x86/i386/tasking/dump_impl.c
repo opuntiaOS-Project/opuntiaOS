@@ -49,7 +49,11 @@ void dump_backtrace(dump_data_t* dump_data, uintptr_t ip, uintptr_t* bp, int is_
         }
 
         ip = bp[1];
-        bp = (uintptr_t*)*bp;
+        uintptr_t* newbp = (uintptr_t*)*bp;
+        if (bp == newbp) {
+            return;
+        }
+        bp = newbp;
         id++;
     } while (ip != dump_data->entry_point);
 
