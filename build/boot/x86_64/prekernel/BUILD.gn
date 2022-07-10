@@ -12,6 +12,8 @@ prekernel_c_flags = [
   "-mno-sse",
   "-mno-sse2",
   "-fpie",
+  "-mno-red-zone",
+  "-fno-omit-frame-pointer",
 ]
 prekernel_asm_flags = [
   "-w+all",
@@ -43,21 +45,32 @@ linker_script =
     rebase_path("//build/boot/$target_cpu/prekernel/prekernel_link.ld",
                 root_build_dir)
 
+# Use a strange __EMPTY_PATH_, empty string can't be passed as an arg.
+path_to_bins = "__EMPTY_PATH_"
+if (host == "llvm") {
+  path_to_bins = llvm_bin_path
+}
+
+embed_kernel_script_args = [
+  rebase_path("$root_build_dir/base/boot/kernel.bin", root_build_dir),
+  rebase_path("$root_build_dir/tmp/boot/kernel.o", root_build_dir),
+  "$target_cpu",
+  "$target_board",
+  "$host",
+  "$path_to_bins",
+]
+
 action("embed_kernel") {
   script = "embed_kernel.py"
   sources = [ "$root_build_dir/base/boot/kernel.bin" ]
   outputs = [ "$root_build_dir/tmp/boot/kernel.o" ]
-  args = [
-    rebase_path("$root_build_dir/base/boot/kernel.bin", root_build_dir),
-    rebase_path("$root_build_dir/tmp/boot/kernel.o", root_build_dir),
-  ]
-
+  args = embed_kernel_script_args
   deps = [ "//build/kernel:kernel_build" ]
 }
 
 executable("prekernelx86_64") {
   output_name = "prekernelx86_64.bin"
-  inputs = ["$root_build_dir/tmp/boot/kernel.o"]
+  inputs = [ "$root_build_dir/tmp/boot/kernel.o" ]
   sources = [
     "//boot/libboot/elf/elf_lite.c",
     "//boot/libboot/log/log.c",

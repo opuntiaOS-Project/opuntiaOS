@@ -5,16 +5,30 @@
 import sys
 import os
 import subprocess
-from construct import *
-from elftools.elf.elffile import ELFFile
-from elftools.elf.constants import SH_FLAGS
 
 prekernel_path = sys.argv[1]
 out_path = sys.argv[2]
-build_dir_path = os.path.dirname(os.path.abspath(sys.argv[2]))
+arch = sys.argv[3]
+board = sys.argv[4]
+host = sys.argv[5]
+path_to_bins = sys.argv[6]
+
+if path_to_bins == "__EMPTY_PATH_":
+    path_to_bins = ""
+if len(path_to_bins) != 0:
+    if path_to_bins[-1] != '/':
+        path_to_bins += "/"
+
+if host == "gnu":
+    OBJCOPY_TOOL = "{0}x86_64-elf-objcopy".format(path_to_bins)
+elif host == "llvm":
+    OBJCOPY_TOOL = "{0}llvm-objcopy".format(path_to_bins)
+else:
+    print("Unsupported host {0}".format(host))
+    exit(0)
 
 # rawImage for x86 is a multiboot-capable elf file. Since qemu does not
 # implement support for multiboot2 specs, which could load elf64, we have
 # to change the type of the elf file to elf32-i686.
 output = subprocess.check_output(
-    "x86_64-elf-objcopy -O elf32-i386 {0} {1}".format(prekernel_path, out_path), shell=True)
+    "{0} -O elf32-i386 {1} {2}".format(OBJCOPY_TOOL, prekernel_path, out_path), shell=True)

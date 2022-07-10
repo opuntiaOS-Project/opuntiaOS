@@ -2,12 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Use a strange __EMPTY_PATH_, empty string can't be passed as an arg.
-# path_to_bins = "__EMPTY_PATH_"
-# if (host == "llvm") {
-#   path_to_bins = llvm_bin_path
-# }
-
 group("bootx86_64") {
   deps = [
     "rawImage:rawImage",

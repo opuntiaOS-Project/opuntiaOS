@@ -52,6 +52,5 @@ void cpuinfo_init()
     SET_FEAT(cpuid_1_0.ecx, 28, THIS_CPU->cpufeat |= CPUFEAT_AVX);
 
     cpuid_t cpuid_ex1_0 = read_cpuid(0x80000001, 0);
-    log("cpu %zx %zx", cpuid_ex1_0.edx, (cpuid_ex1_0.edx & (1 << 26)));
     SET_FEAT(cpuid_ex1_0.edx, 26, THIS_CPU->cpufeat |= CPUFEAT_PDPE1GB);
 }
