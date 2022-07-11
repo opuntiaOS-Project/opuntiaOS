@@ -1,0 +1,59 @@
+name: Building x86_64
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Pouring Deps
+        run: |
+          brew install llvm@14 ninja nasm
+          brew install x86_64-elf-gcc
+          pip3 install -r utils/python_requirements.txt
+
+      - name: Pouring GN
+        run: |
+          wget https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-amd64/+/latest
+          unzip latest
+          mv gn /usr/local/bin
+
+      - name: Create GNU Build Environment
+        run: gn gen out --args='target_cpu="x86_64" host="gnu"'
+
+      - name: Build GNU
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
+
+      - name: Cleaning GNU Build Environment
+        run: rm -rf out
+
+      - name: Create LLVM Build Environment
+        run: |
+          export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
+          gn gen out --args='target_cpu="x86_64" host="llvm"'
+
+      - name: Build LLVM
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
+
+      - name: Cleaning Desktop LLVM Build Environment
+        run: rm -rf out
+
+      - name: Create Mobile LLVM Build Environment
+        run: |
+          export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
+          gn gen out --args='target_cpu="x86_64" host="llvm" device_type="m"'
+
+      - name: Build Mobile with LLVM
+        working-directory: ${{github.workspace}}/out
+        shell: bash
+        run: ninja
