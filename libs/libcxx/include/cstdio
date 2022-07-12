@@ -13,12 +13,20 @@ using ::fclose;
 using ::FILE;
 using ::fopen;
 
+using ::setbuf;
+using ::setlinebuf;
+using ::setvbuf;
+
 using ::fprintf;
 using ::printf;
 using ::snprintf;
 using ::sprintf;
 using ::vsnprintf;
 using ::vsprintf;
+
+using ::scanf;
+using ::sscanf;
+using ::vsscanf;
 
 _LIBCXX_END_NAMESPACE_STD
 

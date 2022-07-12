@@ -8,10 +8,15 @@
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
+using ::clock_getres;
+using ::clock_gettime;
+using ::clock_settime;
 using ::gmtime;
 using ::gmtime_r;
 using ::localtime;
 using ::localtime_r;
+using ::mktime;
+using ::nanosleep;
 using ::strftime;
 using ::time;
 using ::time_t;

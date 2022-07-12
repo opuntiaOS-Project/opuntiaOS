@@ -8,15 +8,23 @@
 
 _LIBCXX_BEGIN_NAMESPACE_STD
 
+using ::memccpy;
+using ::memchr;
 using ::memcmp;
 using ::memcpy;
 using ::memmove;
 using ::memset;
+using ::strcat;
+using ::strchr;
 using ::strcmp;
 using ::strcpy;
 using ::strlen;
 using ::strncmp;
 using ::strncpy;
+using ::strrchr;
+using ::strstr;
+using ::strtok;
+using ::strtok_r;
 
 _LIBCXX_END_NAMESPACE_STD
 

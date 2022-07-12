@@ -18,7 +18,9 @@ using ::malloc;
 using ::posix_openpt;
 using ::ptsname;
 using ::ptsname_r;
+using ::qsort;
 using ::realloc;
+using ::strtol;
 
 _LIBCXX_END_NAMESPACE_STD
 
