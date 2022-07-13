@@ -173,7 +173,7 @@ static constexpr void destroy_at(T* p)
 }
 
 #if defined(_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS)
-_LIBCXX_BEGIN_ONEOS_EXTENSION
+_LIBCXX_BEGIN_OPUNTIAOS_EXTENSION
 
 template <class T, class... Args>
 static constexpr T& construct(Args&&... args)
@@ -182,7 +182,7 @@ static constexpr T& construct(Args&&... args)
     return *newobject;
 }
 
-_LIBCXX_END_ONEOS_EXTENSION
+_LIBCXX_END_OPUNTIAOS_EXTENSION
 #endif
 
 template <class T>
