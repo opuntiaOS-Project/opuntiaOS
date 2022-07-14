@@ -14,7 +14,9 @@ for arg in "$@"; do
   Sets target arch
   Possible values:
     x86 (default)
+    x86_64
     arm32 / arm
+    arm64 / aarch64
 
 --host
   Sets toolchain to build the OS
