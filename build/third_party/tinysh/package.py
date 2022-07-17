@@ -32,7 +32,7 @@ class TinyshPackage:
 
     def has_build(self):
         cache_location = self.target_dir + \
-            "/bin_{0}/".format(state['target_cpu'])
+            "/bin_{0}/".format(state['target_arch'])
         file_in_cache = cache_location + TinyshPackage.exec_name
         return os.path.exists(file_in_cache)
 
@@ -53,7 +53,7 @@ class TinyshPackage:
 
     def build(self):
         cache_location = self.target_dir + \
-            "/bin_{0}/".format(state['target_cpu'])
+            "/bin_{0}/".format(state['target_arch'])
         file_in_cache = cache_location + TinyshPackage.exec_name
         if self.has_build():
             return
@@ -88,7 +88,7 @@ class TinyshPackage:
 
     def bin_is_ready(self):
         cache_location = self.target_dir + \
-            "/bin_{0}/".format(state['target_cpu'])
+            "/bin_{0}/".format(state['target_arch'])
         file_in_cache = cache_location + TinyshPackage.exec_name
         if os.path.exists(state["outpath"]):
             return

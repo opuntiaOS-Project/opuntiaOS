@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-if (target_cpu == "x86_64") {
+if (target_arch == "x86_64") {
   path_to_bins = "__EMPTY_PATH_"
   if (host == "llvm") {
     path_to_bins = llvm_bin_path
@@ -11,7 +11,7 @@ if (target_cpu == "x86_64") {
   make_raw_image_script_args = [
     rebase_path("$root_build_dir/prekernelx86_64.bin", root_build_dir),
     rebase_path("$root_build_dir/rawImage.elf", root_build_dir),
-    "$target_cpu",
+    "$target_arch",
     "$target_board",
     "$host",
     "$path_to_bins",

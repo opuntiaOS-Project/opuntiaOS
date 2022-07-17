@@ -41,7 +41,7 @@ config("prekernel_flags") {
 }
 
 linker_script =
-    rebase_path("//build/boot/$target_cpu/prekernel/prekernel_link.ld",
+    rebase_path("//build/boot/$target_arch/prekernel/prekernel_link.ld",
                 root_build_dir)
 
 executable("prekernelarm64") {

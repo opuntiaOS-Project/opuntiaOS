@@ -42,7 +42,7 @@ config("prekernel_flags") {
 }
 
 linker_script =
-    rebase_path("//build/boot/$target_cpu/prekernel/prekernel_link.ld",
+    rebase_path("//build/boot/$target_arch/prekernel/prekernel_link.ld",
                 root_build_dir)
 
 # Use a strange __EMPTY_PATH_, empty string can't be passed as an arg.
@@ -54,7 +54,7 @@ if (host == "llvm") {
 embed_kernel_script_args = [
   rebase_path("$root_build_dir/base/boot/kernel.bin", root_build_dir),
   rebase_path("$root_build_dir/tmp/boot/kernel.o", root_build_dir),
-  "$target_cpu",
+  "$target_arch",
   "$target_board",
   "$host",
   "$path_to_bins",

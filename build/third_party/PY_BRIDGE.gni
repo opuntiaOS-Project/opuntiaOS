@@ -16,7 +16,7 @@ if (uland_ld_flags == []) {
 py_bridging_args = [
   # outpath here is inserted
   rebase_path("//", root_build_dir), # rootdir
-  "$target_cpu",  # target cpu
+  "$target_arch",  # target cpu
   "$host",  # host compiler
   string_join(" ",
               [

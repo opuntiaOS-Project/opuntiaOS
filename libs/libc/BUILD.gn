@@ -7,7 +7,7 @@ opuntiaOS_static_library("libc") {
   # Private LibC sources.
   sources += [ "init/_init.c" ]
 
-  if (target_cpu == "arm32") {
+  if (target_arch == "arm32") {
     sources += [ "string/routines/arm32/memset.S" ]
   }
 

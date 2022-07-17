@@ -9,9 +9,9 @@ if (host == "llvm") {
 }
 
 devtree_compile_script_args = [
-  rebase_path("//firmware/$target_cpu/$target_board.odt", root_build_dir),
+  rebase_path("//firmware/$target_arch/$target_board.odt", root_build_dir),
   rebase_path("$root_out_dir/firmware/$target_board.obt", root_build_dir),
-  "$target_cpu",
+  "$target_arch",
   "$target_board",
   "$host",
   "$path_to_bins",
@@ -19,7 +19,7 @@ devtree_compile_script_args = [
 
 action("devtree_compile") {
   script = "//build/kernel/devtree_compile.py"
-  inputs = [ "//firmware/$target_cpu/$target_board.odt" ]
+  inputs = [ "//firmware/$target_arch/$target_board.odt" ]
   outputs = [
     "$root_out_dir/firmware/$target_board.obt",
     "$root_out_dir/firmware/$target_board.obto",

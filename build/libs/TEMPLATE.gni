@@ -62,7 +62,7 @@ template("opuntiaOS_static_library") {
   }
 
   script_args = [
-    "$target_cpu",
+    "$target_arch",
     "$host",
     "$path_to_bins",
     rebase_path("$final_lib_output_name", root_build_dir),

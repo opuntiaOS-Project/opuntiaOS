@@ -2,7 +2,7 @@ import("//build/libs/TEMPLATE.gni")
 import("//libs/libc/LIBC_SOURCES.gni")
 
 libcxxabi_sources = [ "abi/cxa_runtime.cpp" ]
-if (target_cpu == "arm32") {
+if (target_arch == "arm32") {
   libcxxabi_sources += [ "abi/aeabi_runtime.cpp" ]
 }
 
@@ -17,7 +17,7 @@ opuntiaOS_static_library("libcxx") {
   ]
   sources += libcxxabi_sources
 
-  if (target_cpu == "arm32") {
+  if (target_arch == "arm32") {
     sources += [ "../libc/string/routines/arm32/memset.S" ]
   }
 

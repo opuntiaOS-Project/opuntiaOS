@@ -1,4 +1,4 @@
-if (target_cpu == "x86") {
+if (target_arch == "x86") {
   gnu_ar = "i686-elf-ar"
   gnu_cc = "i686-elf-gcc"
   gnu_cxx = "i686-elf-g++"
@@ -6,7 +6,7 @@ if (target_cpu == "x86") {
   gnu_asm = "nasm"
   gnu_target = "i686"
 }
-if (target_cpu == "x86_64") {
+if (target_arch == "x86_64") {
   gnu_ar = "x86_64-elf-ar"
   gnu_cc = "x86_64-elf-gcc"
   gnu_cxx = "x86_64-elf-g++"
@@ -15,7 +15,7 @@ if (target_cpu == "x86_64") {
   gnu_target = "x86_64"
 }
 
-if (target_cpu == "arm32") {
+if (target_arch == "arm32") {
   gnu_ar = "arm-none-eabi-ar"
   gnu_cc = "arm-none-eabi-gcc"
   gnu_cxx = "arm-none-eabi-g++"
@@ -23,7 +23,7 @@ if (target_cpu == "arm32") {
   gnu_asm = "arm-none-eabi-as"
   gnu_target = "arm-none-eabi"
 }
-if (target_cpu == "arm64") {
+if (target_arch == "arm64") {
   gnu_ar = "aarch64-elf-ar"
   gnu_cc = "aarch64-elf-gcc"
   gnu_cxx = "aarch64-elf-g++"
@@ -32,7 +32,7 @@ if (target_cpu == "arm64") {
   gnu_target = "aarch64-elf"
 }
 
-if (target_cpu == "x86") {
+if (target_arch == "x86") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
   llvm_cxx = "$llvm_bin_path/clang++"
@@ -42,7 +42,7 @@ if (target_cpu == "x86") {
   llvm_ccpp_target_flag = "-target $llvm_target"
   llvm_asm_target_flag = ""  # No additinal flags are provided for nasm
 }
-if (target_cpu == "x86_64") {
+if (target_arch == "x86_64") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
   llvm_cxx = "$llvm_bin_path/clang++"
@@ -53,7 +53,7 @@ if (target_cpu == "x86_64") {
   llvm_asm_target_flag = ""  # No additinal flags are provided for nasm
 }
 
-if (target_cpu == "arm32") {
+if (target_arch == "arm32") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
   llvm_cxx = "$llvm_bin_path/clang++"
@@ -63,7 +63,7 @@ if (target_cpu == "arm32") {
   llvm_ccpp_target_flag = "-target $llvm_target"
   llvm_asm_target_flag = "-target $llvm_target -c"
 }
-if (target_cpu == "arm64") {
+if (target_arch == "arm64") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
   llvm_cxx = "$llvm_bin_path/clang++"

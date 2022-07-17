@@ -30,7 +30,7 @@ jobs:
           mv gn /usr/local/bin
 
       - name: Create GNU Build Environment
-        run: gn gen out --args='target_cpu="arm64" host="gnu"'
+        run: gn gen out --args='target_arch="arm64" host="gnu"'
 
       - name: Build GNU
         working-directory: ${{github.workspace}}/out
@@ -43,7 +43,7 @@ jobs:
       - name: Create LLVM Build Environment
         run: |
           export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
-          gn gen out --args='target_cpu="arm64" host="llvm"'
+          gn gen out --args='target_arch="arm64" host="llvm"'
 
       - name: Build LLVM
         working-directory: ${{github.workspace}}/out
@@ -56,7 +56,7 @@ jobs:
       - name: Create Mobile LLVM Build Environment
         run: |
           export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
-          gn gen out --args='target_cpu="arm64" host="llvm" device_type="m"'
+          gn gen out --args='target_arch="arm64" host="llvm" device_type="m"'
 
       - name: Build Mobile with LLVM
         working-directory: ${{github.workspace}}/out

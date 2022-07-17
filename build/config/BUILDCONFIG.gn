@@ -9,6 +9,7 @@ declare_args() {
   host = "gnu"
   llvm_bin_path = ""
   device_type = "desktop"
+  target_arch = ""
   target_board = ""
 
   # Kernel Flags
@@ -22,14 +23,19 @@ declare_args() {
   test_method = "none"
 }
 
-if (target_cpu == "") {
-  target_cpu = "x86"
+if (target_arch == "") {
+  # target_cpu is deprecated, but not fully deleted.
+  if (target_cpu != "") {
+    target_arch = target_cpu
+  } else {
+    target_arch = "x86"
+  }
 }
-if (target_cpu == "arm") {
-  target_cpu = "arm32"
+if (target_arch == "arm") {
+  target_arch = "arm32"
 }
-if (target_cpu == "aarch64") {
-  target_cpu = "arm64"
+if (target_arch == "aarch64") {
+  target_arch = "arm64"
 }
 if (device_type == "m") {
   device_type = "mobile"
@@ -38,17 +44,17 @@ if (device_type == "d") {
   device_type = "desktop"
 }
 
-if (target_cpu == "x86") {
+if (target_arch == "x86") {
   target_board = "i386"
 }
-if (target_cpu == "x86_64") {
+if (target_arch == "x86_64") {
   target_board = "x86_64"
 }
-if (target_cpu == "arm32") {
+if (target_arch == "arm32") {
   # Currently we support only vexpress-a15.
   target_board = "vexpress-a15"
 }
-if (target_cpu == "arm64") {
+if (target_arch == "arm64") {
   if (target_board == "") {
     target_board = "qemu_virt"
   }

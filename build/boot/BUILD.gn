@@ -3,13 +3,13 @@
 # found in the LICENSE file.
 
 group("boot") {
-  if (target_cpu == "x86") {
+  if (target_arch == "x86") {
     deps = [ "x86:bootx86" ]
-  } else if (target_cpu == "x86_64") {
+  } else if (target_arch == "x86_64") {
     deps = [ "x86_64:bootx86_64" ]
-  } else if (target_cpu == "arm32") {
+  } else if (target_arch == "arm32") {
     deps = [ "arm32:bootarm" ]
-  } else if (target_cpu == "arm64") {
+  } else if (target_arch == "arm64") {
     deps = [ "arm64:bootarm64" ]
   }
 }

@@ -26,5 +26,5 @@ if not os.path.exists(lib_path + "/include/libfreetype"):
 
 if not os.path.exists(state["outpath"]):
     file_in_cache = state["rootdir"] + \
-        "/libs/libfreetype/bin/libfreetype_{0}.a".format(state['target_cpu'])
+        "/libs/libfreetype/bin/libfreetype_{0}.a".format(state['target_arch'])
     os.symlink(file_in_cache, state["outpath"])

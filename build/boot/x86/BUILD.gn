@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-if (target_cpu == "x86") {
+if (target_arch == "x86") {
   action("bootx86") {
     script = "make_boot_drive.py"
     sources = [

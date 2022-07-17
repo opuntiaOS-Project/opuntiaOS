@@ -40,21 +40,21 @@ if (device_type == "mobile") {
   uland_c_flags += [ "-DTARGET_MOBILE" ]
 }
 
-if (target_cpu == "x86") {
+if (target_arch == "x86") {
   uland_asm_flags += [
     "-f",
     "elf",
   ]
 }
 
-if (target_cpu == "x86_64") {
+if (target_arch == "x86_64") {
   uland_asm_flags += [
     "-f",
     "elf64",
   ]
 }
 
-if (target_cpu == "arm32") {
+if (target_arch == "arm32") {
   uland_c_flags += [
     "-fno-builtin",
     "-march=armv7-a",
@@ -89,7 +89,7 @@ if (target_cpu == "arm32") {
   }
 }
 
-if (target_cpu == "arm64") {
+if (target_arch == "arm64") {
   uland_c_flags += [
     "-fno-builtin",
     "-mcpu=cortex-a53+nocrypto+nocrc",

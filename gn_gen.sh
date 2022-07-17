@@ -80,7 +80,7 @@ function main() {
 }
 
 function print_help() {
-    echo "--target_cpu {arch}
+    echo "--target_arch {arch}
     Sets target arch.
     Possible values:
         x86 (default)

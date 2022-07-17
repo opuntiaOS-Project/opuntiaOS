@@ -19,7 +19,7 @@ class PyBridgingTools:
         desc = {
             "outpath": os.path.abspath(sys.argv[1]),
             "rootdir": os.path.abspath(sys.argv[2]),
-            "target_cpu": sys.argv[3],
+            "target_arch": sys.argv[3],
             "host": sys.argv[4],
             "toolchain": {
                 "ar": sys.argv[5].split(" ")[0],

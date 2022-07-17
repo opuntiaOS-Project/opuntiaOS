@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 linker_script =
-    rebase_path("//build/boot/$target_cpu/boot_link.ld", root_build_dir)
+    rebase_path("//build/boot/$target_arch/boot_link.ld", root_build_dir)
 
 executable("stage2") {
   output_name = "stage2.bin"
