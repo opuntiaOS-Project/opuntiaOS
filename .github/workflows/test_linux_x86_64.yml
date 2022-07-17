@@ -33,7 +33,7 @@ jobs:
       - name: Create LLVM Build Environment
         run: |
           export LLVM_BIN_PATH="/usr/lib/llvm-12/bin"
-          ./gn_gen.sh --target_arch x86_64 --host llvm --test_method tests
+          ./gn_gen.sh -y --target_arch x86_64 --host llvm --test_method tests
 
       - name: Building
         run: |
