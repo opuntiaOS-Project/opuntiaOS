@@ -494,21 +494,36 @@ void sys_munmap(trapframe_t* tf)
 {
     proc_t* p = RUNNING_THREAD->process;
     uintptr_t ptr = (uintptr_t)SYSCALL_VAR1(tf);
+    uintptr_t len = (uintptr_t)SYSCALL_VAR2(tf);
 
     memzone_t* zone = memzone_find(p->address_space, ptr);
     if (!zone) {
         return_with_val(-EFAULT);
     }
 
-    if (!TEST_FLAG(zone->type, ZONE_TYPE_MAPPED)) {
+    memzone_t* mzone = memzone_split(p->address_space, zone, ptr);
+    if (mzone) {
+        mzone->file = file_duplicate(zone->file);
+        mzone->file_offset = zone->file_offset;
+        mzone->file_size = zone->file_size;
+    } else {
+        mzone = zone;
+    }
+
+    memzone_t* rzone = memzone_split(p->address_space, mzone, ptr + len);
+    if (rzone) {
+        rzone->file = file_duplicate(zone->file);
+        rzone->file_offset = zone->file_offset;
+        rzone->file_size = zone->file_size;
+    }
+
+    if (!TEST_FLAG(mzone->type, ZONE_TYPE_MAPPED)) {
         return_with_val(-EPERM);
     }
 
-    if (TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_PRIVATLY) || TEST_FLAG(zone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
-        return_with_val(vfs_munmap(p, zone));
+    if (TEST_FLAG(mzone->type, ZONE_TYPE_MAPPED_FILE_PRIVATLY) || TEST_FLAG(mzone->type, ZONE_TYPE_MAPPED_FILE_SHAREDLY)) {
+        return_with_val(vfs_munmap(p, mzone));
     }
-
-    // TODO: Split or remove zone.
     return_with_val(0);
 }
 
