@@ -14,6 +14,7 @@ opuntiaOS_static_library("libcxx") {
     "init/_init.cpp",
     "init/_lib.cpp",
     "src/iostream.cpp",
+    "src/typeinfo.cpp",
   ]
   sources += libcxxabi_sources
 

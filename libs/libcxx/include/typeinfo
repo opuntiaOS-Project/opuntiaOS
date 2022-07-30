@@ -1,0 +1,28 @@
+#pragma GCC system_header
+
+#ifndef _LIBCXX_TYPEINFO
+#define _LIBCXX_TYPEINFO
+
+#include <__config>
+
+_LIBCXX_BEGIN_NAMESPACE_STD
+
+class type_info {
+public:
+    virtual ~type_info();
+    bool operator==(const type_info& rhs) const;
+    bool operator!=(const type_info& rhs) const;
+
+    bool before(const type_info& rhs) const;
+    const char* name() const { return m_type_name; }
+
+private:
+    type_info(const type_info& rhs) = delete;
+    type_info& operator=(const type_info& rhs) = delete;
+
+    const char* m_type_name;
+};
+
+_LIBCXX_END_NAMESPACE_STD
+
+#endif // _LIBCXX_TYPEINFO
