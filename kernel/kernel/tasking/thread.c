@@ -105,7 +105,12 @@ int thread_copy_of(thread_t* thread, thread_t* from_thread)
     memcpy(thread->tf, from_thread->tf, sizeof(trapframe_t));
     memcpy(thread->signal_handlers, from_thread->signal_handlers, sizeof(from_thread->signal_handlers));
 #ifdef FPU_ENABLED
-    // TODO: FIXME: It might be not written to from_thread->fpu_state, since it uses a lazy method.
+    // FPUs reinitilaztion for each implements a lazy-switch, this
+    // should be checked to copy the latest data.
+    if (THIS_CPU->fpu_for_thread && thread_is_alive(THIS_CPU->fpu_for_thread) && THIS_CPU->fpu_for_thread->tid == THIS_CPU->fpu_for_pid) {
+        fpu_save(THIS_CPU->fpu_for_thread->fpu_state);
+    }
+
     memcpy(thread->fpu_state, from_thread->fpu_state, sizeof(fpu_state_t));
 #endif
     return 0;
