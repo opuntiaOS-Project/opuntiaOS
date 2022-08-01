@@ -111,7 +111,7 @@ Learn more on <https://apt.llvm.org>
 ### Python Dependencies
 
 ```bash
-pip intall -r utils/python_requirements.txt
+pip install -r utils/python_requirements.txt
 ```
 
 ## Building OS
