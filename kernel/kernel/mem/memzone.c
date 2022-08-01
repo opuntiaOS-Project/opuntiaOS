@@ -55,8 +55,11 @@ static inline bool _proc_can_fixup_zone(vm_address_space_t* vm_aspace, size_t* s
 
 static inline bool _proc_can_add_zone(vm_address_space_t* vm_aspace, size_t start, size_t len)
 {
-    size_t zones_count = vm_aspace->zones.size;
+    if (start + len < start || !IS_USER_VADDR(start + len - 1)) {
+        return false;
+    }
 
+    size_t zones_count = vm_aspace->zones.size;
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(&vm_aspace->zones, i);
         if (_pzones_intersect(start, len, zone->vaddr, zone->len)) {
@@ -139,6 +142,7 @@ memzone_t* memzone_new_random(vm_address_space_t* vm_aspace, size_t len)
         len += VMM_PAGE_SIZE - (len % VMM_PAGE_SIZE);
     }
 
+    size_t min_start = USER_HIGH;
     size_t zones_count = vm_aspace->zones.size;
 
     /* Check if we can put it at the beginning */
@@ -146,8 +150,6 @@ memzone_t* memzone_new_random(vm_address_space_t* vm_aspace, size_t len)
     if (ret) {
         return ret;
     }
-
-    size_t min_start = 0xffffffff;
 
     for (size_t i = 0; i < zones_count; i++) {
         memzone_t* zone = (memzone_t*)dynarr_get(&vm_aspace->zones, i);
@@ -158,7 +160,7 @@ memzone_t* memzone_new_random(vm_address_space_t* vm_aspace, size_t len)
         }
     }
 
-    if (min_start == 0xffffffff) {
+    if (min_start == USER_HIGH) {
         return NULL;
     }
 
@@ -175,7 +177,7 @@ memzone_t* memzone_new_random_backward(vm_address_space_t* vm_aspace, size_t len
     size_t zones_count = vm_aspace->zones.size;
 
     /* Check if we can put it at the end */
-    memzone_t* ret = memzone_new(vm_aspace, USER_HIGH - len, len);
+    memzone_t* ret = memzone_new(vm_aspace, USER_HIGH - len + 1, len);
     if (ret) {
         return ret;
     }
