@@ -24,7 +24,6 @@ bitmap_t bitmap_wrap(uint8_t* data, size_t len)
     return bitmap;
 }
 
-/* FIXME: Let user know if alloction was unsucessful */
 bitmap_t bitmap_allocate(size_t len)
 {
     size_t alloc_len = len / BITMAP_BLOCKS_PER_BYTE;
@@ -37,6 +36,7 @@ bitmap_t bitmap_allocate(size_t len)
 
 int bitmap_next_range_of_unset_bits(bitmap_t bitmap, int from, size_t min_len, int* start_of_free_chunks)
 {
+    ASSERT(bitmap.data);
     uint32_t* bitmap32 = (uint32_t*)bitmap.data;
 
     // Calculating the start offset.
@@ -128,6 +128,10 @@ int bitmap_next_range_of_unset_bits(bitmap_t bitmap, int from, size_t min_len, i
 
 int bitmap_find_space(bitmap_t bitmap, int req)
 {
+    if (!bitmap.data) {
+        return -EINVAL;
+    }
+
     int start = 0;
     int len = bitmap_next_range_of_unset_bits(bitmap, 0, req, &start);
     if (len < 0) {
@@ -139,6 +143,10 @@ int bitmap_find_space(bitmap_t bitmap, int req)
 
 int bitmap_find_space_aligned(bitmap_t bitmap, int req, int alignment)
 {
+    if (!bitmap.data) {
+        return -EINVAL;
+    }
+
     int taken = 0;
     int start = 0;
     for (int i = 0; i < bitmap.len / 8; i++) {
@@ -167,6 +175,10 @@ int bitmap_find_space_aligned(bitmap_t bitmap, int req, int alignment)
 
 int bitmap_set(bitmap_t bitmap, int where)
 {
+    if (!bitmap.data) {
+        return -EINVAL;
+    }
+
     if (where >= bitmap.len) {
         return -EFAULT;
     }
@@ -180,6 +192,10 @@ int bitmap_set(bitmap_t bitmap, int where)
 
 int bitmap_unset(bitmap_t bitmap, int where)
 {
+    if (!bitmap.data) {
+        return -EINVAL;
+    }
+
     if (where >= bitmap.len) {
         return -EFAULT;
     }
@@ -193,6 +209,10 @@ int bitmap_unset(bitmap_t bitmap, int where)
 
 int bitmap_set_range(bitmap_t bitmap, int start, int len)
 {
+    if (!bitmap.data) {
+        return -EINVAL;
+    }
+
     if (start + len - 1 >= bitmap.len) {
         return -EFAULT;
     }
@@ -223,6 +243,10 @@ int bitmap_set_range(bitmap_t bitmap, int start, int len)
 
 int bitmap_unset_range(bitmap_t bitmap, int start, int len)
 {
+    if (!bitmap.data) {
+        return -EINVAL;
+    }
+
     if (start + len - 1 >= bitmap.len) {
         return -EFAULT;
     }
