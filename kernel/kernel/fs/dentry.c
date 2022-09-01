@@ -19,8 +19,11 @@
 
 // #define DENTRY_DEBUG
 
-#define NOT_READ_INODE 0
-#define READ_INODE 1
+enum DENTRY_ALLOC_FLAGS {
+    DENTRY_ALLOC_READ_INODE = (1 << 0),
+};
+typedef uint32_t dentry_alloc_flags_t;
+
 #define DENTRY_ALLOC_SIZE (4 * KB) /* Shows the size of list's parts. */
 #define DENTRY_SWAP_THRESHOLD_FOR_INODE_CACHE (16 * KB)
 
@@ -188,7 +191,7 @@ static void dentry_prefree_locked(dentry_t* dentry)
     stat_cached_dentries--;
 }
 
-static dentry_t* dentry_alloc_new(dev_t dev_indx, ino_t inode_indx, int need_to_read_inode)
+static dentry_t* dentry_alloc_new(dev_t dev_indx, ino_t inode_indx, dentry_alloc_flags_t flags)
 {
     if (inode_indx == 0) {
         return NULL;
@@ -214,7 +217,7 @@ static dentry_t* dentry_alloc_new(dev_t dev_indx, ino_t inode_indx, int need_to_
         stat_cached_inodes_area_size += INODE_LEN;
     }
 
-    if (need_to_read_inode && dentry->ops->dentry.read_inode(dentry) < 0) {
+    if (TEST_FLAG(flags, DENTRY_ALLOC_READ_INODE) && dentry->ops->dentry.read_inode(dentry) < 0) {
         log_error("[Dentry] Can't read inode %d %d (dev, ino)", dev_indx, inode_indx);
         return NULL;
     }
@@ -330,7 +333,7 @@ dentry_t* dentry_get(dev_t dev_indx, ino_t inode_indx)
     }
 
     /* It means no dentry in the cache. Let's add it. */
-    return dentry_alloc_new(dev_indx, inode_indx, READ_INODE);
+    return dentry_alloc_new(dev_indx, inode_indx, DENTRY_ALLOC_READ_INODE);
 }
 
 dentry_t* dentry_get_no_inode(dev_t dev_indx, ino_t inode_indx, int* newly_allocated)
@@ -355,7 +358,7 @@ dentry_t* dentry_get_no_inode(dev_t dev_indx, ino_t inode_indx, int* newly_alloc
 
     /* It means no dentry in the cache. Let's add it. */
     *newly_allocated = DENTRY_NEWLY_ALLOCATED;
-    return dentry_alloc_new(dev_indx, inode_indx, NOT_READ_INODE);
+    return dentry_alloc_new(dev_indx, inode_indx, 0);
 }
 
 dentry_t* dentry_duplicate(dentry_t* dentry)
@@ -448,7 +451,7 @@ void dentry_set_flag_locked(dentry_t* dentry, uint32_t flag)
 
 bool dentry_test_flag_locked(dentry_t* dentry, uint32_t flag)
 {
-    return (dentry->flags & flag) > 0;
+    return TEST_FLAG(dentry->flags, flag);
 }
 
 void dentry_rem_flag_locked(dentry_t* dentry, uint32_t flag)
@@ -456,10 +459,13 @@ void dentry_rem_flag_locked(dentry_t* dentry, uint32_t flag)
     dentry->flags &= ~flag;
 }
 
-// dentry_test_mode_locked test ONE flag and return if it is set.
 bool dentry_test_mode_locked(dentry_t* dentry, mode_t mode)
 {
-    return mode >= 0x1000 ? (dentry->inode->mode & 0xF000) == mode : ((dentry->inode->mode) & mode) > 0;
+    if (mode >= 0x1000 && (dentry->inode->mode & 0xf000) != (mode & 0xf000)) {
+        return false;
+    }
+    mode &= 0xfff;
+    return ((dentry->inode->mode) & mode) == mode;
 }
 
 void dentry_set_flag(dentry_t* dentry, uint32_t flag)
@@ -472,7 +478,7 @@ void dentry_set_flag(dentry_t* dentry, uint32_t flag)
 bool dentry_test_flag(dentry_t* dentry, uint32_t flag)
 {
     spinlock_acquire(&dentry->lock);
-    bool res = (dentry->flags & flag) > 0;
+    bool res = TEST_FLAG(dentry->flags, flag);
     spinlock_release(&dentry->lock);
     return res;
 }

@@ -156,8 +156,7 @@ vconsole_entry_t* vconsole_new()
 
     tty_init(&vconsoles[next_vconsole].tty);
     if (!vconsoles[next_vconsole].tty.buffer.ringbuffer.zone.start) {
-        log_error("Error: tty buffer allocation");
-        while (1) { }
+        kpanic("Error: tty buffer allocation");
     }
     next_vconsole++;
 
