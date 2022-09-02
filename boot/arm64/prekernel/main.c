@@ -18,6 +18,7 @@
 #include <libboot/mem/mem.h>
 
 #define DEBUG_BOOT
+#define EARLY_FB
 
 extern void jump_to_kernel(void*, uintptr_t);
 static void* bootdesc_paddr;
@@ -32,7 +33,9 @@ static int alloc_init(uintptr_t base, rawimage_header_t* riheader)
 {
     devtree_entry_t* dev = devtree_find_device("ram");
     if (!dev) {
+#ifdef EARLY_FB
         log("Can't find RAM in devtree");
+#endif
         while (1) { };
     }
 
@@ -42,7 +45,7 @@ static int alloc_init(uintptr_t base, rawimage_header_t* riheader)
     size_t free_space = dev->region_size - (start_addr - dev->region_base);
     malloc_init((void*)start_addr, free_space);
 
-#ifdef DEBUG_BOOT
+#if defined(DEBUG_BOOT) && defined(EARLY_FB)
     log("malloc inited %llx %llx", start_addr, free_space);
 #endif
     return 0;
@@ -71,7 +74,9 @@ static memory_boot_desc_t memory_boot_desc_init()
 {
     devtree_entry_t* dev = devtree_find_device("ram");
     if (!dev) {
+#ifdef EARLY_FB
         log("Can't find RAM in devtree");
+#endif
         while (1) { };
     }
 
@@ -82,7 +87,7 @@ static memory_boot_desc_t memory_boot_desc_init()
     // Init of trailing element.
     mem_layout_paddr[memlayout_size - 1].flags = MEMORY_LAYOUT_FLAG_TERMINATE;
     memory_layout_t* mem_layout_vaddr = paddr_to_vaddr(mem_layout_paddr, kernel_paddr, kernel_vaddr);
-#ifdef DEBUG_BOOT
+#if defined(DEBUG_BOOT) && defined(EARLY_FB)
     log("initing MEMLAYOUT %lx of %d elems", mem_layout_vaddr, memlayout_size);
 #endif
 
@@ -99,19 +104,21 @@ static void load_kernel(void* kenrelstart)
 
     int err = preserve_alloc_init(kernel_size);
     if (err) {
+#ifdef EARLY_FB
         log("add assert");
+#endif
         while (1) { }
     }
 
     int res = elf_load_kernel(kenrelstart, kernel_size, &kernel_vaddr, &kernel_paddr);
-#ifdef DEBUG_BOOT
+#if defined(DEBUG_BOOT) && defined(EARLY_FB)
     log("kernel %lx %lx %lx", kernel_vaddr, kernel_paddr, kernel_size);
 #endif
 
     void* odt_paddr = palloc_aligned(devtree_size(), page_size());
     memcpy(odt_paddr, devtree_start(), devtree_size());
     void* odt_vaddr = paddr_to_vaddr(odt_paddr, kernel_paddr, kernel_vaddr);
-#ifdef DEBUG_BOOT
+#if defined(DEBUG_BOOT) && defined(EARLY_FB)
     log("copying ODT %lx -> %lx of %d", devtree_start(), odt_vaddr, devtree_size());
 #endif
 
@@ -127,7 +134,7 @@ static void load_kernel(void* kenrelstart)
     bootdesc_paddr = palloc_aligned(sizeof(boot_args), page_size());
     memcpy(bootdesc_paddr, &boot_args, sizeof(boot_args));
     bootdesc_vaddr = paddr_to_vaddr(bootdesc_paddr, kernel_paddr, kernel_vaddr);
-#ifdef DEBUG_BOOT
+#if defined(DEBUG_BOOT) && defined(EARLY_FB)
     log("copying BOOTDESC %lx -> %lx of %d", &boot_args, bootdesc_vaddr, sizeof(boot_args));
 #endif
 }

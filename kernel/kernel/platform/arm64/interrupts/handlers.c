@@ -111,7 +111,7 @@ void sync_handler(trapframe_t* tf)
         ASSERT(false);
     } else {
         log("sync_handler ip: %zx = %zx : %zx", tf->elr, fault_addr, esr_ec);
-        while (1) { }
+        kpanic("no sync_handler");
     }
 
     cpu_set_state(prev_cpu_state);
