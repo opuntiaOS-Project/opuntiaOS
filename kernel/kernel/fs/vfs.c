@@ -175,7 +175,6 @@ int vfs_add_dev_with_fs(device_t* dev, int fsid)
     return fs->ops->prepare_fs(vfsdev);
 }
 
-// TODO: reuse unused slots
 void vfs_eject_device(device_t* dev)
 {
 #ifdef VFS_DEBUG

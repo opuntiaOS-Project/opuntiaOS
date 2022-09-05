@@ -398,7 +398,6 @@ int vmm_map_page_locked_impl(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t mmu_f
         return -EBUSY;
     }
 
-    // TODO: Currently we allocate only LV0 table, since we support only 2-level translation for now.
     ptable_lv_t ptable_level = PTABLE_LV0;
     ptable_entity_t* ptable_desc = vm_get_entity(vaddr, upper_level(ptable_level));
     if (!vm_ptable_entity_is_present(ptable_desc, upper_level(ptable_level))) {
@@ -456,8 +455,6 @@ extern int vmm_alloc_page_locked(uintptr_t vaddr, mmu_flags_t mmu_flags);
  */
 static void _vmm_tables_set_cow(size_t table_index, ptable_entity_t* cur, ptable_entity_t* new, ptable_lv_t lv)
 {
-    // TODO: Support 2-level translation for now only.
-    // Reimplement getting a target pdir and moving levels down.
     vm_ptable_entity_set_mmu_flags(cur, lv, MMU_FLAG_COW);
     vm_ptable_entity_set_mmu_flags(new, lv, MMU_FLAG_COW);
 

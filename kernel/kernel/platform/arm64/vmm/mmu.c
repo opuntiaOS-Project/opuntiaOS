@@ -213,7 +213,7 @@ void vm_ptable_entity_rm_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu_
 void vm_ptable_entity_set_frame(ptable_entity_t* entity, ptable_lv_t lv, uintptr_t frame)
 {
     // TODO(arm64): For huge pages we do not check frame, e.g it
-    //                should be aligned at 1gb mark for LV2 huge pages.
+    //              should be aligned at 1gb mark for LV2 huge pages.
     const int frame_offset = PTABLE_LV0_VADDR_OFFSET;
 
     switch (lv) {

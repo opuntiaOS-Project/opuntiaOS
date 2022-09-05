@@ -274,7 +274,6 @@ int vmm_map_huge_page_locked_impl(uintptr_t vaddr, uintptr_t paddr, mmu_flags_t 
  */
 int vmm_unmap_page_locked_impl(uintptr_t vaddr)
 {
-    // TODO(arm64): This does not clean up used table.
     if (!THIS_CPU->active_address_space) {
         return -EACCES;
     }
@@ -288,6 +287,7 @@ int vmm_unmap_page_locked_impl(uintptr_t vaddr)
         return -EACCES;
     }
 
+    // TODO: This does not clean up used table.
     vm_ptable_entity_invalidate(page_desc, PTABLE_LV0);
     system_flush_local_tlb_entry(vaddr);
     return 0;
@@ -346,7 +346,7 @@ bool vmm_is_page_present_impl(uintptr_t vaddr)
 int vmm_alloc_page_no_fill_locked_impl(uintptr_t vaddr, mmu_flags_t mmu_flags)
 {
     uintptr_t paddr = vm_alloc_page_paddr();
-    // TODO(arm64): Add sleep here.
+    // TODO: Add sleep here.
     int res = vmm_map_page_locked(vaddr, paddr, mmu_flags);
     return res;
 }

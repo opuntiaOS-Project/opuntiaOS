@@ -135,7 +135,6 @@ memzone_t* memzone_new(vm_address_space_t* vm_aspace, size_t start, size_t len)
     return (memzone_t*)dynarr_get(&vm_aspace->zones, vm_aspace->zones.size - 1);
 }
 
-// TODO: Think of more efficient way
 memzone_t* memzone_new_random(vm_address_space_t* vm_aspace, size_t len)
 {
     if (len % VMM_PAGE_SIZE) {
@@ -167,7 +166,6 @@ memzone_t* memzone_new_random(vm_address_space_t* vm_aspace, size_t len)
     return memzone_new(vm_aspace, min_start, len);
 }
 
-// TODO: Think of more efficient way
 memzone_t* memzone_new_random_backward(vm_address_space_t* vm_aspace, size_t len)
 {
     if (len % VMM_PAGE_SIZE) {
