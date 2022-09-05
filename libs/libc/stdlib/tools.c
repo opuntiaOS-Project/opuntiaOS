@@ -117,16 +117,28 @@ long strtol(const char* nptr, char** endptr, int base)
         } while (--__size > 0);      \
     } while (0)
 
-void qsort(void* vbase, size_t n, size_t size, int (*compar)(const void*, const void*))
+void __qsortimpl(void* vbase, size_t n, size_t size, int (*compar)(const void*, const void*), int l, int r)
 {
-    // TODO: Implement quick sort.
     char* base = (char*)vbase;
 
-    for (int i = 0; i < n; i++) {
-        for (int j = i + 1; j < n; j++) {
-            if (compar(&base[i * size], &base[j * size]) > 0) {
-                SWAPARR(&base[i * size], &base[j * size], size);
-            }
+    if (l >= r) {
+        return;
+    }
+
+    int lm = l - 1;
+    for (int rm = l; rm < r; rm++) {
+        if (compar(&base[rm * size], &base[r * size]) < 0) {
+            lm++;
+            SWAPARR(&base[lm * size], &base[rm * size], size);
         }
     }
+    SWAPARR(&base[(lm + 1) * size], &base[r * size], size);
+
+    __qsortimpl(vbase, n, size, compar, l, lm);
+    __qsortimpl(vbase, n, size, compar, lm + 2, r);
+}
+
+void qsort(void* vbase, size_t n, size_t size, int (*compar)(const void*, const void*))
+{
+    __qsortimpl(vbase, n, size, compar, 0, n - 1);
 }

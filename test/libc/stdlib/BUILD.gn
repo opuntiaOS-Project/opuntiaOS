@@ -1,0 +1,7 @@
+import("//build/test/TEMPLATE.gni")
+
+group("stdlib") {
+  deps = [
+    "//test/libc/stdlib/tools:tools",
+  ]
+}
