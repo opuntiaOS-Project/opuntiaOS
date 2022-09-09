@@ -564,9 +564,16 @@ int vfs_chmod(const path_t* vfspath, mode_t mode)
         return -EPERM;
     }
 
-    // TODO: Check if FS is readonly.
-    dentry_set_flag(dentry, DENTRY_DIRTY);
+    // We could check if FS is RONLY if no fchmod is present.
+    spinlock_acquire(&dentry->lock);
+    if (!dentry->ops->file.fchmod) {
+        spinlock_release(&dentry->lock);
+        return -EROFS;
+    }
+
+    dentry_set_flag_locked(dentry, DENTRY_DIRTY);
     dentry->inode->mode = (dentry->inode->mode & ~(uint32_t)07777) | (mode & (uint32_t)07777);
+    spinlock_release(&dentry->lock);
     return 0;
 }
 
