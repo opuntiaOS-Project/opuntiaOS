@@ -36,7 +36,7 @@ jobs:
 
       - name: Create LLVM Build Environment
         run: |
-          export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
+          export LLVM_BIN_PATH="$(brew --prefix llvm@14)/bin"
           gn gen out --args='target_arch="x86" host="llvm"'
 
       - name: Build LLVM
@@ -49,7 +49,7 @@ jobs:
 
       - name: Create Mobile LLVM Build Environment
         run: |
-          export LLVM_BIN_PATH="$(brew --prefix llvm)/bin"
+          export LLVM_BIN_PATH="$(brew --prefix llvm@14)/bin"
           gn gen out --args='target_arch="x86" host="llvm" device_type="m"'
 
       - name: Build Mobile with LLVM
