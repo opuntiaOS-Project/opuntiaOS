@@ -469,7 +469,7 @@ void sys_mmap(trapframe_t* tf)
         if (!fd) {
             return_with_val(-EBADFD);
         }
-        zone = vfs_mmap(fd, params);
+        zone = vfs_mmap(fd, &kparams);
     }
 
     if (!zone) {
