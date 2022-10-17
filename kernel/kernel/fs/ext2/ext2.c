@@ -597,6 +597,11 @@ int ext2_free_inode(dentry_t* dentry)
         _ext2_free_block_index(dentry->vfsdev, data_block_index);
     }
 
+    // Zeroing up the whole inode before freeing it to be safe of potential
+    // security problems.
+    memset(dentry->inode, 0, sizeof(inode_t));
+    ext2_write_inode(dentry);
+
     _ext2_free_inode_index(dentry->vfsdev, dentry->inode_indx);
     return 0;
 }
