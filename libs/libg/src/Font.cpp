@@ -6,6 +6,7 @@
  * found in the LICENSE file.
  */
 
+#include <cassert>
 #include <fcntl.h>
 #include <libfoundation/Logger.h>
 #include <libg/Font.h>
@@ -155,6 +156,12 @@ Font* Font::load_from_file_ttf(const char* path, size_t size)
 
 Glyph Font::SerenityOSFontDesc::load_glyph(size_t ch) const
 {
+    // Check if ch is present, to not go out-of-bounds.
+    if (ch >= count) {
+        assert(((int)'?') < count);
+        ch = '?';
+    }
+
     size_t w = dynamic_width ? width_data[ch] : width;
     GlyphMetrics metrics = {
         .width = (uint8_t)w,
