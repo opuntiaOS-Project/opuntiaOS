@@ -179,7 +179,7 @@ void sys_creat(trapframe_t* tf)
     uintptr_t tmp_storage_2 = SYSCALL_VAR2(tf);
     uintptr_t tmp_storage_3 = SYSCALL_VAR3(tf);
     SYSCALL_VAR2(tf) = O_CREAT | O_WRONLY | O_TRUNC;
-    SYSCALL_VAR3(tf) = SYSCALL_VAR2(tf);
+    SYSCALL_VAR3(tf) = tmp_storage_2;
     sys_open(tf);
     uintptr_t result = return_val;
     SYSCALL_VAR2(tf) = tmp_storage_2;
