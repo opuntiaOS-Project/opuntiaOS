@@ -9,6 +9,7 @@
 #include <libkern/log.h>
 #include <libkern/types.h>
 #include <mem/vmm.h>
+#include <platform/arm64/system.h>
 
 #define SET_FLAGS(mmu_flags, mf, arch_flags, af) \
     if (TEST_FLAG(mmu_flags, mf)) {              \
@@ -197,7 +198,12 @@ void vm_ptable_entity_set_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu
     mmu_flags_t old_mmu_flags = vm_arch_to_mmu_flags(entity, lv);
     old_mmu_flags |= mmu_flags;
     ptable_entity_t arch_flags = vm_mmu_to_arch_flags(old_mmu_flags, lv);
+
+    // For arm64 applying break-before-make rule in case when it changing flags from
+    // any valid entry.
     clear_arch_flags(entity, lv);
+    system_data_synchronise_barrier();
+    system_flush_whole_tlb();
     *entity |= arch_flags;
 }
 
@@ -206,7 +212,12 @@ void vm_ptable_entity_rm_mmu_flags(ptable_entity_t* entity, ptable_lv_t lv, mmu_
     mmu_flags_t old_mmu_flags = vm_arch_to_mmu_flags(entity, lv);
     old_mmu_flags &= ~mmu_flags;
     ptable_entity_t arch_flags = vm_mmu_to_arch_flags(old_mmu_flags, lv);
+
+    // For arm64 applying break-before-make rule in case when it changing flags from
+    // any valid entry.
     clear_arch_flags(entity, lv);
+    system_data_synchronise_barrier();
+    system_flush_whole_tlb();
     *entity |= arch_flags;
 }
 
