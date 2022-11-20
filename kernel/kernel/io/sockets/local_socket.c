@@ -114,6 +114,7 @@ int local_socket_bind(file_descriptor_t* sock, char* path, size_t len)
 
     path_put(&bind_path);
     vfs_helper_restore_full_path_after_split(path, name);
+    kfree(name);
     spinlock_release(&sock->file->lock);
     return 0;
 }

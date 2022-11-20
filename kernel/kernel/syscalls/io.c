@@ -83,7 +83,7 @@ void sys_connect(trapframe_t* tf)
     int ret = 0;
     switch (sfd->file->socket->domain) {
     case PF_LOCAL:
-        ret = local_socket_connect(sfd, name, len);
+        ret = local_socket_connect(sfd, kname, len);
         break;
 
     default:
