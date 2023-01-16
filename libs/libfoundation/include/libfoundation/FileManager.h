@@ -31,7 +31,7 @@ public:
             uint8_t name_len;
             uint8_t file_type;
             char* name;
-        } * d;
+        }* d;
 
         int fd = open(path.c_str(), O_RDONLY | O_DIRECTORY);
         if (fd < 0) {

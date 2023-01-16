@@ -284,11 +284,23 @@ int kasan_unpoison(uintptr_t addr, size_t size, int value)
 }
 KASAN_IMPL_FUNC(kasan_unpoison);
 
-#define GEN_KASAN_FUNCS(size)                                                                               \
-    void __asan_load##size(uintptr_t addr) { kasan_check_range(addr, size, false, KASAN_RETIP); }           \
-    void __asan_load##size##_noabort(uintptr_t addr) { kasan_check_range(addr, size, false, KASAN_RETIP); } \
-    void __asan_store##size(uintptr_t addr) { kasan_check_range(addr, size, true, KASAN_RETIP); }           \
-    void __asan_store##size##_noabort(uintptr_t addr) { kasan_check_range(addr, size, true, KASAN_RETIP); }
+#define GEN_KASAN_FUNCS(size)                              \
+    void __asan_load##size(uintptr_t addr)                 \
+    {                                                      \
+        kasan_check_range(addr, size, false, KASAN_RETIP); \
+    }                                                      \
+    void __asan_load##size##_noabort(uintptr_t addr)       \
+    {                                                      \
+        kasan_check_range(addr, size, false, KASAN_RETIP); \
+    }                                                      \
+    void __asan_store##size(uintptr_t addr)                \
+    {                                                      \
+        kasan_check_range(addr, size, true, KASAN_RETIP);  \
+    }                                                      \
+    void __asan_store##size##_noabort(uintptr_t addr)      \
+    {                                                      \
+        kasan_check_range(addr, size, true, KASAN_RETIP);  \
+    }
 
 GEN_KASAN_FUNCS(1)
 GEN_KASAN_FUNCS(2)
