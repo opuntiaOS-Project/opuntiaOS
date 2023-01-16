@@ -1,7 +1,11 @@
 import("//build/libs/TEMPLATE.gni")
 import("//libs/libc/LIBC_SOURCES.gni")
 
-libcxxabi_sources = [ "abi/cxa_runtime.cpp" ]
+libcxxabi_sources = [
+  "abi/cxa_runtime.cpp",
+  "abi/dynamic_cast.cpp",
+  "abi/type_info_defs.cpp",
+]
 if (target_arch == "arm32") {
   libcxxabi_sources += [ "abi/aeabi_runtime.cpp" ]
 }

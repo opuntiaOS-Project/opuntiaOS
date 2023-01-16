@@ -62,7 +62,7 @@ function main() {
     chmod +x $OUTDIR/dll.sh
 
     #building one.img
-    IMAGE_SIZE=64M
+    IMAGE_SIZE=128M
     qemu-img create -f raw $OUTDIR/one.img $IMAGE_SIZE
     if [ $? -ne 0 ]; then echo -e "${ERROR} Can't create an one.img" && exit 1; fi
     MKFS="" # Provide path here

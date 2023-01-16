@@ -20,7 +20,6 @@ if (optimize) {
 uland_cc_flags = [
   "-std=c++2a",
   "-fno-sized-deallocation",
-  "-fno-rtti",
   "-fno-exceptions",
   "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
 ]

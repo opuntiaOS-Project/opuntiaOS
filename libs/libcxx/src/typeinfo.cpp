@@ -1,7 +1,12 @@
 #include <cstring>
+#include <new>
 #include <typeinfo>
 
 _LIBCXX_BEGIN_NAMESPACE_STD
+
+type_info::~type_info()
+{
+}
 
 bool type_info::operator==(const type_info& rhs) const
 {

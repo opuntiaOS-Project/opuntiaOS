@@ -19,7 +19,6 @@ if (optimize) {
 lib_cc_flags = [
   "-std=c++2a",
   "-fno-sized-deallocation",
-  "-fno-rtti",
   "-fno-exceptions",
   "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
 ]
@@ -31,7 +30,7 @@ lib_objcc_flags = lib_cc_flags + [
                     "-Wno-cast-of-sel-type",
                     "-fno-objc-exceptions",
                     "-fno-objc-arc",
-                    "-fno-unwind-tables"
+                    "-fno-unwind-tables",
                   ]
 
 lib_asm_flags = []
@@ -79,9 +78,7 @@ if (target_arch == "arm64") {
     "-mcpu=cortex-a53+nocrypto+nocrc",
     "-fno-pie",
   ]
-  lib_asm_flags += [
-    "-mcpu=cortex-a53+nocrypto+nocrc",
-  ]
+  lib_asm_flags += [ "-mcpu=cortex-a53+nocrypto+nocrc" ]
 }
 
 config("lib_flags") {
