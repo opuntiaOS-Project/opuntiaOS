@@ -36,7 +36,7 @@ typedef struct vm_ops vm_ops_t;
 
 struct dynamic_array;
 
-int vmm_setup();
+int vmm_setup(boot_args_t* boot_args);
 int vmm_setup_secondary_cpu();
 
 int vmm_free_address_space(vm_address_space_t* vm_aspace);

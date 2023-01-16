@@ -33,7 +33,7 @@ extern void switch_to_context(context_t* new);
 /* INIT */
 static void _init_cpu(cpu_t* cpu);
 /* BUFFERS */
-static inline void _sched_swap_buffers();
+static inline void _sched_swap_buffers(sched_data_t* sched);
 static inline thread_t* _master_buf_back();
 static inline void _sched_save_running_proc();
 static inline void _sched_enqueue_impl(sched_data_t* sched, thread_t* thread);
