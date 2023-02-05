@@ -31,7 +31,7 @@ static vconsole_entry_t* _vconsole_get(dentry_t* dentry)
             return &vconsoles[i];
         }
     }
-    return 0;
+    return NULL;
 }
 
 inline static vconsole_entry_t* _vconsole_active()
