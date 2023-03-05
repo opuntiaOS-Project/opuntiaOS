@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Copyright (C) 2020-2023 The opuntiaOS Project Authors.
+#  + Contributed by Nikita Melekhin <nimelehin@gmail.com>
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -9,7 +10,7 @@ import os
 import sys
 
 target = "all"  # all, kernel, userland
-target_arch = "x86"  # x86, arm32
+target_arch = "x86_64"
 
 
 class ClassTidyLauncher():
@@ -22,7 +23,16 @@ class ClassTidyLauncher():
             "-march=armv7-a",
             "-mfpu=neon-vfpv4",
             "-mfloat-abi=soft",
-            "-fno-pie",
+            "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
+        ],
+        "arm64": [
+            "-fno-builtin",
+            "-mcpu=cortex-a53+nofp+nosimd+nocrypto+nocrc",
+            "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
+        ],
+        "x86_64": [
+            "-c",
+            "-D_LIBCXX_BUILD_OPUNTIAOS_EXTENSIONS",
         ]
     }
 
@@ -49,12 +59,40 @@ class ClassTidyLauncher():
     def get_files(self):
         self.c_files = []
         self.cpp_files = []
-        platforms = ["x86", "arm32"]
+
+        platforms = ['x86', 'i386', 'x86_64', 'arm',
+                     'arm32', 'arm64', 'aarch32', 'aarch64']
+        bits = ['bits32', 'bits64']
+
+        platform_to_bits = {
+            "x86": "bits32",
+            "x86_64": "bits64",
+            "arm32": "bits32",
+            "arm64": "bits64",
+        }
+
+        allowed_paths = {
+            "x86": ["x86", "i386"],
+            "x86_64": ["x86", "x86_64"],
+            "arm32": ["aarch32", "arm32", "arm"],
+            "arm64": ["aarch64", "arm64", "arm"],
+        }
+
         ignore_platforms = []
+        ignore_bits = []
+
+        allowed_paths_for_target = allowed_paths.get(target_arch, None)
+        if allowed_paths_for_target is None:
+            print("Unknown platform {0}".format(target_arch))
+            exit(1)
 
         for platform in platforms:
-            if target_arch != platform:
+            if not (platform in allowed_paths_for_target):
                 ignore_platforms.append(platform)
+
+        for bit in bits:
+            if platform_to_bits[target_arch] != bit:
+                ignore_bits.append(bit)
 
         def is_file_type(name, ending):
             if len(name) <= len(ending):
@@ -64,6 +102,9 @@ class ClassTidyLauncher():
         def is_file_blocked(name):
             for platform in ignore_platforms:
                 if (name.find(platform) != -1):
+                    return True
+            for bit in ignore_bits:
+                if (name.find(bit) != -1):
                     return True
             return False
 

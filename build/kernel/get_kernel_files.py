@@ -31,7 +31,7 @@ ignore_bits = []
 
 allowed_paths_for_target = allowed_paths.get(target, None)
 if allowed_paths_for_target is None:
-    print("Unknown paltform {0}".format(target))
+    print("Unknown platform {0}".format(target))
     exit(1)
 
 for platform in platforms:
