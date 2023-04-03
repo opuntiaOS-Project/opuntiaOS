@@ -41,6 +41,7 @@ enum E_MACHINE_FIELDS {
     EM_ARM = 0x28,
     EM_AMD64 = 0x3e,
     EM_AARCH64 = 0xB7,
+    EM_RISCV = 0xF3,
 };
 
 typedef struct {
@@ -255,6 +256,13 @@ typedef elf_sym_32_t elf_sym_t;
 #define USER_STACK_SIZE (16 << 10) // 16KB
 #elif __aarch64__
 #define MACHINE_ARCH EM_AARCH64
+typedef elf_header_64_t elf_header_t;
+typedef elf_section_header_64_t elf_section_header_t;
+typedef elf_program_header_64_t elf_program_header_t;
+typedef elf_sym_64_t elf_sym_t;
+#define USER_STACK_SIZE (4 << 20) // 4MB
+#elif defined(__riscv) && (__riscv_xlen == 64)
+#define MACHINE_ARCH EM_RISCV
 typedef elf_header_64_t elf_header_t;
 typedef elf_section_header_64_t elf_section_header_t;
 typedef elf_program_header_64_t elf_program_header_t;

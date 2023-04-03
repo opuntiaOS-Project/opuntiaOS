@@ -49,21 +49,6 @@ static inline int _pl050_map_itself(device_t* device)
     return 0;
 }
 
-static bool _mouse_can_read(file_t* file, size_t start)
-{
-    return ringbuffer_space_to_read(&mouse_buffer) >= 1;
-}
-
-static int _mouse_read(file_t* file, void __user* buf, size_t start, size_t len)
-{
-    size_t leno = ringbuffer_space_to_read(&mouse_buffer);
-    if (leno > len) {
-        leno = len;
-    }
-    int res = ringbuffer_read_user(&mouse_buffer, buf, leno);
-    return leno;
-}
-
 static void pl050_mouse_recieve_notification(uintptr_t msg, uintptr_t param)
 {
     // Checking if device is inited
@@ -72,17 +57,7 @@ static void pl050_mouse_recieve_notification(uintptr_t msg, uintptr_t param)
     }
 
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
-        path_t vfspth;
-        if (vfs_resolve_path("/dev", &vfspth) < 0) {
-            kpanic("Can't init pl050_mouse in /dev");
-        }
-
-        file_ops_t fops = { 0 };
-        fops.can_read = _mouse_can_read;
-        fops.read = _mouse_read;
-        devfs_inode_t* res = devfs_register(&vfspth, MKDEV(10, 1), "mouse", 5, S_IFCHR | 0400, &fops);
-
-        path_put(&vfspth);
+        generic_mouse_create_devfs();
     }
 }
 
@@ -113,7 +88,7 @@ static inline int16_t int8_to_int16_t_safe_convert(uint8_t x)
     return x < 128 ? x : x - 256;
 }
 
-static void _pl050_mouse_int_handler()
+static void _pl050_mouse_int_handler(irq_line_t il)
 {
     uint32_t statusrx = registers->stat;
     uint32_t status = registers->ir;
@@ -156,7 +131,7 @@ static void _pl050_mouse_int_handler()
         packet.y_offset = 0;
     }
 
-    ringbuffer_write(&mouse_buffer, (uint8_t*)&packet, sizeof(mouse_packet_t));
+    generic_mouse_send_packet(&packet);
 
 #ifdef MOUSE_DRIVER_DEBUG
     log("%x ", packet.button_states);
@@ -195,7 +170,7 @@ int pl050_mouse_init(device_t* dev)
     _mouse_send_cmd_and_data(0xF3, 200);
     _mouse_send_cmd_and_data(0xF3, 100);
     _mouse_send_cmd_and_data(0xF3, 80);
-    mouse_buffer = ringbuffer_create_std();
+    generic_mouse_init();
 
     devtree_entry_t* devtree_entry = dev->device_desc.devtree.entry;
     ASSERT(devtree_entry->irq_lane > 0);

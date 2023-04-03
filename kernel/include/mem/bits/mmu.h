@@ -19,8 +19,8 @@ enum MMU_FLAGS {
     MMU_FLAG_NONPRIV = (1 << 4),
     MMU_FLAG_INVALID = (1 << 5),
     MMU_FLAG_COW = (1 << 6), // TODO: Remove this flag.
-    MMU_FLAG_DEVICE = MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED,
     MMU_FLAG_HUGE_PAGE = (1 << 7),
+    MMU_FLAG_DEVICE = MMU_FLAG_PERM_READ | MMU_FLAG_PERM_WRITE | MMU_FLAG_UNCACHED,
 };
 typedef uint32_t mmu_flags_t;
 

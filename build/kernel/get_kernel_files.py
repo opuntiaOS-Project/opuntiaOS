@@ -9,7 +9,8 @@ import sys
 target = sys.argv[2]
 
 platforms = ['x86', 'i386', 'x86_64', 'arm',
-             'arm32', 'arm64', 'aarch32', 'aarch64']
+             'arm32', 'arm64', 'aarch32', 'aarch64',
+             'riscv', 'riscv64']
 bits = ['bits32', 'bits64']
 
 platform_to_bits = {
@@ -17,6 +18,7 @@ platform_to_bits = {
     "x86_64": "bits64",
     "arm32": "bits32",
     "arm64": "bits64",
+    "riscv64": "bits64",
 }
 
 allowed_paths = {
@@ -24,6 +26,7 @@ allowed_paths = {
     "x86_64": ["x86", "x86_64"],
     "arm32": ["aarch32", "arm32", "arm"],
     "arm64": ["aarch64", "arm64", "arm"],
+    "riscv64": ["riscv64", "riscv"]
 }
 
 ignore_platforms = []

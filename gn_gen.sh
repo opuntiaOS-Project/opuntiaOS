@@ -87,6 +87,7 @@ function print_help() {
         x86_64
         arm32 / arm
         arm64 / aarch64
+        riscv64
 
 --host {host}
     Sets toolchain to build the OS.

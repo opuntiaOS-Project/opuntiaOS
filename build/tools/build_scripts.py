@@ -37,6 +37,11 @@ if arch == "arm64":
         base, out, QEMU_PATH_VAR, QEMU_SMP_VAR)
     if target_board == "apl":
         qemu_run_cmd = "python3 {0}/utils/codeassistant/pongo_startup.py".format(base)
+if arch == "riscv64":
+    QEMU_PATH_ENV_VAR = "ONEOS_QEMU_RV64"
+    QEMU_STD_PATH = "qemu-system-riscv64"
+    qemu_run_cmd = "${2} -machine virt -m 1G -bios none -kernel {1}/prekernelriscv64.bin -serial mon:stdio -drive if=none,format=raw,file={1}/one.img,id=drv -device virtio-blk-device,drive=drv -device virtio-rng-device -device virtio-gpu-device -device virtio-keyboard-device -device virtio-mouse-device".format(
+        base, out, QEMU_PATH_VAR, QEMU_SMP_VAR)
 
 if base[-1] == '/':
     base = base[:-1]

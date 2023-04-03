@@ -21,7 +21,7 @@
 
 static pdirectory_t* pdir = NULL;
 
-static ptable_t* map_table();
+static ptable_t* map_table(size_t tphyz, size_t tvirt);
 static void mmu_enable();
 
 static inline void write_ttbcr(uint32_t val)

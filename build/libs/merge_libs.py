@@ -52,6 +52,18 @@ elif (arch == "arm64"):
     else:
         print("Unsupported host for arch {0}".format(host, arch))
         exit(1)
+elif (arch == "riscv64"):
+    if host == "gnu":
+        AR_TOOL = "{0}riscv64-unknown-elf-ar".format(path_to_bins)
+        srcs_lib.append(
+            "../toolchains/gcc_runtime/10.2.1/riscv64-libgcc.a")
+    elif host == "llvm":
+        AR_TOOL = "{0}llvm-ar".format(path_to_bins)
+        srcs_lib.append(
+            "../toolchains/gcc_runtime/10.2.1/riscv64-libgcc.a")
+    else:
+        print("Unsupported host for arch {0}".format(host, arch))
+        exit(1)
 else:
     print("Unsupported arch {0}".format(arch))
     exit(1)

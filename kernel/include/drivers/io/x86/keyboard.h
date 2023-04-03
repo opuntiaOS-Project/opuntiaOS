@@ -12,7 +12,6 @@
 #include <drivers/io/keyboard.h>
 #include <libkern/types.h>
 
-void keyboard_handler();
 void kbdriver_install();
 int kbdriver_run();
 

@@ -37,6 +37,12 @@ __BEGIN_DECLS
  *   - d8-d15
  */
 #define _jblen (22 * 8)
+#elif (defined(__riscv) && (__riscv_xlen == 64))
+/**
+ * RISC-V 64bit (14 * 8):
+ *   - s0-s11, ra, sp
+ */
+#define _jblen (14 * 8)
 #endif
 
 struct __jmp_buf {

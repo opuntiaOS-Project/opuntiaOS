@@ -750,6 +750,24 @@ int vmm_page_fault_handler(arch_pf_info_t info, uintptr_t vaddr)
     return -EINVAL;
 }
 
+extern uintptr_t vmm_convert_vaddr_to_paddr_impl(uintptr_t);
+uintptr_t vmm_convert_kernel_vaddr_to_paddr(uintptr_t vaddr)
+{
+    vm_address_space_t* active_address_space = vmm_get_active_address_space();
+    if (!IS_KERNEL_VADDR(vaddr)) {
+        return VMM_INVALID_PADDR;
+    }
+
+    spinlock_acquire(&active_address_space->lock);
+    if (!vmm_is_page_present(vaddr)) {
+        spinlock_release(&active_address_space->lock);
+        return VMM_INVALID_PADDR;
+    }
+    uintptr_t res = vmm_convert_vaddr_to_paddr_impl(vaddr);
+    spinlock_release(&active_address_space->lock);
+    return res;
+}
+
 static void dump_pf_info(arch_pf_info_t info, uintptr_t vaddr)
 {
     mmu_pf_info_flags_t pf_info_flags = vm_arch_parse_pf_info(info);

@@ -5,7 +5,7 @@
 
 #include <libkern/types.h>
 
-#if defined(__i386__) || defined(__x86_64__)
+#if defined(__i386__) || defined(__x86_64__) || (defined(__riscv) && (__riscv_xlen == 64))
 enum __sysid {
     SYS_RESTART_SYSCALL = 0,
     SYS_EXIT = 1,

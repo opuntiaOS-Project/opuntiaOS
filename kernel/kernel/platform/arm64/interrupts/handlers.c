@@ -38,7 +38,7 @@ static void init_irq_handlers()
 
 static inline void _irq_redirect(irq_line_t line)
 {
-    _irq_handlers[line]();
+    _irq_handlers[line](line);
 }
 
 void interrupts_setup()

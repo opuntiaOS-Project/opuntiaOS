@@ -22,6 +22,9 @@
 #define IS_KERNEL_VADDR(vaddr) (vaddr >= KERNEL_BASE)
 #define IS_USER_VADDR(vaddr) (vaddr <= USER_HIGH)
 
+#define VMM_INVALID_PADDR ((uintptr_t)(-1))
+#define VMM_INVALID_VADDR ((uintptr_t)(-1))
+
 struct memzone;
 struct vm_ops {
     int (*load_page_content)(struct memzone* zone, uintptr_t vaddr);
@@ -72,5 +75,7 @@ int vmm_switch_address_space_locked(vm_address_space_t* vm_aspace);
 int vmm_switch_address_space(vm_address_space_t* vm_aspace);
 
 int vmm_page_fault_handler(arch_pf_info_t info, uintptr_t vaddr);
+
+uintptr_t vmm_convert_kernel_vaddr_to_paddr(uintptr_t vaddr);
 
 #endif // _KERNEL_MEM_VMM_H

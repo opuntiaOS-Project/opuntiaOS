@@ -4,4 +4,6 @@
 #include <platform/arm32/system.h>
 #elif __aarch64__
 #include <platform/arm64/system.h>
+#elif defined(__riscv) && (__riscv_xlen == 64)
+#include <platform/riscv64/system.h>
 #endif

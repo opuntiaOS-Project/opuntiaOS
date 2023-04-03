@@ -15,6 +15,5 @@
 #define PIT_BASE_FREQ 1193180
 
 void pit_setup();
-void pit_handler();
 
 #endif /* _KERNEL_DRIVERS_TIMER_X86_PIT_H */

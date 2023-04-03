@@ -153,6 +153,8 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     const size_t pointers_size = 0;
 #elif __aarch64__
     const size_t pointers_size = 0;
+#elif defined(__riscv) && (__riscv_xlen == 64)
+    const size_t pointers_size = 0;
 #endif
     const size_t arrays_size = argv_array_size + envp_array_size;
     const size_t data_size = argv_data_size + envp_data_size;
@@ -196,6 +198,12 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     // The alignment of sp must be 2x of the pointer size.
     end_sp = end_sp & ~(uintptr_t)(alignment * 2 - 1);
 #elif __aarch64__
+    uintptr_t end_sp = argv_array_sp;
+    uintptr_t copy_to_sp = end_sp;
+
+    // The alignment of sp must be 2x of the pointer size.
+    end_sp = end_sp & ~(uintptr_t)(alignment * 2 - 1);
+#elif defined(__riscv) && (__riscv_xlen == 64)
     uintptr_t end_sp = argv_array_sp;
     uintptr_t copy_to_sp = end_sp;
 
@@ -247,6 +255,10 @@ int thread_fill_up_stack(thread_t* thread, int argc, char** argv, int envp_count
     thread->tf->x[0] = argc;
     thread->tf->x[1] = argv_array_sp;
     thread->tf->x[2] = envp_array_sp;
+#elif defined(__riscv) && (__riscv_xlen == 64)
+    thread->tf->a0 = argc;
+    thread->tf->a1 = argv_array_sp;
+    thread->tf->a2 = envp_array_sp;
 #endif
     set_stack_pointer(thread->tf, end_sp);
     vmm_copy_to_address_space(thread->process->address_space, (uint8_t*)tmp_buf, copy_to_sp, total_size_on_stack);

@@ -16,6 +16,12 @@
 static driver_desc_t _keyboard_driver_info();
 static key_t _kbdriver_apply_modifiers(key_t key);
 
+static void keyboard_int_handler(irq_line_t il)
+{
+    uint32_t scancode = (uint32_t)port_read8(0x60);
+    generic_emit_key_set1(scancode);
+}
+
 static void _kbdriver_notification(uintptr_t msg, uintptr_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
@@ -46,14 +52,7 @@ devman_register_driver_installation(kbdriver_install);
 
 int kbdriver_run()
 {
-    irq_register_handler(irqline_from_id(1), 0, 0, keyboard_handler, BOOT_CPU_MASK);
+    irq_register_handler(irqline_from_id(1), 0, 0, keyboard_int_handler, BOOT_CPU_MASK);
     generic_keyboard_init();
     return 0;
-}
-
-/* Keyboard interrupt handler */
-void keyboard_handler()
-{
-    uint32_t scancode = (uint32_t)port_read8(0x60);
-    generic_emit_key_set1(scancode);
 }

@@ -28,13 +28,12 @@ extern void set_irq_stack(uint32_t stack);
 extern void set_abort_stack(uint32_t stack);
 extern void set_undefined_stack(uint32_t stack);
 
-extern void reset_handler();
-extern void undefined_handler();
-extern void svc_handler();
-extern void prefetch_abort_handler();
-extern void data_abort_handler();
-extern void irq_handler();
-extern void fast_irq_handler();
+extern void undefined_handler(trapframe_t* tf);
+extern void svc_handler(trapframe_t* tf);
+extern void prefetch_abort_handler(trapframe_t* tf);
+extern void data_abort_handler(trapframe_t* tf);
+extern void irq_handler(trapframe_t* tf);
+extern void fast_irq_handler(trapframe_t* tf);
 
 void gic_setup();
 void gic_setup_secondary_cpu();

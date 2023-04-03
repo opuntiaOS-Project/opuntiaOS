@@ -11,5 +11,7 @@ group("boot") {
     deps = [ "arm32:bootarm" ]
   } else if (target_arch == "arm64") {
     deps = [ "arm64:bootarm64" ]
+  } else if (target_arch == "riscv64") {
+    deps = [ "riscv64:bootriscv64" ]
   }
 }

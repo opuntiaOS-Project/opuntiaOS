@@ -30,6 +30,8 @@
 #define return_tf (thread->tf->r[1])
 #elif __aarch64__
 #define return_tf (thread->tf->x[1])
+#elif defined(__riscv) && (__riscv_xlen == 64)
+#define return_tf (thread->tf->a0)
 #endif
 
 static kmemzone_t _signal_jumper_zone;

@@ -18,7 +18,11 @@
 
 #define MAX_CPU_CNT 4
 #define THIS_CPU (&cpus[system_cpu_id()])
+
+// TODO: Add support for RiscV FPU.
+#ifndef __riscv
 #define FPU_ENABLED
+#endif
 
 typedef uint32_t cpufeat_flags_t;
 

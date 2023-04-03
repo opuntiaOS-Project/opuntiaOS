@@ -21,7 +21,7 @@
 typedef int irq_flags_t;
 typedef int irq_line_t;
 typedef uint8_t irq_priority_t;
-typedef void (*irq_handler_t)();
+typedef void (*irq_handler_t)(irq_line_t line);
 
 // Currently flags maps to devtree irq_flags.
 // Later we might need to enhance irq_flags_from_devtree() to use as translator.

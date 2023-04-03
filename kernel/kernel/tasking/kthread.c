@@ -31,6 +31,10 @@
 #define KSTACK_ZONE_SIZE (2 * VMM_PAGE_SIZE)
 #define KSTACK_TOP VMM_PAGE_SIZE
 #define USTACK_TOP (2 * VMM_PAGE_SIZE)
+#elif defined(__riscv) && (__riscv_xlen == 64)
+#define KSTACK_ZONE_SIZE (2 * VMM_PAGE_SIZE)
+#define KSTACK_TOP VMM_PAGE_SIZE
+#define USTACK_TOP (2 * VMM_PAGE_SIZE)
 #endif
 
 extern void trap_return();
@@ -111,6 +115,8 @@ int kthread_fill_up_stack(thread_t* thread, void* data)
     thread->tf->r[0] = (uintptr_t)data;
 #elif __aarch64__
     thread->tf->x[0] = (uintptr_t)data;
+#elif defined(__riscv) && (__riscv_xlen == 64)
+    thread->tf->a0 = (uintptr_t)data;
 #endif
     return 0;
 }

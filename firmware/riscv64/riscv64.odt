@@ -1,0 +1,43 @@
+{
+    "name": "qemu-virt",
+    "devices": [{
+            "name": "ram",
+            "type": "RAM",
+            "mem": {
+                "base": "0x80000000",
+                "size": "0x40000000"
+            }
+        },
+        {
+            "name": "uart",
+            "type": "UART",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x10000000"
+            }
+        },
+        {
+            "name": "rv64timer",
+            "type": "TIMER",
+            "flags": "MMIO",
+            "mem": {
+                "base": "0x2000000"
+            }
+        },
+        {
+            "name": "plic",
+            "type": "IC",
+            "mem": {
+                "base": "0x0c000000"
+            }
+        },
+        {
+            "name": "virtio",
+            "type": "BUS",
+            "mem": {
+                "base": "0x10001000",
+                "size": "0x8000"
+            }
+        }
+    ]
+}

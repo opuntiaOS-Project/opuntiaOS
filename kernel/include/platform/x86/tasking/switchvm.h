@@ -12,6 +12,6 @@
 #include <libkern/types.h>
 #include <tasking/tasking.h>
 
-void switchuvm(thread_t* thread);
+void switch_uthreads(thread_t* thread);
 
 #endif

@@ -28,6 +28,10 @@ typedef int ptrdiff_t;
 typedef unsigned long size_t;
 typedef long long ssize_t;
 typedef long long ptrdiff_t;
+#elif defined(__riscv) && (__riscv_xlen == 64)
+typedef unsigned long size_t;
+typedef long long ssize_t;
+typedef long long ptrdiff_t;
 #endif
 
 #define NULL ((void*)0)

@@ -15,7 +15,6 @@
 #include <drivers/devtree.h>
 #include <drivers/driver_manager.h>
 
-#include <mem/kmalloc.h>
 #include <mem/kswapd.h>
 #include <mem/pmm.h>
 #include <mem/vmm.h>
