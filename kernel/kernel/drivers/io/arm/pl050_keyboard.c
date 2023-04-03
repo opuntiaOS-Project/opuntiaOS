@@ -51,15 +51,13 @@ static void pl050_keyboard_recieve_notification(uintptr_t msg, uintptr_t param)
     }
 
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
-        if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
-            if (generic_keyboard_create_devfs() < 0) {
-                kpanic("Can't init pl050_keyboard in /dev");
-            }
+        if (generic_keyboard_create_devfs() < 0) {
+            kpanic("Can't init pl050_keyboard in /dev");
         }
     }
 }
 
-static void _pl050_keyboard_int_handler()
+static void _pl050_keyboard_int_handler(irq_line_t il)
 {
     uint32_t data = registers->data;
     generic_emit_key_set1(data);

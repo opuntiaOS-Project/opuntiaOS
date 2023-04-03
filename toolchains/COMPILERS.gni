@@ -32,6 +32,15 @@ if (target_arch == "arm64") {
   gnu_target = "aarch64-elf"
 }
 
+if (target_arch == "riscv64") {
+  gnu_ar = "riscv64-unknown-elf-ar"
+  gnu_cc = "riscv64-unknown-elf-gcc"
+  gnu_cxx = "riscv64-unknown-elf-g++"
+  gnu_ld = "riscv64-unknown-elf-gcc"
+  gnu_asm = "riscv64-unknown-elf-gcc -c"
+  gnu_target = "riscv64-unknown-elf"
+}
+
 if (target_arch == "x86") {
   llvm_ar = "$llvm_bin_path/llvm-ar"
   llvm_cc = "$llvm_bin_path/clang"
@@ -70,6 +79,16 @@ if (target_arch == "arm64") {
   llvm_ld = "$llvm_bin_path/ld.lld"
   llvm_asm = "$llvm_bin_path/clang"
   llvm_target = "aarch64--linux"
+  llvm_ccpp_target_flag = "-target $llvm_target"
+  llvm_asm_target_flag = "-target $llvm_target -c"
+}
+if (target_arch == "riscv64") {
+  llvm_ar = "$llvm_bin_path/llvm-ar"
+  llvm_cc = "$llvm_bin_path/clang"
+  llvm_cxx = "$llvm_bin_path/clang++"
+  llvm_ld = "$llvm_bin_path/ld.lld"
+  llvm_asm = "$llvm_bin_path/clang"
+  llvm_target = "riscv64--linux"
   llvm_ccpp_target_flag = "-target $llvm_target"
   llvm_asm_target_flag = "-target $llvm_target -c"
 }

@@ -289,7 +289,7 @@ static void switch_to_thread(thread_t* thread)
     thread->last_cpu = THIS_CPU->id;
     thread->start_time_in_ticks = timeman_ticks_since_boot();
     thread->ticks_until_preemption = _sched_get_timeslice(thread);
-    switchuvm(thread);
+    switch_uthreads(thread);
     switch_contexts(&(THIS_CPU->sched_context), thread->context);
 }
 

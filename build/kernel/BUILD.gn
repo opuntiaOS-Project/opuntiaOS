@@ -170,6 +170,40 @@ if (target_arch == "arm64") {
   }
 }
 
+if (target_arch == "riscv64") {
+  kernel_c_flags += [
+    "-fno-builtin",
+    "-march=rv64ima",
+    "-mabi=lp64",
+    "-mcmodel=medany",
+  ]
+  kernel_asm_flags += [
+    "-mcmodel=medany",
+    "-march=rv64ima",
+    "-mabi=lp64",
+  ]
+  kernel_ld_flags += [ "-nostdlib" ]
+
+  if (host == "gnu") {
+    kernel_ld_flags += [
+      "-nostdinc",
+      "-nodefaultlibs",
+      "-nostartfiles",
+      rebase_path("//toolchains/gcc_runtime/10.2.1/riscv64-libgcc.a",
+                root_build_dir),
+    ]
+  }
+
+  if (host == "llvm") {
+    kernel_ld_flags += [
+      "--oformat",
+      "elf64",
+      rebase_path("//toolchains/gcc_runtime/10.2.1/riscv64-libgcc.a",
+                root_build_dir),
+    ]
+  }
+}
+
 config("kernel_flags") {
   cflags = kernel_c_flags
   asmflags = kernel_asm_flags

@@ -134,6 +134,10 @@ static void vmm_create_kernel_ptables(boot_args_t* args)
         vmm_map_pages_locked((uintptr_t)args->fb_boot_desc.vaddr, (uintptr_t)args->fb_boot_desc.paddr, 256 * 16, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
     }
 #endif
+
+#if defined(__riscv) && (__riscv_xlen == 64)
+    vmm_map_page_locked(0x10000000, 0x10000000, MMU_FLAG_PERM_WRITE | MMU_FLAG_PERM_READ);
+#endif
 }
 
 int vmm_init_setup_finished = 0;
@@ -517,10 +521,10 @@ int vmm_free_address_space_locked_impl(vm_address_space_t* vm_aspace)
 vm_address_space_t* vmm_get_active_address_space() { return THIS_CPU->active_address_space; }
 vm_address_space_t* vmm_get_kernel_address_space() { return _vmm_kernel_address_space_ptr; }
 
-static uintptr_t _vmm_convert_vaddr2paddr(uintptr_t vaddr)
+uintptr_t vmm_convert_vaddr_to_paddr_impl(uintptr_t vaddr)
 {
     ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
-    return ((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & 0xfff));
+    return (vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & vm_page_mask());
 }
 
 int vmm_switch_address_space_locked_impl(vm_address_space_t* vm_aspace)
@@ -539,7 +543,7 @@ int vmm_switch_address_space_locked_impl(vm_address_space_t* vm_aspace)
         return 0;
     }
     THIS_CPU->active_address_space = vm_aspace;
-    system_set_pdir(_vmm_convert_vaddr2paddr((uintptr_t)vm_aspace->pdir), _vmm_kernel_pdir1_paddr);
+    system_set_pdir(vmm_convert_vaddr_to_paddr_impl((uintptr_t)vm_aspace->pdir), _vmm_kernel_pdir1_paddr);
     system_flush_whole_tlb();
     system_enable_interrupts();
     return 0;

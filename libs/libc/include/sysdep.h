@@ -55,6 +55,20 @@ static inline intptr_t _syscall_impl(sysid_t sysid, intptr_t p1, intptr_t p2, in
         : "=r"(ret)
         : "r"(sysid), "r"((intptr_t)(p1)), "r"((intptr_t)(p2)), "r"((intptr_t)(p3)), "r"((intptr_t)(p4)), "r"((intptr_t)(p5))
         : "memory", "x0", "x1", "x2", "x3", "x4", "x8");
+#elif defined(__riscv) && (__riscv_xlen == 64)
+    // TODO: Check copatability with Linux.
+    asm volatile(
+        "mv a7, %1;\
+        mv a0, %2;\
+        mv a1, %3;\
+        mv a2, %4;\
+        mv a3, %5;\
+        mv a4, %6;\
+        ecall;\
+        mv %0, a0;"
+        : "=r"(ret)
+        : "r"(sysid), "r"((intptr_t)(p1)), "r"((intptr_t)(p2)), "r"((intptr_t)(p3)), "r"((intptr_t)(p4)), "r"((intptr_t)(p5))
+        : "memory", "a0", "a1", "a2", "a3", "a4", "a7");
 #endif
     return ret;
 }

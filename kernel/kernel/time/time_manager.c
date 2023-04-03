@@ -76,6 +76,8 @@ int timeman_setup()
 
     if (get_rtc) {
         time_since_epoch = get_rtc();
+    } else {
+        time_since_epoch = 0;
     }
 
 #ifdef TIME_MANAGER_DEBUG

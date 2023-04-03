@@ -83,7 +83,9 @@ struct thread {
     kmemzone_t kstack;
     context_t* context; // context of kernel's registers
     trapframe_t* tf;
+#ifdef FPU_ENABLED
     fpu_state_t* fpu_state;
+#endif
 
     /* Scheduler data */
     struct thread* sched_prev;

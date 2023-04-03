@@ -5,3 +5,4 @@ $SCRIPT_DIR/x86.sh
 $SCRIPT_DIR/x86_64.sh
 $SCRIPT_DIR/arm.sh
 $SCRIPT_DIR/arm64.sh
+$SCRIPT_DIR/riscv64.sh

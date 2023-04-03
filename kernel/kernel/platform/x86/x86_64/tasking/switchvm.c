@@ -14,7 +14,7 @@
 #include <platform/x86/tasking/tss.h>
 
 /* switching the page dir and tss to the current proc */
-void switchuvm(thread_t* thread)
+void switch_uthreads(thread_t* thread)
 {
     system_disable_interrupts();
 

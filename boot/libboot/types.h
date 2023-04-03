@@ -47,6 +47,12 @@ typedef int64_t ssize_t;
 typedef int64_t intptr_t;
 typedef uint64_t uintptr_t;
 #define BITS64
+#elif defined(__riscv) && (__riscv_xlen == 64)
+typedef uint64_t size_t;
+typedef int64_t ssize_t;
+typedef int64_t intptr_t;
+typedef uint64_t uintptr_t;
+#define BITS64
 #endif
 
 typedef _Bool bool;
@@ -84,5 +90,8 @@ typedef __builtin_va_list va_list;
 
 #define ROUND_CEIL(a, b) (((a) + ((b)-1)) & ~((b)-1))
 #define ROUND_FLOOR(a, b) ((a) & ~((b)-1))
+
+#define TEST_FLAG(val, flag) (((val) & (flag)) == (flag))
+#define TEST_BIT(val, bitnum) (((val) & (1 << bitnum)) == (1 << bitnum))
 
 #endif // _BOOT_LIBBOOT_TYPES_H

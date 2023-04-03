@@ -59,6 +59,9 @@ if (target_arch == "arm64") {
     target_board = "qemu_virt"
   }
 }
+if (target_arch == "riscv64") {
+  target_board = "riscv64"
+}
 
 if (host == "gnu") {
   set_default_toolchain("//toolchains:gnu-cross-compiler")

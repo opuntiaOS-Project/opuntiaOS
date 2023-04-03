@@ -45,7 +45,7 @@ static inline void _sp804_clear_interrupt(volatile sp804_registers_t* timer)
     timer->intclr = 1;
 }
 
-static void _sp804_int_handler()
+static void _sp804_int_handler(irq_line_t il)
 {
     _sp804_clear_interrupt(timer1);
     cpu_tick();

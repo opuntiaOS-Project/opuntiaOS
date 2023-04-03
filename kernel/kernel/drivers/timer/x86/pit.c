@@ -36,6 +36,15 @@ static int _pit_set_frequency(uint16_t freq)
     return 0;
 }
 
+void pit_handler(irq_line_t il)
+{
+    system_disable_interrupts();
+    cpu_tick();
+    timeman_timer_tick();
+    system_enable_interrupts();
+    sched_tick();
+}
+
 void pit_setup()
 {
     int err = _pit_set_frequency(TIMER_TICKS_PER_SECOND);
@@ -43,13 +52,4 @@ void pit_setup()
         kpanic("PIT: failed to set frequency");
     }
     irq_register_handler(irqline_from_id(0), 0, 0, pit_handler, BOOT_CPU_MASK);
-}
-
-void pit_handler()
-{
-    system_disable_interrupts();
-    cpu_tick();
-    timeman_timer_tick();
-    system_enable_interrupts();
-    sched_tick();
 }

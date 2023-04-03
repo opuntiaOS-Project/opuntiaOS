@@ -113,3 +113,35 @@ if (target_arch == "arm64") {
     ]
   }
 }
+
+if (target_arch == "riscv64") {
+  uland_c_flags += [
+    "-fno-builtin",
+    "-march=rv64ima",
+    "-mabi=lp64",
+  ]
+  uland_asm_flags += [
+    "-march=rv64ima",
+    "-mabi=lp64",
+  ]
+  uland_ld_flags += [ "-nostdlib" ]
+
+  if (host == "gnu") {
+    uland_ld_flags += [
+      "-nostdinc",
+      "-nodefaultlibs",
+      "-nostartfiles",
+      rebase_path("//toolchains/gcc_runtime/10.2.1/riscv64-libgcc.a",
+                root_build_dir),
+    ]
+  }
+
+  if (host == "llvm") {
+    uland_ld_flags += [
+      "--oformat",
+      "elf64",
+      rebase_path("//toolchains/gcc_runtime/10.2.1/riscv64-libgcc.a",
+                root_build_dir),
+    ]
+  }
+}

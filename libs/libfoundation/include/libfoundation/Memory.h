@@ -29,6 +29,10 @@ namespace LFoundation {
     while (count--) {
         *dest++ = *src++;
     }
+#elif defined(__riscv) && (__riscv_xlen == 64)
+    while (count--) {
+        *dest++ = *src++;
+    }
 #endif
 }
 
@@ -81,6 +85,10 @@ namespace LFoundation {
         "[count]"(count)
         : "r4", "r5", "r6", "r7", "memory", "cc");
 #elif __aarch64__
+    while (count--) {
+        *dest++ = val;
+    }
+#elif defined(__riscv) && (__riscv_xlen == 64)
     while (count--) {
         *dest++ = val;
     }

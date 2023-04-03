@@ -19,39 +19,12 @@
 
 // #define MOUSE_DRIVER_DEBUG
 
-static ringbuffer_t mouse_buffer;
-
 int mouse_run();
-
-static bool _mouse_can_read(file_t* file, size_t start)
-{
-    return ringbuffer_space_to_read(&mouse_buffer) >= 1;
-}
-
-static int _mouse_read(file_t* file, void __user* buf, size_t start, size_t len)
-{
-    size_t leno = ringbuffer_space_to_read(&mouse_buffer);
-    if (leno > len) {
-        leno = len;
-    }
-    int res = ringbuffer_read_user(&mouse_buffer, buf, leno);
-    return leno;
-}
 
 static void _mouse_recieve_notification(uintptr_t msg, uintptr_t param)
 {
     if (msg == DEVMAN_NOTIFICATION_DEVFS_READY) {
-        path_t vfspth;
-        if (vfs_resolve_path("/dev", &vfspth) < 0) {
-            kpanic("Can't init mouse in /dev");
-        }
-
-        file_ops_t fops = { 0 };
-        fops.can_read = _mouse_can_read;
-        fops.read = _mouse_read;
-        devfs_inode_t* res = devfs_register(&vfspth, MKDEV(10, 1), "mouse", 5, S_IFCHR | 0400, &fops);
-
-        path_put(&vfspth);
+        generic_mouse_create_devfs();
     }
 }
 
@@ -117,7 +90,7 @@ static inline void _mouse_enable_aux()
     _mouse_wait_then_write(0x60, res);
 }
 
-void mouse_handler()
+void mouse_int_handler(irq_line_t il)
 {
     uint8_t status = port_read8(0x64);
     if ((status & 0x1) == 0 || (status & 0x20) != 0x20) {
@@ -150,7 +123,7 @@ void mouse_handler()
         packet.y_offset = 0;
     }
 
-    ringbuffer_write(&mouse_buffer, (uint8_t*)&packet, sizeof(mouse_packet_t));
+    generic_mouse_send_packet(&packet);
 
 #ifdef MOUSE_DRIVER_DEBUG
     log("%x", packet.button_states);
@@ -176,9 +149,9 @@ int mouse_run()
     _mouse_send_cmd_and_data(0xF3, 200);
     _mouse_send_cmd_and_data(0xF3, 100);
     _mouse_send_cmd_and_data(0xF3, 80);
-    irq_register_handler(irqline_from_id(12), 0, 0, mouse_handler, BOOT_CPU_MASK);
+    irq_register_handler(irqline_from_id(12), 0, 0, mouse_int_handler, BOOT_CPU_MASK);
 
-    mouse_buffer = ringbuffer_create_std();
+    generic_mouse_init();
     return 0;
 }
 

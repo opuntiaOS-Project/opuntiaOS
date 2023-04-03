@@ -16,6 +16,8 @@
 #define MACHINE "arm"
 #elif __aarch64__
 #define MACHINE "arm64"
+#elif defined(__riscv) && (__riscv_xlen == 64)
+#define MACHINE "riscv64"
 #endif
 
 #endif // _KERNEL_LIBKERN_VERSION_H

@@ -39,7 +39,7 @@ uintptr_t kernel_ptables_start_paddr = 0x0;
 static int _vmm_allocate_ptable(uintptr_t vaddr, ptable_lv_t lv);
 
 static void* _vmm_kernel_convert_vaddr2paddr(uintptr_t vaddr);
-static void* _vmm_convert_vaddr2paddr(uintptr_t vaddr);
+uintptr_t vmm_convert_vaddr_to_paddr_impl(uintptr_t vaddr);
 
 static bool _vmm_init_switch_to_kernel_pdir();
 static void _vmm_map_init_kernel_pages(uintptr_t paddr, uintptr_t vaddr);
@@ -97,16 +97,16 @@ static void* _vmm_kernel_convert_vaddr2paddr(uintptr_t vaddr)
 {
     ptable_t* ptable_paddr = (ptable_t*)(kernel_ptables_start_paddr + (VMM_OFFSET_IN_DIRECTORY(vaddr) - PTABLE_TOP_KERNEL_OFFSET) * PTABLE_SIZE(PTABLE_LV0));
     ptable_entity_t* page_desc = vm_lookup(ptable_paddr, PTABLE_LV0, vaddr);
-    return (void*)((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & 0xfff));
+    return (void*)((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & vm_page_mask()));
 }
 
 /**
  * @brief Traslates virtual address into physical.
  */
-static void* _vmm_convert_vaddr2paddr(uintptr_t vaddr)
+uintptr_t vmm_convert_vaddr_to_paddr_impl(uintptr_t vaddr)
 {
     ptable_entity_t* page_desc = vm_get_entity(vaddr, PTABLE_LV0);
-    return (void*)((vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & 0xfff));
+    return (vm_ptable_entity_get_frame(page_desc, PTABLE_LV0)) | (vaddr & vm_page_mask());
 }
 
 /**
@@ -889,7 +889,7 @@ int vmm_switch_address_space_locked_impl(vm_address_space_t* vm_aspace)
         return 0;
     }
     THIS_CPU->active_address_space = vm_aspace;
-    system_set_pdir((uintptr_t)_vmm_convert_vaddr2paddr((uintptr_t)vm_aspace->pdir), 0x0);
+    system_set_pdir(vmm_convert_vaddr_to_paddr_impl((uintptr_t)vm_aspace->pdir), 0x0);
     system_enable_interrupts();
     return 0;
 }

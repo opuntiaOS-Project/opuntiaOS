@@ -132,6 +132,24 @@ int ksyscall_impl(intptr_t id, intptr_t a, intptr_t b, intptr_t c, intptr_t d)
         : "memory", "x0", "x1", "x2", "x3", "x4", "x8");
     return ret;
 }
+#elif defined(__riscv) && (__riscv_xlen == 64)
+int ksyscall_impl(intptr_t id, intptr_t a, intptr_t b, intptr_t c, intptr_t d)
+{
+    int ret;
+    asm volatile(
+        "mv a7, %1;\
+        mv a0, %2;\
+        mv a1, %3;\
+        mv a2, %4;\
+        mv a3, %5;\
+        mv a4, %6;\
+        ecall;\
+        mv %0, a0;"
+        : "=r"(ret)
+        : "r"(id), "r"((intptr_t)(a)), "r"((intptr_t)(b)), "r"((intptr_t)(c)), "r"((intptr_t)(d)), "r"((intptr_t)(0))
+        : "memory", "a0", "a1", "a2", "a3", "a4", "a7");
+    return ret;
+}
 #endif
 
 void sys_handler(trapframe_t* tf)

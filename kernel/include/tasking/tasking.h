@@ -33,7 +33,7 @@ proc_t* tasking_get_proc(pid_t pid);
  * CPU FUNCTIONS
  */
 
-void switchuvm(thread_t* p);
+void switch_uthreads(thread_t* p);
 
 /**
  * TASK LOADING FUNCTIONS

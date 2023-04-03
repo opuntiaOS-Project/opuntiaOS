@@ -1,0 +1,131 @@
+# Copyright 2021 Nikita Melekhin. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+prekernel_c_flags = [
+  "-ffreestanding",
+  "-Werror",
+  "-Wno-address-of-packed-member",
+  "-fno-builtin",
+  "-march=rv64ima",
+  "-mabi=lp64",
+
+  # "-mcpu=generic-rv64",
+  "-fpie",
+  "-mcmodel=medany",
+]
+prekernel_asm_flags = [
+  "-mcmodel=medany",
+  "-march=rv64ima",
+  "-mabi=lp64",
+]
+prekernel_ld_flags = [ "-nostdlib" ]
+
+if (kernel_symbols) {
+  prekernel_c_flags += [ "-ggdb" ]
+}
+
+if (host == "gnu") {
+  prekernel_ld_flags += [
+    # "-mno-relax",
+    "-nostdinc",
+    "-nodefaultlibs",
+    "-nostartfiles",
+    "-lgcc",
+  ]
+}
+
+if (host == "llvm") {
+  prekernel_ld_flags += [
+    "--oformat",
+    "elf64",
+  ]
+}
+
+config("prekernel_flags") {
+  cflags = prekernel_c_flags
+  asmflags = prekernel_asm_flags
+  ldflags = prekernel_ld_flags
+  defines = [ "opuntiaOS_prekernel" ]
+}
+
+linker_script =
+    rebase_path("//build/boot/$target_arch/prekernel/prekernel_link.ld",
+                root_build_dir)
+
+# Use a strange __EMPTY_PATH_, empty string can't be passed as an arg.
+path_to_bins = "__EMPTY_PATH_"
+if (host == "llvm") {
+  path_to_bins = llvm_bin_path
+}
+
+devtree_compile_script_args = [
+  rebase_path("//firmware/$target_arch/$target_board.odt", root_build_dir),
+  rebase_path("$root_out_dir/firmware/$target_board.obt", root_build_dir),
+  "$target_arch",
+  "$target_board",
+  "$host",
+  "$path_to_bins",
+]
+
+action("devtree_compile") {
+  script = "//build/kernel/devtree_compile.py"
+  inputs = [ "//firmware/$target_arch/$target_board.odt" ]
+  outputs = [
+    "$root_out_dir/firmware/$target_board.obt",
+    "$root_out_dir/firmware/$target_board.obto",
+  ]
+  args = devtree_compile_script_args
+}
+
+embed_kernel_script_args = [
+  rebase_path("$root_build_dir/base/boot/kernel.bin", root_build_dir),
+  rebase_path("$root_build_dir/tmp/boot/kernel.o", root_build_dir),
+  "$target_arch",
+  "$target_board",
+  "$host",
+  "$path_to_bins",
+]
+
+action("embed_kernel") {
+  script = "embed_kernel.py"
+  sources = [ "$root_build_dir/base/boot/kernel.bin" ]
+  outputs = [ "$root_build_dir/tmp/boot/kernel.o" ]
+  args = embed_kernel_script_args
+  deps = [ "//build/kernel:kernel_build" ]
+}
+
+executable("prekernelriscv64") {
+  output_name = "prekernelriscv64.bin"
+  sources = [
+    "//boot/libboot/devtree/devtree.c",
+    "//boot/libboot/elf/elf_lite.c",
+    "//boot/libboot/log/log.c",
+    "//boot/libboot/mem/alloc.c",
+    "//boot/libboot/mem/mem.c",
+    "//boot/riscv64/prekernel/drivers/uart.c",
+    "//boot/riscv64/prekernel/entry.S",
+    "//boot/riscv64/prekernel/main.c",
+    "//boot/riscv64/prekernel/vm.c",
+  ]
+
+  include_dirs = [ "//boot" ]
+
+  inputs = [
+    "$root_out_dir/firmware/$target_board.obto",
+    "$root_out_dir/tmp/boot/kernel.o",
+  ]
+  deps = [
+    ":devtree_compile",
+    ":embed_kernel",
+  ]
+
+  configs = [ ":prekernel_flags" ]
+
+  ldflags = [
+    # Embeding kernel elf file into rawimage.
+    rebase_path("$root_out_dir/firmware/$target_board.obto", ""),
+    rebase_path("$root_out_dir/tmp/boot/kernel.o", ""),
+    "-T$linker_script",
+  ]
+}

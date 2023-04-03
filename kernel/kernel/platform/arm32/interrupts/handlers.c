@@ -193,7 +193,7 @@ static void init_irq_handlers()
 
 static inline void _irq_redirect(irq_line_t line)
 {
-    _irq_handlers[line]();
+    _irq_handlers[line](line);
 }
 
 void irq_handler(trapframe_t* tf)
@@ -209,7 +209,7 @@ void irq_handler(trapframe_t* tf)
     system_enable_interrupts_only_counter();
 }
 
-void fast_irq_handler()
+void fast_irq_handler(trapframe_t* tf)
 {
     log("fast_irq_handler");
     ASSERT(false);

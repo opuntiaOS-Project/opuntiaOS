@@ -16,6 +16,10 @@ class PyBridgingTools:
 
     @staticmethod
     def build_descriptor():
+        # Fixup for runtime libs.
+        ldflags = sys.argv[8] + " " if sys.argv[8] != "__EMPTY__" else ""
+        ldflags = ldflags.replace("../toolchains/", "../../../toolchains/")
+
         desc = {
             "outpath": os.path.abspath(sys.argv[1]),
             "rootdir": os.path.abspath(sys.argv[2]),
@@ -31,6 +35,6 @@ class PyBridgingTools:
             },
             "c_flags": sys.argv[6] + " " if sys.argv[6] != "__EMPTY__" else "",
             "cc_flags": sys.argv[7] + " " if sys.argv[7] != "__EMPTY__" else "",
-            "ld_flags": sys.argv[8] + " " if sys.argv[8] != "__EMPTY__" else "",
+            "ld_flags": ldflags,
         }
         return desc

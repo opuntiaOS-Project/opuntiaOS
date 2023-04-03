@@ -51,7 +51,7 @@ void arm64_timer_rearm()
     arm64_timer_write_ctrl(el / 125);
 }
 
-void tick()
+void tick(irq_line_t il)
 {
     arm64_timer_rearm();
     cpu_tick();
