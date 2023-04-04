@@ -295,7 +295,15 @@ int virtiogpu_init(device_t* dev)
     status_bits |= VIRTIO_STATUS_DRIVER_OK;
     registers->status = status_bits;
 
-    size_t fb_alloc_size = ROUND_CEIL(2 * 1024 * 768 * 4, VMM_PAGE_SIZE);
+#ifdef TARGET_DESKTOP
+    size_t screen_width = 1024;
+    size_t screen_height = 768;
+#elif TARGET_MOBILE
+    size_t screen_width = 320;
+    size_t screen_height = 568;
+#endif
+
+    size_t fb_alloc_size = ROUND_CEIL(2 * screen_width * screen_height * 4, VMM_PAGE_SIZE);
     virtio_buffer_desc_t fb_buffer;
     err = virtio_alloc_buffer(fb_alloc_size, &fb_buffer);
     if (err) {
@@ -306,8 +314,8 @@ int virtiogpu_init(device_t* dev)
     gpu_dev.registers = registers;
     gpu_dev.idx = 0;
     gpu_dev.ack_used_idx = 0;
-    gpu_dev.width = 1024;
-    gpu_dev.height = 768;
+    gpu_dev.width = screen_width;
+    gpu_dev.height = screen_height;
     gpu_dev.current_fb = 1;
     gpu_dev.fb_desc = fb_buffer;
     _virtiogpu_dev_init();

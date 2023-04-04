@@ -9,8 +9,6 @@ prekernel_c_flags = [
   "-fno-builtin",
   "-march=rv64ima",
   "-mabi=lp64",
-
-  # "-mcpu=generic-rv64",
   "-fpie",
   "-mcmodel=medany",
 ]
