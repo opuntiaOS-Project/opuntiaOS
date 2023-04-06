@@ -26,7 +26,7 @@ uint32_t _ext2_lite_get_offset_of_block(uint32_t block_index)
 static uint8_t tmp_read_buf[8192];
 void _ext2_lite_read(uint8_t* buf, uint32_t start, uint32_t len)
 {
-    void (*read)(uint32_t sector, uint8_t * read_to) = active_drive_desc->read;
+    void (*read)(uint32_t sector, uint8_t* read_to) = active_drive_desc->read;
     int already_read = 0;
     while (len != 0) {
         uint32_t sector = start / 512;
@@ -62,7 +62,7 @@ void _ext2_lite_read_inode(uint32_t inode_id, inode_t* inode)
 int ext2_lite_init(drive_desc_t* drive_desc, fs_desc_t* fs_desc)
 {
     active_drive_desc = drive_desc;
-    void (*read)(uint32_t sector, uint8_t * read_to) = drive_desc->read;
+    void (*read)(uint32_t sector, uint8_t* read_to) = drive_desc->read;
     _ext2_lite_read((uint8_t*)&superblock, SUPERBLOCK_START, SUPERBLOCK_LEN);
 
     if (superblock.magic != 0xEF53) {
