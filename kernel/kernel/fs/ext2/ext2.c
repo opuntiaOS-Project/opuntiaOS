@@ -117,7 +117,7 @@ int ext2_rm(const path_t* path);
 
 static void _ext2_read_from_dev(vfs_device_t* vfsdev, uint8_t* buf, uint32_t start, uint32_t len)
 {
-    void (*read)(device_t * d, uint32_t s, uint8_t * r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
+    void (*read)(device_t* d, uint32_t s, uint8_t* r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
     int already_read = 0;
     uint32_t sector = start / 512;
     uint32_t start_offset = start % 512;
@@ -138,8 +138,8 @@ static void _ext2_read_from_dev(vfs_device_t* vfsdev, uint8_t* buf, uint32_t sta
 
 static void _ext2_write_to_dev(vfs_device_t* vfsdev, uint8_t* buf, uint32_t start, uint32_t len)
 {
-    void (*read)(device_t * d, uint32_t s, uint8_t * r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
-    void (*write)(device_t * d, uint32_t s, uint8_t * r, uint32_t siz) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_WRITE);
+    void (*read)(device_t* d, uint32_t s, uint8_t* r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
+    void (*write)(device_t* d, uint32_t s, uint8_t* r, uint32_t siz) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_WRITE);
     int already_written = 0;
     uint32_t sector = start / 512;
     uint32_t start_offset = start % 512;
@@ -171,7 +171,7 @@ static void _ext2_umem_copy_from_user(vfs_device_t* vfsdev, void* dest, const vo
 
 static void _ext2_user_read_from_dev(vfs_device_t* vfsdev, void __user* buf, uint32_t start, uint32_t len)
 {
-    void (*read)(device_t * d, uint32_t s, uint8_t * r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
+    void (*read)(device_t* d, uint32_t s, uint8_t* r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
     int already_read = 0;
     uint32_t sector = start / 512;
     uint32_t start_offset = start % 512;
@@ -192,8 +192,8 @@ static void _ext2_user_read_from_dev(vfs_device_t* vfsdev, void __user* buf, uin
 
 static void _ext2_user_write_to_dev(vfs_device_t* vfsdev, void __user* buf, uint32_t start, uint32_t len)
 {
-    void (*read)(device_t * d, uint32_t s, uint8_t * r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
-    void (*write)(device_t * d, uint32_t s, uint8_t * r, uint32_t siz) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_WRITE);
+    void (*read)(device_t* d, uint32_t s, uint8_t* r) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_READ);
+    void (*write)(device_t* d, uint32_t s, uint8_t* r, uint32_t siz) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_WRITE);
     int already_written = 0;
     uint32_t sector = start / 512;
     uint32_t start_offset = start % 512;
@@ -216,7 +216,7 @@ static void _ext2_user_write_to_dev(vfs_device_t* vfsdev, void __user* buf, uint
 
 static uint32_t _ext2_get_disk_size(vfs_device_t* vfsdev)
 {
-    uint32_t (*get_size)(device_t * d) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_CAPACITY);
+    uint32_t (*get_size)(device_t* d) = devman_function_handler(vfsdev->dev, DRIVER_STORAGE_CAPACITY);
     return get_size(vfsdev->dev);
 }
 
