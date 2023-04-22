@@ -45,6 +45,12 @@ public:
         LG::PNG::PNGLoader loader;
 
         std::string icon_path = jdict_root->data()["icon_path"]->cast_to<LFoundation::Json::StringObject>()->data();
+        std::string icon_rel_path = jdict_root->data()["icon_rel_path"]->cast_to<LFoundation::Json::StringObject>()->data();
+
+        if (!icon_rel_path.empty()) {
+            icon_path = content_dir + icon_rel_path;
+        }
+
         new_ent.set_icon(loader.load_from_file(icon_path + "/32x32.png"));
 
         std::string rel_exec_path = jdict_root->data()["exec_rel_path"]->cast_to<LFoundation::Json::StringObject>()->data();

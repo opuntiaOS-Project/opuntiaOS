@@ -1,6 +1,7 @@
 #include "ViewController.h"
 #include <libui/AppDelegate.h>
 #include <libui/MenuBar.h>
+#include <libfoundation/AssetManager.h>
 
 class AppDelegate : public UI::AppDelegate {
 public:
@@ -8,7 +9,11 @@ public:
     virtual ~AppDelegate() = default;
 
     LG::Size preferred_desktop_window_size() const override { return LG::Size(200, 210); }
-    const char* icon_path() const override { return "/res/icons/apps/about.icon"; }
+    const char* icon_path() const override 
+    {
+        LFoundation::AssetManager assets = LFoundation::AssetManager("about");
+        return assets.find("Resources/Assets/AppIcon").c_str();
+    }
 
     virtual bool application() override
     {
